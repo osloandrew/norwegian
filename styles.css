@@ -39,8 +39,19 @@ body {
 
 .definition p {
     color: #333;
-    font-size: 18px;
+    font-size: 20px;
     line-height: 1.6;
+    margin: 10px 0 10px 0;
+}
+
+.definition-content {
+    display: grid;
+    gap: 10px; /* Adds spacing between the grid items */
+    grid-template-columns: 1fr 1fr; /* Two columns of equal width */
+}
+
+.definition-content p {
+    margin: 0;
 }
 
 .definition-label {
@@ -52,9 +63,15 @@ body {
     text-transform: uppercase;
 }
 
+.english, .etymology, .pronunciation {
+    color: #555 !important;
+    font-size: 16px !important;
+    font-weight: 300;
+}
+
 .example {
     color: #3c88d4 !important;
-    font-size: 18px;
+    font-size: 16px !important;
 }
 
 footer {
@@ -79,7 +96,10 @@ h2 {
     color: #3c88d4;
     font-size: 30px;
     font-weight: bold;
-    margin: -5px 0 10px 0;
+    margin: -5px 0 -5px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 header {
@@ -130,8 +150,8 @@ input[type="text"]:not(:placeholder-shown) + label {
 .kjønn {
     color: #951b1b !important;
     font-family: 'Noto Sans', sans-serif;
-    font-size: 15px !important;
-    font-weight: 500;
+    font-size: 18px !important;
+    font-weight: 400;
     letter-spacing: .04rem;
     text-transform: uppercase;
 }
@@ -215,10 +235,28 @@ main {
     z-index: 100;
 }
 
+.word-kjonn {
+    align-items: center;  /* Vertically center align both elements */
+    display: flex;
+    justify-content: space-between;  /* Space between word and kjønn */
+    margin-bottom: 15px;  /* Add some spacing below the word */
+}
+
+.word-kjonn .kjønn {
+    color: #951b1b;  /* Keep original styling */
+    font-size: 18px;  /* Adjust size to match other labels */
+    font-weight: 400;  /* Maintain previous styling */
+    text-transform: uppercase;
+}
+
 @media (max-width: 768px) {
+    .definition-content {
+        grid-template-columns: 1fr;  /* Switch to a single column on smaller screens */
+    }
+
     .random-btn {
-        width: 90%; /* Full width */
         margin: 10px 0 10px 0;
+        width: 90%; /* Full width */
     }
 
     .search-bar-wrapper, #results-container {
@@ -246,6 +284,11 @@ main {
         white-space: nowrap;
     }
 
+    h2 {
+        font-size: 7vw;
+        
+    }
+
     header {
         padding: 10px 15px;
     }
@@ -257,5 +300,8 @@ main {
 
     input[type="text"] {
         padding: 10px 10px;
+    }
+    .word-kjonn .kjønn {
+        font-size: 4vw !important;
     }
 }
