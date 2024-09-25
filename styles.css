@@ -1,5 +1,9 @@
+a {
+    color: #3c88d4;
+}
+
 body {
-    background-color: rgb(244, 244, 244);
+    background-color: #f4f4f4;
     display: flex;
     flex-direction: column;
     font-family: 'Noto Serif', serif;
@@ -64,6 +68,17 @@ footer {
     width: 100%;
 }
 
+h1 {
+    color: #293a78;
+}
+
+h2 {
+    color: #3c88d4;
+    font-size: 30px;
+    font-weight: bold;
+    margin: -5px 0 10px 0;
+}
+
 header {
     background-color: #d2dce5;
     color: #0d3a69;
@@ -84,13 +99,6 @@ header p {
     font-weight: 600;
     margin-top: -20px;
     text-transform: uppercase;
-}
-
-h2 {
-    color: #3c88d4;
-    font-size: 30px;
-    font-weight: bold;
-    margin: -5px 0 10px 0;
 }
 
 html {
@@ -203,3 +211,20 @@ main {
     top: 0;
     z-index: 100;
 }
+
+@media (max-width: 768px) {
+    .random-btn {
+        width: 90%; /* Full width */
+        margin: 10px 0 10px 0; /* Minor top margin */
+    }
+
+    .search-bar-wrapper, #results-container {
+        margin: 10px 0 10px 0;
+        width: 90%;  /* Adjust to take more screen space on smaller devices */
+    }
+ 
+    h1 {
+        font-size: 35px;  /* Make the title smaller on smaller screens */
+        margin-top: -5px;
+    }
+ }
