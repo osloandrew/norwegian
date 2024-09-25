@@ -38,7 +38,7 @@ function parseCSVData(data) {
         skipEmptyLines: true,
         complete: function (resultsFromParse) {
             results = resultsFromParse.data;
-            showFirstResult();
+            randomWord();  // Show a random entry after data is loaded
         },
         error: function (error) {
             console.error('Error parsing CSV:', error);
@@ -112,33 +112,12 @@ function search() {
     }
 }
 
-function showFirstResult() {
-    if (!results.length) {
-        console.warn('No results available to display.');
-        return;
-    }
-
-    const firstResult = results[0];
-    firstResult.kjønn = formatKjonn(firstResult.kjønn);
-
-    document.getElementById('results-container').innerHTML = `
-        <div class="definition">
-            <h2>${firstResult.ord}</h2>
-            ${firstResult.kjønn ? `<p class="kjønn">${firstResult.kjønn}</p>` : ''}
-            ${firstResult.engelsk ? `<p><span class="definition-label">English:</span> ${firstResult.engelsk}</p>` : ''}
-            ${firstResult.uttale ? `<p><span class="definition-label">Pronunciation:</span> ${firstResult.uttale}</p>` : ''}
-            ${firstResult.etymologi ? `<p><span class="definition-label">Etymology:</span> ${firstResult.etymologi}</p>` : ''}
-            ${firstResult.definisjon ? `<p><span class="definition-label">Definition:</span> ${firstResult.definisjon}</p>` : ''}
-            ${firstResult.eksempel ? `<p class="example">${firstResult.eksempel}</p>` : ''}
-        </div>
-    `;
-}
-
 window.onload = function() {
-    fetchDictionaryData();
+    fetchDictionaryData();  // Load dictionary data when the page is refreshed
+
     const searchTerm = window.location.hash.substring(1) || new URLSearchParams(window.location.search).get('q');
     if (searchTerm) {
         document.getElementById('search-bar').value = decodeURIComponent(searchTerm);
-        search();
+        search();  // Automatically perform the search if there's a search term in the URL
     }
 };
