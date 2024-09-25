@@ -1,66 +1,74 @@
+// Declare a global array to store the dictionary results fetched from the Google Sheets CSV
 let results = [];
 
 // Clear input field function
 function clearInput() {
-    document.getElementById('search-bar').value = ''; // Clear the search input field
+    // Clear the value of the search bar input field
+    document.getElementById('search-bar').value = '';
 }
 
-// Debounced search function
+// Debounced search function to delay search execution
 function debounceSearch(func, delay) {
-    return function() {
+    let debounceTimeout; // Declare debounceTimeout to keep track of the timeout
+    return function () {
         const context = this, args = arguments;
-        clearTimeout(debounceTimeout);
-        debounceTimeout = setTimeout(() => func.apply(context, args), delay);
+        clearTimeout(debounceTimeout); // Clear previous timeout to reset the delay
+        debounceTimeout = setTimeout(() => func.apply(context, args), delay); // Set a new timeout
     };
 }
 
-// Fetch data from the Google Sheets CSV
+// Fetch data from the Google Sheets CSV using async/await
 async function fetchDictionaryData() {
     try {
         console.log('Fetching data from Google Sheets...');
         const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vSl2GxGiiO3qfEuVM6EaAbx_AgvTTKfytLxI1ckFE6c35Dv8cfYdx30vLbPPxadAjeDaSBODkiMMJ8o/pub?output=csv');
+        
+        // Check if the fetch request is successful
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        const data = await response.text();
-        parseCSVData(data);  // Use PapaParse to handle CSV data
+
+        const data = await response.text(); // Get the CSV data as text
+        parseCSVData(data);  // Parse the CSV data using PapaParse
     } catch (error) {
-        console.error('Error fetching or parsing data:', error);
+        console.error('Error fetching or parsing data:', error); // Handle errors gracefully
     }
 }
 
 // Handle Enter key press to trigger search
 function handleKey(event) {
     if (event.key === 'Enter') {
-        search();
+        search(); // Trigger the search when Enter key is pressed
     }
 }
 
 // Parse CSV data using PapaParse
 function parseCSVData(data) {
     Papa.parse(data, {
-        header: true, // Treat the first row as the header
-        skipEmptyLines: true, // Skip empty rows
-        complete: function(resultsFromParse) {
-            results = resultsFromParse.data; // Save parsed data
-            console.log('Parsed Results:', results); // Log for debugging
-            showFirstResult();  // Show first word when data is loaded
+        header: true, // Treat the first row of the CSV as header
+        skipEmptyLines: true, // Skip any empty rows in the CSV file
+        complete: function (resultsFromParse) {
+            results = resultsFromParse.data; // Store parsed data in the global results array
+            console.log('Parsed Results:', results); // Log parsed results for debugging
+            showFirstResult();  // Show the first result after data is loaded
         },
-        error: function(error) {
-            console.error('Error parsing CSV:', error);
+        error: function (error) {
+            console.error('Error parsing CSV:', error); // Handle parsing errors
         }
     });
 }
 
-// Random word function
+// Function to pick and display a random word from the results
 function randomWord() {
     if (results.length === 0) {
-        console.warn('No results available to pick a random word.');
+        console.warn('No results available to pick a random word.'); // Warn if no results are available
         return;
     }
-    const randomIndex = Math.floor(Math.random() * results.length);
-    const randomResult = results[randomIndex];
 
+    const randomIndex = Math.floor(Math.random() * results.length); // Pick a random index
+    const randomResult = results[randomIndex]; // Get the random word based on the index
+
+    // Update the results container with the random word's details
     const resultsContainer = document.getElementById('results-container');
     resultsContainer.innerHTML = `
         <div class="definition">
@@ -74,44 +82,49 @@ function randomWord() {
         </div>
     `;
 
-        // Update the URL to include the random word
+    // Only update the URL if you're not on a local file system or local development environment
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (window.location.protocol !== 'file:' && !isLocalhost) {
         const newUrl = `${window.location.protocol}//${window.location.host}/${randomResult.ord}`;
         history.pushState({ search: randomResult.ord }, '', newUrl);  // Update the URL without reloading the page
+    }
 
     console.log('Displayed random result:', randomResult);
 }
 
-// Search function
+// Main search function to search by a query and update the page
 function search() {
     const query = document.getElementById('search-bar').value.toLowerCase();
 
-    // Check if the search input is empty
+    // Check if the search input is empty, and prevent further execution if true
     if (query === '') {
-        alert('Please enter a word to search');
-        return;  // Do not clear the results container or proceed further
+        alert('Please enter a word to search'); // Notify the user to enter a search query
+        return;
     }
 
+    // Clear the results container before displaying new results
     const resultsContainer = document.getElementById('results-container');
-    resultsContainer.innerHTML = '';  // Clear the results container only if a valid search is made
+    resultsContainer.innerHTML = '';
 
     console.log('Searching for:', query);
 
-    // Update the URL with the search query
-    const newUrl = `${window.location.protocol}//${window.location.host}/${query}`;
-    history.pushState({ search: query }, '', newUrl);  // Update the URL without reloading the page
+    // Only update the URL if you're not on a local file system or local development environment
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (window.location.protocol !== 'file:' && !isLocalhost) {
+        const newUrl = `${window.location.protocol}//${window.location.host}/${query}`;
+        history.pushState({ search: query }, '', newUrl);  // Update the URL without reloading the page
+    }
 
-    // Scroll the user to the top of the page smoothly
+    // Smooth scroll to the top after search
     window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
+        top: 0,
+        behavior: 'smooth'
     });
 
-    // Search by Norwegian word (ord) or English translation (engelsk)
+    // Filter the results based on the search query (match by Norwegian word or English translation)
     const matchingResults = results.filter(r => {
         const norwegianWord = r.ord.toLowerCase();
         const englishWord = r.engelsk.toLowerCase();
-
-        // Return only exact or partial matches for Norwegian or English word
         return norwegianWord.includes(query) || englishWord.includes(query);
     });
 
@@ -122,17 +135,16 @@ function search() {
         const englishWordA = a.engelsk.toLowerCase();
         const englishWordB = b.engelsk.toLowerCase();
 
+        // Prioritize exact matches
         const isExactMatchA = norwegianWordA === query || englishWordA === query;
         const isExactMatchB = norwegianWordB === query || englishWordB === query;
 
-        // If A is an exact match and B is not, A should come first
         if (isExactMatchA && !isExactMatchB) return -1;
         if (!isExactMatchA && isExactMatchB) return 1;
-
-        // If both are exact matches or neither is, keep the default order
         return 0;
     });
 
+    // Display the sorted search results
     if (sortedResults.length > 0) {
         resultsContainer.innerHTML = sortedResults.map(result => `
             <div class="definition">
@@ -146,6 +158,7 @@ function search() {
             </div>
         `).join('');
     } else {
+        // Display message if no results are found
         resultsContainer.innerHTML = `
             <div class="definition">
                 <p>No results found for "${query}". Try searching for another word or use the Random Word feature.</p>
@@ -154,12 +167,13 @@ function search() {
     }
 }
 
-// Function to ensure one result is always visible (first entry)
+// Function to display the first result from the fetched data
 function showFirstResult() {
     if (results.length === 0) {
-        console.warn('No results available to display.');
+        console.warn('No results available to display.'); // Warn if no data is available
         return;
     }
+    
     const firstResult = results[0];
     const resultsContainer = document.getElementById('results-container');
     const resultHTML = `
@@ -177,20 +191,14 @@ function showFirstResult() {
     console.log('Displayed first result:', firstResult);
 }
 
-window.onload = function() {
-    // Fetch the dictionary data when the page loads
-    fetchDictionaryData();
+// Load dictionary data and perform any URL-based search when the page is loaded
+window.onload = function () {
+    fetchDictionaryData(); // Fetch dictionary data from Google Sheets when the page loads
 
-    // Check if there's a search term in the URL and perform a search
+    // Check if there's a search term in the URL and perform a search automatically
     const searchTerm = window.location.pathname.split('/')[1];
     if (searchTerm) {
         document.getElementById('search-bar').value = decodeURIComponent(searchTerm);
-        search();  // Automatically perform the search for the term in the URL
+        search();  // Perform the search using the term from the URL
     }
 };
-
-// Only update the URL if you're not running on a local file system
-if (window.location.protocol !== 'file:') {
-    const newUrl = `${window.location.protocol}//${window.location.host}/${query}`;
-    history.pushState({ search: query }, '', newUrl);  // Update the URL without reloading the page
-}
