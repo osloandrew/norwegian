@@ -23,10 +23,10 @@
             <div class="search-bar-wrapper">
                 <input type="text" id="search-bar" placeholder=" " onkeydown="handleKey(event)" />
                 <label for="search-bar">Type a word in Norwegian or English...</label>
-                <button class="clear-btn" onclick="clearInput()">X</button>
-                <button class="search-btn" onclick="search()">Search</button>
+                <button class="clear-btn" aria-label="Clear search field" onclick="clearInput()">X</button>
+                <button class="search-btn" aria-label="Search for the word" onclick="search()">Search</button>
             </div>
-            <button class="random-btn" onclick="randomWord()">Random Word</button>
+            <button class="random-btn" aria-label="Generate a random entry" onclick="randomWord()">Random Word</button>
         </section>
 
         <section id="results-container">
