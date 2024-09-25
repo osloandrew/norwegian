@@ -70,6 +70,9 @@ footer {
 
 h1 {
     color: #293a78;
+    white-space: nowrap;   /* Prevents the title from wrapping onto multiple lines */
+    overflow: hidden;      /* Ensures content doesn't overflow if it's too long */
+    text-overflow: ellipsis;  /* Add ellipsis if the text overflows */
 }
 
 h2 {
@@ -224,11 +227,12 @@ main {
     }
 
     .search-bar-wrapper label {
-        font-size: 14px; /* Reduce font size for smaller screens */
+        font-size: 12px; /* Reduce font size for smaller screens */
     }
 
     h1 {
-        font-size: 24px;  /* Make the title smaller on smaller screens */
+        font-size: 6vw;  /* Font size is relative to the viewport width */
+        white-space: nowrap;
         margin-top: -5px;
         margin-bottom: 10px;
     }
