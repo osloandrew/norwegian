@@ -231,7 +231,7 @@ main {
     }
 
     h1 {
-        font-size: 6vw;  /* Font size is relative to the viewport width */
+        font-size: 10vw !important;  /* Font size is relative to the viewport width */
         white-space: nowrap;
         margin-top: -5px;
         margin-bottom: 10px;
@@ -241,12 +241,12 @@ main {
         padding: 10px 15px;  /* Reduce padding */
     }
 
-    input[type="text"] {
-        padding: 10px 10px; /* Adjust padding to prevent overlap on smaller screens */
+    header p {
+        font-size: 3vw !important;
+        margin: -10px 0 0px 0 !important;
     }
 
-    p {
-        font-size: 14px;
-        margin-bottom: 2px;
+    input[type="text"] {
+        padding: 10px 10px; /* Adjust padding to prevent overlap on smaller screens */
     }
  }
