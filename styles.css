@@ -231,7 +231,6 @@ main {
     }
 
     footer {
-        padding: 15px; /* Add some extra padding */
         font-size: 12px; /* Reduce font size on smaller screens */
         text-align: center; /* Keep text centered */
     }
