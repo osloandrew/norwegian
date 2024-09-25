@@ -56,16 +56,20 @@ function randomWord() {
     randomResult.kjønn = formatKjonn(randomResult.kjønn);
 
     document.getElementById('results-container').innerHTML = `
-        <div class="definition">
-            <h2>${randomResult.ord}</h2>
-            ${randomResult.kjønn ? `<p class="kjønn">${randomResult.kjønn}</p>` : ''}
-            ${randomResult.engelsk ? `<p><span class="definition-label">English:</span> ${randomResult.engelsk}</p>` : ''}
-            ${randomResult.uttale ? `<p><span class="definition-label">Pronunciation:</span> ${randomResult.uttale}</p>` : ''}
-            ${randomResult.etymologi ? `<p><span class="definition-label">Etymology:</span> ${randomResult.etymologi}</p>` : ''}
-            ${randomResult.definisjon ? `<p><span class="definition-label">Definition:</span> ${randomResult.definisjon}</p>` : ''}
-            ${randomResult.eksempel ? `<p class="example">${randomResult.eksempel}</p>` : ''}
+    <div class="definition">
+        <h2 class="word-kjonn">
+            ${randomResult.ord}
+            ${randomResult.kjønn ? `<span class="kjønn">${randomResult.kjønn}</span>` : ''}
+        </h2>
+        ${randomResult.definisjon ? `<p>${randomResult.definisjon}</p>` : ''}
+        <div class="definition-content">
+            ${randomResult.engelsk ? `<p class="english"><span class="definition-label">English:</span> ${randomResult.engelsk}</p>` : ''}
+            ${randomResult.uttale ? `<p class="pronunciation"><span class="definition-label">Pronunciation:</span> ${randomResult.uttale}</p>` : ''}
+            ${randomResult.etymologi ? `<p class="etymology"><span class="definition-label">Etymology:</span> ${randomResult.etymologi}</p>` : ''}
         </div>
-    `;
+        ${randomResult.eksempel ? `<p class="example">${randomResult.eksempel}</p>` : ''}
+    </div>
+`;
 }
 
 function search() {
@@ -93,12 +97,16 @@ function search() {
             result.kjønn = formatKjonn(result.kjønn);
             return `
                 <div class="definition">
-                    <h2>${result.ord}</h2>
-                    ${result.kjønn ? `<p class="kjønn">${result.kjønn}</p>` : ''}
-                    ${result.engelsk ? `<p><span class="definition-label">English:</span> ${result.engelsk}</p>` : ''}
-                    ${result.uttale ? `<p><span class="definition-label">Pronunciation:</span> ${result.uttale}</p>` : ''}
-                    ${result.etymologi ? `<p><span class="definition-label">Etymology:</span> ${result.etymologi}</p>` : ''}
-                    ${result.definisjon ? `<p><span class="definition-label">Definition:</span> ${result.definisjon}</p>` : ''}
+                    <h2 class="word-kjonn">
+            ${result.ord}
+            ${result.kjønn ? `<span class="kjønn">${result.kjønn}</span>` : ''}
+        </h2>
+                    ${result.definisjon ? `<p>${result.definisjon}</p>` : ''}
+                    <div class="definition-content">
+                    ${result.engelsk ? `<p class="english"><span class="definition-label">English:</span> ${result.engelsk}</p>` : ''}
+                    ${result.uttale ? `<p class="pronunciation"><span class="definition-label">Pronunciation:</span> ${result.uttale}</p>` : ''}
+                    ${result.etymologi ? `<p class="etymology"><span class="definition-label">Etymology:</span> ${result.etymologi}</p>` : ''}
+                    </div>
                     ${result.eksempel ? `<p class="example">${result.eksempel}</p>` : ''}
                 </div>
             `;
