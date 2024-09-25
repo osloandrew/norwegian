@@ -82,13 +82,6 @@ function randomWord() {
         </div>
     `;
 
-    // Only update the URL if you're not on a local file system or local development environment
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    if (window.location.protocol !== 'file:' && !isLocalhost) {
-        const newUrl = `${window.location.protocol}//${window.location.host}/${randomResult.ord}`;
-        history.pushState({ search: randomResult.ord }, '', newUrl);  // Update the URL without reloading the page
-    }
-
     console.log('Displayed random result:', randomResult);
 }
 
@@ -107,13 +100,6 @@ function search() {
     resultsContainer.innerHTML = '';
 
     console.log('Searching for:', query);
-
-    // Only update the URL if you're not on a local file system or local development environment
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    if (window.location.protocol !== 'file:' && !isLocalhost) {
-        const newUrl = `${window.location.protocol}//${window.location.host}/${query}`;
-        history.pushState({ search: query }, '', newUrl);  // Update the URL without reloading the page
-    }
 
     // Smooth scroll to the top after search
     window.scrollTo({
