@@ -178,13 +178,18 @@ function showFirstResult() {
 }
 
 // Load dictionary data and perform any URL-based search when the page is loaded
-window.onload = function () {
-    fetchDictionaryData(); // Fetch dictionary data from Google Sheets when the page loads
+window.onload = function() {
+    // Fetch the dictionary data when the page loads
+    fetchDictionaryData();
 
-    // Check if there's a search term in the URL and perform a search automatically
-    const searchTerm = window.location.pathname.split('/')[1];
-    if (searchTerm) {
-        document.getElementById('search-bar').value = decodeURIComponent(searchTerm);
-        search();  // Perform the search using the term from the URL
+    // Avoid setting the search bar term from the local file path
+    if (window.location.protocol !== 'file:') {
+        // Use a hash or query string to get the search term instead of pathname
+        const searchTerm = window.location.hash.substring(1) || new URLSearchParams(window.location.search).get('q');
+
+        if (searchTerm) {
+            document.getElementById('search-bar').value = decodeURIComponent(searchTerm);
+            search();  // Automatically perform the search for the term in the hash or query string
+        }
     }
 };
