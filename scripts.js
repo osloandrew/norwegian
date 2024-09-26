@@ -69,7 +69,10 @@ function randomWord() {
         </div>
         ${randomResult.eksempel ? `<p class="example">${randomResult.eksempel}</p>` : ''}
     </div>
-`;
+    `;
+
+    // Call the line break function here
+    addLineBreakAfterComma();
 }
 
 function search() {
@@ -98,19 +101,22 @@ function search() {
             return `
                 <div class="definition">
                     <h2 class="word-kjonn">
-            ${result.ord}
-            ${result.kjønn ? `<span class="kjønn">${result.kjønn}</span>` : ''}
-        </h2>
+                        ${result.ord}
+                        ${result.kjønn ? `<span class="kjønn">${result.kjønn}</span>` : ''}
+                    </h2>
                     ${result.definisjon ? `<p>${result.definisjon}</p>` : ''}
                     <div class="definition-content">
-                    ${result.engelsk ? `<p class="english"><span class="definition-label">English:</span> ${result.engelsk}</p>` : ''}
-                    ${result.uttale ? `<p class="pronunciation"><span class="definition-label">Pronunciation:</span> ${result.uttale}</p>` : ''}
-                    ${result.etymologi ? `<p class="etymology"><span class="definition-label">Etymology:</span> ${result.etymologi}</p>` : ''}
+                        ${result.engelsk ? `<p class="english"><span class="definition-label">English:</span> ${result.engelsk}</p>` : ''}
+                        ${result.uttale ? `<p class="pronunciation"><span class="definition-label">Pronunciation:</span> ${result.uttale}</p>` : ''}
+                        ${result.etymologi ? `<p class="etymology"><span class="definition-label">Etymology:</span> ${result.etymologi}</p>` : ''}
                     </div>
                     ${result.eksempel ? `<p class="example">${result.eksempel}</p>` : ''}
                 </div>
             `;
         }).join('');
+
+        // Call the line break function here
+        addLineBreakAfterComma();
     } else {
         resultsContainer.innerHTML = `
             <div class="definition">
@@ -129,3 +135,18 @@ window.onload = function() {
         search();  // Automatically perform the search if there's a search term in the URL
     }
 };
+
+function addLineBreakAfterComma() {
+    if (window.innerWidth <= 768) {
+        // Select all elements with the class 'word-kjonn' that contain words
+        const wordElements = document.querySelectorAll('.word-kjonn');
+
+        wordElements.forEach(element => {
+            element.innerHTML = element.innerHTML.replace(/, /g, ',<br>');
+        });
+    }
+}
+
+// Call the function on page load and when the window is resized
+window.addEventListener('load', addLineBreakAfterComma);
+window.addEventListener('resize', addLineBreakAfterComma);
