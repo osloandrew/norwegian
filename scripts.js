@@ -18,6 +18,9 @@ function debounceSearch(func, delay) {
 }
 
 async function fetchDictionaryData() {
+    // Show the spinner before fetching data
+    document.getElementById('loading-spinner').style.display = 'block';
+
     try {
         const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vSl2GxGiiO3qfEuVM6EaAbx_AgvTTKfytLxI1ckFE6c35Dv8cfYdx30vLbPPxadAjeDaSBODkiMMJ8o/pub?output=csv');
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
