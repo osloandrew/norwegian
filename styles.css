@@ -235,6 +235,34 @@ main {
     z-index: 100;
 }
 
+.spinner {
+    text-align: center;
+    font-size: 20px;
+    color: #293a78;
+    margin: 20px;
+    display: none; /* Hidden by default */
+}
+
+/* You can also add an actual spinner graphic with this style if preferred */
+.spinner::before {
+    content: "";
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    border-top-color: #293a78;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
 .word-kjonn {
     align-items: center;  /* Vertically center align both elements */
     display: flex;
