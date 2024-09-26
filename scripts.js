@@ -2,7 +2,7 @@ let results = [];
 
 // Helper function to prepend "substantiv -" to 'kjønn' starting with 'e'
 function formatKjonn(kjonn) {
-    return kjonn && kjonn[0].toLowerCase() === 'e' ? 'substantiv - ' + kjjonn : kjonn;
+    return kjonn && kjonn[0].toLowerCase() === 'e' ? 'substantiv - ' + kjonn : kjonn;
 }
 
 function clearInput() {
@@ -114,6 +114,7 @@ function search() {
                 </div>
             `;
         }).join('');
+
     } else {
         resultsContainer.innerHTML = `
             <div class="definition">
@@ -132,3 +133,4 @@ window.onload = function() {
         search();  // Automatically perform the search if there's a search term in the URL
     }
 };
+
