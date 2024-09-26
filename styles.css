@@ -285,8 +285,11 @@ main {
     }
 
     h2 {
-        font-size: 7vw;
-        
+        white-space: normal; /* Allow text to wrap onto multiple lines */
+        word-break: break-word; /* Ensure long words break at appropriate points */
+        overflow-wrap: break-word; /* Break long words in older browsers */
+        hyphens: auto; /* Enable hyphenation if supported */
+        font-size: 7vw; /* Responsive font size for smaller screens */
     }
 
     header {
@@ -301,7 +304,20 @@ main {
     input[type="text"] {
         padding: 10px 10px;
     }
+    .word-kjonn {
+        display: flex;
+        flex-direction: column; /* Stack the elements vertically */
+        align-items: flex-start; /* Align text to the left */
+        line-height: 1.4; /* Adjust line-height for better readability */
+        hyphens: auto; /* Enable hyphenation */
+        -webkit-hyphens: auto; /* For better browser support */
+        -ms-hyphens: auto; /* IE support */
+        word-break: break-word; /* Break long words at boundaries if necessary */
+        overflow-wrap: break-word; /* Ensure long words don’t overflow */
+    }
+
     .word-kjonn .kjønn {
         font-size: 4vw !important;
+        margin-top: 5px; /* Add some space between the word and kjønn */
     }
 }
