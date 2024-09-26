@@ -1,3 +1,23 @@
+#results-container {
+    background-color: rgb(244, 244, 244);
+    margin: 20px auto;
+    padding: 20px;
+    text-align: left;
+    width: 50%;
+}
+
+#search-container {
+    background-color: white;
+    border-bottom: 1px solid #ccc;
+    font-family: 'Noto Sans', sans-serif;
+    margin: auto;
+    padding: 10px 0;
+    position: sticky;
+    text-align: center;
+    top: 0;
+    z-index: 100;
+}
+
 a {
     color: #3c88d4;
 }
@@ -37,13 +57,6 @@ body {
     padding: 25px;
 }
 
-.definition p {
-    color: #333;
-    font-size: 20px;
-    line-height: 1.6;
-    margin: 10px 0 10px 0;
-}
-
 .definition-content {
     display: grid;
     gap: 10px; /* Adds spacing between the grid items */
@@ -61,6 +74,13 @@ body {
     font-weight: 500;
     letter-spacing: .04rem;
     text-transform: uppercase;
+}
+
+.definition p {
+    color: #333;
+    font-size: 20px;
+    line-height: 1.6;
+    margin: 10px 0 10px 0;
 }
 
 .english, .etymology, .pronunciation {
@@ -215,53 +235,25 @@ main {
     transform: scale(1.01);
 }
 
-#results-container {
-    background-color: rgb(244, 244, 244);
-    margin: 20px auto;
-    padding: 20px;
-    text-align: left;
-    width: 50%;
-}
-
-#search-container {
-    background-color: white;
-    border-bottom: 1px solid #ccc;
-    font-family: 'Noto Sans', sans-serif;
-    margin: auto;
-    padding: 10px 0;
-    position: sticky;
-    text-align: center;
-    top: 0;
-    z-index: 100;
-}
-
 .spinner {
-    text-align: center;
-    font-size: 20px;
     color: #293a78;
+    display: none;
+    font-size: 20px;
     margin: 20px;
-    display: none; /* Hidden by default */
+    text-align: center;
 }
 
-/* You can also add an actual spinner graphic with this style if preferred */
 .spinner::before {
-    content: "";
-    display: inline-block;
-    width: 40px;
-    height: 40px;
+    animation: spin 0.8s linear infinite;
     border: 3px solid rgba(0, 0, 0, 0.3);
     border-radius: 50%;
     border-top-color: #293a78;
-    animation: spin 0.8s linear infinite;
+    content: "";
+    display: inline-block;
+    height: 40px;
     margin-bottom: 10px;
+    width: 40px;
 }
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
 
 .word-kjonn {
     align-items: center;  /* Vertically center align both elements */
@@ -275,6 +267,12 @@ main {
     font-size: 18px;  /* Adjust size to match other labels */
     font-weight: 400;  /* Maintain previous styling */
     text-transform: uppercase;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @media (max-width: 768px) {
@@ -313,11 +311,11 @@ main {
     }
 
     h2 {
+        font-size: 7vw; /* Responsive font size for smaller screens */
+        hyphens: auto; /* Enable hyphenation if supported */
+        overflow-wrap: break-word; /* Break long words in older browsers */
         white-space: normal; /* Allow text to wrap onto multiple lines */
         word-break: break-word; /* Ensure long words break at appropriate points */
-        overflow-wrap: break-word; /* Break long words in older browsers */
-        hyphens: auto; /* Enable hyphenation if supported */
-        font-size: 7vw; /* Responsive font size for smaller screens */
     }
 
     header {
@@ -332,10 +330,11 @@ main {
     input[type="text"] {
         padding: 10px 10px;
     }
+
     .word-kjonn {
+        align-items: flex-start; /* Align text to the left */
         display: flex;
         flex-direction: column; /* Stack the elements vertically */
-        align-items: flex-start; /* Align text to the left */
         line-height: 1.4; /* Adjust line-height for better readability */
         hyphens: auto; /* Enable hyphenation */
         -webkit-hyphens: auto; /* For better browser support */
