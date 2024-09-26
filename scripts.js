@@ -2,7 +2,7 @@ let results = [];
 
 // Helper function to prepend "substantiv -" to 'kjønn' starting with 'e'
 function formatKjonn(kjonn) {
-    return kjonn && kjonn[0].toLowerCase() === 'e' ? 'substantiv - ' + kjonn : kjonn;
+    return kjonn && kjonn[0].toLowerCase() === 'e' ? 'substantiv - ' + kjjonn : kjonn;
 }
 
 function clearInput() {
@@ -73,9 +73,6 @@ function randomWord() {
         ${randomResult.eksempel ? `<p class="example">${randomResult.eksempel}</p>` : ''}
     </div>
     `;
-
-    // Call the line break function here
-    addLineBreakAfterComma();
 }
 
 function search() {
@@ -117,9 +114,6 @@ function search() {
                 </div>
             `;
         }).join('');
-
-        // Call the line break function here
-        addLineBreakAfterComma();
     } else {
         resultsContainer.innerHTML = `
             <div class="definition">
@@ -138,18 +132,3 @@ window.onload = function() {
         search();  // Automatically perform the search if there's a search term in the URL
     }
 };
-
-function addLineBreakAfterComma() {
-    if (window.innerWidth <= 768) {
-        // Select all elements with the class 'word-kjonn' that contain words
-        const wordElements = document.querySelectorAll('.word-kjonn');
-
-        wordElements.forEach(element => {
-            element.innerHTML = element.innerHTML.replace(/, /g, ',<br>');
-        });
-    }
-}
-
-// Call the function on page load and when the window is resized
-window.addEventListener('load', addLineBreakAfterComma);
-window.addEventListener('resize', addLineBreakAfterComma);
