@@ -166,9 +166,9 @@ function search() {
     const resultsContainer = document.getElementById('results-container');
     resultsContainer.innerHTML = '';
 
-    // If the search bar is empty and POS is selected, perform a random search constrained by POS
+    // If the search bar is empty, do nothing
     if (!query) {
-        randomWord();  // Call randomWord to show a random word based on the selected POS
+        console.log('Search field is empty. Doing nothing.');
         return;
     }
 
@@ -209,9 +209,7 @@ function search() {
                 </div>
             `;
         }).join('');
-
     } else {
-        // Construct a specific message for no results found based on query and POS
         let noResultsMessage = `No results found for "${query}"`;
         if (selectedPOS) {
             noResultsMessage += ` with part of speech "${selectedPOS}".`;
@@ -220,7 +218,7 @@ function search() {
         }
         noResultsMessage += ` Try searching for another word or use the Random Word feature.`;
 
-        console.log('No results found for:', query, 'with POS:', selectedPOS); // Additional log if no results are found
+        console.log('No results found for:', query, 'with POS:', selectedPOS);
         resultsContainer.innerHTML = `
             <div class="definition">
                 <p>${noResultsMessage}</p>
@@ -229,9 +227,17 @@ function search() {
     }
 }
 
-
-
-
+function handlePOSChange() {
+    const query = document.getElementById('search-bar').value.toLowerCase().trim();
+    
+    // If the search field is empty, generate a random word based on the POS
+    if (!query) {
+        console.log('Search field is empty. Generating random word based on selected POS.');
+        randomWord();
+    } else {
+        search(); // If there is a query, perform the search with the selected POS
+    }
+}
 
 window.onload = function() {
     fetchDictionaryData();  // Load dictionary data when the page is refreshed
@@ -241,4 +247,8 @@ window.onload = function() {
         document.getElementById('search-bar').value = decodeURIComponent(searchTerm);
         search();  // Automatically perform the search if there's a search term in the URL
     }
+
+    // Add event listener to POS filter dropdown
+    document.getElementById('pos-select').addEventListener('change', handlePOSChange);
 };
+
