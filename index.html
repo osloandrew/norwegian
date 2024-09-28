@@ -22,19 +22,41 @@
     </header>
 
     <main>
+        <!-- Search container with full-width background -->
         <section id="search-container">
-            <div class="search-bar-wrapper">
-                <input type="text" id="search-bar" placeholder=" " onkeydown="handleKey(event)" />
-                <label for="search-bar">Type a word in Norwegian or English...</label>
-                <button class="clear-btn" aria-label="Clear search field" onclick="clearInput()">X</button>
-                <button class="search-btn" aria-label="Search for the word" onclick="search()">Search</button>
+            <!-- Inner container for search items to control width and center alignment -->
+            <div id="search-container-inner">
+                <div class="search-bar-wrapper">
+                    <input type="text" id="search-bar" placeholder=" " onkeydown="handleKey(event)" />
+                    <label for="search-bar">Type a word in Norwegian or English...</label>
+                    <button class="clear-btn" aria-label="Clear search field" onclick="clearInput()">X</button>
+                    <button class="search-btn" aria-label="Search for the word" onclick="search()">Search</button>
+                </div>
+
+                <!-- New dropdown for part of speech filter and random button -->
+                <div class="pos-filter-and-random">
+                    <div class="pos-filter">
+                        <select id="pos-select" onchange="search()">
+                            <option value="">Part of Speech</option>
+                            <option value="noun">Noun</option>
+                            <option value="verb">Verb</option>
+                            <option value="adjective">Adjective</option>
+                            <option value="adverb">Adverb</option>
+                            <option value="preposition">Preposition</option>
+                            <option value="interjection">Interjection</option>
+                            <option value="conjunction">Conjunction</option>
+                            <option value="pronoun">Pronoun</option>
+                            <option value="article">Article</option>
+                            <option value="expression">Expression</option>
+                        </select>
+                    </div>
+                    <button class="random-btn" aria-label="Generate a random entry" onclick="randomWord()">Random Word</button>
+                </div>
             </div>
-            <button class="random-btn" aria-label="Generate a random entry" onclick="randomWord()">Random Word</button>
         </section>
 
         <section id="results-container">
-            <div id="loading-spinner" class="spinner">
-            </div>
+            <div id="loading-spinner" class="spinner"></div>
         </section>
     </main>
 
