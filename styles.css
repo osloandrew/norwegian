@@ -40,12 +40,24 @@ body {
 
 .definition-content {
     display: grid;
-    gap: 10px;
     grid-template-columns: 1fr 1fr;
 }
 
+.definition-content i {
+    margin-right: 8px;
+    color: #951b1b; /* Dark red color */
+    font-size: 18px; /* Slightly larger than the text */
+    width: 24px; /* Fixed width for uniformity */
+    text-align: center; /* Centers the icons within their block */
+    display: inline-block; /* Ensures icons behave like a fixed block */
+    vertical-align: middle; /* Ensures the icon is vertically aligned with the text */
+}
+
 .definition-content p {
-    margin: 0;
+    color: #951b1b; /* Ensure text is also dark red */
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 .definition-label {
