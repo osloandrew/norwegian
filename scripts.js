@@ -146,9 +146,9 @@ function randomWord() {
         </h2>
         ${randomResult.definisjon ? `<p>${randomResult.definisjon}</p>` : ''}
         <div class="definition-content">
-            ${randomResult.engelsk ? `<p class="english"><span class="definition-label">English:</span> ${randomResult.engelsk}</p>` : ''}
-            ${randomResult.uttale ? `<p class="pronunciation"><span class="definition-label">Pronunciation:</span> ${randomResult.uttale}</p>` : ''}
-            ${randomResult.etymologi ? `<p class="etymology"><span class="definition-label">Etymology:</span> ${randomResult.etymologi}</p>` : ''}
+            ${randomResult.engelsk ? `<p class="english"><i class="fas fa-language"></i> ${randomResult.engelsk}</p>` : ''}
+            ${randomResult.uttale ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${randomResult.uttale}</p>` : ''}
+            ${randomResult.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${randomResult.etymologi}</p>` : ''}
         </div>
         ${randomResult.eksempel ? `<p class="example">${randomResult.eksempel}</p>` : ''}
     </div>
@@ -184,14 +184,18 @@ function search() {
 
     console.log('Filtered results:', matchingResults); // Log filtered results
 
+    // Sort the results
     const sortedResults = matchingResults.sort((a, b) => {
         const isExactMatchA = a.ord.toLowerCase() === query || a.engelsk.toLowerCase() === query;
         const isExactMatchB = b.ord.toLowerCase() === query || b.engelsk.toLowerCase() === query;
         return isExactMatchA ? -1 : isExactMatchB ? 1 : 0;
     });
 
-    if (sortedResults.length) {
-        resultsContainer.innerHTML = sortedResults.map(result => {
+    // Limit the number of results to a maximum of 20
+    const limitedResults = sortedResults.slice(0, 20);
+
+    if (limitedResults.length) {
+        resultsContainer.innerHTML = limitedResults.map(result => {
             result.kjønn = formatKjonn(result.kjønn);
             return `
                 <div class="definition">
@@ -201,9 +205,9 @@ function search() {
                     </h2>
                     ${result.definisjon ? `<p>${result.definisjon}</p>` : ''}
                     <div class="definition-content">
-                        ${result.engelsk ? `<p class="english"><span class="definition-label">English:</span> ${result.engelsk}</p>` : ''}
-                        ${result.uttale ? `<p class="pronunciation"><span class="definition-label">Pronunciation:</span> ${result.uttale}</p>` : ''}
-                        ${result.etymologi ? `<p class="etymology"><span class="definition-label">Etymology:</span> ${result.etymologi}</p>` : ''}
+                        ${result.engelsk ? `<p class="english"><i class="fas fa-language"></i> ${result.engelsk}</p>` : ''}
+                        ${result.uttale ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>` : ''}
+                        ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
                     </div>
                     ${result.eksempel ? `<p class="example">${result.eksempel}</p>` : ''}
                 </div>
@@ -226,6 +230,7 @@ function search() {
         `;
     }
 }
+
 
 function handlePOSChange() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
