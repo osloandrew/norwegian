@@ -5,16 +5,73 @@ function formatKjonn(kjonn) {
     return kjonn && kjonn[0].toLowerCase() === 'e' ? 'substantiv - ' + kjonn : kjonn;
 }
 
-function clearInput() {
-    document.getElementById('search-bar').value = '';
+// Function to map kjønn to part of speech
+function mapKjonnToPOS(kjonn) {
+    if (!kjonn) return '';
+
+    kjønn = kjonn.toLowerCase().trim(); // Ensure lowercase and remove any extra spaces
+
+    // Debugging: Log all the kjønn values
+    console.log('Current kjønn value:', kjønn);
+
+    // Check if the kjønn value includes "substantiv" for nouns
+    if (kjønn.includes('substantiv')) {
+        console.log('Mapped to noun');
+        return 'noun';
+    }
+    // Handle verbs
+    if (kjønn.startsWith('verb')) {
+        console.log('Mapped to verb');
+        return 'verb';
+    }
+    // Handle adjectives
+    if (kjønn.startsWith('adjektiv')) {
+        console.log('Mapped to adjective');
+        return 'adjective';
+    }
+        // Handle adverbs
+    if (kjønn.startsWith('adverb')) {
+        console.log('Mapped to adverb');
+        return 'adverb';
+    }
+    // Handle prepositions
+    if (kjønn.startsWith('preposisjon')) {
+        console.log('Mapped to preposition');
+        return 'preposition';
+    }
+    // Handle interjections
+    if (kjønn.startsWith('interjeksjon')) {
+        console.log('Mapped to interjection');
+        return 'interjection';
+    }
+    // Handle conjunctions
+    if (kjønn.startsWith('konjunksjon') || kjønn.startsWith('subjunksjon')) {
+        console.log('Mapped to conjunction');
+        return 'conjunction';
+    }
+    // Handle pronouns
+    if (kjønn.startsWith('pronomen')) {
+        console.log('Mapped to pronoun');
+        return 'pronoun';
+    }
+    // Handle articles
+    if (kjønn.startsWith('artikkel')) {
+        console.log('Mapped to article');
+        return 'article';
+    }
+    // Handle expressions
+    if (kjønn.startsWith('fast')) {
+        console.log('Mapped to expression');
+        return 'expression';
+    }
+
+    console.log('Mapped to unknown POS');
+    return '';  // Return empty string if no valid part of speech found
 }
 
-function debounceSearch(func, delay) {
-    let debounceTimeout;
-    return function (...args) {
-        clearTimeout(debounceTimeout);
-        debounceTimeout = setTimeout(() => func.apply(this, args), delay);
-    };
+
+function clearInput() {
+    document.getElementById('search-bar').value = '';
 }
 
 async function fetchDictionaryData() {
@@ -41,6 +98,7 @@ function parseCSVData(data) {
         skipEmptyLines: true,
         complete: function (resultsFromParse) {
             results = resultsFromParse.data;
+            console.log('Parsed data:', results);  // Log the parsed data
             randomWord();  // Show a random entry after data is loaded
         },
         error: function (error) {
@@ -50,12 +108,33 @@ function parseCSVData(data) {
 }
 
 function randomWord() {
+
+    
     if (!results.length) {
         console.warn('No results available to pick a random word.');
         return;
     }
 
-    const randomResult = results[Math.floor(Math.random() * results.length)];
+    const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
+
+    let filteredResults = results;
+
+    // If a part of speech is selected, filter the results by that POS
+    if (selectedPOS) {
+        filteredResults = results.filter(r => mapKjonnToPOS(r.kjønn) === selectedPOS);
+    }
+
+    if (!filteredResults.length) {
+        console.warn('No results available for the selected part of speech.');
+        document.getElementById('results-container').innerHTML = `
+            <div class="definition">
+                <p>No random words available for the selected part of speech. Try selecting another.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const randomResult = filteredResults[Math.floor(Math.random() * filteredResults.length)];
     randomResult.kjønn = formatKjonn(randomResult.kjønn);
 
     document.getElementById('results-container').innerHTML = `
@@ -75,19 +154,32 @@ function randomWord() {
     `;
 }
 
+
 function search() {
-    const query = document.getElementById('search-bar').value.toLowerCase();
-    if (!query) {
-        alert('Please enter a word to search');
-        return;
-    }
+    const query = document.getElementById('search-bar').value.toLowerCase().trim();
+    const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
+
+    console.log('Search query:', query, 'Selected POS:', selectedPOS);
 
     const resultsContainer = document.getElementById('results-container');
     resultsContainer.innerHTML = '';
 
+    // Prevent search from executing if the query is empty, even if a part of speech is selected
+    if (!query) {
+        return;
+    }
+
     const matchingResults = results.filter(r => {
-        return r.ord.toLowerCase().includes(query) || r.engelsk.toLowerCase().includes(query);
+        const matchesQuery = r.ord.toLowerCase().includes(query) || r.engelsk.toLowerCase().includes(query);
+        const mappedPOS = mapKjonnToPOS(r.kjønn);
+
+        const matchesPOS = !selectedPOS || mappedPOS === selectedPOS; // Exact match for POS
+        console.log('Mapped POS:', mappedPOS, 'Matches POS:', matchesPOS, 'for word:', r.ord);
+
+        return matchesQuery && matchesPOS;
     });
+
+    console.log('Filtered results:', matchingResults); // Log filtered results
 
     const sortedResults = matchingResults.sort((a, b) => {
         const isExactMatchA = a.ord.toLowerCase() === query || a.engelsk.toLowerCase() === query;
@@ -116,6 +208,7 @@ function search() {
         }).join('');
 
     } else {
+        console.log('No results found for:', query, 'with POS:', selectedPOS); // Additional log if no results are found
         resultsContainer.innerHTML = `
             <div class="definition">
                 <p>No results found for "${query}". Try searching for another word or use the Random Word feature.</p>
@@ -123,6 +216,9 @@ function search() {
         `;
     }
 }
+
+
+
 
 window.onload = function() {
     fetchDictionaryData();  // Load dictionary data when the page is refreshed
@@ -133,4 +229,3 @@ window.onload = function() {
         search();  // Automatically perform the search if there's a search term in the URL
     }
 };
-
