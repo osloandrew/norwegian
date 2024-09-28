@@ -1,20 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Norwegian Dictionary</title>
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="styles.css">
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    
+    <!-- Google Fonts -->
     <style> 
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@100..900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@100..900&display=swap');
     </style>
+    
+    <!-- External Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script src="scripts.js" defer></script> <!-- Link to the external JavaScript file -->
+    <script src="scripts.js" defer></script>
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-M5H81RF3DT"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+        gtag('config', 'G-M5H81RF3DT');
+    </script>
 </head>
+
 <body>
     <header>
         <h1>Norwegian Dictionary</h1>
@@ -26,6 +45,8 @@
         <section id="search-container">
             <!-- Inner container for search items to control width and center alignment -->
             <div id="search-container-inner">
+                
+                <!-- Search Bar -->
                 <div class="search-bar-wrapper">
                     <input type="text" id="search-bar" placeholder=" " onkeydown="handleKey(event)" />
                     <label for="search-bar">Type a word in Norwegian or English...</label>
@@ -33,7 +54,7 @@
                     <button class="search-btn" aria-label="Search for the word" onclick="search()">Search</button>
                 </div>
 
-                <!-- New dropdown for part of speech filter and random button -->
+                <!-- Part of Speech Filter and Random Button -->
                 <div class="pos-filter-and-random">
                     <div class="pos-filter">
                         <select id="pos-select" onchange="search()">
@@ -52,16 +73,19 @@
                     </div>
                     <button class="random-btn" aria-label="Generate a random entry" onclick="randomWord()">Random Word</button>
                 </div>
+                
             </div>
         </section>
 
+        <!-- Results Container -->
         <section id="results-container">
             <div id="loading-spinner" class="spinner"></div>
         </section>
     </main>
 
     <footer>
-        <p>© 2024 Norwegian Dictionary, with input from Språkrådet, Universitetet i Bergen and Det Norske Akademi for Språk og Litteratur</p>
+        <p>© 2024 Norwegian Dictionary, with input from Språkrådet, Universitetet i Bergen, and Det Norske Akademi for Språk og Litteratur</p>
     </footer>
 </body>
+
 </html>
