@@ -4,27 +4,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Norwegian Dictionary</title>
-    
+    <title>Norwegian Dictionary | Find Words in Norwegian and English</title>
+
+    <!-- Meta Description -->
+    <meta name="description" content="Norwegian Dictionary is your resource for finding words in both Norwegian and English. Search, filter by part of speech, and discover new words.">
+
+    <!-- Meta Keywords -->
+    <meta name="keywords" content="Norwegian dictionary, Norwegian to English, English to Norwegian, word search, language learning, part of speech filter, random words">
+
+    <!-- Open Graph for Social Media Sharing -->
+    <meta property="og:title" content="Norwegian Dictionary | Find Words in Norwegian and English">
+    <meta property="og:description" content="Use the Norwegian Dictionary to find translations and definitions for words in Norwegian and English.">
+    <meta property="og:image" content="path_to_image.jpg">
+    <meta property="og:url" content="https://yourdomain.com">
+
     <!-- Stylesheets -->
     <link rel="stylesheet" href="styles.css">
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-    
+
     <!-- Google Fonts -->
-    <style> 
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap');
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@100..900&display=swap');
     </style>
-    
+
     <!-- External Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="scripts.js" defer></script>
 
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
+
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-M5H81RF3DT"></script>
     <script>
@@ -46,26 +58,25 @@
     <main>
         <!-- Search container with full-width background -->
         <section id="search-container">
-            <!-- Inner container for search items to control width and center alignment -->
             <div id="search-container-inner">
-                
                 <!-- Search Bar Section -->
                 <div class="search-bar-wrapper">
-                    <input type="text" id="search-bar" placeholder=" " onkeydown="handleKey(event)" />
+                    <input type="text" id="search-bar" placeholder=" " onkeydown="handleKey(event)" aria-label="Search for Norwegian or English words">
                     <label for="search-bar">Type a word in Norwegian or English...</label>
-                    <!-- Updated Clear Button with Font Awesome xmark icon -->
+                    <!-- Clear Button with Font Awesome xmark icon -->
                     <button class="clear-btn" aria-label="Clear search field" onclick="clearInput()">
-                        <i class="fas fa-xmark"></i> <!-- Font Awesome xmark icon -->
+                        <i class="fas fa-xmark"></i>
                     </button>
+                    <!-- Search Button -->
                     <button class="search-btn" aria-label="Search for the word" onclick="search()">
-                        <i class="fas fa-search"></i>  <!-- Font Awesome search icon -->
+                        <i class="fas fa-search"></i>
                     </button>
-                </div>                
+                </div>
 
                 <!-- Part of Speech Filter and Random Button -->
                 <div class="pos-filter-and-random">
                     <div class="pos-filter">
-                        <select id="pos-select" onchange="search()">
+                        <select id="pos-select" onchange="search()" aria-label="Filter by part of speech">
                             <option value="">Part of Speech</option>
                             <option value="noun">Noun</option>
                             <option value="verb">Verb</option>
@@ -77,12 +88,12 @@
                             <option value="pronoun">Pronoun</option>
                             <option value="expression">Expression</option>
                         </select>
-                        <i class="fas fa-chevron-down"></i> <!-- Font Awesome chevron-down icon -->
+                        <i class="fas fa-chevron-down"></i>
                     </div>
-                    <button class="random-btn" aria-label="Generate a random entry" onclick="randomWord()" title="Generates a random word"> 
+                    <button class="random-btn" aria-label="Generate a random word" onclick="randomWord()" title="Generate a random word">
                         <i class="fas fa-dice"></i>
-                    </button>                    
-                    </div>
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -93,13 +104,12 @@
     </main>
 
     <footer>
-        <p class="copyright">© 2024 Norwegian Dictionary, with input from Språkrådet, Universitetet i Bergen and Det Norske Akademi for Språk og Litteratur</p>
+        <p class="copyright">© 2024 Norwegian Dictionary, with input from Språkrådet, Universitetet i Bergen, and Det Norske Akademi for Språk og Litteratur</p>
         <a href="https://www.linkedin.com/in/afeinberg1/" target="_blank" rel="noopener noreferrer" class="linkedin-btn">
             <img src="linkedin-icon.png" alt="LinkedIn Logo" class="linkedin-icon"> Connect with me on LinkedIn
         </a>
     </footer>
-    
-    
+
 </body>
 
 </html>
