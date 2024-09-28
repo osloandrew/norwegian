@@ -14,6 +14,7 @@ body {
     padding: 0;
 }
 
+/* Clear Button Styling */
 .clear-btn {
     align-items: center;
     background-color: white;
@@ -25,9 +26,12 @@ body {
     padding: 0 15px;
 }
 
-.clear-btn:hover {
-    background-color: rgb(188, 188, 188);
+/* Font Awesome xmark icon Styling */
+.clear-btn i {
+    font-size: 18px;  /* Icon size */
+    color: #999;      /* Icon color */
 }
+
 
 .definition {
     background-color: #ffffff;
@@ -79,11 +83,33 @@ footer {
     bottom: 0;
     color: #0d3a69;
     font-family: 'Noto Sans', sans-serif;
-    padding: 10px 0;
+    padding: 20px 0;
     position: relative;
     text-align: center;
     width: 100%;
 }
+
+footer p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+footer .copyright {
+    color: #555;
+    font-size: 12px;
+}
+
+footer p a {
+    color: #3c88d4;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+footer p a:hover {
+    color: #0d3a69;
+    text-decoration: underline;
+}
+
 
 h1 {
     color: #293a78;
@@ -131,6 +157,7 @@ html {
     margin: 0;
 }
 
+
 input[type="text"] {
     border: none;
     flex-grow: 1;
@@ -165,11 +192,39 @@ label {
     transform: translateY(-50%);
 }
 
+/* LinkedIn Button Styling */
+.linkedin-btn {
+    display: inline-flex;
+    align-items: center;
+    background-color: white;  /* Keep the button white */
+    color: #0a66c2;  /* LinkedIn blue for text */
+    padding: 8px 15px;  /* Reduce the padding to make it smaller */
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 13px;  /* Slightly smaller font size */
+    border: 1px solid #0a66c2;  /* Thinner border */
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;  /* More subtle transition */
+    margin-top: 10px;
+}
+
+.linkedin-btn:hover {
+    background-color: #f0f0f0;  /* Subtle background change on hover */
+    color: #0a66c2;  /* Keep text color blue */
+}
+
+.linkedin-icon {
+    width: 18px;  /* Slightly smaller icon */
+    height: auto;
+    margin-right: 8px;
+}
+
 main {
     flex: 1;
 }
 
 
+/* Container for Part of Speech filter */
 .pos-filter {
     background-color: #0d3a69;
     color: white;
@@ -179,16 +234,35 @@ main {
     padding: 10px 15px;
     font-family: 'Noto Sans', sans-serif;
     font-size: 16px;
-    appearance: none;  /* Remove default styling */
+    position: relative;  /* To position the icon absolutely inside */
+    display: inline-flex; /* Flexbox for aligning the select and icon */
+    align-items: center;
 }
 
+/* Style for the select element */
 .pos-filter select {
+    text-transform: uppercase;    /* Make the text all caps */
+    font-weight: 400;             /* Slightly lower font weight */
+    letter-spacing: 0.1em;        /* Slightly increased letter spacing */
+    font-family: 'Noto Sans', sans-serif;
+    color: white;
     background-color: inherit;
-    color: inherit;
     border: none;
-    font-family: inherit;
     cursor: pointer;
+    appearance: none;             /* Remove default select styling */
+    padding-right: 30px;          /* Space for the icon */
 }
+
+/* Font Awesome chevron-down icon */
+.pos-filter i {
+    position: absolute;
+    right: 15px;                  /* Position it to the far right */
+    pointer-events: none;         /* Prevent the icon from blocking clicks */
+    color: white;
+    font-size: 18px;              /* Icon size */
+}
+
+
 
 .pos-filter-and-random {
     display: flex;
@@ -196,6 +270,7 @@ main {
     gap: 15px;
 }
 
+/* Random Word Button Styling */
 .random-btn {
     background-color: #0d3a69;
     border: none;
@@ -203,11 +278,12 @@ main {
     color: white;
     cursor: pointer;
     font-family: 'Noto Sans', sans-serif;
-    font-size: 16px;
-    padding: 12px 20px;
+    padding: 10px 20px;  /* Add padding to ensure the size matches */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;  /* Ensure uniform height */
     transition: all 0.3s ease;
-    white-space: nowrap;  /* Prevent text from wrapping */
-    width: auto;  /* Adjust width based on content */
 }
 
 .random-btn:hover {
@@ -216,6 +292,14 @@ main {
     transform: scale(1.01);
 }
 
+/* Font Awesome Dice Icon */
+.random-btn i {
+    font-size: 18px;  /* Icon size */
+    color: white;     /* Icon color */
+    margin: 0;        /* Ensure no extra margins */
+}
+
+/* Search Bar Styling */
 .search-bar-wrapper {
     border: 1px solid #d1d1d1;
     border-radius: 15px;
@@ -223,18 +307,35 @@ main {
     display: inline-flex;
     overflow: hidden;
     position: relative;
-    width: 60%;  /* Take more space on desktop */
+    flex-grow: 1;  /* Make the search bar take more space */
+    min-width: 300px; /* Ensure a reasonable minimum width */
 }
 
+/* Unified Height */
+.search-bar-wrapper,
+.pos-filter,
+.random-btn {
+    height: 42px;  /* Set same height for all elements */
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;  /* Ensure padding and borders are included in height */
+}
+
+/* Search Button Styling */
 .search-btn {
-    background-color: #0d3a69;
+    background-color: #0d3a69;  /* Keep button background color */
     border: none;
-    color: white;
     cursor: pointer;
-    font-family: 'Noto Sans', sans-serif;
-    font-size: 16px;
-    padding: 10px 20px;
-    transition: all 0.3s ease;
+    padding: 0 14px;  /* Remove vertical padding to ensure height alignment */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;  /* Match the height of the parent container */
+    border-top-right-radius: 15px; /* Only round the top-right corner */
+    border-bottom-right-radius: 15px; /* Only round the bottom-right corner */
+    border-top-left-radius: 0; /* Ensure left corners are not rounded */
+    border-bottom-left-radius: 0; /* Ensure left corners are not rounded */
+    transition: background-color 0.3s ease;
 }
 
 .search-btn:hover {
@@ -242,6 +343,14 @@ main {
     box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
     transform: scale(1.01);
 }
+
+/* Font Awesome Search Icon */
+.search-btn i {
+    color: white;  /* Icon color */
+    font-size: 16px;  /* Keep the slightly smaller icon size */
+    margin: 0;  /* Reset any default margin */
+}
+
 
 #results-container {
     background-color: rgb(244, 244, 244);
@@ -265,15 +374,14 @@ main {
 }
 
 #search-container-inner {
-    max-width: 800px;  /* Ensure it takes up half the screen width */
-    margin: 0 auto;
+    max-width: 700px;  /* Limit the width to fit the content */
+    margin: 0 auto;    /* Center the container horizontally */
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: nowrap;  /* Prevent wrapping on desktop */
+    justify-content: center; /* Ensure items are centered */
+    align-items: center;     /* Vertically align the items */
+    gap: 20px;               /* Apply consistent gap between all three items */
+    flex-wrap: nowrap;       /* Prevent wrapping on desktop */
 }
-
-
 
 .spinner {
     text-align: center;
@@ -321,12 +429,13 @@ main {
     }
 
     footer {
-        font-size: 12px;
         text-align: center;
     }
 
     footer p {
+        font-size: 11px !important;
         margin: 0;
+        padding: 0 10px;
     }
 
     h1 {
@@ -357,6 +466,15 @@ main {
         padding: 10px 10px;
     }
 
+    .linkedin-btn {
+        font-size: 12px;
+        padding: 6px 12px;  /* Further reduce padding on small screens */
+    }
+
+    .linkedin-icon {
+        width: 16px;
+    }
+
     .pos-filter-and-random {
         display: flex;
         flex-direction: row;  /* Ensure the "Part of Speech" and "Random Word" are side by side */
@@ -380,7 +498,11 @@ main {
     }
 
     .search-btn {
-        padding: 15px 15px 15px 15px;
+        padding: 8px;  /* Reduce padding on smaller screens */
+    }
+
+    .search-btn i {
+        font-size: 16px;
     }
 
     #search-container {
