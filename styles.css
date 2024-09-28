@@ -14,7 +14,6 @@ body {
     padding: 0;
 }
 
-/* Clear Button Styling */
 .clear-btn {
     align-items: center;
     background-color: white;
@@ -26,12 +25,10 @@ body {
     padding: 0 15px;
 }
 
-/* Font Awesome xmark icon Styling */
 .clear-btn i {
-    font-size: 18px;  /* Icon size */
-    color: #999;      /* Icon color */
+    color: #999;
+    font-size: 18px;
 }
-
 
 .definition {
     background-color: #ffffff;
@@ -39,13 +36,6 @@ body {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
     padding: 25px;
-}
-
-.definition p {
-    color: #333;
-    font-size: 20px;
-    line-height: 1.6;
-    margin: 10px 0 10px 0;
 }
 
 .definition-content {
@@ -67,7 +57,16 @@ body {
     text-transform: uppercase;
 }
 
-.english, .etymology, .pronunciation {
+.definition p {
+    color: #333;
+    font-size: 20px;
+    line-height: 1.6;
+    margin: 10px 0 10px 0;
+}
+
+.english,
+.etymology,
+.pronunciation {
     color: #555 !important;
     font-size: 16px !important;
     font-weight: 300;
@@ -90,19 +89,14 @@ footer {
 }
 
 footer p {
-    margin: 5px 0;
     font-size: 14px;
-}
-
-footer .copyright {
-    color: #555;
-    font-size: 12px;
+    margin: 5px 0;
 }
 
 footer p a {
     color: #3c88d4;
-    text-decoration: none;
     font-weight: bold;
+    text-decoration: none;
 }
 
 footer p a:hover {
@@ -110,6 +104,10 @@ footer p a:hover {
     text-decoration: underline;
 }
 
+footer .copyright {
+    color: #555;
+    font-size: 12px;
+}
 
 h1 {
     color: #293a78;
@@ -157,7 +155,6 @@ html {
     margin: 0;
 }
 
-
 input[type="text"] {
     border: none;
     flex-grow: 1;
@@ -192,97 +189,90 @@ label {
     transform: translateY(-50%);
 }
 
-/* LinkedIn Button Styling */
 .linkedin-btn {
-    display: inline-flex;
     align-items: center;
-    background-color: white;  /* Keep the button white */
-    color: #0a66c2;  /* LinkedIn blue for text */
-    padding: 8px 15px;  /* Reduce the padding to make it smaller */
-    font-family: 'Noto Sans', sans-serif;
-    font-size: 13px;  /* Slightly smaller font size */
-    border: 1px solid #0a66c2;  /* Thinner border */
+    background-color: white;
+    border: 1px solid #0a66c2;
     border-radius: 4px;
-    text-decoration: none;
-    transition: background-color 0.2s ease, color 0.2s ease;  /* More subtle transition */
+    color: #0a66c2;
+    cursor: pointer;
+    display: inline-flex;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 13px;
     margin-top: 10px;
+    padding: 8px 15px;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .linkedin-btn:hover {
-    background-color: #f0f0f0;  /* Subtle background change on hover */
-    color: #0a66c2;  /* Keep text color blue */
+    background-color: #f0f0f0;
+    color: #0a66c2;
 }
 
 .linkedin-icon {
-    width: 18px;  /* Slightly smaller icon */
     height: auto;
     margin-right: 8px;
+    width: 18px;
 }
 
 main {
     flex: 1;
 }
 
-
-/* Container for Part of Speech filter */
 .pos-filter {
+    align-items: center;
     background-color: #0d3a69;
-    color: white;
     border: none;
     border-radius: 15px;
+    color: white;
     cursor: pointer;
-    padding: 10px 15px;
+    display: inline-flex;
     font-family: 'Noto Sans', sans-serif;
     font-size: 16px;
-    position: relative;  /* To position the icon absolutely inside */
-    display: inline-flex; /* Flexbox for aligning the select and icon */
-    align-items: center;
+    padding: 10px 15px;
+    position: relative;
 }
 
-/* Style for the select element */
-.pos-filter select {
-    text-transform: uppercase;    /* Make the text all caps */
-    font-weight: 400;             /* Slightly lower font weight */
-    letter-spacing: 0.1em;        /* Slightly increased letter spacing */
-    font-family: 'Noto Sans', sans-serif;
+.pos-filter i {
     color: white;
+    font-size: 18px;
+    pointer-events: none;
+    position: absolute;
+    right: 15px;
+}
+
+.pos-filter select {
+    appearance: none;
     background-color: inherit;
     border: none;
-    cursor: pointer;
-    appearance: none;             /* Remove default select styling */
-    padding-right: 30px;          /* Space for the icon */
-}
-
-/* Font Awesome chevron-down icon */
-.pos-filter i {
-    position: absolute;
-    right: 15px;                  /* Position it to the far right */
-    pointer-events: none;         /* Prevent the icon from blocking clicks */
     color: white;
-    font-size: 18px;              /* Icon size */
+    cursor: pointer;
+    font-family: 'Noto Sans', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    padding-right: 30px;
+    text-transform: uppercase;
 }
-
-
 
 .pos-filter-and-random {
-    display: flex;
     align-items: center;
+    display: flex;
     gap: 15px;
 }
 
-/* Random Word Button Styling */
 .random-btn {
+    align-items: center;
     background-color: #0d3a69;
     border: none;
     border-radius: 15px;
     color: white;
     cursor: pointer;
-    font-family: 'Noto Sans', sans-serif;
-    padding: 10px 20px;  /* Add padding to ensure the size matches */
     display: flex;
-    align-items: center;
+    font-family: 'Noto Sans', sans-serif;
+    height: 42px;
     justify-content: center;
-    height: 42px;  /* Ensure uniform height */
+    padding: 10px 20px;
     transition: all 0.3s ease;
 }
 
@@ -292,49 +282,45 @@ main {
     transform: scale(1.01);
 }
 
-/* Font Awesome Dice Icon */
 .random-btn i {
-    font-size: 18px;  /* Icon size */
-    color: white;     /* Icon color */
-    margin: 0;        /* Ensure no extra margins */
+    color: white;
+    font-size: 18px;
+    margin: 0;
 }
 
-/* Search Bar Styling */
 .search-bar-wrapper {
     border: 1px solid #d1d1d1;
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     display: inline-flex;
+    flex-grow: 1;
+    min-width: 300px;
     overflow: hidden;
     position: relative;
-    flex-grow: 1;  /* Make the search bar take more space */
-    min-width: 300px; /* Ensure a reasonable minimum width */
 }
 
-/* Unified Height */
 .search-bar-wrapper,
 .pos-filter,
 .random-btn {
-    height: 42px;  /* Set same height for all elements */
-    display: flex;
     align-items: center;
-    box-sizing: border-box;  /* Ensure padding and borders are included in height */
+    box-sizing: border-box;
+    display: flex;
+    height: 42px;
 }
 
-/* Search Button Styling */
 .search-btn {
-    background-color: #0d3a69;  /* Keep button background color */
-    border: none;
-    cursor: pointer;
-    padding: 0 14px;  /* Remove vertical padding to ensure height alignment */
-    display: flex;
     align-items: center;
+    background-color: #0d3a69;
+    border: none;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 15px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 15px;
+    cursor: pointer;
+    display: flex;
+    height: 100%;
     justify-content: center;
-    height: 100%;  /* Match the height of the parent container */
-    border-top-right-radius: 15px; /* Only round the top-right corner */
-    border-bottom-right-radius: 15px; /* Only round the bottom-right corner */
-    border-top-left-radius: 0; /* Ensure left corners are not rounded */
-    border-bottom-left-radius: 0; /* Ensure left corners are not rounded */
+    padding: 0 14px;
     transition: background-color 0.3s ease;
 }
 
@@ -344,13 +330,11 @@ main {
     transform: scale(1.01);
 }
 
-/* Font Awesome Search Icon */
 .search-btn i {
-    color: white;  /* Icon color */
-    font-size: 16px;  /* Keep the slightly smaller icon size */
-    margin: 0;  /* Reset any default margin */
+    color: white;
+    font-size: 16px;
+    margin: 0;
 }
-
 
 #results-container {
     background-color: rgb(244, 244, 244);
@@ -369,44 +353,38 @@ main {
     position: sticky;
     text-align: center;
     top: 0;
-    z-index: 100;
     width: 100%;
+    z-index: 100;
 }
 
 #search-container-inner {
-    max-width: 700px;  /* Limit the width to fit the content */
-    margin: 0 auto;    /* Center the container horizontally */
+    align-items: center;
     display: flex;
-    justify-content: center; /* Ensure items are centered */
-    align-items: center;     /* Vertically align the items */
-    gap: 20px;               /* Apply consistent gap between all three items */
-    flex-wrap: nowrap;       /* Prevent wrapping on desktop */
+    flex-wrap: nowrap;
+    gap: 20px;
+    justify-content: center;
+    margin: 0 auto;
+    max-width: 700px;
 }
 
 .spinner {
-    text-align: center;
-    font-size: 20px;
     color: #293a78;
+    display: none;
+    font-size: 20px;
     margin: 20px;
-    display: none; /* Hidden by default */
+    text-align: center;
 }
 
 .spinner::before {
-    content: "";
-    display: inline-block;
-    width: 40px;
-    height: 40px;
+    animation: spin 0.8s linear infinite;
     border: 3px solid rgba(0, 0, 0, 0.3);
     border-radius: 50%;
     border-top-color: #293a78;
-    animation: spin 0.8s linear infinite;
+    content: "";
+    display: inline-block;
+    height: 40px;
     margin-bottom: 10px;
-}
- 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+    width: 40px;
 }
 
 .word-kjonn {
@@ -421,6 +399,12 @@ main {
     font-size: 18px;
     font-weight: 400;
     text-transform: uppercase;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @media (max-width: 768px) {
@@ -446,11 +430,11 @@ main {
     }
 
     h2 {
+        font-size: 7vw;
+        hyphens: auto;
+        overflow-wrap: break-word;
         white-space: normal;
         word-break: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
-        font-size: 7vw;
     }
 
     header {
@@ -468,7 +452,7 @@ main {
 
     .linkedin-btn {
         font-size: 12px;
-        padding: 6px 12px;  /* Further reduce padding on small screens */
+        padding: 6px 12px;
     }
 
     .linkedin-icon {
@@ -477,14 +461,14 @@ main {
 
     .pos-filter-and-random {
         display: flex;
-        flex-direction: row;  /* Ensure the "Part of Speech" and "Random Word" are side by side */
+        flex-direction: row;
         justify-content: space-between;
-        width: 90%;  /* Make them take up the full width */
+        width: 90%;
     }
 
     .pos-filter,
     .random-btn {
-        width: 48%;  /* Ensure both take up equal width */
+        width: 48%;
     }
 
     .search-bar-wrapper,
@@ -498,7 +482,7 @@ main {
     }
 
     .search-btn {
-        padding: 8px;  /* Reduce padding on smaller screens */
+        padding: 8px;
     }
 
     .search-btn i {
@@ -506,28 +490,26 @@ main {
     }
 
     #search-container {
-        flex-direction: column;
         align-items: center;
+        flex-direction: column;
         padding: 10px 0 15px 0;
     }
 
     #search-container-inner {
-        flex-direction: column;  /* Stack items vertically on mobile */
         align-items: center;
+        flex-direction: column;
         gap: 0;
-        width: 90%;  /* Ensure it takes up 90% of the screen on mobile */
+        width: 90%;
     }
 
     .word-kjonn {
+        align-items: flex-start;
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
-        line-height: 1.4;
         hyphens: auto;
-        -webkit-hyphens: auto;
-        -ms-hyphens: auto;
-        word-break: break-word;
+        line-height: 1.4;
         overflow-wrap: break-word;
+        word-break: break-word;
     }
 
     .word-kjonn .kjønn {
