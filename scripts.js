@@ -108,8 +108,9 @@ function parseCSVData(data) {
 }
 
 function randomWord() {
+    // Clear the search bar when the random button is clicked
+    clearInput();
 
-    
     if (!results.length) {
         console.warn('No results available to pick a random word.');
         return;
@@ -155,6 +156,7 @@ function randomWord() {
 }
 
 
+
 function search() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
@@ -164,8 +166,9 @@ function search() {
     const resultsContainer = document.getElementById('results-container');
     resultsContainer.innerHTML = '';
 
-    // Prevent search from executing if the query is empty, even if a part of speech is selected
+    // If the search bar is empty and POS is selected, perform a random search constrained by POS
     if (!query) {
+        randomWord();  // Call randomWord to show a random word based on the selected POS
         return;
     }
 
@@ -208,14 +211,24 @@ function search() {
         }).join('');
 
     } else {
+        // Construct a specific message for no results found based on query and POS
+        let noResultsMessage = `No results found for "${query}"`;
+        if (selectedPOS) {
+            noResultsMessage += ` with part of speech "${selectedPOS}".`;
+        } else {
+            noResultsMessage += `.`;
+        }
+        noResultsMessage += ` Try searching for another word or use the Random Word feature.`;
+
         console.log('No results found for:', query, 'with POS:', selectedPOS); // Additional log if no results are found
         resultsContainer.innerHTML = `
             <div class="definition">
-                <p>No results found for "${query}". Try searching for another word or use the Random Word feature.</p>
+                <p>${noResultsMessage}</p>
             </div>
         `;
     }
 }
+
 
 
 
