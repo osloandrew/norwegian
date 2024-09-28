@@ -46,8 +46,8 @@ body {
 
 .definition-content {
     display: grid;
-    gap: 10px; /* Adds spacing between the grid items */
-    grid-template-columns: 1fr 1fr; /* Two columns of equal width */
+    gap: 10px;
+    grid-template-columns: 1fr 1fr;
 }
 
 .definition-content p {
@@ -169,6 +169,33 @@ main {
     flex: 1;
 }
 
+
+.pos-filter {
+    background-color: #0d3a69;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    padding: 10px 15px;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 16px;
+    appearance: none;  /* Remove default styling */
+}
+
+.pos-filter select {
+    background-color: inherit;
+    color: inherit;
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.pos-filter-and-random {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
 .random-btn {
     background-color: #0d3a69;
     border: none;
@@ -177,9 +204,10 @@ main {
     cursor: pointer;
     font-family: 'Noto Sans', sans-serif;
     font-size: 16px;
-    margin-left: 10px;
     padding: 12px 20px;
     transition: all 0.3s ease;
+    white-space: nowrap;  /* Prevent text from wrapping */
+    width: auto;  /* Adjust width based on content */
 }
 
 .random-btn:hover {
@@ -195,7 +223,7 @@ main {
     display: inline-flex;
     overflow: hidden;
     position: relative;
-    width: 50%;
+    width: 60%;  /* Take more space on desktop */
 }
 
 .search-btn {
@@ -233,7 +261,19 @@ main {
     text-align: center;
     top: 0;
     z-index: 100;
+    width: 100%;
 }
+
+#search-container-inner {
+    max-width: 800px;  /* Ensure it takes up half the screen width */
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;  /* Prevent wrapping on desktop */
+}
+
+
 
 .spinner {
     text-align: center;
@@ -243,7 +283,6 @@ main {
     display: none; /* Hidden by default */
 }
 
-/* You can also add an actual spinner graphic with this style if preferred */
 .spinner::before {
     content: "";
     display: inline-block;
@@ -255,54 +294,39 @@ main {
     animation: spin 0.8s linear infinite;
     margin-bottom: 10px;
 }
-
+ 
 @keyframes spin {
     to {
         transform: rotate(360deg);
     }
 }
 
-
 .word-kjonn {
-    align-items: center;  /* Vertically center align both elements */
+    align-items: center;
     display: flex;
-    justify-content: space-between;  /* Space between word and kjønn */
-    margin-bottom: 15px;  /* Add some spacing below the word */
+    justify-content: space-between;
+    margin-bottom: 15px;
 }
 
 .word-kjonn .kjønn {
-    color: #951b1b;  /* Keep original styling */
-    font-size: 18px;  /* Adjust size to match other labels */
-    font-weight: 400;  /* Maintain previous styling */
+    color: #951b1b;
+    font-size: 18px;
+    font-weight: 400;
     text-transform: uppercase;
 }
 
 @media (max-width: 768px) {
     .definition-content {
-        grid-template-columns: 1fr;  /* Switch to a single column on smaller screens */
-    }
-
-    .random-btn {
-        margin: 10px 0 10px 0;
-        width: 90%; /* Full width */
-    }
-
-    .search-bar-wrapper, #results-container {
-        margin: 10px 0 10px 0;
-        width: 90%;
-    }
-
-    .search-bar-wrapper label {
-        font-size: 12px;
+        grid-template-columns: 1fr;
     }
 
     footer {
-        font-size: 12px; /* Reduce font size on smaller screens */
-        text-align: center; /* Keep text centered */
+        font-size: 12px;
+        text-align: center;
     }
 
     footer p {
-        margin: 0; /* Remove any margin to prevent overflow */
+        margin: 0;
     }
 
     h1 {
@@ -313,11 +337,11 @@ main {
     }
 
     h2 {
-        white-space: normal; /* Allow text to wrap onto multiple lines */
-        word-break: break-word; /* Ensure long words break at appropriate points */
-        overflow-wrap: break-word; /* Break long words in older browsers */
-        hyphens: auto; /* Enable hyphenation if supported */
-        font-size: 7vw; /* Responsive font size for smaller screens */
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+        font-size: 7vw;
     }
 
     header {
@@ -332,20 +356,60 @@ main {
     input[type="text"] {
         padding: 10px 10px;
     }
+
+    .pos-filter-and-random {
+        display: flex;
+        flex-direction: row;  /* Ensure the "Part of Speech" and "Random Word" are side by side */
+        justify-content: space-between;
+        width: 90%;  /* Make them take up the full width */
+    }
+
+    .pos-filter,
+    .random-btn {
+        width: 48%;  /* Ensure both take up equal width */
+    }
+
+    .search-bar-wrapper,
+    #results-container {
+        margin: 10px 0 10px 0;
+        width: 90%;
+    }
+
+    .search-bar-wrapper label {
+        font-size: 12px;
+    }
+
+    .search-btn {
+        padding: 15px 15px 15px 15px;
+    }
+
+    #search-container {
+        flex-direction: column;
+        align-items: center;
+        padding: 10px 0 15px 0;
+    }
+
+    #search-container-inner {
+        flex-direction: column;  /* Stack items vertically on mobile */
+        align-items: center;
+        gap: 0;
+        width: 90%;  /* Ensure it takes up 90% of the screen on mobile */
+    }
+
     .word-kjonn {
         display: flex;
-        flex-direction: column; /* Stack the elements vertically */
-        align-items: flex-start; /* Align text to the left */
-        line-height: 1.4; /* Adjust line-height for better readability */
-        hyphens: auto; /* Enable hyphenation */
-        -webkit-hyphens: auto; /* For better browser support */
-        -ms-hyphens: auto; /* IE support */
-        word-break: break-word; /* Break long words at boundaries if necessary */
-        overflow-wrap: break-word; /* Ensure long words don’t overflow */
+        flex-direction: column;
+        align-items: flex-start;
+        line-height: 1.4;
+        hyphens: auto;
+        -webkit-hyphens: auto;
+        -ms-hyphens: auto;
+        word-break: break-word;
+        overflow-wrap: break-word;
     }
 
     .word-kjonn .kjønn {
         font-size: 4vw !important;
-        margin-top: 5px; /* Add some space between the word and kjønn */
+        margin-top: 5px;
     }
 }
