@@ -21,6 +21,9 @@
     <!-- External Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="scripts.js" defer></script>
+
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-M5H81RF3DT"></script>
@@ -46,13 +49,18 @@
             <!-- Inner container for search items to control width and center alignment -->
             <div id="search-container-inner">
                 
-                <!-- Search Bar -->
+                <!-- Search Bar Section -->
                 <div class="search-bar-wrapper">
                     <input type="text" id="search-bar" placeholder=" " onkeydown="handleKey(event)" />
                     <label for="search-bar">Type a word in Norwegian or English...</label>
-                    <button class="clear-btn" aria-label="Clear search field" onclick="clearInput()">X</button>
-                    <button class="search-btn" aria-label="Search for the word" onclick="search()">Search</button>
-                </div>
+                    <!-- Updated Clear Button with Font Awesome xmark icon -->
+                    <button class="clear-btn" aria-label="Clear search field" onclick="clearInput()">
+                        <i class="fas fa-xmark"></i> <!-- Font Awesome xmark icon -->
+                    </button>
+                    <button class="search-btn" aria-label="Search for the word" onclick="search()">
+                        <i class="fas fa-search"></i>  <!-- Font Awesome search icon -->
+                    </button>
+                </div>                
 
                 <!-- Part of Speech Filter and Random Button -->
                 <div class="pos-filter-and-random">
@@ -67,13 +75,14 @@
                             <option value="interjection">Interjection</option>
                             <option value="conjunction">Conjunction</option>
                             <option value="pronoun">Pronoun</option>
-                            <option value="article">Article</option>
                             <option value="expression">Expression</option>
                         </select>
+                        <i class="fas fa-chevron-down"></i> <!-- Font Awesome chevron-down icon -->
                     </div>
-                    <button class="random-btn" aria-label="Generate a random entry" onclick="randomWord()">Random Word</button>
-                </div>
-                
+                    <button class="random-btn" aria-label="Generate a random entry" onclick="randomWord()" title="Generates a random word"> 
+                        <i class="fas fa-dice"></i>
+                    </button>                    
+                    </div>
             </div>
         </section>
 
@@ -84,8 +93,13 @@
     </main>
 
     <footer>
-        <p>© 2024 Norwegian Dictionary, with input from Språkrådet, Universitetet i Bergen, and Det Norske Akademi for Språk og Litteratur</p>
+        <p class="copyright">© 2024 Norwegian Dictionary, with input from Språkrådet, Universitetet i Bergen and Det Norske Akademi for Språk og Litteratur</p>
+        <a href="https://www.linkedin.com/in/afeinberg1/" target="_blank" rel="noopener noreferrer" class="linkedin-btn">
+            <img src="linkedin-icon.png" alt="LinkedIn Logo" class="linkedin-icon"> Connect with me on LinkedIn
+        </a>
     </footer>
+    
+    
 </body>
 
 </html>
