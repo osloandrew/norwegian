@@ -183,10 +183,9 @@ function search() {
         return;
     }
 
-    // Update the URL to ?search=word format without reloading the page
-    const newUrl = `?search=${encodeURIComponent(query)}`;
-    window.history.pushState(null, '', newUrl);
-
+    // Update the URL to /search/word format without reloading the page
+    const newUrl = `#search/${encodeURIComponent(query)}`;
+    window.location.hash = newUrl;
 
     // Trigger a search event in Google Analytics
     gtag('event', 'search', {
@@ -304,18 +303,21 @@ window.onload = function() {
         if (results.length > 0) {
             clearInterval(checkDataLoaded);
 
-            // Check if the URL contains a search query parameter like ?search=word
-            const urlParams = new URLSearchParams(window.location.search);
-            const searchTerm = urlParams.get('search');
+            // Check if the URL contains a hash like #search/word
+            const hash = window.location.hash;
+            const searchPrefix = '#search/';
 
-            if (searchTerm) {
-                document.getElementById('search-bar').value = searchTerm;
-                search();  // Automatically perform the search with the extracted word
+            if (hash.startsWith(searchPrefix)) {
+                const searchTerm = decodeURIComponent(hash.substring(searchPrefix.length)); // Extract the word after #search/
+                if (searchTerm) {
+                    document.getElementById('search-bar').value = searchTerm;
+                    search();  // Automatically perform the search with the extracted word
 
-                // Trigger a virtual pageview in Google Analytics
-                gtag('config', 'G-M5H81RF3DT', {
-                    'page_path': location.pathname + location.search
-                });
+                    // Trigger a virtual pageview in Google Analytics
+                    gtag('config', 'G-M5H81RF3DT', {
+                        'page_path': location.pathname + location.hash
+                    });
+                }
             }
         }
     }, 100);
