@@ -187,11 +187,16 @@ function search() {
     const newUrl = `#search/${encodeURIComponent(query)}`;
     window.location.hash = newUrl;
 
+    // Trigger a search event in Google Analytics
+    gtag('event', 'search', {
+        'search_term': query,
+        'part_of_speech': selectedPOS || 'none'
+    });
+
     // Trigger a virtual pageview in Google Analytics
     gtag('config', 'G-M5H81RF3DT', {
         'page_path': location.pathname + location.hash
     });
-
 
     const matchingResults = results.filter(r => {
         const matchesQuery = r.ord.toLowerCase().includes(query) || r.engelsk.toLowerCase().includes(query);
