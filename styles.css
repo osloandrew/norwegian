@@ -500,11 +500,16 @@ main {
         width: 16px;
     }
 
+
     .pos-filter-and-random {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         width: 90%;
+    }
+
+    .pos-filter i {
+        font-size: 14px; /* Make the arrow smaller */
     }
 
     .pos-filter,
@@ -524,7 +529,9 @@ main {
 
     .search-btn {
         padding: 8px;
+        width: 100%; /* This makes the search button take up full width on mobile */
     }
+    
 
     .search-btn i {
         font-size: 16px;
