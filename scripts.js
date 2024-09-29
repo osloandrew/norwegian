@@ -180,38 +180,54 @@ async function randomWord() {
 }
 
 
-
 async function fetchAudioForWord(word) {
     const encodedWord = encodeURIComponent(word);
 
     // Possible prefixes (e.g., No-, Nb-) and their combinations
     const prefixes = ['No-', 'Nb-', 'LL-Q9043_(nor)-', 'NB_-_Pronunciation_of_Norwegian_Bokmål_'];
 
-    // Possible random number paths (these vary on Wikimedia URLs)
-    const numberPaths = ['1/16', '5/58', '2/20', '9/9b', '7/74', 'b/b6', '6/64'];
+    // Common number paths to check first
+    const commonNumberPaths = ['3/38', '1/16', '5/58'];
 
-    // Dynamically generate all possible URL combinations
-    const audioUrls = [];
-    prefixes.forEach(prefix => {
-        numberPaths.forEach(path => {
-            audioUrls.push(`https://upload.wikimedia.org/wikipedia/commons/${path}/${prefix}${encodedWord}.ogg`);
-            audioUrls.push(`https://upload.wikimedia.org/wikipedia/commons/${path}/${prefix}${encodedWord}.wav`);
+    // Less likely number paths (fallback)
+    const secondaryNumberPaths = ['2/20', '9/9b', '7/74', 'b/b6', '6/64'];
+
+    // Dynamically generate URL combinations
+    const generateUrls = (numberPaths) => {
+        const urls = [];
+        prefixes.forEach(prefix => {
+            numberPaths.forEach(path => {
+                urls.push(`https://upload.wikimedia.org/wikipedia/commons/${path}/${prefix}${encodedWord}.ogg`);
+                urls.push(`https://upload.wikimedia.org/wikipedia/commons/${path}/${prefix}${encodedWord}.wav`);
+            });
         });
-    });
+        return urls;
+    };
 
-    try {
-        // Perform all HEAD requests concurrently to find the first valid URL
-        const headRequests = audioUrls.map(url => fetch(url, { method: 'HEAD' }).then(response => ({ url, ok: response.ok })));
-        const responses = await Promise.all(headRequests);
+    // Function to check a batch of URLs using GET instead of HEAD
+    const checkUrls = async (urls) => {
+        const requests = urls.map(url => 
+            fetch(url, { method: 'GET' })
+                .then(response => ({ url, ok: response.ok }))
+                .catch(() => ({ ok: false }))
+        );
+        const results = await Promise.all(requests);
+        return results.find(response => response.ok)?.url || null;
+    };
 
-        // Find the first valid URL
-        const validAudio = responses.find(response => response.ok);
-        if (validAudio) {
-            console.log(`Audio available for ${word}: ${validAudio.url}`);
-            return validAudio.url;
-        }
-    } catch (error) {
-        console.error(`Error checking audio URLs for word ${word}:`, error);
+    // Try common paths first (faster)
+    let urlsToCheck = generateUrls(commonNumberPaths);
+    let validAudioUrl = await checkUrls(urlsToCheck);
+
+    if (!validAudioUrl) {
+        // If no valid URL is found, check secondary paths
+        urlsToCheck = generateUrls(secondaryNumberPaths);
+        validAudioUrl = await checkUrls(urlsToCheck);
+    }
+
+    if (validAudioUrl) {
+        console.log(`Audio available for ${word}: ${validAudioUrl}`);
+        return validAudioUrl;
     }
 
     console.log(`No audio found for ${word}`);
@@ -300,29 +316,34 @@ async function search() {
 
     console.log('Filtered results:', matchingResults); // Log filtered results
 
-    // Sort the results
+    // Sort the results: prioritize exact matches in both the Norwegian and English term
     const sortedResults = matchingResults.sort((a, b) => {
         const queryLower = query.toLowerCase();
 
-        // Check if the search term appears in a comma-separated list in the English definition
-        const aIsInCommaList = a.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
-        const bIsInCommaList = b.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
+        // Check for exact match in the Norwegian term
+        const isExactMatchA = a.ord.toLowerCase() === queryLower;
+        const isExactMatchB = b.ord.toLowerCase() === queryLower;
 
-        // Check for exact match for both Norwegian and English terms
-        const isExactMatchA = a.ord.toLowerCase() === queryLower || a.engelsk.toLowerCase() === queryLower;
-        const isExactMatchB = b.ord.toLowerCase() === queryLower || b.engelsk.toLowerCase() === queryLower;
-
-        // Prioritize exact matches
         if (isExactMatchA && !isExactMatchB) return -1;
         if (!isExactMatchA && isExactMatchB) return 1;
 
-        // Prioritize definitions with the search term in a comma-separated list
+        // Check if the search term appears in the comma-separated list in the English definition
+        const aIsInCommaList = a.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
+        const bIsInCommaList = b.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
+
         if (aIsInCommaList && !bIsInCommaList) return -1;
         if (!aIsInCommaList && bIsInCommaList) return 1;
 
-        // If neither are exact matches or in a comma-separated list, sort by position in string
-        const aIndex = a.engelsk.toLowerCase().indexOf(queryLower);
-        const bIndex = b.engelsk.toLowerCase().indexOf(queryLower);
+        // Deprioritize compound words where the query appears within a larger word (e.g., 'appelsintre')
+        const aContainsInWord = a.ord.toLowerCase().includes(queryLower) && a.ord.toLowerCase() !== queryLower;
+        const bContainsInWord = b.ord.toLowerCase().includes(queryLower) && b.ord.toLowerCase() !== queryLower;
+
+        if (aContainsInWord && !bContainsInWord) return 1;
+        if (!aContainsInWord && bContainsInWord) return -1;
+
+        // Sort by position of query in the word (earlier is better)
+        const aIndex = a.ord.toLowerCase().indexOf(queryLower);
+        const bIndex = b.ord.toLowerCase().indexOf(queryLower);
 
         return aIndex - bIndex;
     });
@@ -389,6 +410,8 @@ async function search() {
     // Hide the spinner after results are displayed or an error is shown
     spinner.style.display = 'none';
 }
+
+
 
 
 function handlePOSChange() {
