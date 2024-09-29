@@ -2,6 +2,10 @@ a {
     color: #3c88d4;
 }
 
+#audio-player {
+    display: none !important; /* Always hidden */
+}
+
 body {
     background-color: #f4f4f4;
     display: flex;
@@ -185,6 +189,12 @@ html {
     height: 100%;
     margin: 0;
 }
+
+i.fas.fa-volume-up[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 
 input[type="text"] {
     border: none;
