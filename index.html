@@ -32,7 +32,6 @@
 
     <!-- External Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script src="scripts.js" defer></script>
 
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -96,11 +95,8 @@
                 </div>
             </div>
         </section>
-
-        <!-- Results Container -->
-        <section id="results-container">
-            <div id="loading-spinner" class="spinner"></div>
-        </section>
+        <div id="loading-spinner" class="spinner" style="display: none;"></div> <!-- Moved outside the results-container -->
+        <section id="results-container"></section>        
     </main>
 
     <audio id="audio-player" style="display: none;" controls></audio>
@@ -111,7 +107,7 @@
             <img src="linkedin-icon.png" alt="LinkedIn Logo" class="linkedin-icon"> Connect with me on LinkedIn
         </a>
     </footer>
-
+    <script src="scripts.js" defer></script>
 </body>
 
 </html>
