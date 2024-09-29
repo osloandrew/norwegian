@@ -118,6 +118,10 @@ async function randomWord() {
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
     let filteredResults = results;
 
+    // Show the spinner at the start of the search
+    const spinner = document.getElementById('loading-spinner');
+    spinner.style.display = 'block';
+
     // Filter the results by the selected part of speech
     if (selectedPOS) {
         filteredResults = results.filter(r => mapKjonnToPOS(r.kjønn) === selectedPOS);
@@ -133,6 +137,7 @@ async function randomWord() {
                 <p>No random words available for the selected part of speech. Try selecting another.</p>
             </div>
         `;
+        spinner.style.display = 'none';
         return;
     }
 
@@ -145,15 +150,13 @@ async function randomWord() {
         ? `<i class="fas fa-volume-up" style="cursor: pointer;" onclick="playPronunciation('${randomResult.ord}', this)"></i>`
         : `<i class="fas fa-volume-up" style="opacity: 0.5; cursor: not-allowed;"></i>`;
 
-        const displayUttale = randomResult.uttale || (audioUrl ? `[${randomResult.ord}]` : '');
-        const pronunciationSection = audioUrl || randomResult.uttale
+    const displayUttale = randomResult.uttale || (audioUrl ? `[${randomResult.ord}]` : '');
+    const pronunciationSection = audioUrl || randomResult.uttale
         ? `<p class="pronunciation">${pronunciationIcon} ${displayUttale}</p>`
         : '';
-    
-        
 
-
-    document.getElementById('results-container').innerHTML = `
+    // Collect the entire HTML into a string
+    let htmlString = `
         <div class="definition">
             <h2 class="word-kjonn">
                 ${randomResult.ord}
@@ -168,7 +171,14 @@ async function randomWord() {
             ${randomResult.eksempel ? `<p class="example">${randomResult.eksempel}</p>` : ''}
         </div>
     `;
+
+    // Update the DOM in one go
+    document.getElementById('results-container').innerHTML = htmlString;
+
+    // Hide the spinner after results are displayed or an error is shown
+    spinner.style.display = 'none';
 }
+
 
 
 async function fetchAudioForWord(word) {
@@ -232,11 +242,13 @@ async function playPronunciation(word, iconElement) {
 
 
 
-
-
 async function search() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
+
+    // Show the spinner at the start of the search
+    const spinner = document.getElementById('loading-spinner');
+    spinner.style.display = 'block';
 
     // Update the page title with the search term
     document.title = `${query} - Norwegian Dictionary`;
@@ -249,7 +261,7 @@ async function search() {
     // If the search bar is empty, show an error message
     if (!query) {
         console.log('Search field is empty. Showing error message.');
-        document.getElementById('results-container').innerHTML = `
+        resultsContainer.innerHTML = `
             <div class="definition error-message">
                 <h2 class="word-kjonn">
                     Error <span class="kjønn">Empty Search</span>
@@ -257,6 +269,7 @@ async function search() {
                 <p>Please enter a word in the search field before searching.</p>
             </div>
         `;
+        spinner.style.display = 'none';
         return;
     }
 
@@ -318,6 +331,8 @@ async function search() {
     const limitedResults = sortedResults.slice(0, 20);
 
     if (limitedResults.length) {
+        // Collect all HTML in a single string to reduce DOM manipulation
+        let htmlString = '';
         for (const result of limitedResults) {
             result.kjønn = formatKjonn(result.kjønn);
 
@@ -332,8 +347,8 @@ async function search() {
             ? `<p class="pronunciation">${pronunciationIcon} ${displayUttale}</p>`
             : '';
         
-                
-            resultsContainer.innerHTML += `
+            // Append the HTML for each result
+            htmlString += `
                 <div class="definition">
                     <h2 class="word-kjonn">
                         ${result.ord}
@@ -349,6 +364,8 @@ async function search() {
                 </div>
             `;
         }
+        // Update the DOM in one go
+        resultsContainer.innerHTML = htmlString;
     } else {
         let noResultsMessage = `No results found for "${query}"`;
         if (selectedPOS) {
@@ -368,10 +385,10 @@ async function search() {
             </div>
         `;
     }
+
+    // Hide the spinner after results are displayed or an error is shown
+    spinner.style.display = 'none';
 }
-
-
-
 
 
 function handlePOSChange() {
