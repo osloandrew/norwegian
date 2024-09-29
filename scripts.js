@@ -164,6 +164,9 @@ function search() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
 
+        // Update the page title with the search term
+        document.title = `${query} - Norwegian Dictionary`;
+
     console.log('Search query:', query, 'Selected POS:', selectedPOS);
 
     const resultsContainer = document.getElementById('results-container');
@@ -312,6 +315,9 @@ window.onload = function() {
                 if (searchTerm) {
                     document.getElementById('search-bar').value = searchTerm;
                     search();  // Automatically perform the search with the extracted word
+                    
+                    // Update the page title with the search term
+                    document.title = `${searchTerm} - Norwegian Dictionary`;
 
                     // Trigger a virtual pageview in Google Analytics
                     gtag('config', 'G-M5H81RF3DT', {
