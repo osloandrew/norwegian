@@ -30,7 +30,8 @@ body {
     font-size: 18px;
 }
 
-.definition {
+/* Common styling for both definition cards and error messages */
+.definition, .error-message {
     background-color: #ffffff;
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -82,6 +83,24 @@ body {
     color: #555 !important;
     font-size: 16px !important;
     font-weight: 300;
+}
+
+
+/* Specific styling for the error message */
+.error-message h2 {
+    color: #951b1b; /* Error title in a distinct color */
+}
+
+.error-message .kjønn {
+    color: #951b1b; /* Error type in a similar error color */
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.error-message p {
+    color: #555;
+    font-size: 16px;
+    line-height: 1.6;
 }
 
 .example {
