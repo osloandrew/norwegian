@@ -107,9 +107,8 @@ function parseCSVData(data) {
     });
 }
 
-function randomWord() {
-    // Clear the search bar when the random button is clicked
-    clearInput();
+async function randomWord() {
+    clearInput();  // Clear search bar when generating a random word
 
     if (!results.length) {
         console.warn('No results available to pick a random word.');
@@ -117,16 +116,15 @@ function randomWord() {
     }
 
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
-
     let filteredResults = results;
 
-    // If a part of speech is selected, filter the results by that POS
+    // Filter the results by the selected part of speech
     if (selectedPOS) {
         filteredResults = results.filter(r => mapKjonnToPOS(r.kjønn) === selectedPOS);
     }
 
     if (!filteredResults.length) {
-        console.warn('No results available for the selected part of speech.');
+        console.warn('No random words available for the selected part of speech.');
         document.getElementById('results-container').innerHTML = `
             <div class="definition error-message">
                 <h2 class="word-kjonn">
@@ -141,31 +139,107 @@ function randomWord() {
     const randomResult = filteredResults[Math.floor(Math.random() * filteredResults.length)];
     randomResult.kjønn = formatKjonn(randomResult.kjønn);
 
+    // Check for audio availability before rendering the result
+    const audioUrl = await fetchAudioForWord(randomResult.ord);
+    const pronunciationIcon = audioUrl 
+        ? `<i class="fas fa-volume-up" style="cursor: pointer;" onclick="playPronunciation('${randomResult.ord}', this)"></i>`
+        : `<i class="fas fa-volume-up" style="opacity: 0.5; cursor: not-allowed;"></i>`;
+
+        const displayUttale = randomResult.uttale || (audioUrl ? `[${randomResult.ord}]` : '');
+        const pronunciationSection = audioUrl || randomResult.uttale
+        ? `<p class="pronunciation">${pronunciationIcon} ${displayUttale}</p>`
+        : '';
+    
+        
+
+
     document.getElementById('results-container').innerHTML = `
-    <div class="definition">
-        <h2 class="word-kjonn">
-            ${randomResult.ord}
-            ${randomResult.kjønn ? `<span class="kjønn">${randomResult.kjønn}</span>` : ''}
-        </h2>
-        ${randomResult.definisjon ? `<p>${randomResult.definisjon}</p>` : ''}
-        <div class="definition-content">
-            ${randomResult.engelsk ? `<p class="english"><i class="fas fa-language"></i> ${randomResult.engelsk}</p>` : ''}
-            ${randomResult.uttale ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${randomResult.uttale}</p>` : ''}
-            ${randomResult.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${randomResult.etymologi}</p>` : ''}
+        <div class="definition">
+            <h2 class="word-kjonn">
+                ${randomResult.ord}
+                ${randomResult.kjønn ? `<span class="kjønn">${randomResult.kjønn}</span>` : ''}
+            </h2>
+            ${randomResult.definisjon ? `<p>${randomResult.definisjon}</p>` : ''}
+            <div class="definition-content">
+                ${randomResult.engelsk ? `<p class="english"><i class="fas fa-language"></i> ${randomResult.engelsk}</p>` : ''}
+                ${pronunciationSection}
+                ${randomResult.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${randomResult.etymologi}</p>` : ''}
+            </div>
+            ${randomResult.eksempel ? `<p class="example">${randomResult.eksempel}</p>` : ''}
         </div>
-        ${randomResult.eksempel ? `<p class="example">${randomResult.eksempel}</p>` : ''}
-    </div>
     `;
 }
 
 
+async function fetchAudioForWord(word) {
+    const encodedWord = encodeURIComponent(word);
 
-function search() {
+    // Possible prefixes (e.g., No-, Nb-) and their combinations
+    const prefixes = ['No-', 'Nb-', 'LL-Q9043_(nor)-', 'NB_-_Pronunciation_of_Norwegian_Bokmål_'];
+
+    // Possible random number paths (these vary on Wikimedia URLs)
+    const numberPaths = ['1/16', '5/58', '2/20', '9/9b', '7/74', 'b/b6', '6/64'];
+
+    // Dynamically generate all possible URL combinations
+    const audioUrls = [];
+    prefixes.forEach(prefix => {
+        numberPaths.forEach(path => {
+            audioUrls.push(`https://upload.wikimedia.org/wikipedia/commons/${path}/${prefix}${encodedWord}.ogg`);
+            audioUrls.push(`https://upload.wikimedia.org/wikipedia/commons/${path}/${prefix}${encodedWord}.wav`);
+        });
+    });
+
+    try {
+        // Perform all HEAD requests concurrently to find the first valid URL
+        const headRequests = audioUrls.map(url => fetch(url, { method: 'HEAD' }).then(response => ({ url, ok: response.ok })));
+        const responses = await Promise.all(headRequests);
+
+        // Find the first valid URL
+        const validAudio = responses.find(response => response.ok);
+        if (validAudio) {
+            console.log(`Audio available for ${word}: ${validAudio.url}`);
+            return validAudio.url;
+        }
+    } catch (error) {
+        console.error(`Error checking audio URLs for word ${word}:`, error);
+    }
+
+    console.log(`No audio found for ${word}`);
+    return null;
+}
+
+
+
+
+
+
+
+
+
+async function playPronunciation(word, iconElement) {
+    const audioUrl = await fetchAudioForWord(word);
+
+    if (audioUrl) {
+        const audioPlayer = document.getElementById('audio-player');
+        audioPlayer.src = audioUrl;
+        audioPlayer.play();  // Play the audio without showing the player
+    } else {
+        // If no audio is available, disable the click event
+        iconElement.style.opacity = "0.5";
+        iconElement.onclick = null;  // Disable the click event
+    }
+}
+
+
+
+
+
+async function search() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
 
-        // Update the page title with the search term
-        document.title = `${query} - Norwegian Dictionary`;
+    // Update the page title with the search term
+    document.title = `${query} - Norwegian Dictionary`;
 
     console.log('Search query:', query, 'Selected POS:', selectedPOS);
 
@@ -244,9 +318,22 @@ function search() {
     const limitedResults = sortedResults.slice(0, 20);
 
     if (limitedResults.length) {
-        resultsContainer.innerHTML = limitedResults.map(result => {
+        for (const result of limitedResults) {
             result.kjønn = formatKjonn(result.kjønn);
-            return `
+
+            // Check for audio availability asynchronously
+            const audioUrl = await fetchAudioForWord(result.ord);
+            const pronunciationIcon = audioUrl 
+                ? `<i class="fas fa-volume-up" style="cursor: pointer;" onclick="playPronunciation('${result.ord}', this)"></i>`
+                : `<i class="fas fa-volume-up" style="opacity: 0.5; cursor: not-allowed;"></i>`;
+
+            const displayUttale = result.uttale || (audioUrl ? `[${result.ord}]` : '');
+            const pronunciationSection = audioUrl || result.uttale
+            ? `<p class="pronunciation">${pronunciationIcon} ${displayUttale}</p>`
+            : '';
+        
+                
+            resultsContainer.innerHTML += `
                 <div class="definition">
                     <h2 class="word-kjonn">
                         ${result.ord}
@@ -255,13 +342,13 @@ function search() {
                     ${result.definisjon ? `<p>${result.definisjon}</p>` : ''}
                     <div class="definition-content">
                         ${result.engelsk ? `<p class="english"><i class="fas fa-language"></i> ${result.engelsk}</p>` : ''}
-                        ${result.uttale ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>` : ''}
+                        ${pronunciationSection}
                         ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
                     </div>
                     ${result.eksempel ? `<p class="example">${result.eksempel}</p>` : ''}
                 </div>
             `;
-        }).join('');
+        }
     } else {
         let noResultsMessage = `No results found for "${query}"`;
         if (selectedPOS) {
@@ -282,6 +369,7 @@ function search() {
         `;
     }
 }
+
 
 
 
