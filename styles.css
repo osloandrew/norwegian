@@ -569,7 +569,6 @@ main {
 
     .random-btn {
         width: 20% !important;
-        flex-shrink: 0; /* Prevent the random button from shrinking */
     }
 
     .search-and-random-wrapper {
