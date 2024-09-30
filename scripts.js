@@ -174,15 +174,12 @@ async function randomWord() {
     // Randomly select a result from the filtered results
     const randomResult = filteredResults[Math.floor(Math.random() * filteredResults.length)];
 
-    // If it's a sentence, render it with sentence styling
-    if (type === 'sentences') {
-        renderSentence(randomResult);
-    } else {
-        renderResults([randomResult]);  // Pass the result as an array to the render function for words
-    }
+    // Render the result (with highlighting for the random word)
+    renderResults([randomResult], randomResult.ord);
 
     hideSpinner();  // Hide the spinner
 }
+
 
 // Perform a search based on the input query and selected POS
 async function search() {
@@ -326,13 +323,18 @@ function handleTypeChange() {
 }
 
 // Render a list of results (words)
-function renderResults(results) {
+function renderResults(results, query = '') {
+    query = query.toLowerCase().trim();  // Ensure the query is lowercased and trimmed
+
     let htmlString = '';
     results.forEach(result => {
         result.kjønn = formatKjonn(result.kjønn);
-        
+
         // Check if sentences are available using enhanced checkForSentences
         const hasSentences = checkForSentences(result.ord);
+
+        // Highlight the query in the example sentence, if it exists
+        const highlightedExample = result.eksempel ? highlightQuery(result.eksempel, query) : '';
 
         htmlString += `
             <div class="definition">
@@ -346,7 +348,7 @@ function renderResults(results) {
                     ${result.uttale ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>` : ''}
                     ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
                 </div>
-                ${result.eksempel ? `<p class="example">${result.eksempel}</p>` : ''}
+                ${highlightedExample ? `<p class="example">${highlightedExample}</p>` : ''}
                 <!-- Show "Show Sentences" button only if sentences exist -->
                 ${hasSentences ? `<button class="sentence-btn" onclick="fetchAndRenderSentences('${result.ord}')">Show Sentences</button>` : ''}
             </div>
@@ -354,6 +356,7 @@ function renderResults(results) {
     });
     document.getElementById('results-container').innerHTML = htmlString;
 }
+
 
 // Render a single sentence
 function renderSentence(sentenceResult) {
@@ -436,10 +439,16 @@ function renderSentences(sentenceResults, word) {
 
 // Highlight search query in text
 function highlightQuery(sentence, query) {
-    // Use a regex to find the entire word containing the query and highlight it
-    const regex = new RegExp(`(\\b\\w*${query}\\w*\\b)`, 'gi');
+    // Check if the sentence is already highlighted to avoid double highlighting
+    if (sentence.includes('<span style="color: #3c88d4;">')) {
+        return sentence;  // Already highlighted, return the sentence as is
+    }
+    
+    // Create a regex to match the query as part of a word, allowing suffixes
+    const regex = new RegExp(`(${query}\\w*)`, 'gi');
     return sentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
 }
+
 
 function renderSentencesHTML(sentenceResults, word) {
     const query = word.toLowerCase(); // Use the word passed from the button click
