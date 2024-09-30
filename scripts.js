@@ -123,7 +123,14 @@ function parseCSVData(data) {
         complete: function (resultsFromParse) {
             results = resultsFromParse.data;
             console.log('Parsed data:', results);  // Log the parsed data
-            randomWord();  // Show a random entry after data is loaded
+            
+            // Check if a query exists in the URL
+            const url = new URL(window.location);
+            const query = url.searchParams.get('query');
+
+            if (!query) {
+                randomWord();  // Only show a random entry if no query is present
+            }
         },
         error: function (error) {
             console.error('Error parsing CSV:', error);
@@ -131,17 +138,21 @@ function parseCSVData(data) {
     });
 }
 
+
 // Generate and display a random word or sentence
 async function randomWord() {
     clearInput();  // Clear search bar when generating a random word or sentence
+
+    const type = document.getElementById('type-select').value;
+    const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
+
+    // Update the URL to indicate a random search
+    updateURL('random', type, selectedPOS);  // <--- Trigger URL update for random words/sentences
 
     if (!results.length) {
         console.warn('No results available to pick a random word or sentence.');
         return;
     }
-
-    const type = document.getElementById('type-select').value;
-    const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
 
     // Show the spinner at the start of the random word or sentence generation
     const spinner = document.getElementById('loading-spinner');
@@ -192,6 +203,9 @@ async function search() {
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
     const type = document.getElementById('type-select').value; // Get the search type (words or sentences)
 
+    // Update the URL with the search parameters
+    updateURL(query, type, selectedPOS);  // <--- Trigger URL update
+
     // Show the spinner at the start of the search
     const spinner = document.getElementById('loading-spinner');
     showSpinner();
@@ -238,6 +252,23 @@ async function search() {
             const mappedPOS = mapKjonnToPOS(r.kjønn);
             return matchesQuery && (!selectedPOS || mappedPOS === selectedPOS);
         });
+
+          // If no matching results, display an error message
+          if (matchingResults.length === 0) {
+            resultsContainer.innerHTML = `
+                <div class="definition error-message">
+                    <h2 class="word-kjonn">
+                        Error <span class="kjønn">No Results Found</span>
+                    </h2>
+                    <p>No words found matching "${query}". Please try another word.</p>
+                                <button class="sentence-btn back-btn">
+                <i class="fas fa-flag"></i> Flag Missing Word Entry (Currently Disabled)</button>
+                </div>
+            `;
+            hideSpinner();
+            return;
+        }
+
 
         // Prioritization logic for words (preserving the exact behavior)
         matchingResults = matchingResults.sort((a, b) => {
@@ -291,6 +322,10 @@ function checkForSentences(word) {
 // Handle change in part of speech (POS) filter
 function handlePOSChange() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
+    const selectedPOS = document.getElementById('pos-select').value.toLowerCase(); // Fetch POS
+
+    // Update the URL with the search parameters
+    updateURL(query, 'words', selectedPOS);  // <--- Trigger URL update with type 'words'
     
     // If the search field is empty, generate a random word based on the POS
     if (!query) {
@@ -304,11 +339,14 @@ function handlePOSChange() {
 // Handle change in search type (words/sentences)
 function handleTypeChange() {
     const type = document.getElementById('type-select').value;
-    const posSelect = document.getElementById('pos-select');
-    const posFilterContainer = document.querySelector('.pos-filter');  // Parent container
-    const query = document.getElementById('search-bar').value.toLowerCase().trim(); // Get the value in the search bar
+    const query = document.getElementById('search-bar').value.toLowerCase().trim();
+    const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
 
-    console.log(`Search type changed to: ${type}`);
+    // Update the URL with the type, query, and selected POS
+    updateURL(query, type, selectedPOS);  // <--- Trigger URL update based on type change
+
+    const posSelect = document.getElementById('pos-select');
+    const posFilterContainer = document.querySelector('.pos-filter');
 
     if (type === 'sentences') {
         // Disable the POS dropdown and gray it out
@@ -455,22 +493,27 @@ function renderSentences(sentenceResults, word) {
     console.log("Partial matches:", partialMatches);
 }
 
-// Highlight search query in text
+// Highlight search query in text, accounting for Norwegian characters (å, æ, ø)
 function highlightQuery(sentence, query) {
     // Check if the sentence is already highlighted to avoid double highlighting
     if (sentence.includes('<span style="color: #3c88d4;">')) {
         return sentence;  // Already highlighted, return the sentence as is
     }
-    
-    // Create a regex to match the query as part of a word, allowing suffixes
-    const regex = new RegExp(`(${query}\\w*)`, 'gi');
-    return sentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
+
+    // First, remove any existing highlights by replacing the <span> tags to avoid persistent old highlights
+    const cleanSentence = sentence.replace(/<span style="color: #3c88d4;">(.*?)<\/span>/gi, '$1');
+
+    // Adjust the regex to highlight entire words that contain the query, including Norwegian characters
+    // \w is replaced with [\\wåæøÅÆØ] to include Norwegian letters
+    const regex = new RegExp(`([\\wåæøÅÆØ]*${query}[\\wåæøÅÆØ]*)`, 'gi');
+
+    // Return the cleaned sentence with the new query highlighted
+    return cleanSentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
 }
 
 
 function renderSentencesHTML(sentenceResults, word) {
-    const query = word.toLowerCase(); // Use the word passed from the button click
-
+    const wordVariations = word.toLowerCase().split(',').map(w => w.trim()); // Split by commas and trim
     let htmlString = '';
     let exactMatches = [];
     let inexactMatches = [];
@@ -480,20 +523,23 @@ function renderSentencesHTML(sentenceResults, word) {
         // Split the example sentence into individual sentences, handling sentence delimiters correctly
         const sentences = result.eksempel.match(/[^.!?]+[.!?]*/g) || [result.eksempel];
 
-        // Loop through each sentence and categorize as exact or inexact match
         sentences.forEach(sentence => {
             const trimmedSentence = sentence.trim();
             if (!uniqueSentences.has(trimmedSentence)) {
                 // Only add unique sentences
                 uniqueSentences.add(trimmedSentence);
 
-                if (sentence.toLowerCase().includes(query)) {
-                    // Use a regular expression to match the full word containing the search term
-                    const regex = new RegExp(`(\\b\\w*${query}\\w*\\b)`, 'gi');
+                // Check if sentence contains any of the word variations
+                let matchedVariation = wordVariations.find(variation => sentence.toLowerCase().includes(variation));
+
+                if (matchedVariation) {
+                    // Use a regular expression to match the full word containing any of the variations
+                    const regex = new RegExp(`(\\b\\w*${matchedVariation}\\w*\\b)`, 'gi');
                     const highlightedSentence = sentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
 
                     // Determine if it's an exact match (contains the exact search term as a full word)
-                    if (new RegExp(`\\b${query}\\b`, 'i').test(sentence)) {
+                    const exactMatchRegex = new RegExp(`\\b${matchedVariation}\\b`, 'i');
+                    if (exactMatchRegex.test(sentence)) {
                         exactMatches.push(highlightedSentence);  // Exact match
                     } else {
                         inexactMatches.push(highlightedSentence);  // Inexact match
@@ -515,6 +561,7 @@ function renderSentencesHTML(sentenceResults, word) {
         `;
     });
 
+    console.log("Generated Sentence HTML:", htmlString); // Log the HTML being generated for the sentences
     return htmlString;
 }
 
@@ -549,23 +596,33 @@ function renderWordDefinition(word) {
     }
 }
 
-// Fetch and render sentences for a word
+// Fetch and render sentences for a word or phrase, including handling comma-separated variations
 function fetchAndRenderSentences(word) {
     const trimmedWord = word.trim().toLowerCase();
 
     console.log(`Fetching and rendering sentences for word/phrase: "${trimmedWord}"`);
 
-    // Filter results to find sentences that contain the word or phrase directly in the 'eksempel' field
-    let matchingResults = results.filter(r =>
-        r.eksempel && (r.eksempel.toLowerCase().includes(trimmedWord))
+    // Split the word by commas to handle multiple word variations (e.g., "fremtid, framtid")
+    const wordVariations = trimmedWord.split(',').map(w => w.trim());
+
+    // Filter results to find sentences that contain any of the word variations in the 'eksempel' field
+    let matchingResults = results.filter(r => 
+        r.eksempel && wordVariations.some(variation => r.eksempel.toLowerCase().includes(variation))
     );
+
+    // Check if there are any matching results
+    if (!matchingResults.length) {
+        console.warn(`No sentences found for: "${trimmedWord}"`);
+    }
 
     // Prioritize the matching results using the prioritizeResults function
     matchingResults = prioritizeResults(matchingResults, trimmedWord, 'eksempel');
 
-    // Highlight the query in the sentences
+    // Highlight the query in the sentences (handling multiple word variations)
     matchingResults.forEach(result => {
-        result.eksempel = highlightQuery(result.eksempel, trimmedWord);
+        wordVariations.forEach(variation => {
+            result.eksempel = highlightQuery(result.eksempel, variation);
+        });
     });
 
     // Set the type selector to "sentences"
@@ -601,6 +658,7 @@ function fetchAndRenderSentences(word) {
     document.getElementById('results-container').innerHTML = sentenceContent + backButtonHTML;
     console.log(`Matching Results for "${trimmedWord}":`, matchingResults);
 }
+
 
 // Spinner Control Functions
 function showSpinner() {
@@ -663,34 +721,50 @@ function prioritizeResults(results, query, key) {
     });
 }
 
+// Update URL based on current search parameters
+function updateURL(query, type, selectedPOS) {
+    const url = new URL(window.location);
+    url.searchParams.set('query', query);
+    url.searchParams.set('type', type);
+    if (selectedPOS) {
+        url.searchParams.set('pos', selectedPOS);
+    } else {
+        url.searchParams.delete('pos');
+    }
+    window.history.pushState({}, '', url);
+}
+
+// Load the state from the URL and trigger the appropriate search
+function loadStateFromURL() {
+    const url = new URL(window.location);
+    const query = url.searchParams.get('query');
+    const type = url.searchParams.get('type') || 'words';  // Default to 'words'
+    const selectedPOS = url.searchParams.get('pos') || '';
+
+    if (query) {
+        document.getElementById('search-bar').value = query;
+        document.getElementById('type-select').value = type;
+        if (selectedPOS) {
+            document.getElementById('pos-select').value = selectedPOS;
+        }
+        search();  // Trigger search with the loaded parameters
+    }
+}
+
+
+
+
 // Initialization of the dictionary data and event listeners
 window.onload = function() {
     fetchDictionaryData();  // Load dictionary data when the page is refreshed
 
     // Wait for the data to be fetched before triggering the search
     const checkDataLoaded = setInterval(() => {
-        if (results.length > 0) {
+        if (results.length > 0) {  // Ensure results are loaded
             clearInterval(checkDataLoaded);
-
-            // Check if the URL contains a hash like #search/word
-            const hash = window.location.hash;
-            const searchPrefix = '#search/';
-
-            if (hash.startsWith(searchPrefix)) {
-                const searchTerm = decodeURIComponent(hash.substring(searchPrefix.length)); // Extract the word after #search/
-                if (searchTerm) {
-                    document.getElementById('search-bar').value = searchTerm;
-                    search();  // Automatically perform the search with the extracted word
-                    
-                    // Update the page title with the search term
-                    document.title = `${searchTerm} - Norwegian Dictionary`;
-
-                    // Trigger a virtual pageview in Google Analytics
-                    gtag('config', 'G-M5H81RF3DT', {
-                        'page_path': location.pathname + location.hash
-                    });
-                }
-            }
+            
+            // Load state from URL
+            loadStateFromURL();  // This checks the URL for query/type/POS and triggers the appropriate search
         }
     }, 100);
 
@@ -699,5 +773,4 @@ window.onload = function() {
 
     // Add event listener to the search bar to trigger handleKey on key press
     document.getElementById('search-bar').addEventListener('keyup', handleKey);
-
 };
