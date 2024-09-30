@@ -6,6 +6,26 @@ a {
     display: none !important; /* Always hidden */
 }
 
+.back-btn {
+    background-color: #b22222; /* Dark red color */
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    margin: 20px auto; /* Ensure margin around the button */
+    margin-top: 0 !important;
+    display: block;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    max-width: 600px; /* Set a max width to prevent it from being too wide on large screens */
+}
+
+.back-btn i {
+    margin-right: 8px; /* Adds space between the icon and text */
+}
+
+
 body {
     background-color: #f4f4f4;
     display: flex;
@@ -255,47 +275,6 @@ main {
     flex: 1;
 }
 
-.pos-filter {
-    align-items: center;
-    background-color: #0d3a69;
-    border: none;
-    border-radius: 15px;
-    color: white;
-    cursor: pointer;
-    display: inline-flex;
-    font-family: 'Noto Sans', sans-serif;
-    font-size: 16px;
-    padding: 10px 15px;
-    position: relative;
-}
-
-.pos-filter i {
-    color: white;
-    font-size: 18px;
-    pointer-events: none;
-    position: absolute;
-    right: 15px;
-}
-
-.pos-filter select {
-    appearance: none;
-    background-color: inherit;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-family: 'Noto Sans', sans-serif;
-    font-weight: 400;
-    letter-spacing: 0.1em;
-    padding-right: 30px;
-    text-transform: uppercase;
-}
-
-.pos-filter-and-random {
-    align-items: center;
-    display: flex;
-    gap: 15px;
-}
-
 .random-btn {
     align-items: center;
     background-color: #0d3a69;
@@ -317,12 +296,6 @@ main {
     transform: scale(1.01);
 }
 
-.random-btn i {
-    color: white;
-    font-size: 18px;
-    margin: 0;
-}
-
 .search-bar-wrapper {
     border: 1px solid #d1d1d1;
     border-radius: 15px;
@@ -335,12 +308,13 @@ main {
 }
 
 .search-bar-wrapper,
-.pos-filter,
-.random-btn {
+.type-filter,
+.pos-filter {
     align-items: center;
     box-sizing: border-box;
     display: flex;
     height: 42px;
+    flex: 1;
 }
 
 .search-btn {
@@ -354,8 +328,8 @@ main {
     cursor: pointer;
     display: flex;
     height: 100%;
+    width: 100% !important;
     justify-content: center;
-    padding: 0 14px;
     transition: background-color 0.3s ease;
 }
 
@@ -371,12 +345,49 @@ main {
     margin: 0;
 }
 
+.sentence-btn {
+    background-color: #951b1bc2;  /* Dark red color */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-top: 15px;
+    display: inline-block;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.sentence-container {
+    max-width: 600px;
+    margin: 0 auto; /* Center the container */
+    padding: 10px 20px;
+}
+
+
+.random-btn {
+    width: 20%; /* Adjust the width of the random button */
+}
+
 #results-container {
     background-color: rgb(244, 244, 244);
     margin: 20px auto;
-    padding: 20px;
     text-align: left;
     width: 50%;
+}
+
+.search-and-random-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.search-bar-wrapper {
+    width: 100%;
 }
 
 #search-container {
@@ -393,13 +404,18 @@ main {
 }
 
 #search-container-inner {
-    align-items: center;
     display: flex;
-    flex-wrap: nowrap;
-    gap: 20px;
-    justify-content: center;
-    margin: 0 auto;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
     max-width: 700px;
+    margin: 0 auto;
+}
+
+.selectors-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
 }
 
 .spinner {
@@ -422,6 +438,57 @@ main {
     width: 40px;
 }
 
+.type-filter, .pos-filter, .random-btn {
+    display: inline-flex;
+    align-items: center;
+    background-color: #0d3a69;
+    border: none;
+    border-radius: 15px;
+    color: white;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 16px;
+    padding: 10px 15px;
+    position: relative; /* Ensures that the children elements are positioned relative to this container */
+    box-sizing: border-box;
+
+}
+
+/* Gray out both the select text and the arrow when disabled */
+.type-filter.disabled select, .pos-filter.disabled select {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+.type-filter.disabled i, .pos-filter.disabled i {
+    color: #ccc;  /* Gray out the arrow */
+    pointer-events: none;  /* Prevent interaction with the arrow */
+}
+
+
+.type-filter i, .pos-filter i {
+    color: white;
+    font-size: 18px;
+    pointer-events: none;
+    position: absolute;
+    right: 15px;
+    z-index: 0; /* Ensures the icon is underneath the select element */
+
+}
+
+.type-filter select, .pos-filter select {
+    appearance: none;
+    background-color: inherit;
+    border: none;
+    font-size: 12px;
+    color: white;
+    cursor: pointer;
+    font-family: 'Noto Sans', sans-serif;
+    padding-right: 30px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    }
+
 .word-kjonn {
     align-items: center;
     display: flex;
@@ -443,6 +510,9 @@ main {
 }
 
 @media (max-width: 768px) {
+    .back-btn {
+        width: 100%; /* Make the button take up full width on mobile */
+    }
     .definition-content {
         grid-template-columns: 1fr;
     }
@@ -498,30 +568,20 @@ main {
         width: 16px;
     }
 
-
-    .pos-filter-and-random {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        width: 90%;
-    }
-
-    .pos-filter i {
-        font-size: 14px; /* Make the arrow smaller */
-    }
-
-    .pos-filter select {
-        font-size: 2.5vw;  /* Adjust the font size for mobile */
-    }
-
-    .pos-filter,
     .random-btn {
-        width: 48%;
+        width: 20% !important;
+        flex-shrink: 0; /* Prevent the random button from shrinking */
+    }
+
+    .search-and-random-wrapper {
+        display: flex;
+        align-items: center; /* Vertically align items */
+        justify-content: space-between;
+        gap: 10px;
     }
 
     .search-bar-wrapper,
     #results-container {
-        margin: 10px 0 10px 0;
         width: 90%;
     }
 
@@ -531,10 +591,9 @@ main {
 
     .search-btn {
         padding: 8px;
-        width: 100%; /* This makes the search button take up full width on mobile */
+        width: 20% !important; /* This makes the search button take up full width on mobile */
     }
     
-
     .search-btn i {
         font-size: 16px;
     }
@@ -542,14 +601,26 @@ main {
     #search-container {
         align-items: center;
         flex-direction: column;
-        padding: 10px 0 15px 0;
     }
 
     #search-container-inner {
-        align-items: center;
-        flex-direction: column;
-        gap: 0;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        gap: 10px;
         width: 90%;
+    }
+
+    .type-filter, .pos-filter, .random-btn, .search-bar-wrapper {
+        width: 100%;
+    }
+    
+    .type-filter i, .pos-filter i {
+        font-size: 14px; /* Make the arrow smaller */
+    }
+
+    .type-filter select, .pos-filter select {
+        font-size: 2.5vw;  /* Adjust the font size for mobile */
     }
 
     .word-kjonn {
