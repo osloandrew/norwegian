@@ -133,10 +133,10 @@ function parseCSVData(data) {
 
 // Generate and display a random word or sentence
 async function randomWord() {
-    clearInput();  // Clear search bar when generating a random word
+    clearInput();  // Clear search bar when generating a random word or sentence
 
     if (!results.length) {
-        console.warn('No results available to pick a random word.');
+        console.warn('No results available to pick a random word or sentence.');
         return;
     }
 
@@ -150,10 +150,10 @@ async function randomWord() {
     let filteredResults;
 
     if (type === 'sentences') {
-        // Filter results that contain example sentences
+        // Filter results that contain example sentences (for the 'sentences' type)
         filteredResults = results.filter(r => r.eksempel);  // Assuming sentences are stored under the 'eksempel' key
     } else {
-        // Filter results by the selected part of speech
+        // Filter results by the selected part of speech (for 'words' type)
         filteredResults = filterResultsByPOS(results, selectedPOS);
     }
 
@@ -174,8 +174,13 @@ async function randomWord() {
     // Randomly select a result from the filtered results
     const randomResult = filteredResults[Math.floor(Math.random() * filteredResults.length)];
 
-    // Render the result (with highlighting for the random word)
-    renderResults([randomResult], randomResult.ord);
+    if (type === 'sentences') {
+        // If it's a sentence, render it as a sentence
+        renderSentence(randomResult);
+    } else {
+        // If it's a word, render it with highlighting (if needed)
+        renderResults([randomResult], randomResult.ord);
+    }
 
     hideSpinner();  // Hide the spinner
 }
@@ -301,6 +306,7 @@ function handleTypeChange() {
     const type = document.getElementById('type-select').value;
     const posSelect = document.getElementById('pos-select');
     const posFilterContainer = document.querySelector('.pos-filter');  // Parent container
+    const query = document.getElementById('search-bar').value.toLowerCase().trim(); // Get the value in the search bar
 
     console.log(`Search type changed to: ${type}`);
 
@@ -310,15 +316,27 @@ function handleTypeChange() {
         posSelect.value = '';  // Reset to "Part of Speech" option
         posFilterContainer.classList.add('disabled');  // Add the 'disabled' class
 
-        // Immediately generate a random sentence
-        randomWord();  // This ensures that a random sentence is generated when "sentences" is selected
+        // If the search bar is not empty, perform a sentence search
+        if (query) {
+            console.log('Searching for sentences with query:', query);
+            search();  // This will trigger a search for sentences based on the search bar query
+        } else {
+            console.log('Search bar empty, generating a random sentence.');
+            randomWord();  // Generate a random sentence if the search bar is empty
+        }
     } else {
         // Enable the POS dropdown and restore color
         posSelect.disabled = false;
         posFilterContainer.classList.remove('disabled');  // Remove the 'disabled' class
 
         // Optionally, generate a random word if needed when switching back to words
-        randomWord();  // You can call randomWord here as well, depending on your desired behavior
+        if (query) {
+            console.log('Searching for words with query:', query);
+            search();  // Trigger a word search if the search bar has a value
+        } else {
+            console.log('Search bar empty, generating a random word.');
+            randomWord();  // Generate a random word if the search bar is empty
+        }
     }
 }
 
