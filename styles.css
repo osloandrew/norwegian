@@ -190,12 +190,6 @@ html {
     margin: 0;
 }
 
-i.fas.fa-volume-up[disabled] {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-
 input[type="text"] {
     border: none;
     flex-grow: 1;
@@ -491,6 +485,10 @@ main {
         padding: 10px 10px;
     }
 
+    label[for="search-bar"] {
+        display: none;
+    }
+
     .linkedin-btn {
         font-size: 12px;
         padding: 6px 12px;
@@ -510,6 +508,10 @@ main {
 
     .pos-filter i {
         font-size: 14px; /* Make the arrow smaller */
+    }
+
+    .pos-filter select {
+        font-size: 2.5vw;  /* Adjust the font size for mobile */
     }
 
     .pos-filter,
