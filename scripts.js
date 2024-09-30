@@ -1,4 +1,28 @@
+// Global Variables
 let results = [];
+let debounceTimer;  // Global variable for debouncing
+
+// Debounce function to limit how often search is triggered
+function debounce(func, delay) {
+    clearTimeout(debounceTimer);  // Clear the previous timer
+    debounceTimer = setTimeout(() => {
+        func();  // Execute the function after the delay
+    }, delay);  // Delay period
+}
+
+function handleKey(event) {
+    // Call search function when 'Enter' is pressed or debounce it otherwise
+    debounce(() => {
+        if (event.key === 'Enter') {
+            search();
+        }
+    }, 300);  // Delay of 300ms before calling search()
+}
+
+function filterResultsByPOS(results, selectedPOS) {
+    if (!selectedPOS) return results;
+    return results.filter(r => mapKjonnToPOS(r.kjønn) === selectedPOS);
+}
 
 // Helper function to prepend "substantiv -" to 'kjønn' starting with 'e'
 function formatKjonn(kjonn) {
@@ -69,7 +93,6 @@ function mapKjonnToPOS(kjonn) {
     return '';  // Return empty string if no valid part of speech found
 }
 
-
 function clearInput() {
     document.getElementById('search-bar').value = '';
 }
@@ -86,10 +109,6 @@ async function fetchDictionaryData() {
     } catch (error) {
         console.error('Error fetching or parsing data:', error);
     }
-}
-
-function handleKey(event) {
-    if (event.key === 'Enter') search();
 }
 
 function parseCSVData(data) {
@@ -116,16 +135,13 @@ async function randomWord() {
     }
 
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
-    let filteredResults = results;
 
-    // Show the spinner at the start of the search
+    // Show the spinner at the start of the random word generation
     const spinner = document.getElementById('loading-spinner');
-    spinner.style.display = 'block';
+    showSpinner()
 
-    // Filter the results by the selected part of speech
-    if (selectedPOS) {
-        filteredResults = results.filter(r => mapKjonnToPOS(r.kjønn) === selectedPOS);
-    }
+    // Filter results by the selected part of speech
+    const filteredResults = filterResultsByPOS(results, selectedPOS);
 
     if (!filteredResults.length) {
         console.warn('No random words available for the selected part of speech.');
@@ -137,126 +153,18 @@ async function randomWord() {
                 <p>No random words available for the selected part of speech. Try selecting another.</p>
             </div>
         `;
-        spinner.style.display = 'none';
+        hideSpinner()
         return;
     }
 
+    // Randomly select a result from the filtered results
     const randomResult = filteredResults[Math.floor(Math.random() * filteredResults.length)];
-    randomResult.kjønn = formatKjonn(randomResult.kjønn);
 
-    // Check for audio availability before rendering the result
-    const audioUrl = await fetchAudioForWord(randomResult.ord);
-    const pronunciationIcon = audioUrl 
-        ? `<i class="fas fa-volume-up" style="cursor: pointer;" onclick="playPronunciation('${randomResult.ord}', this)"></i>`
-        : `<i class="fas fa-volume-up" style="opacity: 0.5; cursor: not-allowed;"></i>`;
+    // Render the result
+    renderResults([randomResult]);  // Pass the result as an array to the render function
 
-    const displayUttale = randomResult.uttale || (audioUrl ? `[${randomResult.ord}]` : '');
-    const pronunciationSection = audioUrl || randomResult.uttale
-        ? `<p class="pronunciation">${pronunciationIcon} ${displayUttale}</p>`
-        : '';
-
-    // Collect the entire HTML into a string
-    let htmlString = `
-        <div class="definition">
-            <h2 class="word-kjonn">
-                ${randomResult.ord}
-                ${randomResult.kjønn ? `<span class="kjønn">${randomResult.kjønn}</span>` : ''}
-            </h2>
-            ${randomResult.definisjon ? `<p>${randomResult.definisjon}</p>` : ''}
-            <div class="definition-content">
-                ${randomResult.engelsk ? `<p class="english"><i class="fas fa-language"></i> ${randomResult.engelsk}</p>` : ''}
-                ${pronunciationSection}
-                ${randomResult.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${randomResult.etymologi}</p>` : ''}
-            </div>
-            ${randomResult.eksempel ? `<p class="example">${randomResult.eksempel}</p>` : ''}
-        </div>
-    `;
-
-    // Update the DOM in one go
-    document.getElementById('results-container').innerHTML = htmlString;
-
-    // Hide the spinner after results are displayed or an error is shown
-    spinner.style.display = 'none';
+    hideSpinner()  // Hide the spinner
 }
-
-
-async function fetchAudioForWord(word) {
-    const encodedWord = encodeURIComponent(word);
-
-    // Possible prefixes (e.g., No-, Nb-) and their combinations
-    const prefixes = ['No-', 'Nb-', 'LL-Q9043_(nor)-', 'NB_-_Pronunciation_of_Norwegian_Bokmål_'];
-
-    // Common number paths to check first
-    const commonNumberPaths = ['3/38', '1/16', '5/58'];
-
-    // Less likely number paths (fallback)
-    const secondaryNumberPaths = ['2/20', '9/9b', '7/74', 'b/b6', '6/64'];
-
-    // Dynamically generate URL combinations
-    const generateUrls = (numberPaths) => {
-        const urls = [];
-        prefixes.forEach(prefix => {
-            numberPaths.forEach(path => {
-                urls.push(`https://upload.wikimedia.org/wikipedia/commons/${path}/${prefix}${encodedWord}.ogg`);
-                urls.push(`https://upload.wikimedia.org/wikipedia/commons/${path}/${prefix}${encodedWord}.wav`);
-            });
-        });
-        return urls;
-    };
-
-    // Function to check a batch of URLs using GET instead of HEAD
-    const checkUrls = async (urls) => {
-        const requests = urls.map(url => 
-            fetch(url, { method: 'GET' })
-                .then(response => ({ url, ok: response.ok }))
-                .catch(() => ({ ok: false }))
-        );
-        const results = await Promise.all(requests);
-        return results.find(response => response.ok)?.url || null;
-    };
-
-    // Try common paths first (faster)
-    let urlsToCheck = generateUrls(commonNumberPaths);
-    let validAudioUrl = await checkUrls(urlsToCheck);
-
-    if (!validAudioUrl) {
-        // If no valid URL is found, check secondary paths
-        urlsToCheck = generateUrls(secondaryNumberPaths);
-        validAudioUrl = await checkUrls(urlsToCheck);
-    }
-
-    if (validAudioUrl) {
-        console.log(`Audio available for ${word}: ${validAudioUrl}`);
-        return validAudioUrl;
-    }
-
-    console.log(`No audio found for ${word}`);
-    return null;
-}
-
-
-
-
-
-
-
-
-
-async function playPronunciation(word, iconElement) {
-    const audioUrl = await fetchAudioForWord(word);
-
-    if (audioUrl) {
-        const audioPlayer = document.getElementById('audio-player');
-        audioPlayer.src = audioUrl;
-        audioPlayer.play();  // Play the audio without showing the player
-    } else {
-        // If no audio is available, disable the click event
-        iconElement.style.opacity = "0.5";
-        iconElement.onclick = null;  // Disable the click event
-    }
-}
-
-
 
 async function search() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
@@ -264,19 +172,16 @@ async function search() {
 
     // Show the spinner at the start of the search
     const spinner = document.getElementById('loading-spinner');
-    spinner.style.display = 'block';
+    showSpinner()
 
-    // Update the page title with the search term
+    // Update document title with the search term
     document.title = `${query} - Norwegian Dictionary`;
 
-    console.log('Search query:', query, 'Selected POS:', selectedPOS);
-
     const resultsContainer = document.getElementById('results-container');
-    resultsContainer.innerHTML = '';
+    resultsContainer.innerHTML = ''; // Clear previous results
 
-    // If the search bar is empty, show an error message
+    // Handle empty search query
     if (!query) {
-        console.log('Search field is empty. Showing error message.');
         resultsContainer.innerHTML = `
             <div class="definition error-message">
                 <h2 class="word-kjonn">
@@ -285,134 +190,62 @@ async function search() {
                 <p>Please enter a word in the search field before searching.</p>
             </div>
         `;
-        spinner.style.display = 'none';
+        hideSpinner()
         return;
     }
 
-    // Update the URL to /search/word format without reloading the page
-    const newUrl = `#search/${encodeURIComponent(query)}`;
-    window.location.hash = newUrl;
-
-    // Trigger a search event in Google Analytics
-    gtag('event', 'search', {
-        'search_term': query,
-        'part_of_speech': selectedPOS || 'none'
-    });
-
-    // Trigger a virtual pageview in Google Analytics
-    gtag('config', 'G-M5H81RF3DT', {
-        'page_path': location.pathname + location.hash
-    });
-
+    // Filter results by query and selected POS
     const matchingResults = results.filter(r => {
         const matchesQuery = r.ord.toLowerCase().includes(query) || r.engelsk.toLowerCase().includes(query);
         const mappedPOS = mapKjonnToPOS(r.kjønn);
-
-        const matchesPOS = !selectedPOS || mappedPOS === selectedPOS; // Exact match for POS
-        console.log('Mapped POS:', mappedPOS, 'Matches POS:', matchesPOS, 'for word:', r.ord);
-
-        return matchesQuery && matchesPOS;
+        return matchesQuery && (!selectedPOS || mappedPOS === selectedPOS);
     });
 
-    console.log('Filtered results:', matchingResults); // Log filtered results
-
-    // Sort the results: prioritize exact matches in both the Norwegian and English term
+    // Prioritization logic
     const sortedResults = matchingResults.sort((a, b) => {
         const queryLower = query.toLowerCase();
 
-        // Check for exact match in the Norwegian term
+        // Exact match in the Norwegian term
         const isExactMatchA = a.ord.toLowerCase() === queryLower;
         const isExactMatchB = b.ord.toLowerCase() === queryLower;
-
         if (isExactMatchA && !isExactMatchB) return -1;
         if (!isExactMatchA && isExactMatchB) return 1;
 
-        // Check if the search term appears in the comma-separated list in the English definition
+        // Exact match in comma-separated list of English definitions
         const aIsInCommaList = a.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
         const bIsInCommaList = b.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
-
         if (aIsInCommaList && !bIsInCommaList) return -1;
         if (!aIsInCommaList && bIsInCommaList) return 1;
 
-        // Deprioritize compound words where the query appears within a larger word (e.g., 'appelsintre')
+        // Deprioritize compound words where the query appears in a larger word
         const aContainsInWord = a.ord.toLowerCase().includes(queryLower) && a.ord.toLowerCase() !== queryLower;
         const bContainsInWord = b.ord.toLowerCase().includes(queryLower) && b.ord.toLowerCase() !== queryLower;
-
         if (aContainsInWord && !bContainsInWord) return 1;
         if (!aContainsInWord && bContainsInWord) return -1;
 
         // Sort by position of query in the word (earlier is better)
         const aIndex = a.ord.toLowerCase().indexOf(queryLower);
         const bIndex = b.ord.toLowerCase().indexOf(queryLower);
-
         return aIndex - bIndex;
     });
 
-    // Limit the number of results to a maximum of 20
-    const limitedResults = sortedResults.slice(0, 20);
+    const limitedResults = sortedResults.slice(0, 20); // Limit to 20 results
 
     if (limitedResults.length) {
-        // Collect all HTML in a single string to reduce DOM manipulation
-        let htmlString = '';
-        for (const result of limitedResults) {
-            result.kjønn = formatKjonn(result.kjønn);
-
-            // Check for audio availability asynchronously
-            const audioUrl = await fetchAudioForWord(result.ord);
-            const pronunciationIcon = audioUrl 
-                ? `<i class="fas fa-volume-up" style="cursor: pointer;" onclick="playPronunciation('${result.ord}', this)"></i>`
-                : `<i class="fas fa-volume-up" style="opacity: 0.5; cursor: not-allowed;"></i>`;
-
-            const displayUttale = result.uttale || (audioUrl ? `[${result.ord}]` : '');
-            const pronunciationSection = audioUrl || result.uttale
-            ? `<p class="pronunciation">${pronunciationIcon} ${displayUttale}</p>`
-            : '';
-        
-            // Append the HTML for each result
-            htmlString += `
-                <div class="definition">
-                    <h2 class="word-kjonn">
-                        ${result.ord}
-                        ${result.kjønn ? `<span class="kjønn">${result.kjønn}</span>` : ''}
-                    </h2>
-                    ${result.definisjon ? `<p>${result.definisjon}</p>` : ''}
-                    <div class="definition-content">
-                        ${result.engelsk ? `<p class="english"><i class="fas fa-language"></i> ${result.engelsk}</p>` : ''}
-                        ${pronunciationSection}
-                        ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
-                    </div>
-                    ${result.eksempel ? `<p class="example">${result.eksempel}</p>` : ''}
-                </div>
-            `;
-        }
-        // Update the DOM in one go
-        resultsContainer.innerHTML = htmlString;
+        renderResults(limitedResults); // Use the helper function to render the results
     } else {
-        let noResultsMessage = `No results found for "${query}"`;
-        if (selectedPOS) {
-            noResultsMessage += ` with part of speech "${selectedPOS}".`;
-        } else {
-            noResultsMessage += `.`;
-        }
-        noResultsMessage += ` Try searching for another word or use the Random Word feature.`;
-
-        console.log('No results found for:', query, 'with POS:', selectedPOS);
         resultsContainer.innerHTML = `
             <div class="definition error-message">
                 <h2 class="word-kjonn">
                     Error <span class="kjønn">No Results</span>
                 </h2>
-                <p>${noResultsMessage}</p>
+                <p>No results found for "${query}".</p>
             </div>
         `;
     }
 
-    // Hide the spinner after results are displayed or an error is shown
-    spinner.style.display = 'none';
+    hideSpinner() // Hide the spinner
 }
-
-
-
 
 function handlePOSChange() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
@@ -426,6 +259,40 @@ function handlePOSChange() {
     }
 }
 
+// Rendering Functions
+function renderResults(results) {
+    let htmlString = '';
+    results.forEach(result => {
+        result.kjønn = formatKjonn(result.kjønn);
+        htmlString += `
+            <div class="definition">
+                <h2 class="word-kjonn">
+                    ${result.ord}
+                    ${result.kjønn ? `<span class="kjønn">${result.kjønn}</span>` : ''}
+                </h2>
+                ${result.definisjon ? `<p>${result.definisjon}</p>` : ''}
+                <div class="definition-content">
+                    ${result.engelsk ? `<p class="english"><i class="fas fa-language"></i> ${result.engelsk}</p>` : ''}
+                    ${result.uttale ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>` : ''}
+                    ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
+                </div>
+                ${result.eksempel ? `<p class="example">${result.eksempel}</p>` : ''}
+            </div>
+        `;
+    });
+    document.getElementById('results-container').innerHTML = htmlString;
+}
+
+// Spinner Control Functions
+function showSpinner() {
+    document.getElementById('loading-spinner').style.display = 'block';
+}
+
+function hideSpinner() {
+    document.getElementById('loading-spinner').style.display = 'none';
+}
+
+// Initialization
 window.onload = function() {
     fetchDictionaryData();  // Load dictionary data when the page is refreshed
 
@@ -458,4 +325,8 @@ window.onload = function() {
 
     // Add event listener to POS filter dropdown
     document.getElementById('pos-select').addEventListener('change', handlePOSChange);
+
+    // Add event listener to the search bar to trigger handleKey on key press
+    document.getElementById('search-bar').addEventListener('keyup', handleKey);
+
 };
