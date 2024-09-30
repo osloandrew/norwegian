@@ -146,8 +146,8 @@ async function randomWord() {
     const type = document.getElementById('type-select').value;
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
 
-    // Update the URL to indicate a random search
-    updateURL('random', type, selectedPOS);  // <--- Trigger URL update for random words/sentences
+    // Do not pass 'random' as the query, instead just update the URL to indicate it's a random query
+    updateURL('', type, selectedPOS);  // Pass an empty string for the query part to avoid "random" in the URL
 
     if (!results.length) {
         console.warn('No results available to pick a random word or sentence.');
@@ -737,19 +737,26 @@ function updateURL(query, type, selectedPOS) {
 // Load the state from the URL and trigger the appropriate search
 function loadStateFromURL() {
     const url = new URL(window.location);
-    const query = url.searchParams.get('query');
-    const type = url.searchParams.get('type') || 'words';  // Default to 'words'
-    const selectedPOS = url.searchParams.get('pos') || '';
+    const query = url.searchParams.get('query') || '';  // Default to an empty query if not present
+    const type = url.searchParams.get('type') || 'words';  // Use the type from the URL or default to 'words'
+    const selectedPOS = url.searchParams.get('pos') || '';  // Default to an empty POS if not present
 
+    // Set the correct values in the DOM elements
+    document.getElementById('search-bar').value = query;
+    document.getElementById('type-select').value = type;  // Respect the type from the URL (sentences or words)
+    
+    if (selectedPOS) {
+        document.getElementById('pos-select').value = selectedPOS;
+    }
+
+    // Only trigger a search if there is a query, otherwise show a random word or sentence
     if (query) {
-        document.getElementById('search-bar').value = query;
-        document.getElementById('type-select').value = type;
-        if (selectedPOS) {
-            document.getElementById('pos-select').value = selectedPOS;
-        }
-        search();  // Trigger search with the loaded parameters
+        search();  // Perform the search with the loaded parameters
+    } else {
+        randomWord();  // If no query, load a random word or sentence
     }
 }
+
 
 
 
