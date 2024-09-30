@@ -58,22 +58,18 @@
         <!-- Search container with full-width background -->
         <section id="search-container">
             <div id="search-container-inner">
-                <!-- Search Bar Section -->
-                <div class="search-bar-wrapper">
-                    <input type="text" id="search-bar" placeholder=" " onkeydown="handleKey(event)" aria-label="Search for Norwegian or English words">
-                    <label for="search-bar">Type a word in Norwegian or English...</label>
-                    <!-- Clear Button with Font Awesome xmark icon -->
-                    <button class="clear-btn" aria-label="Clear search field" onclick="clearInput()">
-                        <i class="fas fa-xmark"></i>
-                    </button>
-                    <!-- Search Button -->
-                    <button class="search-btn" aria-label="Search for the word" onclick="search()">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-
-                <!-- Part of Speech Filter and Random Button -->
-                <div class="pos-filter-and-random">
+                <!-- Grouped Selectors (Type and POS) -->
+                <div class="selectors-wrapper">
+                    <!-- Words/Sentences Selector -->
+                    <div class="type-filter">
+                        <select id="type-select" aria-label="Search by words or sentences" onchange="handleTypeChange()">
+                            <option value="words">Words</option>
+                            <option value="sentences">Sentences</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+            
+                    <!-- POS Selector -->
                     <div class="pos-filter">
                         <select id="pos-select" onchange="search()" aria-label="Filter by part of speech">
                             <option value="">Part of Speech</option>
@@ -89,12 +85,29 @@
                         </select>
                         <i class="fas fa-chevron-down"></i>
                     </div>
+                </div>
+            
+                <!-- Grouped Search Bar and Random Button -->
+                <div class="search-and-random-wrapper">
+                    <!-- Search Bar -->
+                    <div class="search-bar-wrapper">
+                        <input type="text" id="search-bar" placeholder=" " onkeydown="handleKey(event)" aria-label="Search for Norwegian or English words">
+                        <button class="clear-btn" aria-label="Clear search field" onclick="clearInput()">
+                            <i class="fas fa-xmark"></i>
+                        </button>
+                        <button class="search-btn" aria-label="Search for the word" onclick="search()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+            
+                    <!-- Random Button -->
                     <button class="random-btn" aria-label="Generate a random word" onclick="randomWord()" title="Generate a random word">
                         <i class="fas fa-dice"></i>
                     </button>
                 </div>
-            </div>
+            </div>            
         </section>
+        
         <div id="loading-spinner" class="spinner" style="display: none;"></div> <!-- Moved outside the results-container -->
         <section id="results-container"></section>        
     </main>
