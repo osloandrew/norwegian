@@ -58,7 +58,6 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 8px 15px; /* Match padding with LinkedIn button */
     border: 1px solid transparent; /* No visible border but ensures alignment */
     border-radius: 4px;
     transition: background-color 0.2s ease, color 0.2s ease;
@@ -259,9 +258,12 @@ label {
 }
 
 .links {
-    display: inline-flex;
+    display: flex;
     gap: 10px; /* Space between the buttons */
     margin: 10px 0 10px 0;
+    align-items: center; /* Vertically align both buttons */
+    justify-content: center;
+
 }
 
 .linkedin-btn {
@@ -276,6 +278,7 @@ label {
     font-size: 13px;
     padding: 2px 15px;
     text-decoration: none;
+    height: 30px; /* Match height to the BuyMeACoffee image */
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -532,18 +535,20 @@ main {
     .back-btn {
         width: 100%; /* Make the button take up full width on mobile */
     }
+
     .definition-content {
         grid-template-columns: 1fr;
     }
 
-    footer {
-        text-align: center;
+    footer, header {
+        width: 100%; /* Ensure both footer and header are the same width */
+        padding: 10px 20px; /* Add consistent padding */
+        box-sizing: border-box; /* Ensure padding is included in the element's total width */
     }
 
     footer p {
         font-size: 11px !important;
         margin: 0;
-        padding: 0 10px;
     }
 
     h1 {
@@ -579,12 +584,30 @@ main {
     }
 
     .linkedin-btn {
-        font-size: 12px;
-        padding: 0px 12px;
+        font-size: 12px; /* Slightly smaller font size */
+        padding: 0px 10px 0px 10px !important; /* Adjust padding to reduce the button's height */
+        border-radius: 4px;
+    }
+
+    .linkedin-btn::after {
+        content: "Connect"; /* Set the text to 'Connect' on mobile */
+    }
+
+    /* Hide the original text */
+    .linkedin-btn span {
+        display: none;
     }
 
     .linkedin-icon {
-        width: 16px;
+        width: 14px; /* Adjust icon size to match the button */
+    }
+
+    .links {
+        display: flex;
+        justify-content: center;
+        margin: 5px 0 5px 0;
+        gap: 8px; /* Ensure proper space between buttons */
+        padding: 0 20px; /* Add padding to create space between the buttons and the screen edges */
     }
 
     .random-btn {
@@ -626,7 +649,7 @@ main {
         grid-template-columns: 1fr;
         grid-template-rows: auto auto;
         gap: 10px;
-        width: 90%;
+        padding: 0 10px 0 10px;
     }
 
     .type-filter, .pos-filter, .random-btn, .search-bar-wrapper {
