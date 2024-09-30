@@ -54,6 +54,21 @@ body {
     font-size: 18px;
 }
 
+.coffee-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 15px; /* Match padding with LinkedIn button */
+    border: 1px solid transparent; /* No visible border but ensures alignment */
+    border-radius: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.coffee-img {
+    max-height: 30px; /* Adjust the height of the image to align with the LinkedIn button */
+    width: auto;
+}
+
 /* Common styling for both definition cards and error messages */
 .definition, .error-message {
     background-color: #ffffff;
@@ -243,6 +258,12 @@ label {
     transform: translateY(-50%);
 }
 
+.links {
+    display: inline-flex;
+    gap: 10px; /* Space between the buttons */
+    margin: 10px 0 10px 0;
+}
+
 .linkedin-btn {
     align-items: center;
     background-color: white;
@@ -253,8 +274,7 @@ label {
     display: inline-flex;
     font-family: 'Noto Sans', sans-serif;
     font-size: 13px;
-    margin-top: 10px;
-    padding: 8px 15px;
+    padding: 2px 15px;
     text-decoration: none;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -560,7 +580,7 @@ main {
 
     .linkedin-btn {
         font-size: 12px;
-        padding: 6px 12px;
+        padding: 0px 12px;
     }
 
     .linkedin-icon {
