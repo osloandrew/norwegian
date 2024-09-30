@@ -1,703 +1,638 @@
-// Global Variables
-let results = [];
-let debounceTimer;  // Global variable for debouncing
-
-// Debounce function to limit how often search is triggered
-function debounce(func, delay) {
-    clearTimeout(debounceTimer);  // Clear the previous timer
-    debounceTimer = setTimeout(() => {
-        func();  // Execute the function after the delay
-    }, delay);  // Delay period
+a {
+    color: #3c88d4;
 }
 
-// Handle the key input, performing a search on 'Enter' or debouncing otherwise
-function handleKey(event) {
-    // Call search function when 'Enter' is pressed or debounce it otherwise
-    debounce(() => {
-        if (event.key === 'Enter') {
-            search();
-        }
-    }, 300);  // Delay of 300ms before calling search()
+#audio-player {
+    display: none !important; /* Always hidden */
 }
 
-// Filter results based on selected part of speech (POS)
-function filterResultsByPOS(results, selectedPOS) {
-    if (!selectedPOS) return results;
-    return results.filter(r => mapKjonnToPOS(r.kjønn) === selectedPOS);
+.back-btn {
+    background-color: #b22222; /* Dark red color */
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    margin: 20px auto; /* Ensure margin around the button */
+    margin-top: 0 !important;
+    display: block;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    max-width: 600px; /* Set a max width to prevent it from being too wide on large screens */
 }
 
-// Helper function to format 'kjønn' (grammatical gender) based on its value
-function formatKjonn(kjonn) {
-    return kjonn && kjonn[0].toLowerCase() === 'e' ? 'substantiv - ' + kjonn : kjonn;
-}
-
-// Function to map 'kjønn' to part of speech (POS)
-function mapKjonnToPOS(kjonn) {
-    if (!kjonn) return '';
-
-    kjønn = kjonn.toLowerCase().trim(); // Ensure lowercase and remove any extra spaces
-
-    // Debugging: Log all the kjønn values
-    console.log('Current kjønn value:', kjønn);
-
-    // Check if the kjønn value includes "substantiv" for nouns
-    if (kjønn.includes('substantiv')) {
-        console.log('Mapped to noun');
-        return 'noun';
-    }
-    // Handle verbs
-    if (kjønn.startsWith('verb')) {
-        console.log('Mapped to verb');
-        return 'verb';
-    }
-    // Handle adjectives
-    if (kjønn.startsWith('adjektiv')) {
-        console.log('Mapped to adjective');
-        return 'adjective';
-    }
-        // Handle adverbs
-    if (kjønn.startsWith('adverb')) {
-        console.log('Mapped to adverb');
-        return 'adverb';
-    }
-    // Handle prepositions
-    if (kjønn.startsWith('preposisjon')) {
-        console.log('Mapped to preposition');
-        return 'preposition';
-    }
-    // Handle interjections
-    if (kjønn.startsWith('interjeksjon')) {
-        console.log('Mapped to interjection');
-        return 'interjection';
-    }
-    // Handle conjunctions
-    if (kjønn.startsWith('konjunksjon') || kjønn.startsWith('subjunksjon')) {
-        console.log('Mapped to conjunction');
-        return 'conjunction';
-    }
-    // Handle pronouns
-    if (kjønn.startsWith('pronomen')) {
-        console.log('Mapped to pronoun');
-        return 'pronoun';
-    }
-    // Handle articles
-    if (kjønn.startsWith('artikkel')) {
-        console.log('Mapped to article');
-        return 'article';
-    }
-    // Handle expressions
-    if (kjønn.startsWith('fast')) {
-        console.log('Mapped to expression');
-        return 'expression';
-    }
-
-    console.log('Mapped to unknown POS');
-    return '';  // Return empty string if no valid part of speech found
-}
-
-// Clear the search input field
-function clearInput() {
-    document.getElementById('search-bar').value = '';
-}
-
-// Fetch the dictionary data from the server
-async function fetchDictionaryData() {
-    // Show the spinner before fetching data
-    document.getElementById('loading-spinner').style.display = 'block';
-
-    try {
-        const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vSl2GxGiiO3qfEuVM6EaAbx_AgvTTKfytLxI1ckFE6c35Dv8cfYdx30vLbPPxadAjeDaSBODkiMMJ8o/pub?output=csv');
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        const data = await response.text();
-        parseCSVData(data);
-    } catch (error) {
-        console.error('Error fetching or parsing data:', error);
-    }
-}
-
-// Parse the CSV data using PapaParse
-function parseCSVData(data) {
-    Papa.parse(data, {
-        header: true,
-        skipEmptyLines: true,
-        complete: function (resultsFromParse) {
-            results = resultsFromParse.data;
-            console.log('Parsed data:', results);  // Log the parsed data
-            randomWord();  // Show a random entry after data is loaded
-        },
-        error: function (error) {
-            console.error('Error parsing CSV:', error);
-        }
-    });
-}
-
-// Generate and display a random word or sentence
-async function randomWord() {
-    clearInput();  // Clear search bar when generating a random word or sentence
-
-    if (!results.length) {
-        console.warn('No results available to pick a random word or sentence.');
-        return;
-    }
-
-    const type = document.getElementById('type-select').value;
-    const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
-
-    // Show the spinner at the start of the random word or sentence generation
-    const spinner = document.getElementById('loading-spinner');
-    showSpinner();
-
-    let filteredResults;
-
-    if (type === 'sentences') {
-        // Filter results that contain example sentences (for the 'sentences' type)
-        filteredResults = results.filter(r => r.eksempel);  // Assuming sentences are stored under the 'eksempel' key
-    } else {
-        // Filter results by the selected part of speech (for 'words' type)
-        filteredResults = filterResultsByPOS(results, selectedPOS);
-    }
-
-    if (!filteredResults.length) {
-        console.warn('No random entries available for the selected type.');
-        document.getElementById('results-container').innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">Unavailable Entry</span>
-                </h2>
-                <p>No random entries available. Try selecting another type or part of speech.</p>
-            </div>
-        `;
-        hideSpinner();
-        return;
-    }
-
-    // Randomly select a result from the filtered results
-    const randomResult = filteredResults[Math.floor(Math.random() * filteredResults.length)];
-
-    if (type === 'sentences') {
-        // If it's a sentence, render it as a sentence
-        renderSentence(randomResult);
-    } else {
-        // If it's a word, render it with highlighting (if needed)
-        renderResults([randomResult], randomResult.ord);
-    }
-
-    hideSpinner();  // Hide the spinner
+.back-btn i {
+    margin-right: 8px; /* Adds space between the icon and text */
 }
 
 
-// Perform a search based on the input query and selected POS
-async function search() {
-    const query = document.getElementById('search-bar').value.toLowerCase().trim();
-    const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
-    const type = document.getElementById('type-select').value; // Get the search type (words or sentences)
-
-    // Show the spinner at the start of the search
-    const spinner = document.getElementById('loading-spinner');
-    showSpinner();
-
-    // Update document title with the search term
-    document.title = `${query} - Norwegian Dictionary`;
-
-    const resultsContainer = document.getElementById('results-container');
-    resultsContainer.innerHTML = ''; // Clear previous results
-
-    // Handle empty search query
-    if (!query) {
-        resultsContainer.innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">Empty Search</span>
-                </h2>
-                <p>Please enter a word in the search field before searching.</p>
-            </div>
-        `;
-        hideSpinner();
-        return;
-    }
-
-    let matchingResults;
-
-    if (type === 'sentences') {
-        // If searching sentences, look for matches in the 'eksempel' field
-        matchingResults = results.filter(r => r.eksempel && r.eksempel.toLowerCase().includes(query));
-
-        // Prioritize the matching results using the prioritizeResults function
-        matchingResults = prioritizeResults(matchingResults, query, 'eksempel');
-
-        // Highlight the query in the sentences
-        matchingResults.forEach(result => {
-            result.eksempel = highlightQuery(result.eksempel, query);
-        });
-        
-        renderSentences(matchingResults, query); // Pass the query for highlighting
-    } else {
-        // Filter results by query and selected POS for words
-        matchingResults = results.filter(r => {
-            const matchesQuery = r.ord.toLowerCase().includes(query) || r.engelsk.toLowerCase().includes(query);
-            const mappedPOS = mapKjonnToPOS(r.kjønn);
-            return matchesQuery && (!selectedPOS || mappedPOS === selectedPOS);
-        });
-
-        // Prioritization logic for words (preserving the exact behavior)
-        matchingResults = matchingResults.sort((a, b) => {
-            const queryLower = query.toLowerCase();
-
-            // Exact match in the Norwegian term
-            const isExactMatchA = a.ord.toLowerCase() === queryLower;
-            const isExactMatchB = b.ord.toLowerCase() === queryLower;
-            if (isExactMatchA && !isExactMatchB) return -1;
-            if (!isExactMatchA && isExactMatchB) return 1;
-
-            // Exact match in comma-separated list of English definitions
-            const aIsInCommaList = a.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
-            const bIsInCommaList = b.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
-            if (aIsInCommaList && !bIsInCommaList) return -1;
-            if (!aIsInCommaList && bIsInCommaList) return 1;
-
-            // Deprioritize compound words where the query appears in a larger word
-            const aContainsInWord = a.ord.toLowerCase().includes(queryLower) && a.ord.toLowerCase() !== queryLower;
-            const bContainsInWord = b.ord.toLowerCase().includes(queryLower) && b.ord.toLowerCase() !== queryLower;
-            if (aContainsInWord && !bContainsInWord) return 1;
-            if (!aContainsInWord && bContainsInWord) return -1;
-
-            // Sort by position of query in the word (earlier is better)
-            const aIndex = a.ord.toLowerCase().indexOf(queryLower);
-            const bIndex = b.ord.toLowerCase().indexOf(queryLower);
-            return aIndex - bIndex;
-        });
-
-        renderResults(matchingResults); // Render word-specific results
-    }
-
-    hideSpinner(); // Hide the spinner
+body {
+    background-color: #f4f4f4;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Noto Serif', serif;
+    font-size: 16px;
+    height: 100%;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
 }
 
-// Check if any sentences exist for a word
-function checkForSentences(word) {
-    const lowerCaseWord = word.trim().toLowerCase();
+.clear-btn {
+    align-items: center;
+    background-color: white;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    display: flex;
+    font-size: 18px;
+    padding: 0 15px;
+}
+
+.clear-btn i {
+    color: #999;
+    font-size: 18px;
+}
+
+/* Common styling for both definition cards and error messages */
+.definition, .error-message {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    padding: 25px;
+}
+
+.definition-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.definition-content i {
+    margin-right: 8px;
+    color: #951b1b; /* Dark red color */
+    font-size: 18px; /* Slightly larger than the text */
+    width: 24px; /* Fixed width for uniformity */
+    text-align: center; /* Centers the icons within their block */
+    display: inline-block; /* Ensures icons behave like a fixed block */
+    vertical-align: middle; /* Ensures the icon is vertically aligned with the text */
+}
+
+.definition-content p {
+    color: #951b1b; /* Ensure text is also dark red */
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.definition-label {
+    color: #951b1b;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .04rem;
+    text-transform: uppercase;
+}
+
+.definition p {
+    color: #333;
+    font-size: 20px;
+    line-height: 1.6;
+    margin: 10px 0 10px 0;
+}
+
+.english,
+.etymology,
+.pronunciation {
+    color: #555 !important;
+    font-size: 16px !important;
+    font-weight: 300;
+}
+
+
+/* Specific styling for the error message */
+.error-message h2 {
+    color: #951b1b; /* Error title in a distinct color */
+}
+
+.error-message .kjønn {
+    color: #951b1b; /* Error type in a similar error color */
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.error-message p {
+    color: #555;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.example {
+    font-size: 16px !important;
+}
+
+footer {
+    background-color: #d2dce5;
+    bottom: 0;
+    color: #0d3a69;
+    font-family: 'Noto Sans', sans-serif;
+    padding: 20px 0;
+    position: relative;
+    text-align: center;
+    width: 100%;
+}
+
+footer p {
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+footer p a {
+    color: #3c88d4;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+footer p a:hover {
+    color: #0d3a69;
+    text-decoration: underline;
+}
+
+footer .copyright {
+    color: #555;
+    font-size: 12px;
+}
+
+h1 {
+    color: #293a78;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+h2 {
+    color: #3c88d4;
+    font-size: 30px;
+    font-weight: bold;
+    margin: -5px 0 -5px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+header {
+    background-color: #d2dce5;
+    color: #0d3a69;
+    font-family: 'Noto Sans', sans-serif;
+    letter-spacing: .05rem;
+    padding: 20px;
+    position: relative;
+    text-align: center;
+}
+
+header h1 {
+    font-family: 'Grenze Gotisch', serif;
+    font-size: 50px;
+}
+
+header p {
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: -20px;
+    text-transform: uppercase;
+}
+
+html {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin: 0;
+}
+
+input[type="text"] {
+    border: none;
+    flex-grow: 1;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 16px;
+    outline: none;
+    padding: 12px 16px;
+}
+
+input[type="text"]:focus + label,
+input[type="text"]:not(:placeholder-shown) + label {
+    color: #293a78;
+    font-size: 12px;
+    top: -10px;
+}
+
+.kjønn {
+    color: #951b1b !important;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 18px !important;
+    font-weight: 400;
+    letter-spacing: .04rem;
+    text-transform: uppercase;
+}
+
+label {
+    color: #555;
+    left: 10px;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.linkedin-btn {
+    align-items: center;
+    background-color: white;
+    border: 1px solid #0a66c2;
+    border-radius: 4px;
+    color: #0a66c2;
+    cursor: pointer;
+    display: inline-flex;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 13px;
+    margin-top: 10px;
+    padding: 8px 15px;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.linkedin-btn:hover {
+    background-color: #f0f0f0;
+    color: #0a66c2;
+}
+
+.linkedin-icon {
+    height: auto;
+    margin-right: 8px;
+    width: 18px;
+}
+
+main {
+    flex: 1;
+}
+
+.random-btn {
+    align-items: center;
+    background-color: #0d3a69;
+    border: none;
+    border-radius: 15px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    font-family: 'Noto Sans', sans-serif;
+    height: 42px;
+    justify-content: center;
+    padding: 10px 20px;
+    transition: all 0.3s ease;
+}
+
+.random-btn:hover {
+    background-color: #3c88d4;
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
+    transform: scale(1.01);
+}
+
+.search-bar-wrapper {
+    border: 1px solid #d1d1d1;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: inline-flex;
+    flex-grow: 1;
+    min-width: 300px;
+    overflow: hidden;
+    position: relative;
+}
+
+.search-bar-wrapper,
+.type-filter,
+.pos-filter {
+    align-items: center;
+    box-sizing: border-box;
+    display: flex;
+    height: 42px;
+    flex: 1;
+}
+
+.search-btn {
+    align-items: center;
+    background-color: #0d3a69;
+    border: none;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 15px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 15px;
+    cursor: pointer;
+    display: flex;
+    height: 100%;
+    width: 100% !important;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+.search-btn:hover {
+    background-color: #4a99ff;
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
+    transform: scale(1.01);
+}
+
+.search-btn i {
+    color: white;
+    font-size: 16px;
+    margin: 0;
+}
+
+.sentence-btn {
+    background-color: #951b1bc2;  /* Dark red color */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-top: 15px;
+    display: inline-block;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.sentence-container {
+    max-width: 600px;
+    margin: 0 auto; /* Center the container */
+    padding: 10px 20px;
+}
+
+
+.random-btn {
+    width: 20%; /* Adjust the width of the random button */
+}
+
+#results-container {
+    background-color: rgb(244, 244, 244);
+    margin: 20px auto;
+    text-align: left;
+    width: 50%;
+}
+
+.search-and-random-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.search-bar-wrapper {
+    width: 100%;
+}
+
+#search-container {
+    background-color: white;
+    border-bottom: 1px solid #ccc;
+    font-family: 'Noto Sans', sans-serif;
+    margin: auto;
+    padding: 10px 0;
+    position: sticky;
+    text-align: center;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+#search-container-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.selectors-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.spinner {
+    color: #293a78;
+    display: none;
+    font-size: 20px;
+    margin: 20px;
+    text-align: center;
+}
+
+.spinner::before {
+    animation: spin 0.8s linear infinite;
+    border: 3px solid rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    border-top-color: #293a78;
+    content: "";
+    display: inline-block;
+    height: 40px;
+    margin-bottom: 10px;
+    width: 40px;
+}
+
+.type-filter, .pos-filter, .random-btn {
+    display: inline-flex;
+    align-items: center;
+    background-color: #0d3a69;
+    border: none;
+    border-radius: 15px;
+    color: white;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 16px;
+    padding: 10px 15px;
+    position: relative; /* Ensures that the children elements are positioned relative to this container */
+    box-sizing: border-box;
+
+}
+
+/* Gray out both the select text and the arrow when disabled */
+.type-filter.disabled select, .pos-filter.disabled select {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+.type-filter.disabled i, .pos-filter.disabled i {
+    color: #ccc;  /* Gray out the arrow */
+    pointer-events: none;  /* Prevent interaction with the arrow */
+}
+
+
+.type-filter i, .pos-filter i {
+    color: white;
+    font-size: 18px;
+    pointer-events: none;
+    position: absolute;
+    right: 15px;
+    z-index: 0; /* Ensures the icon is underneath the select element */
+
+}
+
+.type-filter select, .pos-filter select {
+    appearance: none;
+    background-color: inherit;
+    border: none;
+    font-size: 12px;
+    color: white;
+    cursor: pointer;
+    font-family: 'Noto Sans', sans-serif;
+    padding-right: 30px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    }
+
+.word-kjonn {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.word-kjonn .kjønn {
+    color: #951b1b;
+    font-size: 18px;
+    font-weight: 400;
+    text-transform: uppercase;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 768px) {
+    .back-btn {
+        width: 100%; /* Make the button take up full width on mobile */
+    }
+    .definition-content {
+        grid-template-columns: 1fr;
+    }
+
+    footer {
+        text-align: center;
+    }
+
+    footer p {
+        font-size: 11px !important;
+        margin: 0;
+        padding: 0 10px;
+    }
+
+    h1 {
+        font-size: 10vw !important;
+        margin-bottom: 10px;
+        margin-top: -5px;
+        white-space: nowrap;
+    }
+
+    h2 {
+        font-size: 7vw;
+        hyphens: auto;
+        overflow-wrap: break-word;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    header {
+        padding: 10px 15px;
+    }
+
+    header p {
+        font-size: 3vw !important;
+        margin: -10px 0 0px 0 !important;
+    }
+
+    input[type="text"] {
+        padding: 10px 10px;
+    }
+
+    label[for="search-bar"] {
+        display: none;
+    }
+
+    .linkedin-btn {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+
+    .linkedin-icon {
+        width: 16px;
+    }
+
+    .random-btn {
+        width: 20% !important;
+    }
+
+    .search-and-random-wrapper {
+        display: flex;
+        align-items: center; /* Vertically align items */
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .search-bar-wrapper,
+    #results-container {
+        width: 90%;
+    }
+
+    .search-bar-wrapper label {
+        font-size: 12px;
+    }
+
+    .search-btn {
+        padding: 8px;
+        width: 20% !important; /* This makes the search button take up full width on mobile */
+    }
     
-    // Check if any sentences in the data include this word or its variations in the 'eksempel' field
-    const sentenceFound = results.some(result => 
-        result.eksempel && (
-            result.eksempel.toLowerCase().includes(lowerCaseWord) ||  // Direct match in sentence
-            result.ord.toLowerCase().includes(lowerCaseWord)  // Match on base word
-        )
-    );
-
-    return sentenceFound;
-}
-
-// Handle change in part of speech (POS) filter
-function handlePOSChange() {
-    const query = document.getElementById('search-bar').value.toLowerCase().trim();
-    
-    // If the search field is empty, generate a random word based on the POS
-    if (!query) {
-        console.log('Search field is empty. Generating random word based on selected POS.');
-        randomWord();
-    } else {
-        search(); // If there is a query, perform the search with the selected POS
-    }
-}
-
-// Handle change in search type (words/sentences)
-function handleTypeChange() {
-    const type = document.getElementById('type-select').value;
-    const posSelect = document.getElementById('pos-select');
-    const posFilterContainer = document.querySelector('.pos-filter');  // Parent container
-    const query = document.getElementById('search-bar').value.toLowerCase().trim(); // Get the value in the search bar
-
-    console.log(`Search type changed to: ${type}`);
-
-    if (type === 'sentences') {
-        // Disable the POS dropdown and gray it out
-        posSelect.disabled = true;
-        posSelect.value = '';  // Reset to "Part of Speech" option
-        posFilterContainer.classList.add('disabled');  // Add the 'disabled' class
-
-        // If the search bar is not empty, perform a sentence search
-        if (query) {
-            console.log('Searching for sentences with query:', query);
-            search();  // This will trigger a search for sentences based on the search bar query
-        } else {
-            console.log('Search bar empty, generating a random sentence.');
-            randomWord();  // Generate a random sentence if the search bar is empty
-        }
-    } else {
-        // Enable the POS dropdown and restore color
-        posSelect.disabled = false;
-        posFilterContainer.classList.remove('disabled');  // Remove the 'disabled' class
-
-        // Optionally, generate a random word if needed when switching back to words
-        if (query) {
-            console.log('Searching for words with query:', query);
-            search();  // Trigger a word search if the search bar has a value
-        } else {
-            console.log('Search bar empty, generating a random word.');
-            randomWord();  // Generate a random word if the search bar is empty
-        }
-    }
-}
-
-// Render a list of results (words)
-function renderResults(results, query = '') {
-    query = query.toLowerCase().trim();  // Ensure the query is lowercased and trimmed
-
-    let htmlString = '';
-    results.forEach(result => {
-        result.kjønn = formatKjonn(result.kjønn);
-
-        // Check if sentences are available using enhanced checkForSentences
-        const hasSentences = checkForSentences(result.ord);
-
-        // Highlight the query in the example sentence, if it exists
-        const highlightedExample = result.eksempel ? highlightQuery(result.eksempel, query) : '';
-
-        htmlString += `
-            <div class="definition">
-                <h2 class="word-kjonn">
-                    ${result.ord}
-                    ${result.kjønn ? `<span class="kjønn">${result.kjønn}</span>` : ''}
-                </h2>
-                ${result.definisjon ? `<p>${result.definisjon}</p>` : ''}
-                <div class="definition-content">
-                    ${result.engelsk ? `<p class="english"><i class="fas fa-language"></i> ${result.engelsk}</p>` : ''}
-                    ${result.uttale ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>` : ''}
-                    ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
-                </div>
-                ${highlightedExample ? `<p class="example">${highlightedExample}</p>` : ''}
-                <!-- Show "Show Sentences" button only if sentences exist -->
-                ${hasSentences ? `<button class="sentence-btn" onclick="fetchAndRenderSentences('${result.ord}')">Show Sentences</button>` : ''}
-            </div>
-        `;
-    });
-    document.getElementById('results-container').innerHTML = htmlString;
-}
-
-
-// Render a single sentence
-function renderSentence(sentenceResult) {
-    // Split the example by common sentence delimiters (period, question mark, exclamation mark)
-    const sentences = sentenceResult.eksempel.split(/(?<=[.!?])\s+/);
-
-    // Get the first sentence from the array
-    const firstSentence = sentences[0];
-
-    const sentenceHTML = `
-        <div class="definition">
-            <p class="sentence">${firstSentence}</p>
-        </div>
-    `;
-
-    document.getElementById('results-container').innerHTML = sentenceHTML;
-}
-
-// Render multiple sentences based on a word or query
-function renderSentences(sentenceResults, word) {
-    const query = word.trim().toLowerCase(); // Trim and lower-case the search term for consistency
-
-    let exactMatches = [];
-    let partialMatches = [];
-    let uniqueSentences = new Set(); // Track unique sentences
-
-    const regexExactMatch = new RegExp(`\\b${query}\\b`, 'i');
-
-    sentenceResults.forEach(result => {
-        // Split example sentences by common sentence delimiters (period, question mark, exclamation mark)
-        const sentences = result.eksempel.match(/[^.!?]+[.!?]*/g) || [result.eksempel];
-
-        sentences.forEach(sentence => {
-            const trimmedSentence = sentence.trim();
-            if (!uniqueSentences.has(trimmedSentence)) {
-                // Only add unique sentences
-                uniqueSentences.add(trimmedSentence);
-
-                // Exact match (whole word match)
-                if (regexExactMatch.test(sentence.toLowerCase())) {
-                    exactMatches.push(highlightQuery(sentence, query));
-                } else if (sentence.toLowerCase().includes(query)) {
-                    partialMatches.push(highlightQuery(sentence, query));
-                }
-            }
-        });
-    });
-
-    // Combine exact matches first, then partial matches
-    const combinedMatches = [...exactMatches, ...partialMatches].slice(0, 20);
-
-    // Generate HTML for the combined matches
-    let htmlString = '';
-    combinedMatches.forEach(sentence => {
-        htmlString += `
-            <div class="definition">
-                <p class="sentence">${sentence}</p>
-            </div>
-        `;
-    });
-
-    // If no matches were found, display a "No Results" message
-    if (!htmlString) {
-        htmlString = `
-            <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">No Matching Sentences</span>
-                </h2>
-                <p>No sentences found containing "${query}".</p>
-            </div>
-        `;
+    .search-btn i {
+        font-size: 16px;
     }
 
-    // Insert the generated HTML into the results container
-    document.getElementById('results-container').innerHTML = htmlString;
+    #search-container {
+        align-items: center;
+        flex-direction: column;
+    }
 
-    console.log("Exact matches:", exactMatches);
-    console.log("Partial matches:", partialMatches);
-}
+    #search-container-inner {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        gap: 10px;
+        width: 90%;
+    }
 
-// Highlight search query in text
-function highlightQuery(sentence, query) {
-    // Check if the sentence is already highlighted to avoid double highlighting
-    if (sentence.includes('<span style="color: #3c88d4;">')) {
-        return sentence;  // Already highlighted, return the sentence as is
+    .type-filter, .pos-filter, .random-btn, .search-bar-wrapper {
+        width: 100%;
     }
     
-    // Create a regex to match the query as part of a word, allowing suffixes
-    const regex = new RegExp(`(${query}\\w*)`, 'gi');
-    return sentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
-}
-
-
-function renderSentencesHTML(sentenceResults, word) {
-    const query = word.toLowerCase(); // Use the word passed from the button click
-
-    let htmlString = '';
-    let exactMatches = [];
-    let inexactMatches = [];
-    let uniqueSentences = new Set(); // Track unique sentences
-
-    sentenceResults.forEach(result => {
-        // Split the example sentence into individual sentences, handling sentence delimiters correctly
-        const sentences = result.eksempel.match(/[^.!?]+[.!?]*/g) || [result.eksempel];
-
-        // Loop through each sentence and categorize as exact or inexact match
-        sentences.forEach(sentence => {
-            const trimmedSentence = sentence.trim();
-            if (!uniqueSentences.has(trimmedSentence)) {
-                // Only add unique sentences
-                uniqueSentences.add(trimmedSentence);
-
-                if (sentence.toLowerCase().includes(query)) {
-                    // Use a regular expression to match the full word containing the search term
-                    const regex = new RegExp(`(\\b\\w*${query}\\w*\\b)`, 'gi');
-                    const highlightedSentence = sentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
-
-                    // Determine if it's an exact match (contains the exact search term as a full word)
-                    if (new RegExp(`\\b${query}\\b`, 'i').test(sentence)) {
-                        exactMatches.push(highlightedSentence);  // Exact match
-                    } else {
-                        inexactMatches.push(highlightedSentence);  // Inexact match
-                    }
-                }
-            }
-        });
-    });
-
-    // Combine exact matches first, then inexact matches, respecting the 20 sentence limit
-    const combinedMatches = [...exactMatches, ...inexactMatches].slice(0, 20);
-
-    // Generate HTML for the combined matches
-    combinedMatches.forEach(sentence => {
-        htmlString += `
-            <div class="definition">
-                <p class="sentence">${sentence}</p>
-            </div>
-        `;
-    });
-
-    return htmlString;
-}
-
-function renderWordDefinition(word) {
-    const trimmedWord = word.trim().toLowerCase();
-
-    console.log(`Rendering word definition for: "${trimmedWord}"`);
-
-    // Switch the type selector back to "words"
-    const typeSelect = document.getElementById('type-select');
-    typeSelect.value = 'words';
-
-    // Re-enable the POS filter
-    const posSelect = document.getElementById('pos-select');
-    posSelect.disabled = false;
-    const posFilterContainer = document.querySelector('.pos-filter');
-    posFilterContainer.classList.remove('disabled');  // Remove the 'disabled' class for visual effect
-
-    const matchingResults = results.filter(r => r.ord.toLowerCase().trim() === trimmedWord);
-
-    if (matchingResults.length > 0) {
-        renderResults(matchingResults);
-    } else {
-        document.getElementById('results-container').innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">No Definition Found</span>
-                </h2>
-                <p>No definition found for "${trimmedWord}".</p>
-            </div>
-        `;
-    }
-}
-
-// Fetch and render sentences for a word
-function fetchAndRenderSentences(word) {
-    const trimmedWord = word.trim().toLowerCase();
-
-    console.log(`Fetching and rendering sentences for word/phrase: "${trimmedWord}"`);
-
-    // Filter results to find sentences that contain the word or phrase directly in the 'eksempel' field
-    let matchingResults = results.filter(r =>
-        r.eksempel && (r.eksempel.toLowerCase().includes(trimmedWord))
-    );
-
-    // Prioritize the matching results using the prioritizeResults function
-    matchingResults = prioritizeResults(matchingResults, trimmedWord, 'eksempel');
-
-    // Highlight the query in the sentences
-    matchingResults.forEach(result => {
-        result.eksempel = highlightQuery(result.eksempel, trimmedWord);
-    });
-
-    // Set the type selector to "sentences"
-    const typeSelect = document.getElementById('type-select');
-    typeSelect.value = 'sentences';  // Set the type select to "sentences"
-
-    // Disable the POS filter
-    const posSelect = document.getElementById('pos-select');
-    posSelect.disabled = true;
-    const posFilterContainer = document.querySelector('.pos-filter');
-    posFilterContainer.classList.add('disabled');  // Add the 'disabled' class for visual effect
-
-    let backButtonHTML = `
-        <button class="sentence-btn back-btn" onclick="renderWordDefinition('${trimmedWord}')">
-            <i class="fas fa-angle-left"></i> Back to Definition
-        </button>
-    `;
-
-    let sentenceContent = '';
-    if (matchingResults.length > 0) {
-        sentenceContent = renderSentencesHTML(matchingResults, trimmedWord);
-    } else {
-        sentenceContent = `
-            <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">No Sentences Available</span>
-                </h2>
-                <p>No example sentences available for "${trimmedWord}".</p>
-            </div>
-        `;
+    .type-filter i, .pos-filter i {
+        font-size: 14px; /* Make the arrow smaller */
     }
 
-    document.getElementById('results-container').innerHTML = sentenceContent + backButtonHTML;
-    console.log(`Matching Results for "${trimmedWord}":`, matchingResults);
+    .type-filter select, .pos-filter select {
+        font-size: 2.5vw;  /* Adjust the font size for mobile */
+    }
+
+    .word-kjonn {
+        align-items: flex-start;
+        display: flex;
+        flex-direction: column;
+        hyphens: auto;
+        line-height: 1.4;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    .word-kjonn .kjønn {
+        font-size: 4vw !important;
+        margin-top: 5px;
+    }
 }
-
-// Spinner Control Functions
-function showSpinner() {
-    document.getElementById('loading-spinner').style.display = 'block';
-}
-
-function hideSpinner() {
-    document.getElementById('loading-spinner').style.display = 'none';
-}
-
-// Prioritize results based on query position or exact match
-function prioritizeResults(results, query, key) {
-    // Adjust the regex to match the query at the start of a word
-    const regexStartOfWord = new RegExp(`\\b${query}`, 'i');  // Match query at word boundary
-    const regexExactMatch = new RegExp(`\\b${query}\\b`, 'i'); // Exact match of the whole word
-
-    return results.sort((a, b) => {
-        const aText = a[key].toLowerCase();
-        const bText = b[key].toLowerCase();
-
-        // Check if the query appears at the start of a word
-        const aStartsWithWord = regexStartOfWord.test(aText);
-        const bStartsWithWord = regexStartOfWord.test(bText);
-
-        // Log the matches for each result
-        console.log('Comparing:', {aText, bText});
-        console.log('Starts with Word:', {aStartsWithWord, bStartsWithWord});
-
-        // First, prioritize where the query starts a word
-        if (aStartsWithWord && !bStartsWithWord) {
-            console.log('Prioritize a: Starts with query');
-            return -1;
-        }
-        if (!aStartsWithWord && bStartsWithWord) {
-            console.log('Prioritize b: Starts with query');
-            return 1;
-        }
-
-        // Then, prioritize exact matches
-        const aExactMatch = regexExactMatch.test(aText);
-        const bExactMatch = regexExactMatch.test(bText);
-        
-        if (aExactMatch && !bExactMatch) {
-            console.log('Prioritize a: Exact match');
-            return -1;
-        }
-        if (!aExactMatch && bExactMatch) {
-            console.log('Prioritize b: Exact match');
-            return 1;
-        }
-
-        // Otherwise, sort by the position of the query in the text (earlier is better)
-        const aIndex = aText.indexOf(query);
-        const bIndex = bText.indexOf(query);
-
-        console.log('Query Position in a:', aIndex);
-        console.log('Query Position in b:', bIndex);
-
-        return aIndex - bIndex;
-    });
-}
-
-// Initialization of the dictionary data and event listeners
-window.onload = function() {
-    fetchDictionaryData();  // Load dictionary data when the page is refreshed
-
-    // Wait for the data to be fetched before triggering the search
-    const checkDataLoaded = setInterval(() => {
-        if (results.length > 0) {
-            clearInterval(checkDataLoaded);
-
-            // Check if the URL contains a hash like #search/word
-            const hash = window.location.hash;
-            const searchPrefix = '#search/';
-
-            if (hash.startsWith(searchPrefix)) {
-                const searchTerm = decodeURIComponent(hash.substring(searchPrefix.length)); // Extract the word after #search/
-                if (searchTerm) {
-                    document.getElementById('search-bar').value = searchTerm;
-                    search();  // Automatically perform the search with the extracted word
-                    
-                    // Update the page title with the search term
-                    document.title = `${searchTerm} - Norwegian Dictionary`;
-
-                    // Trigger a virtual pageview in Google Analytics
-                    gtag('config', 'G-M5H81RF3DT', {
-                        'page_path': location.pathname + location.hash
-                    });
-                }
-            }
-        }
-    }, 100);
-
-    // Add event listener to POS filter dropdown
-    document.getElementById('pos-select').addEventListener('change', handlePOSChange);
-
-    // Add event listener to the search bar to trigger handleKey on key press
-    document.getElementById('search-bar').addEventListener('keyup', handleKey);
-
-};
