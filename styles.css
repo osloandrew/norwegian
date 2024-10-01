@@ -395,6 +395,17 @@ main {
     width: 20%; /* Adjust the width of the random button */
 }
 
+.result-header h2 {
+    color: #951b1b;
+    font-size: 2.5vw;  /* Smaller font size */
+    font-weight: 300;
+    letter-spacing: 0.02em;
+    white-space: normal;  /* Allow the text to wrap into multiple lines */
+    overflow-wrap: break-word;  /* Ensure the text breaks into a new line if needed */
+    text-align: center;  /* Center align the header text */
+}
+
+
 #results-container {
     background-color: rgb(244, 244, 244);
     margin: 20px auto;
