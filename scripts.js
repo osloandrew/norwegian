@@ -20,6 +20,30 @@ function handleKey(event) {
     }, 300);  // Delay of 300ms before calling search()
 }
 
+
+// Normalize word function to handle both Norwegian and English forms
+function normalizeWord(word) {
+    const baseWord = word.toLowerCase().trim();
+    const variations = new Set([baseWord]); // Always include base form
+
+    // Define common endings for Norwegian and English
+    const endings = {
+        norwegian: ['er', 'ene', 'en', 'et', 'es', 'te', 'de', 't'],
+        english: ['s', 'es', 'ed', 'ing']
+    };
+
+    // Generate variations by removing common endings
+    for (const ending of [...endings.norwegian, ...endings.english]) {
+        if (baseWord.endsWith(ending)) {
+            variations.add(baseWord.slice(0, -ending.length));
+        }
+    }
+
+    return Array.from(variations); // Convert the set back to an array
+}
+
+
+
 // Filter results based on selected part of speech (POS)
 function filterResultsByPOS(results, selectedPOS) {
     if (!selectedPOS) return results;
@@ -238,6 +262,9 @@ async function search() {
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
     const type = document.getElementById('type-select').value; // Get the search type (words or sentences)
 
+    // Normalize the query to handle variations
+    const normalizedQueries = normalizeWord(query);  // Use normalizeWord to get variations
+
     // Clear any previous highlights by resetting the `query`
     let cleanResults = results.map(result => {
         result.eksempel = result.eksempel.replace(/<span[^>]*>(.*?)<\/span>/gi, '$1'); // Remove previous highlights
@@ -275,7 +302,7 @@ async function search() {
 
     if (type === 'sentences') {
         // If searching sentences, look for matches in the 'eksempel' field
-        matchingResults = results.filter(r => r.eksempel && r.eksempel.toLowerCase().includes(query));
+        matchingResults = results.filter(r => normalizedQueries.some(normQuery => r.eksempel && r.eksempel.toLowerCase().includes(normQuery)));
 
         // Prioritize the matching results using the prioritizeResults function
         matchingResults = prioritizeResults(matchingResults, query, 'eksempel');
@@ -289,14 +316,8 @@ async function search() {
     } else {
         // Filter results by query and selected POS for words
         matchingResults = results.filter(r => {
-
-            // Get part of speech (POS) for the word
             const pos = mapKjonnToPOS(r.kjønn);
-
-            // Generate word variations for the search query
-            const wordVariations = generateWordVariations(query, pos);
-            
-            const matchesQuery = wordVariations.some(variation => r.ord.toLowerCase().includes(variation) || r.engelsk.toLowerCase().includes(variation));
+            const matchesQuery = normalizedQueries.some(variation => r.ord.toLowerCase().includes(variation) || r.engelsk.toLowerCase().includes(variation));
             return matchesQuery && (!selectedPOS || pos === selectedPOS);
         });
 
