@@ -203,6 +203,12 @@ async function search() {
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
     const type = document.getElementById('type-select').value; // Get the search type (words or sentences)
 
+    // Clear any previous highlights by resetting the `query`
+    let cleanResults = results.map(result => {
+        result.eksempel = result.eksempel.replace(/<span[^>]*>(.*?)<\/span>/gi, '$1'); // Remove previous highlights
+        return result;
+    });
+
     // Update the URL with the search parameters
     updateURL(query, type, selectedPOS);  // <--- Trigger URL update
 
@@ -380,6 +386,9 @@ function handleTypeChange() {
 
 // Render a list of results (words)
 function renderResults(results, query = '') {
+    const resultsContainer = document.getElementById('results-container');
+    resultsContainer.innerHTML = '';  // Clear previous results
+
     query = query.toLowerCase().trim();  // Ensure the query is lowercased and trimmed
 
     let htmlString = '';
@@ -389,8 +398,9 @@ function renderResults(results, query = '') {
         // Check if sentences are available using enhanced checkForSentences
         const hasSentences = checkForSentences(result.ord);
 
-        // Highlight the query in the example sentence, if it exists
-        const highlightedExample = result.eksempel ? highlightQuery(result.eksempel, query) : '';
+        // Highlight the word being defined (result.ord) in the example sentence
+        const highlightedExample = result.eksempel ? highlightQuery(result.eksempel, result.ord.toLowerCase()) : '';
+
 
         htmlString += `
             <div class="definition">
@@ -406,12 +416,15 @@ function renderResults(results, query = '') {
                 </div>
                 ${highlightedExample ? `<p class="example">${highlightedExample}</p>` : ''}
                 <!-- Show "Show Sentences" button only if sentences exist -->
-                ${hasSentences ? `<button class="sentence-btn" onclick="fetchAndRenderSentences('${result.ord}')">Show Sentences</button>` : ''}
+                ${hasSentences ? `<button class="sentence-btn" data-word="${result.ord}" onclick="fetchAndRenderSentences('${result.ord}')">Show Sentences</button>` : ''}
             </div>
+            <!-- Sentences container is now outside the definition block -->
+            <div class="sentences-container" id="sentences-container-${result.ord}"></div>
         `;
     });
     document.getElementById('results-container').innerHTML = htmlString;
 }
+
 
 
 // Render a single sentence
@@ -433,8 +446,10 @@ function renderSentence(sentenceResult) {
 
 // Render multiple sentences based on a word or query
 function renderSentences(sentenceResults, word) {
-    const query = word.trim().toLowerCase(); // Trim and lower-case the search term for consistency
+    const resultsContainer = document.getElementById('results-container');
+    resultsContainer.innerHTML = ''; // Clear previous results
 
+    const query = word.trim().toLowerCase(); // Trim and lower-case the search term for consistency
     let exactMatches = [];
     let partialMatches = [];
     let uniqueSentences = new Set(); // Track unique sentences
@@ -493,6 +508,7 @@ function renderSentences(sentenceResults, word) {
     console.log("Partial matches:", partialMatches);
 }
 
+
 // Highlight search query in text, accounting for Norwegian characters (å, æ, ø)
 function highlightQuery(sentence, query) {
     // Check if the sentence is already highlighted to avoid double highlighting
@@ -509,7 +525,7 @@ function highlightQuery(sentence, query) {
 
     // Return the cleaned sentence with the new query highlighted
     return cleanSentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
-}
+} 
 
 
 function renderSentencesHTML(sentenceResults, word) {
@@ -599,7 +615,18 @@ function renderWordDefinition(word) {
 // Fetch and render sentences for a word or phrase, including handling comma-separated variations
 function fetchAndRenderSentences(word) {
     const trimmedWord = word.trim().toLowerCase();
+    const button = document.querySelector(`button[data-word='${word}']`);
 
+    // If the sentences are already visible, toggle them off
+    const sentenceContainer = document.getElementById(`sentences-container-${trimmedWord}`);
+    sentenceContainer.innerHTML = '';  // Clear previous sentences
+
+    if (sentenceContainer.style.display === "block") {
+        sentenceContainer.style.display = "none";
+        button.innerText = "Show Sentences";
+        return;
+    }
+    
     console.log(`Fetching and rendering sentences for word/phrase: "${trimmedWord}"`);
 
     // Split the word by commas to handle multiple word variations (e.g., "fremtid, framtid")
@@ -625,16 +652,6 @@ function fetchAndRenderSentences(word) {
         });
     });
 
-    // Set the type selector to "sentences"
-    const typeSelect = document.getElementById('type-select');
-    typeSelect.value = 'sentences';  // Set the type select to "sentences"
-
-    // Disable the POS filter
-    const posSelect = document.getElementById('pos-select');
-    posSelect.disabled = true;
-    const posFilterContainer = document.querySelector('.pos-filter');
-    posFilterContainer.classList.add('disabled');  // Add the 'disabled' class for visual effect
-
     let backButtonHTML = `
         <button class="sentence-btn back-btn" onclick="renderWordDefinition('${trimmedWord}')">
             <i class="fas fa-angle-left"></i> Back to Definition
@@ -655,7 +672,11 @@ function fetchAndRenderSentences(word) {
         `;
     }
 
-    document.getElementById('results-container').innerHTML = sentenceContent + backButtonHTML;
+    // Append the sentences below the word definition, without replacing the definition
+    sentenceContainer.innerHTML = sentenceContent;  
+    sentenceContainer.style.display = "block";  // Show sentences
+    button.innerText = "Hide Sentences";  // Change button to hide sentences
+
     console.log(`Matching Results for "${trimmedWord}":`, matchingResults);
 }
 
