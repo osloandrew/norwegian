@@ -138,6 +138,30 @@ function parseCSVData(data) {
     });
 }
 
+function flagMissingWordEntry(word) {
+    // URL of your Google Form
+    const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSdMpnbI2DyUo6SWBRR53ZnYucDPdAYXK9rksP3AhMrC7b91Dw/formResponse'; 
+
+    // Prepare the data to be sent
+    const formData = new FormData();
+    formData.append('entry.279285583', word); // This is the field ID for the word entry
+
+    // Send the form data via POST request
+    fetch(formUrl, {
+        method: 'POST',
+        body: formData,
+        mode: 'no-cors' // Necessary to avoid CORS issues
+    })
+    .then(() => {
+        alert(`The word "${word}" has been flagged successfully!`);
+    })
+    .catch(error => {
+        console.error('Error flagging the word:', error);
+        alert('There was an issue flagging this word. Please try again later.');
+    });
+}
+
+
 
 // Generate and display a random word or sentence
 async function randomWord() {
@@ -187,7 +211,18 @@ async function randomWord() {
 
     if (type === 'sentences') {
         // If it's a sentence, render it as a sentence
-        renderSentence(randomResult);
+        const sentences = randomResult.eksempel.split(/(?<=[.!?])\s+/);  // Split by sentence delimiters
+        const firstSentence = sentences[0];
+
+        const sentenceHTML = `
+            <div class="definition result-header">
+                <h2>Random Sentence</h2>
+            </div>
+            <div class="definition">
+                <p class="sentence">${firstSentence}</p>
+            </div>
+        `;
+        document.getElementById('results-container').innerHTML = sentenceHTML;
     } else {
         // If it's a word, render it with highlighting (if needed)
         renderResults([randomResult], randomResult.ord);
@@ -254,9 +289,15 @@ async function search() {
     } else {
         // Filter results by query and selected POS for words
         matchingResults = results.filter(r => {
-            const matchesQuery = r.ord.toLowerCase().includes(query) || r.engelsk.toLowerCase().includes(query);
-            const mappedPOS = mapKjonnToPOS(r.kjønn);
-            return matchesQuery && (!selectedPOS || mappedPOS === selectedPOS);
+
+            // Get part of speech (POS) for the word
+            const pos = mapKjonnToPOS(r.kjønn);
+
+            // Generate word variations for the search query
+            const wordVariations = generateWordVariations(query, pos);
+            
+            const matchesQuery = wordVariations.some(variation => r.ord.toLowerCase().includes(variation) || r.engelsk.toLowerCase().includes(variation));
+            return matchesQuery && (!selectedPOS || pos === selectedPOS);
         });
 
           // If no matching results, display an error message
@@ -268,9 +309,17 @@ async function search() {
                     </h2>
                     <p>No words found matching "${query}". Please try another word.</p>
                                 <button class="sentence-btn back-btn">
-                <i class="fas fa-flag"></i> Flag Missing Word Entry (Currently Disabled)</button>
+                <i class="fas fa-flag"></i> Flag Missing Word Entry</button>
                 </div>
             `;
+            const flagButton = document.querySelector('.back-btn');
+            if (flagButton) {  // Check if the flag button exists
+                flagButton.addEventListener('click', function() {
+                    const wordToFlag = document.getElementById('search-bar').value;
+                    flagMissingWordEntry(wordToFlag);
+                });
+            }
+
             hideSpinner();
             return;
         }
@@ -310,20 +359,35 @@ async function search() {
     hideSpinner(); // Hide the spinner
 }
 
-// Check if any sentences exist for a word
+// Check if any sentences exist for a word or its variations
 function checkForSentences(word) {
     const lowerCaseWord = word.trim().toLowerCase();
-    
-    // Check if any sentences in the data include this word or its variations in the 'eksempel' field
-    const sentenceFound = results.some(result => 
-        result.eksempel && (
-            result.eksempel.toLowerCase().includes(lowerCaseWord) ||  // Direct match in sentence
-            result.ord.toLowerCase().includes(lowerCaseWord)  // Match on base word
-        )
-    );
+
+    // Split the word by commas to handle comma-separated entries like "anglifisere, anglisere"
+    const wordParts = lowerCaseWord.split(',').map(w => w.trim());
+
+    // Iterate through each part of the comma-separated list
+    let sentenceFound = false;
+    wordParts.forEach(wordPart => {
+        // Find part of speech (POS) for each word part
+        const matchingWordEntry = results.find(result => result.ord.toLowerCase().includes(wordPart));
+        const pos = matchingWordEntry ? mapKjonnToPOS(matchingWordEntry.kjønn) : '';
+
+        // Generate word variations
+        const wordVariations = generateWordVariations(wordPart, pos);
+
+        // Check if any sentences in the data include this word or its variations in the 'eksempel' field
+        if (results.some(result => 
+            result.eksempel && wordVariations.some(variation => result.eksempel.toLowerCase().includes(variation))
+        )) {
+            sentenceFound = true;  // If a sentence is found for any variation, mark as true
+        }
+    });
 
     return sentenceFound;
 }
+
+
 
 // Handle change in part of speech (POS) filter
 function handlePOSChange() {
@@ -398,9 +462,11 @@ function renderResults(results, query = '') {
         // Check if sentences are available using enhanced checkForSentences
         const hasSentences = checkForSentences(result.ord);
 
-        // Highlight the word being defined (result.ord) in the example sentence
-        const highlightedExample = result.eksempel ? highlightQuery(result.eksempel, result.ord.toLowerCase()) : '';
+        // Convert the word to lowercase and trim spaces when generating the ID
+        const normalizedWord = result.ord.toLowerCase().trim();
 
+        // Highlight the word being defined (result.ord) in the example sentence
+        const highlightedExample = result.eksempel ? highlightQuery(result.eksempel, query || result.ord.toLowerCase()) : '';
 
         htmlString += `
             <div class="definition">
@@ -414,16 +480,66 @@ function renderResults(results, query = '') {
                     ${result.uttale ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>` : ''}
                     ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
                 </div>
+                <!-- Render the highlighted example sentence here -->
                 ${highlightedExample ? `<p class="example">${highlightedExample}</p>` : ''}
                 <!-- Show "Show Sentences" button only if sentences exist -->
                 ${hasSentences ? `<button class="sentence-btn" data-word="${result.ord}" onclick="fetchAndRenderSentences('${result.ord}')">Show Sentences</button>` : ''}
             </div>
             <!-- Sentences container is now outside the definition block -->
-            <div class="sentences-container" id="sentences-container-${result.ord}"></div>
-        `;
+            <div class="sentences-container" id="sentences-container-${normalizedWord}"></div>
+        `;    
     });
     document.getElementById('results-container').innerHTML = htmlString;
 }
+
+// Utility function to generate word variations for verbs ending in -ere and handle adjective/noun forms
+function generateWordVariations(word, pos) {
+    const variations = [];
+    
+    // Split the word into parts in case it's a phrase (e.g., "vedtatt sannhet")
+    const wordParts = word.split(' ');
+
+    // If it's a single word
+    if (wordParts.length === 1) {
+        const singleWord = wordParts[0];
+        
+        // Handle verb variations if the word is a verb and ends with "ere"
+        if (singleWord.endsWith('ere') && pos === 'verb') {
+            const stem = singleWord.slice(0, -3);  // Remove the -ere part
+            variations.push(
+                singleWord,        // infinitive: anglifisere
+                `${stem}er`,       // present tense: anglifiserer
+                `${stem}te`,       // past tense: anglifiserte
+                `${stem}t`,        // past participle: anglifisert
+                `${stem}`,         // imperative: anglifiser
+                `${stem}es`        // passive: anglifiseres
+            );
+        } else {
+            // For non-verbs, just add the word itself as a variation
+            variations.push(singleWord);
+        }
+
+    // If it's a phrase (e.g., "vedtatt sannhet"), handle each part separately
+    } else if (wordParts.length === 2) {
+        const [adjectivePart, nounPart] = wordParts;
+
+        // Handle adjective inflection (e.g., "vedtatt" -> "vedtatte")
+        const adjectiveVariations = [adjectivePart, adjectivePart.replace(/t$/, 'te')];  // Add plural/adjective form
+
+        // Handle noun pluralization (e.g., "sannhet" -> "sannheter")
+        const nounVariations = [nounPart, nounPart + 'er'];  // Add plural form for nouns
+
+        // Combine all variations of adjective and noun
+        adjectiveVariations.forEach(adj => {
+            nounVariations.forEach(noun => {
+                variations.push(`${adj} ${noun}`);
+            });
+        });
+    }
+
+    return variations;
+}
+
 
 
 
@@ -481,6 +597,16 @@ function renderSentences(sentenceResults, word) {
 
     // Generate HTML for the combined matches
     let htmlString = '';
+
+    if (combinedMatches.length > 0) {
+        // Generate the header card
+        htmlString += `
+            <div class="definition result-header">
+                <h2>Sentence Results for "${word}"</h2>
+            </div>
+        `;
+    }
+
     combinedMatches.forEach(sentence => {
         htmlString += `
             <div class="definition">
@@ -509,35 +635,54 @@ function renderSentences(sentenceResults, word) {
 }
 
 
-// Highlight search query in text, accounting for Norwegian characters (å, æ, ø)
+// Highlight search query in text, accounting for Norwegian characters (å, æ, ø) and verb variations
 function highlightQuery(sentence, query) {
+    if (!query) return sentence; // If no query, return sentence as is.
+
     // Check if the sentence is already highlighted to avoid double highlighting
     if (sentence.includes('<span style="color: #3c88d4;">')) {
         return sentence;  // Already highlighted, return the sentence as is
     }
 
     // First, remove any existing highlights by replacing the <span> tags to avoid persistent old highlights
-    const cleanSentence = sentence.replace(/<span style="color: #3c88d4;">(.*?)<\/span>/gi, '$1');
+    let cleanSentence = sentence.replace(/<span style="color: #3c88d4;">(.*?)<\/span>/gi, '$1');
 
-    // Adjust the regex to highlight entire words that contain the query, including Norwegian characters
-    // \w is replaced with [\\wåæøÅÆØ] to include Norwegian letters
-    const regex = new RegExp(`([\\wåæøÅÆØ]*${query}[\\wåæøÅÆØ]*)`, 'gi');
+    // Regex pattern to include Norwegian characters (å, æ, ø) along with regular word characters
+    const norwegianWordPattern = `[\\wåæøÅÆØ]+`;
 
-    // Return the cleaned sentence with the new query highlighted
-    return cleanSentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
-} 
+    // Get part of speech (POS) for the query to pass into `generateWordVariations`
+    const matchingWordEntry = results.find(result => result.ord.toLowerCase().includes(query));
+    const pos = matchingWordEntry ? mapKjonnToPOS(matchingWordEntry.kjønn) : '';
+
+    // Generate word variations using the external function
+    const wordVariations = generateWordVariations(query, pos);
+
+    // Apply highlighting for all word variations in sequence
+    wordVariations.forEach(variation => {
+        const regex = new RegExp(`([\\wåæøÅÆØ]*${variation}[\\wåæøÅÆØ]*)`, 'gi');
+        cleanSentence = cleanSentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
+    });
+
+    return cleanSentence;  // Return the fully updated sentence
+}
 
 
-function renderSentencesHTML(sentenceResults, word) {
-    const wordVariations = word.toLowerCase().split(',').map(w => w.trim()); // Split by commas and trim
-    let htmlString = '';
+
+function renderSentencesHTML(sentenceResults, wordVariations) {
+    let htmlString = '';  // String to accumulate the generated HTML
     let exactMatches = [];
     let inexactMatches = [];
     let uniqueSentences = new Set(); // Track unique sentences
 
+    // Log word variations for debugging
+    console.log(`Word Variations for rendering:`, wordVariations);
+
     sentenceResults.forEach(result => {
+        // Strip out any existing <span> tags from the example sentence
+        const rawSentence = result.eksempel.replace(/<[^>]*>/g, '');
+
         // Split the example sentence into individual sentences, handling sentence delimiters correctly
-        const sentences = result.eksempel.match(/[^.!?]+[.!?]*/g) || [result.eksempel];
+        const sentences = rawSentence.match(/[^.!?]+[.!?]*/g) || [rawSentence];
 
         sentences.forEach(sentence => {
             const trimmedSentence = sentence.trim();
@@ -545,28 +690,47 @@ function renderSentencesHTML(sentenceResults, word) {
                 // Only add unique sentences
                 uniqueSentences.add(trimmedSentence);
 
-                // Check if sentence contains any of the word variations
+                console.log(`Processing sentence: "${trimmedSentence}"`);  // Log the sentence being processed
+
+                // Check if the sentence contains any of the word variations
                 let matchedVariation = wordVariations.find(variation => sentence.toLowerCase().includes(variation));
+                console.log(`Matched variation for sentence:`, matchedVariation);  // Log the matched variation
 
                 if (matchedVariation) {
+                    console.log(`Found matched variation: "${matchedVariation}" in sentence: "${sentence}"`);
+
                     // Use a regular expression to match the full word containing any of the variations
                     const regex = new RegExp(`(\\b\\w*${matchedVariation}\\w*\\b)`, 'gi');
                     const highlightedSentence = sentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
 
                     // Determine if it's an exact match (contains the exact search term as a full word)
-                    const exactMatchRegex = new RegExp(`\\b${matchedVariation}\\b`, 'i');
+                    const exactMatchRegex = new RegExp(`\\b${matchedVariation.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i');
+                    console.log(`Testing for exact match: "${sentence}" against "${matchedVariation}" with regex: ${exactMatchRegex}`);
+
                     if (exactMatchRegex.test(sentence)) {
+                        console.log(`Exact match found for "${matchedVariation}"`);
                         exactMatches.push(highlightedSentence);  // Exact match
                     } else {
+                        console.log(`Inexact match found for "${matchedVariation}"`);
                         inexactMatches.push(highlightedSentence);  // Inexact match
                     }
+                } else {
+                    console.log(`No match found for variations: ${wordVariations.join(', ')} in sentence: "${sentence}"`);
                 }
             }
         });
     });
 
+    // Log results to understand why no matches are being found
+    console.log("Exact matches:", exactMatches);
+    console.log("Inexact matches:", inexactMatches);
+
     // Combine exact matches first, then inexact matches, respecting the 20 sentence limit
     const combinedMatches = [...exactMatches, ...inexactMatches].slice(0, 20);
+
+    if (combinedMatches.length === 0) {
+        console.warn("No sentences found for the word variations.");
+    }
 
     // Generate HTML for the combined matches
     combinedMatches.forEach(sentence => {
@@ -577,9 +741,22 @@ function renderSentencesHTML(sentenceResults, word) {
         `;
     });
 
+    // If no sentences were matched, return a message indicating that
+    if (htmlString === '') {
+        htmlString = `
+            <div class="definition error-message">
+                <h2 class="word-kjonn">
+                    Error <span class="kjønn">No Matching Sentences</span>
+                </h2>
+                <p>No sentences found for the word "${wordVariations.join(', ')}".</p>
+            </div>
+        `;
+    }
+
     console.log("Generated Sentence HTML:", htmlString); // Log the HTML being generated for the sentences
     return htmlString;
 }
+
 
 function renderWordDefinition(word) {
     const trimmedWord = word.trim().toLowerCase();
@@ -619,36 +796,72 @@ function fetchAndRenderSentences(word) {
 
     // If the sentences are already visible, toggle them off
     const sentenceContainer = document.getElementById(`sentences-container-${trimmedWord}`);
-    sentenceContainer.innerHTML = '';  // Clear previous sentences
-
+    
+    if (!sentenceContainer) {
+        console.error(`Sentence container not found for: ${trimmedWord}`);
+        return;
+    }
+    
     if (sentenceContainer.style.display === "block") {
         sentenceContainer.style.display = "none";
         button.innerText = "Show Sentences";
         return;
     }
+
+    sentenceContainer.innerHTML = '';  // Clear previous sentences
     
     console.log(`Fetching and rendering sentences for word/phrase: "${trimmedWord}"`);
 
-    // Split the word by commas to handle multiple word variations (e.g., "fremtid, framtid")
-    const wordVariations = trimmedWord.split(',').map(w => w.trim());
+    // Find the part of speech (POS) of the word
+    const matchingWordEntry = results.find(result => result.ord.toLowerCase().includes(trimmedWord));
+    const pos = matchingWordEntry ? mapKjonnToPOS(matchingWordEntry.kjønn) : '';
+
+    // Generate word variations using the external function
+    const wordVariations = trimmedWord.split(',').flatMap(w => generateWordVariations(w.trim(), pos));
+        
+    // Log to check the generated word variations
+    console.log(`Generated word variations: ${wordVariations}`);
 
     // Filter results to find sentences that contain any of the word variations in the 'eksempel' field
-    let matchingResults = results.filter(r => 
-        r.eksempel && wordVariations.some(variation => r.eksempel.toLowerCase().includes(variation))
-    );
+    let matchingResults = results.filter(r => {
+        console.log("Checking sentence:", r.eksempel);
+        // Loop through each variation and check if it exists in the sentence
+        return wordVariations.some(variation => {
+            const matchFound = r.eksempel.toLowerCase().includes(variation);
+            if (matchFound) {
+                console.log(`Found match in sentence: "${r.eksempel}" for variation "${variation}"`);
+            }
+            return matchFound;
+        });
+    });
+
+    // Log the sentences that were matched
+    console.log(`Matching results for "${trimmedWord}":`, matchingResults);
 
     // Check if there are any matching results
-    if (!matchingResults.length) {
-        console.warn(`No sentences found for: "${trimmedWord}"`);
+    if (matchingResults.length === 0) {
+        console.warn(`No sentences found for the word variations.`);
+        sentenceContainer.innerHTML = `
+            <div class="definition error-message">
+                <h2 class="word-kjonn">
+                    Error <span class="kjønn">No Sentences Available</span>
+                </h2>
+                <p>No example sentences available for "${trimmedWord}".</p>
+            </div>
+        `;
+        sentenceContainer.style.display = "block";
+        button.innerText = "Show Sentences";
+        return;
     }
 
     // Prioritize the matching results using the prioritizeResults function
     matchingResults = prioritizeResults(matchingResults, trimmedWord, 'eksempel');
 
-    // Highlight the query in the sentences (handling multiple word variations)
+    // Apply highlighting for the new word and reset any previous highlighting
     matchingResults.forEach(result => {
         wordVariations.forEach(variation => {
-            result.eksempel = highlightQuery(result.eksempel, variation);
+            console.log(`Applying highlight for variation: ${variation}`);
+            result.eksempel = highlightQuery(result.eksempel, variation);  // Reset and apply highlight for the current word
         });
     });
 
@@ -658,27 +871,25 @@ function fetchAndRenderSentences(word) {
         </button>
     `;
 
-    let sentenceContent = '';
-    if (matchingResults.length > 0) {
-        sentenceContent = renderSentencesHTML(matchingResults, trimmedWord);
+    let sentenceContent = renderSentencesHTML(matchingResults, wordVariations);
+
+    if (sentenceContent) {
+        sentenceContainer.innerHTML = sentenceContent;
+        sentenceContainer.style.display = "block";  // Show the container
+        button.innerText = "Hide Sentences";
+        console.log("Sentence content added:", sentenceContent);
     } else {
-        sentenceContent = `
-            <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">No Sentences Available</span>
-                </h2>
-                <p>No example sentences available for "${trimmedWord}".</p>
-            </div>
-        `;
+        console.warn("No content to show for the word:", trimmedWord);
     }
 
-    // Append the sentences below the word definition, without replacing the definition
+    // Display the generated content
     sentenceContainer.innerHTML = sentenceContent;  
     sentenceContainer.style.display = "block";  // Show sentences
     button.innerText = "Hide Sentences";  // Change button to hide sentences
 
-    console.log(`Matching Results for "${trimmedWord}":`, matchingResults);
+    console.log(`Final rendered content for "${trimmedWord}":`, sentenceContent);
 }
+
 
 
 // Spinner Control Functions
