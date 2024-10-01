@@ -28,7 +28,7 @@ function normalizeWord(word) {
 
     // Define common endings for Norwegian and English
     const endings = {
-        norwegian: ['er', 'ene', 'en', 'et', 'es', 'te', 'de', 't'],
+        norwegian: ['er', 'ene', 'en', 'et', 'es', 'te', 'de', 't', 'e'],
         english: ['s', 'es', 'ed', 'ing']
     };
 
