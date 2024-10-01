@@ -652,6 +652,10 @@ main {
         padding: 0 10px 0 10px;
     }
 
+    .sentence-btn {
+        width: 100% !important;
+    }
+
     .type-filter, .pos-filter, .random-btn, .search-bar-wrapper {
         width: 100%;
     }
