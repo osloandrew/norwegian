@@ -1001,6 +1001,10 @@ function renderSentences(sentenceResults, word) {
 function highlightQuery(sentence, query) {
     if (!query) return sentence; // If no query, return sentence as is.
 
+    // Log the sentence and query to see what's being processed
+    console.log('Original sentence:', sentence);
+    console.log('Query:', query);
+
     // Check if the sentence is already highlighted to avoid double highlighting
     if (sentence.includes('<span style="color: #3c88d4;">')) {
         return sentence;  // Already highlighted, return the sentence as is
@@ -1008,9 +1012,16 @@ function highlightQuery(sentence, query) {
 
     // First, remove any existing highlights by replacing the <span> tags to avoid persistent old highlights
     let cleanSentence = sentence.replace(/<span style="color: #3c88d4;">(.*?)<\/span>/gi, '$1');
+    console.log('Cleaned sentence:', cleanSentence);
 
-    // Regex pattern to include Norwegian characters (å, æ, ø) along with regular word characters
-    const norwegianWordPattern = `[\\wåæøÅÆØ]+`;
+    // Define a regex pattern that includes Norwegian characters and dynamically inserts the query
+    const norwegianLetters = '[\\wåæøÅÆØ]'; // Include Norwegian letters in the pattern
+    const regex = new RegExp(`(${norwegianLetters}*${query}${norwegianLetters}*)`, 'gi');
+    console.log('Generated regex:', regex);
+
+    // Highlight all occurrences of the query in the sentence
+    cleanSentence = cleanSentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
+    console.log('Highlighted sentence:', cleanSentence);
 
     // Get part of speech (POS) for the query to pass into `generateWordVariationsForSentences`
     const matchingWordEntry = results.find(result => result.ord.toLowerCase().includes(query));
@@ -1021,9 +1032,11 @@ function highlightQuery(sentence, query) {
 
     // Apply highlighting for all word variations in sequence
     wordVariations.forEach(variation => {
-        const regex = new RegExp(`([\\wåæøÅÆØ]*${variation}[\\wåæøÅÆØ]*)`, 'gi');
-        cleanSentence = cleanSentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
+        const norwegianWordBoundary = `\\b${variation}\\b`;
+        const regex = new RegExp(norwegianWordBoundary, 'gi');
+        cleanSentence = cleanSentence.replace(regex, '<span style="color: #3c88d4;">$&</span>');
     });
+    
 
     return cleanSentence;  // Return the fully updated sentence
 }
@@ -1062,7 +1075,9 @@ function renderSentencesHTML(sentenceResults, wordVariations) {
                     console.log(`Found matched variation: "${matchedVariation}" in sentence: "${sentence}"`);
 
                     // Use a regular expression to match the full word containing any of the variations
-                    const regex = new RegExp(`(\\b\\w*${matchedVariation}\\w*\\b)`, 'gi');
+                    const norwegianPattern = '[\\wåæøÅÆØ]'; // Pattern including Norwegian letters
+                    const regex = new RegExp(`(${norwegianPattern}*${matchedVariation}${norwegianPattern}*)`, 'gi');
+                    
                     const highlightedSentence = sentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
 
                     // Determine if it's an exact match (contains the exact search term as a full word)
@@ -1163,10 +1178,20 @@ function fetchAndRenderSentences(word) {
         console.error(`Sentence container not found for: ${trimmedWord}`);
         return;
     }
-    
-    if (sentenceContainer.style.display === "block") {
-        sentenceContainer.style.display = "none";
-        button.innerText = "Show Sentences";
+
+    // Toggle visibility without re-fetching sentences
+    if (sentenceContainer.getAttribute('data-fetched') === 'true') {
+        if (sentenceContainer.style.display === "block") {
+            sentenceContainer.style.display = "none";
+            button.innerText = "Show Sentences";
+            button.classList.remove('hide');
+            button.classList.add('show');
+        } else {
+            sentenceContainer.style.display = "block";
+            button.innerText = "Hide Sentences";
+            button.classList.remove('show');
+            button.classList.add('hide');
+        }
         return;
     }
 
@@ -1213,6 +1238,8 @@ function fetchAndRenderSentences(word) {
         `;
         sentenceContainer.style.display = "block";
         button.innerText = "Show Sentences";
+        button.classList.remove('hide');
+        button.classList.add('show');
         return;
     }
 
@@ -1239,17 +1266,15 @@ function fetchAndRenderSentences(word) {
         sentenceContainer.innerHTML = sentenceContent;
         sentenceContainer.style.display = "block";  // Show the container
         button.innerText = "Hide Sentences";
+        button.classList.remove('show');
+        button.classList.add('hide');
         console.log("Sentence content added:", sentenceContent);
     } else {
         console.warn("No content to show for the word:", trimmedWord);
     }
 
-    // Display the generated content
-    sentenceContainer.innerHTML = sentenceContent;  
-    sentenceContainer.style.display = "block";  // Show sentences
-    button.innerText = "Hide Sentences";  // Change button to hide sentences
-
     console.log(`Final rendered content for "${trimmedWord}":`, sentenceContent);
+    sentenceContainer.setAttribute('data-fetched', 'true');
 }
 
 
