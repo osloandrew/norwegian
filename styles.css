@@ -501,6 +501,7 @@ main {
     border: none;
     border-radius: 15px;
     color: white;
+    cursor: pointer; /* Ensure the entire button area is clickable */
     font-family: 'Noto Sans', sans-serif;
     font-size: 16px;
     padding: 10px 15px;
@@ -525,7 +526,6 @@ main {
     color: white;
     font-size: 18px;
     pointer-events: none;
-    position: absolute;
     right: 15px;
     z-index: 0; /* Ensures the icon is underneath the select element */
 
@@ -543,6 +543,7 @@ main {
     font-weight: 400;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+    height: 100%; /* Extend the clickable area vertically */
     }
 
 .word-kjonn {
@@ -701,10 +702,14 @@ main {
     
     .type-filter i, .pos-filter i {
         font-size: 14px; /* Make the arrow smaller */
+        pointer-events: none; /* Ensure the icon doesn't block clicks */
     }
 
     .type-filter select, .pos-filter select {
         font-size: 2.5vw;  /* Adjust the font size for mobile */
+        cursor: pointer;
+        width: 100%; /* Extend the clickable area horizontally */
+        height: 100%; /* Extend the clickable area vertically */    
     }
 
     .word-kjonn {
