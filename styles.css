@@ -367,20 +367,44 @@ main {
 }
 
 .sentence-btn {
-    background-color: #951b1bc2;  /* Dark red color */
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 15px;
-    font-family: 'Noto Sans', sans-serif;
-    font-size: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-    margin-top: 15px;
-    display: inline-block;
-    font-weight: 400;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    display: block;  /* Block-level element to allow centering */
+    margin: 0 auto;  /* Centering with smaller vertical margins */
+    margin-top: 10px;
+    background-color: #f0f0f0;  /* Subtle, lighter background */
+    color: #5a1a1a;  /* Subtle maroon text */
+    border: 1px solid #5a1a1a;  /* Thin maroon border */
+    border-radius: 6px;  /* Slightly rounded corners */
+    padding: 6px 12px;  /* Smaller padding for a more compact feel */
+    font-family: 'Noto Sans', sans-serif;  /* Clean, modern font */
+    font-size: 12px;  /* Smaller font size for subtlety */
+    font-weight: 400;  /* Normal font weight for less boldness */
+    text-transform: uppercase;  /* Uppercase for consistency */
+    letter-spacing: 0.03em;  /* Slight letter spacing */
+    cursor: pointer;  /* Pointer on hover */
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
+}
+
+.sentence-btn:hover {
+    background-color: #e8e8e8;  /* Slightly darker on hover */
+    border-color: #851a1a;  /* Darker maroon on hover */
+}
+
+.sentence-btn:active {
+    transform: scale(0.98);  /* Pressed effect */
+}
+
+/* Show state - makes it more distinguishable when showing */
+.sentence-btn.show {
+    background-color: #f0f0f0;
+    color: #5a1a1a;
+    border: 1px solid #5a1a1a;
+}
+
+/* Hide state - more distinct background and color change */
+.sentence-btn.hide {
+    background-color: #d3d3d3;  /* Slightly darker gray when hiding */
+    color: #4b0f0f;  /* Darker maroon to distinguish */
+    border-color: #4b0f0f;  /* Darker border */
 }
 
 .sentence-container {
