@@ -3,7 +3,7 @@ let results = [];
 let debounceTimer;  // Global variable for debouncing
 
 // Debounce function to limit how often search is triggered
-function debounce(func, delay) {
+function debounceSearchTrigger(func, delay) {
     clearTimeout(debounceTimer);  // Clear the previous timer
     debounceTimer = setTimeout(() => {
         func();  // Execute the function after the delay
@@ -13,7 +13,7 @@ function debounce(func, delay) {
 // Handle the key input, performing a search on 'Enter' or debouncing otherwise
 function handleKey(event) {
     // Call search function when 'Enter' is pressed or debounce it otherwise
-    debounce(() => {
+    debounceSearchTrigger(() => {
         if (event.key === 'Enter') {
             search();
         }
@@ -51,7 +51,7 @@ function shouldNotTakeTInNeuter(adjective) {
     return false;
 }
 
-function toggleInflections(button) {
+function toggleInflectionTableVisibility(button) {
     const container = button.parentElement;  // Get the parent element (inflections-container)
     const table = container.querySelector('.inflections-table');  // Select the table within the container
     const word = button.getAttribute('data-word');  // Get the word from the data attribute
@@ -281,7 +281,7 @@ function clearInput() {
 }
 
 // Fetch the dictionary data from the server
-async function fetchDictionaryData() {
+async function fetchAndLoadDictionaryData() {
     // Show the spinner before fetching data
     document.getElementById('loading-spinner').style.display = 'block';
 
@@ -291,7 +291,18 @@ async function fetchDictionaryData() {
         const data = await response.text();
         parseCSVData(data);
     } catch (error) {
-        console.error('Error fetching or parsing data:', error);
+        console.error('Error fetching or parsing data from Google Sheets:', error);
+        console.log('Falling back to local CSV file.');
+
+        // Fallback to local CSV file
+        try {
+            const localResponse = await fetch('backupDataset');  // Replace with your local CSV file path
+            if (!localResponse.ok) throw new Error(`HTTP error! Status: ${localResponse.status}`);
+            const localData = await localResponse.text();
+            parseCSVData(localData);
+        } catch (localError) {
+            console.error('Error fetching or parsing data from local CSV file:', localError);
+        }
     }
 }
 
@@ -405,7 +416,7 @@ async function randomWord() {
         document.getElementById('results-container').innerHTML = sentenceHTML;
     } else {
         // If it's a word, render it with highlighting (if needed)
-        renderResults([randomResult], randomResult.ord);
+        displaySearchResults([randomResult], randomResult.ord);
     }
 
     hideSpinner();  // Hide the spinner
@@ -530,7 +541,7 @@ async function search() {
             return aIndex - bIndex;
         });
 
-        renderResults(matchingResults); // Render word-specific results
+        displaySearchResults(matchingResults); // Render word-specific results
     }
 
     hideSpinner(); // Hide the spinner
@@ -626,7 +637,7 @@ function handleTypeChange() {
 }
 
 // Render a list of results (words)
-function renderResults(results, query = '') {
+function displaySearchResults(results, query = '') {
     const resultsContainer = document.getElementById('results-container');
     resultsContainer.innerHTML = '';  // Clear previous results
 
@@ -1153,7 +1164,7 @@ function renderWordDefinition(word) {
     const matchingResults = results.filter(r => r.ord.toLowerCase().trim() === trimmedWord);
 
     if (matchingResults.length > 0) {
-        renderResults(matchingResults);
+        displaySearchResults(matchingResults);
     } else {
         document.getElementById('results-container').innerHTML = `
             <div class="definition error-message">
@@ -1382,7 +1393,7 @@ function loadStateFromURL() {
 
 // Initialization of the dictionary data and event listeners
 window.onload = function() {
-    fetchDictionaryData();  // Load dictionary data when the page is refreshed
+    fetchAndLoadDictionaryData();  // Load dictionary data when the page is refreshed
 
     // Wait for the data to be fetched before triggering the search
     const checkDataLoaded = setInterval(() => {
