@@ -20,6 +20,162 @@ function handleKey(event) {
     }, 300);  // Delay of 300ms before calling search()
 }
 
+function shouldNotDecline(adjective) {
+    console.log('shouldNotDecline called for:', adjective); // Debugging
+    // Pattern for adjectives that do not decline (same form in all genders)
+    const noDeclinePattern = /(ende|bra|ing|y|ekte)$/i;
+    
+    return noDeclinePattern.test(adjective);
+}
+
+function shouldNotTakeTInNeuter(adjective) {
+    console.log('shouldNotTakeTInNeuter called for:', adjective); // Debugging
+    
+    // Pattern for adjectives that double the 't' in the neuter form
+    const doubleTPattern = /[iy]$/i;  // e.g., adjectives ending in 'y' or 'i' take a 'tt' in neuter
+
+    // Pattern for adjectives that do not take 't' in the neuter form
+    const noTNeuterPattern = /(ende|ant|et|isk|ig|rt|sk)$/i;
+
+    // Handle adjectives that double the 't'
+    if (doubleTPattern.test(adjective)) {
+        return 'double';
+    }
+
+    // Handle adjectives that do not take 't' in neuter form
+    if (noTNeuterPattern.test(adjective)) {
+        return true;
+    }
+
+    // Otherwise, it should take 't'
+    return false;
+}
+
+function toggleInflections(button) {
+    const container = button.parentElement;  // Get the parent element (inflections-container)
+    const table = container.querySelector('.inflections-table');  // Select the table within the container
+    const word = button.getAttribute('data-word');  // Get the word from the data attribute
+    const pos = button.getAttribute('data-pos');    // Get the part of speech (POS)
+    let gender = button.getAttribute('data-gender'); // Get the gender for nouns, if applicable
+
+    // If the table doesn't exist, log an error and return early
+    if (!table) {
+        console.error('Table element not found.');
+        return;
+    }
+
+    // Check if the table is visible using computed styles
+    const isTableVisible = window.getComputedStyle(table).display !== "none";
+
+    // Toggle visibility of the table
+    if (isTableVisible) {
+        table.style.display = "none";  // Hide the table
+        button.textContent = "Show Inflections";  // Update button text
+        console.log('Table is now hidden.');
+    } else {
+        // Log initial data for debugging
+        console.log(`Word: ${word}, POS: ${pos}, Gender: ${gender}`);
+
+        // Clear any previous content
+        const tbody = table.querySelector('tbody');
+        tbody.innerHTML = '';
+
+        let variations = [];
+
+        // Normalize gender and ensure it’s valid before generating variations (only for nouns)
+        if (pos === 'noun') {
+            gender = gender ? gender.toLowerCase().trim() : '';
+
+            // Handle multiple genders by splitting the gender string (use both "/" and "-" as delimiters)
+            const genders = gender.split(/[-/]/).map(g => g.trim());
+
+            // Generate tables for each gender
+            genders.forEach(singleGender => {
+                if (singleGender.startsWith('substantiv - ')) {
+                    singleGender = singleGender.replace('substantiv - ', '').trim();
+                }
+
+                // Handle gender detection for nouns
+                if (singleGender.includes('neuter') || singleGender === 'et') {
+                    singleGender = 'neuter';
+                } else if (singleGender.includes('masculine') || singleGender === 'en') {
+                    singleGender = 'masculine';
+                } else if (singleGender.includes('feminine') || singleGender === 'ei') {
+                    singleGender = 'feminine';
+                } else {
+                    console.error(`Unknown gender for noun: ${word}, gender: ${singleGender}`);
+                    return;  // Exit if no valid gender is found
+                }
+
+                // Log the final gender
+                console.log(`Final Gender for word "${word}": ${singleGender}`);
+
+                // Generate the word variations based on the POS and gender
+                variations = generateWordVariations(word, pos, singleGender);
+                console.log(`Generated Variations for ${singleGender}:`, variations);
+
+                // Create a new table element for each gender
+                const newTable = document.createElement('table');
+                newTable.classList.add('inflections-table');  // Add the table class
+                
+                // Add a row in the table for each gender
+                let tableContent = '';
+
+                if (variations.length >= 4) {
+                    tableContent = `
+                        <tr><td>${variations[0]}</td><td>${variations[1]}</td></tr>
+                        <tr><td>${variations[2]}</td><td>${variations[3]}</td></tr>
+                    `;
+                } else {
+                    console.error(`Expected 4 noun variations, but got:`, variations);
+                }
+
+                // Append the content to the tbody
+                tbody.innerHTML += tableContent;
+            });
+        } else {
+            // Generate variations for adjectives, verbs, pronouns, and other parts of speech
+            variations = generateWordVariations(word, pos);
+
+            // Log generated variations for debugging
+            console.log(`Generated Variations for ${pos}:`, variations);
+
+            let tableContent = '';
+
+            // Handle adjectives with specific inflection forms
+            if (pos === 'adjective' && variations.length > 0) {
+                const adjectiveForms = variations[0];  // The variations array contains the forms
+                tableContent = `
+                    <tr><td>${adjectiveForms[0]}</td><td>${adjectiveForms[1]}</td><td>${adjectiveForms[2]}</td></tr>
+                `;
+            // Handle verbs and pronouns
+            } else if (pos === 'verb' || pos === 'pronoun') {
+                if (variations.length >= 6) {
+                    tableContent = `
+                        <tr><td>${variations[0]}</td><td>${variations[1]}</td><td>${variations[2]}</td></tr>
+                        <tr><td>${variations[3]}</td><td>${variations[4]}</td><td>${variations[5]}</td></tr>
+                    `;
+                } else {
+                    console.error(`Expected 6 verb/pronoun variations, but got:`, variations);
+                }
+            } else {
+                // For other parts of speech, just list the variations
+                tableContent = variations.map(variation => `<tr><td>${variation}</td></tr>`).join('');
+            }
+
+            // Populate the table with the content
+            tbody.innerHTML = tableContent;
+        }
+
+        // Show the table and update the button text
+        table.style.display = "table";  // Show the table
+        button.textContent = "Hide Inflections";
+        console.log('Table is now visible.');
+    }
+}
+
+
+
 
 // Normalize word function to handle both Norwegian and English forms
 function normalizeWord(word) {
@@ -562,6 +718,8 @@ function generateWordVariations(word, pos) {
 
     return variations;
 }
+
+
 
 
 
