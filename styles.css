@@ -644,6 +644,11 @@ main {
         display: none;
     }
 
+    #landing-card h2 {
+        font-size: 22px !important;
+        line-height: 1.5;
+    }
+
     .linkedin-btn {
         font-size: 12px; /* Slightly smaller font size */
         padding: 0px 10px 0px 10px !important; /* Adjust padding to reduce the button's height */
