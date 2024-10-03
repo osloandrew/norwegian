@@ -1,6 +1,7 @@
 // Global Variables
 let results = [];
 let debounceTimer;  // Global variable for debouncing
+const resultsContainer = document.getElementById('results-container');
 
 // Debounce function to limit how often search is triggered
 function debounceSearchTrigger(func, delay) {
@@ -18,6 +19,14 @@ function handleKey(event) {
             search();
         }
     }, 300);  // Delay of 300ms before calling search()
+}
+
+function clearContainer() {
+    resultsContainer.innerHTML = '';
+}
+
+function appendToContainer(content) {
+    resultsContainer.innerHTML += content;
 }
 
 function shouldNotDecline(adjective) {
@@ -175,31 +184,6 @@ function toggleInflectionTableVisibility(button) {
 }
 
 
-
-
-// Normalize word function to handle both Norwegian and English forms
-function normalizeWord(word) {
-    const baseWord = word.toLowerCase().trim();
-    const variations = new Set([baseWord]); // Always include base form
-
-    // Define common endings for Norwegian and English
-    const endings = {
-        norwegian: ['er', 'ene', 'en', 'et', 'es', 'te', 'de', 't', 'e'],
-        english: ['s', 'es', 'ed', 'ing']
-    };
-
-    // Generate variations by removing common endings
-    for (const ending of [...endings.norwegian, ...endings.english]) {
-        if (baseWord.endsWith(ending)) {
-            variations.add(baseWord.slice(0, -ending.length));
-        }
-    }
-
-    return Array.from(variations); // Convert the set back to an array
-}
-
-
-
 // Filter results based on selected part of speech (POS)
 function filterResultsByPOS(results, selectedPOS) {
     if (!selectedPOS) return results;
@@ -352,11 +336,10 @@ function flagMissingWordEntry(word) {
     });
 }
 
-
-
 // Generate and display a random word or sentence
 async function randomWord() {
     clearInput();  // Clear search bar when generating a random word or sentence
+    clearContainer();
 
     const type = document.getElementById('type-select').value;
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
@@ -370,7 +353,6 @@ async function randomWord() {
     }
 
     // Show the spinner at the start of the random word or sentence generation
-    const spinner = document.getElementById('loading-spinner');
     showSpinner();
 
     let filteredResults;
@@ -422,15 +404,28 @@ async function randomWord() {
     hideSpinner();  // Hide the spinner
 }
 
+// Function to generate potential inexact matches by removing plural endings, etc.
+function generateInexactMatches(query) {
+    const variations = [query.toLowerCase().trim()]; // Always include the base query
+    
+    // Handle common suffixes like 'ing', 'ed', etc.
+    const suffixes = ['ed', 'e', 'ene', 'er', 'es', 'ing', 'ly', '-ne', 'r', 's', 't', 'te'];  // Alphabetized
+    suffixes.forEach(suffix => {
+        if (query.endsWith(suffix)) {
+            variations.push(query.slice(0, -suffix.length));
+        }
+    });
+    
+    return variations;
+}
+
 
 // Perform a search based on the input query and selected POS
 async function search() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
     const type = document.getElementById('type-select').value; // Get the search type (words or sentences)
-
-    // Normalize the query to handle variations
-    const normalizedQueries = normalizeWord(query);  // Use normalizeWord to get variations
+    const normalizedQueries = [query.toLowerCase().trim()]; // Use only the base query for matching
 
     // Clear any previous highlights by resetting the `query`
     let cleanResults = results.map(result => {
@@ -442,14 +437,12 @@ async function search() {
     updateURL(query, type, selectedPOS);  // <--- Trigger URL update
 
     // Show the spinner at the start of the search
-    const spinner = document.getElementById('loading-spinner');
     showSpinner();
 
     // Update document title with the search term
     document.title = `${query} - Norwegian Dictionary`;
 
-    const resultsContainer = document.getElementById('results-container');
-    resultsContainer.innerHTML = ''; // Clear previous results
+    clearContainer(); // Clear previous results
 
     // Handle empty search query
     if (!query) {
@@ -488,24 +481,76 @@ async function search() {
             return matchesQuery && (!selectedPOS || pos === selectedPOS);
         });
 
-          // If no matching results, display an error message
-          if (matchingResults.length === 0) {
+        // If no exact matches are found, find inexact matches
+        if (matchingResults.length === 0) {
+            // Generate inexact matches based on transformations
+            const inexactWordQueries = generateInexactMatches(query);
+
+            // Now search for results using these inexact queries
+            let inexactWordMatches = results.filter(r => {
+                const pos = mapKjonnToPOS(r.kjønn);
+                const matchesInexact = inexactWordQueries.some(inexactQuery => r.ord.toLowerCase().includes(inexactQuery) || r.engelsk.toLowerCase().includes(inexactQuery));
+                return matchesInexact && (!selectedPOS || pos === selectedPOS);
+            }).slice(0, 20); // Limit to 20 results
+
+            // Display the "No Exact Matches" message
             resultsContainer.innerHTML = `
                 <div class="definition error-message">
                     <h2 class="word-kjonn">
-                        Error <span class="kjønn">No Results Found</span>
+                        No Exact Matches Found <span class="kjønn"></span>
                     </h2>
-                    <p>No words found matching "${query}". Please try another word.</p>
-                                <button class="sentence-btn back-btn">
-                <i class="fas fa-flag"></i> Flag Missing Word Entry</button>
+                    <p>We couldn't find exact matches for "${query}". Here are some inexact results:</p>
+                    <button class="sentence-btn back-btn">
+                        <i class="fas fa-flag"></i> Flag Missing Word Entry
+                    </button>
                 </div>
             `;
+
+            // Add flag button functionality
+            const flagButton = document.querySelector('.back-btn');
+            if (flagButton) {
+                flagButton.addEventListener('click', function() {
+                    const wordToFlag = document.getElementById('search-bar').value;
+                    flagMissingWordEntry(wordToFlag);
+                });
+            }
+
+            // If inexact matches are found, display them below the message
+            if (inexactWordMatches.length > 0) {
+                displaySearchResults(inexactWordMatches);
+
+                // Reattach the flag button functionality AFTER rendering the search results
+                const flagButton = document.querySelector('.back-btn');
+                if (flagButton) {
+                    flagButton.addEventListener('click', function() {
+                        const wordToFlag = document.getElementById('search-bar').value;
+                        console.log("Flagging word:", wordToFlag);  // Debugging log
+                        flagMissingWordEntry(wordToFlag);
+                    });
+                }
+            } else {
+                clearContainer();
+                appendToContainer(`
+            <div class="definition error-message">
+                <h2 class="word-kjonn">
+                    No Matches Found <span class="kjønn"></span>
+                </h2>
+                <p>We couldn't find any matches for "${query}".</p>
+                <button class="sentence-btn back-btn">
+                    <i class="fas fa-flag"></i> Flag Missing Word Entry
+                </button>
+            </div>`
+            );
+
             const flagButton = document.querySelector('.back-btn');
             if (flagButton) {  // Check if the flag button exists
                 flagButton.addEventListener('click', function() {
                     const wordToFlag = document.getElementById('search-bar').value;
                     flagMissingWordEntry(wordToFlag);
                 });
+            }
+
+            
             }
 
             hideSpinner();
@@ -638,8 +683,7 @@ function handleTypeChange() {
 
 // Render a list of results (words)
 function displaySearchResults(results, query = '') {
-    const resultsContainer = document.getElementById('results-container');
-    resultsContainer.innerHTML = '';  // Clear previous results
+    //clearContainer(); // Don't clear the container to avoid overwriting existing content like the "No Exact Matches" message
 
     query = query.toLowerCase().trim();  // Ensure the query is lowercased and trimmed
 
@@ -679,7 +723,7 @@ function displaySearchResults(results, query = '') {
             <div class="sentences-container" id="sentences-container-${normalizedWord}"></div>
         `;    
     });
-    document.getElementById('results-container').innerHTML = htmlString;
+    appendToContainer(htmlString);
 }
 
 // Utility function to generate word variations for verbs ending in -ere and handle adjective/noun forms
@@ -935,8 +979,7 @@ function renderSentence(sentenceResult) {
 
 // Render multiple sentences based on a word or query
 function renderSentences(sentenceResults, word) {
-    const resultsContainer = document.getElementById('results-container');
-    resultsContainer.innerHTML = ''; // Clear previous results
+    clearContainer(); // Clear previous results
 
     const query = word.trim().toLowerCase(); // Trim and lower-case the search term for consistency
     let exactMatches = [];
