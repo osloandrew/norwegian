@@ -435,7 +435,7 @@ function generateInexactMatches(query) {
     const variations = [query.toLowerCase().trim()]; // Always include the base query
     
     // Handle common suffixes like 'ing', 'ed', etc.
-    const suffixes = ['ed', 'e', 'ene', 'er', 'es', 'ing', 'ly', '-ne', 'r', 's', 't', 'te'];  // Alphabetized
+    const suffixes = ['a', 'e', 'ed', 'en', 'ene', 'er', 'es', 'et', 'ing', 'ly', '-ne', 'r', 's', 't', 'te'];  // Alphabetized
     suffixes.forEach(suffix => {
         if (query.endsWith(suffix)) {
             variations.push(query.slice(0, -suffix.length));
