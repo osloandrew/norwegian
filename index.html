@@ -50,7 +50,7 @@
 
 <body>
     <header>
-        <h1>Norwegian Dictionary</h1>
+        <h1 id="site-title">Norwegian Dictionary</h1>
         <p>Search in Norwegian or English</p>
     </header>
 
@@ -109,7 +109,12 @@
         </section>
         
         <div id="loading-spinner" class="spinner" style="display: none;"></div> <!-- Moved outside the results-container -->
-        <section id="results-container"></section>        
+        <section id="results-container">
+            <div id="landing-card" class="definition">
+                <h2>Welcome to the Norwegian Dictionary</h2>
+                <p>Type a word in the search bar to get started.</p>
+            </div>            
+        </section>        
     </main>
 
     <audio id="audio-player" style="display: none;" controls></audio>
