@@ -3,6 +3,30 @@ let results = [];
 let debounceTimer;  // Global variable for debouncing
 const resultsContainer = document.getElementById('results-container');
 
+// Function to show or hide the landing card
+function showLandingCard(show) {
+    const landingCard = document.getElementById('landing-card');
+    if (landingCard) {
+        landingCard.style.display = show ? 'block' : 'none';
+    }
+}
+
+// Function to navigate back to the landing card when the H1 is clicked
+function returnToLandingPage() {
+    clearInput();  // Clear the search input field
+    showLandingCard(true);  // Show the landing card again
+
+    // Ensure that only results are cleared, not the landing card
+    clearContainer();  // Ensure this does not remove landing card
+
+    // Update the URL to indicate we're on the landing page
+    const url = new URL(window.location);
+    url.searchParams.set('landing', 'true');
+    url.searchParams.delete('query');  // Remove the query parameter
+    window.history.pushState({}, '', url);
+}
+
+
 // Debounce function to limit how often search is triggered
 function debounceSearchTrigger(func, delay) {
     clearTimeout(debounceTimer);  // Clear the previous timer
@@ -22,8 +46,20 @@ function handleKey(event) {
 }
 
 function clearContainer() {
-    resultsContainer.innerHTML = '';
+    const landingCard = document.getElementById('landing-card');
+    if (landingCard) {
+        // Temporarily remove the landing card from the container, then clear everything else
+        landingCard.parentNode.removeChild(landingCard);
+    }
+
+    resultsContainer.innerHTML = ''; // Clear everything else in the container
+
+    // Restore the landing card
+    if (landingCard) {
+        resultsContainer.appendChild(landingCard);
+    }
 }
+
 
 function appendToContainer(content) {
     resultsContainer.innerHTML += content;
@@ -267,8 +303,6 @@ function clearInput() {
 // Fetch the dictionary data from the server
 async function fetchAndLoadDictionaryData() {
     // Show the spinner before fetching data
-    document.getElementById('loading-spinner').style.display = 'block';
-
     try {
         const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vSl2GxGiiO3qfEuVM6EaAbx_AgvTTKfytLxI1ckFE6c35Dv8cfYdx30vLbPPxadAjeDaSBODkiMMJ8o/pub?output=csv');
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -288,6 +322,7 @@ async function fetchAndLoadDictionaryData() {
             console.error('Error fetching or parsing data from local CSV file:', localError);
         }
     }
+
 }
 
 // Parse the CSV data using PapaParse
@@ -299,13 +334,6 @@ function parseCSVData(data) {
             results = resultsFromParse.data;
             console.log('Parsed data:', results);  // Log the parsed data
             
-            // Check if a query exists in the URL
-            const url = new URL(window.location);
-            const query = url.searchParams.get('query');
-
-            if (!query) {
-                randomWord();  // Only show a random entry if no query is present
-            }
         },
         error: function (error) {
             console.error('Error parsing CSV:', error);
@@ -338,9 +366,6 @@ function flagMissingWordEntry(word) {
 
 // Generate and display a random word or sentence
 async function randomWord() {
-    clearInput();  // Clear search bar when generating a random word or sentence
-    clearContainer();
-
     const type = document.getElementById('type-select').value;
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
 
@@ -352,8 +377,10 @@ async function randomWord() {
         return;
     }
 
-    // Show the spinner at the start of the random word or sentence generation
     showSpinner();
+    clearInput();  // Clear search bar when generating a random word or sentence
+    showLandingCard(false);
+    clearContainer();
 
     let filteredResults;
 
@@ -375,7 +402,6 @@ async function randomWord() {
                 <p>No random entries available. Try selecting another type or part of speech.</p>
             </div>
         `;
-        hideSpinner();
         return;
     }
 
@@ -442,6 +468,7 @@ async function search() {
     // Update document title with the search term
     document.title = `${query} - Norwegian Dictionary`;
 
+    showLandingCard(false);
     clearContainer(); // Clear previous results
 
     // Handle empty search query
@@ -462,7 +489,7 @@ async function search() {
 
     if (type === 'sentences') {
         // If searching sentences, look for matches in the 'eksempel' field
-        matchingResults = results.filter(r => normalizedQueries.some(normQuery => r.eksempel && r.eksempel.toLowerCase().includes(normQuery)));
+        matchingResults = cleanResults.filter(r => normalizedQueries.some(normQuery => r.eksempel && r.eksempel.toLowerCase().includes(normQuery)));
 
         // Prioritize the matching results using the prioritizeResults function
         matchingResults = prioritizeResults(matchingResults, query, 'eksempel');
@@ -475,7 +502,7 @@ async function search() {
         renderSentences(matchingResults, query); // Pass the query for highlighting
     } else {
         // Filter results by query and selected POS for words
-        matchingResults = results.filter(r => {
+        matchingResults = cleanResults.filter(r => {
             const pos = mapKjonnToPOS(r.kjønn);
             const matchesQuery = normalizedQueries.some(variation => r.ord.toLowerCase().includes(variation) || r.engelsk.toLowerCase().includes(variation));
             return matchesQuery && (!selectedPOS || pos === selectedPOS);
@@ -1397,15 +1424,25 @@ function prioritizeResults(results, query, key) {
 // Update URL based on current search parameters
 function updateURL(query, type, selectedPOS) {
     const url = new URL(window.location);
-    url.searchParams.set('query', query);
-    url.searchParams.set('type', type);
-    if (selectedPOS) {
-        url.searchParams.set('pos', selectedPOS);
+
+    if (query) {
+        url.searchParams.set('query', query);
+        url.searchParams.set('type', type);
+        if (selectedPOS) {
+            url.searchParams.set('pos', selectedPOS);
+        } else {
+            url.searchParams.delete('pos');
+        }
+        url.searchParams.delete('landing'); // Remove landing state when there’s a query
     } else {
-        url.searchParams.delete('pos');
+        url.searchParams.set('landing', 'true'); // Set landing state if there's no query
+        url.searchParams.delete('query'); // Ensure query is removed when showing landing page
+        url.searchParams.delete('pos');   // Remove any POS filters
     }
+
     window.history.pushState({}, '', url);
 }
+
 
 // Load the state from the URL and trigger the appropriate search
 function loadStateFromURL() {
@@ -1413,6 +1450,7 @@ function loadStateFromURL() {
     const query = url.searchParams.get('query') || '';  // Default to an empty query if not present
     const type = url.searchParams.get('type') || 'words';  // Use the type from the URL or default to 'words'
     const selectedPOS = url.searchParams.get('pos') || '';  // Default to an empty POS if not present
+    const landing = url.searchParams.get('landing') === 'true';  // Check if landing=true is set
 
     // Set the correct values in the DOM elements
     document.getElementById('search-bar').value = query;
@@ -1422,16 +1460,15 @@ function loadStateFromURL() {
         document.getElementById('pos-select').value = selectedPOS;
     }
 
-    // Only trigger a search if there is a query, otherwise show a random word or sentence
+    if (landing) {
+        showLandingCard(true);  // Show the landing card if the landing param is true
+        return;  // Stop execution here, so no search happens
+    }
+
     if (query) {
-        search();  // Perform the search with the loaded parameters
-    } else {
-        randomWord();  // If no query, load a random word or sentence
+        search();  // Perform the search with the loaded parameters if there's a query
     }
 }
-
-
-
 
 
 // Initialization of the dictionary data and event listeners
