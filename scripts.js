@@ -518,7 +518,7 @@ async function search() {
                 const pos = mapKjonnToPOS(r.kjønn);
                 const matchesInexact = inexactWordQueries.some(inexactQuery => r.ord.toLowerCase().includes(inexactQuery) || r.engelsk.toLowerCase().includes(inexactQuery));
                 return matchesInexact && (!selectedPOS || pos === selectedPOS);
-            }).slice(0, 20); // Limit to 20 results
+            }).slice(0, 10); // Limit to 10 results
 
             // Display the "No Exact Matches" message
             resultsContainer.innerHTML = `
@@ -713,11 +713,13 @@ function displaySearchResults(results, query = '') {
     //clearContainer(); // Don't clear the container to avoid overwriting existing content like the "No Exact Matches" message
 
     query = query.toLowerCase().trim();  // Ensure the query is lowercased and trimmed
+    const defaultResult = results.length <= 1; // Determine if there are multiple results
+    const multipleResults = results.length > 1; // Determine if there are multiple results
 
     let htmlString = '';
 
-    // Limit to a maximum of 20 results
-    results.slice(0, 20).forEach(result => {
+    // Limit to a maximum of 10 results
+    results.slice(0, 10).forEach(result => {
         result.kjønn = formatKjonn(result.kjønn);
 
         // Check if sentences are available using enhanced checkForSentences
@@ -729,26 +731,40 @@ function displaySearchResults(results, query = '') {
         // Highlight the word being defined (result.ord) in the example sentence
         const highlightedExample = result.eksempel ? highlightQuery(result.eksempel, query || result.ord.toLowerCase()) : '';
 
+        // Determine whether to initially hide the content for multiple results
+        const multipleResultsExposedContent = defaultResult ? 'default-hidden-content' : ''; 
+
+        const multipleResultsDefinition = multipleResults ? 'multiple-results-definition' : '';  // Hide content if multiple results
+        const multipleResultsHiddenContent = multipleResults ? 'multiple-results-hidden-content' : '';  // Hide content if multiple results
+        const multipleResultsDefinitionHeader = multipleResults ? 'multiple-results-definition-header' : ''; 
+        const multipleResultsWordKjonn = multipleResults ? 'multiple-results-word-kjonn' : ''; 
+        const multipleResultsDefinitionText = multipleResults ? 'multiple-results-definition-text' : ''; 
+        const multipleResultsKjonnClass = multipleResults ? 'multiple-results-kjonn-class' : ''; 
+
+
         htmlString += `
-            <div class="definition">
-                <h2 class="word-kjonn">
+            <div class="definition ${multipleResultsDefinition}" onclick="handleCardClick(event, '${result.ord}')">  <!-- Add click event -->
+                <div class="${multipleResultsDefinitionHeader}">
+                <h2 class="word-kjonn ${multipleResultsWordKjonn}">
                     ${result.ord}
-                    ${result.kjønn ? `<span class="kjønn">${result.kjønn}</span>` : ''}
+                    ${result.kjønn ? `<span class="kjønn ${multipleResultsKjonnClass}">${result.kjønn}</span>` : ''}
+                    ${result.engelsk ? `<p class="english ${multipleResultsExposedContent}">${result.engelsk}</p>` : ''}
                 </h2>
-                ${result.definisjon ? `<p>${result.definisjon}</p>` : ''}
-                <div class="definition-content">
-                    ${result.engelsk ? `<p class="english"><i class="fas fa-language"></i> ${result.engelsk}</p>` : ''}
+                ${result.definisjon ? `<p class="${multipleResultsDefinitionText}">${result.definisjon}</p>` : ''}
+                </div>
+                <div class="definition-content ${multipleResultsHiddenContent}"> <!-- Apply the hidden class conditionally -->
+                    ${result.engelsk ? `<p class="english ${multipleResultsExposedContent}"><i class="fas fa-language"></i> ${result.engelsk}</p>` : ''}
                     ${result.uttale ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>` : ''}
                     ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
                 </div>
                 <!-- Render the highlighted example sentence here -->
-                ${highlightedExample ? `<p class="example">${highlightedExample}</p>` : ''}
+                <div class="${multipleResultsHiddenContent}">${highlightedExample ? `<p class="example">${highlightedExample}</p>` : ''}</div>
                 <!-- Show "Show Sentences" button only if sentences exist -->
-                ${hasSentences ? `<button class="sentence-btn" data-word="${result.ord}" onclick="fetchAndRenderSentences('${result.ord}')">Show Sentences</button>` : ''}
+                <div class="${multipleResultsHiddenContent}">${hasSentences ? `<button class="sentence-btn" data-word="${result.ord}" onclick="event.stopPropagation(); fetchAndRenderSentences('${result.ord}')">Show Sentences</button>` : ''}</div>
             </div>
             <!-- Sentences container is now outside the definition block -->
             <div class="sentences-container" id="sentences-container-${normalizedWord}"></div>
-        `;    
+        `;
     });
     appendToContainer(htmlString);
 }
@@ -1036,7 +1052,7 @@ function renderSentences(sentenceResults, word) {
     });
 
     // Combine exact matches first, then partial matches
-    const combinedMatches = [...exactMatches, ...partialMatches].slice(0, 20);
+    const combinedMatches = [...exactMatches, ...partialMatches].slice(0, 10);
 
     // Generate HTML for the combined matches
     let htmlString = '';
@@ -1183,8 +1199,8 @@ function renderSentencesHTML(sentenceResults, wordVariations) {
     console.log("Exact matches:", exactMatches);
     console.log("Inexact matches:", inexactMatches);
 
-    // Combine exact matches first, then inexact matches, respecting the 20 sentence limit
-    const combinedMatches = [...exactMatches, ...inexactMatches].slice(0, 20);
+    // Combine exact matches first, then inexact matches, respecting the 10 sentence limit
+    const combinedMatches = [...exactMatches, ...inexactMatches].slice(0, 10);
 
     if (combinedMatches.length === 0) {
         console.warn("No sentences found for the word variations.");
@@ -1466,8 +1482,26 @@ function loadStateFromURL() {
     }
 
     if (query) {
-        search();  // Perform the search with the loaded parameters if there's a query
+        renderWordDefinition(query);
     }
+}
+
+// Function to handle clicking on a search result card
+function handleCardClick(event, word) {
+    // Hide all other results
+    resultsContainer.innerHTML = '';  // Clear the container
+    
+    // Fetch the word definition and display it (word is passed in as a parameter)
+    renderWordDefinition(word);  // Render the selected word definition
+    
+    // Update the URL to reflect the clicked word
+    const url = new URL(window.location);
+    url.searchParams.set('query', word);
+    url.searchParams.delete('landing');  // Ensure the landing param is removed
+    window.history.pushState({}, '', url);
+    
+    // Log the updated URL (for debugging)
+    console.log(`URL updated to: ${url}`);
 }
 
 
