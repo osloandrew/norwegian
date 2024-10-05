@@ -68,6 +68,10 @@ body {
     width: auto;
 }
 
+.default-hidden-content {
+    display: none;
+}
+
 /* Common styling for both definition cards and error messages */
 .definition, .error-message {
     background-color: #ffffff;
@@ -257,25 +261,30 @@ label {
     transform: translateY(-50%);
 }
 
+/* Modify the landing card styling to match definition cards */
 #landing-card {
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-    padding: 25px;
+    background-color: #ffffff; /* Matches the background of definition cards */
+    border-radius: 12px; /* Same border radius as definition cards */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Same box shadow */
+    margin: 20px auto; /* Matches the margin of definition cards */
+    padding: 25px; /* Matches the padding of definition cards */
     text-align: center;
+    width: 45%; /* Same width as definition cards */
 }
 
+/* Adjust the heading size and color to match the word titles in definition cards */
 #landing-card h2 {
-    color: #3c88d4;
-    font-size: 30px;
+    color: #3c88d4; /* Matches the heading color of definition cards */
+    font-size: 30px; /* Matches the font size of definition card headings */
     margin-bottom: 10px;
 }
 
+/* Adjust the paragraph text inside the landing card to be more similar to definition content */
 #landing-card p {
-    font-size: 18px;
-    color: #555;
+    font-size: 18px; /* Matches the font size of other definition content */
+    color: #555; /* Similar color to definition content */
 }
+
 
 .links {
     display: flex;
@@ -315,6 +324,47 @@ label {
 
 main {
     flex: 1;
+}
+
+/* The whole box */
+.multiple-results-definition {
+    padding: 15px 25px 15px 25px;
+}
+
+/* The word, gender and definition */
+.multiple-results-definition-header {
+    display: flex;
+    flex-direction: row;  /* Horizontally aligns the word and definition */
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* The definition */
+.multiple-results-definition-text {
+    flex: 1;
+    font-size: 18px !important;
+    margin-left: 20px;  /* Space between the gender/word and definition */
+    width: 65%;  /* Definition takes up exactly 60% of the container */
+}
+
+.multiple-results-hidden-content {
+    display: none;
+}
+
+/* The gender */
+.multiple-results-kjonn-class {
+    font-size: 14px !important;
+}
+
+/* The word and gender */
+.multiple-results-word-kjonn {
+    display: flex;
+    font-size: 20px !important;
+    flex-direction: column;  /* Ensures word and gender are stacked vertically */
+    margin: 0 20px 0 0 !important;
+    line-height: 1.5 !important;
+    width: 35%;  /* The word and gender take up 40% of the container */
+    justify-content: center;  /* Vertically center the word and gender within their container */
 }
 
 .random-btn {
@@ -644,6 +694,10 @@ main {
         display: none;
     }
 
+    #landing-card {
+        width: 80%; /* Same width as definition cards */
+    }
+
     #landing-card h2 {
         font-size: 22px !important;
         line-height: 1.5;
@@ -747,7 +801,7 @@ main {
     }
 
     .word-kjonn .kjønn {
-        font-size: 4vw !important;
+        font-size: 4vw;
         margin-top: 5px;
     }
 }
