@@ -344,7 +344,7 @@ main {
     flex: 1;
     font-size: 18px !important;
     margin-left: 20px;  /* Space between the gender/word and definition */
-    width: 65%;  /* Definition takes up exactly 60% of the container */
+    width: 50%;  /* Definition takes up exactly 60% of the container */
 }
 
 .multiple-results-hidden-content {
@@ -363,7 +363,7 @@ main {
     flex-direction: column;  /* Ensures word and gender are stacked vertically */
     margin: 0 20px 0 0 !important;
     line-height: 1.5 !important;
-    width: 35%;  /* The word and gender take up 40% of the container */
+    width: 50%;  /* The word and gender take up 40% of the container */
     justify-content: center;  /* Vertically center the word and gender within their container */
 }
 
@@ -728,6 +728,41 @@ main {
         margin: 5px 0 5px 0;
         gap: 8px; /* Ensure proper space between buttons */
         padding: 0 20px; /* Add padding to create space between the buttons and the screen edges */
+    }
+
+    /* The whole box */
+    .multiple-results-definition {
+        padding: 15px 25px 15px 25px;
+    }
+
+    /* The word, gender and definition */
+    .multiple-results-definition-header {
+        display: flex;
+        flex-direction: row;  /* Horizontally aligns the word and definition */
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* The definition */
+    .multiple-results-definition-text {
+        flex: 1;
+        font-size: 18px !important;
+        margin-left: 20px;  /* Space between the gender/word and definition */
+    }
+
+    /* The gender */
+    .multiple-results-kjonn-class {
+        font-size: 12px !important;
+    }
+
+    /* The word and gender */
+    .multiple-results-word-kjonn {
+        display: flex;
+        font-size: 18px !important;
+        flex-direction: column;  /* Ensures word and gender are stacked vertically */
+        margin: 0 20px 0 0 !important;
+        line-height: 1.2 !important;
+        justify-content: center;  /* Vertically center the word and gender within their container */
     }
 
     .random-btn {
