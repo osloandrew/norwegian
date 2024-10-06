@@ -99,7 +99,7 @@ function shouldNotTakeTInNeuter(adjective) {
 function formatDefinitionWithMultipleSentences(definition) {
     return definition
         .split(/(?<=[.!?])\s+/)  // Split by sentence delimiters
-        .map(sentence => `<p>${sentence}</p>`)  // Wrap each sentence in a <p> tag
+        .map(sentence => `<p class="example">${sentence}</p>`)  // Wrap each sentence in a <p> tag
         .join('');  // Join them together into a string
 }
 
