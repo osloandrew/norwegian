@@ -96,6 +96,14 @@ function shouldNotTakeTInNeuter(adjective) {
     return false;
 }
 
+function formatDefinitionWithMultipleSentences(definition) {
+    return definition
+        .split(/(?<=[.!?])\s+/)  // Split by sentence delimiters
+        .map(sentence => `<p>${sentence}</p>`)  // Wrap each sentence in a <p> tag
+        .join('');  // Join them together into a string
+}
+
+
 function toggleInflectionTableVisibility(button) {
     const container = button.parentElement;  // Get the parent element (inflections-container)
     const table = container.querySelector('.inflections-table');  // Select the table within the container
@@ -743,7 +751,7 @@ function displaySearchResults(results, query = '') {
 
 
         htmlString += `
-            <div class="definition ${multipleResultsDefinition}" onclick="handleCardClick(event, '${result.ord}')">  <!-- Add click event -->
+            <div class="definition ${multipleResultsDefinition}" onclick="if (!window.getSelection().toString()) handleCardClick(event, '${result.ord}')">  <!-- Add click event -->
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-kjonn ${multipleResultsWordKjonn}">
                     ${result.ord}
@@ -758,7 +766,7 @@ function displaySearchResults(results, query = '') {
                     ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
                 </div>
                 <!-- Render the highlighted example sentence here -->
-                <div class="${multipleResultsHiddenContent}">${highlightedExample ? `<p class="example">${highlightedExample}</p>` : ''}</div>
+                <div class="${multipleResultsHiddenContent}">${highlightedExample ? `<p class="example">${formatDefinitionWithMultipleSentences(highlightedExample)}</p>` : ''}</div>
                 <!-- Show "Show Sentences" button only if sentences exist -->
                 <div class="${multipleResultsHiddenContent}">${hasSentences ? `<button class="sentence-btn" data-word="${result.ord}" onclick="event.stopPropagation(); fetchAndRenderSentences('${result.ord}')">Show Sentences</button>` : ''}</div>
             </div>
@@ -1119,6 +1127,20 @@ function highlightQuery(sentence, query) {
     // Highlight all occurrences of the query in the sentence
     cleanSentence = cleanSentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
     console.log('Highlighted sentence:', cleanSentence);
+
+    // Split the query by commas to handle multiple spelling variations
+    const queries = query.split(',').map(q => q.trim());
+
+    // Highlight each query variation in the sentence
+    queries.forEach(q => {
+        // Define a regex pattern that includes Norwegian characters and dynamically inserts the query
+        const norwegianLetters = '[\\wåæøÅÆØ]'; // Include Norwegian letters in the pattern
+        const regex = new RegExp(`(${norwegianLetters}*${q}${norwegianLetters}*)`, 'gi');
+        console.log('Generated regex for query:', regex);
+
+        // Highlight all occurrences of the query variation in the sentence
+        cleanSentence = cleanSentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
+    });
 
     // Get part of speech (POS) for the query to pass into `generateWordVariationsForSentences`
     const matchingWordEntry = results.find(result => result.ord.toLowerCase().includes(query));
