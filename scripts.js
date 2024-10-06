@@ -758,9 +758,8 @@ function displaySearchResults(results, query = '') {
         const multipleResultsDefinitionText = multipleResults ? 'multiple-results-definition-text' : ''; 
         const multipleResultsKjonnClass = multipleResults ? 'multiple-results-kjonn-class' : ''; 
 
-
         htmlString += `
-            <div class="definition ${multipleResultsDefinition}" onclick="if (!window.getSelection().toString()) handleCardClick(event, '${result.ord}')">  <!-- Add click event -->
+            <div class="definition ${multipleResultsDefinition}" data-word="${result.ord}" data-pos="${mapKjonnToPOS(result.kjønn)}" onclick="if (!window.getSelection().toString()) handleCardClick(event, '${result.ord}', '${mapKjonnToPOS(result.kjønn)}')">
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-kjonn ${multipleResultsWordKjonn}">
                     ${result.ord}
@@ -1508,22 +1507,22 @@ function loadStateFromURL() {
 }
 
 // Function to handle clicking on a search result card
-function handleCardClick(event, word) {
-    // Hide all other results
+function handleCardClick(event, word, pos) {
+    // Filter results by both word and POS (part of speech)
+    const clickedResult = results.filter(r => r.ord.toLowerCase() === word.toLowerCase() && mapKjonnToPOS(r.kjønn) === pos);
+
+    if (clickedResult.length === 0) {
+        console.error(`No result found for word: "${word}" with POS: "${pos}"`);
+        return;
+    }
+
+    // Clear all other results and keep only the clicked card
     resultsContainer.innerHTML = '';  // Clear the container
-    
-    // Fetch the word definition and display it (word is passed in as a parameter)
-    renderWordDefinition(word);  // Render the selected word definition
-    
-    // Update the URL to reflect the clicked word
-    const url = new URL(window.location);
-    url.searchParams.set('query', word);
-    url.searchParams.delete('landing');  // Ensure the landing param is removed
-    window.history.pushState({}, '', url);
-    
-    // Log the updated URL (for debugging)
-    console.log(`URL updated to: ${url}`);
+
+    // Display the clicked result
+    displaySearchResults(clickedResult);  // This ensures only the clicked card remains
 }
+
 
 
 // Initialization of the dictionary data and event listeners
