@@ -416,17 +416,24 @@ async function randomWord() {
     // Randomly select a result from the filtered results
     const randomResult = filteredResults[Math.floor(Math.random() * filteredResults.length)];
 
+    // Reset old highlights by removing any previous span tags
+    randomResult.eksempel = randomResult.eksempel ? randomResult.eksempel.replace(/<span[^>]*>(.*?)<\/span>/gi, '$1') : '';
+
+
     if (type === 'sentences') {
         // If it's a sentence, render it as a sentence
         const sentences = randomResult.eksempel.split(/(?<=[.!?])\s+/);  // Split by sentence delimiters
         const firstSentence = sentences[0];
+
+        // Clear any existing highlights in the sentence
+        const cleanedSentence = firstSentence.replace(/<span style="color: #3c88d4;">(.*?)<\/span>/gi, '$1');
 
         const sentenceHTML = `
             <div class="definition result-header">
                 <h2>Random Sentence</h2>
             </div>
             <div class="definition">
-                <p class="sentence">${firstSentence}</p>
+                <p class="sentence">${cleanedSentence}</p>
             </div>
         `;
         document.getElementById('results-container').innerHTML = sentenceHTML;
@@ -463,7 +470,9 @@ async function search() {
 
     // Clear any previous highlights by resetting the `query`
     let cleanResults = results.map(result => {
-        result.eksempel = result.eksempel.replace(/<span[^>]*>(.*?)<\/span>/gi, '$1'); // Remove previous highlights
+        if (result.eksempel) {
+            result.eksempel = result.eksempel.replace(/<span[^>]*>(.*?)<\/span>/gi, '$1'); // Remove old highlights
+        }
         return result;
     });
 
@@ -1106,16 +1115,7 @@ function renderSentences(sentenceResults, word) {
 function highlightQuery(sentence, query) {
     if (!query) return sentence; // If no query, return sentence as is.
 
-    // Log the sentence and query to see what's being processed
-    console.log('Original sentence:', sentence);
-    console.log('Query:', query);
-
-    // Check if the sentence is already highlighted to avoid double highlighting
-    if (sentence.includes('<span style="color: #3c88d4;">')) {
-        return sentence;  // Already highlighted, return the sentence as is
-    }
-
-    // First, remove any existing highlights by replacing the <span> tags to avoid persistent old highlights
+    // Always remove any existing highlights by replacing the <span> tags to avoid persistent old highlights
     let cleanSentence = sentence.replace(/<span style="color: #3c88d4;">(.*?)<\/span>/gi, '$1');
     console.log('Cleaned sentence:', cleanSentence);
 
@@ -1126,7 +1126,6 @@ function highlightQuery(sentence, query) {
 
     // Highlight all occurrences of the query in the sentence
     cleanSentence = cleanSentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
-    console.log('Highlighted sentence:', cleanSentence);
 
     // Split the query by commas to handle multiple spelling variations
     const queries = query.split(',').map(q => q.trim());
