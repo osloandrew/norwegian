@@ -329,6 +329,7 @@ main {
 /* The whole box */
 .multiple-results-definition {
     padding: 15px 25px 15px 25px;
+    text-wrap: ;
 }
 
 /* The word, gender and definition */
@@ -440,7 +441,7 @@ main {
 .sentence-btn {
     display: block;  /* Block-level element to allow centering */
     margin: 0 auto;  /* Centering with smaller vertical margins */
-    margin-top: 10px;
+    margin-top: 20px;
     background-color: #f0f0f0;  /* Subtle, lighter background */
     color: #5a1a1a;  /* Subtle maroon text */
     border: 1px solid #5a1a1a;  /* Thin maroon border */
@@ -732,7 +733,7 @@ main {
 
     /* The whole box */
     .multiple-results-definition {
-        padding: 15px 25px 15px 25px;
+        padding: 15px 20px 15px 20px;
     }
 
     /* The word, gender and definition */
@@ -746,8 +747,12 @@ main {
     /* The definition */
     .multiple-results-definition-text {
         flex: 1;
-        font-size: 18px !important;
+        font-size: 14px !important;
         margin-left: 20px;  /* Space between the gender/word and definition */
+        hyphens: auto;
+        overflow-wrap: break-word;
+        white-space: normal;
+        word-break: break-word;
     }
 
     /* The gender */
