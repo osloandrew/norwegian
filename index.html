@@ -109,10 +109,129 @@
         </section>
         
         <div id="loading-spinner" class="spinner" style="display: none;"></div> <!-- Moved outside the results-container -->
-        <div id="landing-card" class="definition">
+        <div id="landing-card" class="definition"> 
             <h2>Welcome to the Norwegian Dictionary</h2>
-            <p>Type a word in the search bar to get started.</p>
-        </div>            
+            <p style="text-align:center">Type a word in the search bar to get started.</p>
+        
+            <h3>Norwegian Pronunciation Guide for English Speakers</h3>
+            <p>
+                Norwegian pronunciation can be tricky for English speakers. The table below outlines common Norwegian sounds, with their pronunciation symbols and examples.
+            </p>
+        
+            <table class="pronunciation-table">
+                <thead>
+                    <tr>
+                        <th>Norwegian Sound</th>
+                        <th>Pronunciation Symbol</th>
+                        <th>Example (Norwegian)</th>
+                        <th>Similar English Sound</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td data-label="Norwegian Sound">kj-lyd</td>
+                        <td data-label="Pronunciation Symbol">ç</td>
+                        <td data-label="Example (Norwegian)">kiste – [çi`stə]</td>
+                        <td data-label="Similar English Sound">Like the "h" sound in "huge" (IPA [ç])</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Norwegian Sound">Stemt sj</td>
+                        <td data-label="Pronunciation Symbol">dʒ</td>
+                        <td data-label="Example (Norwegian)">juice – [dʒu:s]</td>
+                        <td data-label="Similar English Sound">As in "juice"</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Norwegian Sound">Pregløs e-lignende vokal</td>
+                        <td data-label="Pronunciation Symbol">ə</td>
+                        <td data-label="Example (Norwegian)">kube – [ku:`bə]</td>
+                        <td data-label="Similar English Sound">Like the vowel sound in "sofa"</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Norwegian Sound">Stavelsesdannende l</td>
+                        <td data-label="Pronunciation Symbol">(ə)l</td>
+                        <td data-label="Example (Norwegian)">aksel – [a`ks(ə)l]</td>
+                        <td data-label="Similar English Sound">Similar to "l" in "bottle" (syllable-forming)</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Norwegian Sound">Stavelsesdannende n</td>
+                        <td data-label="Pronunciation Symbol">(ə)n</td>
+                        <td data-label="Example (Norwegian)">voksen – [vå`ks(ə)n]</td>
+                        <td data-label="Similar English Sound">Similar to "n" in "button" (syllable-forming)</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Norwegian Sound">Tykk l</td>
+                        <td data-label="Pronunciation Symbol">L</td>
+                        <td data-label="Example (Norwegian)">pælme – [pæ`Lmə]</td>
+                        <td data-label="Similar English Sound">A thicker "l" sound, common in Eastern Norwegian</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Norwegian Sound">ng-lyd</td>
+                        <td data-label="Pronunciation Symbol">ŋ</td>
+                        <td data-label="Example (Norwegian)">sang – [saŋ:]</td>
+                        <td data-label="Similar English Sound">Like "ng" in "song"</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Norwegian Sound">Diphthong æi</td>
+                        <td data-label="Pronunciation Symbol">æi</td>
+                        <td data-label="Example (Norwegian)">stein – [stæin]</td>
+                        <td data-label="Similar English Sound">Like "ai" in "aisle"</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Norwegian Sound">Diphthong æu</td>
+                        <td data-label="Pronunciation Symbol">æu</td>
+                        <td data-label="Example (Norwegian)">sau – [sæu]</td>
+                        <td data-label="Similar English Sound">Like "ow" in "cow"</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Norwegian Sound">sj-lyd</td>
+                        <td data-label="Pronunciation Symbol">ʃ</td>
+                        <td data-label="Example (Norwegian)">sjakk – [ʃak:]</td>
+                        <td data-label="Similar English Sound">Like "sh" in "shack"</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Norwegian Sound">th-lyd</td>
+                        <td data-label="Pronunciation Symbol">þ</td>
+                        <td data-label="Example (Norwegian)">bluetooth – [blu:´tuþ]</td>
+                        <td data-label="Similar English Sound">Like "th" in "thin" (Icelandic sound)</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Norwegian Sound">ch-lyd</td>
+                        <td data-label="Pronunciation Symbol">x</td>
+                        <td data-label="Example (Norwegian)">nachspiel – [na´xʃpil]</td>
+                        <td data-label="Similar English Sound">Like "ch" in Scottish "loch"</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Norwegian Sound">rd, rl, rn, rt (bound)</td>
+                        <td data-label="Pronunciation Symbol">-</td>
+                        <td data-label="Example (Norwegian)">leopard – [leopa´r-d], barn – [ba:rn]</td>
+                        <td data-label="Similar English Sound">Split articulation of "r" sounds in some words</td>
+                    </tr>
+                </tbody>
+                </table>
+        
+            <h4>Tonem 1 and Tonem 2 in Norwegian</h4>
+            <p>
+                Norwegian has two tones, called <strong>Tonem 1</strong> and <strong>Tonem 2</strong>, which help distinguish between words that are spelled the same but have different meanings. These tones are most noticeable in Eastern Norwegian dialects like those spoken in Oslo.
+            </p>
+        
+            <p>
+                - <strong>Tonem 1</strong>: This is a flatter tone that starts low and rises slightly. It's often used in monosyllabic words or words with endings like -el and -en. For example, in Eastern Norwegian, the word <em>ånden</em> (the spirit) uses Tonem 1.<br>
+                - <strong>Tonem 2</strong>: This is a more dynamic tone, starting high, dipping, and then rising again. It typically occurs in polysyllabic words, like <em>ånden</em> (the breath). It can change the meaning of a word entirely.
+            </p>
+            <p>
+                Think of Tonem 1 as a simple, steady tone, while Tonem 2 has more pitch movement, making it sound more expressive. For example, <em>bønner</em> (beans, Tonem 1) vs. <em>bønder</em> (farmers, Tonem 2).
+            </p>
+        
+            <h4>Additional Pronunciation Symbols and Rules</h4>
+            <p>
+                - ´ represents stress with Tonem 1, as in <strong>betale</strong> – [beta:´lə]<br>
+                - ` represents stress with Tonem 2, as in <strong>tale</strong> – [ta:`lə]<br>
+                - Long vowels are marked with a colon after them, as in <strong>bile</strong> – [bi:`lə]<br>
+                - Long consonants are also marked with a colon after them, as in <strong>bille</strong> – [bi`l:ə]
+            </p>
+        </div>
+                
+                     
         <section id="results-container">
         </section>        
     </main>
