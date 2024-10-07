@@ -245,61 +245,47 @@ function mapKjonnToPOS(kjonn) {
 
     kjønn = kjonn.toLowerCase().trim(); // Ensure lowercase and remove any extra spaces
 
-    // Debugging: Log all the kjønn values
-    console.log('Current kjønn value:', kjønn);
-
     // Check if the kjønn value includes "substantiv" for nouns
     if (kjønn.includes('substantiv')) {
-        console.log('Mapped to noun');
         return 'noun';
     }
     // Handle verbs
     if (kjønn.startsWith('verb')) {
-        console.log('Mapped to verb');
         return 'verb';
     }
     // Handle adjectives
     if (kjønn.startsWith('adjektiv')) {
-        console.log('Mapped to adjective');
         return 'adjective';
     }
         // Handle adverbs
     if (kjønn.startsWith('adverb')) {
-        console.log('Mapped to adverb');
         return 'adverb';
     }
     // Handle prepositions
     if (kjønn.startsWith('preposisjon')) {
-        console.log('Mapped to preposition');
         return 'preposition';
     }
     // Handle interjections
     if (kjønn.startsWith('interjeksjon')) {
-        console.log('Mapped to interjection');
         return 'interjection';
     }
     // Handle conjunctions
     if (kjønn.startsWith('konjunksjon') || kjønn.startsWith('subjunksjon')) {
-        console.log('Mapped to conjunction');
         return 'conjunction';
     }
     // Handle pronouns
     if (kjønn.startsWith('pronomen')) {
-        console.log('Mapped to pronoun');
         return 'pronoun';
     }
     // Handle articles
     if (kjønn.startsWith('artikkel')) {
-        console.log('Mapped to article');
         return 'article';
     }
     // Handle expressions
     if (kjønn.startsWith('fast')) {
-        console.log('Mapped to expression');
         return 'expression';
     }
 
-    console.log('Mapped to unknown POS');
     return '';  // Return empty string if no valid part of speech found
 }
 
@@ -520,17 +506,29 @@ async function search() {
         
         renderSentences(matchingResults, query); // Pass the query for highlighting
     } else {
+
+        console.log("Before filtering, results:", cleanResults);
+        console.log("Searching for query:", query);
+
         // Filter results by query and selected POS for words
         matchingResults = cleanResults.filter(r => {
             const pos = mapKjonnToPOS(r.kjønn);
-            // Modify matching logic to ensure whole-word match using regex
+            // Exact and partial match logic
             const matchesQuery = normalizedQueries.some(variation => {
-                const wordRegex = new RegExp(`\\b${variation}\\b`, 'i'); // Full word match only
-                return wordRegex.test(r.ord.toLowerCase()) || wordRegex.test(r.engelsk.toLowerCase());
+                const exactRegex = new RegExp(`\\b${variation}\\b`, 'i'); // Exact match regex for whole word
+                const partialRegex = new RegExp(variation, 'i'); // Partial match for larger words like "bevegelsesfrihet"
+        
+                const wordMatch = exactRegex.test(r.ord.toLowerCase()) || partialRegex.test(r.ord.toLowerCase());
+        
+                const englishValues = r.engelsk.toLowerCase().split(',').map(e => e.trim());
+                const englishMatch = englishValues.some(eng => exactRegex.test(eng) || partialRegex.test(eng));
+        
+                return wordMatch || englishMatch;
             });
             return matchesQuery && (!selectedPOS || pos === selectedPOS);
-        });        
-
+        });
+        
+        
         console.log("Matching results:", matchingResults);  // Log matching results
 
         // Check if there are **no exact matches**
@@ -620,30 +618,65 @@ async function search() {
         // Prioritization logic for words (preserving the exact behavior)
         matchingResults = matchingResults.sort((a, b) => {
             const queryLower = query.toLowerCase();
-
-            // Exact match in the Norwegian term
+        
+            // Log comparison between two words
+            console.log(`Comparing "${a.ord}" and "${b.ord}" with query "${queryLower}"`);
+        
+            // 1. Prioritize exact match in the Norwegian term
             const isExactMatchA = a.ord.toLowerCase() === queryLower;
             const isExactMatchB = b.ord.toLowerCase() === queryLower;
-            if (isExactMatchA && !isExactMatchB) return -1;
-            if (!isExactMatchA && isExactMatchB) return 1;
-
-            // Exact match in comma-separated list of English definitions
+            if (isExactMatchA && !isExactMatchB) {
+                console.log(`Exact match found for "${a.ord}"`);
+                return -1;
+            }
+            if (!isExactMatchA && isExactMatchB) {
+                console.log(`Exact match found for "${b.ord}"`);
+                return 1;
+            }
+        
+            // 2. Prioritize whole word match (even if part of a phrase or longer sentence)
+            const regexExactMatch = new RegExp(`\\b${queryLower}\\b`, 'i'); // Whole word boundary match
+            const aExactInPhrase = regexExactMatch.test(a.ord);
+            const bExactInPhrase = regexExactMatch.test(b.ord);
+            if (aExactInPhrase && !bExactInPhrase) {
+                console.log(`Whole word match found in phrase for "${a.ord}"`);
+                return -1;
+            }
+            if (!aExactInPhrase && bExactInPhrase) {
+                console.log(`Whole word match found in phrase for "${b.ord}"`);
+                return 1;
+            }
+        
+            // 3. Prioritize exact match in the comma-separated list of English definitions
             const aIsInCommaList = a.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
             const bIsInCommaList = b.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
-            if (aIsInCommaList && !bIsInCommaList) return -1;
-            if (!aIsInCommaList && bIsInCommaList) return 1;
-
-            // Deprioritize compound words where the query appears in a larger word
+            if (aIsInCommaList && !bIsInCommaList) {
+                console.log(`Exact match in English list for "${a.ord}"`);
+                return -1;
+            }
+            if (!aIsInCommaList && bIsInCommaList) {
+                console.log(`Exact match in English list for "${b.ord}"`);
+                return 1;
+            }
+        
+            // 4. Deprioritize compound words where the query appears in a larger word
             const aContainsInWord = a.ord.toLowerCase().includes(queryLower) && a.ord.toLowerCase() !== queryLower;
             const bContainsInWord = b.ord.toLowerCase().includes(queryLower) && b.ord.toLowerCase() !== queryLower;
-            if (aContainsInWord && !bContainsInWord) return 1;
-            if (!aContainsInWord && bContainsInWord) return -1;
-
-            // Sort by position of query in the word (earlier is better)
+            if (aContainsInWord && !bContainsInWord) {
+                console.log(`"${a.ord}" contains query "${queryLower}" (not exact match)`);
+                return 1;
+            }
+            if (!aContainsInWord && bContainsInWord) {
+                console.log(`"${b.ord}" contains query "${queryLower}" (not exact match)`);
+                return -1;
+            }
+        
+            // 5. Sort by the position of the query in the word (earlier is better)
             const aIndex = a.ord.toLowerCase().indexOf(queryLower);
             const bIndex = b.ord.toLowerCase().indexOf(queryLower);
+            console.log(`Position of query in "${a.ord}": ${aIndex}, in "${b.ord}": ${bIndex}`);
             return aIndex - bIndex;
-        });
+        });                
 
         displaySearchResults(matchingResults); // Render word-specific results
     }
