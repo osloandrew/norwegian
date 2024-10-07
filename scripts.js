@@ -476,6 +476,8 @@ async function search() {
         return result;
     });
 
+    console.log("Searching for:", query);  // Log search term
+
     // Update the URL with the search parameters
     updateURL(query, type, selectedPOS);  // <--- Trigger URL update
 
@@ -521,12 +523,23 @@ async function search() {
         // Filter results by query and selected POS for words
         matchingResults = cleanResults.filter(r => {
             const pos = mapKjonnToPOS(r.kjønn);
-            const matchesQuery = normalizedQueries.some(variation => r.ord.toLowerCase().includes(variation) || r.engelsk.toLowerCase().includes(variation));
+            // Modify matching logic to ensure whole-word match using regex
+            const matchesQuery = normalizedQueries.some(variation => {
+                const wordRegex = new RegExp(`\\b${variation}\\b`, 'i'); // Full word match only
+                return wordRegex.test(r.ord.toLowerCase()) || wordRegex.test(r.engelsk.toLowerCase());
+            });
             return matchesQuery && (!selectedPOS || pos === selectedPOS);
-        });
+        });        
+
+        console.log("Matching results:", matchingResults);  // Log matching results
+
+        // Check if there are **no exact matches**
+        const noExactMatches = matchingResults.length === 0;
 
         // If no exact matches are found, find inexact matches
-        if (matchingResults.length === 0) {
+        if (noExactMatches) {
+            console.log("No exact matches found for:", query);
+
             // Generate inexact matches based on transformations
             const inexactWordQueries = generateInexactMatches(query);
 
@@ -534,8 +547,11 @@ async function search() {
             let inexactWordMatches = results.filter(r => {
                 const pos = mapKjonnToPOS(r.kjønn);
                 const matchesInexact = inexactWordQueries.some(inexactQuery => r.ord.toLowerCase().includes(inexactQuery) || r.engelsk.toLowerCase().includes(inexactQuery));
+                console.log(`Checking inexact match for: ${r.ord}, Inexact match: ${matchesInexact}`);
                 return matchesInexact && (!selectedPOS || pos === selectedPOS);
             }).slice(0, 10); // Limit to 10 results
+
+            console.log("Inexact matches:", inexactWordMatches);  // Log inexact matches
 
             // Display the "No Exact Matches" message
             resultsContainer.innerHTML = `
@@ -587,20 +603,19 @@ async function search() {
             );
 
             const flagButton = document.querySelector('.back-btn');
-            if (flagButton) {  // Check if the flag button exists
-                flagButton.addEventListener('click', function() {
+            if (flagButton) {
+                flagButton.addEventListener('click', function () {
                     const wordToFlag = document.getElementById('search-bar').value;
                     flagMissingWordEntry(wordToFlag);
                 });
             }
-
-            
-            }
+        }
 
             hideSpinner();
             return;
         }
 
+        console.log("Exact matches found. Displaying results.");
 
         // Prioritization logic for words (preserving the exact behavior)
         matchingResults = matchingResults.sort((a, b) => {
