@@ -281,8 +281,10 @@ label {
 
 /* Adjust the paragraph text inside the landing card to be more similar to definition content */
 #landing-card p {
-    font-size: 18px; /* Matches the font size of other definition content */
+    font-size: 16px; /* Matches the font size of other definition content */
     color: #555; /* Similar color to definition content */
+    text-align: justify;
+    margin: 0 60px 0 60px;
 }
 
 
@@ -329,7 +331,6 @@ main {
 /* The whole box */
 .multiple-results-definition {
     padding: 15px 25px 15px 25px;
-    text-wrap: ;
 }
 
 /* The word, gender and definition */
@@ -368,6 +369,25 @@ main {
     justify-content: center;  /* Vertically center the word and gender within their container */
 }
 
+/* Basic styling for the table */
+.pronunciation-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 12px;
+    text-align: left;
+}
+
+.pronunciation-table th, .pronunciation-table td {
+    border: 1px solid #dddddd;
+    padding: 10px;
+}
+
+.pronunciation-table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
 .random-btn {
     align-items: center;
     background-color: #0d3a69;
@@ -388,6 +408,24 @@ main {
     box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
     transform: scale(1.01);
 }
+
+.return-btn {
+    background-color: #f1f1f1;
+    color: #333;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-size: 16px;
+}
+
+.return-btn:hover {
+    background-color: #e1e1e1;
+}
+
 
 .search-bar-wrapper {
     border: 1px solid #d1d1d1;
@@ -643,7 +681,7 @@ main {
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .back-btn {
         width: 100%; /* Make the button take up full width on mobile */
     }
@@ -695,13 +733,34 @@ main {
         display: none;
     }
 
+    /* Adjust landing card width for mobile */
     #landing-card {
-        width: 80%; /* Same width as definition cards */
+        width: 80%; /* Ensure it takes up more space on mobile */
+        padding: 20px; /* Add more padding for mobile readability */
     }
 
+    /* Adjust landing card heading (h2) for mobile */
     #landing-card h2 {
-        font-size: 22px !important;
-        line-height: 1.5;
+        font-size: 24px; /* Reduce font size to fit smaller screens */
+        line-height: 1.4;
+    }
+
+    /* Adjust landing card heading (h3) for mobile */
+    #landing-card h3 {
+        font-size: 14px; /* Reduce font size to fit smaller screens */
+    }
+
+    /* Adjust landing card heading (h4) for mobile */
+    #landing-card h4 {
+        font-size: 12px; /* Reduce font size to fit smaller screens */
+    }
+
+    /* Adjust landing card paragraph text for mobile */
+    #landing-card p {
+        font-size: 12px; /* Reduce paragraph font size */
+        line-height: 1.6; /* Increase line height for readability */
+        text-align: justify;
+        margin: 0 15px 0 15px;
     }
 
     .linkedin-btn {
@@ -768,6 +827,42 @@ main {
         margin: 0 20px 0 0 !important;
         line-height: 1.2 !important;
         justify-content: center;  /* Vertically center the word and gender within their container */
+    }
+
+    /* Adjust pronunciation table for mobile */
+    .pronunciation-table, .pronunciation-table tbody, .pronunciation-table tr, .pronunciation-table td {
+        display: block;
+        font-size: 11px; /* Reduce font size for mobile */
+    }
+
+    .pronunciation-table tr {
+        margin-bottom: 12px;
+        border-bottom: 1px solid #dddddd;
+    }
+
+    .pronunciation-table td {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        text-align: left;
+        border-bottom: none;
+        font-size: 12px;
+    }
+
+    .pronunciation-table td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        flex-basis: 40%; /* Adjusts width for label part */
+        text-align: left; /* Ensure labels are left-aligned */
+    }
+
+    .pronunciation-table th, .pronunciation-table thead {
+        display: none;
+    }
+
+    .pronunciation-table td:nth-child(3), .pronunciation-table td:last-child {
+        text-align: right; /* Ensures the last column is always right-aligned */
+        overflow-wrap: break-word; /* Breaks long words if necessary */
     }
 
     .random-btn {
