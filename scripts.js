@@ -759,7 +759,7 @@ function displaySearchResults(results, query = '') {
         const multipleResultsKjonnClass = multipleResults ? 'multiple-results-kjonn-class' : ''; 
 
         htmlString += `
-            <div class="definition ${multipleResultsDefinition}" data-word="${result.ord}" data-pos="${mapKjonnToPOS(result.kjønn)}" onclick="if (!window.getSelection().toString()) handleCardClick(event, '${result.ord}', '${mapKjonnToPOS(result.kjønn)}')">
+            <div class="definition ${multipleResultsDefinition}" data-word="${result.ord}" data-pos="${mapKjonnToPOS(result.kjønn)}" data-engelsk="${result.engelsk}" onclick="if (!window.getSelection().toString()) handleCardClick(event, '${result.ord}', '${mapKjonnToPOS(result.kjønn)}', '${result.engelsk}')">
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-kjonn ${multipleResultsWordKjonn}">
                     ${result.ord}
@@ -1507,12 +1507,16 @@ function loadStateFromURL() {
 }
 
 // Function to handle clicking on a search result card
-function handleCardClick(event, word, pos) {
-    // Filter results by both word and POS (part of speech)
-    const clickedResult = results.filter(r => r.ord.toLowerCase() === word.toLowerCase() && mapKjonnToPOS(r.kjønn) === pos);
+function handleCardClick(event, word, pos, engelsk) {
+    // Filter results by word, POS (part of speech), and the English translation
+    const clickedResult = results.filter(r => 
+        r.ord.toLowerCase() === word.toLowerCase() && 
+        mapKjonnToPOS(r.kjønn) === pos && 
+        r.engelsk.toLowerCase().includes(engelsk.toLowerCase())
+    );
 
     if (clickedResult.length === 0) {
-        console.error(`No result found for word: "${word}" with POS: "${pos}"`);
+        console.error(`No result found for word: "${word}" with POS: "${pos}" and English: "${engelsk}"`);
         return;
     }
 
