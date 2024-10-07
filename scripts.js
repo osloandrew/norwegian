@@ -1,6 +1,5 @@
 // Global Variables
 let results = [];
-let debounceTimer;  // Global variable for debouncing
 const resultsContainer = document.getElementById('results-container');
 
 // Function to show or hide the landing card
@@ -29,10 +28,8 @@ function returnToLandingPage() {
 
 // Debounce function to limit how often search is triggered
 function debounceSearchTrigger(func, delay) {
-    clearTimeout(debounceTimer);  // Clear the previous timer
-    debounceTimer = setTimeout(() => {
-        func();  // Execute the function after the delay
-    }, delay);  // Delay period
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(func, delay);
 }
 
 // Handle the key input, performing a search on 'Enter' or debouncing otherwise
@@ -66,7 +63,6 @@ function appendToContainer(content) {
 }
 
 function shouldNotDecline(adjective) {
-    console.log('shouldNotDecline called for:', adjective); // Debugging
     // Pattern for adjectives that do not decline (same form in all genders)
     const noDeclinePattern = /(ende|bra|ing|y|ekte)$/i;
     
@@ -74,9 +70,7 @@ function shouldNotDecline(adjective) {
 }
 
 function shouldNotTakeTInNeuter(adjective) {
-    console.log('shouldNotTakeTInNeuter called for:', adjective); // Debugging
-    
-    // Pattern for adjectives that double the 't' in the neuter form
+        // Pattern for adjectives that double the 't' in the neuter form
     const doubleTPattern = /[iy]$/i;  // e.g., adjectives ending in 'y' or 'i' take a 'tt' in neuter
 
     // Pattern for adjectives that do not take 't' in the neuter form
@@ -124,11 +118,7 @@ function toggleInflectionTableVisibility(button) {
     if (isTableVisible) {
         table.style.display = "none";  // Hide the table
         button.textContent = "Show Inflections";  // Update button text
-        console.log('Table is now hidden.');
     } else {
-        // Log initial data for debugging
-        console.log(`Word: ${word}, POS: ${pos}, Gender: ${gender}`);
-
         // Clear any previous content
         const tbody = table.querySelector('tbody');
         tbody.innerHTML = '';
@@ -160,12 +150,8 @@ function toggleInflectionTableVisibility(button) {
                     return;  // Exit if no valid gender is found
                 }
 
-                // Log the final gender
-                console.log(`Final Gender for word "${word}": ${singleGender}`);
-
                 // Generate the word variations based on the POS and gender
                 variations = generateWordVariationsForInflections(word, pos, singleGender);
-                console.log(`Generated Variations for ${singleGender}:`, variations);
 
                 // Create a new table element for each gender
                 const newTable = document.createElement('table');
@@ -189,9 +175,6 @@ function toggleInflectionTableVisibility(button) {
         } else {
             // Generate variations for adjectives, verbs, pronouns, and other parts of speech
             variations = generateWordVariationsForInflections(word, pos);
-
-            // Log generated variations for debugging
-            console.log(`Generated Variations for ${pos}:`, variations);
 
             let tableContent = '';
 
@@ -223,7 +206,6 @@ function toggleInflectionTableVisibility(button) {
         // Show the table and update the button text
         table.style.display = "table";  // Show the table
         button.textContent = "Hide Inflections";
-        console.log('Table is now visible.');
     }
 }
 
@@ -462,8 +444,6 @@ async function search() {
         return result;
     });
 
-    console.log("Searching for:", query);  // Log search term
-
     // Update the URL with the search parameters
     updateURL(query, type, selectedPOS);  // <--- Trigger URL update
 
@@ -507,9 +487,6 @@ async function search() {
         renderSentences(matchingResults, query); // Pass the query for highlighting
     } else {
 
-        console.log("Before filtering, results:", cleanResults);
-        console.log("Searching for query:", query);
-
         // Filter results by query and selected POS for words
         matchingResults = cleanResults.filter(r => {
             const pos = mapKjonnToPOS(r.kjønn);
@@ -528,9 +505,6 @@ async function search() {
             return matchesQuery && (!selectedPOS || pos === selectedPOS);
         });
         
-        
-        console.log("Matching results:", matchingResults);  // Log matching results
-
         // Check if there are **no exact matches**
         const noExactMatches = matchingResults.length === 0;
 
@@ -807,7 +781,12 @@ function displaySearchResults(results, query = '') {
         const multipleResultsKjonnClass = multipleResults ? 'multiple-results-kjonn-class' : ''; 
 
         htmlString += `
-            <div class="definition ${multipleResultsDefinition}" data-word="${result.ord}" data-pos="${mapKjonnToPOS(result.kjønn)}" data-engelsk="${result.engelsk}" onclick="if (!window.getSelection().toString()) handleCardClick(event, '${result.ord}', '${mapKjonnToPOS(result.kjønn)}', '${result.engelsk}')">
+<div 
+  class="definition ${multipleResultsDefinition}" 
+  data-word="${result.ord}" 
+  data-pos="${mapKjonnToPOS(result.kjønn)}" 
+  data-engelsk="${result.engelsk}" 
+  onclick="if (!window.getSelection().toString()) handleCardClick(event, '${result.ord.replace(/'/g, "\\'").trim()}', '${mapKjonnToPOS(result.kjønn).replace(/'/g, "\\'").trim()}', '${result.engelsk.replace(/'/g, "\\'").trim()}')">
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-kjonn ${multipleResultsWordKjonn}">
                     ${result.ord}
@@ -1362,33 +1341,29 @@ function fetchAndRenderSentences(word) {
 
     sentenceContainer.innerHTML = '';  // Clear previous sentences
     
-    console.log(`Fetching and rendering sentences for word/phrase: "${trimmedWord}"`);
-
     // Find the part of speech (POS) of the word
-    const matchingWordEntry = results.find(result => result.ord.toLowerCase().includes(trimmedWord));
+    const matchingWordEntry = results.find(result => result.ord.toLowerCase() === trimmedWord);  // Updated to use exact match
+    
     const pos = matchingWordEntry ? mapKjonnToPOS(matchingWordEntry.kjønn) : '';
 
     // Generate word variations using the external function
     const wordVariations = trimmedWord.split(',').flatMap(w => generateWordVariationsForSentences(w.trim(), pos));
-        
-    // Log to check the generated word variations
-    console.log(`Generated word variations: ${wordVariations}`);
 
     // Filter results to find sentences that contain any of the word variations in the 'eksempel' field
     let matchingResults = results.filter(r => {
-        console.log("Checking sentence:", r.eksempel);
         // Loop through each variation and check if it exists in the sentence
         return wordVariations.some(variation => {
-            const matchFound = r.eksempel.toLowerCase().includes(variation);
-            if (matchFound) {
-                console.log(`Found match in sentence: "${r.eksempel}" for variation "${variation}"`);
+            if (pos === 'preposition') {
+                // Log the sentence and variation being tested
+                const regex = new RegExp(`(^|\\s)${variation}($|\\s)`, 'gi');
+                const match = regex.test(r.eksempel);
+                return match;
+            } else {
+                const matchFound = r.eksempel.toLowerCase().includes(variation);
+                return matchFound;
             }
-            return matchFound;
         });
     });
-
-    // Log the sentences that were matched
-    console.log(`Matching results for "${trimmedWord}":`, matchingResults);
 
     // Check if there are any matching results
     if (matchingResults.length === 0) {
@@ -1414,7 +1389,6 @@ function fetchAndRenderSentences(word) {
     // Apply highlighting for the new word and reset any previous highlighting
     matchingResults.forEach(result => {
         wordVariations.forEach(variation => {
-            console.log(`Applying highlight for variation: ${variation}`);
             result.eksempel = highlightQuery(result.eksempel, variation);  // Reset and apply highlight for the current word
         });
     });
@@ -1433,12 +1407,10 @@ function fetchAndRenderSentences(word) {
         button.innerText = "Hide Sentences";
         button.classList.remove('show');
         button.classList.add('hide');
-        console.log("Sentence content added:", sentenceContent);
     } else {
         console.warn("No content to show for the word:", trimmedWord);
     }
 
-    console.log(`Final rendered content for "${trimmedWord}":`, sentenceContent);
     sentenceContainer.setAttribute('data-fetched', 'true');
 }
 
@@ -1463,43 +1435,32 @@ function prioritizeResults(results, query, key) {
         const aText = a[key].toLowerCase();
         const bText = b[key].toLowerCase();
 
-        // Check if the query appears at the start of a word
-        const aStartsWithWord = regexStartOfWord.test(aText);
-        const bStartsWithWord = regexStartOfWord.test(bText);
-
-        // Log the matches for each result
-        console.log('Comparing:', {aText, bText});
-        console.log('Starts with Word:', {aStartsWithWord, bStartsWithWord});
-
-        // First, prioritize where the query starts a word
-        if (aStartsWithWord && !bStartsWithWord) {
-            console.log('Prioritize a: Starts with query');
-            return -1;
-        }
-        if (!aStartsWithWord && bStartsWithWord) {
-            console.log('Prioritize b: Starts with query');
-            return 1;
-        }
-
-        // Then, prioritize exact matches
+        // Prioritize exact matches
         const aExactMatch = regexExactMatch.test(aText);
         const bExactMatch = regexExactMatch.test(bText);
         
         if (aExactMatch && !bExactMatch) {
-            console.log('Prioritize a: Exact match');
-            return -1;
+            return -2;
         }
         if (!aExactMatch && bExactMatch) {
-            console.log('Prioritize b: Exact match');
+            return 2;
+        }
+
+        // Check if the query appears at the start of a word
+        const aStartsWithWord = regexStartOfWord.test(aText);
+        const bStartsWithWord = regexStartOfWord.test(bText);
+        
+        // Prioritize where the query starts a word
+        if (aStartsWithWord && !bStartsWithWord) {
+            return -1;
+                }
+        if (!aStartsWithWord && bStartsWithWord) {
             return 1;
         }
 
         // Otherwise, sort by the position of the query in the text (earlier is better)
         const aIndex = aText.indexOf(query);
         const bIndex = bText.indexOf(query);
-
-        console.log('Query Position in a:', aIndex);
-        console.log('Query Position in b:', bIndex);
 
         return aIndex - bIndex;
     });
@@ -1556,12 +1517,17 @@ function loadStateFromURL() {
 
 // Function to handle clicking on a search result card
 function handleCardClick(event, word, pos, engelsk) {
+
     // Filter results by word, POS (part of speech), and the English translation
-    const clickedResult = results.filter(r => 
-        r.ord.toLowerCase() === word.toLowerCase() && 
-        mapKjonnToPOS(r.kjønn) === pos && 
-        r.engelsk.toLowerCase().includes(engelsk.toLowerCase())
-    );
+    const clickedResult = results.filter(r => {
+
+        // Check if each comparison is true and log it
+        const wordMatch = r.ord.toLowerCase().trim() === word.toLowerCase().trim();
+        const posMatch = mapKjonnToPOS(r.kjønn).toLowerCase().trim() === pos.toLowerCase().trim();
+        const engelskMatch = r.engelsk.toLowerCase().trim().includes(engelsk.toLowerCase().trim());
+
+        return wordMatch && posMatch && engelskMatch;
+    });
 
     if (clickedResult.length === 0) {
         console.error(`No result found for word: "${word}" with POS: "${pos}" and English: "${engelsk}"`);
@@ -1574,8 +1540,6 @@ function handleCardClick(event, word, pos, engelsk) {
     // Display the clicked result
     displaySearchResults(clickedResult);  // This ensures only the clicked card remains
 }
-
-
 
 // Initialization of the dictionary data and event listeners
 window.onload = function() {
