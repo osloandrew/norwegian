@@ -844,14 +844,15 @@ function displaySearchResults(results, query = '') {
                     ${result.ord}
                     ${result.kjønn ? `<span class="kjønn ${multipleResultsKjonnClass}">${result.kjønn}</span>` : ''}
                     ${result.engelsk ? `<p class="english ${multipleResultsExposedContent}">${result.engelsk}</p>` : ''}
+                    ${result.CEFR ? `<p class="cefr-value ${multipleResultsExposedContent} ${result.CEFR.toUpperCase()}">${result.CEFR}</p>` : ''} 
                 </h2>
                 ${result.definisjon ? `<p class="${multipleResultsDefinitionText}">${result.definisjon}</p>` : ''}
                 </div>
                 <div class="definition-content ${multipleResultsHiddenContent}"> <!-- Apply the hidden class conditionally -->
-                    ${result.engelsk ? `<p class="english ${multipleResultsExposedContent}"><i class="fas fa-language"></i> ${result.engelsk}</p>` : ''}
+                    ${result.engelsk ? `<p class="english"><i class="fas fa-language"></i> ${result.engelsk}</p>` : ''}
                     ${result.uttale ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>` : ''}
                     ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
-                    ${result.CEFR ? `<p class="etymology"><i class="fa-solid fa-signal"></i> ${result.CEFR}</p>` : ''}
+                    ${result.CEFR ? `<p class="cefr-value ${result.CEFR.toUpperCase()}"><i class="fa-solid fa-signal"></i> ${result.CEFR}</p>` : ''} 
                 </div>
                 <!-- Render the highlighted example sentence here -->
                 <div class="${multipleResultsHiddenContent}">${highlightedExample ? `<p class="example">${formatDefinitionWithMultipleSentences(highlightedExample)}</p>` : ''}</div>
