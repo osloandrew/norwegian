@@ -216,6 +216,13 @@ function filterResultsByPOS(results, selectedPOS) {
     return results.filter(r => mapKjonnToPOS(r.kjønn) === selectedPOS);
 }
 
+// Filter results based on selected CEFR level
+function filterResultsByCEFR(results, selectedCEFR) {
+    if (!selectedCEFR) return results;
+    return results.filter(r => r.CEFR && r.CEFR.toUpperCase() === selectedCEFR.toUpperCase());
+}
+
+
 // Helper function to format 'kjønn' (grammatical gender) based on its value
 function formatKjonn(kjonn) {
     return kjonn && kjonn[0].toLowerCase() === 'e' ? 'substantiv - ' + kjonn : kjonn;
@@ -344,14 +351,26 @@ function flagMissingWordEntry(word) {
 async function randomWord() {
     const type = document.getElementById('type-select').value;
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
+    const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';
 
     // Do not pass 'random' as the query, instead just update the URL to indicate it's a random query
     updateURL('', type, selectedPOS);  // Pass an empty string for the query part to avoid "random" in the URL
 
-    if (!results.length) {
+    // Ensure that the 'results' array is populated
+    if (!results || !results.length) {
         console.warn('No results available to pick a random word or sentence.');
+        document.getElementById('results-container').innerHTML = `
+            <div class="definition error-message">
+                <h2 class="word-kjonn">
+                    Error <span class="kjønn">Unavailable Entry</span>
+                </h2>
+                <p>No random entries available. Please try again later.</p>
+            </div>
+        `;
+        hideSpinner();
         return;
     }
+
 
     showSpinner();
     clearInput();  // Clear search bar when generating a random word or sentence
@@ -366,6 +385,10 @@ async function randomWord() {
     } else {
         // Filter results by the selected part of speech (for 'words' type)
         filteredResults = filterResultsByPOS(results, selectedPOS);
+
+        // Additionally, filter by the selected CEFR level if applicable
+        filteredResults = filteredResults.filter(r => !selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR));
+
     }
 
     if (!filteredResults.length) {
@@ -433,6 +456,7 @@ function generateInexactMatches(query) {
 async function search() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
+    const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';  // Fetch the selected CEFR level
     const type = document.getElementById('type-select').value; // Get the search type (words or sentences)
     const normalizedQueries = [query.toLowerCase().trim()]; // Use only the base query for matching
 
@@ -502,7 +526,7 @@ async function search() {
         
                 return wordMatch || englishMatch;
             });
-            return matchesQuery && (!selectedPOS || pos === selectedPOS);
+            return matchesQuery && (!selectedPOS || pos === selectedPOS) && (!selectedCEFR || r.CEFR === selectedCEFR);
         });
         
         // Check if there are **no exact matches**
@@ -520,7 +544,7 @@ async function search() {
                 const pos = mapKjonnToPOS(r.kjønn);
                 const matchesInexact = inexactWordQueries.some(inexactQuery => r.ord.toLowerCase().includes(inexactQuery) || r.engelsk.toLowerCase().includes(inexactQuery));
                 console.log(`Checking inexact match for: ${r.ord}, Inexact match: ${matchesInexact}`);
-                return matchesInexact && (!selectedPOS || pos === selectedPOS);
+                return matchesInexact && (!selectedPOS || pos === selectedPOS) && (!selectedCEFR || r.CEFR === selectedCEFR);
             }).slice(0, 10); // Limit to 10 results
 
             console.log("Inexact matches:", inexactWordMatches);  // Log inexact matches
@@ -710,18 +734,27 @@ function handleTypeChange() {
     const type = document.getElementById('type-select').value;
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
+    const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';
 
     // Update the URL with the type, query, and selected POS
     updateURL(query, type, selectedPOS);  // <--- Trigger URL update based on type change
 
     const posSelect = document.getElementById('pos-select');
     const posFilterContainer = document.querySelector('.pos-filter');
+    const cefrSelect = document.getElementById('cefr-select');  // Get the CEFR filter dropdown
+    const cefrFilterContainer = document.querySelector('.cefr-filter'); // Get the CEFR filter container
 
     if (type === 'sentences') {
         // Disable the POS dropdown and gray it out
         posSelect.disabled = true;
         posSelect.value = '';  // Reset to "Part of Speech" option
         posFilterContainer.classList.add('disabled');  // Add the 'disabled' class
+
+        // Disable the CEFR dropdown and gray it out
+        cefrSelect.disabled = true;
+        cefrSelect.value = '';  // Reset to "CEFR Level" option
+        cefrFilterContainer.classList.add('disabled');  // Add the 'disabled' class
+        
 
         // If the search bar is not empty, perform a sentence search
         if (query) {
@@ -736,6 +769,10 @@ function handleTypeChange() {
         posSelect.disabled = false;
         posFilterContainer.classList.remove('disabled');  // Remove the 'disabled' class
 
+        // Enable the CEFR dropdown and restore color
+        cefrSelect.disabled = false;
+        cefrFilterContainer.classList.remove('disabled');
+
         // Optionally, generate a random word if needed when switching back to words
         if (query) {
             console.log('Searching for words with query:', query);
@@ -746,6 +783,21 @@ function handleTypeChange() {
         }
     }
 }
+
+// Handle change in CEFR filter
+function handleCEFRChange() {
+    const query = document.getElementById('search-bar').value.toLowerCase().trim();
+    const selectedCEFR = document.getElementById('cefr-select').value.toUpperCase(); // Fetch CEFR
+    
+    // If the search field is empty, generate a random word based on the CEFR level
+    if (!query) {
+        console.log('Search field is empty. Generating random word based on selected CEFR.');
+        randomWord();  // Ensure randomWord() applies the CEFR filter
+    } else {
+        search(); // If there is a query, perform the search with the selected CEFR
+    }
+}
+
 
 // Render a list of results (words)
 function displaySearchResults(results, query = '') {
@@ -1558,6 +1610,9 @@ window.onload = function() {
 
     // Add event listener to POS filter dropdown
     document.getElementById('pos-select').addEventListener('change', handlePOSChange);
+
+    // Add event listener to POS filter dropdown
+    document.getElementById('cefr-select').addEventListener('change', handleCEFRChange);
 
     // Add event listener to the search bar to trigger handleKey on key press
     document.getElementById('search-bar').addEventListener('keyup', handleKey);
