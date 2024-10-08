@@ -86,27 +86,27 @@ body {
 
 /* Specific colors for each CEFR level */
 .cefr-value.A1 {
-    color: #0082C3;
+    color: #A3B18A;
 }
 
 .cefr-value.A2 {
-    color: #006BB2;
+    color: #768D5B;
 }
 
 .cefr-value.B1 {
-    color: #005CA0;
+    color: #D4A373;
 }
 
 .cefr-value.B2 {
-    color: #4D4DFF;
+    color: #B97745;
 }
 
 .cefr-value.C1 {
-    color: #3A3AEB;
+    color: #A1563A;
 }
 
 .cefr-value.C2 {
-    color: #2A2A8E;
+    color: #7B3F27;
 }
 
 .clear-btn {
