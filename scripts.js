@@ -799,6 +799,7 @@ function displaySearchResults(results, query = '') {
                     ${result.engelsk ? `<p class="english ${multipleResultsExposedContent}"><i class="fas fa-language"></i> ${result.engelsk}</p>` : ''}
                     ${result.uttale ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>` : ''}
                     ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
+                    ${result.CEFR ? `<p class="etymology"><i class="fa-solid fa-signal"></i> ${result.CEFR}</p>` : ''}
                 </div>
                 <!-- Render the highlighted example sentence here -->
                 <div class="${multipleResultsHiddenContent}">${highlightedExample ? `<p class="example">${formatDefinitionWithMultipleSentences(highlightedExample)}</p>` : ''}</div>
