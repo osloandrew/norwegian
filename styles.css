@@ -78,6 +78,37 @@ body {
     cursor: not-allowed;
 }
 
+.cefr-value {
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 16px !important;
+    font-weight: 600; /* Make it a bit bolder */
+}
+
+/* Specific colors for each CEFR level */
+.cefr-value.A1 {
+    color: #0082C3;
+}
+
+.cefr-value.A2 {
+    color: #006BB2;
+}
+
+.cefr-value.B1 {
+    color: #005CA0;
+}
+
+.cefr-value.B2 {
+    color: #4D4DFF;
+}
+
+.cefr-value.C1 {
+    color: #3A3AEB;
+}
+
+.cefr-value.C2 {
+    color: #2A2A8E;
+}
+
 .clear-btn {
     align-items: center;
     background-color: white;
@@ -972,7 +1003,7 @@ main {
         cursor: pointer;
         width: 100%; /* Extend the clickable area horizontally */
         height: 100%; /* Extend the clickable area vertically */    
-        font-size: 12px;   /* Use CEFR font size */
+        font-size: 8px; /* Further reduce the font size for very small screens */
         text-transform: uppercase;
         color: white;
     }
