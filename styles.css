@@ -757,10 +757,6 @@ main {
         width: 100%; /* Make the button take up full width on mobile */
     }
 
-    .definition-content {
-        grid-template-columns: 1fr;
-    }
-
     footer, header {
         width: 100%; /* Ensure both footer and header are the same width */
         padding: 10px 20px; /* Add consistent padding */
