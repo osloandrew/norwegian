@@ -61,7 +61,6 @@ body {
     color: white;
     cursor: pointer;
     font-family: 'Noto Sans', sans-serif;
-    padding-right: 30px;
     text-transform: uppercase;
 }
 
@@ -150,6 +149,7 @@ body {
 
 .definition-content {
     display: grid;
+    column-gap: 10px;
     grid-template-columns: 1fr 1fr;
 }
 
@@ -286,6 +286,11 @@ header p {
     margin-top: -20px;
     text-transform: uppercase;
 }
+
+.hidden {
+    display: none;
+}
+
 
 html {
     display: flex;
@@ -507,7 +512,8 @@ main {
 
 .search-bar-wrapper,
 .type-filter,
-.pos-filter {
+.pos-filter,
+.cefr-filter {
     align-items: center;
     box-sizing: border-box;
     display: flex;
@@ -680,7 +686,6 @@ main {
     color: white;
     cursor: pointer; /* Ensure the entire button area is clickable */
     font-family: 'Noto Sans', sans-serif;
-    font-size: 16px;
     padding: 10px 15px;
     position: relative; /* Ensures that the children elements are positioned relative to this container */
     box-sizing: border-box;
@@ -978,7 +983,7 @@ main {
     .type-filter, .pos-filter, .cefr-filter {
         background-color: #0d3a69;  /* Consistent background for all filters */
         border-radius: 15px;
-        padding: 10px 15px;
+        padding: 10px 10px;
     }
     
 
@@ -986,8 +991,9 @@ main {
         width: 100%;
     }
     
-    .type-filter i, .pos-filter i {
-        font-size: 14px; /* Make the arrow smaller */
+    .type-filter i, .pos-filter i, .cefr-filter i {
+        padding-left: 6px;
+        font-size: 12px; /* Make the arrow smaller */
         pointer-events: none; /* Ensure the icon doesn't block clicks */
     }
 
@@ -997,7 +1003,7 @@ main {
         height: 100%; /* Extend the clickable area vertically */    
         font-size: 8px; /* Further reduce the font size for very small screens */
         text-transform: uppercase;
-        color: white;
+        padding-right: 0px;
     }
 
     .word-kjonn {
