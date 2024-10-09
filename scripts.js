@@ -97,6 +97,12 @@ function formatDefinitionWithMultipleSentences(definition) {
         .join('');  // Join them together into a string
 }
 
+function togglePronunciationGuide() {
+    const pronunciationWrapper = document.querySelector('.pronunciation-wrapper'); // Target the wrapper div
+    pronunciationWrapper.classList.toggle('hidden'); // Toggle hidden class
+}
+
+
 
 function toggleInflectionTableVisibility(button) {
     const container = button.parentElement;  // Get the parent element (inflections-container)
