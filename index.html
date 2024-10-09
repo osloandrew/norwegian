@@ -125,7 +125,10 @@
         <div id="landing-card" class="definition"> 
             <h2>Welcome to the Norwegian Dictionary</h2>
             <p style="text-align:center">Type a word in the search bar to get started.</p>
+
+            <button class="sentence-btn" id="toggle-pronunciation" onclick="togglePronunciationGuide()">Pronunciation Guide</button>
         
+            <div class="pronunciation-wrapper hidden"> <!-- Changed this class -->
             <h3>Norwegian Pronunciation Guide for English Speakers</h3>
             <p>
                 Norwegian pronunciation can be tricky for English speakers. The table below outlines common Norwegian sounds, with their pronunciation symbols and examples.
@@ -145,7 +148,7 @@
                         <td data-label="Norwegian Sound">kj-lyd</td>
                         <td data-label="Pronunciation Symbol">ç</td>
                         <td data-label="Example (Norwegian)">kiste – [çi`stə]</td>
-                        <td data-label="Similar English Sound">Like the "h" sound in "huge" (IPA [ç])</td>
+                        <td data-label="Similar English Sound">Like the "h" sound in "huge"</td>
                     </tr>
                     <tr>
                         <td data-label="Norwegian Sound">Stemt sj</td>
@@ -205,7 +208,7 @@
                         <td data-label="Norwegian Sound">th-lyd</td>
                         <td data-label="Pronunciation Symbol">þ</td>
                         <td data-label="Example (Norwegian)">bluetooth – [blu:´tuþ]</td>
-                        <td data-label="Similar English Sound">Like "th" in "thin" (Icelandic sound)</td>
+                        <td data-label="Similar English Sound">Like "th" in "thin"</td>
                     </tr>
                     <tr>
                         <td data-label="Norwegian Sound">ch-lyd</td>
@@ -243,6 +246,7 @@
                 - Long consonants are also marked with a colon after them, as in <strong>bille</strong> – [bi`l:ə]
             </p>
         </div>
+    </div>
                 
                      
         <section id="results-container">
