@@ -1,1620 +1,1015 @@
-// Global Variables
-let results = [];
-const resultsContainer = document.getElementById('results-container');
-
-// Function to show or hide the landing card
-function showLandingCard(show) {
-    const landingCard = document.getElementById('landing-card');
-    if (landingCard) {
-        landingCard.style.display = show ? 'block' : 'none';
-    }
+a {
+    color: #3c88d4;
 }
 
-// Function to navigate back to the landing card when the H1 is clicked
-function returnToLandingPage() {
-    clearInput();  // Clear the search input field
-    showLandingCard(true);  // Show the landing card again
-
-    // Ensure that only results are cleared, not the landing card
-    clearContainer();  // Ensure this does not remove landing card
-
-    // Update the URL to indicate we're on the landing page
-    const url = new URL(window.location);
-    url.searchParams.set('landing', 'true');
-    url.searchParams.delete('query');  // Remove the query parameter
-    window.history.pushState({}, '', url);
+#audio-player {
+    display: none !important; /* Always hidden */
 }
 
-
-// Debounce function to limit how often search is triggered
-function debounceSearchTrigger(func, delay) {
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(func, delay);
+.back-btn {
+    background-color: #b22222; /* Dark red color */
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    margin: 20px auto; /* Ensure margin around the button */
+    margin-top: 0 !important;
+    display: block;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    max-width: 600px; /* Set a max width to prevent it from being too wide on large screens */
 }
 
-// Handle the key input, performing a search on 'Enter' or debouncing otherwise
-function handleKey(event) {
-    // Call search function when 'Enter' is pressed or debounce it otherwise
-    debounceSearchTrigger(() => {
-        if (event.key === 'Enter') {
-            search();
-        }
-    }, 300);  // Delay of 300ms before calling search()
-}
-
-function clearContainer() {
-    const landingCard = document.getElementById('landing-card');
-    if (landingCard) {
-        // Temporarily remove the landing card from the container, then clear everything else
-        landingCard.parentNode.removeChild(landingCard);
-    }
-
-    resultsContainer.innerHTML = ''; // Clear everything else in the container
-
-    // Restore the landing card
-    if (landingCard) {
-        resultsContainer.appendChild(landingCard);
-    }
+.back-btn i {
+    margin-right: 8px; /* Adds space between the icon and text */
 }
 
 
-function appendToContainer(content) {
-    resultsContainer.innerHTML += content;
+body {
+    background-color: #f4f4f4;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Noto Serif', serif;
+    font-size: 16px;
+    height: 100%;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
 }
 
-function shouldNotDecline(adjective) {
-    // Pattern for adjectives that do not decline (same form in all genders)
-    const noDeclinePattern = /(ende|bra|ing|y|ekte)$/i;
-    
-    return noDeclinePattern.test(adjective);
+.cefr-filter {
+    display: inline-flex;
+    align-items: center;
+    background-color: #0d3a69;
+    border: none;
+    border-radius: 15px;
+    color: white;
+    cursor: pointer;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 16px;
+    padding: 10px 15px;
+    position: relative;
+    box-sizing: border-box;
 }
 
-function shouldNotTakeTInNeuter(adjective) {
-        // Pattern for adjectives that double the 't' in the neuter form
-    const doubleTPattern = /[iy]$/i;  // e.g., adjectives ending in 'y' or 'i' take a 'tt' in neuter
-
-    // Pattern for adjectives that do not take 't' in the neuter form
-    const noTNeuterPattern = /(ende|ant|et|isk|ig|rt|sk)$/i;
-
-    // Handle adjectives that double the 't'
-    if (doubleTPattern.test(adjective)) {
-        return 'double';
-    }
-
-    // Handle adjectives that do not take 't' in neuter form
-    if (noTNeuterPattern.test(adjective)) {
-        return true;
-    }
-
-    // Otherwise, it should take 't'
-    return false;
+.cefr-filter select {
+    appearance: none;
+    background-color: inherit;
+    border: none;
+    font-size: 12px;
+    color: white;
+    cursor: pointer;
+    font-family: 'Noto Sans', sans-serif;
+    padding-right: 30px;
+    text-transform: uppercase;
 }
 
-function formatDefinitionWithMultipleSentences(definition) {
-    return definition
-        .split(/(?<=[.!?])\s+/)  // Split by sentence delimiters
-        .map(sentence => `<p class="example">${sentence}</p>`)  // Wrap each sentence in a <p> tag
-        .join('');  // Join them together into a string
+.cefr-filter i {
+    color: white;
+    font-size: 18px;
+    pointer-events: none;
+    right: 15px;
 }
 
-
-function toggleInflectionTableVisibility(button) {
-    const container = button.parentElement;  // Get the parent element (inflections-container)
-    const table = container.querySelector('.inflections-table');  // Select the table within the container
-    const word = button.getAttribute('data-word');  // Get the word from the data attribute
-    const pos = button.getAttribute('data-pos');    // Get the part of speech (POS)
-    let gender = button.getAttribute('data-gender'); // Get the gender for nouns, if applicable
-
-    // If the table doesn't exist, log an error and return early
-    if (!table) {
-        console.error('Table element not found.');
-        return;
-    }
-
-    // Check if the table is visible using computed styles
-    const isTableVisible = window.getComputedStyle(table).display !== "none";
-
-    // Toggle visibility of the table
-    if (isTableVisible) {
-        table.style.display = "none";  // Hide the table
-        button.textContent = "Show Inflections";  // Update button text
-    } else {
-        // Clear any previous content
-        const tbody = table.querySelector('tbody');
-        tbody.innerHTML = '';
-
-        let variations = [];
-
-        // Normalize gender and ensure it’s valid before generating variations (only for nouns)
-        if (pos === 'noun') {
-            gender = gender ? gender.toLowerCase().trim() : '';
-
-            // Handle multiple genders by splitting the gender string (use both "/" and "-" as delimiters)
-            const genders = gender.split(/[-/]/).map(g => g.trim());
-
-            // Generate tables for each gender
-            genders.forEach(singleGender => {
-                if (singleGender.startsWith('substantiv - ')) {
-                    singleGender = singleGender.replace('substantiv - ', '').trim();
-                }
-
-                // Handle gender detection for nouns
-                if (singleGender.includes('neuter') || singleGender === 'et') {
-                    singleGender = 'neuter';
-                } else if (singleGender.includes('masculine') || singleGender === 'en') {
-                    singleGender = 'masculine';
-                } else if (singleGender.includes('feminine') || singleGender === 'ei') {
-                    singleGender = 'feminine';
-                } else {
-                    console.error(`Unknown gender for noun: ${word}, gender: ${singleGender}`);
-                    return;  // Exit if no valid gender is found
-                }
-
-                // Generate the word variations based on the POS and gender
-                variations = generateWordVariationsForInflections(word, pos, singleGender);
-
-                // Create a new table element for each gender
-                const newTable = document.createElement('table');
-                newTable.classList.add('inflections-table');  // Add the table class
-                
-                // Add a row in the table for each gender
-                let tableContent = '';
-
-                if (variations.length >= 4) {
-                    tableContent = `
-                        <tr><td>${variations[0]}</td><td>${variations[1]}</td></tr>
-                        <tr><td>${variations[2]}</td><td>${variations[3]}</td></tr>
-                    `;
-                } else {
-                    console.error(`Expected 4 noun variations, but got:`, variations);
-                }
-
-                // Append the content to the tbody
-                tbody.innerHTML += tableContent;
-            });
-        } else {
-            // Generate variations for adjectives, verbs, pronouns, and other parts of speech
-            variations = generateWordVariationsForInflections(word, pos);
-
-            let tableContent = '';
-
-            // Handle adjectives with specific inflection forms
-            if (pos === 'adjective' && variations.length > 0) {
-                const adjectiveForms = variations[0];  // The variations array contains the forms
-                tableContent = `
-                    <tr><td>${adjectiveForms[0]}</td><td>${adjectiveForms[1]}</td><td>${adjectiveForms[2]}</td></tr>
-                `;
-            // Handle verbs and pronouns
-            } else if (pos === 'verb' || pos === 'pronoun') {
-                if (variations.length >= 6) {
-                    tableContent = `
-                        <tr><td>${variations[0]}</td><td>${variations[1]}</td><td>${variations[2]}</td></tr>
-                        <tr><td>${variations[3]}</td><td>${variations[4]}</td><td>${variations[5]}</td></tr>
-                    `;
-                } else {
-                    console.error(`Expected 6 verb/pronoun variations, but got:`, variations);
-                }
-            } else {
-                // For other parts of speech, just list the variations
-                tableContent = variations.map(variation => `<tr><td>${variation}</td></tr>`).join('');
-            }
-
-            // Populate the table with the content
-            tbody.innerHTML = tableContent;
-        }
-
-        // Show the table and update the button text
-        table.style.display = "table";  // Show the table
-        button.textContent = "Hide Inflections";
-    }
+.cefr-filter.disabled select,
+.cefr-filter.disabled i {
+    color: #ccc;  /* Gray out the CEFR dropdown and arrow */
+    cursor: not-allowed;
 }
 
-
-// Filter results based on selected part of speech (POS)
-function filterResultsByPOS(results, selectedPOS) {
-    if (!selectedPOS) return results;
-    return results.filter(r => mapKjonnToPOS(r.kjønn) === selectedPOS);
+.cefr-value {
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 16px !important;
+    font-weight: 600; /* Make it a bit bolder */
 }
 
-// Filter results based on selected CEFR level
-function filterResultsByCEFR(results, selectedCEFR) {
-    if (!selectedCEFR) return results;
-    return results.filter(r => r.CEFR && r.CEFR.toUpperCase() === selectedCEFR.toUpperCase());
+/* Specific colors for each CEFR level */
+.cefr-value.A1 {
+    color: #6F8B58;
 }
 
-
-// Helper function to format 'kjønn' (grammatical gender) based on its value
-function formatKjonn(kjonn) {
-    return kjonn && kjonn[0].toLowerCase() === 'e' ? 'substantiv - ' + kjonn : kjonn;
+.cefr-value.A2 {
+    color: #4A5E3D;
 }
 
-// Function to map 'kjønn' to part of speech (POS)
-function mapKjonnToPOS(kjonn) {
-    if (!kjonn) return '';
-
-    kjønn = kjonn.toLowerCase().trim(); // Ensure lowercase and remove any extra spaces
-
-    // Check if the kjønn value includes "substantiv" for nouns
-    if (kjønn.includes('substantiv')) {
-        return 'noun';
-    }
-    // Handle verbs
-    if (kjønn.startsWith('verb')) {
-        return 'verb';
-    }
-    // Handle adjectives
-    if (kjønn.startsWith('adjektiv')) {
-        return 'adjective';
-    }
-        // Handle adverbs
-    if (kjønn.startsWith('adverb')) {
-        return 'adverb';
-    }
-    // Handle prepositions
-    if (kjønn.startsWith('preposisjon')) {
-        return 'preposition';
-    }
-    // Handle interjections
-    if (kjønn.startsWith('interjeksjon')) {
-        return 'interjection';
-    }
-    // Handle conjunctions
-    if (kjønn.startsWith('konjunksjon') || kjønn.startsWith('subjunksjon')) {
-        return 'conjunction';
-    }
-    // Handle pronouns
-    if (kjønn.startsWith('pronomen')) {
-        return 'pronoun';
-    }
-    // Handle articles
-    if (kjønn.startsWith('artikkel')) {
-        return 'article';
-    }
-    // Handle expressions
-    if (kjønn.startsWith('fast')) {
-        return 'expression';
-    }
-
-    return '';  // Return empty string if no valid part of speech found
+.cefr-value.B1 {
+    color: #B48456;
 }
 
-// Clear the search input field
-function clearInput() {
-    document.getElementById('search-bar').value = '';
+.cefr-value.B2 {
+    color: #805431;
 }
 
-// Fetch the dictionary data from the server
-async function fetchAndLoadDictionaryData() {
-    // Show the spinner before fetching data
-    try {
-        const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vSl2GxGiiO3qfEuVM6EaAbx_AgvTTKfytLxI1ckFE6c35Dv8cfYdx30vLbPPxadAjeDaSBODkiMMJ8o/pub?output=csv');
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        const data = await response.text();
-        parseCSVData(data);
-    } catch (error) {
-        console.error('Error fetching or parsing data from Google Sheets:', error);
-        console.log('Falling back to local CSV file.');
-
-        // Fallback to local CSV file
-        try {
-            const localResponse = await fetch('backupDataset');  // Replace with your local CSV file path
-            if (!localResponse.ok) throw new Error(`HTTP error! Status: ${localResponse.status}`);
-            const localData = await localResponse.text();
-            parseCSVData(localData);
-        } catch (localError) {
-            console.error('Error fetching or parsing data from local CSV file:', localError);
-        }
-    }
-
+.cefr-value.C {
+    color: #3F2C24;
 }
 
-// Parse the CSV data using PapaParse
-function parseCSVData(data) {
-    Papa.parse(data, {
-        header: true,
-        skipEmptyLines: true,
-        complete: function (resultsFromParse) {
-            results = resultsFromParse.data;
-            console.log('Parsed data:', results);  // Log the parsed data
-            
-        },
-        error: function (error) {
-            console.error('Error parsing CSV:', error);
-        }
-    });
+.clear-btn {
+    align-items: center;
+    background-color: white;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    display: flex;
+    font-size: 18px;
+    padding: 0 15px;
 }
 
-function flagMissingWordEntry(word) {
-    // URL of your Google Form
-    const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSdMpnbI2DyUo6SWBRR53ZnYucDPdAYXK9rksP3AhMrC7b91Dw/formResponse'; 
-
-    // Prepare the data to be sent
-    const formData = new FormData();
-    formData.append('entry.279285583', word); // This is the field ID for the word entry
-
-    // Send the form data via POST request
-    fetch(formUrl, {
-        method: 'POST',
-        body: formData,
-        mode: 'no-cors' // Necessary to avoid CORS issues
-    })
-    .then(() => {
-        alert(`The word "${word}" has been flagged successfully!`);
-    })
-    .catch(error => {
-        console.error('Error flagging the word:', error);
-        alert('There was an issue flagging this word. Please try again later.');
-    });
+.clear-btn i {
+    color: #999;
+    font-size: 18px;
 }
 
-// Generate and display a random word or sentence
-async function randomWord() {
-    const type = document.getElementById('type-select').value;
-    const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
-    const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';
-
-    // Do not pass 'random' as the query, instead just update the URL to indicate it's a random query
-    updateURL('', type, selectedPOS);  // Pass an empty string for the query part to avoid "random" in the URL
-
-    // Ensure that the 'results' array is populated
-    if (!results || !results.length) {
-        console.warn('No results available to pick a random word or sentence.');
-        document.getElementById('results-container').innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">Unavailable Entry</span>
-                </h2>
-                <p>No random entries available. Please try again later.</p>
-            </div>
-        `;
-        hideSpinner();
-        return;
-    }
-
-
-    showSpinner();
-    clearInput();  // Clear search bar when generating a random word or sentence
-    showLandingCard(false);
-    clearContainer();
-
-    let filteredResults;
-
-    if (type === 'sentences') {
-        // Filter results that contain example sentences (for the 'sentences' type)
-        filteredResults = results.filter(r => r.eksempel);  // Assuming sentences are stored under the 'eksempel' key
-    } else {
-        // Filter results by the selected part of speech (for 'words' type)
-        filteredResults = filterResultsByPOS(results, selectedPOS);
-
-        // Additionally, filter by the selected CEFR level if applicable
-        filteredResults = filteredResults.filter(r => !selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR));
-
-    }
-
-    if (!filteredResults.length) {
-        console.warn('No random entries available for the selected type.');
-        document.getElementById('results-container').innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">Unavailable Entry</span>
-                </h2>
-                <p>No random entries available. Try selecting another type or part of speech.</p>
-            </div>
-        `;
-        return;
-    }
-
-    // Randomly select a result from the filtered results
-    const randomResult = filteredResults[Math.floor(Math.random() * filteredResults.length)];
-
-    // Reset old highlights by removing any previous span tags
-    randomResult.eksempel = randomResult.eksempel ? randomResult.eksempel.replace(/<span[^>]*>(.*?)<\/span>/gi, '$1') : '';
-
-
-    if (type === 'sentences') {
-        // If it's a sentence, render it as a sentence
-        const sentences = randomResult.eksempel.split(/(?<=[.!?])\s+/);  // Split by sentence delimiters
-        const firstSentence = sentences[0];
-
-        // Clear any existing highlights in the sentence
-        const cleanedSentence = firstSentence.replace(/<span style="color: #3c88d4;">(.*?)<\/span>/gi, '$1');
-
-        const sentenceHTML = `
-            <div class="definition result-header">
-                <h2>Random Sentence</h2>
-            </div>
-            <div class="definition">
-                <p class="sentence">${cleanedSentence}</p>
-            </div>
-        `;
-        document.getElementById('results-container').innerHTML = sentenceHTML;
-    } else {
-        // If it's a word, render it with highlighting (if needed)
-        displaySearchResults([randomResult], randomResult.ord);
-    }
-
-    hideSpinner();  // Hide the spinner
+.coffee-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent; /* No visible border but ensures alignment */
+    border-radius: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-// Function to generate potential inexact matches by removing plural endings, etc.
-function generateInexactMatches(query) {
-    const variations = [query.toLowerCase().trim()]; // Always include the base query
-    
-    // Handle common suffixes like 'ing', 'ed', etc.
-    const suffixes = ['a', 'e', 'ed', 'en', 'ene', 'er', 'es', 'et', 'ing', 'ly', '-ne', 'r', 's', 't', 'te'];  // Alphabetized
-    suffixes.forEach(suffix => {
-        if (query.endsWith(suffix)) {
-            variations.push(query.slice(0, -suffix.length));
-        }
-    });
-    
-    return variations;
+.coffee-img {
+    max-height: 30px; /* Adjust the height of the image to align with the LinkedIn button */
+    width: auto;
+}
+
+.default-hidden-content {
+    display: none;
+}
+
+/* Common styling for both definition cards and error messages */
+.definition, .error-message {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    padding: 25px;
+}
+
+.definition-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.definition-content i {
+    margin-right: 8px;
+    color: #951b1b; /* Dark red color */
+    font-size: 18px; /* Slightly larger than the text */
+    width: 24px; /* Fixed width for uniformity */
+    text-align: center; /* Centers the icons within their block */
+    display: inline-block; /* Ensures icons behave like a fixed block */
+    vertical-align: middle; /* Ensures the icon is vertically aligned with the text */
+}
+
+.definition-content p {
+    color: #951b1b; /* Ensure text is also dark red */
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.definition-label {
+    color: #951b1b;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .04rem;
+    text-transform: uppercase;
+}
+
+.definition p {
+    color: #333;
+    font-size: 20px;
+    line-height: 1.6;
+    margin: 10px 0 10px 0;
+}
+
+.english,
+.etymology,
+.pronunciation {
+    color: #555 !important;
+    font-size: 16px !important;
+    font-weight: 300;
 }
 
 
-// Perform a search based on the input query and selected POS
-async function search() {
-    const query = document.getElementById('search-bar').value.toLowerCase().trim();
-    const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
-    const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';  // Fetch the selected CEFR level
-    const type = document.getElementById('type-select').value; // Get the search type (words or sentences)
-    const normalizedQueries = [query.toLowerCase().trim()]; // Use only the base query for matching
-
-    // Clear any previous highlights by resetting the `query`
-    let cleanResults = results.map(result => {
-        if (result.eksempel) {
-            result.eksempel = result.eksempel.replace(/<span[^>]*>(.*?)<\/span>/gi, '$1'); // Remove old highlights
-        }
-        return result;
-    });
-
-    // Update the URL with the search parameters
-    updateURL(query, type, selectedPOS);  // <--- Trigger URL update
-
-    // Show the spinner at the start of the search
-    showSpinner();
-
-    // Update document title with the search term
-    document.title = `${query} - Norwegian Dictionary`;
-
-    showLandingCard(false);
-    clearContainer(); // Clear previous results
-
-    // Handle empty search query
-    if (!query) {
-        resultsContainer.innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">Empty Search</span>
-                </h2>
-                <p>Please enter a word in the search field before searching.</p>
-            </div>
-        `;
-        hideSpinner();
-        return;
-    }
-
-    let matchingResults;
-
-    if (type === 'sentences') {
-        // If searching sentences, look for matches in the 'eksempel' field
-        matchingResults = cleanResults.filter(r => normalizedQueries.some(normQuery => r.eksempel && r.eksempel.toLowerCase().includes(normQuery)));
-
-        // Prioritize the matching results using the prioritizeResults function
-        matchingResults = prioritizeResults(matchingResults, query, 'eksempel');
-
-        // Highlight the query in the sentences
-        matchingResults.forEach(result => {
-            result.eksempel = highlightQuery(result.eksempel, query);
-        });
-        
-        renderSentences(matchingResults, query); // Pass the query for highlighting
-    } else {
-
-        // Filter results by query and selected POS for words
-        matchingResults = cleanResults.filter(r => {
-            const pos = mapKjonnToPOS(r.kjønn);
-            // Exact and partial match logic
-            const matchesQuery = normalizedQueries.some(variation => {
-                const exactRegex = new RegExp(`\\b${variation}\\b`, 'i'); // Exact match regex for whole word
-                const partialRegex = new RegExp(variation, 'i'); // Partial match for larger words like "bevegelsesfrihet"
-        
-                const wordMatch = exactRegex.test(r.ord.toLowerCase()) || partialRegex.test(r.ord.toLowerCase());
-        
-                const englishValues = r.engelsk.toLowerCase().split(',').map(e => e.trim());
-                const englishMatch = englishValues.some(eng => exactRegex.test(eng) || partialRegex.test(eng));
-        
-                return wordMatch || englishMatch;
-            });
-            return matchesQuery && (!selectedPOS || pos === selectedPOS) && (!selectedCEFR || r.CEFR === selectedCEFR);
-        });
-        
-        // Check if there are **no exact matches**
-        const noExactMatches = matchingResults.length === 0;
-
-        // If no exact matches are found, find inexact matches
-        if (noExactMatches) {
-            console.log("No exact matches found for:", query);
-
-            // Generate inexact matches based on transformations
-            const inexactWordQueries = generateInexactMatches(query);
-
-            // Now search for results using these inexact queries
-            let inexactWordMatches = results.filter(r => {
-                const pos = mapKjonnToPOS(r.kjønn);
-                const matchesInexact = inexactWordQueries.some(inexactQuery => r.ord.toLowerCase().includes(inexactQuery) || r.engelsk.toLowerCase().includes(inexactQuery));
-                console.log(`Checking inexact match for: ${r.ord}, Inexact match: ${matchesInexact}`);
-                return matchesInexact && (!selectedPOS || pos === selectedPOS) && (!selectedCEFR || r.CEFR === selectedCEFR);
-            }).slice(0, 10); // Limit to 10 results
-
-            console.log("Inexact matches:", inexactWordMatches);  // Log inexact matches
-
-            // Display the "No Exact Matches" message
-            resultsContainer.innerHTML = `
-                <div class="definition error-message">
-                    <h2 class="word-kjonn">
-                        No Exact Matches Found <span class="kjønn"></span>
-                    </h2>
-                    <p>We couldn't find exact matches for "${query}". Here are some inexact results:</p>
-                    <button class="sentence-btn back-btn">
-                        <i class="fas fa-flag"></i> Flag Missing Word Entry
-                    </button>
-                </div>
-            `;
-
-            // Add flag button functionality
-            const flagButton = document.querySelector('.back-btn');
-            if (flagButton) {
-                flagButton.addEventListener('click', function() {
-                    const wordToFlag = document.getElementById('search-bar').value;
-                    flagMissingWordEntry(wordToFlag);
-                });
-            }
-
-            // If inexact matches are found, display them below the message
-            if (inexactWordMatches.length > 0) {
-                displaySearchResults(inexactWordMatches);
-
-                // Reattach the flag button functionality AFTER rendering the search results
-                const flagButton = document.querySelector('.back-btn');
-                if (flagButton) {
-                    flagButton.addEventListener('click', function() {
-                        const wordToFlag = document.getElementById('search-bar').value;
-                        console.log("Flagging word:", wordToFlag);  // Debugging log
-                        flagMissingWordEntry(wordToFlag);
-                    });
-                }
-            } else {
-                clearContainer();
-                appendToContainer(`
-            <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    No Matches Found <span class="kjønn"></span>
-                </h2>
-                <p>We couldn't find any matches for "${query}".</p>
-                <button class="sentence-btn back-btn">
-                    <i class="fas fa-flag"></i> Flag Missing Word Entry
-                </button>
-            </div>`
-            );
-
-            const flagButton = document.querySelector('.back-btn');
-            if (flagButton) {
-                flagButton.addEventListener('click', function () {
-                    const wordToFlag = document.getElementById('search-bar').value;
-                    flagMissingWordEntry(wordToFlag);
-                });
-            }
-        }
-
-            hideSpinner();
-            return;
-        }
-
-        console.log("Exact matches found. Displaying results.");
-
-        // Prioritization logic for words (preserving the exact behavior)
-        matchingResults = matchingResults.sort((a, b) => {
-            const queryLower = query.toLowerCase();
-        
-            // Log comparison between two words
-            console.log(`Comparing "${a.ord}" and "${b.ord}" with query "${queryLower}"`);
-        
-            // 1. Prioritize exact match in the Norwegian term
-            const isExactMatchA = a.ord.toLowerCase() === queryLower;
-            const isExactMatchB = b.ord.toLowerCase() === queryLower;
-            if (isExactMatchA && !isExactMatchB) {
-                console.log(`Exact match found for "${a.ord}"`);
-                return -1;
-            }
-            if (!isExactMatchA && isExactMatchB) {
-                console.log(`Exact match found for "${b.ord}"`);
-                return 1;
-            }
-        
-            // 2. Prioritize whole word match (even if part of a phrase or longer sentence)
-            const regexExactMatch = new RegExp(`\\b${queryLower}\\b`, 'i'); // Whole word boundary match
-            const aExactInPhrase = regexExactMatch.test(a.ord);
-            const bExactInPhrase = regexExactMatch.test(b.ord);
-            if (aExactInPhrase && !bExactInPhrase) {
-                console.log(`Whole word match found in phrase for "${a.ord}"`);
-                return -1;
-            }
-            if (!aExactInPhrase && bExactInPhrase) {
-                console.log(`Whole word match found in phrase for "${b.ord}"`);
-                return 1;
-            }
-        
-            // 3. Prioritize exact match in the comma-separated list of English definitions
-            const aIsInCommaList = a.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
-            const bIsInCommaList = b.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
-            if (aIsInCommaList && !bIsInCommaList) {
-                console.log(`Exact match in English list for "${a.ord}"`);
-                return -1;
-            }
-            if (!aIsInCommaList && bIsInCommaList) {
-                console.log(`Exact match in English list for "${b.ord}"`);
-                return 1;
-            }
-        
-            // 4. Deprioritize compound words where the query appears in a larger word
-            const aContainsInWord = a.ord.toLowerCase().includes(queryLower) && a.ord.toLowerCase() !== queryLower;
-            const bContainsInWord = b.ord.toLowerCase().includes(queryLower) && b.ord.toLowerCase() !== queryLower;
-            if (aContainsInWord && !bContainsInWord) {
-                console.log(`"${a.ord}" contains query "${queryLower}" (not exact match)`);
-                return 1;
-            }
-            if (!aContainsInWord && bContainsInWord) {
-                console.log(`"${b.ord}" contains query "${queryLower}" (not exact match)`);
-                return -1;
-            }
-        
-            // 5. Sort by the position of the query in the word (earlier is better)
-            const aIndex = a.ord.toLowerCase().indexOf(queryLower);
-            const bIndex = b.ord.toLowerCase().indexOf(queryLower);
-            console.log(`Position of query in "${a.ord}": ${aIndex}, in "${b.ord}": ${bIndex}`);
-            return aIndex - bIndex;
-        });                
-
-        displaySearchResults(matchingResults); // Render word-specific results
-    }
-
-    hideSpinner(); // Hide the spinner
+/* Specific styling for the error message */
+.error-message h2 {
+    color: #951b1b; /* Error title in a distinct color */
+    font-size: 24px;
 }
 
-// Check if any sentences exist for a word or its variations
-function checkForSentences(word) {
-    const lowerCaseWord = word.trim().toLowerCase();
+.error-message .kjønn {
+    color: #951b1b; /* Error type in a similar error color */
+    font-size: 16px;
+    font-weight: 600;
+}
 
-    // Split the word by commas to handle comma-separated entries like "anglifisere, anglisere"
-    const wordParts = lowerCaseWord.split(',').map(w => w.trim());
+.error-message p {
+    color: #555;
+    font-size: 16px;
+    line-height: 1.6;
+}
 
-    // Iterate through each part of the comma-separated list
-    let sentenceFound = false;
-    wordParts.forEach(wordPart => {
-        // Find part of speech (POS) for each word part
-        const matchingWordEntry = results.find(result => result.ord.toLowerCase().includes(wordPart));
-        const pos = matchingWordEntry ? mapKjonnToPOS(matchingWordEntry.kjønn) : '';
+.example {
+    font-size: 16px !important;
+}
 
-        // Generate word variations
-        const wordVariations = generateWordVariationsForSentences(wordPart, pos);
+footer {
+    background-color: #d2dce5;
+    bottom: 0;
+    color: #0d3a69;
+    font-family: 'Noto Sans', sans-serif;
+    padding: 20px 0;
+    position: relative;
+    text-align: center;
+    width: 100%;
+}
 
-        // Check if any sentences in the data include this word or its variations in the 'eksempel' field
-        if (results.some(result => 
-            result.eksempel && wordVariations.some(variation => result.eksempel.toLowerCase().includes(variation))
-        )) {
-            sentenceFound = true;  // If a sentence is found for any variation, mark as true
-        }
-    });
+footer p {
+    font-size: 14px;
+    margin: 5px 0;
+}
 
-    return sentenceFound;
+footer p a {
+    color: #3c88d4;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+footer p a:hover {
+    color: #0d3a69;
+    text-decoration: underline;
+}
+
+footer .copyright {
+    color: #555;
+    font-size: 12px;
+}
+
+h1 {
+    color: #293a78;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+h2 {
+    color: #3c88d4;
+    font-size: 30px;
+    font-weight: bold;
+    margin: -5px 0 -5px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+header {
+    background-color: #d2dce5;
+    color: #0d3a69;
+    font-family: 'Noto Sans', sans-serif;
+    letter-spacing: .05rem;
+    padding: 20px;
+    position: relative;
+    text-align: center;
+}
+
+header h1 {
+    font-family: 'Grenze Gotisch', serif;
+    font-size: 50px;
+}
+
+header p {
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: -20px;
+    text-transform: uppercase;
+}
+
+html {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin: 0;
+}
+
+input[type="text"] {
+    border: none;
+    flex-grow: 1;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 16px;
+    outline: none;
+    padding: 12px 16px;
+}
+
+input[type="text"]:focus + label,
+input[type="text"]:not(:placeholder-shown) + label {
+    color: #293a78;
+    font-size: 12px;
+    top: -10px;
+}
+
+.kjønn {
+    color: #951b1b !important;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 18px !important;
+    font-weight: 400;
+    letter-spacing: .04rem;
+    text-transform: uppercase;
+}
+
+label {
+    color: #555;
+    left: 10px;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Modify the landing card styling to match definition cards */
+#landing-card {
+    background-color: #ffffff; /* Matches the background of definition cards */
+    border-radius: 12px; /* Same border radius as definition cards */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Same box shadow */
+    margin: 20px auto; /* Matches the margin of definition cards */
+    padding: 25px; /* Matches the padding of definition cards */
+    text-align: center;
+    width: 45%; /* Same width as definition cards */
+}
+
+/* Adjust the heading size and color to match the word titles in definition cards */
+#landing-card h2 {
+    color: #3c88d4; /* Matches the heading color of definition cards */
+    font-size: 30px; /* Matches the font size of definition card headings */
+    margin-bottom: 10px;
+}
+
+/* Adjust the paragraph text inside the landing card to be more similar to definition content */
+#landing-card p {
+    font-size: 16px; /* Matches the font size of other definition content */
+    color: #555; /* Similar color to definition content */
+    text-align: justify;
+    margin: 0 60px 0 60px;
 }
 
 
+.links {
+    display: flex;
+    gap: 10px; /* Space between the buttons */
+    margin: 10px 0 10px 0;
+    align-items: center; /* Vertically align both buttons */
+    justify-content: center;
 
-// Handle change in part of speech (POS) filter
-function handlePOSChange() {
-    const query = document.getElementById('search-bar').value.toLowerCase().trim();
-    const selectedPOS = document.getElementById('pos-select').value.toLowerCase(); // Fetch POS
+}
 
-    // Update the URL with the search parameters
-    updateURL(query, 'words', selectedPOS);  // <--- Trigger URL update with type 'words'
-    
-    // If the search field is empty, generate a random word based on the POS
-    if (!query) {
-        console.log('Search field is empty. Generating random word based on selected POS.');
-        randomWord();
-    } else {
-        search(); // If there is a query, perform the search with the selected POS
+.linkedin-btn {
+    align-items: center;
+    background-color: white;
+    border: 1px solid #0a66c2;
+    border-radius: 4px;
+    color: #0a66c2;
+    cursor: pointer;
+    display: inline-flex;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 13px;
+    padding: 2px 15px;
+    text-decoration: none;
+    height: 30px; /* Match height to the BuyMeACoffee image */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.linkedin-btn:hover {
+    background-color: #f0f0f0;
+    color: #0a66c2;
+}
+
+.linkedin-icon {
+    height: auto;
+    margin-right: 8px;
+    width: 18px;
+}
+
+main {
+    flex: 1;
+}
+
+/* The whole box */
+.multiple-results-definition {
+    padding: 15px 25px 15px 25px;
+}
+
+/* The word, gender and definition */
+.multiple-results-definition-header {
+    display: flex;
+    flex-direction: row;  /* Horizontally aligns the word and definition */
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* The definition */
+.multiple-results-definition-text {
+    flex: 1;
+    font-size: 18px !important;
+    margin-left: 20px;  /* Space between the gender/word and definition */
+    width: 50%;  /* Definition takes up exactly 60% of the container */
+}
+
+.multiple-results-hidden-content {
+    display: none;
+}
+
+/* The gender */
+.multiple-results-kjonn-class {
+    font-size: 14px !important;
+}
+
+/* The word and gender */
+.multiple-results-word-kjonn {
+    display: flex;
+    font-size: 20px !important;
+    flex-direction: column;  /* Ensures word and gender are stacked vertically */
+    margin: 0 20px 0 0 !important;
+    line-height: 1.5 !important;
+    width: 50%;  /* The word and gender take up 40% of the container */
+    justify-content: center;  /* Vertically center the word and gender within their container */
+}
+
+/* Basic styling for the table */
+.pronunciation-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 12px;
+    text-align: left;
+}
+
+.pronunciation-table th, .pronunciation-table td {
+    border: 1px solid #dddddd;
+    padding: 10px;
+}
+
+.pronunciation-table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+.random-btn {
+    align-items: center;
+    background-color: #0d3a69;
+    border: none;
+    border-radius: 15px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    font-family: 'Noto Sans', sans-serif;
+    height: 42px;
+    justify-content: center;
+    padding: 10px 20px;
+    transition: all 0.3s ease;
+}
+
+.random-btn:hover {
+    background-color: #3c88d4;
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
+    transform: scale(1.01);
+}
+
+.return-btn {
+    background-color: #f1f1f1;
+    color: #333;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-size: 16px;
+}
+
+.return-btn:hover {
+    background-color: #e1e1e1;
+}
+
+
+.search-bar-wrapper {
+    border: 1px solid #d1d1d1;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: inline-flex;
+    flex-grow: 1;
+    min-width: 300px;
+    overflow: hidden;
+    position: relative;
+}
+
+.search-bar-wrapper,
+.type-filter,
+.pos-filter {
+    align-items: center;
+    box-sizing: border-box;
+    display: flex;
+    height: 42px;
+    flex: 1;
+}
+
+.search-btn {
+    align-items: center;
+    background-color: #0d3a69;
+    border: none;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 15px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 15px;
+    cursor: pointer;
+    display: flex;
+    height: 100%;
+    width: 100% !important;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+.search-btn:hover {
+    background-color: #4a99ff;
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
+    transform: scale(1.01);
+}
+
+.search-btn i {
+    color: white;
+    font-size: 16px;
+    margin: 0;
+}
+
+.sentence-btn {
+    display: block;  /* Block-level element to allow centering */
+    margin: 0 auto;  /* Centering with smaller vertical margins */
+    margin-top: 20px;
+    background-color: #f0f0f0;  /* Subtle, lighter background */
+    color: #5a1a1a;  /* Subtle maroon text */
+    border: 1px solid #5a1a1a;  /* Thin maroon border */
+    border-radius: 6px;  /* Slightly rounded corners */
+    padding: 6px 12px;  /* Smaller padding for a more compact feel */
+    font-family: 'Noto Sans', sans-serif;  /* Clean, modern font */
+    font-size: 12px;  /* Smaller font size for subtlety */
+    font-weight: 400;  /* Normal font weight for less boldness */
+    text-transform: uppercase;  /* Uppercase for consistency */
+    letter-spacing: 0.03em;  /* Slight letter spacing */
+    cursor: pointer;  /* Pointer on hover */
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
+}
+
+.sentence-btn:hover {
+    background-color: #e8e8e8;  /* Slightly darker on hover */
+    border-color: #851a1a;  /* Darker maroon on hover */
+}
+
+.sentence-btn:active {
+    transform: scale(0.98);  /* Pressed effect */
+}
+
+/* Show state - makes it more distinguishable when showing */
+.sentence-btn.show {
+    background-color: #f0f0f0;
+    color: #5a1a1a;
+    border: 1px solid #5a1a1a;
+}
+
+/* Hide state - more distinct background and color change */
+.sentence-btn.hide {
+    background-color: #d3d3d3;  /* Slightly darker gray when hiding */
+    color: #4b0f0f;  /* Darker maroon to distinguish */
+    border-color: #4b0f0f;  /* Darker border */
+}
+
+.sentence-container {
+    max-width: 600px;
+    margin: 0 auto; /* Center the container */
+    padding: 10px 20px;
+}
+
+
+.random-btn {
+    width: 20%; /* Adjust the width of the random button */
+}
+
+.result-header h2 {
+    color: #951b1b;
+    font-size: 24px;
+    font-weight: 300;
+    letter-spacing: 0.02em;
+    white-space: normal;  /* Allow the text to wrap into multiple lines */
+    overflow-wrap: break-word;  /* Ensure the text breaks into a new line if needed */
+    text-align: center;  /* Center align the header text */
+}
+
+
+#results-container {
+    background-color: rgb(244, 244, 244);
+    margin: 20px auto;
+    text-align: left;
+    width: 50%;
+}
+
+.search-and-random-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.search-bar-wrapper {
+    width: 100%;
+}
+
+#search-container {
+    background-color: white;
+    border-bottom: 1px solid #ccc;
+    font-family: 'Noto Sans', sans-serif;
+    margin: auto;
+    padding: 10px 0;
+    position: sticky;
+    text-align: center;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+#search-container-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.selectors-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.spinner {
+    color: #293a78;
+    display: none;
+    font-size: 20px;
+    margin: 20px;
+    text-align: center;
+}
+
+.spinner::before {
+    animation: spin 0.8s linear infinite;
+    border: 3px solid rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    border-top-color: #293a78;
+    content: "";
+    display: inline-block;
+    height: 40px;
+    margin-bottom: 10px;
+    width: 40px;
+}
+
+.type-filter, .pos-filter, .random-btn {
+    display: inline-flex;
+    align-items: center;
+    background-color: #0d3a69;
+    border: none;
+    border-radius: 15px;
+    color: white;
+    cursor: pointer; /* Ensure the entire button area is clickable */
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 16px;
+    padding: 10px 15px;
+    position: relative; /* Ensures that the children elements are positioned relative to this container */
+    box-sizing: border-box;
+
+}
+
+/* Gray out both the select text and the arrow when disabled */
+.type-filter.disabled select, .pos-filter.disabled select {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+.type-filter.disabled i, .pos-filter.disabled i {
+    color: #ccc;  /* Gray out the arrow */
+    pointer-events: none;  /* Prevent interaction with the arrow */
+}
+
+
+.type-filter i, .pos-filter i {
+    color: white;
+    font-size: 18px;
+    pointer-events: none;
+    right: 15px;
+    z-index: 0; /* Ensures the icon is underneath the select element */
+
+}
+
+.type-filter select, .pos-filter select, .cefr-filter select {
+    appearance: none;
+    background-color: inherit;
+    border: none;
+    font-size: 12px;
+    color: white;
+    cursor: pointer;
+    font-family: 'Noto Sans', sans-serif;
+    padding-right: 30px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    height: 100%; /* Extend the clickable area vertically */
+    }
+
+.word-kjonn {
+    align-items: flex;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.word-kjonn .kjønn {
+    color: #951b1b;
+    font-size: 18px;
+    font-weight: 400;
+    text-transform: uppercase;
+    overflow-wrap: break-word;
+    white-space: normal;
+
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
 }
 
-// Handle change in search type (words/sentences)
-function handleTypeChange() {
-    const type = document.getElementById('type-select').value;
-    const query = document.getElementById('search-bar').value.toLowerCase().trim();
-    const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
-    const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';
-
-    // Update the URL with the type, query, and selected POS
-    updateURL(query, type, selectedPOS);  // <--- Trigger URL update based on type change
-
-    const posSelect = document.getElementById('pos-select');
-    const posFilterContainer = document.querySelector('.pos-filter');
-    const cefrSelect = document.getElementById('cefr-select');  // Get the CEFR filter dropdown
-    const cefrFilterContainer = document.querySelector('.cefr-filter'); // Get the CEFR filter container
-
-    if (type === 'sentences') {
-        // Disable the POS dropdown and gray it out
-        posSelect.disabled = true;
-        posSelect.value = '';  // Reset to "Part of Speech" option
-        posFilterContainer.classList.add('disabled');  // Add the 'disabled' class
-
-        // Disable the CEFR dropdown and gray it out
-        cefrSelect.disabled = true;
-        cefrSelect.value = '';  // Reset to "CEFR Level" option
-        cefrFilterContainer.classList.add('disabled');  // Add the 'disabled' class
-        
-
-        // If the search bar is not empty, perform a sentence search
-        if (query) {
-            console.log('Searching for sentences with query:', query);
-            search();  // This will trigger a search for sentences based on the search bar query
-        } else {
-            console.log('Search bar empty, generating a random sentence.');
-            randomWord();  // Generate a random sentence if the search bar is empty
-        }
-    } else {
-        // Enable the POS dropdown and restore color
-        posSelect.disabled = false;
-        posFilterContainer.classList.remove('disabled');  // Remove the 'disabled' class
-
-        // Enable the CEFR dropdown and restore color
-        cefrSelect.disabled = false;
-        cefrFilterContainer.classList.remove('disabled');
-
-        // Optionally, generate a random word if needed when switching back to words
-        if (query) {
-            console.log('Searching for words with query:', query);
-            search();  // Trigger a word search if the search bar has a value
-        } else {
-            console.log('Search bar empty, generating a random word.');
-            randomWord();  // Generate a random word if the search bar is empty
-        }
-    }
-}
-
-// Handle change in CEFR filter
-function handleCEFRChange() {
-    const query = document.getElementById('search-bar').value.toLowerCase().trim();
-    const selectedCEFR = document.getElementById('cefr-select').value.toUpperCase(); // Fetch CEFR
-    
-    // If the search field is empty, generate a random word based on the CEFR level
-    if (!query) {
-        console.log('Search field is empty. Generating random word based on selected CEFR.');
-        randomWord();  // Ensure randomWord() applies the CEFR filter
-    } else {
-        search(); // If there is a query, perform the search with the selected CEFR
-    }
-}
-
-
-// Render a list of results (words)
-function displaySearchResults(results, query = '') {
-    //clearContainer(); // Don't clear the container to avoid overwriting existing content like the "No Exact Matches" message
-
-    query = query.toLowerCase().trim();  // Ensure the query is lowercased and trimmed
-    const defaultResult = results.length <= 1; // Determine if there are multiple results
-    const multipleResults = results.length > 1; // Determine if there are multiple results
-
-    let htmlString = '';
-
-    // Limit to a maximum of 10 results
-    results.slice(0, 10).forEach(result => {
-        result.kjønn = formatKjonn(result.kjønn);
-
-        // Check if sentences are available using enhanced checkForSentences
-        const hasSentences = checkForSentences(result.ord);
-
-        // Convert the word to lowercase and trim spaces when generating the ID
-        const normalizedWord = result.ord.toLowerCase().trim();
-
-        // Highlight the word being defined (result.ord) in the example sentence
-        const highlightedExample = result.eksempel ? highlightQuery(result.eksempel, query || result.ord.toLowerCase()) : '';
-
-        // Determine whether to initially hide the content for multiple results
-        const multipleResultsExposedContent = defaultResult ? 'default-hidden-content' : ''; 
-
-        const multipleResultsDefinition = multipleResults ? 'multiple-results-definition' : '';  // Hide content if multiple results
-        const multipleResultsHiddenContent = multipleResults ? 'multiple-results-hidden-content' : '';  // Hide content if multiple results
-        const multipleResultsDefinitionHeader = multipleResults ? 'multiple-results-definition-header' : ''; 
-        const multipleResultsWordKjonn = multipleResults ? 'multiple-results-word-kjonn' : ''; 
-        const multipleResultsDefinitionText = multipleResults ? 'multiple-results-definition-text' : ''; 
-        const multipleResultsKjonnClass = multipleResults ? 'multiple-results-kjonn-class' : ''; 
-
-        htmlString += `
-<div 
-  class="definition ${multipleResultsDefinition}" 
-  data-word="${result.ord}" 
-  data-pos="${mapKjonnToPOS(result.kjønn)}" 
-  data-engelsk="${result.engelsk}" 
-  onclick="if (!window.getSelection().toString()) handleCardClick(event, '${result.ord.replace(/'/g, "\\'").trim()}', '${mapKjonnToPOS(result.kjønn).replace(/'/g, "\\'").trim()}', '${result.engelsk.replace(/'/g, "\\'").trim()}')">
-                <div class="${multipleResultsDefinitionHeader}">
-                <h2 class="word-kjonn ${multipleResultsWordKjonn}">
-                    ${result.ord}
-                    ${result.kjønn ? `<span class="kjønn ${multipleResultsKjonnClass}">${result.kjønn}</span>` : ''}
-                    ${result.engelsk ? `<p class="english ${multipleResultsExposedContent}">${result.engelsk}</p>` : ''}
-                    ${result.CEFR ? `<p class="cefr-value ${multipleResultsExposedContent} ${result.CEFR.toUpperCase()}">${result.CEFR}</p>` : ''} 
-                </h2>
-                ${result.definisjon ? `<p class="${multipleResultsDefinitionText}">${result.definisjon}</p>` : ''}
-                </div>
-                <div class="definition-content ${multipleResultsHiddenContent}"> <!-- Apply the hidden class conditionally -->
-                    ${result.engelsk ? `<p class="english"><i class="fas fa-language"></i> ${result.engelsk}</p>` : ''}
-                    ${result.uttale ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>` : ''}
-                    ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
-                    ${result.CEFR ? `<p class="cefr-value ${result.CEFR.toUpperCase()}"><i class="fa-solid fa-signal"></i> ${result.CEFR}</p>` : ''} 
-                </div>
-                <!-- Render the highlighted example sentence here -->
-                <div class="${multipleResultsHiddenContent}">${highlightedExample ? `<p class="example">${formatDefinitionWithMultipleSentences(highlightedExample)}</p>` : ''}</div>
-                <!-- Show "Show Sentences" button only if sentences exist -->
-                <div class="${multipleResultsHiddenContent}">${hasSentences ? `<button class="sentence-btn" data-word="${result.ord}" onclick="event.stopPropagation(); fetchAndRenderSentences('${result.ord}')">Show Sentences</button>` : ''}</div>
-            </div>
-            <!-- Sentences container is now outside the definition block -->
-            <div class="sentences-container" id="sentences-container-${normalizedWord}"></div>
-        `;
-    });
-    appendToContainer(htmlString);
-}
-
-// Utility function to generate word variations for verbs ending in -ere and handle adjective/noun forms
-function generateWordVariationsForSentences(word, pos) {
-    const variations = [];
-    
-    // Split the word into parts in case it's a phrase (e.g., "vedtatt sannhet")
-    const wordParts = word.split(' ');
-
-    // If it's a single word
-    if (wordParts.length === 1) {
-        const singleWord = wordParts[0];
-        
-        // Handle verb variations if the word is a verb and ends with "ere"
-        if (singleWord.endsWith('ere') && pos === 'verb') {
-            const stem = singleWord.slice(0, -3);  // Remove the -ere part
-            variations.push(
-                singleWord,        // infinitive: anglifisere
-                `${stem}er`,       // present tense: anglifiserer
-                `${stem}te`,       // past tense: anglifiserte
-                `${stem}t`,        // past participle: anglifisert
-                `${stem}`,         // imperative: anglifiser
-                `${stem}es`        // passive: anglifiseres
-            );
-        } else {
-            // For non-verbs, just add the word itself as a variation
-            variations.push(singleWord);
-        }
-
-    // If it's a phrase (e.g., "vedtatt sannhet"), handle each part separately
-    } else if (wordParts.length === 2) {
-        const [adjectivePart, nounPart] = wordParts;
-
-        // Handle adjective inflection (e.g., "vedtatt" -> "vedtatte")
-        const adjectiveVariations = [adjectivePart, adjectivePart.replace(/t$/, 'te')];  // Add plural/adjective form
-
-        // Handle noun pluralization (e.g., "sannhet" -> "sannheter")
-        const nounVariations = [nounPart, nounPart + 'er'];  // Add plural form for nouns
-
-        // Combine all variations of adjective and noun
-        adjectiveVariations.forEach(adj => {
-            nounVariations.forEach(noun => {
-                variations.push(`${adj} ${noun}`);
-            });
-        });
+@media (max-width: 1024px) {
+    .back-btn {
+        width: 100%; /* Make the button take up full width on mobile */
     }
 
-    return variations;
-}
-
-// Utility function to generate word variations for verbs ending in -ere and handle adjective/noun forms
-function generateWordVariationsForInflections(word, pos, gender = null) {
-    const variations = [];
-
-    // Helper to get the stem of a word by removing the last characters
-    function getStem(word, endingLength) {
-        return word.slice(0, -endingLength);
+    footer, header {
+        width: 100%; /* Ensure both footer and header are the same width */
+        padding: 10px 20px; /* Add consistent padding */
+        box-sizing: border-box; /* Ensure padding is included in the element's total width */
     }
 
-    // Irregular verbs dictionary
-    const irregularVerbs = {
-        "gå": { present: "går", past: "gikk", pastParticiple: "gått", imperative: "gå" },
-        "spise": { present: "spiser", past: "spiste", pastParticiple: "spist", imperative: "spis" },
-        "gjøre": { present: "gjør", past: "gjorde", pastParticiple: "gjort", imperative: "gjør" },
-        "bli": { present: "blir", past: "ble", pastParticiple: "blitt", imperative: "bli" },
-        "være": { present: "er", past: "var", pastParticiple: "vært", imperative: "vær" },
-        "kunne": { present: "kan", past: "kunne", pastParticiple: "kunnet", imperative: "" }, // Modal verb, no imperative
-        "skulle": { present: "skal", past: "skulle", pastParticiple: "skullet", imperative: "" }, // Modal verb
-        "ville": { present: "vil", past: "ville", pastParticiple: "villet", imperative: "" }, // Modal verb
-        "måtte": { present: "må", past: "måtte", pastParticiple: "måttet", imperative: "" }, // Modal verb
-        // Add more irregular verbs as needed
-    };
-
-    // Helper function to check if a word ends with an irregular verb and conjugate accordingly
-    function conjugateIrregularVerb(verb) {
-        for (const baseVerb in irregularVerbs) {
-            if (verb.endsWith(baseVerb)) {
-                const stem = verb.slice(0, -baseVerb.length); // Remove the base verb part from the word
-                const verbForms = irregularVerbs[baseVerb];
-                return [
-                    verb,  // infinitive
-                    stem + verbForms.present,  // present tense
-                    stem + verbForms.past,  // past tense
-                    stem + verbForms.pastParticiple,  // past participle
-                    stem + verbForms.imperative,  // imperative (if any)
-                    stem + baseVerb + 's'  // passive form (regular pattern)
-                ];
-            }
-        }
-        return null; // Return null if no irregular verb matches
+    footer p {
+        font-size: 11px !important;
+        margin: 0;
     }
 
-    // Handle verbs
-    if (pos === 'verb') {
-        // Check if the word is or ends with an irregular verb
-        const irregularConjugations = conjugateIrregularVerb(word);
-        if (irregularConjugations) {
-            variations.push(...irregularConjugations);
-        } else {
-            if (word.endsWith('ere')) {
-                // For verbs like "insistere"
-                const stem = getStem(word, 1);
-                variations.push(
-                    word,                // infinitive
-                    stem + 'er',          // present tense
-                    stem + 'te',        // past tense
-                    stem + 't',         // past participle
-                    stem,           // imperative
-                    stem + 'es'           // passive form
-                );
-            } else if (word.endsWith('e')) {
-                const stem = getStem(word, 1);
-                if (stem.endsWith('s')) {
-                    // Handle verbs like "lese" where the past is "leste" and past participle is "lest"
-                    variations.push(
-                        word,                // infinitive: lese
-                        stem + 'er',         // present: leser
-                        stem + 'te',         // past: leste
-                        stem + 't',          // past participle: lest
-                        stem,           // imperative: les
-                        stem + 'es'          // passive: leses
-                    );
-                } else {
-                    // Regular verbs, Group 1 pattern
-                    variations.push(
-                        word,                // infinitive: kaste
-                        stem + 'er',         // present: kaster
-                        stem + 'et',         // past: kastet
-                        stem + 'et',         // past participle: kastet
-                        stem,           // imperative: kast
-                        stem + 'es'          // passive: kastes
-                    );
-                }
-            } else if (word.endsWith('a')) {
-                // For verbs like "dra" -> "drar" (Group 3)
-                const stem = getStem(word, 1);
-                variations.push(
-                    word,                // infinitive
-                    stem + 'r',          // present tense
-                    stem + 'dde',        // past tense
-                    stem + 'dd',         // past participle
-                    stem,           // imperative
-                    stem + 's'           // passive form
-                );
-            } else {
-                // Strong verb pattern (Group 4)
-                const stem = getStem(word, 1);
-                variations.push(
-                    word,                // infinitive
-                    stem + 'r',          // present
-                    stem + 't',          // past (default strong verb)
-                    stem + 'tt',         // past participle
-                    stem,           // imperative
-                    stem + 's'           // passive form
-                );
-            }
-        }
+    h1 {
+        font-size: 10vw !important;
+        margin-bottom: 10px;
+        margin-top: -5px;
+        white-space: nowrap;
+    }
 
-    // Handle nouns
-    } else if (pos === 'noun') {
-        if (!gender) {
-            console.warn(`No gender found for noun: ${word}. Applying default (masculine).`);
-            gender = 'masculine';  
-        }
+    h2 {
+        font-size: 7vw;
+        hyphens: auto;
+        overflow-wrap: break-word;
+        white-space: normal;
+        word-break: break-word;
+    }
 
-        // Adjust endings for words that already end in 'e'
-        function adjustEndings(baseWord, singularDefiniteEnding, pluralIndefiniteEnding, pluralDefiniteEnding) {
-            if (baseWord.endsWith('e')) {
-                // For feminine nouns like "jente", handle singular definite and plural forms
-                return [
-                    baseWord.slice(0, -1) + singularDefiniteEnding,  // singular definite: jenta
-                    baseWord + 'r',  // plural indefinite: jenter (keep the final 'e' and just add 'r')
-                    baseWord + 'ne'  // plural definite: jentene
-                ];
-            }
-            return [
-                baseWord + singularDefiniteEnding,  // singular definite
-                baseWord + pluralIndefiniteEnding,  // plural indefinite
-                baseWord + pluralDefiniteEnding     // plural definite
-            ];
-        }
+    header {
+        padding: 10px 15px;
+    }
 
-        if (gender === 'masculine') {
-            const [singularDefinite, pluralIndefinite, pluralDefinite] = adjustEndings(word, 'en', 'er', 'ene');
-            variations.push(
-                'en ' + word,        // singular indefinite: en stol
-                singularDefinite,    // singular definite: stolen
-                pluralIndefinite,    // plural indefinite: stoler
-                pluralDefinite       // plural definite: stolene
-            );
-        } else if (gender === 'feminine') {
-            const stem = word.endsWith('e') ? word.slice(0, -1) : word;
-            const [singularDefinite, pluralIndefinite, pluralDefinite] = adjustEndings(word, 'a', 'er', 'ene');
-            variations.push(
-                'en/ei ' + word,     // singular indefinite: en/ei jente
-                stem + 'en/' + singularDefinite,  // singular definite: jenten/jenta
-                pluralIndefinite,    // plural indefinite: jenter
-                pluralDefinite       // plural definite: jentene
-            );
-        } else if (gender === 'neuter') {
-            // Handle neuter nouns, with special attention to no plural ending cases
-            const [singularDefinite, pluralIndefinite, pluralDefinite] = adjustEndings(word, 'et', '', 'ene');
-            variations.push(
-                'et ' + word,        // singular indefinite: et hus
-                singularDefinite,    // singular definite: huset
-                pluralIndefinite || word,  // plural indefinite: hus (sometimes the same as singular indefinite)
-                pluralDefinite       // plural definite: husene
-            );
-        }
-    // Handle adjectives
-    } else if (pos === 'adjective') {
-        if (shouldNotDecline(word) === true) {
-            // Handle adjectives that don't decline
-            variations.push([word, word, word]);  // Same word for all forms
-        } else if (shouldNotTakeTInNeuter(word) === true) {
-            // Handle adjectives that don't take 't' in the neuter form
-            variations.push([word, word, word + 'e']);
-        } else if (shouldNotTakeTInNeuter(word) === 'double') {
-            // Handle adjectives that take 'tt' in the neuter form
-            variations.push([word, word + 'tt', word + 'e']);
-        } else {
-            // Regular adjectives
-            variations.push([word, word + 't', word + 'e']);
-        }
-    // Handle pronouns, conjunctions, etc.
-    } else if (pos === 'pronoun') {
-        variations.push(word); // Pronouns generally don’t inflect in the same way
+    header p {
+        font-size: 3vw !important;
+        margin: -10px 0 0px 0 !important;
+    }
+
+    input[type="text"] {
+        padding: 10px 10px;
+    }
+
+    label[for="search-bar"] {
+        display: none;
+    }
+
+    /* Adjust landing card width for mobile */
+    #landing-card {
+        width: 80%; /* Ensure it takes up more space on mobile */
+        padding: 20px; /* Add more padding for mobile readability */
+    }
+
+    /* Adjust landing card heading (h2) for mobile */
+    #landing-card h2 {
+        font-size: 24px; /* Reduce font size to fit smaller screens */
+        line-height: 1.4;
+        word-break: keep-all;
+    }
+
+    /* Adjust landing card heading (h3) for mobile */
+    #landing-card h3 {
+        font-size: 14px; /* Reduce font size to fit smaller screens */
+    }
+
+    /* Adjust landing card heading (h4) for mobile */
+    #landing-card h4 {
+        font-size: 12px; /* Reduce font size to fit smaller screens */
+    }
+
+    /* Adjust landing card paragraph text for mobile */
+    #landing-card p {
+        font-size: 12px; /* Reduce paragraph font size */
+        line-height: 1.6; /* Increase line height for readability */
+        text-align: justify;
+        margin: 0 15px 0 15px;
+    }
+
+    .linkedin-btn {
+        font-size: 12px; /* Slightly smaller font size */
+        padding: 0px 10px 0px 10px !important; /* Adjust padding to reduce the button's height */
+        border-radius: 4px;
+    }
+
+    .linkedin-btn::after {
+        content: "Connect"; /* Set the text to 'Connect' on mobile */
+    }
+
+    /* Hide the original text */
+    .linkedin-btn span {
+        display: none;
+    }
+
+    .linkedin-icon {
+        width: 14px; /* Adjust icon size to match the button */
+    }
+
+    .links {
+        display: flex;
+        justify-content: center;
+        margin: 5px 0 5px 0;
+        gap: 8px; /* Ensure proper space between buttons */
+        padding: 0 20px; /* Add padding to create space between the buttons and the screen edges */
+    }
+
+    /* The whole box */
+    .multiple-results-definition {
+        padding: 15px 20px 15px 20px;
+    }
+
+    /* The word, gender and definition */
+    .multiple-results-definition-header {
+        display: flex;
+        flex-direction: row;  /* Horizontally aligns the word and definition */
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* The definition */
+    .multiple-results-definition-text {
+        flex: 1;
+        font-size: 14px !important;
+        margin-left: 20px;  /* Space between the gender/word and definition */
+        hyphens: auto;
+        overflow-wrap: break-word;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    /* The gender */
+    .multiple-results-kjonn-class {
+        font-size: 12px !important;
+    }
+
+    /* The word and gender */
+    .multiple-results-word-kjonn {
+        display: flex;
+        font-size: 18px !important;
+        flex-direction: column;  /* Ensures word and gender are stacked vertically */
+        margin: 0 20px 0 0 !important;
+        line-height: 1.2 !important;
+        justify-content: center;  /* Vertically center the word and gender within their container */
+    }
+
+    /* Adjust pronunciation table for mobile */
+    .pronunciation-table, .pronunciation-table tbody, .pronunciation-table tr, .pronunciation-table td {
+        display: block;
+        font-size: 11px; /* Reduce font size for mobile */
+    }
+
+    .pronunciation-table tr {
+        margin-bottom: 12px;
+        border-bottom: 1px solid #dddddd;
+    }
+
+    .pronunciation-table td {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        text-align: left;
+        border-bottom: none;
+        font-size: 12px;
+    }
+
+    .pronunciation-table td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        flex-basis: 40%; /* Adjusts width for label part */
+        text-align: left; /* Ensure labels are left-aligned */
+    }
+
+    .pronunciation-table th, .pronunciation-table thead {
+        display: none;
+    }
+
+    .pronunciation-table td:nth-child(3), .pronunciation-table td:last-child {
+        text-align: right; /* Ensures the last column is always right-aligned */
+        overflow-wrap: break-word; /* Breaks long words if necessary */
+    }
+
+    .random-btn {
+        width: 20% !important;
+    }
+
+    .search-and-random-wrapper {
+        display: flex;
+        align-items: center; /* Vertically align items */
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .search-bar-wrapper,
+    #results-container {
+        width: 90%;
+    }
+
+    .search-bar-wrapper label {
+        font-size: 12px;
+    }
+
+    .search-btn {
+        padding: 8px;
+        width: 20% !important; /* This makes the search button take up full width on mobile */
     }
     
-    return variations;
-}
-
-
-
-
-
-// Render a single sentence
-function renderSentence(sentenceResult) {
-    // Split the example by common sentence delimiters (period, question mark, exclamation mark)
-    const sentences = sentenceResult.eksempel.split(/(?<=[.!?])\s+/);
-
-    // Get the first sentence from the array
-    const firstSentence = sentences[0];
-
-    const sentenceHTML = `
-        <div class="definition">
-            <p class="sentence">${firstSentence}</p>
-        </div>
-    `;
-
-    document.getElementById('results-container').innerHTML = sentenceHTML;
-}
-
-// Render multiple sentences based on a word or query
-function renderSentences(sentenceResults, word) {
-    clearContainer(); // Clear previous results
-
-    const query = word.trim().toLowerCase(); // Trim and lower-case the search term for consistency
-    let exactMatches = [];
-    let partialMatches = [];
-    let uniqueSentences = new Set(); // Track unique sentences
-
-    const regexExactMatch = new RegExp(`\\b${query}\\b`, 'i');
-
-    sentenceResults.forEach(result => {
-        // Split example sentences by common sentence delimiters (period, question mark, exclamation mark)
-        const sentences = result.eksempel.match(/[^.!?]+[.!?]*/g) || [result.eksempel];
-
-        sentences.forEach(sentence => {
-            const trimmedSentence = sentence.trim();
-            if (!uniqueSentences.has(trimmedSentence)) {
-                // Only add unique sentences
-                uniqueSentences.add(trimmedSentence);
-
-                // Exact match (whole word match)
-                if (regexExactMatch.test(sentence.toLowerCase())) {
-                    exactMatches.push(highlightQuery(sentence, query));
-                } else if (sentence.toLowerCase().includes(query)) {
-                    partialMatches.push(highlightQuery(sentence, query));
-                }
-            }
-        });
-    });
-
-    // Combine exact matches first, then partial matches
-    const combinedMatches = [...exactMatches, ...partialMatches].slice(0, 10);
-
-    // Generate HTML for the combined matches
-    let htmlString = '';
-
-    if (combinedMatches.length > 0) {
-        // Generate the header card
-        htmlString += `
-            <div class="definition result-header">
-                <h2>Sentence Results for "${word}"</h2>
-            </div>
-        `;
+    .search-btn i {
+        font-size: 16px;
     }
 
-    combinedMatches.forEach(sentence => {
-        htmlString += `
-            <div class="definition">
-                <p class="sentence">${sentence}</p>
-            </div>
-        `;
-    });
-
-    // If no matches were found, display a "No Results" message
-    if (!htmlString) {
-        htmlString = `
-            <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">No Matching Sentences</span>
-                </h2>
-                <p>No sentences found containing "${query}".</p>
-            </div>
-        `;
+    #search-container {
+        align-items: center;
+        flex-direction: column;
     }
 
-    // Insert the generated HTML into the results container
-    document.getElementById('results-container').innerHTML = htmlString;
+    #search-container-inner {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        gap: 10px;
+        padding: 0 10px 0 10px;
+    }
 
-    console.log("Exact matches:", exactMatches);
-    console.log("Partial matches:", partialMatches);
-}
-
-
-// Highlight search query in text, accounting for Norwegian characters (å, æ, ø) and verb variations
-function highlightQuery(sentence, query) {
-    if (!query) return sentence; // If no query, return sentence as is.
-
-    // Always remove any existing highlights by replacing the <span> tags to avoid persistent old highlights
-    let cleanSentence = sentence.replace(/<span style="color: #3c88d4;">(.*?)<\/span>/gi, '$1');
-    console.log('Cleaned sentence:', cleanSentence);
-
-    // Define a regex pattern that includes Norwegian characters and dynamically inserts the query
-    const norwegianLetters = '[\\wåæøÅÆØ]'; // Include Norwegian letters in the pattern
-    const regex = new RegExp(`(${norwegianLetters}*${query}${norwegianLetters}*)`, 'gi');
-    console.log('Generated regex:', regex);
-
-    // Highlight all occurrences of the query in the sentence
-    cleanSentence = cleanSentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
-
-    // Split the query by commas to handle multiple spelling variations
-    const queries = query.split(',').map(q => q.trim());
-
-    // Highlight each query variation in the sentence
-    queries.forEach(q => {
-        // Define a regex pattern that includes Norwegian characters and dynamically inserts the query
-        const norwegianLetters = '[\\wåæøÅÆØ]'; // Include Norwegian letters in the pattern
-        const regex = new RegExp(`(${norwegianLetters}*${q}${norwegianLetters}*)`, 'gi');
-        console.log('Generated regex for query:', regex);
-
-        // Highlight all occurrences of the query variation in the sentence
-        cleanSentence = cleanSentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
-    });
-
-    // Get part of speech (POS) for the query to pass into `generateWordVariationsForSentences`
-    const matchingWordEntry = results.find(result => result.ord.toLowerCase().includes(query));
-    const pos = matchingWordEntry ? mapKjonnToPOS(matchingWordEntry.kjønn) : '';
-
-    // Generate word variations using the external function
-    const wordVariations = generateWordVariationsForSentences(query, pos);
-
-    // Apply highlighting for all word variations in sequence
-    wordVariations.forEach(variation => {
-        const norwegianWordBoundary = `\\b${variation}\\b`;
-        const regex = new RegExp(norwegianWordBoundary, 'gi');
-        cleanSentence = cleanSentence.replace(regex, '<span style="color: #3c88d4;">$&</span>');
-    });
+    .sentence-btn {
+        width: 100% !important;
+    }
+    
+    .type-filter, .pos-filter, .cefr-filter {
+        background-color: #0d3a69;  /* Consistent background for all filters */
+        border-radius: 15px;
+        padding: 10px 15px;
+    }
     
 
-    return cleanSentence;  // Return the fully updated sentence
-}
-
-
-
-function renderSentencesHTML(sentenceResults, wordVariations) {
-    let htmlString = '';  // String to accumulate the generated HTML
-    let exactMatches = [];
-    let inexactMatches = [];
-    let uniqueSentences = new Set(); // Track unique sentences
-
-    // Log word variations for debugging
-    console.log(`Word Variations for rendering:`, wordVariations);
-
-    sentenceResults.forEach(result => {
-        // Strip out any existing <span> tags from the example sentence
-        const rawSentence = result.eksempel.replace(/<[^>]*>/g, '');
-
-        // Split the example sentence into individual sentences, handling sentence delimiters correctly
-        const sentences = rawSentence.match(/[^.!?]+[.!?]*/g) || [rawSentence];
-
-        sentences.forEach(sentence => {
-            const trimmedSentence = sentence.trim();
-            if (!uniqueSentences.has(trimmedSentence)) {
-                // Only add unique sentences
-                uniqueSentences.add(trimmedSentence);
-
-                console.log(`Processing sentence: "${trimmedSentence}"`);  // Log the sentence being processed
-
-                // Check if the sentence contains any of the word variations
-                let matchedVariation = wordVariations.find(variation => sentence.toLowerCase().includes(variation));
-                console.log(`Matched variation for sentence:`, matchedVariation);  // Log the matched variation
-
-                if (matchedVariation) {
-                    console.log(`Found matched variation: "${matchedVariation}" in sentence: "${sentence}"`);
-
-                    // Use a regular expression to match the full word containing any of the variations
-                    const norwegianPattern = '[\\wåæøÅÆØ]'; // Pattern including Norwegian letters
-                    const regex = new RegExp(`(${norwegianPattern}*${matchedVariation}${norwegianPattern}*)`, 'gi');
-                    
-                    const highlightedSentence = sentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
-
-                    // Determine if it's an exact match (contains the exact search term as a full word)
-                    const exactMatchRegex = new RegExp(`\\b${matchedVariation.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i');
-                    console.log(`Testing for exact match: "${sentence}" against "${matchedVariation}" with regex: ${exactMatchRegex}`);
-
-                    if (exactMatchRegex.test(sentence)) {
-                        console.log(`Exact match found for "${matchedVariation}"`);
-                        exactMatches.push(highlightedSentence);  // Exact match
-                    } else {
-                        console.log(`Inexact match found for "${matchedVariation}"`);
-                        inexactMatches.push(highlightedSentence);  // Inexact match
-                    }
-                } else {
-                    console.log(`No match found for variations: ${wordVariations.join(', ')} in sentence: "${sentence}"`);
-                }
-            }
-        });
-    });
-
-    // Log results to understand why no matches are being found
-    console.log("Exact matches:", exactMatches);
-    console.log("Inexact matches:", inexactMatches);
-
-    // Combine exact matches first, then inexact matches, respecting the 10 sentence limit
-    const combinedMatches = [...exactMatches, ...inexactMatches].slice(0, 10);
-
-    if (combinedMatches.length === 0) {
-        console.warn("No sentences found for the word variations.");
+    .type-filter, .pos-filter, .random-btn, .search-bar-wrapper {
+        width: 100%;
     }
-
-    // Generate HTML for the combined matches
-    combinedMatches.forEach(sentence => {
-        htmlString += `
-            <div class="definition">
-                <p class="sentence">${sentence}</p>
-            </div>
-        `;
-    });
-
-    // If no sentences were matched, return a message indicating that
-    if (htmlString === '') {
-        htmlString = `
-            <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">No Matching Sentences</span>
-                </h2>
-                <p>No sentences found for the word "${wordVariations.join(', ')}".</p>
-            </div>
-        `;
-    }
-
-    console.log("Generated Sentence HTML:", htmlString); // Log the HTML being generated for the sentences
-    return htmlString;
-}
-
-
-function renderWordDefinition(word) {
-    const trimmedWord = word.trim().toLowerCase();
-
-    console.log(`Rendering word definition for: "${trimmedWord}"`);
-
-    // Switch the type selector back to "words"
-    const typeSelect = document.getElementById('type-select');
-    typeSelect.value = 'words';
-
-    // Re-enable the POS filter
-    const posSelect = document.getElementById('pos-select');
-    posSelect.disabled = false;
-    const posFilterContainer = document.querySelector('.pos-filter');
-    posFilterContainer.classList.remove('disabled');  // Remove the 'disabled' class for visual effect
-
-    const matchingResults = results.filter(r => r.ord.toLowerCase().trim() === trimmedWord);
-
-    if (matchingResults.length > 0) {
-        displaySearchResults(matchingResults);
-    } else {
-        document.getElementById('results-container').innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">No Definition Found</span>
-                </h2>
-                <p>No definition found for "${trimmedWord}".</p>
-            </div>
-        `;
-    }
-}
-
-// Fetch and render sentences for a word or phrase, including handling comma-separated variations
-function fetchAndRenderSentences(word) {
-    const trimmedWord = word.trim().toLowerCase();
-    const button = document.querySelector(`button[data-word='${word}']`);
-
-    // If the sentences are already visible, toggle them off
-    const sentenceContainer = document.getElementById(`sentences-container-${trimmedWord}`);
     
-    if (!sentenceContainer) {
-        console.error(`Sentence container not found for: ${trimmedWord}`);
-        return;
+    .type-filter i, .pos-filter i {
+        font-size: 14px; /* Make the arrow smaller */
+        pointer-events: none; /* Ensure the icon doesn't block clicks */
     }
 
-    // Toggle visibility without re-fetching sentences
-    if (sentenceContainer.getAttribute('data-fetched') === 'true') {
-        if (sentenceContainer.style.display === "block") {
-            sentenceContainer.style.display = "none";
-            button.innerText = "Show Sentences";
-            button.classList.remove('hide');
-            button.classList.add('show');
-        } else {
-            sentenceContainer.style.display = "block";
-            button.innerText = "Hide Sentences";
-            button.classList.remove('show');
-            button.classList.add('hide');
-        }
-        return;
+    .type-filter select, .pos-filter select, .cefr-filter select {
+        cursor: pointer;
+        width: 100%; /* Extend the clickable area horizontally */
+        height: 100%; /* Extend the clickable area vertically */    
+        font-size: 8px; /* Further reduce the font size for very small screens */
+        text-transform: uppercase;
+        color: white;
     }
 
-    sentenceContainer.innerHTML = '';  // Clear previous sentences
-    
-    // Find the part of speech (POS) of the word
-    const matchingWordEntry = results.find(result => result.ord.toLowerCase() === trimmedWord);  // Updated to use exact match
-    
-    const pos = matchingWordEntry ? mapKjonnToPOS(matchingWordEntry.kjønn) : '';
-
-    // Generate word variations using the external function
-    const wordVariations = trimmedWord.split(',').flatMap(w => generateWordVariationsForSentences(w.trim(), pos));
-
-    // Filter results to find sentences that contain any of the word variations in the 'eksempel' field
-    let matchingResults = results.filter(r => {
-        // Loop through each variation and check if it exists in the sentence
-        return wordVariations.some(variation => {
-            if (pos === 'preposition') {
-                // Log the sentence and variation being tested
-                const regex = new RegExp(`(^|\\s)${variation}($|\\s)`, 'gi');
-                const match = regex.test(r.eksempel);
-                return match;
-            } else {
-                const matchFound = r.eksempel.toLowerCase().includes(variation);
-                return matchFound;
-            }
-        });
-    });
-
-    // Check if there are any matching results
-    if (matchingResults.length === 0) {
-        console.warn(`No sentences found for the word variations.`);
-        sentenceContainer.innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">No Sentences Available</span>
-                </h2>
-                <p>No example sentences available for "${trimmedWord}".</p>
-            </div>
-        `;
-        sentenceContainer.style.display = "block";
-        button.innerText = "Show Sentences";
-        button.classList.remove('hide');
-        button.classList.add('show');
-        return;
+    .word-kjonn {
+        align-items: flex-start;
+        display: flex;
+        flex-direction: column;
+        hyphens: auto;
+        line-height: 1.4;
     }
 
-    // Prioritize the matching results using the prioritizeResults function
-    matchingResults = prioritizeResults(matchingResults, trimmedWord, 'eksempel');
-
-    // Apply highlighting for the new word and reset any previous highlighting
-    matchingResults.forEach(result => {
-        wordVariations.forEach(variation => {
-            result.eksempel = highlightQuery(result.eksempel, variation);  // Reset and apply highlight for the current word
-        });
-    });
-
-    let backButtonHTML = `
-        <button class="sentence-btn back-btn" onclick="renderWordDefinition('${trimmedWord}')">
-            <i class="fas fa-angle-left"></i> Back to Definition
-        </button>
-    `;
-
-    let sentenceContent = renderSentencesHTML(matchingResults, wordVariations);
-
-    if (sentenceContent) {
-        sentenceContainer.innerHTML = sentenceContent;
-        sentenceContainer.style.display = "block";  // Show the container
-        button.innerText = "Hide Sentences";
-        button.classList.remove('show');
-        button.classList.add('hide');
-    } else {
-        console.warn("No content to show for the word:", trimmedWord);
-    }
-
-    sentenceContainer.setAttribute('data-fetched', 'true');
-}
-
-
-
-// Spinner Control Functions
-function showSpinner() {
-    document.getElementById('loading-spinner').style.display = 'block';
-}
-
-function hideSpinner() {
-    document.getElementById('loading-spinner').style.display = 'none';
-}
-
-// Prioritize results based on query position or exact match
-function prioritizeResults(results, query, key) {
-    // Adjust the regex to match the query at the start of a word
-    const regexStartOfWord = new RegExp(`\\b${query}`, 'i');  // Match query at word boundary
-    const regexExactMatch = new RegExp(`\\b${query}\\b`, 'i'); // Exact match of the whole word
-
-    return results.sort((a, b) => {
-        const aText = a[key].toLowerCase();
-        const bText = b[key].toLowerCase();
-
-        // Prioritize exact matches
-        const aExactMatch = regexExactMatch.test(aText);
-        const bExactMatch = regexExactMatch.test(bText);
-        
-        if (aExactMatch && !bExactMatch) {
-            return -2;
-        }
-        if (!aExactMatch && bExactMatch) {
-            return 2;
-        }
-
-        // Check if the query appears at the start of a word
-        const aStartsWithWord = regexStartOfWord.test(aText);
-        const bStartsWithWord = regexStartOfWord.test(bText);
-        
-        // Prioritize where the query starts a word
-        if (aStartsWithWord && !bStartsWithWord) {
-            return -1;
-                }
-        if (!aStartsWithWord && bStartsWithWord) {
-            return 1;
-        }
-
-        // Otherwise, sort by the position of the query in the text (earlier is better)
-        const aIndex = aText.indexOf(query);
-        const bIndex = bText.indexOf(query);
-
-        return aIndex - bIndex;
-    });
-}
-
-// Update URL based on current search parameters
-function updateURL(query, type, selectedPOS) {
-    const url = new URL(window.location);
-
-    if (query) {
-        url.searchParams.set('query', query);
-        url.searchParams.set('type', type);
-        if (selectedPOS) {
-            url.searchParams.set('pos', selectedPOS);
-        } else {
-            url.searchParams.delete('pos');
-        }
-        url.searchParams.delete('landing'); // Remove landing state when there’s a query
-    } else {
-        url.searchParams.set('landing', 'true'); // Set landing state if there's no query
-        url.searchParams.delete('query'); // Ensure query is removed when showing landing page
-        url.searchParams.delete('pos');   // Remove any POS filters
-    }
-
-    window.history.pushState({}, '', url);
-}
-
-
-// Load the state from the URL and trigger the appropriate search
-function loadStateFromURL() {
-    const url = new URL(window.location);
-    const query = url.searchParams.get('query') || '';  // Default to an empty query if not present
-    const type = url.searchParams.get('type') || 'words';  // Use the type from the URL or default to 'words'
-    const selectedPOS = url.searchParams.get('pos') || '';  // Default to an empty POS if not present
-    const landing = url.searchParams.get('landing') === 'true';  // Check if landing=true is set
-
-    // Set the correct values in the DOM elements
-    document.getElementById('search-bar').value = query;
-    document.getElementById('type-select').value = type;  // Respect the type from the URL (sentences or words)
-    
-    if (selectedPOS) {
-        document.getElementById('pos-select').value = selectedPOS;
-    }
-
-    if (landing) {
-        showLandingCard(true);  // Show the landing card if the landing param is true
-        return;  // Stop execution here, so no search happens
-    }
-
-    if (query) {
-        renderWordDefinition(query);
+    .word-kjonn .kjønn {
+        font-size: 4vw;
+        margin-top: 5px;
     }
 }
-
-// Function to handle clicking on a search result card
-function handleCardClick(event, word, pos, engelsk) {
-
-    // Filter results by word, POS (part of speech), and the English translation
-    const clickedResult = results.filter(r => {
-
-        // Check if each comparison is true and log it
-        const wordMatch = r.ord.toLowerCase().trim() === word.toLowerCase().trim();
-        const posMatch = mapKjonnToPOS(r.kjønn).toLowerCase().trim() === pos.toLowerCase().trim();
-        const engelskMatch = r.engelsk.toLowerCase().trim().includes(engelsk.toLowerCase().trim());
-
-        return wordMatch && posMatch && engelskMatch;
-    });
-
-    if (clickedResult.length === 0) {
-        console.error(`No result found for word: "${word}" with POS: "${pos}" and English: "${engelsk}"`);
-        return;
-    }
-
-    // Clear all other results and keep only the clicked card
-    resultsContainer.innerHTML = '';  // Clear the container
-
-    // Display the clicked result
-    displaySearchResults(clickedResult);  // This ensures only the clicked card remains
-}
-
-// Initialization of the dictionary data and event listeners
-window.onload = function() {
-    fetchAndLoadDictionaryData();  // Load dictionary data when the page is refreshed
-
-    // Wait for the data to be fetched before triggering the search
-    const checkDataLoaded = setInterval(() => {
-        if (results.length > 0) {  // Ensure results are loaded
-            clearInterval(checkDataLoaded);
-            
-            // Load state from URL
-            loadStateFromURL();  // This checks the URL for query/type/POS and triggers the appropriate search
-        }
-    }, 100);
-
-    // Add event listener to POS filter dropdown
-    document.getElementById('pos-select').addEventListener('change', handlePOSChange);
-
-    // Add event listener to POS filter dropdown
-    document.getElementById('cefr-select').addEventListener('change', handleCEFRChange);
-
-    // Add event listener to the search bar to trigger handleKey on key press
-    document.getElementById('search-bar').addEventListener('keyup', handleKey);
-};
