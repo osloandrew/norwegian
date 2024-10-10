@@ -532,15 +532,18 @@ async function search() {
         
                 return wordMatch || englishMatch;
             });
+
             return matchesQuery && (!selectedPOS || pos === selectedPOS) && (!selectedCEFR || r.CEFR === selectedCEFR);
         });
+
+        // Prioritize results based on CEFR level, exact match, etc.
+        matchingResults = prioritizeResults(matchingResults, query, 'ord');  // <-- Make sure this is here
         
         // Check if there are **no exact matches**
         const noExactMatches = matchingResults.length === 0;
 
         // If no exact matches are found, find inexact matches
         if (noExactMatches) {
-            console.log("No exact matches found for:", query);
 
             // Generate inexact matches based on transformations
             const inexactWordQueries = generateInexactMatches(query);
@@ -549,11 +552,8 @@ async function search() {
             let inexactWordMatches = results.filter(r => {
                 const pos = mapKjonnToPOS(r.kjønn);
                 const matchesInexact = inexactWordQueries.some(inexactQuery => r.ord.toLowerCase().includes(inexactQuery) || r.engelsk.toLowerCase().includes(inexactQuery));
-                console.log(`Checking inexact match for: ${r.ord}, Inexact match: ${matchesInexact}`);
                 return matchesInexact && (!selectedPOS || pos === selectedPOS) && (!selectedCEFR || r.CEFR === selectedCEFR);
             }).slice(0, 10); // Limit to 10 results
-
-            console.log("Inexact matches:", inexactWordMatches);  // Log inexact matches
 
             // Display the "No Exact Matches" message
             resultsContainer.innerHTML = `
@@ -617,15 +617,10 @@ async function search() {
             return;
         }
 
-        console.log("Exact matches found. Displaying results.");
-
         // Prioritization logic for words (preserving the exact behavior)
         matchingResults = matchingResults.sort((a, b) => {
             const queryLower = query.toLowerCase();
-        
-            // Log comparison between two words
-            console.log(`Comparing "${a.ord}" and "${b.ord}" with query "${queryLower}"`);
-        
+                
             // 1. Prioritize exact match in the Norwegian term
             const isExactMatchA = a.ord.toLowerCase() === queryLower;
             const isExactMatchB = b.ord.toLowerCase() === queryLower;
@@ -1491,9 +1486,28 @@ function prioritizeResults(results, query, key) {
     const regexStartOfWord = new RegExp(`\\b${query}`, 'i');  // Match query at word boundary
     const regexExactMatch = new RegExp(`\\b${query}\\b`, 'i'); // Exact match of the whole word
 
+    // Define CEFR level order
+    const CEFROrder = ['A1', 'A2', 'B1', 'B2', 'C'];
+
+
     return results.sort((a, b) => {
         const aText = a[key].toLowerCase();
         const bText = b[key].toLowerCase();
+
+        // First, prioritize CEFR levels (lower levels come first)
+        if (a.CEFR && b.CEFR) {
+            // Handle missing CEFR values by assigning a default
+            const aCEFR = a.CEFR ? a.CEFR.toUpperCase() : 'C2';
+            const bCEFR = b.CEFR ? b.CEFR.toUpperCase() : 'C2';
+
+            const aCEFRIndex = CEFROrder.indexOf(aCEFR);
+            const bCEFRIndex = CEFROrder.indexOf(bCEFR);
+
+            if (aCEFRIndex !== bCEFRIndex) {
+                return aCEFRIndex - bCEFRIndex;
+            }
+
+        }
 
         // Prioritize exact matches
         const aExactMatch = regexExactMatch.test(aText);
@@ -1603,13 +1617,45 @@ function handleCardClick(event, word, pos, engelsk) {
 
 // Initialization of the dictionary data and event listeners
 window.onload = function() {
+
+    // Check if the buttons exist in the DOM
+    const searchBtn = document.getElementById('search-btn');
+    const randomBtn = document.getElementById('random-btn');
+
+    if (searchBtn && randomBtn) {
+        console.log("Buttons found. Disabling them.");
+
+        // Disable the search and random buttons on load
+        searchBtn.disabled = true;
+        randomBtn.disabled = true;
+
+        // Apply the disabled styling
+        searchBtn.style.color = '#ccc';
+        searchBtn.style.cursor = 'not-allowed';
+        randomBtn.style.color = '#ccc';
+        randomBtn.style.cursor = 'not-allowed';
+    } else {
+        console.log("Buttons not found in the DOM.");
+    }
+
+
     fetchAndLoadDictionaryData();  // Load dictionary data when the page is refreshed
 
     // Wait for the data to be fetched before triggering the search
     const checkDataLoaded = setInterval(() => {
         if (results.length > 0) {  // Ensure results are loaded
             clearInterval(checkDataLoaded);
-            
+
+            // Enable the buttons once data is fully loaded
+            document.getElementById('search-btn').disabled = false;
+            document.getElementById('random-btn').disabled = false;
+
+            // Restore original styling
+            document.getElementById('search-btn').style.color = '';
+            document.getElementById('search-btn').style.cursor = 'pointer';
+            document.getElementById('random-btn').style.color = '';
+            document.getElementById('random-btn').style.cursor = 'pointer';
+
             // Load state from URL
             loadStateFromURL();  // This checks the URL for query/type/POS and triggers the appropriate search
         }
