@@ -38,6 +38,25 @@ body {
     padding: 0;
 }
 
+button:disabled {
+    background-color: #0d3a69;
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Disable hover effects for disabled buttons */
+button:disabled:hover {
+    background-color: #0d3a69;
+    cursor: not-allowed; /* Keep the not-allowed cursor */
+}
+
+button:disabled i {
+    background-color: #0d3a69;
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+
 .cefr-filter {
     display: inline-flex;
     align-items: center;
