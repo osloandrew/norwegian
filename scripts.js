@@ -734,6 +734,7 @@ function handlePOSChange() {
 function handleTypeChange() {
     const type = document.getElementById('type-select').value;
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
+    
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
     const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';
 
@@ -742,6 +743,7 @@ function handleTypeChange() {
 
     const posSelect = document.getElementById('pos-select');
     const posFilterContainer = document.querySelector('.pos-filter');
+    
     const cefrSelect = document.getElementById('cefr-select');  // Get the CEFR filter dropdown
     const cefrFilterContainer = document.querySelector('.cefr-filter'); // Get the CEFR filter container
 
@@ -833,13 +835,17 @@ function displaySearchResults(results, query = '') {
         const multipleResultsDefinitionText = multipleResults ? 'multiple-results-definition-text' : ''; 
         const multipleResultsKjonnClass = multipleResults ? 'multiple-results-kjonn-class' : ''; 
 
+        // Safely escape the word in JavaScript by replacing special characters
+        const escapedWord = result.ord.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\r?\n|\r/g, '');  // Escapes single quotes, double quotes, and removes newlines
+
+
         htmlString += `
 <div 
   class="definition ${multipleResultsDefinition}" 
-  data-word="${result.ord}" 
+  data-word="${escapedWord}" 
   data-pos="${mapKjonnToPOS(result.kjønn)}" 
   data-engelsk="${result.engelsk}" 
-  onclick="if (!window.getSelection().toString()) handleCardClick(event, '${result.ord.replace(/'/g, "\\'").trim()}', '${mapKjonnToPOS(result.kjønn).replace(/'/g, "\\'").trim()}', '${result.engelsk.replace(/'/g, "\\'").trim()}')">
+  onclick="if (!window.getSelection().toString()) handleCardClick(event, '${escapedWord}', '${mapKjonnToPOS(result.kjønn).replace(/'/g, "\\'").trim()}', '${result.engelsk.replace(/'/g, "\\'").trim()}')">
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-kjonn ${multipleResultsWordKjonn}">
                     ${result.ord}
@@ -858,7 +864,7 @@ function displaySearchResults(results, query = '') {
                 <!-- Render the highlighted example sentence here -->
                 <div class="${multipleResultsHiddenContent}">${highlightedExample ? `<p class="example">${formatDefinitionWithMultipleSentences(highlightedExample)}</p>` : ''}</div>
                 <!-- Show "Show Sentences" button only if sentences exist -->
-                <div class="${multipleResultsHiddenContent}">${hasSentences ? `<button class="sentence-btn" data-word="${result.ord}" onclick="event.stopPropagation(); fetchAndRenderSentences('${result.ord}')">Show Sentences</button>` : ''}</div>
+                <div class="${multipleResultsHiddenContent}">${hasSentences ? `<button class="sentence-btn" data-word="${escapedWord}" onclick="event.stopPropagation(); fetchAndRenderSentences('${escapedWord}')">Show Sentences</button>` : ''}</div>
             </div>
             <!-- Sentences container is now outside the definition block -->
             <div class="sentences-container" id="sentences-container-${normalizedWord}"></div>
@@ -1367,8 +1373,14 @@ function renderWordDefinition(word) {
 
 // Fetch and render sentences for a word or phrase, including handling comma-separated variations
 function fetchAndRenderSentences(word) {
-    const trimmedWord = word.trim().toLowerCase();
+    console.log('Fetching sentences for:', word);
+
+    const trimmedWord = word.trim().toLowerCase().replace(/[\r\n]+/g, ''); // Remove any carriage returns or newlines
+    console.log('Trimmed word:', trimmedWord); // Log cleaned word
+
     const button = document.querySelector(`button[data-word='${word}']`);
+
+    console.log('Button for word:', button); // Check if button is correctly selected
 
     // If the sentences are already visible, toggle them off
     const sentenceContainer = document.getElementById(`sentences-container-${trimmedWord}`);
@@ -1398,27 +1410,33 @@ function fetchAndRenderSentences(word) {
     
     // Find the part of speech (POS) of the word
     const matchingWordEntry = results.find(result => result.ord.toLowerCase() === trimmedWord);  // Updated to use exact match
-    
+    console.log('Matching word entry:', matchingWordEntry); // Check if word is found
+
     const pos = matchingWordEntry ? mapKjonnToPOS(matchingWordEntry.kjønn) : '';
 
     // Generate word variations using the external function
     const wordVariations = trimmedWord.split(',').flatMap(w => generateWordVariationsForSentences(w.trim(), pos));
+    console.log('Generated word variations:', wordVariations);  // Log variations
 
     // Filter results to find sentences that contain any of the word variations in the 'eksempel' field
     let matchingResults = results.filter(r => {
         // Loop through each variation and check if it exists in the sentence
         return wordVariations.some(variation => {
-            if (pos === 'preposition') {
+            if (pos === 'preposition' || pos === 'adverb') {
                 // Log the sentence and variation being tested
                 const regex = new RegExp(`(^|\\s)${variation}($|\\s)`, 'gi');
                 const match = regex.test(r.eksempel);
                 return match;
             } else {
-                const matchFound = r.eksempel.toLowerCase().includes(variation);
-                return matchFound;
+                // For all other parts of speech, ensure the word starts a word
+                const regexStartOfWord = new RegExp(`\\b${variation}`, 'i');  // Match if it starts a word
+                const match = regexStartOfWord.test(r.eksempel);
+                return match;
             }
         });
     });
+
+    console.log('Matching results:', matchingResults); // Log matching results
 
     // Check if there are any matching results
     if (matchingResults.length === 0) {
@@ -1444,7 +1462,9 @@ function fetchAndRenderSentences(word) {
     // Apply highlighting for the new word and reset any previous highlighting
     matchingResults.forEach(result => {
         wordVariations.forEach(variation => {
-            result.eksempel = highlightQuery(result.eksempel, variation);  // Reset and apply highlight for the current word
+            const highlightedSentence = highlightQuery(result.eksempel, variation);  // Highlight query in sentence
+            console.log('Highlighted sentence:', highlightedSentence);  // Log highlighted sentence
+            result.eksempel = highlightedSentence;  // Set the highlighted sentence back
         });
     });
 
@@ -1455,6 +1475,7 @@ function fetchAndRenderSentences(word) {
     `;
 
     let sentenceContent = renderSentencesHTML(matchingResults, wordVariations);
+    console.log('Sentence content:', sentenceContent);  // Log final rendered content
 
     if (sentenceContent) {
         sentenceContainer.innerHTML = sentenceContent;
@@ -1567,27 +1588,54 @@ function updateURL(query, type, selectedPOS) {
 function loadStateFromURL() {
     const url = new URL(window.location);
     const query = url.searchParams.get('query') || '';  // Default to an empty query if not present
-    const type = url.searchParams.get('type') || 'words';  // Use the type from the URL or default to 'words'
+    const type = url.searchParams.has('type') ? url.searchParams.get('type') : document.getElementById('type-select').value;  // Only update type if it's in the URL
     const selectedPOS = url.searchParams.get('pos') || '';  // Default to an empty POS if not present
-    const landing = url.searchParams.get('landing') === 'true';  // Check if landing=true is set
 
-    // Set the correct values in the DOM elements
+    // Set the search bar value
     document.getElementById('search-bar').value = query;
-    document.getElementById('type-select').value = type;  // Respect the type from the URL (sentences or words)
-    
-    if (selectedPOS) {
-        document.getElementById('pos-select').value = selectedPOS;
+
+    // Only change the type if 'type' is explicitly defined in the URL
+    if (url.searchParams.has('type')) {
+        document.getElementById('type-select').value = type;  // Set type from URL
     }
 
-    if (landing) {
-        showLandingCard(true);  // Show the landing card if the landing param is true
-        return;  // Stop execution here, so no search happens
+    // Get the POS and CEFR filter elements
+    const posSelect = document.getElementById('pos-select');
+    const posFilterContainer = document.querySelector('.pos-filter');
+    const cefrSelect = document.getElementById('cefr-select');
+    const cefrFilterContainer = document.querySelector('.cefr-filter');
+
+    if (type === 'sentences') {
+        // Disable POS and CEFR filters for sentences
+        posSelect.disabled = true;
+        posSelect.value = '';  // Clear POS selection
+        posFilterContainer.classList.add('disabled');
+
+        cefrSelect.disabled = true;
+        cefrSelect.value = '';  // Clear CEFR selection
+        cefrFilterContainer.classList.add('disabled');
+    } else {
+        // Enable POS and CEFR filters for words
+        posSelect.disabled = false;
+        posFilterContainer.classList.remove('disabled');
+
+        cefrSelect.disabled = false;
+        cefrFilterContainer.classList.remove('disabled');
+
+        // Restore previously selected POS and CEFR levels
+        if (selectedPOS) {
+            posSelect.value = selectedPOS;
+        }
     }
 
+    // Perform the search if there's a query, otherwise show the landing card
     if (query) {
-        renderWordDefinition(query);
+        search();  // Perform the search based on the URL state
+    } else {
+        showLandingCard(true);  // Show landing page if no query
     }
 }
+
 
 // Function to handle clicking on a search result card
 function handleCardClick(event, word, pos, engelsk) {
