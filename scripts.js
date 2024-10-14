@@ -694,7 +694,10 @@ function checkForSentences(word) {
 
         // Check if any sentences in the data include this word or its variations in the 'eksempel' field
         if (results.some(result => 
-            result.eksempel && wordVariations.some(variation => result.eksempel.toLowerCase().includes(variation))
+            result.eksempel && wordVariations.some(variation => {
+                const regex = new RegExp(`\\b${variation}`, 'i');  // Match word boundaries
+                return regex.test(result.eksempel.toLowerCase().trim());
+            })
         )) {
             sentenceFound = true;  // If a sentence is found for any variation, mark as true
         }
@@ -910,8 +913,11 @@ function generateWordVariationsForSentences(word, pos) {
                 variations.push(`${adj} ${noun}`);
             });
         });
+    } else {
+        // Add the original phrase as a variation (no transformation needed for long phrases)
+        variations.push(word);
     }
-    console.log('Generated variations:', variations);  // Log the final variations
+
     return variations;
 }
 
@@ -1392,13 +1398,6 @@ function fetchAndRenderSentences(word) {
     let matchingResults = results.filter(r => {
         // Loop through each variation and check if it exists in the sentence
         return wordVariations.some(variation => {
-            const sentenceTrimmed = r.eksempel.toLowerCase().trim();
-            const variationTrimmed = variation.trim();    
-
-            // Log the sentence and word lengths to debug
-            console.log(`Sentence: '${sentenceTrimmed}' | Length: ${sentenceTrimmed.length}`);
-            console.log(`Word being matched: '${variationTrimmed}' | Length: ${variationTrimmed.length}`);
-
             if (pos === 'preposition' || pos === 'adverb') {
                 
                 const regex = new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, 'gi');
