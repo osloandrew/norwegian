@@ -911,6 +911,7 @@ function generateWordVariationsForSentences(word, pos) {
             });
         });
     }
+    console.log('Generated variations:', variations);  // Log the final variations
     return variations;
 }
 
@@ -1391,9 +1392,16 @@ function fetchAndRenderSentences(word) {
     let matchingResults = results.filter(r => {
         // Loop through each variation and check if it exists in the sentence
         return wordVariations.some(variation => {
+            const sentenceTrimmed = r.eksempel.toLowerCase().trim();
+            const variationTrimmed = variation.trim();    
+
+            // Log the sentence and word lengths to debug
+            console.log(`Sentence: '${sentenceTrimmed}' | Length: ${sentenceTrimmed.length}`);
+            console.log(`Word being matched: '${variationTrimmed}' | Length: ${variationTrimmed.length}`);
+
             if (pos === 'preposition' || pos === 'adverb') {
-                // Log the sentence and variation being tested
-                const regex = new RegExp(`(^|\\s)${variation}($|\\s)`, 'gi');
+                
+                const regex = new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, 'gi');
                 const match = regex.test(r.eksempel);
                 return match;
             } else {
