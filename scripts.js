@@ -682,8 +682,9 @@ function checkForSentences(word) {
     // Split the word by commas to handle comma-separated entries like "anglifisere, anglisere"
     const wordParts = lowerCaseWord.split(',').map(w => w.trim());
 
-    // Iterate through each part of the comma-separated list
     let sentenceFound = false;
+
+    // Iterate through each part of the comma-separated list
     wordParts.forEach(wordPart => {
         // Find part of speech (POS) for each word part
         const matchingWordEntry = results.find(result => result.ord.toLowerCase().includes(wordPart));
@@ -696,7 +697,8 @@ function checkForSentences(word) {
         if (results.some(result => 
             result.eksempel && wordVariations.some(variation => {
                 const regex = new RegExp(`\\b${variation}`, 'i');  // Match word boundaries
-                return regex.test(result.eksempel.toLowerCase().trim());
+                const match = regex.test(result.eksempel.toLowerCase().trim());
+                return match;
             })
         )) {
             sentenceFound = true;  // If a sentence is found for any variation, mark as true
@@ -871,7 +873,6 @@ function displaySearchResults(results, query = '') {
 // Utility function to generate word variations for verbs ending in -ere and handle adjective/noun forms
 function generateWordVariationsForSentences(word, pos) {
     const variations = [];
-    console.log(`Generating variations for word '${word}' with POS '${pos}'`); // Check the word and its POS
     
     // Split the word into parts in case it's a phrase (e.g., "vedtatt sannhet")
     const wordParts = word.split(' ');
@@ -899,13 +900,28 @@ function generateWordVariationsForSentences(word, pos) {
 
     // If it's a phrase (e.g., "vedtatt sannhet"), handle each part separately
     } else if (wordParts.length === 2) {
-        const [adjectivePart, nounPart] = wordParts;
+        const [firstWord, secondWord] = wordParts;
+
+        if (secondWord === 'seg') {
+            const stem = firstWord.slice(0, -1);  // Remove the final -e from the verb
+
+            // Add all verb forms followed by "seg"
+            variations.push(
+                `${stem}e seg`,    // infinitive
+                `${stem}er seg`,    // present tense: nærmer seg
+                `${stem}te seg`,    // past tense: nærmet seg
+                `${stem}t seg`,     // past participle: nærmet seg
+                `${stem} seg`,      // imperative: nærm seg
+                `${stem}es seg`     // passive: nærmes seg
+            );
+
+        } else {
 
         // Handle adjective inflection (e.g., "vedtatt" -> "vedtatte")
-        const adjectiveVariations = [adjectivePart, adjectivePart.replace(/t$/, 'te')];  // Add plural/adjective form
+        const adjectiveVariations = [firstWord, firstWord.replace(/t$/, 'te')];  // Add plural/adjective form
 
         // Handle noun pluralization (e.g., "sannhet" -> "sannheter")
-        const nounVariations = [nounPart, nounPart + 'er'];  // Add plural form for nouns
+        const nounVariations = [secondWord, secondWord + 'er'];  // Add plural form for nouns
 
         // Combine all variations of adjective and noun
         adjectiveVariations.forEach(adj => {
@@ -913,6 +929,7 @@ function generateWordVariationsForSentences(word, pos) {
                 variations.push(`${adj} ${noun}`);
             });
         });
+        }
     } else {
         // Add the original phrase as a variation (no transformation needed for long phrases)
         variations.push(word);
