@@ -873,9 +873,25 @@ function displaySearchResults(results, query = '') {
 // Utility function to generate word variations for verbs ending in -ere and handle adjective/noun forms
 function generateWordVariationsForSentences(word, pos) {
     const variations = [];
+
+    console.log(`Generating variations for word '${word}' with POS '${pos}'`);
     
     // Split the word into parts in case it's a phrase (e.g., "vedtatt sannhet")
     const wordParts = word.split(' ');
+
+    // Handle phrases with slashes (e.g., "være/vær så snill", "logge inn/på")
+    if (word.includes('/')) {
+        // Split on the slash and create variations for both parts
+        const [firstPart, secondPart] = word.split('/');
+        const restOfPhrase = word.split(' ').slice(1).join(' ');  // Get the rest of the phrase after the first word
+        
+        variations.push(`${firstPart} ${restOfPhrase}`);  // Add the first part with the rest of the phrase
+        variations.push(`${secondPart} ${restOfPhrase}`); // Add the second part with the rest of the phrase
+        return variations;
+    }
+
+    // Reflexive pronouns to handle reflexive verbs with variations (e.g., "seg", "deg", "meg", "oss", etc.)
+    const reflexivePronouns = ['seg', 'deg', 'meg', 'oss', 'dere'];
 
     // If it's a single word
     if (wordParts.length === 1) {
@@ -899,37 +915,52 @@ function generateWordVariationsForSentences(word, pos) {
         }
 
     // If it's a phrase (e.g., "vedtatt sannhet"), handle each part separately
-    } else if (wordParts.length === 2) {
-        const [firstWord, secondWord] = wordParts;
+    } else if (wordParts.length >= 2) {
+        const [firstWord, secondWord, ...restOfPhrase] = wordParts;
+        const remainingPhrase = restOfPhrase.join(' ');
 
-        if (secondWord === 'seg') {
-            const stem = firstWord.slice(0, -1);  // Remove the final -e from the verb
-
-            // Add all verb forms followed by "seg"
-            variations.push(
-                `${stem}e seg`,    // infinitive
-                `${stem}er seg`,    // present tense: nærmer seg
-                `${stem}te seg`,    // past tense: nærmet seg
-                `${stem}t seg`,     // past participle: nærmet seg
-                `${stem} seg`,      // imperative: nærm seg
-                `${stem}es seg`     // passive: nærmes seg
-            );
-
-        } else {
-
-        // Handle adjective inflection (e.g., "vedtatt" -> "vedtatte")
-        const adjectiveVariations = [firstWord, firstWord.replace(/t$/, 'te')];  // Add plural/adjective form
-
-        // Handle noun pluralization (e.g., "sannhet" -> "sannheter")
-        const nounVariations = [secondWord, secondWord + 'er'];  // Add plural form for nouns
-
-        // Combine all variations of adjective and noun
-        adjectiveVariations.forEach(adj => {
-            nounVariations.forEach(noun => {
-                variations.push(`${adj} ${noun}`);
+        // Handle reflexive verbs like "beklage seg" with variations for reflexive pronouns
+        if (reflexivePronouns.includes(secondWord)) {
+            let stem;
+            // Only remove the final 'e' if it exists; otherwise, use the full word (e.g., for "bry")
+            if (firstWord.endsWith('e')) {
+                stem = firstWord.slice(0, -1);  // Remove the final -e from the verb
+            } else {
+                stem = firstWord;  // Use the full word if it doesn't end with 'e'
+            }
+            // Add variations for all reflexive pronouns (seg, deg, meg, etc.)
+            reflexivePronouns.forEach(reflexive => {
+                variations.push(
+                    `${stem}e ${reflexive} ${remainingPhrase}`,   // infinitive
+                    `${stem}er ${reflexive} ${remainingPhrase}`,  // present tense
+                    `${stem}te ${reflexive} ${remainingPhrase}`,  // past tense
+                    `${stem}t ${reflexive} ${remainingPhrase}`,   // past participle
+                    `${stem}et ${reflexive} ${remainingPhrase}`,  // past tense/past participle
+                    `${stem}a ${reflexive} ${remainingPhrase}`,  // past tense/past participle
+                    `${stem} ${reflexive} ${remainingPhrase}`,    // imperative
+                    `${stem}es ${reflexive} ${remainingPhrase}`   // passive
+                );
             });
-        });
+
+        } else if (wordParts.length === 2) {
+
+            // Handle adjective inflection (e.g., "vedtatt" -> "vedtatte")
+            const adjectiveVariations = [firstWord, firstWord.replace(/t$/, 'te')];  // Add plural/adjective form
+
+            // Handle noun pluralization (e.g., "sannhet" -> "sannheter")
+            const nounVariations = [secondWord, secondWord + 'er'];  // Add plural form for nouns
+
+            // Combine all variations of adjective and noun
+            adjectiveVariations.forEach(adj => {
+                nounVariations.forEach(noun => {
+                    variations.push(`${adj} ${noun}`);
+                });
+            });
+        } else {
+            // For other longer phrases, just return the phrase as is
+            variations.push(word);
         }
+
     } else {
         // Add the original phrase as a variation (no transformation needed for long phrases)
         variations.push(word);
