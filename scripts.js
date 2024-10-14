@@ -1405,7 +1405,7 @@ function fetchAndRenderSentences(word) {
                 return match;
             } else {
                 // For all other parts of speech, ensure the word starts a word
-                const regexStartOfWord = new RegExp(`\\b${variation}`, 'i');  // Match if it starts a word
+                const regexStartOfWord = new RegExp(`(^|[^\\wåæøÅÆØ])${variation}`, 'i');                
                 const match = regexStartOfWord.test(r.eksempel);
                 return match;
             }
