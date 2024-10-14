@@ -320,9 +320,11 @@ function parseCSVData(data) {
         header: true,
         skipEmptyLines: true,
         complete: function (resultsFromParse) {
-            results = resultsFromParse.data;
-            console.log('Parsed data:', results);  // Log the parsed data
-            
+            results = resultsFromParse.data.map(entry => {
+                entry.ord = entry.ord.trim();  // Ensure the word is trimmed
+                return entry;
+            });
+            console.log('Parsed and cleaned data:', results);
         },
         error: function (error) {
             console.error('Error parsing CSV:', error);
@@ -456,7 +458,6 @@ function generateInexactMatches(query) {
     
     return variations;
 }
-
 
 // Perform a search based on the input query and selected POS
 async function search() {
@@ -625,11 +626,9 @@ async function search() {
             const isExactMatchA = a.ord.toLowerCase() === queryLower;
             const isExactMatchB = b.ord.toLowerCase() === queryLower;
             if (isExactMatchA && !isExactMatchB) {
-                console.log(`Exact match found for "${a.ord}"`);
                 return -1;
             }
             if (!isExactMatchA && isExactMatchB) {
-                console.log(`Exact match found for "${b.ord}"`);
                 return 1;
             }
         
@@ -638,11 +637,9 @@ async function search() {
             const aExactInPhrase = regexExactMatch.test(a.ord);
             const bExactInPhrase = regexExactMatch.test(b.ord);
             if (aExactInPhrase && !bExactInPhrase) {
-                console.log(`Whole word match found in phrase for "${a.ord}"`);
                 return -1;
             }
             if (!aExactInPhrase && bExactInPhrase) {
-                console.log(`Whole word match found in phrase for "${b.ord}"`);
                 return 1;
             }
         
@@ -650,11 +647,9 @@ async function search() {
             const aIsInCommaList = a.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
             const bIsInCommaList = b.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
             if (aIsInCommaList && !bIsInCommaList) {
-                console.log(`Exact match in English list for "${a.ord}"`);
                 return -1;
             }
             if (!aIsInCommaList && bIsInCommaList) {
-                console.log(`Exact match in English list for "${b.ord}"`);
                 return 1;
             }
         
@@ -662,18 +657,15 @@ async function search() {
             const aContainsInWord = a.ord.toLowerCase().includes(queryLower) && a.ord.toLowerCase() !== queryLower;
             const bContainsInWord = b.ord.toLowerCase().includes(queryLower) && b.ord.toLowerCase() !== queryLower;
             if (aContainsInWord && !bContainsInWord) {
-                console.log(`"${a.ord}" contains query "${queryLower}" (not exact match)`);
                 return 1;
             }
             if (!aContainsInWord && bContainsInWord) {
-                console.log(`"${b.ord}" contains query "${queryLower}" (not exact match)`);
                 return -1;
             }
         
             // 5. Sort by the position of the query in the word (earlier is better)
             const aIndex = a.ord.toLowerCase().indexOf(queryLower);
             const bIndex = b.ord.toLowerCase().indexOf(queryLower);
-            console.log(`Position of query in "${a.ord}": ${aIndex}, in "${b.ord}": ${bIndex}`);
             return aIndex - bIndex;
         });                
 
@@ -876,6 +868,7 @@ function displaySearchResults(results, query = '') {
 // Utility function to generate word variations for verbs ending in -ere and handle adjective/noun forms
 function generateWordVariationsForSentences(word, pos) {
     const variations = [];
+    console.log(`Generating variations for word '${word}' with POS '${pos}'`); // Check the word and its POS
     
     // Split the word into parts in case it's a phrase (e.g., "vedtatt sannhet")
     const wordParts = word.split(' ');
@@ -886,7 +879,7 @@ function generateWordVariationsForSentences(word, pos) {
         
         // Handle verb variations if the word is a verb and ends with "ere"
         if (singleWord.endsWith('ere') && pos === 'verb') {
-            const stem = singleWord.slice(0, -3);  // Remove the -ere part
+            const stem = singleWord.slice(0, -1);  // Remove the final -e part
             variations.push(
                 singleWord,        // infinitive: anglifisere
                 `${stem}er`,       // present tense: anglifiserer
@@ -895,6 +888,7 @@ function generateWordVariationsForSentences(word, pos) {
                 `${stem}`,         // imperative: anglifiser
                 `${stem}es`        // passive: anglifiseres
             );
+
         } else {
             // For non-verbs, just add the word itself as a variation
             variations.push(singleWord);
@@ -917,7 +911,6 @@ function generateWordVariationsForSentences(word, pos) {
             });
         });
     }
-
     return variations;
 }
 
@@ -1192,9 +1185,6 @@ function renderSentences(sentenceResults, word) {
 
     // Insert the generated HTML into the results container
     document.getElementById('results-container').innerHTML = htmlString;
-
-    console.log("Exact matches:", exactMatches);
-    console.log("Partial matches:", partialMatches);
 }
 
 
@@ -1204,12 +1194,10 @@ function highlightQuery(sentence, query) {
 
     // Always remove any existing highlights by replacing the <span> tags to avoid persistent old highlights
     let cleanSentence = sentence.replace(/<span style="color: #3c88d4;">(.*?)<\/span>/gi, '$1');
-    console.log('Cleaned sentence:', cleanSentence);
 
     // Define a regex pattern that includes Norwegian characters and dynamically inserts the query
     const norwegianLetters = '[\\wåæøÅÆØ]'; // Include Norwegian letters in the pattern
     const regex = new RegExp(`(${norwegianLetters}*${query}${norwegianLetters}*)`, 'gi');
-    console.log('Generated regex:', regex);
 
     // Highlight all occurrences of the query in the sentence
     cleanSentence = cleanSentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
@@ -1222,7 +1210,6 @@ function highlightQuery(sentence, query) {
         // Define a regex pattern that includes Norwegian characters and dynamically inserts the query
         const norwegianLetters = '[\\wåæøÅÆØ]'; // Include Norwegian letters in the pattern
         const regex = new RegExp(`(${norwegianLetters}*${q}${norwegianLetters}*)`, 'gi');
-        console.log('Generated regex for query:', regex);
 
         // Highlight all occurrences of the query variation in the sentence
         cleanSentence = cleanSentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
@@ -1254,9 +1241,6 @@ function renderSentencesHTML(sentenceResults, wordVariations) {
     let inexactMatches = [];
     let uniqueSentences = new Set(); // Track unique sentences
 
-    // Log word variations for debugging
-    console.log(`Word Variations for rendering:`, wordVariations);
-
     sentenceResults.forEach(result => {
         // Strip out any existing <span> tags from the example sentence
         const rawSentence = result.eksempel.replace(/<[^>]*>/g, '');
@@ -1270,14 +1254,10 @@ function renderSentencesHTML(sentenceResults, wordVariations) {
                 // Only add unique sentences
                 uniqueSentences.add(trimmedSentence);
 
-                console.log(`Processing sentence: "${trimmedSentence}"`);  // Log the sentence being processed
-
                 // Check if the sentence contains any of the word variations
                 let matchedVariation = wordVariations.find(variation => sentence.toLowerCase().includes(variation));
-                console.log(`Matched variation for sentence:`, matchedVariation);  // Log the matched variation
 
                 if (matchedVariation) {
-                    console.log(`Found matched variation: "${matchedVariation}" in sentence: "${sentence}"`);
 
                     // Use a regular expression to match the full word containing any of the variations
                     const norwegianPattern = '[\\wåæøÅÆØ]'; // Pattern including Norwegian letters
@@ -1287,25 +1267,17 @@ function renderSentencesHTML(sentenceResults, wordVariations) {
 
                     // Determine if it's an exact match (contains the exact search term as a full word)
                     const exactMatchRegex = new RegExp(`\\b${matchedVariation.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i');
-                    console.log(`Testing for exact match: "${sentence}" against "${matchedVariation}" with regex: ${exactMatchRegex}`);
 
                     if (exactMatchRegex.test(sentence)) {
-                        console.log(`Exact match found for "${matchedVariation}"`);
                         exactMatches.push(highlightedSentence);  // Exact match
                     } else {
-                        console.log(`Inexact match found for "${matchedVariation}"`);
                         inexactMatches.push(highlightedSentence);  // Inexact match
                     }
                 } else {
-                    console.log(`No match found for variations: ${wordVariations.join(', ')} in sentence: "${sentence}"`);
                 }
             }
         });
     });
-
-    // Log results to understand why no matches are being found
-    console.log("Exact matches:", exactMatches);
-    console.log("Inexact matches:", inexactMatches);
 
     // Combine exact matches first, then inexact matches, respecting the 10 sentence limit
     const combinedMatches = [...exactMatches, ...inexactMatches].slice(0, 10);
@@ -1335,15 +1307,12 @@ function renderSentencesHTML(sentenceResults, wordVariations) {
         `;
     }
 
-    console.log("Generated Sentence HTML:", htmlString); // Log the HTML being generated for the sentences
     return htmlString;
 }
 
 
 function renderWordDefinition(word) {
     const trimmedWord = word.trim().toLowerCase();
-
-    console.log(`Rendering word definition for: "${trimmedWord}"`);
 
     // Switch the type selector back to "words"
     const typeSelect = document.getElementById('type-select');
@@ -1373,14 +1342,10 @@ function renderWordDefinition(word) {
 
 // Fetch and render sentences for a word or phrase, including handling comma-separated variations
 function fetchAndRenderSentences(word) {
-    console.log('Fetching sentences for:', word);
 
     const trimmedWord = word.trim().toLowerCase().replace(/[\r\n]+/g, ''); // Remove any carriage returns or newlines
-    console.log('Trimmed word:', trimmedWord); // Log cleaned word
 
     const button = document.querySelector(`button[data-word='${word}']`);
-
-    console.log('Button for word:', button); // Check if button is correctly selected
 
     // If the sentences are already visible, toggle them off
     const sentenceContainer = document.getElementById(`sentences-container-${trimmedWord}`);
@@ -1410,13 +1375,17 @@ function fetchAndRenderSentences(word) {
     
     // Find the part of speech (POS) of the word
     const matchingWordEntry = results.find(result => result.ord.toLowerCase() === trimmedWord);  // Updated to use exact match
-    console.log('Matching word entry:', matchingWordEntry); // Check if word is found
+
+    if (!matchingWordEntry) {
+        console.error(`No matching word found for "${trimmedWord}".`);
+        return; // Stop if the word isn't found
+    }
+
 
     const pos = matchingWordEntry ? mapKjonnToPOS(matchingWordEntry.kjønn) : '';
 
     // Generate word variations using the external function
     const wordVariations = trimmedWord.split(',').flatMap(w => generateWordVariationsForSentences(w.trim(), pos));
-    console.log('Generated word variations:', wordVariations);  // Log variations
 
     // Filter results to find sentences that contain any of the word variations in the 'eksempel' field
     let matchingResults = results.filter(r => {
@@ -1435,8 +1404,6 @@ function fetchAndRenderSentences(word) {
             }
         });
     });
-
-    console.log('Matching results:', matchingResults); // Log matching results
 
     // Check if there are any matching results
     if (matchingResults.length === 0) {
@@ -1463,7 +1430,6 @@ function fetchAndRenderSentences(word) {
     matchingResults.forEach(result => {
         wordVariations.forEach(variation => {
             const highlightedSentence = highlightQuery(result.eksempel, variation);  // Highlight query in sentence
-            console.log('Highlighted sentence:', highlightedSentence);  // Log highlighted sentence
             result.eksempel = highlightedSentence;  // Set the highlighted sentence back
         });
     });
@@ -1475,7 +1441,6 @@ function fetchAndRenderSentences(word) {
     `;
 
     let sentenceContent = renderSentencesHTML(matchingResults, wordVariations);
-    console.log('Sentence content:', sentenceContent);  // Log final rendered content
 
     if (sentenceContent) {
         sentenceContainer.innerHTML = sentenceContent;
@@ -1671,7 +1636,6 @@ window.onload = function() {
     const randomBtn = document.getElementById('random-btn');
 
     if (searchBtn && randomBtn) {
-        console.log("Buttons found. Disabling them.");
 
         // Disable the search and random buttons on load
         searchBtn.disabled = true;
@@ -1683,7 +1647,6 @@ window.onload = function() {
         randomBtn.style.color = '#ccc';
         randomBtn.style.cursor = 'not-allowed';
     } else {
-        console.log("Buttons not found in the DOM.");
     }
 
 
