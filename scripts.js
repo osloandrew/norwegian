@@ -718,9 +718,7 @@ function displaySearchResults(results, query = '') {
         result.pos = mapGenderToPOS(result.gender);
 
         // Check if sentences are available using enhanced checkForSentences
-        console.log(`Checking for sentences for word: ${result.ord}, POS: ${mapGenderToPOS(result.gender)}`);
         const hasSentences = checkForSentences(result.ord, result.pos);
-        console.log(`Sentences found for ${result.ord}: ${hasSentences}`);
 
         // Convert the word to lowercase and trim spaces when generating the ID
         const normalizedWord = result.ord.toLowerCase().trim();
@@ -776,6 +774,12 @@ function displaySearchResults(results, query = '') {
     appendToContainer(htmlString);
 }
 
+// Function to find the gender of a word
+function getWordGender(word) {
+    const matchingWord = results.find(result => result.ord.toLowerCase() === word.toLowerCase());
+    return matchingWord ? matchingWord.gender : 'unknown';  // Default to 'unknown' if not found
+}
+
 // Utility function to generate word variations for verbs ending in -ere and handle adjective/noun forms
 function generateWordVariationsForSentences(word, pos) {
     const variations = [];
@@ -800,19 +804,36 @@ function generateWordVariationsForSentences(word, pos) {
     // If it's a single word
     if (wordParts.length === 1) {
         const singleWord = wordParts[0];
-        
-        // Handle verb variations if the word is a verb and ends with "ere"
-        if (singleWord.endsWith('ere') && pos === 'verb') {
-            const stem = singleWord.slice(0, -1);  // Remove the final -e part
+        let stem = singleWord;
+        let gender = getWordGender(singleWord);
+        if (pos === 'noun' && gender.includes('ei')) {
+            if (singleWord.endsWith('e')) {
+                stem = singleWord.slice(0, -1);  // Remove the final -e from the word
+            }
+                variations.push(
+                    `${stem}`,        // setning
+                    `${stem}e`,       // jente
+                    `${stem}a`,       // jenta
+                    `${stem}en`,      // jenten
+                    `${stem}er`,      // jenter
+                    `${stem}ene`,     // jentene
+                );
+        // Handle verb variations if the word is a verb and ends with "e"
+        } else if (pos === 'verb') {
+            if (singleWord.endsWith('e')) {
+                stem = singleWord.slice(0, -1);  // Remove the final -e from the verb
+            } 
             variations.push(
-                singleWord,        // infinitive: anglifisere
-                `${stem}er`,       // present tense: anglifiserer
-                `${stem}te`,       // past tense: anglifiserte
-                `${stem}t`,        // past participle: anglifisert
                 `${stem}`,         // imperative: anglifiser
-                `${stem}es`        // passive: anglifiseres
+                `${stem}a`,        // past tense: snakka
+                `${stem}e`,        // infinitive: anglifisere
+                `${stem}er`,       // present tense: anglifiserer
+                `${stem}es`,       // passive: anglifiseres
+                `${stem}et`,       // past tense: snakket
+                `${stem}r`,        // present tense: bor
+                `${stem}t`,        // past participle: anglifisert
+                `${stem}te`        // past tense: anglifiserte
             );
-
         } else {
             // For non-verbs, just add the word itself as a variation
             variations.push(singleWord);
