@@ -1663,7 +1663,6 @@ function loadStateFromURL() {
     }
 }
 
-
 // Function to handle clicking on a search result card
 function handleCardClick(event, word, pos, engelsk) {
 
@@ -1676,7 +1675,7 @@ function handleCardClick(event, word, pos, engelsk) {
         const wordMatch = r.ord.toLowerCase().trim() === word.toLowerCase().trim();
         const mappedPOS = mapGenderToPOS(r.gender).toLowerCase().trim();
         const posMatch = mapGenderToPOS(r.gender).toLowerCase().trim() === pos.toLowerCase().trim();
-        const engelskMatch = r.engelsk.toLowerCase().trim().includes(engelsk.toLowerCase().trim());
+        const engelskMatch = r.engelsk.toLowerCase().trim() === engelsk.toLowerCase().trim();
         console.log(`Filtering Result: ${r.ord}, gender: ${r.gender}, Mapped POS: ${mappedPOS}, Expected POS: ${pos}`);  // Log mapped POS
         return wordMatch && posMatch && engelskMatch;
         
