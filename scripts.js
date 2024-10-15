@@ -232,7 +232,7 @@ function filterResultsByCEFR(results, selectedCEFR) {
 
 
 // Helper function to format 'gender' (grammatical gender) based on its value
-function formatgender(gender) {
+function formatGender(gender) {
     return gender && gender[0].toLowerCase() === 'e' ? 'substantiv - ' + gender : gender;
 }
 
@@ -686,19 +686,24 @@ async function search() {
 }
 
 // Check if any sentences exist for a word or its variations
-function checkForSentences(word) {
+function checkForSentences(word, pos) {
     const lowerCaseWord = word.trim().toLowerCase();
-
-    // Split the word by commas to handle comma-separated entries like "anglifisere, anglisere"
     const wordParts = lowerCaseWord.split(',').map(w => w.trim());
-
     let sentenceFound = false;
 
     // Iterate through each part of the comma-separated list
     wordParts.forEach(wordPart => {
-        // Find part of speech (POS) for each word part
-        const matchingWordEntry = results.find(result => result.ord.toLowerCase().includes(wordPart));
-        const pos = matchingWordEntry ? mapGenderToPOS(matchingWordEntry.gender) : '';
+        // Find matching word entry by both word and POS
+        const matchingWordEntry = results.find(result => {
+            const wordMatch = result.ord.toLowerCase().includes(wordPart);
+            const posMatch = mapGenderToPOS(result.gender).toLowerCase() === pos.toLowerCase();
+            return wordMatch && posMatch;  // Ensure both word and POS match
+        });
+
+        if (!matchingWordEntry) {
+            console.log(`No matching word entry for '${wordPart}' with POS '${pos}'`);
+            return;
+        }
 
         // Generate word variations
         const wordVariations = generateWordVariationsForSentences(wordPart, pos);
@@ -706,15 +711,23 @@ function checkForSentences(word) {
         // Check if any sentences in the data include this word or its variations in the 'eksempel' field
         if (results.some(result => 
             result.eksempel && wordVariations.some(variation => {
+                if (pos === 'adverb' || pos === 'conjunction' || pos === 'preposition') {
+                // Apply the strict match logic for these POS types (perfect match, no special endings)
+                const regex = new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, 'gi');
+                const match = regex.test(result.eksempel);
+                return match;
+                } else {
                 const regex = new RegExp(`\\b${variation}`, 'i');  // Match word boundaries
                 const match = regex.test(result.eksempel.toLowerCase().trim());
                 return match;
+            }
             })
         )) {
             sentenceFound = true;  // If a sentence is found for any variation, mark as true
         }
     });
 
+    console.log(`Sentence found status for word '${word}': ${sentenceFound}`);
     return sentenceFound;
 }
 
@@ -821,10 +834,13 @@ function displaySearchResults(results, query = '') {
 
     // Limit to a maximum of 10 results
     results.slice(0, 10).forEach(result => {
-        result.gender = formatgender(result.gender);
+        result.gender = formatGender(result.gender);
+        result.pos = mapGenderToPOS(result.gender);
 
         // Check if sentences are available using enhanced checkForSentences
-        const hasSentences = checkForSentences(result.ord);
+        console.log(`Checking for sentences for word: ${result.ord}, POS: ${mapGenderToPOS(result.gender)}`);
+        const hasSentences = checkForSentences(result.ord, result.pos);
+        console.log(`Sentences found for ${result.ord}: ${hasSentences}`);
 
         // Convert the word to lowercase and trim spaces when generating the ID
         const normalizedWord = result.ord.toLowerCase().trim();
@@ -1295,8 +1311,6 @@ function highlightQuery(sentence, query) {
 
     return cleanSentence;  // Return the fully updated sentence
 }
-
-
 
 function renderSentencesHTML(sentenceResults, wordVariations) {
     let htmlString = '';  // String to accumulate the generated HTML
