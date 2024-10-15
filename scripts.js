@@ -238,7 +238,6 @@ function formatgender(gender) {
 
 // Function to map 'gender' to part of speech (POS)
 function mapGenderToPOS(gender) {
-    console.log(`Mapping gender: ${gender} to POS`);
 
     if (!gender) return '';
 
@@ -397,7 +396,6 @@ async function randomWord() {
     } else {
         // Filter results by the selected part of speech (for 'words' type)
         filteredResults = filterResultsByPOS(results, selectedPOS);
-        console.log(`Filtered Results by POS: ${filteredResults.length} results found for POS '${selectedPOS}'`);
 
         // Additionally, filter by the selected CEFR level if applicable
         filteredResults = filteredResults.filter(r => !selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR));
@@ -703,9 +701,7 @@ function checkForSentences(word) {
         const pos = matchingWordEntry ? mapGenderToPOS(matchingWordEntry.gender) : '';
 
         // Generate word variations
-        console.log(`Before generating variations: Word: ${word}, POS: ${pos}`); // Check POS before calling the function
         const wordVariations = generateWordVariationsForSentences(wordPart, pos);
-        console.log(`Word: ${wordPart}, POS used: ${pos}, Generated Variations: ${wordVariations}`);
 
         // Check if any sentences in the data include this word or its variations in the 'eksempel' field
         if (results.some(result => 
@@ -875,7 +871,7 @@ function displaySearchResults(results, query = '') {
                 <!-- Render the highlighted example sentence here -->
                 <div class="${multipleResultsHiddenContent}">${highlightedExample ? `<p class="example">${formatDefinitionWithMultipleSentences(highlightedExample)}</p>` : ''}</div>
                 <!-- Show "Show Sentences" button only if sentences exist -->
-                <div class="${multipleResultsHiddenContent}">${hasSentences ? `<button class="sentence-btn" data-word="${escapedWord}" onclick="event.stopPropagation(); fetchAndRenderSentences('${escapedWord}')">Show Sentences</button>` : ''}</div>
+                <div class="${multipleResultsHiddenContent}">${hasSentences ? `<button class="sentence-btn" data-word="${escapedWord}" onclick="event.stopPropagation(); fetchAndRenderSentences('${escapedWord}', '${mapGenderToPOS(result.gender)}')">Show Sentences</button>` : ''}</div>
             </div>
             <!-- Sentences container is now outside the definition block -->
             <div class="sentences-container" id="sentences-container-${normalizedWord}"></div>
@@ -887,8 +883,6 @@ function displaySearchResults(results, query = '') {
 // Utility function to generate word variations for verbs ending in -ere and handle adjective/noun forms
 function generateWordVariationsForSentences(word, pos) {
     const variations = [];
-
-    console.log(`Generating variations for word '${word}' with POS '${pos}'`);  // Log word and POS
     
     // Split the word into parts in case it's a phrase (e.g., "vedtatt sannhet")
     const wordParts = word.split(' ');
@@ -1410,7 +1404,7 @@ function renderWordDefinition(word) {
 }
 
 // Fetch and render sentences for a word or phrase, including handling comma-separated variations
-function fetchAndRenderSentences(word) {
+function fetchAndRenderSentences(word, pos) {
 
     const trimmedWord = word.trim().toLowerCase().replace(/[\r\n]+/g, ''); // Remove any carriage returns or newlines
 
@@ -1450,11 +1444,9 @@ function fetchAndRenderSentences(word) {
         return; // Stop if the word isn't found
     }
 
-
-    const pos = matchingWordEntry ? mapGenderToPOS(matchingWordEntry.gender) : '';
-
     // Generate word variations using the external function
     const wordVariations = trimmedWord.split(',').flatMap(w => generateWordVariationsForSentences(w.trim(), pos));
+    console.log(`Generated word variations for '${trimmedWord}' with POS '${pos}':`, wordVariations);
 
     // Filter results to find sentences that contain any of the word variations in the 'eksempel' field
     let matchingResults = results.filter(r => {
