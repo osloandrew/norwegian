@@ -35,7 +35,6 @@ function debounceSearchTrigger(func, delay) {
 // Handle the key input, performing a search on 'Enter' or debouncing otherwise
 function handleKey(event) {
     // Call search function when 'Enter' is pressed or debounce it otherwise
-    console.log('Key pressed:', event.key);  // Log the keypress
     debounceSearchTrigger(() => {
         if (event.key === 'Enter') {
             search();
@@ -103,120 +102,6 @@ function togglePronunciationGuide() {
     const pronunciationWrapper = document.querySelector('.pronunciation-wrapper'); // Target the wrapper div
     pronunciationWrapper.classList.toggle('hidden'); // Toggle hidden class
 }
-
-
-
-function toggleInflectionTableVisibility(button) {
-    const container = button.parentElement;  // Get the parent element (inflections-container)
-    const table = container.querySelector('.inflections-table');  // Select the table within the container
-    const word = button.getAttribute('data-word');  // Get the word from the data attribute
-    const pos = button.getAttribute('data-pos');    // Get the part of speech (POS)
-    let gender = button.getAttribute('data-gender'); // Get the gender for nouns, if applicable
-
-    // If the table doesn't exist, log an error and return early
-    if (!table) {
-        console.error('Table element not found.');
-        return;
-    }
-
-    // Check if the table is visible using computed styles
-    const isTableVisible = window.getComputedStyle(table).display !== "none";
-
-    // Toggle visibility of the table
-    if (isTableVisible) {
-        table.style.display = "none";  // Hide the table
-        button.textContent = "Show Inflections";  // Update button text
-    } else {
-        // Clear any previous content
-        const tbody = table.querySelector('tbody');
-        tbody.innerHTML = '';
-
-        let variations = [];
-
-        // Normalize gender and ensure it’s valid before generating variations (only for nouns)
-        if (pos === 'noun') {
-            gender = gender ? gender.toLowerCase().trim() : '';
-
-            // Handle multiple genders by splitting the gender string (use both "/" and "-" as delimiters)
-            const genders = gender.split(/[-/]/).map(g => g.trim());
-
-            // Generate tables for each gender
-            genders.forEach(singleGender => {
-                if (singleGender.startsWith('substantiv - ')) {
-                    singleGender = singleGender.replace('substantiv - ', '').trim();
-                }
-
-                // Handle gender detection for nouns
-                if (singleGender.includes('neuter') || singleGender === 'et') {
-                    singleGender = 'neuter';
-                } else if (singleGender.includes('masculine') || singleGender === 'en') {
-                    singleGender = 'masculine';
-                } else if (singleGender.includes('feminine') || singleGender === 'ei') {
-                    singleGender = 'feminine';
-                } else {
-                    console.error(`Unknown gender for noun: ${word}, gender: ${singleGender}`);
-                    return;  // Exit if no valid gender is found
-                }
-
-                // Generate the word variations based on the POS and gender
-                variations = generateWordVariationsForInflections(word, pos, singleGender);
-
-                // Create a new table element for each gender
-                const newTable = document.createElement('table');
-                newTable.classList.add('inflections-table');  // Add the table class
-                
-                // Add a row in the table for each gender
-                let tableContent = '';
-
-                if (variations.length >= 4) {
-                    tableContent = `
-                        <tr><td>${variations[0]}</td><td>${variations[1]}</td></tr>
-                        <tr><td>${variations[2]}</td><td>${variations[3]}</td></tr>
-                    `;
-                } else {
-                    console.error(`Expected 4 noun variations, but got:`, variations);
-                }
-
-                // Append the content to the tbody
-                tbody.innerHTML += tableContent;
-            });
-        } else {
-            // Generate variations for adjectives, verbs, pronouns, and other parts of speech
-            variations = generateWordVariationsForInflections(word, pos);
-
-            let tableContent = '';
-
-            // Handle adjectives with specific inflection forms
-            if (pos === 'adjective' && variations.length > 0) {
-                const adjectiveForms = variations[0];  // The variations array contains the forms
-                tableContent = `
-                    <tr><td>${adjectiveForms[0]}</td><td>${adjectiveForms[1]}</td><td>${adjectiveForms[2]}</td></tr>
-                `;
-            // Handle verbs and pronouns
-            } else if (pos === 'verb' || pos === 'pronoun') {
-                if (variations.length >= 6) {
-                    tableContent = `
-                        <tr><td>${variations[0]}</td><td>${variations[1]}</td><td>${variations[2]}</td></tr>
-                        <tr><td>${variations[3]}</td><td>${variations[4]}</td><td>${variations[5]}</td></tr>
-                    `;
-                } else {
-                    console.error(`Expected 6 verb/pronoun variations, but got:`, variations);
-                }
-            } else {
-                // For other parts of speech, just list the variations
-                tableContent = variations.map(variation => `<tr><td>${variation}</td></tr>`).join('');
-            }
-
-            // Populate the table with the content
-            tbody.innerHTML = tableContent;
-        }
-
-        // Show the table and update the button text
-        table.style.display = "table";  // Show the table
-        button.textContent = "Hide Inflections";
-    }
-}
-
 
 // Filter results based on selected part of speech (POS)
 function filterResultsByPOS(results, selectedPOS) {
@@ -464,12 +349,9 @@ function generateInexactMatches(query) {
 
 // Perform a search based on the input query and selected POS
 async function search() {
-    console.log('Search function triggered');
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
-    console.log(`Search Query: ${query}`);
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
     const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';  // Fetch the selected CEFR level
-    console.log(`Selected POS: ${selectedPOS}, Selected CEFR: ${selectedCEFR}`);
     const type = document.getElementById('type-select').value; // Get the search type (words or sentences)
     const normalizedQueries = [query.toLowerCase().trim()]; // Use only the base query for matching
 
@@ -726,8 +608,6 @@ function checkForSentences(word, pos) {
             sentenceFound = true;  // If a sentence is found for any variation, mark as true
         }
     });
-
-    console.log(`Sentence found status for word '${word}': ${sentenceFound}`);
     return sentenceFound;
 }
 
@@ -992,191 +872,6 @@ function generateWordVariationsForSentences(word, pos) {
 
     return variations;
 }
-
-// Utility function to generate word variations for verbs ending in -ere and handle adjective/noun forms
-function generateWordVariationsForInflections(word, pos, gender = null) {
-    const variations = [];
-
-    // Helper to get the stem of a word by removing the last characters
-    function getStem(word, endingLength) {
-        return word.slice(0, -endingLength);
-    }
-
-    // Irregular verbs dictionary
-    const irregularVerbs = {
-        "gå": { present: "går", past: "gikk", pastParticiple: "gått", imperative: "gå" },
-        "spise": { present: "spiser", past: "spiste", pastParticiple: "spist", imperative: "spis" },
-        "gjøre": { present: "gjør", past: "gjorde", pastParticiple: "gjort", imperative: "gjør" },
-        "bli": { present: "blir", past: "ble", pastParticiple: "blitt", imperative: "bli" },
-        "være": { present: "er", past: "var", pastParticiple: "vært", imperative: "vær" },
-        "kunne": { present: "kan", past: "kunne", pastParticiple: "kunnet", imperative: "" }, // Modal verb, no imperative
-        "skulle": { present: "skal", past: "skulle", pastParticiple: "skullet", imperative: "" }, // Modal verb
-        "ville": { present: "vil", past: "ville", pastParticiple: "villet", imperative: "" }, // Modal verb
-        "måtte": { present: "må", past: "måtte", pastParticiple: "måttet", imperative: "" }, // Modal verb
-        // Add more irregular verbs as needed
-    };
-
-    // Helper function to check if a word ends with an irregular verb and conjugate accordingly
-    function conjugateIrregularVerb(verb) {
-        for (const baseVerb in irregularVerbs) {
-            if (verb.endsWith(baseVerb)) {
-                const stem = verb.slice(0, -baseVerb.length); // Remove the base verb part from the word
-                const verbForms = irregularVerbs[baseVerb];
-                return [
-                    verb,  // infinitive
-                    stem + verbForms.present,  // present tense
-                    stem + verbForms.past,  // past tense
-                    stem + verbForms.pastParticiple,  // past participle
-                    stem + verbForms.imperative,  // imperative (if any)
-                    stem + baseVerb + 's'  // passive form (regular pattern)
-                ];
-            }
-        }
-        return null; // Return null if no irregular verb matches
-    }
-
-    // Handle verbs
-    if (pos === 'verb') {
-        // Check if the word is or ends with an irregular verb
-        const irregularConjugations = conjugateIrregularVerb(word);
-        if (irregularConjugations) {
-            variations.push(...irregularConjugations);
-        } else {
-            if (word.endsWith('ere')) {
-                // For verbs like "insistere"
-                const stem = getStem(word, 1);
-                variations.push(
-                    word,                // infinitive
-                    stem + 'er',          // present tense
-                    stem + 'te',        // past tense
-                    stem + 't',         // past participle
-                    stem,           // imperative
-                    stem + 'es'           // passive form
-                );
-            } else if (word.endsWith('e')) {
-                const stem = getStem(word, 1);
-                if (stem.endsWith('s')) {
-                    // Handle verbs like "lese" where the past is "leste" and past participle is "lest"
-                    variations.push(
-                        word,                // infinitive: lese
-                        stem + 'er',         // present: leser
-                        stem + 'te',         // past: leste
-                        stem + 't',          // past participle: lest
-                        stem,           // imperative: les
-                        stem + 'es'          // passive: leses
-                    );
-                } else {
-                    // Regular verbs, Group 1 pattern
-                    variations.push(
-                        word,                // infinitive: kaste
-                        stem + 'er',         // present: kaster
-                        stem + 'et',         // past: kastet
-                        stem + 'et',         // past participle: kastet
-                        stem,           // imperative: kast
-                        stem + 'es'          // passive: kastes
-                    );
-                }
-            } else if (word.endsWith('a')) {
-                // For verbs like "dra" -> "drar" (Group 3)
-                const stem = getStem(word, 1);
-                variations.push(
-                    word,                // infinitive
-                    stem + 'r',          // present tense
-                    stem + 'dde',        // past tense
-                    stem + 'dd',         // past participle
-                    stem,           // imperative
-                    stem + 's'           // passive form
-                );
-            } else {
-                // Strong verb pattern (Group 4)
-                const stem = getStem(word, 1);
-                variations.push(
-                    word,                // infinitive
-                    stem + 'r',          // present
-                    stem + 't',          // past (default strong verb)
-                    stem + 'tt',         // past participle
-                    stem,           // imperative
-                    stem + 's'           // passive form
-                );
-            }
-        }
-
-    // Handle nouns
-    } else if (pos === 'noun') {
-        if (!gender) {
-            console.warn(`No gender found for noun: ${word}. Applying default (masculine).`);
-            gender = 'masculine';  
-        }
-
-        // Adjust endings for words that already end in 'e'
-        function adjustEndings(baseWord, singularDefiniteEnding, pluralIndefiniteEnding, pluralDefiniteEnding) {
-            if (baseWord.endsWith('e')) {
-                // For feminine nouns like "jente", handle singular definite and plural forms
-                return [
-                    baseWord.slice(0, -1) + singularDefiniteEnding,  // singular definite: jenta
-                    baseWord + 'r',  // plural indefinite: jenter (keep the final 'e' and just add 'r')
-                    baseWord + 'ne'  // plural definite: jentene
-                ];
-            }
-            return [
-                baseWord + singularDefiniteEnding,  // singular definite
-                baseWord + pluralIndefiniteEnding,  // plural indefinite
-                baseWord + pluralDefiniteEnding     // plural definite
-            ];
-        }
-
-        if (gender === 'masculine') {
-            const [singularDefinite, pluralIndefinite, pluralDefinite] = adjustEndings(word, 'en', 'er', 'ene');
-            variations.push(
-                'en ' + word,        // singular indefinite: en stol
-                singularDefinite,    // singular definite: stolen
-                pluralIndefinite,    // plural indefinite: stoler
-                pluralDefinite       // plural definite: stolene
-            );
-        } else if (gender === 'feminine') {
-            const stem = word.endsWith('e') ? word.slice(0, -1) : word;
-            const [singularDefinite, pluralIndefinite, pluralDefinite] = adjustEndings(word, 'a', 'er', 'ene');
-            variations.push(
-                'en/ei ' + word,     // singular indefinite: en/ei jente
-                stem + 'en/' + singularDefinite,  // singular definite: jenten/jenta
-                pluralIndefinite,    // plural indefinite: jenter
-                pluralDefinite       // plural definite: jentene
-            );
-        } else if (gender === 'neuter') {
-            // Handle neuter nouns, with special attention to no plural ending cases
-            const [singularDefinite, pluralIndefinite, pluralDefinite] = adjustEndings(word, 'et', '', 'ene');
-            variations.push(
-                'et ' + word,        // singular indefinite: et hus
-                singularDefinite,    // singular definite: huset
-                pluralIndefinite || word,  // plural indefinite: hus (sometimes the same as singular indefinite)
-                pluralDefinite       // plural definite: husene
-            );
-        }
-    // Handle adjectives
-    } else if (pos === 'adjective') {
-        if (shouldNotDecline(word) === true) {
-            // Handle adjectives that don't decline
-            variations.push([word, word, word]);  // Same word for all forms
-        } else if (shouldNotTakeTInNeuter(word) === true) {
-            // Handle adjectives that don't take 't' in the neuter form
-            variations.push([word, word, word + 'e']);
-        } else if (shouldNotTakeTInNeuter(word) === 'double') {
-            // Handle adjectives that take 'tt' in the neuter form
-            variations.push([word, word + 'tt', word + 'e']);
-        } else {
-            // Regular adjectives
-            variations.push([word, word + 't', word + 'e']);
-        }
-    // Handle pronouns, conjunctions, etc.
-    } else if (pos === 'pronoun') {
-        variations.push(word); // Pronouns generally don’t inflect in the same way
-    }
-    
-    return variations;
-}
-
-
-
 
 
 // Render a single sentence
