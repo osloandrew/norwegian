@@ -220,7 +220,7 @@ button:disabled i {
     font-size: 24px;
 }
 
-.error-message .kjønn {
+.error-message .gender {
     color: #951b1b; /* Error type in a similar error color */
     font-size: 16px;
     font-weight: 600;
@@ -334,7 +334,7 @@ input[type="text"]:not(:placeholder-shown) + label {
     top: -10px;
 }
 
-.kjønn {
+.gender {
     color: #951b1b !important;
     font-family: 'Noto Sans', sans-serif;
     font-size: 18px !important;
@@ -445,12 +445,12 @@ main {
 }
 
 /* The gender */
-.multiple-results-kjonn-class {
+.multiple-results-gender-class {
     font-size: 14px !important;
 }
 
 /* The word and gender */
-.multiple-results-word-kjonn {
+.multiple-results-word-gender {
     display: flex;
     font-size: 20px !important;
     flex-direction: column;  /* Ensures word and gender are stacked vertically */
@@ -747,7 +747,7 @@ main {
     height: 100%; /* Extend the clickable area vertically */
     }
 
-.word-kjonn {
+.word-gender {
     align-items: flex;
     display: flex;
     justify-content: space-between;
@@ -756,7 +756,7 @@ main {
     word-break: break-word;
 }
 
-.word-kjonn .kjønn {
+.word-gender .gender {
     color: #951b1b;
     font-size: 18px;
     font-weight: 400;
@@ -903,12 +903,12 @@ main {
     }
 
     /* The gender */
-    .multiple-results-kjonn-class {
+    .multiple-results-gender-class {
         font-size: 12px !important;
     }
 
     /* The word and gender */
-    .multiple-results-word-kjonn {
+    .multiple-results-word-gender {
         display: flex;
         font-size: 18px !important;
         flex-direction: column;  /* Ensures word and gender are stacked vertically */
@@ -1025,7 +1025,7 @@ main {
         padding-right: 0px;
     }
 
-    .word-kjonn {
+    .word-gender {
         align-items: flex-start;
         display: flex;
         flex-direction: column;
@@ -1033,7 +1033,7 @@ main {
         line-height: 1.4;
     }
 
-    .word-kjonn .kjønn {
+    .word-gender .gender {
         font-size: 4vw;
         margin-top: 5px;
     }
