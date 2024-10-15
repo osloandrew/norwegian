@@ -35,9 +35,11 @@ function debounceSearchTrigger(func, delay) {
 // Handle the key input, performing a search on 'Enter' or debouncing otherwise
 function handleKey(event) {
     // Call search function when 'Enter' is pressed or debounce it otherwise
+    console.log('Key pressed:', event.key);  // Log the keypress
     debounceSearchTrigger(() => {
         if (event.key === 'Enter') {
             search();
+            console.log('Enter key detected, search triggered.');
         }
     }, 300);  // Delay of 300ms before calling search()
 }
@@ -219,7 +221,7 @@ function toggleInflectionTableVisibility(button) {
 // Filter results based on selected part of speech (POS)
 function filterResultsByPOS(results, selectedPOS) {
     if (!selectedPOS) return results;
-    return results.filter(r => mapKjonnToPOS(r.kjønn) === selectedPOS);
+    return results.filter(r => mapGenderToPOS(r.gender) === selectedPOS);
 }
 
 // Filter results based on selected CEFR level
@@ -229,55 +231,57 @@ function filterResultsByCEFR(results, selectedCEFR) {
 }
 
 
-// Helper function to format 'kjønn' (grammatical gender) based on its value
-function formatKjonn(kjonn) {
-    return kjonn && kjonn[0].toLowerCase() === 'e' ? 'substantiv - ' + kjonn : kjonn;
+// Helper function to format 'gender' (grammatical gender) based on its value
+function formatgender(gender) {
+    return gender && gender[0].toLowerCase() === 'e' ? 'substantiv - ' + gender : gender;
 }
 
-// Function to map 'kjønn' to part of speech (POS)
-function mapKjonnToPOS(kjonn) {
-    if (!kjonn) return '';
+// Function to map 'gender' to part of speech (POS)
+function mapGenderToPOS(gender) {
+    console.log(`Mapping gender: ${gender} to POS`);
 
-    kjønn = kjonn.toLowerCase().trim(); // Ensure lowercase and remove any extra spaces
+    if (!gender) return '';
 
-    // Check if the kjønn value includes "substantiv" for nouns
-    if (kjønn.includes('substantiv')) {
+    gender = gender.toLowerCase().trim(); // Ensure lowercase and remove any extra spaces
+
+    // Check if the gender value includes "substantiv" for nouns
+    if (gender.includes('substantiv')) {
         return 'noun';
     }
     // Handle verbs
-    if (kjønn.startsWith('verb')) {
+    if (gender.startsWith('verb')) {
         return 'verb';
     }
     // Handle adjectives
-    if (kjønn.startsWith('adjektiv')) {
+    if (gender.startsWith('adjektiv')) {
         return 'adjective';
     }
         // Handle adverbs
-    if (kjønn.startsWith('adverb')) {
+    if (gender.startsWith('adverb')) {
         return 'adverb';
     }
     // Handle prepositions
-    if (kjønn.startsWith('preposisjon')) {
+    if (gender.startsWith('preposisjon')) {
         return 'preposition';
     }
     // Handle interjections
-    if (kjønn.startsWith('interjeksjon')) {
+    if (gender.startsWith('interjeksjon')) {
         return 'interjection';
     }
     // Handle conjunctions
-    if (kjønn.startsWith('konjunksjon') || kjønn.startsWith('subjunksjon')) {
+    if (gender.startsWith('konjunksjon') || gender.startsWith('subjunksjon')) {
         return 'conjunction';
     }
     // Handle pronouns
-    if (kjønn.startsWith('pronomen')) {
+    if (gender.startsWith('pronomen')) {
         return 'pronoun';
     }
     // Handle articles
-    if (kjønn.startsWith('artikkel')) {
+    if (gender.startsWith('artikkel')) {
         return 'article';
     }
     // Handle expressions
-    if (kjønn.startsWith('fast')) {
+    if (gender.startsWith('fast')) {
         return 'expression';
     }
 
@@ -369,8 +373,8 @@ async function randomWord() {
         console.warn('No results available to pick a random word or sentence.');
         document.getElementById('results-container').innerHTML = `
             <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">Unavailable Entry</span>
+                <h2 class="word-gender">
+                    Error <span class="gender">Unavailable Entry</span>
                 </h2>
                 <p>No random entries available. Please try again later.</p>
             </div>
@@ -393,6 +397,7 @@ async function randomWord() {
     } else {
         // Filter results by the selected part of speech (for 'words' type)
         filteredResults = filterResultsByPOS(results, selectedPOS);
+        console.log(`Filtered Results by POS: ${filteredResults.length} results found for POS '${selectedPOS}'`);
 
         // Additionally, filter by the selected CEFR level if applicable
         filteredResults = filteredResults.filter(r => !selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR));
@@ -403,8 +408,8 @@ async function randomWord() {
         console.warn('No random entries available for the selected type.');
         document.getElementById('results-container').innerHTML = `
             <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">Unavailable Entry</span>
+                <h2 class="word-gender">
+                    Error <span class="gender">Unavailable Entry</span>
                 </h2>
                 <p>No random entries available. Try selecting another type or part of speech.</p>
             </div>
@@ -461,9 +466,12 @@ function generateInexactMatches(query) {
 
 // Perform a search based on the input query and selected POS
 async function search() {
+    console.log('Search function triggered');
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
+    console.log(`Search Query: ${query}`);
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
     const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';  // Fetch the selected CEFR level
+    console.log(`Selected POS: ${selectedPOS}, Selected CEFR: ${selectedCEFR}`);
     const type = document.getElementById('type-select').value; // Get the search type (words or sentences)
     const normalizedQueries = [query.toLowerCase().trim()]; // Use only the base query for matching
 
@@ -491,8 +499,8 @@ async function search() {
     if (!query) {
         resultsContainer.innerHTML = `
             <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">Empty Search</span>
+                <h2 class="word-gender">
+                    Error <span class="gender">Empty Search</span>
                 </h2>
                 <p>Please enter a word in the search field before searching.</p>
             </div>
@@ -520,7 +528,7 @@ async function search() {
 
         // Filter results by query and selected POS for words
         matchingResults = cleanResults.filter(r => {
-            const pos = mapKjonnToPOS(r.kjønn);
+            const pos = mapGenderToPOS(r.gender);
             // Exact and partial match logic
             const matchesQuery = normalizedQueries.some(variation => {
                 const exactRegex = new RegExp(`\\b${variation}\\b`, 'i'); // Exact match regex for whole word
@@ -537,21 +545,25 @@ async function search() {
             return matchesQuery && (!selectedPOS || pos === selectedPOS) && (!selectedCEFR || r.CEFR === selectedCEFR);
         });
 
-        // Prioritize results based on CEFR level, exact match, etc.
-        matchingResults = prioritizeResults(matchingResults, query, 'ord');  // <-- Make sure this is here
+        console.log('Matching Results Before Prioritization:', matchingResults);
+        matchingResults = prioritizeResults(matchingResults, query, 'ord');
+        console.log('Matching Results After Prioritization:', matchingResults);
+        
         
         // Check if there are **no exact matches**
         const noExactMatches = matchingResults.length === 0;
+        console.log(`No Exact Matches Found: ${noExactMatches}`);
 
         // If no exact matches are found, find inexact matches
         if (noExactMatches) {
 
             // Generate inexact matches based on transformations
             const inexactWordQueries = generateInexactMatches(query);
+            console.log(`Inexact Queries Generated: ${inexactWordQueries}`);
 
             // Now search for results using these inexact queries
             let inexactWordMatches = results.filter(r => {
-                const pos = mapKjonnToPOS(r.kjønn);
+                const pos = mapGenderToPOS(r.gender);
                 const matchesInexact = inexactWordQueries.some(inexactQuery => r.ord.toLowerCase().includes(inexactQuery) || r.engelsk.toLowerCase().includes(inexactQuery));
                 return matchesInexact && (!selectedPOS || pos === selectedPOS) && (!selectedCEFR || r.CEFR === selectedCEFR);
             }).slice(0, 10); // Limit to 10 results
@@ -559,8 +571,8 @@ async function search() {
             // Display the "No Exact Matches" message
             resultsContainer.innerHTML = `
                 <div class="definition error-message">
-                    <h2 class="word-kjonn">
-                        No Exact Matches Found <span class="kjønn"></span>
+                    <h2 class="word-gender">
+                        No Exact Matches Found <span class="gender"></span>
                     </h2>
                     <p>We couldn't find exact matches for "${query}". Here are some inexact results:</p>
                     <button class="sentence-btn back-btn">
@@ -595,8 +607,8 @@ async function search() {
                 clearContainer();
                 appendToContainer(`
             <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    No Matches Found <span class="kjønn"></span>
+                <h2 class="word-gender">
+                    No Matches Found <span class="gender"></span>
                 </h2>
                 <p>We couldn't find any matches for "${query}".</p>
                 <button class="sentence-btn back-btn">
@@ -688,10 +700,12 @@ function checkForSentences(word) {
     wordParts.forEach(wordPart => {
         // Find part of speech (POS) for each word part
         const matchingWordEntry = results.find(result => result.ord.toLowerCase().includes(wordPart));
-        const pos = matchingWordEntry ? mapKjonnToPOS(matchingWordEntry.kjønn) : '';
+        const pos = matchingWordEntry ? mapGenderToPOS(matchingWordEntry.gender) : '';
 
         // Generate word variations
+        console.log(`Before generating variations: Word: ${word}, POS: ${pos}`); // Check POS before calling the function
         const wordVariations = generateWordVariationsForSentences(wordPart, pos);
+        console.log(`Word: ${wordPart}, POS used: ${pos}, Generated Variations: ${wordVariations}`);
 
         // Check if any sentences in the data include this word or its variations in the 'eksempel' field
         if (results.some(result => 
@@ -811,7 +825,7 @@ function displaySearchResults(results, query = '') {
 
     // Limit to a maximum of 10 results
     results.slice(0, 10).forEach(result => {
-        result.kjønn = formatKjonn(result.kjønn);
+        result.gender = formatgender(result.gender);
 
         // Check if sentences are available using enhanced checkForSentences
         const hasSentences = checkForSentences(result.ord);
@@ -828,9 +842,9 @@ function displaySearchResults(results, query = '') {
         const multipleResultsDefinition = multipleResults ? 'multiple-results-definition' : '';  // Hide content if multiple results
         const multipleResultsHiddenContent = multipleResults ? 'multiple-results-hidden-content' : '';  // Hide content if multiple results
         const multipleResultsDefinitionHeader = multipleResults ? 'multiple-results-definition-header' : ''; 
-        const multipleResultsWordKjonn = multipleResults ? 'multiple-results-word-kjonn' : ''; 
+        const multipleResultsWordgender = multipleResults ? 'multiple-results-word-gender' : ''; 
         const multipleResultsDefinitionText = multipleResults ? 'multiple-results-definition-text' : ''; 
-        const multipleResultsKjonnClass = multipleResults ? 'multiple-results-kjonn-class' : ''; 
+        const multipleResultsgenderClass = multipleResults ? 'multiple-results-gender-class' : ''; 
 
         // Safely escape the word in JavaScript by replacing special characters
         const escapedWord = result.ord.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\r?\n|\r/g, '');  // Escapes single quotes, double quotes, and removes newlines
@@ -840,13 +854,13 @@ function displaySearchResults(results, query = '') {
 <div 
   class="definition ${multipleResultsDefinition}" 
   data-word="${escapedWord}" 
-  data-pos="${mapKjonnToPOS(result.kjønn)}" 
+  data-pos="${mapGenderToPOS(result.gender)}" 
   data-engelsk="${result.engelsk}" 
-  onclick="if (!window.getSelection().toString()) handleCardClick(event, '${escapedWord}', '${mapKjonnToPOS(result.kjønn).replace(/'/g, "\\'").trim()}', '${result.engelsk.replace(/'/g, "\\'").trim()}')">
+  onclick="if (!window.getSelection().toString()) handleCardClick(event, '${escapedWord}', '${mapGenderToPOS(result.gender).replace(/'/g, "\\'").trim()}', '${result.engelsk.replace(/'/g, "\\'").trim()}')">
                 <div class="${multipleResultsDefinitionHeader}">
-                <h2 class="word-kjonn ${multipleResultsWordKjonn}">
+                <h2 class="word-gender ${multipleResultsWordgender}">
                     ${result.ord}
-                    ${result.kjønn ? `<span class="kjønn ${multipleResultsKjonnClass}">${result.kjønn}</span>` : ''}
+                    ${result.gender ? `<span class="gender ${multipleResultsgenderClass}">${result.gender}</span>` : ''}
                     ${result.engelsk ? `<p class="english ${multipleResultsExposedContent}">${result.engelsk}</p>` : ''}
                     ${result.CEFR ? `<p class="cefr-value ${multipleResultsExposedContent} ${result.CEFR.toUpperCase()}">${result.CEFR}</p>` : ''} 
                 </h2>
@@ -874,7 +888,7 @@ function displaySearchResults(results, query = '') {
 function generateWordVariationsForSentences(word, pos) {
     const variations = [];
 
-    console.log(`Generating variations for word '${word}' with POS '${pos}'`);
+    console.log(`Generating variations for word '${word}' with POS '${pos}'`);  // Log word and POS
     
     // Split the word into parts in case it's a phrase (e.g., "vedtatt sannhet")
     const wordParts = word.split(' ');
@@ -1230,8 +1244,8 @@ function renderSentences(sentenceResults, word) {
     if (!htmlString) {
         htmlString = `
             <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">No Matching Sentences</span>
+                <h2 class="word-gender">
+                    Error <span class="gender">No Matching Sentences</span>
                 </h2>
                 <p>No sentences found containing "${query}".</p>
             </div>
@@ -1272,7 +1286,7 @@ function highlightQuery(sentence, query) {
 
     // Get part of speech (POS) for the query to pass into `generateWordVariationsForSentences`
     const matchingWordEntry = results.find(result => result.ord.toLowerCase().includes(query));
-    const pos = matchingWordEntry ? mapKjonnToPOS(matchingWordEntry.kjønn) : '';
+    const pos = matchingWordEntry ? mapGenderToPOS(matchingWordEntry.gender) : '';
 
     // Generate word variations using the external function
     const wordVariations = generateWordVariationsForSentences(query, pos);
@@ -1354,8 +1368,8 @@ function renderSentencesHTML(sentenceResults, wordVariations) {
     if (htmlString === '') {
         htmlString = `
             <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">No Matching Sentences</span>
+                <h2 class="word-gender">
+                    Error <span class="gender">No Matching Sentences</span>
                 </h2>
                 <p>No sentences found for the word "${wordVariations.join(', ')}".</p>
             </div>
@@ -1386,8 +1400,8 @@ function renderWordDefinition(word) {
     } else {
         document.getElementById('results-container').innerHTML = `
             <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">No Definition Found</span>
+                <h2 class="word-gender">
+                    Error <span class="gender">No Definition Found</span>
                 </h2>
                 <p>No definition found for "${trimmedWord}".</p>
             </div>
@@ -1437,7 +1451,7 @@ function fetchAndRenderSentences(word) {
     }
 
 
-    const pos = matchingWordEntry ? mapKjonnToPOS(matchingWordEntry.kjønn) : '';
+    const pos = matchingWordEntry ? mapGenderToPOS(matchingWordEntry.gender) : '';
 
     // Generate word variations using the external function
     const wordVariations = trimmedWord.split(',').flatMap(w => generateWordVariationsForSentences(w.trim(), pos));
@@ -1446,7 +1460,7 @@ function fetchAndRenderSentences(word) {
     let matchingResults = results.filter(r => {
         // Loop through each variation and check if it exists in the sentence
         return wordVariations.some(variation => {
-            if (pos === 'preposition' || pos === 'adverb') {
+            if (pos === 'adverb' || pos === 'conjunction' || pos === 'preposition') {
                 
                 const regex = new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, 'gi');
                 const match = regex.test(r.eksempel);
@@ -1465,8 +1479,8 @@ function fetchAndRenderSentences(word) {
         console.warn(`No sentences found for the word variations.`);
         sentenceContainer.innerHTML = `
             <div class="definition error-message">
-                <h2 class="word-kjonn">
-                    Error <span class="kjønn">No Sentences Available</span>
+                <h2 class="word-gender">
+                    Error <span class="gender">No Sentences Available</span>
                 </h2>
                 <p>No example sentences available for "${trimmedWord}".</p>
             </div>
@@ -1608,6 +1622,7 @@ function updateURL(query, type, selectedPOS) {
 function loadStateFromURL() {
     const url = new URL(window.location);
     const query = url.searchParams.get('query') || '';  // Default to an empty query if not present
+    console.log(`URL State Loaded: Query = ${query}`);  // Log the query loaded from the URL
     const type = url.searchParams.has('type') ? url.searchParams.get('type') : document.getElementById('type-select').value;  // Only update type if it's in the URL
     const selectedPOS = url.searchParams.get('pos') || '';  // Default to an empty POS if not present
 
@@ -1660,15 +1675,19 @@ function loadStateFromURL() {
 // Function to handle clicking on a search result card
 function handleCardClick(event, word, pos, engelsk) {
 
+    console.log(`Word clicked: ${word}, POS: ${pos}`); // Correct POS logged here
+
     // Filter results by word, POS (part of speech), and the English translation
     const clickedResult = results.filter(r => {
 
         // Check if each comparison is true and log it
         const wordMatch = r.ord.toLowerCase().trim() === word.toLowerCase().trim();
-        const posMatch = mapKjonnToPOS(r.kjønn).toLowerCase().trim() === pos.toLowerCase().trim();
+        const mappedPOS = mapGenderToPOS(r.gender).toLowerCase().trim();
+        const posMatch = mapGenderToPOS(r.gender).toLowerCase().trim() === pos.toLowerCase().trim();
         const engelskMatch = r.engelsk.toLowerCase().trim().includes(engelsk.toLowerCase().trim());
-
+        console.log(`Filtering Result: ${r.ord}, gender: ${r.gender}, Mapped POS: ${mappedPOS}, Expected POS: ${pos}`);  // Log mapped POS
         return wordMatch && posMatch && engelskMatch;
+        
     });
 
     if (clickedResult.length === 0) {
@@ -1681,6 +1700,7 @@ function handleCardClick(event, word, pos, engelsk) {
 
     // Display the clicked result
     displaySearchResults(clickedResult);  // This ensures only the clicked card remains
+
 }
 
 // Initialization of the dictionary data and event listeners
