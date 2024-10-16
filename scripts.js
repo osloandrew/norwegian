@@ -118,8 +118,9 @@ function filterResultsByCEFR(results, selectedCEFR) {
 
 // Helper function to format 'gender' (grammatical gender) based on its value
 function formatGender(gender) {
-    return gender && gender[0].toLowerCase() === 'e' ? 'noun - ' + gender : gender;
+    return gender && ['en', 'et', 'ei'].includes(gender.substring(0, 2).toLowerCase()) ? 'noun - ' + gender : gender;
 }
+
 
 // Function to map 'gender' to part of speech (POS)
 function mapGenderToPOS(gender) {
@@ -129,7 +130,7 @@ function mapGenderToPOS(gender) {
     gender = gender.toLowerCase().trim(); // Ensure lowercase and remove any extra spaces
 
     // Check if the gender value includes "substantiv" for nouns
-    if (gender.includes('substantiv') || gender.includes('noun')) {
+    if (gender.startsWith('substantiv') || gender.startsWith('noun')) {
         return 'noun';
     }
     // Handle verbs
