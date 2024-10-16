@@ -1431,21 +1431,27 @@ window.onload = function() {
     // Check if the buttons exist in the DOM
     const searchBtn = document.getElementById('search-btn');
     const randomBtn = document.getElementById('random-btn');
+    const searchBar = document.getElementById('search-bar');
+    const clearBtn = document.getElementById('clear-btn');   // Reference to the "X" button
 
-    if (searchBtn && randomBtn) {
+    if (searchBtn && randomBtn && searchBar && clearBtn) {
 
         // Disable the search and random buttons on load
         searchBtn.disabled = true;
         randomBtn.disabled = true;
+        searchBar.disabled = true;
+        clearBtn.disabled = true;  // Disable the "X" button
 
         // Apply the disabled styling
         searchBtn.style.color = '#ccc';
         searchBtn.style.cursor = 'not-allowed';
         randomBtn.style.color = '#ccc';
         randomBtn.style.cursor = 'not-allowed';
-    } else {
-    }
-
+        searchBar.style.color = '#ccc'; // Gray out the search bar
+        searchBar.style.cursor = 'not-allowed'; // Set cursor to not-allowed for search bar
+        clearBtn.style.color = '#ccc';   // Gray out the "X" button
+        clearBtn.style.cursor = 'not-allowed';  // Set cursor to not-allowed for "X" button
+    } 
 
     fetchAndLoadDictionaryData();  // Load dictionary data when the page is refreshed
 
@@ -1457,12 +1463,18 @@ window.onload = function() {
             // Enable the buttons once data is fully loaded
             document.getElementById('search-btn').disabled = false;
             document.getElementById('random-btn').disabled = false;
-
+            document.getElementById('search-bar').disabled = false;
+            document.getElementById('clear-btn').disabled = false; // Enable the "X" button
+            
             // Restore original styling
             document.getElementById('search-btn').style.color = '';
             document.getElementById('search-btn').style.cursor = 'pointer';
             document.getElementById('random-btn').style.color = '';
             document.getElementById('random-btn').style.cursor = 'pointer';
+            document.getElementById('search-bar').style.color = ''; // Restore original color for the search bar
+            document.getElementById('search-bar').style.cursor = 'text'; // Set cursor back to text
+            document.getElementById('clear-btn').style.color = '';   // Restore color for "X" button
+            document.getElementById('clear-btn').style.cursor = 'pointer';  // Set cursor back to pointer for "X" button
 
             // Load state from URL
             loadStateFromURL();  // This checks the URL for query/type/POS and triggers the appropriate search
