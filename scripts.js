@@ -807,6 +807,14 @@ function generateWordVariationsForSentences(word, pos) {
         const singleWord = wordParts[0];
         let stem = singleWord;
         let gender = getWordGender(singleWord);
+
+        if (singleWord.length <= 2) {
+            // Handle the case where the word is too short to generate meaningful variations
+            console.warn(`Word "${singleWord}" is too short to generate variations.`);
+            variations.push(singleWord);  // Just return the word as is
+            return variations;
+        }
+
         if (pos === 'noun' && gender.includes('ei')) {
             if (singleWord.endsWith('e')) {
                 stem = singleWord.slice(0, -1);  // Remove the final -e from the word
@@ -983,7 +991,6 @@ function renderSentences(sentenceResults, word) {
     document.getElementById('results-container').innerHTML = htmlString;
 }
 
-
 // Highlight search query in text, accounting for Norwegian characters (å, æ, ø) and verb variations
 function highlightQuery(sentence, query) {
     if (!query) return sentence; // If no query, return sentence as is.
@@ -1004,8 +1011,7 @@ function highlightQuery(sentence, query) {
     // Highlight each query variation in the sentence
     queries.forEach(q => {
         // Define a regex pattern that includes Norwegian characters and dynamically inserts the query
-        const norwegianLetters = '[\\wåæøÅÆØ]'; // Include Norwegian letters in the pattern
-        const regex = new RegExp(`(${norwegianLetters}*${q}${norwegianLetters}*)`, 'gi');
+        const regex = new RegExp(`(\\b${q}\\b|\\b${q}(?![\\wåæøÅÆØ]))`, 'gi');
 
         // Highlight all occurrences of the query variation in the sentence
         cleanSentence = cleanSentence.replace(regex, '<span style="color: #3c88d4;">$1</span>');
@@ -1028,6 +1034,8 @@ function highlightQuery(sentence, query) {
 
     return cleanSentence;  // Return the fully updated sentence
 }
+
+
 
 function renderSentencesHTML(sentenceResults, wordVariations) {
     let htmlString = '';  // String to accumulate the generated HTML
