@@ -118,7 +118,7 @@ function filterResultsByCEFR(results, selectedCEFR) {
 
 // Helper function to format 'gender' (grammatical gender) based on its value
 function formatGender(gender) {
-    return gender && gender[0].toLowerCase() === 'e' ? 'substantiv - ' + gender : gender;
+    return gender && gender[0].toLowerCase() === 'e' ? 'noun - ' + gender : gender;
 }
 
 // Function to map 'gender' to part of speech (POS)
@@ -129,7 +129,7 @@ function mapGenderToPOS(gender) {
     gender = gender.toLowerCase().trim(); // Ensure lowercase and remove any extra spaces
 
     // Check if the gender value includes "substantiv" for nouns
-    if (gender.includes('substantiv')) {
+    if (gender.includes('substantiv') || gender.includes('noun')) {
         return 'noun';
     }
     // Handle verbs
@@ -137,7 +137,7 @@ function mapGenderToPOS(gender) {
         return 'verb';
     }
     // Handle adjectives
-    if (gender.startsWith('adjektiv')) {
+    if (gender.startsWith('adjektiv') || gender.startsWith('adjective')) {
         return 'adjective';
     }
         // Handle adverbs
@@ -145,27 +145,27 @@ function mapGenderToPOS(gender) {
         return 'adverb';
     }
     // Handle prepositions
-    if (gender.startsWith('preposisjon')) {
+    if (gender.startsWith('preposisjon') || gender.startsWith('preposition')) {
         return 'preposition';
     }
     // Handle interjections
-    if (gender.startsWith('interjeksjon')) {
+    if (gender.startsWith('interjeksjon') || gender.startsWith('interjection')) {
         return 'interjection';
     }
     // Handle conjunctions
-    if (gender.startsWith('konjunksjon') || gender.startsWith('subjunksjon')) {
+    if (gender.startsWith('konjunksjon') || gender.startsWith('subjunksjon') || gender.startsWith('conjunction')) {
         return 'conjunction';
     }
     // Handle pronouns
-    if (gender.startsWith('pronomen')) {
+    if (gender.startsWith('pronomen') || gender.startsWith('pronoun')) {
         return 'pronoun';
     }
     // Handle articles
-    if (gender.startsWith('artikkel')) {
+    if (gender.startsWith('artikkel') || gender.startsWith('article')) {
         return 'article';
     }
     // Handle expressions
-    if (gender.startsWith('fast')) {
+    if (gender.startsWith('fast') || gender.startsWith('expression')) {
         return 'expression';
     }
 
