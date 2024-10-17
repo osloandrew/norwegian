@@ -298,7 +298,7 @@ footer .copyright {
     padding: 10px 20px;
     text-align: center;
     color: white;
-    min-width: 100px;  /* Ensure minimum size */
+    min-width: 60px;  /* Ensure minimum size */
 }
 
 /* Incorrect box styling */
@@ -309,7 +309,7 @@ footer .copyright {
     padding: 10px 20px;
     text-align: center;
     color: white;
-    min-width: 100px;  /* Ensure minimum size */
+    min-width: 60px;  /* Ensure minimum size */
 }
 
 /* Text styling for the numbers */
@@ -338,9 +338,6 @@ footer .copyright {
     align-items: center;
     height: 80px; /* Slightly reduce height */
     min-height: 80px; /* Ensure the cards remain the same height */
-    word-wrap: break-word;      /* Allow words to wrap if too long */
-    overflow-wrap: break-word;  /* Ensures wrapping of long words */
-    hyphens: auto;              /* Automatically add hyphens for long words */
 }
 
 .game-translation-card:hover {
