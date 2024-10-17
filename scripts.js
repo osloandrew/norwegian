@@ -622,7 +622,7 @@ function handleTypeChange() {
         randomBtn.style.display = 'block';
         // Revert search-container-inner display back to flex
         searchContainerInner.style.display = 'flex';
-
+        searchContainerInner.classList.remove('word-game-active');
 
         // Disable the POS dropdown and gray it out
         posSelect.disabled = true;
@@ -648,6 +648,7 @@ function handleTypeChange() {
         randomBtn.style.display = 'none';
         // Set search-container-inner display to inline-block
         searchContainerInner.style.display = 'inline-block';
+        searchContainerInner.classList.add('word-game-active');
 
         // Handle "word-game" option
         showLandingCard(false);
@@ -665,6 +666,7 @@ function handleTypeChange() {
         randomBtn.style.display = 'block';
         // Revert search-container-inner display back to flex
         searchContainerInner.style.display = 'flex';
+        searchContainerInner.classList.remove('word-game-active');
 
         // Enable the POS dropdown and restore color
         posSelect.disabled = false;

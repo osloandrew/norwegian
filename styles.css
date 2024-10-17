@@ -1034,6 +1034,10 @@ main {
         padding: 0 10px 0 10px;
     }
 
+    #search-container-inner.word-game-active {
+        gap: 0;
+    }
+
     .sentence-btn {
         width: 100% !important;
     }
