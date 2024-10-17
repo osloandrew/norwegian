@@ -618,7 +618,7 @@ function handleTypeChange() {
     const cefrFilterContainer = document.querySelector('.cefr-filter'); // Get the CEFR filter container
 
     if (type === 'sentences') {
-        searchBarWrapper.style.display = 'block';
+        searchBarWrapper.style.display = 'inline-flex';
         randomBtn.style.display = 'block';
         // Revert search-container-inner display back to flex
         searchContainerInner.style.display = 'flex';
@@ -653,8 +653,13 @@ function handleTypeChange() {
         // Handle "word-game" option
         showLandingCard(false);
 
-        posSelect.value = '';  // Reset to "Part of Speech" option
+        // Ensure POS and CEFR are enabled for the word game
+        posSelect.disabled = false;
+        posFilterContainer.classList.remove('disabled');  // Remove the 'disabled' class
+        cefrSelect.disabled = false;
+        cefrFilterContainer.classList.remove('disabled');
 
+        posSelect.value = '';  // Reset to "Part of Speech" option
         cefrSelect.value = '';  // Reset to "CEFR Level" option
 
         console.log('Word game selected.');
@@ -662,7 +667,7 @@ function handleTypeChange() {
         startWordGame();  // Call the word game function
 
     } else {
-        searchBarWrapper.style.display = 'block';
+        searchBarWrapper.style.display = 'inline-flex';
         randomBtn.style.display = 'block';
         // Revert search-container-inner display back to flex
         searchContainerInner.style.display = 'flex';
