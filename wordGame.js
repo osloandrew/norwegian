@@ -75,11 +75,6 @@ function renderWordGameUI(wordObj, translations) {
             }).join('')}
         </div>
     `;
-
-    // Add CSS styling to the grid
-    gameContainer.querySelector('.game-grid').style.display = 'grid';
-    gameContainer.querySelector('.game-grid').style.gridTemplateColumns = 'repeat(2, 1fr)';
-    gameContainer.querySelector('.game-grid').style.gap = '10px';
 }
 
 function handleTranslationClick(selectedTranslation) {

@@ -258,27 +258,46 @@ footer .copyright {
     font-size: 12px;
 }
 
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 15px; /* Slightly increase space between the cards */
+}
+
 .game-correct-card {
     background-color: #a8e6a8 !important; /* Green background for correct */
     color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80px; /* Consistent height with the other cards */
 }
 
 .game-incorrect-card {
     background-color: #f8a8a8 !important; /* Red background for incorrect */
     color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80px; /* Consistent height with the other cards */
 }
 
 .game-translation-card {
     background-color: white; /* Same as the word card */
     border: 1px solid #ccc;     /* Same border */
     border-radius: 10px;        /* Same rounded corners */
-    padding: 20px;              /* Same padding */
+    padding: 15px; /* Reduced padding to make the cards less bulky */
     text-align: center;         /* Centered text */
     font-size: 1.2em;           /* Consistent font size */
     color: #333;                /* Same text color */
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Same shadow */
     transition: background-color 0.3s ease;    /* Smooth hover effect */
     cursor: pointer;            /* Make it clickable */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80px; /* Slightly reduce height */
+    min-height: 80px; /* Ensure the cards remain the same height */
 }
 
 .game-translation-card:hover {
