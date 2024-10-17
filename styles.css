@@ -718,7 +718,7 @@ main {
 .result-header h2 {
     color: #951b1b;
     font-size: 24px;
-    font-weight: 300;
+    font-weight: 400;
     letter-spacing: 0.02em;
     white-space: normal;  /* Allow the text to wrap into multiple lines */
     overflow-wrap: break-word;  /* Ensure the text breaks into a new line if needed */

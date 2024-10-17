@@ -623,6 +623,7 @@ function handleTypeChange() {
         // Revert search-container-inner display back to flex
         searchContainerInner.style.display = 'flex';
         searchContainerInner.classList.remove('word-game-active');
+        gameActive = false;
 
         // Disable the POS dropdown and gray it out
         posSelect.disabled = true;
@@ -671,6 +672,8 @@ function handleTypeChange() {
         randomBtn.style.display = 'block';
         // Revert search-container-inner display back to flex
         searchContainerInner.style.display = 'flex';
+
+        gameActive = false;
         searchContainerInner.classList.remove('word-game-active');
 
         // Enable the POS dropdown and restore color
