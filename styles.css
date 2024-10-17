@@ -823,6 +823,10 @@ main {
         margin: 0;
     }
 
+    .game-translation-card:hover {
+        background-color: white; /* Hover effect same as word card */
+    }
+
     h1 {
         font-size: 10vw !important;
         margin-bottom: 10px;
