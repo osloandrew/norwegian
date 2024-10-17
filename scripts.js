@@ -578,7 +578,10 @@ function checkForSentences(word, pos) {
 function handlePOSChange() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
     const selectedPOS = document.getElementById('pos-select').value.toLowerCase(); // Fetch POS
-
+    if (gameActive) {
+        // Adjust the word game instead of triggering a dictionary search
+        startWordGame();  // Re-fetch a new word for the game based on the new POS filter
+    } else {
     // Update the URL with the search parameters
     updateURL(query, 'words', selectedPOS);  // <--- Trigger URL update with type 'words'
     
@@ -590,11 +593,17 @@ function handlePOSChange() {
         search(); // If there is a query, perform the search with the selected POS
     }
 }
+}
 
 // Handle change in search type (words/sentences)
 function handleTypeChange() {
     const type = document.getElementById('type-select').value;
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
+    const searchContainerInner = document.getElementById('search-container-inner'); // The container to update
+
+    // Reference to the search-bar-wrapper and random-btn elements
+    const searchBarWrapper = document.getElementById('search-bar-wrapper');
+    const randomBtn = document.getElementById('random-btn');
     
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
     const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';
@@ -609,6 +618,12 @@ function handleTypeChange() {
     const cefrFilterContainer = document.querySelector('.cefr-filter'); // Get the CEFR filter container
 
     if (type === 'sentences') {
+        searchBarWrapper.style.display = 'block';
+        randomBtn.style.display = 'block';
+        // Revert search-container-inner display back to flex
+        searchContainerInner.style.display = 'flex';
+
+
         // Disable the POS dropdown and gray it out
         posSelect.disabled = true;
         posSelect.value = '';  // Reset to "Part of Speech" option
@@ -619,7 +634,6 @@ function handleTypeChange() {
         cefrSelect.value = '';  // Reset to "CEFR Level" option
         cefrFilterContainer.classList.add('disabled');  // Add the 'disabled' class
         
-
         // If the search bar is not empty, perform a sentence search
         if (query) {
             console.log('Searching for sentences with query:', query);
@@ -628,7 +642,30 @@ function handleTypeChange() {
             console.log('Search bar empty, generating a random sentence.');
             randomWord();  // Generate a random sentence if the search bar is empty
         }
+    } else if (type === 'word-game') {
+        // Hide search-bar-wrapper and random-btn if word-game is selected
+        searchBarWrapper.style.display = 'none';
+        randomBtn.style.display = 'none';
+        // Set search-container-inner display to inline-block
+        searchContainerInner.style.display = 'inline-block';
+
+        // Handle "word-game" option
+        showLandingCard(false);
+
+        posSelect.value = '';  // Reset to "Part of Speech" option
+
+        cefrSelect.value = '';  // Reset to "CEFR Level" option
+
+        console.log('Word game selected.');
+
+        startWordGame();  // Call the word game function
+
     } else {
+        searchBarWrapper.style.display = 'block';
+        randomBtn.style.display = 'block';
+        // Revert search-container-inner display back to flex
+        searchContainerInner.style.display = 'flex';
+
         // Enable the POS dropdown and restore color
         posSelect.disabled = false;
         posFilterContainer.classList.remove('disabled');  // Remove the 'disabled' class
@@ -653,6 +690,10 @@ function handleCEFRChange() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
     const selectedCEFR = document.getElementById('cefr-select').value.toUpperCase(); // Fetch CEFR
     
+    if (gameActive) {
+        // Adjust the word game instead of triggering a dictionary search
+        startWordGame();  // Re-fetch a new word for the game based on the new CEFR filter
+    } else {
     // If the search field is empty, generate a random word based on the CEFR level
     if (!query) {
         console.log('Search field is empty. Generating random word based on selected CEFR.');
@@ -660,6 +701,7 @@ function handleCEFRChange() {
     } else {
         search(); // If there is a query, perform the search with the selected CEFR
     }
+}
 }
 
 

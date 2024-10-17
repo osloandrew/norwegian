@@ -264,6 +264,45 @@ footer .copyright {
     font-size: 12px;
 }
 
+.game-correct-card {
+    background-color: #a8e6a8 !important; /* Green background for correct */
+    color: white;
+}
+
+.game-incorrect-card {
+    background-color: #f8a8a8 !important; /* Red background for incorrect */
+    color: white;
+}
+
+.game-translation-card {
+    background-color: white; /* Same as the word card */
+    border: 1px solid #ccc;     /* Same border */
+    border-radius: 10px;        /* Same rounded corners */
+    padding: 20px;              /* Same padding */
+    text-align: center;         /* Centered text */
+    font-size: 1.2em;           /* Consistent font size */
+    color: #333;                /* Same text color */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Same shadow */
+    transition: background-color 0.3s ease;    /* Smooth hover effect */
+    cursor: pointer;            /* Make it clickable */
+}
+
+.game-translation-card:hover {
+    background-color: #e6f7ff; /* Hover effect same as word card */
+}
+
+.game-word-card {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    font-size: 1.2em;
+    color: #333;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
 h1 {
     color: #293a78;
     overflow: hidden;
@@ -984,7 +1023,7 @@ main {
     }
 
     #search-container-inner {
-        display: grid;
+        display: grid !important;
         grid-template-columns: 1fr;
         grid-template-rows: auto auto;
         gap: 10px;

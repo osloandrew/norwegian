@@ -65,6 +65,7 @@
                         <select id="type-select" aria-label="Search by words or sentences" onchange="handleTypeChange()">
                             <option value="words">Words</option>
                             <option value="sentences">Sentences</option>
+                            <option value="word-game">Word Game</option>
                         </select>
                         <i class="fas fa-chevron-down"></i>
                     </div>
@@ -103,7 +104,7 @@
                 <!-- Grouped Search Bar and Random Button -->
                 <div class="search-and-random-wrapper">
                     <!-- Search Bar -->
-                    <div class="search-bar-wrapper">
+                    <div id="search-bar-wrapper" class="search-bar-wrapper">
                         <input type="text" id="search-bar" placeholder=" " onkeydown="handleKey(event)" aria-label="Search for Norwegian or English words">
                         <button id="clear-btn" class="clear-btn" aria-label="Clear search field" onclick="clearInput()">
                             <i class="fas fa-xmark"></i>
@@ -267,6 +268,7 @@
         </div>
     </footer>
     <script src="scripts.js" defer></script>
+    <script src="wordGame.js"></script>
 </body>
 
 </html>
