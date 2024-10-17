@@ -106,8 +106,19 @@ function togglePronunciationGuide() {
 // Filter results based on selected part of speech (POS)
 function filterResultsByPOS(results, selectedPOS) {
     if (!selectedPOS) return results;
-    return results.filter(r => mapGenderToPOS(r.gender) === selectedPOS);
+
+    return results.filter(r => {
+        // Handle nouns based on gender
+        if (selectedPOS === 'noun') {
+            return r.gender && ['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(genderVal =>
+                r.gender.toLowerCase().includes(genderVal));
+        }
+
+        // Handle all other POS types like "verb," "adjective," etc.
+        return r.gender && r.gender.toLowerCase().includes(selectedPOS.toLowerCase());
+    });
 }
+
 
 // Filter results based on selected CEFR level
 function filterResultsByCEFR(results, selectedCEFR) {
@@ -119,58 +130,6 @@ function filterResultsByCEFR(results, selectedCEFR) {
 // Helper function to format 'gender' (grammatical gender) based on its value
 function formatGender(gender) {
     return gender && ['en', 'et', 'ei'].includes(gender.substring(0, 2).toLowerCase()) ? 'noun - ' + gender : gender;
-}
-
-
-// Function to map 'gender' to part of speech (POS)
-function mapGenderToPOS(gender) {
-
-    if (!gender) return '';
-
-    gender = gender.toLowerCase().trim(); // Ensure lowercase and remove any extra spaces
-
-    // Check if the gender value includes "substantiv" for nouns
-    if (gender.startsWith('substantiv') || gender.startsWith('noun')) {
-        return 'noun';
-    }
-    // Handle verbs
-    if (gender.startsWith('verb')) {
-        return 'verb';
-    }
-    // Handle adjectives
-    if (gender.startsWith('adjektiv') || gender.startsWith('adjective')) {
-        return 'adjective';
-    }
-        // Handle adverbs
-    if (gender.startsWith('adverb')) {
-        return 'adverb';
-    }
-    // Handle prepositions
-    if (gender.startsWith('preposisjon') || gender.startsWith('preposition')) {
-        return 'preposition';
-    }
-    // Handle interjections
-    if (gender.startsWith('interjeksjon') || gender.startsWith('interjection')) {
-        return 'interjection';
-    }
-    // Handle conjunctions
-    if (gender.startsWith('konjunksjon') || gender.startsWith('subjunksjon') || gender.startsWith('conjunction')) {
-        return 'conjunction';
-    }
-    // Handle pronouns
-    if (gender.startsWith('pronomen') || gender.startsWith('pronoun')) {
-        return 'pronoun';
-    }
-    // Handle articles
-    if (gender.startsWith('artikkel') || gender.startsWith('article')) {
-        return 'article';
-    }
-    // Handle expressions
-    if (gender.startsWith('fast') || gender.startsWith('expression')) {
-        return 'expression';
-    }
-
-    return '';  // Return empty string if no valid part of speech found
 }
 
 // Clear the search input field
@@ -409,7 +368,6 @@ async function search() {
 
         // Filter results by query and selected POS for words
         matchingResults = cleanResults.filter(r => {
-            const pos = mapGenderToPOS(r.gender);
             // Exact and partial match logic
             const matchesQuery = normalizedQueries.some(variation => {
                 const exactRegex = new RegExp(`\\b${variation}\\b`, 'i'); // Exact match regex for whole word
@@ -423,7 +381,8 @@ async function search() {
                 return wordMatch || englishMatch;
             });
 
-            return matchesQuery && (!selectedPOS || pos === selectedPOS) && (!selectedCEFR || r.CEFR === selectedCEFR);
+            // Handle POS filtering for nouns and other parts of speech
+            return matchesQuery && (!selectedPOS || (selectedPOS === 'noun' && ['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => r.gender.toLowerCase().includes(gender))) || r.gender.toLowerCase().includes(selectedPOS)) && (!selectedCEFR || r.CEFR === selectedCEFR);
         });
 
         console.log('Matching Results Before Prioritization:', matchingResults);
@@ -444,9 +403,8 @@ async function search() {
 
             // Now search for results using these inexact queries
             let inexactWordMatches = results.filter(r => {
-                const pos = mapGenderToPOS(r.gender);
                 const matchesInexact = inexactWordQueries.some(inexactQuery => r.ord.toLowerCase().includes(inexactQuery) || r.engelsk.toLowerCase().includes(inexactQuery));
-                return matchesInexact && (!selectedPOS || pos === selectedPOS) && (!selectedCEFR || r.CEFR === selectedCEFR);
+                return matchesInexact && (!selectedPOS || (selectedPOS === 'noun' && ['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => r.gender.toLowerCase().includes(gender))) || r.gender.toLowerCase().includes(selectedPOS)) && (!selectedCEFR || r.CEFR === selectedCEFR);
             }).slice(0, 10); // Limit to 10 results
 
             // Display the "No Exact Matches" message
@@ -579,7 +537,9 @@ function checkForSentences(word, pos) {
         // Find matching word entry by both word and POS
         const matchingWordEntry = results.find(result => {
             const wordMatch = result.ord.toLowerCase().includes(wordPart);
-            const posMatch = mapGenderToPOS(result.gender).toLowerCase() === pos.toLowerCase();
+            // Handle POS matching for nouns and other parts of speech
+            const posMatch = (pos === 'noun' && ['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => result.gender.toLowerCase().includes(gender))) 
+                            || result.gender.toLowerCase().includes(pos.toLowerCase());
             return wordMatch && posMatch;  // Ensure both word and POS match
         });
 
@@ -716,7 +676,9 @@ function displaySearchResults(results, query = '') {
     // Limit to a maximum of 10 results
     results.slice(0, 10).forEach(result => {
         result.gender = formatGender(result.gender);
-        result.pos = mapGenderToPOS(result.gender);
+        // Directly handle the POS based on the gender field
+        result.pos = (['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => result.gender.toLowerCase().includes(gender))) 
+                      ? 'noun' : result.gender.toLowerCase();
 
         // Check if sentences are available using enhanced checkForSentences
         const hasSentences = checkForSentences(result.ord, result.pos);
@@ -745,9 +707,9 @@ function displaySearchResults(results, query = '') {
 <div 
   class="definition ${multipleResultsDefinition}" 
   data-word="${escapedWord}" 
-  data-pos="${mapGenderToPOS(result.gender)}" 
+  data-pos="${result.pos}" 
   data-engelsk="${result.engelsk}" 
-  onclick="if (!window.getSelection().toString()) handleCardClick(event, '${escapedWord}', '${mapGenderToPOS(result.gender).replace(/'/g, "\\'").trim()}', '${result.engelsk.replace(/'/g, "\\'").trim()}')">
+  onclick="if (!window.getSelection().toString()) handleCardClick(event, '${escapedWord}', '${result.pos.replace(/'/g, "\\'").trim()}', '${result.engelsk.replace(/'/g, "\\'").trim()}')">
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-gender ${multipleResultsWordgender}">
                     ${result.ord}
@@ -766,7 +728,7 @@ function displaySearchResults(results, query = '') {
                 <!-- Render the highlighted example sentence here -->
                 <div class="${multipleResultsHiddenContent}">${highlightedExample ? `<p class="example">${formatDefinitionWithMultipleSentences(highlightedExample)}</p>` : ''}</div>
                 <!-- Show "Show Sentences" button only if sentences exist -->
-                <div class="${multipleResultsHiddenContent}">${hasSentences ? `<button class="sentence-btn" data-word="${escapedWord}" onclick="event.stopPropagation(); fetchAndRenderSentences('${escapedWord}', '${mapGenderToPOS(result.gender)}')">Show Sentences</button>` : ''}</div>
+                <div class="${multipleResultsHiddenContent}">${hasSentences ? `<button class="sentence-btn" data-word="${escapedWord}" onclick="event.stopPropagation(); fetchAndRenderSentences('${escapedWord}', '${result.pos}')">Show Sentences</button>` : ''}</div>
             </div>
             <!-- Sentences container is now outside the definition block -->
             <div class="sentences-container" id="sentences-container-${normalizedWord}"></div>
@@ -1019,7 +981,11 @@ function highlightQuery(sentence, query) {
 
     // Get part of speech (POS) for the query to pass into `generateWordVariationsForSentences`
     const matchingWordEntry = results.find(result => result.ord.toLowerCase().includes(query));
-    const pos = matchingWordEntry ? mapGenderToPOS(matchingWordEntry.gender) : '';
+    const pos = matchingWordEntry ? 
+        (['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => matchingWordEntry.gender.toLowerCase().includes(gender)) 
+            ? 'noun' 
+            : matchingWordEntry.gender.toLowerCase()) 
+        : '';
 
     // Generate word variations using the external function
     const wordVariations = generateWordVariationsForSentences(query, pos);
@@ -1031,11 +997,8 @@ function highlightQuery(sentence, query) {
         cleanSentence = cleanSentence.replace(regex, '<span style="color: #3c88d4;">$&</span>');
     });
     
-
     return cleanSentence;  // Return the fully updated sentence
 }
-
-
 
 function renderSentencesHTML(sentenceResults, wordVariations) {
     let htmlString = '';  // String to accumulate the generated HTML
@@ -1409,15 +1372,15 @@ function handleCardClick(event, word, pos, engelsk) {
 
     // Filter results by word, POS (part of speech), and the English translation
     const clickedResult = results.filter(r => {
-
+        const resolvedPOS = (['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => r.gender.toLowerCase().includes(gender))) 
+        ? 'noun' 
+        : r.gender.toLowerCase().trim();
         // Check if each comparison is true and log it
         const wordMatch = r.ord.toLowerCase().trim() === word.toLowerCase().trim();
-        const mappedPOS = mapGenderToPOS(r.gender).toLowerCase().trim();
-        const posMatch = mapGenderToPOS(r.gender).toLowerCase().trim() === pos.toLowerCase().trim();
+        // Directly handle POS logic for nouns and other parts of speech
+        const posMatch = resolvedPOS === pos.toLowerCase().trim();
         const engelskMatch = r.engelsk.toLowerCase().trim() === engelsk.toLowerCase().trim();
-        console.log(`Filtering Result: ${r.ord}, gender: ${r.gender}, Mapped POS: ${mappedPOS}, Expected POS: ${pos}`);  // Log mapped POS
         return wordMatch && posMatch && engelskMatch;
-        
     });
 
     if (clickedResult.length === 0) {
