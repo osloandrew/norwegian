@@ -1,9 +1,44 @@
 let currentWord;
 let correctTranslation;
 let gameActive = false;
+let correctCount = 0;  // Tracks the number of correct answers
+let incorrectCount = 0; // Tracks the number of incorrect answers
 let chimeAudio = new Audio('chime.mp3'); // Path to your chime sound file
 chimeAudio.volume = 0.2;
 const gameContainer = document.getElementById('results-container'); // Assume this is where you'll display the game
+const statsContainer = document.getElementById('game-session-stats'); // New container for session stats
+
+function renderStats() {
+    const statsContainer = document.getElementById('game-session-stats');
+    if (!statsContainer) {
+        console.error("Stats container not found!");
+        return;
+    }
+
+    // Calculate the total number of answers
+    const total = correctCount + incorrectCount;
+
+    // Prevent division by zero; assign minimum value 1 for proportions
+    const correctProportion = total > 0 ? correctCount / total : 0.5;
+    const incorrectProportion = total > 0 ? incorrectCount / total : 0.5;
+
+    // Check that proportions are being calculated correctly
+    console.log('Correct Proportion:', correctProportion);
+    console.log('Incorrect Proportion:', incorrectProportion);
+
+    // Render the stats with flex-grow values
+    statsContainer.innerHTML = `
+        <div class="game-stats-content">
+            <div class="game-stats-correct-box" style="flex-grow: ${correctProportion};">
+                <p>${correctCount}</p>
+            </div>
+            <div class="game-stats-incorrect-box" style="flex-grow: ${incorrectProportion};">
+                <p>${incorrectCount}</p>
+            </div>
+        </div>
+    `;
+    
+}
 
 async function startWordGame() {
     gameActive = true;
@@ -25,6 +60,9 @@ async function startWordGame() {
 
     // Render the word game UI and pass the entire word object
     renderWordGameUI(randomWordObj, allTranslations);
+
+    // Render the updated stats box
+    renderStats();
 }
 
 
@@ -45,8 +83,6 @@ function fetchIncorrectTranslations(gender, correctTranslation) {
     return incorrectTranslations;
 }
 
-
-
 function renderWordGameUI(wordObj, translations) {
     // Split the word at the comma and use the first part
     let displayedWord = wordObj.ord.split(',')[0].trim();
@@ -56,9 +92,17 @@ function renderWordGameUI(wordObj, translations) {
     }
 
     gameContainer.innerHTML = `
+        <!-- Session Stats Section -->
+        <div class="game-stats-content" id="game-session-stats">
+            <!-- Stats will be updated dynamically in renderStats() -->
+        </div>
+
+        <!-- Word Display Section -->
         <div class="definition result-header game-word-card">
             <h2>${displayedWord}</h2>
         </div>
+
+        <!-- Translations Grid Section -->
         <div class="game-grid">
             ${translations.map(translation => {
                 // Split each translation at the comma and use the first part
@@ -78,6 +122,10 @@ function renderWordGameUI(wordObj, translations) {
 }
 
 function handleTranslationClick(selectedTranslation) {
+    if (!gameActive) return;  // Prevent further clicks if the game is not active
+
+    gameActive = false; // Disable further clicks until the next word is generated
+
     const cards = document.querySelectorAll('.game-translation-card');
 
     // Reset all cards to the default background before applying the color change
@@ -100,6 +148,7 @@ function handleTranslationClick(selectedTranslation) {
                 chimeAudio.play(); // Play the chime sound when correct
             }
         });
+        correctCount++;  // Increment correct count
         delay = 600; // 0.6 second delay if correct
     } else {
         // Mark the incorrect card as red
@@ -112,11 +161,18 @@ function handleTranslationClick(selectedTranslation) {
                 card.classList.add('game-correct-card'); // Highlight the correct card
             }
         });
+        incorrectCount++;  // Increment incorrect count
         delay = 2500; // 2.5 seconds delay if incorrect
     }
 
-    // Generate a new word after 1.5 seconds
-    setTimeout(startWordGame, delay);
+    // Update the stats after the answer
+    renderStats();
+
+    // Await the new word generation after the specified delay
+    setTimeout(async () => {
+        await startWordGame(); // Ensure async function is awaited
+        gameActive = true;  // Re-enable clicking for the next round
+    }, delay);
 }
 
 async function fetchRandomWord() {

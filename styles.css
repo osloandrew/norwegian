@@ -265,7 +265,7 @@ footer .copyright {
 }
 
 .game-correct-card {
-    background-color: #a8e6a8 !important; /* Green background for correct */
+    background-color: #C7E3B6 !important; /* Lighter olive green for correct */
     color: white;
     display: flex;
     justify-content: center;
@@ -274,12 +274,52 @@ footer .copyright {
 }
 
 .game-incorrect-card {
-    background-color: #f8a8a8 !important; /* Red background for incorrect */
+    background-color: #E9A895 !important; /* Lighter clay red for incorrect */
     color: white;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 80px; /* Consistent height with the other cards */
+}
+
+/* Stats Card Styling */
+.game-stats-content {
+    display: flex;
+    width: 100%;  /* Ensure the content takes up full width */
+    gap: 10px;    /* Adjust the space between boxes */
+    margin: 0px 0px 10px 0px; /* Center horizontally */
+}
+
+/* Correct box styling */
+.game-stats-correct-box {
+    background-color: #C7E3B6; /* Lighter olive green */
+    border-radius: 10px;
+    box-sizing: border-box;
+    padding: 10px 20px;
+    text-align: center;
+    color: white;
+    min-width: 100px;  /* Ensure minimum size */
+}
+
+/* Incorrect box styling */
+.game-stats-incorrect-box {
+    background-color: #E9A895; /* Lighter clay red */
+    border-radius: 10px;
+    box-sizing: border-box;
+    padding: 10px 20px;
+    text-align: center;
+    color: white;
+    min-width: 100px;  /* Ensure minimum size */
+}
+
+/* Text styling for the numbers */
+.game-stats-correct-box p,
+.game-stats-incorrect-box p {
+    color: #4F4F4F !important;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 24px; /* Bigger font for numbers */
+    font-weight: 600;
+    margin: 0;
 }
 
 .game-translation-card {
@@ -298,6 +338,9 @@ footer .copyright {
     align-items: center;
     height: 80px; /* Slightly reduce height */
     min-height: 80px; /* Ensure the cards remain the same height */
+    word-wrap: break-word;      /* Allow words to wrap if too long */
+    overflow-wrap: break-word;  /* Ensures wrapping of long words */
+    hyphens: auto;              /* Automatically add hyphens for long words */
 }
 
 .game-translation-card:hover {
@@ -314,6 +357,10 @@ footer .copyright {
     color: #333;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
+}
+
+.game-word-card h2 {
+    font-weight: 400 !important;
 }
 
 h1 {
@@ -832,6 +879,10 @@ main {
     footer p {
         font-size: 11px !important;
         margin: 0;
+    }
+
+    .game-translation-card {
+        font-size: 1.1em;         /* Slightly smaller font size for mobile */
     }
 
     .game-translation-card:hover {
