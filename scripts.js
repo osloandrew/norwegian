@@ -706,7 +706,6 @@ function handleCEFRChange() {
 }
 }
 
-
 // Render a list of results (words)
 function displaySearchResults(results, query = '') {
     //clearContainer(); // Don't clear the container to avoid overwriting existing content like the "No Exact Matches" message
@@ -1447,26 +1446,36 @@ window.onload = function() {
     const searchBtn = document.getElementById('search-btn');
     const randomBtn = document.getElementById('random-btn');
     const searchBar = document.getElementById('search-bar');
-    const clearBtn = document.getElementById('clear-btn');   // Reference to the "X" button
+    const clearBtn = document.getElementById('clear-btn');
+    const typeSelect = document.getElementById('type-select');
+    const posSelect = document.getElementById('pos-select');
+    const cefrSelect = document.getElementById('cefr-select');
+    const typeFilterContainer = document.querySelector('.type-filter');
+    const posFilterContainer = document.querySelector('.pos-filter');
+    const cefrFilterContainer = document.querySelector('.cefr-filter');
 
-    if (searchBtn && randomBtn && searchBar && clearBtn) {
-
-        // Disable the search and random buttons on load
+    if (searchBtn && randomBtn && searchBar && clearBtn && posSelect && cefrSelect) {
         searchBtn.disabled = true;
         randomBtn.disabled = true;
         searchBar.disabled = true;
-        clearBtn.disabled = true;  // Disable the "X" button
+        clearBtn.disabled = true;
+        posSelect.disabled = true;
+        cefrSelect.disabled = true;
+        typeSelect.disabled = true;
 
         // Apply the disabled styling
         searchBtn.style.color = '#ccc';
         searchBtn.style.cursor = 'not-allowed';
         randomBtn.style.color = '#ccc';
         randomBtn.style.cursor = 'not-allowed';
-        searchBar.style.color = '#ccc'; // Gray out the search bar
-        searchBar.style.cursor = 'not-allowed'; // Set cursor to not-allowed for search bar
-        clearBtn.style.color = '#ccc';   // Gray out the "X" button
-        clearBtn.style.cursor = 'not-allowed';  // Set cursor to not-allowed for "X" button
-    } 
+        searchBar.style.color = '#ccc';
+        searchBar.style.cursor = 'not-allowed';
+        clearBtn.style.color = '#ccc';
+        clearBtn.style.cursor = 'not-allowed';
+        typeFilterContainer.classList.add('disabled');
+        posFilterContainer.classList.add('disabled');  // Add the 'disabled' class to visually disable POS filter
+        cefrFilterContainer.classList.add('disabled');  // Add the 'disabled' class to visually disable CEFR filter
+        } 
 
     fetchAndLoadDictionaryData();  // Load dictionary data when the page is refreshed
 
@@ -1476,20 +1485,27 @@ window.onload = function() {
             clearInterval(checkDataLoaded);
 
             // Enable the buttons once data is fully loaded
-            document.getElementById('search-btn').disabled = false;
-            document.getElementById('random-btn').disabled = false;
-            document.getElementById('search-bar').disabled = false;
-            document.getElementById('clear-btn').disabled = false; // Enable the "X" button
-            
+            // Enable the buttons and filters once data is fully loaded
+            searchBtn.disabled = false;
+            randomBtn.disabled = false;
+            searchBar.disabled = false;
+            clearBtn.disabled = false;
+            typeSelect.disabled = false;
+            posSelect.disabled = false;
+            cefrSelect.disabled = false;
+
             // Restore original styling
-            document.getElementById('search-btn').style.color = '';
-            document.getElementById('search-btn').style.cursor = 'pointer';
-            document.getElementById('random-btn').style.color = '';
-            document.getElementById('random-btn').style.cursor = 'pointer';
-            document.getElementById('search-bar').style.color = ''; // Restore original color for the search bar
-            document.getElementById('search-bar').style.cursor = 'text'; // Set cursor back to text
-            document.getElementById('clear-btn').style.color = '';   // Restore color for "X" button
-            document.getElementById('clear-btn').style.cursor = 'pointer';  // Set cursor back to pointer for "X" button
+            searchBtn.style.color = '';
+            searchBtn.style.cursor = 'pointer';
+            randomBtn.style.color = '';
+            randomBtn.style.cursor = 'pointer';
+            searchBar.style.color = '';
+            searchBar.style.cursor = 'text';
+            clearBtn.style.color = '';
+            clearBtn.style.cursor = 'pointer';
+            typeFilterContainer.classList.remove('disabled');  // Remove 'disabled' class for POS filter
+            posFilterContainer.classList.remove('disabled');  // Remove 'disabled' class for POS filter
+            cefrFilterContainer.classList.remove('disabled');  // Remove 'disabled' class for CEFR filter
 
             // Load state from URL
             loadStateFromURL();  // This checks the URL for query/type/POS and triggers the appropriate search

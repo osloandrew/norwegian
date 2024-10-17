@@ -86,12 +86,6 @@ button:disabled i {
     right: 15px;
 }
 
-.cefr-filter.disabled select,
-.cefr-filter.disabled i {
-    color: #ccc;  /* Gray out the CEFR dropdown and arrow */
-    cursor: not-allowed;
-}
-
 .cefr-value {
     font-family: 'Noto Sans', sans-serif;
     font-size: 16px !important;
@@ -747,16 +741,15 @@ main {
 }
 
 /* Gray out both the select text and the arrow when disabled */
-.type-filter.disabled select, .pos-filter.disabled select {
+.cefr-filter.disabled select, .type-filter.disabled select, .pos-filter.disabled select {
     color: #ccc;
     cursor: not-allowed;
 }
 
-.type-filter.disabled i, .pos-filter.disabled i {
+.cefr-filter.disabled i, .type-filter.disabled i, .pos-filter.disabled i {
     color: #ccc;  /* Gray out the arrow */
     pointer-events: none;  /* Prevent interaction with the arrow */
 }
-
 
 .type-filter i, .pos-filter i {
     color: white;
@@ -764,7 +757,6 @@ main {
     pointer-events: none;
     right: 15px;
     z-index: 0; /* Ensures the icon is underneath the select element */
-
 }
 
 .type-filter select, .pos-filter select, .cefr-filter select {

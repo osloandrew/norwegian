@@ -1,6 +1,8 @@
 let currentWord;
 let correctTranslation;
 let gameActive = false;
+let chimeAudio = new Audio('chime.mp3'); // Path to your chime sound file
+chimeAudio.volume = 0.2;
 const gameContainer = document.getElementById('results-container'); // Assume this is where you'll display the game
 
 async function startWordGame() {
@@ -99,9 +101,11 @@ function handleTranslationClick(selectedTranslation) {
         cards.forEach(card => {
             if (card.innerText.trim() === selectedTranslationPart) {
                 card.classList.add('game-correct-card');
+                chimeAudio.currentTime = 0; // Reset audio to the beginning
+                chimeAudio.play(); // Play the chime sound when correct
             }
         });
-        delay = 750; // 0.75 second delay if correct
+        delay = 600; // 0.6 second delay if correct
     } else {
         // Mark the incorrect card as red
         cards.forEach(card => {
@@ -140,15 +144,17 @@ async function fetchRandomWord() {
             }
 
             // For non-noun POS, filter based on the selectedPOS value
-            return gender.includes(selectedPOS);
+            return gender.startsWith(selectedPOS);
         });
     }
-
 
     if (selectedCEFR) {
         // Filter by CEFR level if selected
         filteredResults = filteredResults.filter(r => r.CEFR && r.CEFR.toUpperCase() === selectedCEFR);
     }
+
+    // Filter out words where the Norwegian word and its English translation are identical
+    filteredResults = filteredResults.filter(r => r.ord.toLowerCase() !== r.engelsk.toLowerCase());
 
     console.log("Filtered Results:", filteredResults);
 
