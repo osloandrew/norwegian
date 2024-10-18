@@ -84,8 +84,6 @@ function fetchIncorrectTranslations(gender, correctTranslation) {
 }
 
 function renderWordGameUI(wordObj, translations) {
-    // Get the selected CEFR value from the dropdown
-    const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value : '';
     // Split the word at the comma and use the first part
     let displayedWord = wordObj.ord.split(',')[0].trim();
     
@@ -96,23 +94,23 @@ function renderWordGameUI(wordObj, translations) {
     // Check if CEFR is selected; if not, add a label based on wordObj.CEFR
     let cefrLabel = '';
     let spacerDiv = '';  // Spacer div placeholder
-    if (!selectedCEFR) {  // Only show the label if no CEFR value is selected
-        if (wordObj.CEFR === 'A1') {
-            cefrLabel = '<div class="game-cefr-label easy">A1</div>';
-            spacerDiv = '<div class="game-cefr-spacer"></div>';
-        } else if (wordObj.CEFR === 'A2') {
-            cefrLabel = '<div class="game-cefr-label easy">A2</div>';
-            spacerDiv = '<div class="game-cefr-spacer"></div>';
-        } else if (wordObj.CEFR === 'B1') {
-            cefrLabel = '<div class="game-cefr-label medium">B1</div>';
-            spacerDiv = '<div class="game-cefr-spacer"></div>';
-        } else if (wordObj.CEFR === 'B2') {
-            cefrLabel = '<div class="game-cefr-label medium">B2</div>';
-            spacerDiv = '<div class="game-cefr-spacer"></div>';
-        } else if (wordObj.CEFR === 'C') {
-            cefrLabel = '<div class="game-cefr-label hard">C</div>';
-            spacerDiv = '<div class="game-cefr-spacer"></div>';
-        }
+
+    // Always show the CEFR label if CEFR is available
+    if (wordObj.CEFR === 'A1') {
+        cefrLabel = '<div class="game-cefr-label easy">A1</div>';
+        spacerDiv = '<div class="game-cefr-spacer"></div>';
+    } else if (wordObj.CEFR === 'A2') {
+        cefrLabel = '<div class="game-cefr-label easy">A2</div>';
+        spacerDiv = '<div class="game-cefr-spacer"></div>';
+    } else if (wordObj.CEFR === 'B1') {
+        cefrLabel = '<div class="game-cefr-label medium">B1</div>';
+        spacerDiv = '<div class="game-cefr-spacer"></div>';
+    } else if (wordObj.CEFR === 'B2') {
+        cefrLabel = '<div class="game-cefr-label medium">B2</div>';
+        spacerDiv = '<div class="game-cefr-spacer"></div>';
+    } else if (wordObj.CEFR === 'C') {
+        cefrLabel = '<div class="game-cefr-label hard">C</div>';
+        spacerDiv = '<div class="game-cefr-spacer"></div>';
     }
 
     gameContainer.innerHTML = `
