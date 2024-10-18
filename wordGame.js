@@ -97,14 +97,20 @@ function renderWordGameUI(wordObj, translations) {
     let cefrLabel = '';
     let spacerDiv = '';  // Spacer div placeholder
     if (!selectedCEFR) {  // Only show the label if no CEFR value is selected
-        if (wordObj.CEFR === 'A1' || wordObj.CEFR === 'A2') {
-            cefrLabel = '<div class="game-cefr-label easy">easy</div>';
+        if (wordObj.CEFR === 'A1') {
+            cefrLabel = '<div class="game-cefr-label easy">A1</div>';
             spacerDiv = '<div class="game-cefr-spacer"></div>';
-        } else if (wordObj.CEFR === 'B1' || wordObj.CEFR === 'B2') {
-            cefrLabel = '<div class="game-cefr-label medium">medium</div>';
+        } else if (wordObj.CEFR === 'A2') {
+            cefrLabel = '<div class="game-cefr-label easy">A2</div>';
+            spacerDiv = '<div class="game-cefr-spacer"></div>';
+        } else if (wordObj.CEFR === 'B1') {
+            cefrLabel = '<div class="game-cefr-label medium">B1</div>';
+            spacerDiv = '<div class="game-cefr-spacer"></div>';
+        } else if (wordObj.CEFR === 'B2') {
+            cefrLabel = '<div class="game-cefr-label medium">B2</div>';
             spacerDiv = '<div class="game-cefr-spacer"></div>';
         } else if (wordObj.CEFR === 'C') {
-            cefrLabel = '<div class="game-cefr-label hard">hard</div>';
+            cefrLabel = '<div class="game-cefr-label hard">C</div>';
             spacerDiv = '<div class="game-cefr-spacer"></div>';
         }
     }

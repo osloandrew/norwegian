@@ -766,7 +766,7 @@ function displaySearchResults(results, query = '') {
                     ${result.ord}
                     ${result.gender ? `<span class="gender ${multipleResultsgenderClass}">${result.gender}</span>` : ''}
                     ${result.engelsk ? `<p class="english ${multipleResultsExposedContent}">${result.engelsk}</p>` : ''}
-                    ${result.CEFR ? `<p class="cefr-value ${multipleResultsExposedContent} ${result.CEFR.toUpperCase()}">${result.CEFR}</p>` : ''} 
+                    ${result.CEFR ? `<div class="game-cefr-label ${multipleResultsExposedContent} ${getCefrClass(result.CEFR)}">${result.CEFR}</div>` : ''} 
                 </h2>
                 ${result.definisjon ? `<p class="${multipleResultsDefinitionText}">${result.definisjon}</p>` : ''}
                 </div>
@@ -774,7 +774,7 @@ function displaySearchResults(results, query = '') {
                     ${result.engelsk ? `<p class="english"><i class="fas fa-language"></i> ${result.engelsk}</p>` : ''}
                     ${result.uttale ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>` : ''}
                     ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
-                    ${result.CEFR ? `<p class="cefr-value ${result.CEFR.toUpperCase()}"><i class="fa-solid fa-signal"></i> ${result.CEFR}</p>` : ''} 
+                    ${result.CEFR ? `<p style="display: inline-flex; align-items: center; font-family: 'Noto Sans', sans-serif; font-weight: bold; text-transform: uppercase; font-size: 12px; color: #4F4F4F;"><i class="fa-solid fa-signal" style="margin-right: 5px;"></i><span style="display: inline-block; padding: 3px 7px; border-radius: 4px; background-color: ${getCefrColor(result.CEFR)};">${result.CEFR}</span></p>` : ''}
                 </div>
                 <!-- Render the highlighted example sentence here -->
                 <div class="${multipleResultsHiddenContent}">${highlightedExample ? `<p class="example">${formatDefinitionWithMultipleSentences(highlightedExample)}</p>` : ''}</div>
@@ -793,6 +793,34 @@ function getWordGender(word) {
     const matchingWord = results.find(result => result.ord.toLowerCase() === word.toLowerCase());
     return matchingWord ? matchingWord.gender : 'unknown';  // Default to 'unknown' if not found
 }
+
+function getCefrClass(cefrLevel) {
+    if (cefrLevel === 'A1' || cefrLevel === 'A2') {
+        return 'easy';
+    } else if (cefrLevel === 'B1' || cefrLevel === 'B2') {
+        return 'medium';
+    } else if (cefrLevel === 'C') {
+        return 'hard';
+    }
+    return '';
+}
+
+function getCefrColor(cefrLevel) {
+    switch (cefrLevel) {
+        case 'A1':
+        case 'A2':
+            return '#C7E3B6';  // Green for 'easy'
+        case 'B1':
+        case 'B2':
+            return '#F2D96B';  // Yellow for 'medium'
+        case 'C':
+            return '#E9A895';  // Red for 'hard'
+        default:
+            return '#ccc';     // Default background color
+    }
+}
+
+
 
 // Utility function to generate word variations for verbs ending in -ere and handle adjective/noun forms
 function generateWordVariationsForSentences(word, pos) {

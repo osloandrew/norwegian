@@ -86,33 +86,6 @@ button:disabled i {
     right: 15px;
 }
 
-.cefr-value {
-    font-family: 'Noto Sans', sans-serif;
-    font-size: 16px !important;
-    font-weight: 600; /* Make it a bit bolder */
-}
-
-/* Specific colors for each CEFR level */
-.cefr-value.A1 {
-    color: #6F8B58;
-}
-
-.cefr-value.A2 {
-    color: #4A5E3D;
-}
-
-.cefr-value.B1 {
-    color: #B48456;
-}
-
-.cefr-value.B2 {
-    color: #805431;
-}
-
-.cefr-value.C {
-    color: #3F2C24;
-}
-
 .clear-btn {
     align-items: center;
     background-color: white;
@@ -200,9 +173,8 @@ button:disabled i {
 .pronunciation {
     color: #555 !important;
     font-size: 16px !important;
-    font-weight: 300;
+    font-weight: 500;
 }
-
 
 /* Specific styling for the error message */
 .error-message h2 {
@@ -272,15 +244,15 @@ footer .copyright {
 }
 
 .game-cefr-label.easy {
-    background-color: #C7E3B6;  /* Green for 'easy' */
+    background-color: #C7E3B6;  /* Green for 'A1, A2' */
 }
 
 .game-cefr-label.medium {
-    background-color: #F2D96B;  /* Yellow for 'medium' */
+    background-color: #F2D96B;  /* Yellow for 'B1, B2' */
 }
 
 .game-cefr-label.hard {
-    background-color: #E9A895;  /* Red for 'hard' */
+    background-color: #E9A895;  /* Red for 'C' */
 }
 
 .game-cefr-spacer {
@@ -401,6 +373,15 @@ footer .copyright {
     min-height: 100px;
 }
 
+.gender {
+    color: #951b1b !important;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 18px !important;
+    font-weight: 400;
+    letter-spacing: .04rem;
+    text-transform: uppercase;
+}
+
 h1 {
     color: #293a78;
     overflow: hidden;
@@ -443,7 +424,6 @@ header p {
     display: none;
 }
 
-
 html {
     display: flex;
     flex-direction: column;
@@ -465,15 +445,6 @@ input[type="text"]:not(:placeholder-shown) + label {
     color: #293a78;
     font-size: 12px;
     top: -10px;
-}
-
-.gender {
-    color: #951b1b !important;
-    font-family: 'Noto Sans', sans-serif;
-    font-size: 18px !important;
-    font-weight: 400;
-    letter-spacing: .04rem;
-    text-transform: uppercase;
 }
 
 label {
