@@ -259,18 +259,16 @@ footer .copyright {
 }
 
 .game-cefr-label {
-    position: absolute;                /* Absolutely position the label */
-    left: 20px;                        /* Stick it to the left */
-    top: 50%;                          /* Vertically center the label */
-    transform: translateY(-50%);       /* Correct vertical alignment */
-    padding: 3px 7px;                  /* Smaller padding */
-    font-size: 12px;                   /* Smaller font size */
+    align-self: flex-start;               /* Align the label to the left */
+    padding: 3px 7px;                     /* Smaller padding */
+    font-size: 12px;                      /* Smaller font size */
     color: #4F4F4F;
     font-weight: bold;
     border-radius: 4px;
     text-transform: uppercase;
     font-family: 'Noto Sans', sans-serif;
-    text-align: center;                   /* Align it vertically at 50% */
+    white-space: nowrap;                  /* Prevent text wrapping */
+    margin-bottom: 5px;                  /* Space between the label and the word */
 }
 
 .game-cefr-label.easy {
@@ -283,6 +281,10 @@ footer .copyright {
 
 .game-cefr-label.hard {
     background-color: #E9A895;  /* Red for 'hard' */
+}
+
+.game-cefr-spacer {
+    height: 30px;
 }
 
 .game-grid {
@@ -373,41 +375,30 @@ footer .copyright {
 
 .game-word {
     display: flex;
-    justify-content: center;           /* Center the word */
-    align-items: center;
+    justify-content: center;              /* Center the word horizontally */
+    align-items: center;                  /* Center the word vertically */
     text-align: center;
-    min-width: 50%;                    /* Word takes at least 50% width */
-    white-space: nowrap;               /* Prevent the word from breaking lines */
-    word-wrap: normal;
-    overflow: hidden;                  /* Hide overflow if necessary */
-    transition: width 0.3s ease;       /* Smooth transition when adjusting width */
-}
-
-.game-word.having-label {
-    width: calc(100% - 180px);         /* Dynamically adjust based on label */
-    min-width: calc(50%);              /* Minimum space allowed for the word */
 }
 
 .game-word h2 {
     margin: 0;
     font-weight: 400 !important;
-    overflow: hidden;                  /* Hide overflow text if too long */
-    text-overflow: ellipsis;           /* Add ellipsis if text is too long */
 }
 
 .game-word-card {
-    position: relative;                /* Allows for absolute positioning */
     display: flex;
-    justify-content: center;           /* Center the word by default */
-    align-items: center;               /* Vertically center content */
+    flex-direction: column;              /* Stack the label and word vertically */
+    justify-content: center;             /* Center the content vertically */
+    align-items: center;                 /* Center the content horizontally */
     background-color: white;
     border: 1px solid #ccc;
     border-radius: 10px;
-    padding: 20px;
+    padding: 10px;                /* Reduce padding at the top, add more below */
     font-size: 1.2em;
     color: #333;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
+    position: relative;                  /* Allow for flexible layout */
+    min-height: 100px;
 }
 
 h1 {

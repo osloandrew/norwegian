@@ -95,17 +95,17 @@ function renderWordGameUI(wordObj, translations) {
 
     // Check if CEFR is selected; if not, add a label based on wordObj.CEFR
     let cefrLabel = '';
-    let wordClass = 'game-word';  // Default class for game-word
+    let spacerDiv = '';  // Spacer div placeholder
     if (!selectedCEFR) {  // Only show the label if no CEFR value is selected
         if (wordObj.CEFR === 'A1' || wordObj.CEFR === 'A2') {
             cefrLabel = '<div class="game-cefr-label easy">easy</div>';
-            wordClass += ' having-label';  // Add 'having-label' class if CEFR is present
+            spacerDiv = '<div class="game-cefr-spacer"></div>';
         } else if (wordObj.CEFR === 'B1' || wordObj.CEFR === 'B2') {
             cefrLabel = '<div class="game-cefr-label medium">medium</div>';
-            wordClass += ' having-label';  // Add 'having-label' class if CEFR is present
-        } else if (wordObj.CEFR === 'C1' || wordObj.CEFR === 'C2') {
+            spacerDiv = '<div class="game-cefr-spacer"></div>';
+        } else if (wordObj.CEFR === 'C') {
             cefrLabel = '<div class="game-cefr-label hard">hard</div>';
-            wordClass += ' having-label';  // Add 'having-label' class if CEFR is present
+            spacerDiv = '<div class="game-cefr-spacer"></div>';
         }
     }
 
@@ -117,9 +117,10 @@ function renderWordGameUI(wordObj, translations) {
 
         <div class="definition result-header game-word-card">
             ${cefrLabel}  <!-- Add the CEFR label here if applicable -->
-            <div class="${wordClass}">
+            <div class="game-word">
             <h2>${displayedWord}</h2>
             </div>
+            ${spacerDiv}  <!-- Add the spacer div if CEFR label exists -->
         </div>
 
         <!-- Translations Grid Section -->
