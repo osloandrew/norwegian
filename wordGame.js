@@ -1,5 +1,3 @@
-import { noRandom } from 'noRandom.js';  // Adjust the path if needed
-
 let currentWord;
 let correctTranslation;
 let gameActive = false;

@@ -1,4 +1,4 @@
-export const noRandom = [
+const noRandom = [
     'a',
     'b',
     'c',

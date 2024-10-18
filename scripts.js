@@ -1,5 +1,3 @@
-import { noRandom } from 'noRandom.js';  // Adjust the path if needed
-
 // Global Variables
 let results = [];
 const resultsContainer = document.getElementById('results-container');
