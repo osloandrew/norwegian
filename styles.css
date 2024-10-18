@@ -258,6 +258,33 @@ footer .copyright {
     font-size: 12px;
 }
 
+.game-cefr-label {
+    position: absolute;                /* Absolutely position the label */
+    left: 20px;                        /* Stick it to the left */
+    top: 50%;                          /* Vertically center the label */
+    transform: translateY(-50%);       /* Correct vertical alignment */
+    padding: 3px 7px;                  /* Smaller padding */
+    font-size: 12px;                   /* Smaller font size */
+    color: #4F4F4F;
+    font-weight: bold;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-family: 'Noto Sans', sans-serif;
+    text-align: center;                   /* Align it vertically at 50% */
+}
+
+.game-cefr-label.easy {
+    background-color: #C7E3B6;  /* Green for 'easy' */
+}
+
+.game-cefr-label.medium {
+    background-color: #F2D96B;  /* Yellow for 'medium' */
+}
+
+.game-cefr-label.hard {
+    background-color: #E9A895;  /* Red for 'hard' */
+}
+
 .game-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -344,20 +371,43 @@ footer .copyright {
     background-color: #e6f7ff; /* Hover effect same as word card */
 }
 
+.game-word {
+    display: flex;
+    justify-content: center;           /* Center the word */
+    align-items: center;
+    text-align: center;
+    min-width: 50%;                    /* Word takes at least 50% width */
+    white-space: nowrap;               /* Prevent the word from breaking lines */
+    word-wrap: normal;
+    overflow: hidden;                  /* Hide overflow if necessary */
+    transition: width 0.3s ease;       /* Smooth transition when adjusting width */
+}
+
+.game-word.having-label {
+    width: calc(100% - 180px);         /* Dynamically adjust based on label */
+    min-width: calc(50%);              /* Minimum space allowed for the word */
+}
+
+.game-word h2 {
+    margin: 0;
+    font-weight: 400 !important;
+    overflow: hidden;                  /* Hide overflow text if too long */
+    text-overflow: ellipsis;           /* Add ellipsis if text is too long */
+}
+
 .game-word-card {
+    position: relative;                /* Allows for absolute positioning */
+    display: flex;
+    justify-content: center;           /* Center the word by default */
+    align-items: center;               /* Vertically center content */
     background-color: white;
     border: 1px solid #ccc;
     border-radius: 10px;
     padding: 20px;
-    text-align: center;
     font-size: 1.2em;
     color: #333;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
-}
-
-.game-word-card h2 {
-    font-weight: 400 !important;
 }
 
 h1 {

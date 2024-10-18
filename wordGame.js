@@ -84,11 +84,29 @@ function fetchIncorrectTranslations(gender, correctTranslation) {
 }
 
 function renderWordGameUI(wordObj, translations) {
+    // Get the selected CEFR value from the dropdown
+    const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value : '';
     // Split the word at the comma and use the first part
     let displayedWord = wordObj.ord.split(',')[0].trim();
     
     if (wordObj.gender.startsWith('en') || wordObj.gender.startsWith('et') || wordObj.gender.startsWith('ei')) {
         displayedWord = `${wordObj.gender} ${displayedWord}`;  // Add gender in front of the word
+    }
+
+    // Check if CEFR is selected; if not, add a label based on wordObj.CEFR
+    let cefrLabel = '';
+    let wordClass = 'game-word';  // Default class for game-word
+    if (!selectedCEFR) {  // Only show the label if no CEFR value is selected
+        if (wordObj.CEFR === 'A1' || wordObj.CEFR === 'A2') {
+            cefrLabel = '<div class="game-cefr-label easy">easy</div>';
+            wordClass += ' having-label';  // Add 'having-label' class if CEFR is present
+        } else if (wordObj.CEFR === 'B1' || wordObj.CEFR === 'B2') {
+            cefrLabel = '<div class="game-cefr-label medium">medium</div>';
+            wordClass += ' having-label';  // Add 'having-label' class if CEFR is present
+        } else if (wordObj.CEFR === 'C1' || wordObj.CEFR === 'C2') {
+            cefrLabel = '<div class="game-cefr-label hard">hard</div>';
+            wordClass += ' having-label';  // Add 'having-label' class if CEFR is present
+        }
     }
 
     gameContainer.innerHTML = `
@@ -97,9 +115,11 @@ function renderWordGameUI(wordObj, translations) {
             <!-- Stats will be updated dynamically in renderStats() -->
         </div>
 
-        <!-- Word Display Section -->
         <div class="definition result-header game-word-card">
+            ${cefrLabel}  <!-- Add the CEFR label here if applicable -->
+            <div class="${wordClass}">
             <h2>${displayedWord}</h2>
+            </div>
         </div>
 
         <!-- Translations Grid Section -->
@@ -205,8 +225,17 @@ async function fetchRandomWord() {
     }
 
     // Filter out words where the Norwegian word and its English translation are identical
-    filteredResults = filteredResults.filter(r => r.ord.toLowerCase() !== r.engelsk.toLowerCase());
-
+    filteredResults = filteredResults.filter(r => {
+        // Split and trim the Norwegian word (handle comma-separated words)
+        const norwegianWord = r.ord.split(',')[0].trim().toLowerCase();
+        
+        // Split and trim the English translation (handle comma-separated translations)
+        const englishTranslation = r.engelsk.split(',')[0].trim().toLowerCase();
+    
+        // Return true if the Norwegian and English words are not the same
+        return norwegianWord !== englishTranslation;
+    });
+    
     console.log("Filtered Results:", filteredResults);
 
     // If no words match the filters, return a message
@@ -222,6 +251,7 @@ async function fetchRandomWord() {
         ord: randomResult.ord,
         engelsk: randomResult.engelsk,
         gender: randomResult.gender, // Add gender
+        CEFR: randomResult.CEFR // Make sure CEFR is returned here
     };
 }
 
