@@ -1,3 +1,5 @@
+import { noRandom } from 'noRandom.js';  // Adjust the path if needed
+
 // Global Variables
 let results = [];
 const resultsContainer = document.getElementById('results-container');
@@ -227,7 +229,6 @@ async function randomWord() {
         return;
     }
 
-
     showSpinner();
     clearInput();  // Clear search bar when generating a random word or sentence
     showLandingCard(false);
@@ -245,6 +246,8 @@ async function randomWord() {
         // Additionally, filter by the selected CEFR level if applicable
         filteredResults = filteredResults.filter(r => !selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR));
 
+        // Exclude certain words here
+        filteredResults = filteredResults.filter(r => !noRandom.includes(r.ord.toLowerCase()));
     }
 
     if (!filteredResults.length) {
@@ -288,7 +291,6 @@ async function randomWord() {
         // If it's a word, render it with highlighting (if needed)
         displaySearchResults([randomResult], randomResult.ord);
     }
-
     hideSpinner();  // Hide the spinner
 }
 

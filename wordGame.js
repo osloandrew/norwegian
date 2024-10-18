@@ -1,3 +1,5 @@
+import { noRandom } from 'noRandom.js';  // Adjust the path if needed
+
 let currentWord;
 let correctTranslation;
 let gameActive = false;
@@ -65,10 +67,9 @@ async function startWordGame() {
     renderStats();
 }
 
-
 function fetchIncorrectTranslations(gender, correctTranslation) {
     const incorrectResults = results.filter(r => {
-        return r.gender === gender && r.engelsk !== correctTranslation;
+        return r.gender === gender && r.engelsk !== correctTranslation && !noRandom.includes(r.ord.toLowerCase());
     });
 
     // Randomly select 3 incorrect translations
@@ -208,7 +209,7 @@ async function fetchRandomWord() {
     console.log("Selected CEFR:", selectedCEFR);
 
     // Filter results based on selected CEFR and POS values
-    let filteredResults = results.filter(r => r.engelsk); // Ensure only words with English translations
+    let filteredResults = results.filter(r => r.engelsk && !noRandom.includes(r.ord.toLowerCase()));
 
     if (selectedPOS) {
         filteredResults = filteredResults.filter(r => {
