@@ -672,7 +672,8 @@ function handleTypeChange() {
         searchContainerInner.classList.add('word-game-active');
 
         console.log('Word game selected.');
-
+        
+        resetGame();
         startWordGame();  // Call the word game function
 
     } else {

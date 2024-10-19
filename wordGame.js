@@ -383,11 +383,13 @@ function updateCEFRSelection() {
 }
 
 function resetGame() {
-    correctCount = 0;
-    incorrectCount = 0;
-    totalQuestions = 0;
-    correctLevelAnswers = 0;
-    renderStats(); // Update the stats UI
+    recentAnswers = [];  // Clear the recent answers array
+    correctCount = 0;    // Reset correct answers count
+    incorrectCount = 0;  // Reset incorrect answers count
+    totalQuestions = 0;  // Reset total questions for the current level
+    correctLevelAnswers = 0;  // Reset correct answers for the current level
+    questionsAtCurrentLevel = 0; // Reset questions counter for the level
+    renderStats();  // Re-render the stats display to reflect the reset
 }
 
 function showCongratulationsBanner(level) {
