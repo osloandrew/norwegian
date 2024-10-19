@@ -572,13 +572,11 @@ function checkForSentences(word, pos) {
     return sentenceFound;
 }
 
-
-
 // Handle change in part of speech (POS) filter
 function handlePOSChange() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
     const selectedPOS = document.getElementById('pos-select').value.toLowerCase(); // Fetch POS
-    if (gameActive) {
+    if (gameActive && document.getElementById('type-select').value === 'word-game') {
         // Adjust the word game instead of triggering a dictionary search
         startWordGame();  // Re-fetch a new word for the game based on the new POS filter
     } else {
@@ -714,9 +712,9 @@ function handleTypeChange() {
 // Handle change in CEFR filter
 function handleCEFRChange() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
-    const selectedCEFR = document.getElementById('cefr-select').value.toUpperCase(); // Fetch CEFR
     
-    if (gameActive) {
+    // Only start the word game if the 'word-game' tab is active
+    if (gameActive && document.getElementById('type-select').value === 'word-game') {
         // Adjust the word game instead of triggering a dictionary search
         startWordGame();  // Re-fetch a new word for the game based on the new CEFR filter
     } else {
