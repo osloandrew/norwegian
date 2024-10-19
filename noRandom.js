@@ -87,6 +87,7 @@ const noRandom = [
     'tøsaktig',
     'tøsete, tøset',
     'tøyte',
+    'utbrettjente',
     'utukt',
     'vagina',
     'voldta',
