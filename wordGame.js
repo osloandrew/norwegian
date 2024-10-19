@@ -8,6 +8,7 @@ let levelThreshold = 0.9; // 90% correct to level up
 let fallbackThreshold = 0.7; // Fall back if below 70%
 let totalQuestions = 0; // Track total questions per level
 let correctLevelAnswers = 0; // Track correct answers per level
+let isBannerVisible = false;
 
 let chimeAudio = new Audio('chime.mp3'); // Path to your chime sound file
 chimeAudio.volume = 0.2;
@@ -125,6 +126,9 @@ function renderWordGameUI(wordObj, translations) {
     }
 
     gameContainer.innerHTML = `
+        <div id="game-congratulations-banner" class="${isBannerVisible ? '' : 'hidden'}">
+            <p>Great job! 🎉 You're now at level <span id="next-level">${currentCEFR}</span>!</p>
+        </div>
         <!-- Session Stats Section -->
         <div class="game-stats-content" id="game-session-stats">
             <!-- Stats will be updated dynamically in renderStats() -->
@@ -161,6 +165,8 @@ function handleTranslationClick(selectedTranslation) {
     if (!gameActive) return;  // Prevent further clicks if the game is not active
 
     gameActive = false; // Disable further clicks until the next word is generated
+
+    hideCongratulationsBanner();  // Hide the banner when an answer is clicked
 
     const cards = document.querySelectorAll('.game-translation-card');
 
@@ -307,6 +313,7 @@ function advanceToNextLevel() {
     // Only advance if we are not already at the next level
     if (currentCEFR !== nextLevel && nextLevel) {
         currentCEFR = nextLevel;
+        showCongratulationsBanner(nextLevel);  // Show the banner
 
         // Update the CEFR selection to reflect the new level
         updateCEFRSelection();
@@ -347,6 +354,24 @@ function resetGame() {
     totalQuestions = 0;
     correctLevelAnswers = 0;
     renderStats(); // Update the stats UI
+}
+
+function showCongratulationsBanner(level) {
+    const banner = document.getElementById('game-congratulations-banner');
+    const levelSpan = document.getElementById('next-level');
+
+    if (levelSpan.textContent !== level) {
+        levelSpan.textContent = level;  // Update the level only if it changed
+    }
+
+    banner.classList.remove('hidden');  // Show the banner
+    isBannerVisible = true;  // Set banner visibility flag
+}
+
+function hideCongratulationsBanner() {
+    const banner = document.getElementById('game-congratulations-banner');
+    banner.classList.add('hidden');  // Hide the banner
+    isBannerVisible = false;  // Reset banner visibility flag
 }
 
 document.getElementById('cefr-select').addEventListener('change', function() {
