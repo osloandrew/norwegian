@@ -1,10 +1,17 @@
 let currentWord;
 let correctTranslation;
 let gameActive = false;
-let correctCount = 0;  // Tracks the number of correct answers
-let incorrectCount = 0; // Tracks the number of incorrect answers
+let correctCount = 0;  // Tracks the total number of correct answers
+let incorrectCount = 0; // Tracks the total number of incorrect answers
+let currentCEFR = 'A1'; // Start at A1 by default
+let levelThreshold = 0.9; // 90% correct to level up
+let fallbackThreshold = 0.7; // Fall back if below 70%
+let totalQuestions = 0; // Track total questions per level
+let correctLevelAnswers = 0; // Track correct answers per level
+
 let chimeAudio = new Audio('chime.mp3'); // Path to your chime sound file
 chimeAudio.volume = 0.2;
+
 const gameContainer = document.getElementById('results-container'); // Assume this is where you'll display the game
 const statsContainer = document.getElementById('game-session-stats'); // New container for session stats
 
@@ -42,7 +49,12 @@ function renderStats() {
 
 async function startWordGame() {
     gameActive = true;
-    
+
+    // Use the currentCEFR directly, since it's dynamically updated when the user selects a new CEFR level
+    if (!currentCEFR) {
+        currentCEFR = 'A1'; // Default to A1 if no level is set
+    }
+
     // Fetch a random word that respects CEFR and POS filters
     const randomWordObj = await fetchRandomWord();
 
@@ -163,6 +175,8 @@ function handleTranslationClick(selectedTranslation) {
 
     let delay; // Variable to store delay time
 
+    totalQuestions++; // Increment total questions for this level
+
     if (selectedTranslationPart === correctTranslationPart) {
         // Mark the selected card as green (correct)
         cards.forEach(card => {
@@ -172,7 +186,8 @@ function handleTranslationClick(selectedTranslation) {
                 chimeAudio.play(); // Play the chime sound when correct
             }
         });
-        correctCount++;  // Increment correct count
+        correctCount++;  // Increment correct count globally
+        correctLevelAnswers++; // Increment correct count for this level
         delay = 600; // 0.6 second delay if correct
     } else {
         // Mark the incorrect card as red
@@ -192,6 +207,21 @@ function handleTranslationClick(selectedTranslation) {
     // Update the stats after the answer
     renderStats();
 
+    // Evaluate if the user needs to level up or fall back after every 10 questions
+    if (totalQuestions >= 10) {
+        let accuracy = correctLevelAnswers / totalQuestions;
+        
+        if (accuracy >= levelThreshold) {
+            advanceToNextLevel();
+        } else if (accuracy < fallbackThreshold) {
+            fallbackToPreviousLevel();
+        }
+        
+        // Reset counters for the next level
+        totalQuestions = 0;
+        correctLevelAnswers = 0;
+    }
+
     // Await the new word generation after the specified delay
     setTimeout(async () => {
         await startWordGame(); // Ensure async function is awaited
@@ -201,12 +231,14 @@ function handleTranslationClick(selectedTranslation) {
 
 async function fetchRandomWord() {
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
-    const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';
+
+    // Always use the current CEFR level, whether it's A1 by default or selected by the user
+    const cefrLevel = currentCEFR;
 
     console.log("Selected POS:", selectedPOS);
-    console.log("Selected CEFR:", selectedCEFR);
+    console.log("Selected CEFR:", cefrLevel);
 
-    // Filter results based on selected CEFR and POS values
+    // Filter results based on the dynamically changing CEFR level
     let filteredResults = results.filter(r => r.engelsk && !noRandom.includes(r.ord.toLowerCase()));
 
     if (selectedPOS) {
@@ -223,9 +255,9 @@ async function fetchRandomWord() {
         });
     }
 
-    if (selectedCEFR) {
+    if (cefrLevel) {
         // Filter by CEFR level if selected
-        filteredResults = filteredResults.filter(r => r.CEFR && r.CEFR.toUpperCase() === selectedCEFR);
+        filteredResults = filteredResults.filter(r => r.CEFR && r.CEFR.toUpperCase() === cefrLevel);
     }
 
     // Filter out words where the Norwegian word and its English translation are identical
@@ -259,6 +291,41 @@ async function fetchRandomWord() {
     };
 }
 
+function advanceToNextLevel() {
+    let nextLevel = '';
+    
+    if (currentCEFR === 'A1') {
+        nextLevel = 'A2';
+    } else if (currentCEFR === 'A2') {
+        nextLevel = 'B1';
+    } else if (currentCEFR === 'B1') {
+        nextLevel = 'B2';
+    } else if (currentCEFR === 'B2') {
+        nextLevel = 'C';
+    }
+
+    // Only advance if we are not already at the next level
+    if (currentCEFR !== nextLevel && nextLevel) {
+        currentCEFR = nextLevel;
+
+        // Update the CEFR selection to reflect the new level
+        updateCEFRSelection();
+    }
+}
+
+function fallbackToPreviousLevel() {
+    if (currentCEFR === 'A2') {
+        currentCEFR = 'A1';
+    } else if (currentCEFR === 'B1') {
+        currentCEFR = 'A2';
+    } else if (currentCEFR === 'B2') {
+        currentCEFR = 'B1';
+    } else if (currentCEFR === 'C') {
+        currentCEFR = 'B2';
+    }
+    // Update the CEFR selection to reflect the new level
+    updateCEFRSelection();
+}
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -267,3 +334,24 @@ function shuffleArray(array) {
     }
     return array;
 }
+
+function updateCEFRSelection() {
+    const cefrSelect = document.getElementById('cefr-select');
+    // Update the actual selected value in the dropdown to reflect the current CEFR level
+    cefrSelect.value = currentCEFR;
+}
+
+function resetGame() {
+    correctCount = 0;
+    incorrectCount = 0;
+    totalQuestions = 0;
+    correctLevelAnswers = 0;
+    renderStats(); // Update the stats UI
+}
+
+document.getElementById('cefr-select').addEventListener('change', function() {
+    const selectedCEFR = this.value.toUpperCase(); // Get the newly selected CEFR level
+    currentCEFR = selectedCEFR; // Set the current CEFR level to the new one
+    resetGame(); // Reset the game stats
+    startWordGame(); // Start the game with the new CEFR level
+});

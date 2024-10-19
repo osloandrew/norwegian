@@ -606,7 +606,6 @@ function handleTypeChange() {
     const randomBtn = document.getElementById('random-btn');
     
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
-    const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';
 
     // Update the URL with the type, query, and selected POS
     updateURL(query, type, selectedPOS);  // <--- Trigger URL update based on type change
@@ -634,6 +633,11 @@ function handleTypeChange() {
         cefrSelect.disabled = true;
         cefrSelect.value = '';  // Reset to "CEFR Level" option
         cefrFilterContainer.classList.add('disabled');  // Add the 'disabled' class
+
+        // Revert the label back to "CEFR Level" when not in "WORD GAME"
+        cefrSelect.options[0].text = "CEFR Level";
+        // Other existing logic for non-word-game modes...
+        searchContainerInner.classList.remove('word-game-active');
         
         // If the search bar is not empty, perform a sentence search
         if (query) {
@@ -663,6 +667,12 @@ function handleTypeChange() {
         posSelect.value = '';  // Reset to "Part of Speech" option
         cefrSelect.value = '';  // Reset to "CEFR Level" option
 
+        // Change the label to something more compact when "WORD GAME" is selected
+        cefrSelect.options[0].text = "Starting Level";
+
+        // Other existing logic for word-game...
+        searchContainerInner.classList.add('word-game-active');
+
         console.log('Word game selected.');
 
         startWordGame();  // Call the word game function
@@ -682,7 +692,13 @@ function handleTypeChange() {
 
         // Enable the CEFR dropdown and restore color
         cefrSelect.disabled = false;
+        cefrSelect.value = '';  // Reset to "CEFR Level" option
         cefrFilterContainer.classList.remove('disabled');
+
+        // Revert the label back to "CEFR Level" when not in "WORD GAME"
+        cefrSelect.options[0].text = "CEFR Level";
+        // Other existing logic for non-word-game modes...
+        searchContainerInner.classList.remove('word-game-active');
 
         // Optionally, generate a random word if needed when switching back to words
         if (query) {
