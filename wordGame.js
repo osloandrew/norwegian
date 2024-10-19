@@ -10,12 +10,20 @@ let totalQuestions = 0; // Track total questions per level
 let correctLevelAnswers = 0; // Track correct answers per level
 let congratulationsBannerVisible = false;
 let fallbackBannerVisible = false;
+let recentAnswers = [];  // Track the last X answers, 1 for correct, 0 for incorrect
 
-let chimeAudio = new Audio('chime.mp3'); // Path to your chime sound file
+let chimeAudio = new Audio('chime.wav'); // Path to your chime sound file
 chimeAudio.volume = 0.2;
 
 const gameContainer = document.getElementById('results-container'); // Assume this is where you'll display the game
 const statsContainer = document.getElementById('game-session-stats'); // New container for session stats
+
+function updateRecentAnswers(isCorrect) {
+    recentAnswers.push(isCorrect ? 1 : 0);
+    if (recentAnswers.length > 50) {  // Adjusted to 50 instead of 20
+        recentAnswers.shift();  // Keep only the last 50 answers
+    }    
+}
 
 function renderStats() {
     const statsContainer = document.getElementById('game-session-stats');
@@ -24,25 +32,25 @@ function renderStats() {
         return;
     }
 
-    // Calculate the total number of answers
-    const total = correctCount + incorrectCount;
+    const total = recentAnswers.length;
+    const correctCount = recentAnswers.reduce((a, b) => a + b, 0);
+    const incorrectCount = total - correctCount;
 
-    // Prevent division by zero; assign minimum value 1 for proportions
-    const correctProportion = total > 0 ? correctCount / total : 0.5;
-    const incorrectProportion = total > 0 ? incorrectCount / total : 0.5;
+    const correctPercentage = total > 0 ? (correctCount / total) * 100 : 0;
+    const incorrectPercentage = total > 0 ? (incorrectCount / total) * 100 : 0;
 
-    // Check that proportions are being calculated correctly
-    console.log('Correct Proportion:', correctProportion);
-    console.log('Incorrect Proportion:', incorrectProportion);
+    // Always set flex-grow to 1 to maintain 100% width from the start
+    const correctProportion = total > 0 ? (correctCount / total) : 1;
+    const incorrectProportion = total > 0 ? (incorrectCount / total) : 1;
 
-    // Render the stats with flex-grow values
+    // Render the stats with full width and percentages
     statsContainer.innerHTML = `
-        <div class="game-stats-content">
+        <div class="game-stats-content" style="width: 100%;">
             <div class="game-stats-correct-box" style="flex-grow: ${correctProportion};">
-                <p>${correctCount}</p>
+                <p>${Math.round(correctPercentage)}%</p>
             </div>
             <div class="game-stats-incorrect-box" style="flex-grow: ${incorrectProportion};">
-                <p>${incorrectCount}</p>
+                <p>${Math.round(incorrectPercentage)}%</p>
             </div>
         </div>
     `;
@@ -167,6 +175,8 @@ function renderWordGameUI(wordObj, translations) {
     `;
 }
 
+let questionsAtCurrentLevel = 0; // Track questions answered at current level
+
 function handleTranslationClick(selectedTranslation) {
     if (!gameActive) return;  // Prevent further clicks if the game is not active
 
@@ -190,6 +200,7 @@ function handleTranslationClick(selectedTranslation) {
     let delay; // Variable to store delay time
 
     totalQuestions++; // Increment total questions for this level
+    questionsAtCurrentLevel++; // Increment questions at this level
 
     if (selectedTranslationPart === correctTranslationPart) {
         // Mark the selected card as green (correct)
@@ -202,7 +213,8 @@ function handleTranslationClick(selectedTranslation) {
         });
         correctCount++;  // Increment correct count globally
         correctLevelAnswers++; // Increment correct count for this level
-        delay = 600; // 0.6 second delay if correct
+        updateRecentAnswers(true);  // Track this correct answer
+        delay = 500; // 0.5 second delay if correct
     } else {
         // Mark the incorrect card as red
         cards.forEach(card => {
@@ -215,25 +227,17 @@ function handleTranslationClick(selectedTranslation) {
             }
         });
         incorrectCount++;  // Increment incorrect count
+        updateRecentAnswers(false);  // Track this correct answer
         delay = 2500; // 2.5 seconds delay if incorrect
     }
 
     // Update the stats after the answer
     renderStats();
 
-    // Evaluate if the user needs to level up or fall back after every 10 questions
-    if (totalQuestions >= 10) {
-        let accuracy = correctLevelAnswers / totalQuestions;
-        
-        if (accuracy >= levelThreshold) {
-            advanceToNextLevel();
-        } else if (accuracy < fallbackThreshold) {
-            fallbackToPreviousLevel();
-        }
-        
-        // Reset counters for the next level
-        totalQuestions = 0;
-        correctLevelAnswers = 0;
+    // Only evaluate progression if at least 10 questions have been answered at the current level
+    if (questionsAtCurrentLevel >= 10) {
+        evaluateProgression();
+        questionsAtCurrentLevel = 0; // Reset the counter after progression evaluation
     }
 
     // Await the new word generation after the specified delay
@@ -286,8 +290,6 @@ async function fetchRandomWord() {
         return norwegianWord !== englishTranslation;
     });
     
-    console.log("Filtered Results:", filteredResults);
-
     // If no words match the filters, return a message
     if (filteredResults.length === 0) {
         alert('No words found matching the selected CEFR and POS filters.');
@@ -349,6 +351,20 @@ function fallbackToPreviousLevel() {
 
         // Update the CEFR selection to reflect the new level
         updateCEFRSelection();
+    }
+}
+
+function evaluateProgression() {
+    const correctCount = recentAnswers.reduce((a, b) => a + b, 0);
+    const total = recentAnswers.length;
+    const accuracy = total > 0 ? (correctCount / total) : 0;
+
+    console.log("Current accuracy:", accuracy);
+
+    if (accuracy >= levelThreshold) {
+        advanceToNextLevel();
+    } else if (accuracy < fallbackThreshold) {
+        fallbackToPreviousLevel();
     }
 }
 

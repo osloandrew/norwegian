@@ -333,12 +333,19 @@ footer .copyright {
 }
 
 /* Text styling for the numbers */
-.game-stats-correct-box p,
-.game-stats-incorrect-box p {
-    color: #4F4F4F !important;
+.game-stats-correct-box p {
+    color: #6B9461 !important;
     font-family: 'Noto Sans', sans-serif;
     font-size: 24px; /* Bigger font for numbers */
-    font-weight: 600;
+    font-weight: 500;
+    margin: 0;
+}
+
+.game-stats-incorrect-box p {
+    color: #B5634D !important;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 24px; /* Bigger font for numbers */
+    font-weight: 500;
     margin: 0;
 }
 
