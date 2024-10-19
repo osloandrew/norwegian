@@ -4,11 +4,12 @@ let gameActive = false;
 let correctCount = 0;  // Tracks the total number of correct answers
 let incorrectCount = 0; // Tracks the total number of incorrect answers
 let currentCEFR = 'A1'; // Start at A1 by default
-let levelThreshold = 0.9; // 90% correct to level up
-let fallbackThreshold = 0.7; // Fall back if below 70%
+let levelThreshold = 0.95; // 95% correct to level up
+let fallbackThreshold = 0.5; // Fall back if below 50%
 let totalQuestions = 0; // Track total questions per level
 let correctLevelAnswers = 0; // Track correct answers per level
-let isBannerVisible = false;
+let congratulationsBannerVisible = false;
+let fallbackBannerVisible = false;
 
 let chimeAudio = new Audio('chime.mp3'); // Path to your chime sound file
 chimeAudio.volume = 0.2;
@@ -126,9 +127,6 @@ function renderWordGameUI(wordObj, translations) {
     }
 
     gameContainer.innerHTML = `
-        <div id="game-congratulations-banner" class="${isBannerVisible ? '' : 'hidden'}">
-            <p>Great job! 🎉 You're now at level <span id="next-level">${currentCEFR}</span>!</p>
-        </div>
         <!-- Session Stats Section -->
         <div class="game-stats-content" id="game-session-stats">
             <!-- Stats will be updated dynamically in renderStats() -->
@@ -158,6 +156,14 @@ function renderWordGameUI(wordObj, translations) {
                 `;
             }).join('')}
         </div>
+        <!-- Congratulations Banner -->
+        <div id="game-congratulations-banner" class="${congratulationsBannerVisible ? '' : 'hidden'}">
+            <p>Great job! 🎉 You're now at level <span id="next-level">${currentCEFR}</span>!</p>
+        </div>
+        <!-- Fallback Banner (new) -->
+        <div id="game-fallback-banner" class="${fallbackBannerVisible ? '' : 'hidden'}">
+            <p>Nice try! 🎯 You're back at level <span id="prev-level">${currentCEFR}</span>.</p>
+        </div>
     `;
 }
 
@@ -167,6 +173,8 @@ function handleTranslationClick(selectedTranslation) {
     gameActive = false; // Disable further clicks until the next word is generated
 
     hideCongratulationsBanner();  // Hide the banner when an answer is clicked
+
+    hideFallbackBanner();  // Hide the banner when an answer is clicked
 
     const cards = document.querySelectorAll('.game-translation-card');
 
@@ -321,17 +329,27 @@ function advanceToNextLevel() {
 }
 
 function fallbackToPreviousLevel() {
+    let previousLevel = '';  // Initialize previousLevel
+
+    // Determine the previous level based on currentCEFR
     if (currentCEFR === 'A2') {
-        currentCEFR = 'A1';
+        previousLevel = 'A1';
     } else if (currentCEFR === 'B1') {
-        currentCEFR = 'A2';
+        previousLevel = 'A2';
     } else if (currentCEFR === 'B2') {
-        currentCEFR = 'B1';
+        previousLevel = 'B1';
     } else if (currentCEFR === 'C') {
-        currentCEFR = 'B2';
+        previousLevel = 'B2';
     }
-    // Update the CEFR selection to reflect the new level
-    updateCEFRSelection();
+
+    // Only change the level if it is actually falling back to a previous level
+    if (currentCEFR !== previousLevel && previousLevel) {
+        currentCEFR = previousLevel;  // Update the current level to the previous one
+        showFallbackBanner(previousLevel);  // Show the fallback banner
+
+        // Update the CEFR selection to reflect the new level
+        updateCEFRSelection();
+    }
 }
 
 function shuffleArray(array) {
@@ -365,14 +383,33 @@ function showCongratulationsBanner(level) {
     }
 
     banner.classList.remove('hidden');  // Show the banner
-    isBannerVisible = true;  // Set banner visibility flag
+    congratulationsBannerVisible = true;  // Set banner visibility flag
 }
 
 function hideCongratulationsBanner() {
     const banner = document.getElementById('game-congratulations-banner');
     banner.classList.add('hidden');  // Hide the banner
-    isBannerVisible = false;  // Reset banner visibility flag
+    congratulationsBannerVisible = false;  // Reset banner visibility flag
 }
+
+function showFallbackBanner(level) {
+    const fallbackBanner = document.getElementById('game-fallback-banner');
+    const levelSpan = document.getElementById('prev-level');
+    
+    if (levelSpan.textContent !== level) {
+        levelSpan.textContent = level;  // Update the level only if it changed
+    }
+
+    fallbackBanner.classList.remove('hidden');  // Show the banner
+    fallbackBannerVisible = true;  // Set banner visibility flag
+}
+
+function hideFallbackBanner() {
+    const banner = document.getElementById('game-fallback-banner');
+    banner.classList.add('hidden');  // Hide the banner
+    fallbackBannerVisible = false;  // Reset banner visibility flag
+}
+
 
 document.getElementById('cefr-select').addEventListener('change', function() {
     const selectedCEFR = this.value.toUpperCase(); // Get the newly selected CEFR level
