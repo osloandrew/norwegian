@@ -11,9 +11,13 @@ let correctLevelAnswers = 0; // Track correct answers per level
 let congratulationsBannerVisible = false;
 let fallbackBannerVisible = false;
 let recentAnswers = [];  // Track the last X answers, 1 for correct, 0 for incorrect
+let incorrectWordQueue = [];  // Queue for storing incorrect words with counters
+let wordsSinceLastIncorrect = 0;  // Counter to track words shown since the last incorrect word
 
 let goodChime = new Audio('goodChime.wav');
 let badChime = new Audio('badChime.wav');
+let popChime = new Audio('popChime.wav');
+
 goodChime.volume = 0.2;
 badChime.volume = 0.2;
 
@@ -62,6 +66,49 @@ function renderStats() {
 async function startWordGame() {
     gameActive = true;
 
+    // First, check if there is an incorrect word to reintroduce
+    if (incorrectWordQueue.length > 0) {
+        const firstWordInQueue = incorrectWordQueue[0];
+        if (firstWordInQueue.counter >= 5) {
+            console.log('Reintroducing word from incorrectWordQueue:', firstWordInQueue.wordObj);
+
+            // Play the popChime when reintroducing an incorrect word
+            popChime.currentTime = 0; // Reset audio to the beginning
+            popChime.play(); // Play the pop sound
+
+            // Reintroduce the word
+            currentWord = firstWordInQueue.wordObj.ord;
+            correctTranslation = firstWordInQueue.wordObj.engelsk;
+
+            // Fetch incorrect translations with the same gender
+            const incorrectTranslations = fetchIncorrectTranslations(firstWordInQueue.wordObj.gender, correctTranslation);
+
+            // Shuffle correct and incorrect translations into an array
+            const allTranslations = shuffleArray([correctTranslation, ...incorrectTranslations]);
+
+            // Log wordObj being passed to renderWordGameUI
+            console.log('Passing wordObj to renderWordGameUI:', firstWordInQueue.wordObj);
+
+            // Render the word game UI, mark this word as reintroduced
+            renderWordGameUI(firstWordInQueue.wordObj, allTranslations, true);  // 'true' flag for reintroduced word
+
+            // Remove the word from the queue
+            incorrectWordQueue.shift();
+
+            // Reset counter for new words shown
+            wordsSinceLastIncorrect = 0;
+            
+            // Render the updated stats box
+            renderStats();
+            return;
+        } else {
+            // Increment the counter for this word
+            incorrectWordQueue.forEach(word => word.counter++);
+        }
+    }
+
+    wordsSinceLastIncorrect++; // Increment counter for words since last incorrect word
+
     // Use the currentCEFR directly, since it's dynamically updated when the user selects a new CEFR level
     if (!currentCEFR) {
         currentCEFR = 'A1'; // Default to A1 if no level is set
@@ -83,7 +130,7 @@ async function startWordGame() {
     const allTranslations = shuffleArray([correctTranslation, ...incorrectTranslations]);
 
     // Render the word game UI and pass the entire word object
-    renderWordGameUI(randomWordObj, allTranslations);
+    renderWordGameUI(randomWordObj, allTranslations, false);  // 'false' flag for non-reintroduced word
 
     // Render the updated stats box
     renderStats();
@@ -106,9 +153,12 @@ function fetchIncorrectTranslations(gender, correctTranslation) {
     return incorrectTranslations;
 }
 
-function renderWordGameUI(wordObj, translations) {
+function renderWordGameUI(wordObj, translations, isReintroduced = false) {
     // Split the word at the comma and use the first part
     let displayedWord = wordObj.ord.split(',')[0].trim();
+
+    // Log the wordObj to see if it has CEFR
+    console.log('renderWordGameUI called with wordObj:', wordObj);
     
     if (wordObj.gender.startsWith('en') || wordObj.gender.startsWith('et') || wordObj.gender.startsWith('ei')) {
         displayedWord = `${wordObj.gender} ${displayedWord}`;  // Add gender in front of the word
@@ -117,6 +167,7 @@ function renderWordGameUI(wordObj, translations) {
     // Check if CEFR is selected; if not, add a label based on wordObj.CEFR
     let cefrLabel = '';
     let spacerDiv = '';  // Spacer div placeholder
+    let trickyLabel = '';  // Placeholder for the tricky word label
 
     // Always show the CEFR label if CEFR is available
     if (wordObj.CEFR === 'A1') {
@@ -134,6 +185,13 @@ function renderWordGameUI(wordObj, translations) {
     } else if (wordObj.CEFR === 'C') {
         cefrLabel = '<div class="game-cefr-label hard">C</div>';
         spacerDiv = '<div class="game-cefr-spacer"></div>';
+    } else {
+        console.warn("CEFR value is missing for this word:", wordObj);
+    }
+
+    // Add "tricky word" label if the word is reintroduced
+    if (isReintroduced) {
+        trickyLabel = '<div class="game-tricky-word""><i class="fa fa-repeat" aria-hidden="true"></i></div>';
     }
 
     gameContainer.innerHTML = `
@@ -143,7 +201,10 @@ function renderWordGameUI(wordObj, translations) {
         </div>
 
         <div class="definition result-header game-word-card">
-            ${cefrLabel}  <!-- Add the CEFR label here if applicable -->
+            <div class="game-labels-container">
+                ${cefrLabel}  <!-- Add the CEFR label here if applicable -->
+                ${trickyLabel}  <!-- Add the tricky word label if applicable -->
+            </div>
             <div class="game-word">
             <h2>${displayedWord}</h2>
             </div>
@@ -158,9 +219,10 @@ function renderWordGameUI(wordObj, translations) {
 
                 // Escape the translation for use in the onclick handler
                 const escapedTranslation = displayedTranslation.replace(/'/g, "\\'");
-
+                
+                // Pass wordObj here to the onclick handler
                 return `
-                    <div class="game-translation-card" onclick="handleTranslationClick('${escapedTranslation}')">
+                    <div class="game-translation-card" data-word='${JSON.stringify(wordObj).replace(/'/g, "\\'")}' onclick="handleTranslationClick('${escapedTranslation}', this)">
                         ${displayedTranslation}
                     </div>
                 `;
@@ -179,7 +241,7 @@ function renderWordGameUI(wordObj, translations) {
 
 let questionsAtCurrentLevel = 0; // Track questions answered at current level
 
-function handleTranslationClick(selectedTranslation) {
+function handleTranslationClick(selectedTranslation, clickedElement) {
     if (!gameActive) return;  // Prevent further clicks if the game is not active
 
     gameActive = false; // Disable further clicks until the next word is generated
@@ -189,6 +251,9 @@ function handleTranslationClick(selectedTranslation) {
     hideFallbackBanner();  // Hide the banner when an answer is clicked
 
     const cards = document.querySelectorAll('.game-translation-card');
+
+    // Parse wordObj from the clicked element's data-word attribute
+    const wordObj = JSON.parse(clickedElement.getAttribute('data-word'));
 
     // Reset all cards to the default background before applying the color change
     cards.forEach(card => {
@@ -233,6 +298,17 @@ function handleTranslationClick(selectedTranslation) {
         incorrectCount++;  // Increment incorrect count
         updateRecentAnswers(false);  // Track this correct answer
         delay = 2500; // 2.5 seconds delay if incorrect
+
+        // Add incorrect word to the queue with the CEFR value included
+        incorrectWordQueue.push({
+            wordObj: { 
+                ord: currentWord, 
+                engelsk: correctTranslation, 
+                gender: wordObj.gender, 
+                CEFR: wordObj.CEFR  // Include CEFR value here
+            },
+            counter: 0 // Start counter for this word
+        });
     }
 
     // Update the stats after the answer
