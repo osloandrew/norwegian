@@ -13,7 +13,9 @@ let fallbackBannerVisible = false;
 let wordDataStore = [];
 let recentAnswers = [];  // Track the last X answers, 1 for correct, 0 for incorrect
 let incorrectWordQueue = [];  // Queue for storing incorrect words with counters
+let previousWord = null;
 let wordsSinceLastIncorrect = 0;  // Counter to track words shown since the last incorrect word
+let reintroduceThreshold = 10; // Set how many words to show before reintroducing incorrect ones
 
 let goodChime = new Audio('goodChime.wav');
 let badChime = new Audio('badChime.wav');
@@ -68,7 +70,7 @@ async function startWordGame() {
     gameActive = true;
 
     // First, check if there is an incorrect word to reintroduce
-    if (incorrectWordQueue.length > 0) {
+    if (incorrectWordQueue.length > 0 && wordsSinceLastIncorrect >= reintroduceThreshold) {
         const firstWordInQueue = incorrectWordQueue[0];
         if (firstWordInQueue.counter >= 5) {
             console.log('Reintroducing word from incorrectWordQueue:', firstWordInQueue.wordObj);
@@ -373,8 +375,8 @@ async function fetchRandomWord() {
     // Always use the current CEFR level, whether it's A1 by default or selected by the user
     const cefrLevel = currentCEFR;
 
-    // Filter results based on the dynamically changing CEFR level
-    let filteredResults = results.filter(r => r.engelsk && !noRandom.includes(r.ord.toLowerCase()));
+    // Filter results based on CEFR, POS, and excluding the previous word
+    let filteredResults = results.filter(r => r.engelsk && !noRandom.includes(r.ord.toLowerCase()) && r.ord !== previousWord);
 
     if (selectedPOS) {
         filteredResults = filteredResults.filter(r => {
@@ -415,6 +417,8 @@ async function fetchRandomWord() {
 
     // Randomly select a result from the filtered results
     const randomResult = filteredResults[Math.floor(Math.random() * filteredResults.length)];
+
+    previousWord = randomResult.ord; // Update the previous word
 
     return {
         ord: randomResult.ord,
