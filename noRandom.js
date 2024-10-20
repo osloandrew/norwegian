@@ -72,6 +72,7 @@ const noRandom = [
     'p',
     'penis',
     'penishode',
+    'penisrot',
     'penisskaft',
     'pervers',
     'perversjon',
