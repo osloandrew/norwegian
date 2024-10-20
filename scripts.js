@@ -605,8 +605,8 @@ function handleTypeChange() {
     
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
 
-    // Update the URL with the type, query, and selected POS
-    updateURL(query, type, selectedPOS);  // <--- Trigger URL update based on type change
+    // Update the URL with the selected type, query, and POS
+    updateURL(query, type, selectedPOS);  // This ensures the type is reflected in the URL
 
     const posSelect = document.getElementById('pos-select');
     const posFilterContainer = document.querySelector('.pos-filter');
@@ -1389,73 +1389,49 @@ function updateURL(query, type, selectedPOS) {
 
     if (query) {
         url.searchParams.set('query', query);
-        url.searchParams.set('type', type);
-        if (selectedPOS) {
-            url.searchParams.set('pos', selectedPOS);
-        } else {
-            url.searchParams.delete('pos');
-        }
-        url.searchParams.delete('landing'); // Remove landing state when there’s a query
     } else {
-        url.searchParams.set('landing', 'true'); // Set landing state if there's no query
-        url.searchParams.delete('query'); // Ensure query is removed when showing landing page
-        url.searchParams.delete('pos');   // Remove any POS filters
+        url.searchParams.delete('query');
+    }
+
+    url.searchParams.set('type', type);  // Always set the type in the URL
+
+    if (selectedPOS) {
+        url.searchParams.set('pos', selectedPOS);
+    } else {
+        url.searchParams.delete('pos');
     }
 
     window.history.pushState({}, '', url);
 }
 
-
 // Load the state from the URL and trigger the appropriate search
 function loadStateFromURL() {
     const url = new URL(window.location);
     const query = url.searchParams.get('query') || '';  // Default to an empty query if not present
-    console.log(`URL State Loaded: Query = ${query}`);  // Log the query loaded from the URL
-    const type = url.searchParams.has('type') ? url.searchParams.get('type') : document.getElementById('type-select').value;  // Only update type if it's in the URL
-    const selectedPOS = url.searchParams.get('pos') || '';  // Default to an empty POS if not present
+    const type = url.searchParams.get('type') || 'words';  // Default to 'words' if not specified
+    const selectedPOS = url.searchParams.get('pos') || '';  // Default to empty POS if not present
 
-    // Set the search bar value
+    // Set the search bar and type select based on the URL parameters
     document.getElementById('search-bar').value = query;
+    document.getElementById('type-select').value = type;
 
-    // Only change the type if 'type' is explicitly defined in the URL
-    if (url.searchParams.has('type')) {
-        document.getElementById('type-select').value = type;  // Set type from URL
+    // Set the POS select if provided in the URL
+    if (selectedPOS) {
+        document.getElementById('pos-select').value = selectedPOS;
     }
 
-    // Get the POS and CEFR filter elements
-    const posSelect = document.getElementById('pos-select');
-    const posFilterContainer = document.querySelector('.pos-filter');
-    const cefrSelect = document.getElementById('cefr-select');
-    const cefrFilterContainer = document.querySelector('.cefr-filter');
-
-    if (type === 'sentences') {
-        // Disable POS and CEFR filters for sentences
-        posSelect.disabled = true;
-        posSelect.value = '';  // Clear POS selection
-        posFilterContainer.classList.add('disabled');
-
-        cefrSelect.disabled = true;
-        cefrSelect.value = '';  // Clear CEFR selection
-        cefrFilterContainer.classList.add('disabled');
-    } else {
-        // Enable POS and CEFR filters for words
-        posSelect.disabled = false;
-        posFilterContainer.classList.remove('disabled');
-
-        cefrSelect.disabled = false;
-        cefrFilterContainer.classList.remove('disabled');
-
-        // Restore previously selected POS and CEFR levels
-        if (selectedPOS) {
-            posSelect.value = selectedPOS;
-        }
+    // Only call handleTypeChange if the type is not "words"
+    if (type !== 'words') {
+        handleTypeChange();
     }
-
-    // Perform the search if there's a query, otherwise show the landing card
+    // If there's a query in the URL, trigger a search; otherwise, show the landing page
     if (query) {
         search();  // Perform the search based on the URL state
+    } else if (type === 'word-game') {
+        // If it's the word game, start it directly (the landing card is already hidden in handleTypeChange)
+        startWordGame();
     } else {
-        showLandingCard(true);  // Show landing page if no query
+        showLandingCard(true);  // Show landing card if no query
     }
 }
 
