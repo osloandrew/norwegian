@@ -137,29 +137,29 @@ function clearInput() {
     document.getElementById('search-bar').value = '';
 }
 
-// Fetch the dictionary data from the server
+// Fetch the dictionary data from the file or server
 async function fetchAndLoadDictionaryData() {
-    // Show the spinner before fetching data
     try {
-        const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vSl2GxGiiO3qfEuVM6EaAbx_AgvTTKfytLxI1ckFE6c35Dv8cfYdx30vLbPPxadAjeDaSBODkiMMJ8o/pub?output=csv');
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        const data = await response.text();
-        parseCSVData(data);
-    } catch (error) {
-        console.error('Error fetching or parsing data from Google Sheets:', error);
-        console.log('Falling back to local CSV file.');
+        console.log('Attempting to load data from local CSV file...');
+        const localResponse = await fetch('backupDataset.csv');
+        if (!localResponse.ok) throw new Error(`HTTP error! Status: ${localResponse.status}`);
+        const localData = await localResponse.text();
+        console.log('Data successfully loaded from local file.');
+        parseCSVData(localData);
+    } catch (localError) {
+        console.error('Error fetching or parsing data from local CSV file:', localError);
+        console.log('Falling back to Google Sheets.');
 
-        // Fallback to local CSV file
+        // Fallback to Google Sheets CSV
         try {
-            const localResponse = await fetch('backupDataset');  // Replace with your local CSV file path
-            if (!localResponse.ok) throw new Error(`HTTP error! Status: ${localResponse.status}`);
-            const localData = await localResponse.text();
-            parseCSVData(localData);
-        } catch (localError) {
-            console.error('Error fetching or parsing data from local CSV file:', localError);
+            const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vSl2GxGiiO3qfEuVM6EaAbx_AgvTTKfytLxI1ckFE6c35Dv8cfYdx30vLbPPxadAjeDaSBODkiMMJ8o/pub?output=csv');
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            const data = await response.text();
+            parseCSVData(data);  // Use PapaParse for CSV parsing
+        } catch (googleSheetsError) {
+            console.error('Error fetching or parsing data from Google Sheets:', googleSheetsError);
         }
     }
-
 }
 
 // Parse the CSV data using PapaParse
