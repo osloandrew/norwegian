@@ -285,9 +285,13 @@ async function randomWord() {
             </div>
         `;
         document.getElementById('results-container').innerHTML = sentenceHTML;
+
+        document.title = 'Sentences - Norwegian Dictionary';
     } else {
         // If it's a word, render it with highlighting (if needed)
         displaySearchResults([randomResult], randomResult.ord);
+
+        document.title = 'Words - Norwegian Dictionary';
     }
     hideSpinner();  // Hide the spinner
 }
@@ -636,6 +640,9 @@ function handleTypeChange() {
         cefrSelect.options[0].text = "CEFR Level";
         // Other existing logic for non-word-game modes...
         searchContainerInner.classList.remove('word-game-active');
+
+        // Change the browser tab title to reflect sentences
+        document.title = 'Sentences - Norwegian Dictionary';
         
         // If the search bar is not empty, perform a sentence search
         if (query) {
@@ -668,6 +675,14 @@ function handleTypeChange() {
         // Change the label to something more compact when "WORD GAME" is selected
         cefrSelect.options[0].text = "Starting Level";
 
+        // Remove the query from the URL
+        const url = new URL(window.location);
+        url.searchParams.delete('query');
+        window.history.replaceState({}, '', url);  // Update the URL without reloading the page
+
+        // Change the browser tab title to reflect the word game
+        document.title = 'Word Game - Norwegian Dictionary';
+
         // Other existing logic for word-game...
         searchContainerInner.classList.add('word-game-active');
 
@@ -687,6 +702,7 @@ function handleTypeChange() {
 
         // Enable the POS dropdown and restore color
         posSelect.disabled = false;
+        posSelect.value = '';  // Reset to "Part of Speech" option
         posFilterContainer.classList.remove('disabled');  // Remove the 'disabled' class
 
         // Enable the CEFR dropdown and restore color
@@ -698,6 +714,9 @@ function handleTypeChange() {
         cefrSelect.options[0].text = "CEFR Level";
         // Other existing logic for non-word-game modes...
         searchContainerInner.classList.remove('word-game-active');
+
+        // Change the browser tab title to reflect words
+        document.title = 'Words - Norwegian Dictionary';
 
         // Optionally, generate a random word if needed when switching back to words
         if (query) {
