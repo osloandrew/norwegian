@@ -102,6 +102,7 @@ const noRandom = [
     'sædavgang',
     'sæduttømming',
     'testikkel',
+    'testikkelpung',
     'tispe',
     'tøs',
     'tøsaktig',
