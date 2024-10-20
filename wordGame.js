@@ -12,8 +12,10 @@ let congratulationsBannerVisible = false;
 let fallbackBannerVisible = false;
 let recentAnswers = [];  // Track the last X answers, 1 for correct, 0 for incorrect
 
-let chimeAudio = new Audio('chime.wav'); // Path to your chime sound file
-chimeAudio.volume = 0.2;
+let goodChime = new Audio('goodChime.wav');
+let badChime = new Audio('badChime.wav');
+goodChime.volume = 0.2;
+badChime.volume = 0.2;
 
 const gameContainer = document.getElementById('results-container'); // Assume this is where you'll display the game
 const statsContainer = document.getElementById('game-session-stats'); // New container for session stats
@@ -207,8 +209,8 @@ function handleTranslationClick(selectedTranslation) {
         cards.forEach(card => {
             if (card.innerText.trim() === selectedTranslationPart) {
                 card.classList.add('game-correct-card');
-                chimeAudio.currentTime = 0; // Reset audio to the beginning
-                chimeAudio.play(); // Play the chime sound when correct
+                goodChime.currentTime = 0; // Reset audio to the beginning
+                goodChime.play(); // Play the chime sound when correct
             }
         });
         correctCount++;  // Increment correct count globally
@@ -220,6 +222,8 @@ function handleTranslationClick(selectedTranslation) {
         cards.forEach(card => {
             if (card.innerText.trim() === selectedTranslationPart) {
                 card.classList.add('game-incorrect-card'); // Mark incorrect card
+                badChime.currentTime = 0; // Reset audio to the beginning
+                badChime.play(); // Play the chime sound when incorrect
             }
             // Also ensure the correct card is still marked green
             if (card.innerText.trim() === correctTranslationPart) {
@@ -252,9 +256,6 @@ async function fetchRandomWord() {
 
     // Always use the current CEFR level, whether it's A1 by default or selected by the user
     const cefrLevel = currentCEFR;
-
-    console.log("Selected POS:", selectedPOS);
-    console.log("Selected CEFR:", cefrLevel);
 
     // Filter results based on the dynamically changing CEFR level
     let filteredResults = results.filter(r => r.engelsk && !noRandom.includes(r.ord.toLowerCase()));

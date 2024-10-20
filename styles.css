@@ -336,7 +336,7 @@ footer .copyright {
 .game-stats-correct-box p {
     color: #6B9461 !important;
     font-family: 'Noto Sans', sans-serif;
-    font-size: 24px; /* Bigger font for numbers */
+    font-size: 18px; /* Bigger font for numbers */
     font-weight: 500;
     margin: 0;
 }
@@ -344,7 +344,7 @@ footer .copyright {
 .game-stats-incorrect-box p {
     color: #B5634D !important;
     font-family: 'Noto Sans', sans-serif;
-    font-size: 24px; /* Bigger font for numbers */
+    font-size: 18px; /* Bigger font for numbers */
     font-weight: 500;
     margin: 0;
 }
