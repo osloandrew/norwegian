@@ -241,6 +241,7 @@ footer .copyright {
     font-family: 'Noto Sans', sans-serif;
     white-space: nowrap;                  /* Prevent text wrapping */
     margin-bottom: 5px;                  /* Space between the label and the word */
+    user-select: none;  /* Prevent text selection */
 }
 
 .game-cefr-label.easy {
@@ -265,7 +266,7 @@ footer .copyright {
 .game-cefr-spacer p {
     color: #413e3e;
     font-family: 'Noto Serif', serif;
-    font-size: 0.8em;
+    font-size: 0.7em !important;
     padding: 0 10px 0 10px;
     text-align: center;
     margin: 0;
@@ -285,6 +286,7 @@ footer .copyright {
     line-height: 1.2; /* Reduced line height for more compact text */
     transition: opacity 0.5s ease-in-out; /* Smooth transition */
     font-weight: 500;
+    user-select: none;
 }
 
 #game-congratulations-banner.hidden, #game-fallback-banner.hidden {
@@ -323,12 +325,12 @@ footer .copyright {
 
 #game-next-word-button {
     display: none;
-    margin-top: 20px;
+    margin-top: 15px;
     width: 100%;
-    background-color: #FAE5C3;  /* Subtle, lighter background */
+    background-color: #f8d9b0;  /* Subtle, lighter background */
     color: #8a7063;  /* Subtle maroon text */
-    border: 1px solid #ccc;     /* Same border */
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Same shadow */
+    border: 1px solid #b8a58b;  /* Slightly darker border for depth */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* More prominent shadow */
     border-radius: 6px;  /* Slightly rounded corners */
     padding: 20px 15px;  
     font-family: 'Noto Sans', sans-serif;  /* Clean, modern font */
@@ -337,7 +339,14 @@ footer .copyright {
     text-transform: uppercase;  /* Uppercase for consistency */
     letter-spacing: 0.04em;  /* Slight letter spacing */
     cursor: pointer;  /* Pointer on hover */
+    user-select: none;  /* Prevent text selection */
     transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
+}
+
+#game-next-word-button:active {
+    background-color: #f2c18c;  /* Darker background on click */
+    border-color: #8a7063;  /* Border matches text color on click */
+    transform: scale(0.98);  /* Slight shrink effect for click feedback */
 }
 
 .game-tricky-word {
@@ -391,6 +400,7 @@ footer .copyright {
     font-size: 18px; /* Bigger font for numbers */
     font-weight: 500;
     margin: 0;
+    user-select: none;  /* Prevent text selection */
 }
 
 .game-stats-incorrect-box p {
@@ -399,6 +409,7 @@ footer .copyright {
     font-size: 18px; /* Bigger font for numbers */
     font-weight: 500;
     margin: 0;
+    user-select: none;  /* Prevent text selection */
 }
 
 .game-translation-card {
@@ -407,7 +418,7 @@ footer .copyright {
     border-radius: 10px;        /* Same rounded corners */
     padding: 15px; /* Reduced padding to make the cards less bulky */
     text-align: center;         /* Centered text */
-    font-size: 1.2em;           /* Consistent font size */
+    font-size: 0.9em !important;           /* Consistent font size */
     color: #333;                /* Same text color */
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Same shadow */
     transition: background-color 0.3s ease;    /* Smooth hover effect */
@@ -415,10 +426,8 @@ footer .copyright {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 80px; /* Slightly reduce height */
-    min-height: 80px; /* Ensure the cards remain the same height */
-    word-wrap: break-word;      /* Allow long words to break */
-    hyphens: auto;              /* Insert hyphen when the word breaks */
+    height: 60px; /* Slightly reduce height */
+    min-height: 60px; /* Ensure the cards remain the same height */
     line-height: 1.3em;         /* Reduce line spacing slightly */
 }
 
@@ -498,6 +507,7 @@ header {
 header h1 {
     font-family: 'Grenze Gotisch', serif;
     font-size: 50px;
+    user-select: none;  /* Prevent text selection */
 }
 
 header p {
@@ -505,6 +515,7 @@ header p {
     font-weight: 600;
     margin-top: -20px;
     text-transform: uppercase;
+    user-select: none;  /* Prevent text selection */
 }
 
 .hidden {

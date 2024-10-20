@@ -329,7 +329,7 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
     }
 
     // Fetch an example sentence from the database and display it
-    const exampleSentence = await fetchExampleSentence(wordObj.ord);
+    const exampleSentence = await fetchExampleSentence(wordObj);
     if (exampleSentence) {
         document.querySelector('.game-cefr-spacer').innerHTML = `<p>${exampleSentence}</p>`;
     } else {
@@ -340,13 +340,17 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
     document.getElementById('game-next-word-button').style.display = 'block';
 }
 
-async function fetchExampleSentence(word) {
-    // Find the exact matching word object based on 'ord' (word) field
-    const matchingEntry = results.find(result => result.ord.toLowerCase() === word.toLowerCase());
+async function fetchExampleSentence(wordObj) {
+    // Find the exact matching word object based on 'ord', 'definisjon', 'gender', and 'CEFR'
+    const matchingEntry = results.find(result => 
+        result.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
+        result.gender === wordObj.gender &&
+        result.CEFR === wordObj.CEFR
+    );
 
     // If no matching entry is found or if there is no 'eksempel' field, return null
     if (!matchingEntry || !matchingEntry.eksempel) {
-        console.warn(`No example sentence available for word: ${word}`);
+        console.warn(`No example sentence available for word: ${wordObj.ord}`);
         return null;
     }
 
@@ -362,8 +366,6 @@ async function fetchExampleSentence(word) {
     const randomIndex = Math.floor(Math.random() * exampleSentences.length);
     return exampleSentences[randomIndex];
 }
-
-
 
 async function fetchRandomWord() {
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
