@@ -10,6 +10,7 @@ let totalQuestions = 0; // Track total questions per level
 let correctLevelAnswers = 0; // Track correct answers per level
 let congratulationsBannerVisible = false;
 let fallbackBannerVisible = false;
+let wordDataStore = [];
 let recentAnswers = [];  // Track the last X answers, 1 for correct, 0 for incorrect
 let incorrectWordQueue = [];  // Queue for storing incorrect words with counters
 let wordsSinceLastIncorrect = 0;  // Counter to track words shown since the last incorrect word
@@ -154,6 +155,9 @@ function fetchIncorrectTranslations(gender, correctTranslation) {
 }
 
 function renderWordGameUI(wordObj, translations, isReintroduced = false) {
+    // Add the word object to the data store and get its index
+    const wordId = wordDataStore.push(wordObj) - 1;
+
     // Split the word at the comma and use the first part
     let displayedWord = wordObj.ord.split(',')[0].trim();
 
@@ -213,20 +217,11 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
 
         <!-- Translations Grid Section -->
         <div class="game-grid">
-            ${translations.map(translation => {
-                // Split each translation at the comma and use the first part
-                const displayedTranslation = translation.split(',')[0].trim();
-
-                // Escape the translation for use in the onclick handler
-                const escapedTranslation = displayedTranslation.replace(/'/g, "\\'");
-                
-                // Pass wordObj here to the onclick handler
-                return `
-                    <div class="game-translation-card" data-word='${JSON.stringify(wordObj).replace(/'/g, "\\'")}' onclick="handleTranslationClick('${escapedTranslation}', this)">
-                        ${displayedTranslation}
-                    </div>
-                `;
-            }).join('')}
+            ${translations.map((translation, index) => `
+                <div class="game-translation-card" data-id="${wordId}" data-index="${index}">
+                    ${translation.split(',')[0].trim()}
+                </div>
+            `).join('')}
         </div>
         <!-- Congratulations Banner -->
         <div id="game-congratulations-banner" class="${congratulationsBannerVisible ? '' : 'hidden'}">
@@ -237,23 +232,31 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
             <p>Nice try! 🎯 You're back at level <span id="prev-level">${currentCEFR}</span>.</p>
         </div>
     `;
+
+    // Add event listeners for translation cards
+    document.querySelectorAll('.game-translation-card').forEach(card => {
+        card.addEventListener('click', function () {
+            const wordId = this.getAttribute('data-id');  // Retrieve the word ID
+            const selectedTranslation = this.innerText.trim();
+            const wordObj = wordDataStore[wordId];  // Get the word object from the data store
+
+            handleTranslationClick(selectedTranslation, wordObj);
+        });
+    });
+
 }
 
 let questionsAtCurrentLevel = 0; // Track questions answered at current level
 
-function handleTranslationClick(selectedTranslation, clickedElement) {
+function handleTranslationClick(selectedTranslation, wordObj) {
     if (!gameActive) return;  // Prevent further clicks if the game is not active
 
     gameActive = false; // Disable further clicks until the next word is generated
 
     hideCongratulationsBanner();  // Hide the banner when an answer is clicked
-
     hideFallbackBanner();  // Hide the banner when an answer is clicked
 
     const cards = document.querySelectorAll('.game-translation-card');
-
-    // Parse wordObj from the clicked element's data-word attribute
-    const wordObj = JSON.parse(clickedElement.getAttribute('data-word'));
 
     // Reset all cards to the default background before applying the color change
     cards.forEach(card => {
@@ -504,7 +507,6 @@ function hideFallbackBanner() {
     banner.classList.add('hidden');  // Hide the banner
     fallbackBannerVisible = false;  // Reset banner visibility flag
 }
-
 
 document.getElementById('cefr-select').addEventListener('change', function() {
     const selectedCEFR = this.value.toUpperCase(); // Get the newly selected CEFR level
