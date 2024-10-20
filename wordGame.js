@@ -170,7 +170,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
 
     // Check if CEFR is selected; if not, add a label based on wordObj.CEFR
     let cefrLabel = '';
-    let spacerDiv = '';  // Spacer div placeholder
+    let spacerDiv = '<div class="game-cefr-spacer"></div>';  // Default empty spacer div
     let trickyLabel = '';  // Placeholder for the tricky word label
 
     // Always show the CEFR label if CEFR is available
@@ -223,6 +223,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
                 </div>
             `).join('')}
         </div>
+
         <!-- Congratulations Banner -->
         <div id="game-congratulations-banner" class="${congratulationsBannerVisible ? '' : 'hidden'}">
             <p>Great job! 🎉 You're now at level <span id="next-level">${currentCEFR}</span>!</p>
@@ -230,6 +231,10 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
         <!-- Fallback Banner (new) -->
         <div id="game-fallback-banner" class="${fallbackBannerVisible ? '' : 'hidden'}">
             <p>Nice try! 🎯 You're back at level <span id="prev-level">${currentCEFR}</span>.</p>
+        </div>
+        <!-- Next Word Button -->
+        <div class="game-next-button-container">
+            <button id="game-next-word-button">Next Word</button>
         </div>
     `;
 
@@ -244,17 +249,21 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
         });
     });
 
+    // Add event listener for the next word button
+    document.getElementById('game-next-word-button').addEventListener('click', async function () {
+        hideCongratulationsBanner();  // Hide the banner when an answer is clicked
+        hideFallbackBanner();  // Hide the banner when an answer is clicked    
+        await startWordGame();  // Move to the next word
+    });
+
 }
 
 let questionsAtCurrentLevel = 0; // Track questions answered at current level
 
-function handleTranslationClick(selectedTranslation, wordObj) {
+async function handleTranslationClick(selectedTranslation, wordObj) {
     if (!gameActive) return;  // Prevent further clicks if the game is not active
 
     gameActive = false; // Disable further clicks until the next word is generated
-
-    hideCongratulationsBanner();  // Hide the banner when an answer is clicked
-    hideFallbackBanner();  // Hide the banner when an answer is clicked
 
     const cards = document.querySelectorAll('.game-translation-card');
 
@@ -266,8 +275,6 @@ function handleTranslationClick(selectedTranslation, wordObj) {
     // Extract the part before the comma for both correct and selected translations
     const correctTranslationPart = correctTranslation.split(',')[0].trim();
     const selectedTranslationPart = selectedTranslation.split(',')[0].trim();
-
-    let delay; // Variable to store delay time
 
     totalQuestions++; // Increment total questions for this level
     questionsAtCurrentLevel++; // Increment questions at this level
@@ -284,7 +291,6 @@ function handleTranslationClick(selectedTranslation, wordObj) {
         correctCount++;  // Increment correct count globally
         correctLevelAnswers++; // Increment correct count for this level
         updateRecentAnswers(true);  // Track this correct answer
-        delay = 500; // 0.5 second delay if correct
     } else {
         // Mark the incorrect card as red
         cards.forEach(card => {
@@ -300,7 +306,6 @@ function handleTranslationClick(selectedTranslation, wordObj) {
         });
         incorrectCount++;  // Increment incorrect count
         updateRecentAnswers(false);  // Track this correct answer
-        delay = 2500; // 2.5 seconds delay if incorrect
 
         // Add incorrect word to the queue with the CEFR value included
         incorrectWordQueue.push({
@@ -323,12 +328,42 @@ function handleTranslationClick(selectedTranslation, wordObj) {
         questionsAtCurrentLevel = 0; // Reset the counter after progression evaluation
     }
 
-    // Await the new word generation after the specified delay
-    setTimeout(async () => {
-        await startWordGame(); // Ensure async function is awaited
-        gameActive = true;  // Re-enable clicking for the next round
-    }, delay);
+    // Fetch an example sentence from the database and display it
+    const exampleSentence = await fetchExampleSentence(wordObj.ord);
+    if (exampleSentence) {
+        document.querySelector('.game-cefr-spacer').innerHTML = `<p>${exampleSentence}</p>`;
+    } else {
+        document.querySelector('.game-cefr-spacer').innerHTML = '';  // Clear if no sentence found
+    }
+
+    // Show the "Next Word" button after an answer is selected
+    document.getElementById('game-next-word-button').style.display = 'block';
 }
+
+async function fetchExampleSentence(word) {
+    // Find the exact matching word object based on 'ord' (word) field
+    const matchingEntry = results.find(result => result.ord.toLowerCase() === word.toLowerCase());
+
+    // If no matching entry is found or if there is no 'eksempel' field, return null
+    if (!matchingEntry || !matchingEntry.eksempel) {
+        console.warn(`No example sentence available for word: ${word}`);
+        return null;
+    }
+
+    // Split example sentences if there are multiple in the 'eksempel' field (assuming they are separated by a common delimiter like '. ')
+    const exampleSentences = matchingEntry.eksempel.split(/(?<=[.!?])\s+/);
+
+    // If there is only one sentence, return it
+    if (exampleSentences.length === 1) {
+        return exampleSentences[0];
+    }
+
+    // If there are multiple sentences, pick one at random
+    const randomIndex = Math.floor(Math.random() * exampleSentences.length);
+    return exampleSentences[randomIndex];
+}
+
+
 
 async function fetchRandomWord() {
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
@@ -513,4 +548,15 @@ document.getElementById('cefr-select').addEventListener('change', function() {
     currentCEFR = selectedCEFR; // Set the current CEFR level to the new one
     resetGame(); // Reset the game stats
     startWordGame(); // Start the game with the new CEFR level
+});
+
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter' && document.getElementById('type-select').value === 'word-game') {
+        const nextWordButton = document.getElementById('game-next-word-button');
+        
+        // Check if the button exists and is visible using computed styles
+        if (nextWordButton && window.getComputedStyle(nextWordButton).display !== 'none') {
+            nextWordButton.click();  // Simulate a click on the next word button
+        }
+    }
 });

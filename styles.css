@@ -256,7 +256,20 @@ footer .copyright {
 }
 
 .game-cefr-spacer {
-    height: 30px;
+    min-height: 30px;
+    text-align: center;
+    flex-shrink: 0;                      /* Prevent the spacer from shrinking */
+}
+ 
+/* Example Sentences */
+.game-cefr-spacer p {
+    color: #413e3e;
+    font-family: 'Noto Serif', serif;
+    font-size: 0.8em;
+    padding: 0 10px 0 10px;
+    text-align: center;
+    margin: 0;
+    line-height: 1.5;
 }
 
 #game-congratulations-banner, #game-fallback-banner {
@@ -308,6 +321,25 @@ footer .copyright {
     width: 100%;
 }
 
+#game-next-word-button {
+    display: none;
+    margin-top: 20px;
+    width: 100%;
+    background-color: #FAE5C3;  /* Subtle, lighter background */
+    color: #8a7063;  /* Subtle maroon text */
+    border: 1px solid #ccc;     /* Same border */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Same shadow */
+    border-radius: 6px;  /* Slightly rounded corners */
+    padding: 20px 15px;  
+    font-family: 'Noto Sans', sans-serif;  /* Clean, modern font */
+    font-size: 18px;  /* Smaller font size for subtlety */
+    font-weight: 500;  /* Normal font weight for less boldness */
+    text-transform: uppercase;  /* Uppercase for consistency */
+    letter-spacing: 0.04em;  /* Slight letter spacing */
+    cursor: pointer;  /* Pointer on hover */
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
+}
+
 .game-tricky-word {
     align-self: flex-start;               /* Align to the top */
     padding: 3px 7px;                     /* Same padding as CEFR label */
@@ -327,7 +359,7 @@ footer .copyright {
     display: flex;
     width: 100%;  /* Ensure the content takes up full width */
     gap: 10px;    /* Adjust the space between boxes */
-    margin: 0px 0px 10px 0px; /* Center horizontally */
+    margin: 0px 0px 7.5px 0px; /* Center horizontally */
 }
 
 /* Correct box styling */
@@ -396,14 +428,19 @@ footer .copyright {
 
 .game-word {
     display: flex;
-    justify-content: center;              /* Center the word horizontally */
-    align-items: center;                  /* Center the word vertically */
+    justify-content: center;             /* Center the word horizontally */
+    align-items: center;                 /* Center the word vertically */
+    flex-grow: 1;                        /* Allow the word to take up remaining space */
     text-align: center;
+    min-height: 50px;
 }
 
 .game-word h2 {
     margin: 0;
     font-weight: 400 !important;
+    white-space: nowrap;                 /* Prevent the word from wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;             /* Add ellipsis for long words */
 }
 
 .game-word-card {
@@ -416,10 +453,11 @@ footer .copyright {
     border-radius: 10px;
     padding: 10px;                /* Reduce padding at the top, add more below */
     font-size: 1.2em;
+    margin-bottom: 15px !important;
     color: #333;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     position: relative;                  /* Allow for flexible layout */
-    min-height: 100px;
+    overflow: hidden;                   /* Prevent overflowing content from changing layout */
 }
 
 .gender {
