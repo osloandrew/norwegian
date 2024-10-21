@@ -197,7 +197,9 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
 
     // Add "tricky word" label if the word is reintroduced
     if (isReintroduced) {
-        trickyLabel = '<div class="game-tricky-word""><i class="fa fa-repeat" aria-hidden="true"></i></div>';
+        trickyLabel = '<div class="game-tricky-word visible"><i class="fa fa-repeat" aria-hidden="true"></i></div>';
+    } else {
+        trickyLabel = '<div class="game-tricky-word"><i class="fa fa-repeat" aria-hidden="true"></i></div>';  // Hidden by default
     }
 
     gameContainer.innerHTML = `
