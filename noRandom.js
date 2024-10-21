@@ -1,6 +1,8 @@
 const noRandom = [
     'a',
     'aids',
+    'analsex',
+    'anus',
     'b',
     'bitch',
     'brunst',
@@ -68,6 +70,7 @@ const noRandom = [
     'omskåren, omskåret',
     'onanere',
     'onani',
+    'oralsex',
     'orgasme',
     'orgasmisk',
     'orgastisk',
