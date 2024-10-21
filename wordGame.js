@@ -84,20 +84,32 @@ async function startWordGame() {
             correctTranslation = firstWordInQueue.wordObj.engelsk;
 
             // Fetch incorrect translations with the same gender and CEFR level
-            const incorrectTranslations = fetchIncorrectTranslations(
+            let incorrectTranslations = fetchIncorrectTranslations(
                 firstWordInQueue.wordObj.gender, 
                 correctTranslation, 
                 firstWordInQueue.wordObj.CEFR // Use the CEFR from the reintroduced word
             );
-            
+
+            // If there aren't enough translations, fetch from other CEFR levels with the same gender
+            if (incorrectTranslations.length < 3) {
+                const additionalTranslations = fetchIncorrectTranslationsFromOtherCEFRLevels(
+                    firstWordInQueue.wordObj.gender,
+                    correctTranslation
+                );
+                incorrectTranslations = incorrectTranslations.concat(additionalTranslations);
+            }
+
             // Shuffle correct and incorrect translations into an array
             const allTranslations = shuffleArray([correctTranslation, ...incorrectTranslations]);
+
+            // Ensure no duplicate displayed values
+            const uniqueDisplayedTranslations = ensureUniqueDisplayedValues(allTranslations);
 
             // Log wordObj being passed to renderWordGameUI
             console.log('Passing wordObj to renderWordGameUI:', firstWordInQueue.wordObj);
 
             // Render the word game UI, mark this word as reintroduced
-            renderWordGameUI(firstWordInQueue.wordObj, allTranslations, true);  // 'true' flag for reintroduced word
+            renderWordGameUI(firstWordInQueue.wordObj, uniqueDisplayedTranslations, true);  // 'true' flag for reintroduced word
 
             // Remove the word from the queue
             incorrectWordQueue.shift();
@@ -136,32 +148,76 @@ async function startWordGame() {
     // Shuffle correct and incorrect translations into an array
     const allTranslations = shuffleArray([correctTranslation, ...incorrectTranslations]);
 
+    // Ensure no duplicate displayed values
+    const uniqueDisplayedTranslations = ensureUniqueDisplayedValues(allTranslations);
+
     // Render the word game UI and pass the entire word object
-    renderWordGameUI(randomWordObj, allTranslations, false);  // 'false' flag for non-reintroduced word
+    renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);  // 'false' flag for non-reintroduced word
 
     // Render the updated stats box
     renderStats();
 }
 
+function ensureUniqueDisplayedValues(translations) {
+    const uniqueTranslations = [];
+    const displayedSet = new Set();  // To track displayed parts
+
+    translations.forEach(translation => {
+        const displayedPart = translation.split(',')[0].trim();
+        if (!displayedSet.has(displayedPart)) {
+            displayedSet.add(displayedPart);
+            uniqueTranslations.push(translation);
+        }
+    });
+
+    return uniqueTranslations;
+}
+
 function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
-    const incorrectResults = results.filter(r => {
+    let incorrectResults = results.filter(r => {
         return r.gender === gender && 
                r.engelsk !== correctTranslation && 
                r.CEFR === currentCEFR &&  // Ensure CEFR matches
                !noRandom.includes(r.ord.toLowerCase());
     });
 
-    // Randomly select 3 incorrect translations
+    // Shuffle the incorrect results to ensure randomness
+    incorrectResults = shuffleArray(incorrectResults);
+
+    // Use a Set to track the displayed parts of translations to avoid duplicates
+    const displayedTranslationsSet = new Set();
     const incorrectTranslations = [];
-    for (let i = 0; i < 3; i++) {
-        if (incorrectResults.length === 0) break;  // Handle case where there aren't enough matching results
-        const randomIndex = Math.floor(Math.random() * incorrectResults.length);
-        incorrectTranslations.push(incorrectResults[randomIndex].engelsk);
-        incorrectResults.splice(randomIndex, 1);  // Remove selected translation to avoid duplicates
+
+    // First, try to collect translations from the same CEFR level
+    for (let i = 0; i < incorrectResults.length && incorrectTranslations.length < 3; i++) {
+        const displayedTranslation = incorrectResults[i].engelsk.split(',')[0].trim();
+        if (!displayedTranslationsSet.has(displayedTranslation)) {
+            incorrectTranslations.push(incorrectResults[i].engelsk);
+            displayedTranslationsSet.add(displayedTranslation);
+        }
+    }
+
+    // If we still don't have enough, broaden the search to include words of the same gender but any CEFR level
+    if (incorrectTranslations.length < 3) {
+        let additionalResults = results.filter(r => {
+            return r.gender === gender && 
+                   r.engelsk !== correctTranslation &&  // Exclude the correct translation
+                   !noRandom.includes(r.ord.toLowerCase()) &&
+                   !displayedTranslationsSet.has(r.engelsk.split(',')[0].trim());  // Ensure no duplicates
+        });
+
+        for (let i = 0; i < additionalResults.length && incorrectTranslations.length < 3; i++) {
+            const displayedTranslation = additionalResults[i].engelsk.split(',')[0].trim();
+            if (!displayedTranslationsSet.has(displayedTranslation)) {
+                incorrectTranslations.push(additionalResults[i].engelsk);
+                displayedTranslationsSet.add(displayedTranslation);
+            }
+        }
     }
 
     return incorrectTranslations;
 }
+
 
 function renderWordGameUI(wordObj, translations, isReintroduced = false) {
     // Add the word object to the data store and get its index
@@ -350,12 +406,22 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
 }
 
 async function fetchExampleSentence(wordObj) {
+    
+    console.log("Fetching example sentence for:", wordObj);
     // Find the exact matching word object based on 'ord', 'definisjon', 'gender', and 'CEFR'
     const matchingEntry = results.find(result => 
         result.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
         result.gender === wordObj.gender &&
         result.CEFR === wordObj.CEFR
     );
+
+    // Log the matching entry or lack thereof
+    if (matchingEntry) {
+        console.log("Matching entry found:", matchingEntry);
+        console.log("Example sentence found:", matchingEntry.eksempel);
+    } else {
+        console.warn(`No matching entry found for word: ${wordObj.ord}`);
+    }
 
     // If no matching entry is found or if there is no 'eksempel' field, return null
     if (!matchingEntry || !matchingEntry.eksempel) {
