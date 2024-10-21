@@ -120,7 +120,7 @@ Africa,A1,et,Afrika,,,den nest største verdensdelen og et eget kontinent,Jeg dr
 "African person, African",A2,en,afrikaner,,,person fra Afrika,Han er en stolt afrikaner.
 African,A2,adjective,afrikansk,,,som gjelder Afrika og afrikanere,Jeg liker afrikansk musikk.
 afro,B1,en,afro,,English,afrofrisyre; musikkform med afroamerikanske røtter,Hun hadde en stilig afro på 70-tallet.
-African-American,B1,en,afroamerikaner,,Latin via English,"amerikaner av afrikansk opprinnelse",
+African-American person,B1,en,afroamerikaner,,Latin via English,"amerikaner av afrikansk opprinnelse",
 African-American,B1,adjective,afroamerikansk,,Latin via English,"som gjelder eller er særmerkt for afroamerikanere",Afroamerikansk kultur har hatt stor innflytelse på musikk og kunst. Han er en kjent afroamerikansk forfatter som har skrevet flere prisvinnende bøker.
 afro,B1,en,afrofrisyre,,English,frisyre med krusete hår,Afrofrisyren har blitt et symbol på kulturell stolthet.
 agenda,B1,en,agenda,[age´nda],Latin,"sakliste, dagsorden; tenkt liste over sentrale temaer som bør tas opp til debatt; plan for noe en ønsker å gjennomføre",Møtets agenda inkluderte flere viktige punkter.
@@ -299,7 +299,7 @@ ambivalent,B2,adjective,ambivalent,,Latin,motstridende; som innebærer ambivalen
 ambulance,A2,en,ambulanse,[ambula´ŋsə],Latin via French,utrykningskjøretøy som frakter syke eller skadede (til et sykehus); sykebil,Han ringte etter ambulanse.
 Caffè Americano,B1,en,americano,[amerikaˊno],English: americano,espresso blandet med varmt vann,Dagens 17-åringer drikker litervis av kaffe latte og americano i uka.
 America,A1,et,Amerika,,,"sammenfattende navn på landmassene på den vestlige halvkule, mellom Atlanterhavet i øst og Stillehavet i vest",Amerika er kjent for sin varierte kultur.
-American,A2,en,amerikaner,,,"person fra Amerika, særlig fra USA","Han er amerikaner, men har bodd i Norge i flere år."
+"American person, American",A2,en,amerikaner,,,"person fra Amerika, særlig fra USA","Han er amerikaner, men har bodd i Norge i flere år."
 American,A2,adjective,amerikansk,,,"som gjelder Amerika og amerikanere, særlig USA",Vi så på en amerikansk film i går kveld.
 "buffalo, American bison",B1,expression,amerikansk bison,,,klauvdyr i slekta Bison med nesten svart forkropp og sidt skjegg som gåt fra haken og til forbeina; Bison bison,
 American English,B2,en-et,amerikansk-engelsk,,,"engelsk språk i Amerika, særlig i USA",Hun snakker amerikansk-engelsk med en tydelig aksent.
@@ -2979,7 +2979,7 @@ engage,B1,verb,engasjere,"[aŋgaʃe:´rə], [eŋgaʃe:´rə]",French,ansette for
 angel,A2,en,engel,[e`ŋ:(ə)l],Greek via Old Norse: engill,himmelsk vesen som tjener Gud; person som kommer til og redder noe eller noen; beskytter; ualminnelig snill og tålmodig person,Hun har en engels tålmodighet med ham.
 English,A1,adjective,engelsk,[e´ŋ:əlsk],English,"som gjelder, hører hjemme i England (eller Storbritannia)",Jeg studerer engelsk litteratur på universitetet.
 English,A1,en-et,engelsk,[e´ŋəlsk],English,"vestgermansk språk hovedsakelig brukt i Storbritannia, Irland, USA, Canada, Australia og New Zealand",Engelsk er et verdensspråk som snakkes av millioner.
-Englishman,A1,en,engelskmann,,English,person fra England; englender,Han er en engelskmann som bor i Norge.
+"English person, Englishman",A1,en,engelskmann,,English,person fra England; englender,Han er en engelskmann som bor i Norge.
 English-speaking,B1,adjective,engelskspråklig,,English,som bruker engelsk eller foregår på engelsk; engelsktalende,Hun jobber på en engelskspråklig skole.
 English-speaking,B1,adjective,engelsktalende,,English,som snakker engelsk; som har engelsk som hovedspråk,Ingen av de ikke engelsktalende panelistene benyttet høretelefonene under mitt innlegg.
 narrower circle,B2,expression,engere krets,,Old Norse,gruppe som omfatter få (fortrolige),Debatten foregår i en engere krets.
@@ -3605,7 +3605,7 @@ fingernail,B1,en,fingernegl,,Old Norse,negl på finger,Jeg må klippe fingernegl
 fingertip,A2,en,fingertupp,,Old Norse,ytterste del av en finger,Fingertuppen min er litt sår etter å ha brukt mobilen mye.
 fiddle,B2,verb,fingre ,[fi`ŋrə],Old Norse,føle på med fingrene; tukle,Hun fingrer med stetten på vinglasset.
 finely tune,B2,verb,finjustere ,,Old Norse,gjøre små endringer for å oppnå bedre resultat,Vi må finjustere planen før møtet.
-Finn,A1,en,finne,[fi`n:ə],Old Norse: finnr,person fra Finland; innbygger av Finland,En finne hjalp oss med å finne veien i Helsinki.
+"Finnish person, Finn",A1,en,finne,[fi`n:ə],Old Norse: finnr,person fra Finland; innbygger av Finland,En finne hjalp oss med å finne veien i Helsinki.
 find,A1,verb,finne,[fi`n:ə],Old Norse: finna,"komme over, treffe på, oppdage",Jeg klarte ikke å finne nøklene mine.
 fin,A2,en,finne,[fi`n:ə],unknown,svømme- og styreorgan hos fisk og hval,Fisken har en finne som hjelper den å svømme.
 see fit,B2,expression,"finne for godt",,Old Norse,"avgjøre etter eget skjønn",Han finner alltid for godt å komme for sent til møter.
@@ -5139,21 +5139,21 @@ Gnosticism,C,en,gnostisisme,[gnåstisi´smə],Greek: gnostikos,"religionsfilosof
 "scrub, rub",C,verb,gnu,[gnu:],Old Norse: gnúa,"gni (hardt); klemme, presse; arbeide jevnt; slite",Hun gnikket og gnudde bilen blank.
 rub,C,verb,gnure,[gnu:`rə],Old Norse: gnúa,"gni, skure; gnage, pine, plage; gruble",Båten lå og gnuret mot steinene. Tanken gnuret i bakhodet. Ubehaget gnurer i bakgrunnen.
 good,A1,adjective,god,[go:],Old Norse: góðr,"av høy kvalitet; bra, fin, utmerket; tilfredsstillende, gagnlig, tjenlig",Det var gode tider.
-good morning,A1,interjection,god morgen,,,brukt som hilsen om morgenen,"God morgen, alle sammen!"
-good night,A1,interjection,god natt,,,brukt som hilsen når noen skal legge seg for natten,"God natt, og sov godt!"
-virtuous cycle,B2,expression,god sirkel,,,"gunstig utvikling hvor to eller flere begivenheter, omstendigheter betinger og forsterker hverandre",
+good morning,A1,interjection,god morgen,,Old Norse,brukt som hilsen om morgenen,"God morgen, alle sammen!"
+good night,A1,interjection,god natt,,Old Norse,brukt som hilsen når noen skal legge seg for natten,"God natt, og sov godt!"
+virtuous cycle,B2,expression,god sirkel,,Old Norse,"gunstig utvikling hvor to eller flere begivenheter, omstendigheter betinger og forsterker hverandre",
 benign,B2,adjective,godartet,,Old Norse,som ikke gjør skade; ufarlig,Pasienten ble operert for en godartet svulst.
 good,B1,et,gode,[go:`də],Old Norse: góði,"noe som er nødvendig for å ha det bra; positiv ting, fordel, vinning",God helse er et gode.
 make amends,C,expression,gode seg,,Old Norse,godgjøre seg,Han godet seg over suksessen til sitt siste prosjekt.
-goody-goody person,C,en,godfjott,,,godfjottete person; mehe,
-goody-goody,C,adjective,"godfjottete, godfjottet",,,altfor ettergivende; dumsnill,
+"goody two shoes, goody-goody person",C,en,godfjott,,Old Norse,godfjottete person; mehe,
+goody-goody,C,adjective,"godfjottete, godfjottet",,Old Norse,altfor ettergivende; dumsnill,
 enjoy,C,expression,godgjøre seg,,Old Norse,"bli god av å stå en stund; kose seg, særlig med mat; meske seg",De lot vinen godgjøre seg før de serverte den.
 "benevolent, philanthropic",C,adjective,godgjørende,,Old Norse,"veldedig, barmhjertig; velgjørende; som gjør godt",Han var godgjørende mot sine sambygdinger.
 philanthropy,C,ei,godgjørenhet,,Old Norse,"det å være godgjørende",Hennes godgjørenhet fikk alle til å føle seg velkomne.
 "goodness, kindness",A2,ei,godhet,,Old Norse,"sympati, velvilje; barmhjertighet",Han viste stor godhet overfor de fattige.
 virtue signaling,C,ei,godhetsposering,,Old Norse,ytringer eller handlinger som er ment å fremstå som moralsk høyverdige for andre,Hennes innlegg om veldedighet var bare godhetsposering.
 virtue signaler,C,en,godhetsposør,,Old Norse,"person som utviser eller viser tilsynelatende godhet eller moralsk høyverdige holdninger, men som blir oppfattet som overfladisk eller hyklersk",Han er en typisk godhetsposør som alltid viser seg frem.
-approve,B2,verb,godkjenne,,,"stadfeste som gyldig eller god nok; godta, ratifisere",Planene må godkjennes først.
+approve,B2,verb,godkjenne,,Old Norse,"stadfeste som gyldig eller god nok; godta, ratifisere",Planene må godkjennes først.
 accept,A2,verb,godta,,Old Norse,gå med på; akseptere,De godtok forslaget. Vi kan ikke godta en slik ordning.
 acceptance,B2,en,godtagelse,,Old Norse,"det å godta eller bli godtatt",Jeg kunne ikke si noe til ham fordi jeg fryktet hans godtagelse.
 compensate,B2,verb,godtgjøre ,,Old Norse,gi vederlag for,Han måtte godtgjøre tapet ved å betale tilbake pengene.
@@ -7877,7 +7877,7 @@ cosmopolitan,C,adjective,kosmopolitisk,,Greek,"som gjelder, er utbredt over hele
 cosmopolitanism,C,en,kosmopolitisme,,Greek,"verdensborgerlig innstilling; ideologi eller filosofi som vektlegger en global og universell tilnærming til samfunnet, politikken og menneskeheten som helhet",
 cosmopolitan,C,en,kosmopolitt,,Greek,"verdensborger, person som regner hele verden som sitt fedreland; dyr eller plante som forekommer over hele verden",
 cosmos,B2,et,kosmos,,Greek,"verdensaltet, universet, den ordnede verden; hele universet, inkludert stjerner, planeter, galakser og annen himmellegemer",
-"diet, board",A2,en,kost,,German via Old Norse: kostr,"mat og drikke, føde",Frukt og grønnsaker er viktig for et sunt kosthold.
+"diet, board",,en,kost,,German via Old Norse: kostr,"mat og drikke, føde",
 "broom, brush",A2,en,kost,,German,"kvast av bust, hår på et skaft eller lignende",Han feide gulvet med en stor kost.
 costly,B2,adjective,kostbar,,Latin via German via Old Norse,"som koster mye, dyr",
 cost,A2,verb,koste,,Latin via German via Old Norse: kosta,"stå i en viss pris, komme på",Det vil koste deg femti kroner for å delta på arrangementet.
@@ -9885,8 +9885,8 @@ something out of the ordinary,B2,expression,noe utenom det vanlige,,Old Norse,no
 somewhat,B2,adverb,noenlunde ,,Old Norse,"forholdsvis, til en viss grad",Han er noenlunde fornøyd med resultatet.
 ever,B2,adverb,noensinne,,Old Norse,noen gang,Det er det verste jeg noensinne har opplevd.
 "enough, probably",A2,adverb,nok,[nåk:],German,tilstrekkelig,Bare det beste er godt nok.
-key,A1,en,nøkkel,,Old Norse: lykill,"redskap til å åpne eller lukke et lås med",Nøkkelen står i døra.
-wrench,A2,en,nøkkel,,Old Norse,"redskap til å dreie, trekke opp eller justere noe med",Jeg mistet nøkkelen til huset.
+key,A1,en,nøkkel,,Old Norse: lykill,"redskap til å åpne eller lukke et lås med",Nøkkelen står i døra. Jeg mistet nøkkelen til huset.
+wrench,,en,nøkkel,,Old Norse,"redskap til å dreie, trekke opp eller justere noe med",
 lanyard,B1,et,"nøkkelbånd, nøklebånd",,,bånd til å ha nøkkel eller nøkler i; bunt av nøkler i bånd,
 child with working parents,B2,et,nøkkelbarn,,Old Norse,"barn med foreldre som er borte på arbeid om dagen (og derfor går med nøkkelen til hjemmet på seg)",
 key card,B1,et,nøkkelkort,,Old Norse,"magnetkort til å åpne dørlåser med",Han brukte et nøkkelkort for å låse opp døren.
@@ -11583,6 +11583,7 @@ rest,C,en,rast,,,"hvile, ro",
 rest,C,verb,raste,,,"hvile, holde rast",
 restless,B2,adjective,rastløs ,,,"hvileløs, urolig",
 "rot, decay",B2,en,råte,,Old Norse,"forråtnelse, råtten del av noe",
+ratify,,verb,ratifisere,,Latin,godkjenne eller stadfeste en internasjonal avtale,
 "rot, decay",B1,verb,råtne,,Old Norse,bli råtten,
 steering wheel,A2,et,ratt,,,styrehjul på fartøy eller kjøretøy,
 "steer, drive",B2,verb,ratte,,,"styre, kjøre bil; dreie raskt på rattet",Han måtte ratte veldig for å holde bilen på veien.
