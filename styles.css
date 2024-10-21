@@ -274,15 +274,16 @@ footer .copyright {
 }
 
 #game-congratulations-banner, #game-fallback-banner {
+    align-self: center;
     background-color: #FAE5C3; 
     color: #5C4033; /* Gray color, matching the scorecard */
     text-align: center;
-    padding: 2.5px 5px; /* Smaller padding for a more compact banner */
+    padding: 0px 5px; /* Smaller padding for a more compact banner */
     border-radius: 10px;
-    font-size: 0.9em; /* Smaller font size to fit the text on one line */
+    font-size: 0.7em !important; /* Smaller font size to fit the text on one line */
     font-weight: normal; /* Adjusted to normal to avoid boldness */
     font-family: "Noto Sans", sans-serif; /* Using Noto Sans, sans-serif */
-    margin: 15px 0 15px 0; /* Reduced spacing between banner and the rest */
+    margin: 0 auto; /* Reduced spacing between banner and the rest */
     line-height: 1.2; /* Reduced line height for more compact text */
     transition: opacity 0.5s ease-in-out; /* Smooth transition */
     font-weight: 500;
@@ -324,7 +325,6 @@ footer .copyright {
 }
 
 #game-next-word-button {
-    display: none;
     margin-top: 15px;
     width: 100%;
     background-color: #f8d9b0;  /* Subtle, lighter background */
@@ -347,6 +347,14 @@ footer .copyright {
     background-color: #f2c18c;  /* Darker background on click */
     border-color: #8a7063;  /* Border matches text color on click */
     transform: scale(0.98);  /* Slight shrink effect for click feedback */
+}
+
+#game-next-word-button:disabled {
+    background-color: #f0e5d2;  /* Lighter background when disabled */
+    color: #c5b3a6;  /* More muted text color when disabled */
+    border-color: #d1c4b5;  /* Muted border when disabled */
+    cursor: not-allowed;  /* Disabled cursor */
+    box-shadow: none;  /* No shadow when disabled */
 }
 
 .game-tricky-word {

@@ -206,9 +206,15 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
             <!-- Stats will be updated dynamically in renderStats() -->
         </div>
 
-        <div class="definition result-header game-word-card">
+        <div class="result-header game-word-card">
             <div class="game-labels-container">
                 ${cefrLabel}  <!-- Add the CEFR label here if applicable -->
+                <div id="game-congratulations-banner" class="${congratulationsBannerVisible ? '' : 'hidden'}">
+                    <p>Great job! 🎉 You're now at level <span id="next-level">${currentCEFR}</span>!</p>
+                </div>
+                <div id="game-fallback-banner" class="${fallbackBannerVisible ? '' : 'hidden'}">
+                    <p>Nice try! 🎯 You're back at level <span id="prev-level">${currentCEFR}</span>.</p>
+                </div>
                 ${trickyLabel}  <!-- Add the tricky word label if applicable -->
             </div>
             <div class="game-word">
@@ -226,17 +232,9 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
             `).join('')}
         </div>
 
-        <!-- Congratulations Banner -->
-        <div id="game-congratulations-banner" class="${congratulationsBannerVisible ? '' : 'hidden'}">
-            <p>Great job! 🎉 You're now at level <span id="next-level">${currentCEFR}</span>!</p>
-        </div>
-        <!-- Fallback Banner (new) -->
-        <div id="game-fallback-banner" class="${fallbackBannerVisible ? '' : 'hidden'}">
-            <p>Nice try! 🎯 You're back at level <span id="prev-level">${currentCEFR}</span>.</p>
-        </div>
         <!-- Next Word Button -->
         <div class="game-next-button-container">
-            <button id="game-next-word-button">Next Word</button>
+            <button id="game-next-word-button" disabled>Next Word</button>
         </div>
     `;
 
@@ -320,6 +318,9 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
             counter: 0 // Start counter for this word
         });
     }
+
+    // Enable the "Next Word" button
+    document.getElementById('game-next-word-button').disabled = false;
 
     // Update the stats after the answer
     renderStats();
