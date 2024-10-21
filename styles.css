@@ -265,8 +265,8 @@ footer .copyright {
 /* Example Sentences */
 .game-cefr-spacer p {
     color: #413e3e;
-    font-family: 'Noto Serif', serif;
-    font-size: 0.9em !important;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 0.8em !important;
     padding: 0 10px 0 10px;
     text-align: center;
     margin: 0;
@@ -426,6 +426,7 @@ footer .copyright {
     border-radius: 10px;        /* Same rounded corners */
     padding: 15px; /* Reduced padding to make the cards less bulky */
     text-align: center;         /* Centered text */
+    font-family: 'Noto Sans', sans-serif;
     font-size: 1.2em !important;           /* Consistent font size */
     color: #333;                /* Same text color */
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Same shadow */
@@ -454,6 +455,7 @@ footer .copyright {
 
 .game-word h2 {
     margin: 0;
+    font-family: 'Noto Sans', sans-serif;
     font-weight: 400 !important;
     white-space: nowrap;                 /* Prevent the word from wrapping */
     overflow: hidden;
