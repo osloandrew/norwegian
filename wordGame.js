@@ -83,9 +83,13 @@ async function startWordGame() {
             currentWord = firstWordInQueue.wordObj.ord;
             correctTranslation = firstWordInQueue.wordObj.engelsk;
 
-            // Fetch incorrect translations with the same gender
-            const incorrectTranslations = fetchIncorrectTranslations(firstWordInQueue.wordObj.gender, correctTranslation);
-
+            // Fetch incorrect translations with the same gender and CEFR level
+            const incorrectTranslations = fetchIncorrectTranslations(
+                firstWordInQueue.wordObj.gender, 
+                correctTranslation, 
+                firstWordInQueue.wordObj.CEFR // Use the CEFR from the reintroduced word
+            );
+            
             // Shuffle correct and incorrect translations into an array
             const allTranslations = shuffleArray([correctTranslation, ...incorrectTranslations]);
 
@@ -127,7 +131,7 @@ async function startWordGame() {
     correctTranslation = randomWordObj.engelsk;
 
     // Fetch incorrect translations with the same gender
-    const incorrectTranslations = fetchIncorrectTranslations(randomWordObj.gender, correctTranslation);
+    const incorrectTranslations = fetchIncorrectTranslations(randomWordObj.gender, correctTranslation, currentCEFR);
 
     // Shuffle correct and incorrect translations into an array
     const allTranslations = shuffleArray([correctTranslation, ...incorrectTranslations]);
@@ -139,9 +143,12 @@ async function startWordGame() {
     renderStats();
 }
 
-function fetchIncorrectTranslations(gender, correctTranslation) {
+function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
     const incorrectResults = results.filter(r => {
-        return r.gender === gender && r.engelsk !== correctTranslation && !noRandom.includes(r.ord.toLowerCase());
+        return r.gender === gender && 
+               r.engelsk !== correctTranslation && 
+               r.CEFR === currentCEFR &&  // Ensure CEFR matches
+               !noRandom.includes(r.ord.toLowerCase());
     });
 
     // Randomly select 3 incorrect translations
@@ -163,9 +170,6 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
     // Split the word at the comma and use the first part
     let displayedWord = wordObj.ord.split(',')[0].trim();
 
-    // Log the wordObj to see if it has CEFR
-    console.log('renderWordGameUI called with wordObj:', wordObj);
-    
     if (wordObj.gender.startsWith('en') || wordObj.gender.startsWith('et') || wordObj.gender.startsWith('ei')) {
         displayedWord = `${wordObj.gender} ${displayedWord}`;  // Add gender in front of the word
     }
@@ -379,7 +383,12 @@ async function fetchRandomWord() {
     const cefrLevel = currentCEFR;
 
     // Filter results based on CEFR, POS, and excluding the previous word
-    let filteredResults = results.filter(r => r.engelsk && !noRandom.includes(r.ord.toLowerCase()) && r.ord !== previousWord);
+    let filteredResults = results.filter(r => 
+        r.engelsk && 
+        !noRandom.includes(r.ord.toLowerCase()) && 
+        r.ord !== previousWord &&
+        r.CEFR === cefrLevel // Ensure the word belongs to the same CEFR level
+    );
 
     if (selectedPOS) {
         filteredResults = filteredResults.filter(r => {
