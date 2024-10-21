@@ -1,22 +1,24 @@
+let allowProgression = false; // Flag to delay progression
+let allowFallback = false;    // Flag to delay fallback
 let currentWord;
 let correctTranslation;
-let gameActive = false;
-let correctCount = 0;  // Tracks the total number of correct answers
-let incorrectCount = 0; // Tracks the total number of incorrect answers
-let currentCEFR = 'A1'; // Start at A1 by default
-let levelThreshold = 0.95; // 95% correct to level up
-let fallbackThreshold = 0.5; // Fall back if below 50%
-let totalQuestions = 0; // Track total questions per level
+let correctlyAnsweredWords = [];  // Array to store correctly answered words
 let correctLevelAnswers = 0; // Track correct answers per level
 let congratulationsBannerVisible = false;
+let correctCount = 0;  // Tracks the total number of correct answers
+let currentCEFR = 'A1'; // Start at A1 by default
 let fallbackBannerVisible = false;
-let wordDataStore = [];
-let recentAnswers = [];  // Track the last X answers, 1 for correct, 0 for incorrect
+let fallbackThreshold = 0.5; // Fall back if below 50%
+let gameActive = false;
+let incorrectCount = 0; // Tracks the total number of incorrect answers
 let incorrectWordQueue = [];  // Queue for storing incorrect words with counters
+let levelThreshold = 0.95; // 95% correct to level up
 let previousWord = null;
-let wordsSinceLastIncorrect = 0;  // Counter to track words shown since the last incorrect word
+let recentAnswers = [];  // Track the last X answers, 1 for correct, 0 for incorrect
 let reintroduceThreshold = 10; // Set how many words to show before reintroducing incorrect ones
-
+let totalQuestions = 0; // Track total questions per level
+let wordsSinceLastIncorrect = 0;  // Counter to track words shown since the last incorrect word
+let wordDataStore = [];
 let goodChime = new Audio('goodChime.wav');
 let badChime = new Audio('badChime.wav');
 let popChime = new Audio('popChime.wav');
@@ -68,6 +70,13 @@ function renderStats() {
 
 async function startWordGame() {
     gameActive = true;
+
+    // Check if all available words have been answered correctly
+    const totalWords = results.filter(r => r.CEFR === currentCEFR && !noRandom.includes(r.ord.toLowerCase()));
+    if (correctlyAnsweredWords.length >= totalWords.length) {
+        console.log("All words answered correctly, resetting correctlyAnsweredWords array.");
+        correctlyAnsweredWords = []; // Reset the array
+    }
 
     // First, check if there is an incorrect word to reintroduce
     if (incorrectWordQueue.length > 0 && wordsSinceLastIncorrect >= reintroduceThreshold) {
@@ -174,12 +183,17 @@ function ensureUniqueDisplayedValues(translations) {
 }
 
 function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
+    const isCapitalized = /^[A-Z]/.test(correctTranslation); // Check if the current word starts with a capital letter
+
     let incorrectResults = results.filter(r => {
+        const isMatchingCase = /^[A-Z]/.test(r.engelsk) === isCapitalized; // Check if the word's case matches
         return r.gender === gender && 
                r.engelsk !== correctTranslation && 
                r.CEFR === currentCEFR &&  // Ensure CEFR matches
+               isMatchingCase &&  // Ensure the case matches
                !noRandom.includes(r.ord.toLowerCase());
     });
+
 
     // Shuffle the incorrect results to ensure randomness
     incorrectResults = shuffleArray(incorrectResults);
@@ -198,10 +212,12 @@ function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
     }
 
     // If we still don't have enough, broaden the search to include words of the same gender but any CEFR level
-    if (incorrectTranslations.length < 3) {
+    if (incorrectTranslations.length < 4) {
         let additionalResults = results.filter(r => {
+            const isMatchingCase = /^[A-Z]/.test(r.engelsk) === isCapitalized; // Ensure case matches for fallback
             return r.gender === gender && 
                    r.engelsk !== correctTranslation &&  // Exclude the correct translation
+                   isMatchingCase &&  // Ensure the case matches
                    !noRandom.includes(r.ord.toLowerCase()) &&
                    !displayedTranslationsSet.has(r.engelsk.split(',')[0].trim());  // Ensure no duplicates
         });
@@ -215,9 +231,27 @@ function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
         }
     }
 
+    // If we still don't have enough, broaden the search to include any word, ignoring CEFR and gender
+    if (incorrectTranslations.length < 4) {
+        let fallbackResults = results.filter(r => {
+            const isMatchingCase = /^[A-Z]/.test(r.engelsk) === isCapitalized; // Ensure case matches for fallback
+            return r.engelsk !== correctTranslation &&  // Exclude the correct translation
+                   isMatchingCase &&  // Ensure the case matches
+                   !noRandom.includes(r.ord.toLowerCase()) &&
+                   !displayedTranslationsSet.has(r.engelsk.split(',')[0].trim());  // Ensure no duplicates
+        });
+
+        for (let i = 0; i < fallbackResults.length && incorrectTranslations.length < 3; i++) {
+            const displayedTranslation = fallbackResults[i].engelsk.split(',')[0].trim();
+            if (!displayedTranslationsSet.has(displayedTranslation)) {
+                incorrectTranslations.push(fallbackResults[i].engelsk);
+                displayedTranslationsSet.add(displayedTranslation);
+            }
+        }
+    }
+
     return incorrectTranslations;
 }
-
 
 function renderWordGameUI(wordObj, translations, isReintroduced = false) {
     // Add the word object to the data store and get its index
@@ -226,7 +260,9 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
     // Split the word at the comma and use the first part
     let displayedWord = wordObj.ord.split(',')[0].trim();
 
-    if (wordObj.gender.startsWith('en') || wordObj.gender.startsWith('et') || wordObj.gender.startsWith('ei')) {
+    // Check if the first character is lowercase before adding the article (en, et, ei)
+    if (!/^[A-Z]/.test(displayedWord) && 
+        (wordObj.gender.startsWith('en') || wordObj.gender.startsWith('et') || wordObj.gender.startsWith('ei'))) {
         displayedWord = `${wordObj.gender} ${displayedWord}`;  // Add gender in front of the word
     }
 
@@ -353,6 +389,8 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
         correctCount++;  // Increment correct count globally
         correctLevelAnswers++; // Increment correct count for this level
         updateRecentAnswers(true);  // Track this correct answer
+        // Add the word to the correctly answered words array to exclude it from future questions
+        correctlyAnsweredWords.push(wordObj.ord);
     } else {
         // Mark the incorrect card as red
         cards.forEach(card => {
@@ -453,7 +491,8 @@ async function fetchRandomWord() {
         r.engelsk && 
         !noRandom.includes(r.ord.toLowerCase()) && 
         r.ord !== previousWord &&
-        r.CEFR === cefrLevel // Ensure the word belongs to the same CEFR level
+        r.CEFR === cefrLevel && // Ensure the word belongs to the same CEFR level
+        !correctlyAnsweredWords.includes(r.ord) // Exclude words already answered correctly
     );
 
     if (selectedPOS) {
@@ -507,6 +546,13 @@ async function fetchRandomWord() {
 }
 
 function advanceToNextLevel() {
+
+    if (incorrectWordQueue.length > 0) {
+        // Block level advancement if there are still incorrect words
+        console.log('The user must review all incorrect words before advancing to the next level.');
+        return;
+    }
+
     let nextLevel = '';
     
     if (currentCEFR === 'A1') {
@@ -546,10 +592,9 @@ function fallbackToPreviousLevel() {
     // Only change the level if it is actually falling back to a previous level
     if (currentCEFR !== previousLevel && previousLevel) {
         currentCEFR = previousLevel;  // Update the current level to the previous one
+        incorrectWordQueue = []; // Reset the incorrect word queue on fallback
         showFallbackBanner(previousLevel);  // Show the fallback banner
-
-        // Update the CEFR selection to reflect the new level
-        updateCEFRSelection();
+        updateCEFRSelection(); // Update the CEFR selection to reflect the new level
     }
 }
 
@@ -560,10 +605,25 @@ function evaluateProgression() {
 
     console.log("Current accuracy:", accuracy);
 
-    if (accuracy >= levelThreshold) {
-        advanceToNextLevel();
+    // Check if the user is allowed to progress or fallback based on the flags
+    if (accuracy >= levelThreshold && incorrectWordQueue.length === 0) {
+        if (allowProgression) {
+            advanceToNextLevel();
+            allowProgression = false; // Reset the flag after advancing
+        } else {
+            allowProgression = true; // Enable progression for the next correct answer
+        }
     } else if (accuracy < fallbackThreshold) {
-        fallbackToPreviousLevel();
+        if (allowFallback) {
+            fallbackToPreviousLevel();
+            allowFallback = false; // Reset the flag after falling back
+        } else {
+            allowFallback = true; // Enable fallback for the next incorrect answer
+        }
+    } else {
+        // If no progression or fallback occurs, reset the flags
+        allowProgression = false;
+        allowFallback = false;
     }
 }
 
