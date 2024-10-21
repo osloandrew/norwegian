@@ -68,6 +68,7 @@ obey,B1,verb,adlyde,,Old Norse,"lystre, høre på, respektere",Det er viktig å 
 administration,B1,en,administrasjon,,Latin,personale i offentlig eller privat virksomhet som utfører administrativt arbeid,Administrasjonen på skolen er alltid opptatt med å organisere aktiviteter for elevene.
 administrative center,B1,et,administrasjonssenter,,Latin,"senter for administrasjon (for eksempel i kommune eller bedrift)",Byen fungerer som et administrasjonssenter for regionen.
 administrative,B1,adjective,administrativ ,,Latin,som gjelder administrasjon,Hun jobber med administrative oppgaver på kontoret.
+administer,,verb,administrere,,Latin,"lede, styre, forvalte",
 adoption,B1,en,adopsjon ,,Latin,det å adoptere,Adopsjonen gikk gjennom etter mange måneder med venting.
 adopt,B1,verb,adoptere ,,Latin,"ta opp, godkjenne",Skoleklassen adopterte et skip.
 sender,B2,en,adressant,,French,avsender,"Adressanten var ukjent, så brevet ble returnert."
@@ -2030,6 +2031,7 @@ cause célèbre,C,en,cause célèbre,[kås-sele:´br],French,oppsiktsvekkende re
 CD,A1,en,CD,[se:`de],English,"liten plate som kan brukes til lagring av for eksempel musikk, og som blir avlest ved hjelp av en lasestråle",Jeg fant en gammel CD med favorittmusikken min fra 90-tallet.
 cell,B1,ei,celle ,[se`l:ə],Latin,"lite (avstengt) rom; organisk byggeenhet, sammensatt av protoplasma med hinner",Cellen er kroppens minste levende enhet.
 cellular office,B2,et,"cellekontor, sellekontor",,Latin,kontor (oftest for én person) som er atskilt fra andre kontorer med vegger,De ville ha cellekontor i stedet for kontorlandskap.
+cell tissue,,et,"cellevev, sellevev",,,vev av celler med samme bygning og funksjon,
 cello,B2,en,cello,"[ʃe´l:o], [se´l:o]",Italian,"firestrenget strykeinstrument som ligger mellom kontrabass og bratsj i format og toneomfang",Han spiller cello i et orkester.
 cellular ,C,adjective,"cellulær, sellulær",[selulæ:´r],Latin,som gjelder celler; cellular,Cellulær teknologi har revolusjonert måten vi kommuniserer på.
 centimeter,A1,en,centimeter,,Latin,¹⁄₁₀₀ av en meter,Bordet er 120 centimeter langt.
@@ -6159,7 +6161,10 @@ bump,B2,verb,humpe,,,"være i støtvis, hoppende bevegelse, særlig på grunn av
 bumpy,B2,adjective,"humpete, humpet",,,full av humper; ujevn,Veien var humpete og vanskelig å kjøre på.
 she,A1,pronoun,hun,[hun:],,brukt om person av hunkjønn,"Hun sa at hun var sulten, men jeg tror hun bare tuller."
 dog,A1,en,hund,[hun:],,"husdyr som holdes som kjæledyr eller bruksdyr, som er lett å dressere og som kan brukes til jakt eller andre oppgaver",Vi har en hund som elsker å leke.
+crazy expensive,,adjective,hundedyr,,,"uhyggelig, skremmende dyr (kostbar)",
+canine,,et,hundedyr,,,dyr i hundefamilien,
 dog owner,B1,en,hundeeier,,,"person som eier en hund",Hundeeieren passet godt på kjæledyret sitt.
+dog family,,en,hundefamilie,,,"familie av langbente, slanke rovdyr med langstrakt hode, opprettstående ører og lang, buskete hale",
 rabies,C,en,hundegalskap ,,,"rabies","Hundegalskap var en fryktet sykdom, fordi man ikke hadde noe effektivt middel mot den."
 hundred,A1,numeral,hundre,,Old Norse: hundrað,grunntallet 100,Boka koster hundre kroner.
 hundred,A1,et,hundre,,Old Norse: hundrað,mengde på 100,Hundrer stod i kø for å sikre seg billetter. Det møtte opp flere hundre.
@@ -9362,6 +9367,7 @@ mission,B2,en,misjon,[miʃo:´n],,"(organisert) virksomhet for å utbre en relig
 missionary,B2,en,misjonær,,,person som driver misjon,
 dislike,A2,verb,mislike,,Old Norse: mislíka,"ikke like",Jeg misliker at du stadig avbryter meg.
 be unsuccessful,B1,verb,mislykkes,,Old Norse,"ikke lykkes, falle uheldig ut, slå feil",
+discouraged,,adjective,mismodig,,German,"motløs, nedtrykt",
 discouragement,B2,et,mismot,,,nedslått stemning; motløshet,Mismotet grep henne.
 discontent,B1,adjective,misnøyd,,Old Norse,"ikke fornøyd, utilfreds",
 displeasure,B1,en,misnøye,,Old Norse,det å være misnøyd,
@@ -12300,6 +12306,7 @@ probable,B1,adjective,sannsynlig ,[sansy:´nli],Old Norse,"trolig, rimelig",Det 
 probably,B1,adverb,sannsynligvis,,Old Norse,etter alt å dømme,Sannsynligvis kommer de i dag.
 sense,A2,en,sans,,,evne til å motta påvirkninger som gir fornemmelser av en bestemt art,
 sensual,B2,adjective,sanselig,,,"som kan oppfattes med sansene, materiell, legemlig",
+sensory impact,,ei,sansepåvirkning,,,påvirkning av sansene,
 "such, as much, as long",B1,adverb,"såpass, så pass",,Old Norse,"så mye; så vidt bra, dyktig eller lignende",
 soap,A2,en,såpe,,Old Norse: sápa,"metallsalt av fettsyre, særlig natrium- eller kaliumsalt; fast eller flytende rengjøringsmiddel av såpe",
 soap,B1,verb,såpe,,Old Norse,gni med såpe,
@@ -13456,6 +13463,7 @@ socialist,,en,sosialist,,Latin,tilhenger av sosialisme,
 community center,,et,sosialkontor,,Latin,kontor som administrerer og samordner all sosial virksomhet i en kommune,
 social work,,expression,"sosialt arbeid",,Latin,"fagfelt som beskjeftiger seg med å forebygge, løse og redusere sosiale problemer (for enkeltmennesker eller grupper av mennesker)",
 social lubricant,,expression,sosialt glidemiddel,,Latin,"noe som gjøre det lettere å samtale og ha det hyggelig sammen; noe som gjør det lettere å oppnå nærhet, tilknytning til andre mennesker",
+sosial medium,,expression,sosialt medium,,,"tjeneste på internett for individer og grupper der brukere kan utveksle meldinger, bilder, film og så videre",Sosiale medier gjør det lettere å holde kontakt med venner.
 social network,,expression,sosialt nettverk,,Latin,"en gruppe mennesker som en person kjenner og omgås, og som kan gi vedkommende hjelp og støtte; nettsamfunn",
 society,,en,sosietet,,Latin,"samfunn, forening; det fine selskap",
 social worker,,en,sosionom,,Latin,person som har eksamen fra sosialhøgskole,
@@ -16131,6 +16139,7 @@ trademark,B2,et,varemerke,,Old Norse,symbol som benyttes som gjenkjenningstegn p
 wolf,B2,en,varg,[varg],Old Norse: vargr,ulv,Hun holdt en fakkel foran kjeften på et svært beist av en varg.
 variable,B2,adjective,variabel,[varia:´b(ə)l],Latin,"skiftende, vekslende; foranderlig, som endrer seg",
 variable,B2,en,variabel,[varia:´b(ə)l],Latin,"størrelse med skiftende verdi",
+variant,,en,variant,[varia´nt],Latin,"avvikende type; avvikende form av ord, uttrykk, tekst, uttale eller lignende",
 variation,B1,en,variasjon,,Latin,"forandring, avveksling; varierende form",
 vary,A2,verb,variere,,Latin,være forskjellig,Du kan variere hvor lenge du holder posisjonen.
 lasting,B2,adjective,varig,,,som holder seg; som varer ved,
@@ -16154,6 +16163,7 @@ careful,B2,adjective,varsom,,,forsiktig,
 caution,B2,ei,varsomhet,,,forsiktighet; det å være varsom,
 sign of spring,B2,et,vårtegn ,,,tegn på at våren er på vei; varsel om vår,
 werewolf,B2,en,varulv,[va:`rulv],,menneske som er omskapt eller kan skape seg om til ulv,"Han beveget seg rykkvis og likevel omhyggelig, vaktsomt, som en varulv."
+talk nonsense,,verb,våse,[vå:`sə],,"snakke tull, vrøvle",Nå våser du fælt.
 "wash, sink",A2,en,vask ,,Old Norse,"det å vaske, vasking",Skjortene er til vask.
 wash,A1,verb,vaske,,Old Norse: vaska,"gjøre ren med vann eller annen væske (og såpe), tvette; utvinne metall av løse jordarter ved hjelp av rennende vann; skvulpe; skylle",Jeg må vaske klærne mine.
 wash basin,B1,en,vaskekum,,Old Norse,"kum, kar (av steintøy, stål, plast og lignende) til å vaske i",
