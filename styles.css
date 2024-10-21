@@ -257,7 +257,10 @@ footer .copyright {
 }
 
 .game-cefr-spacer {
-    min-height: 30px;
+    display: flex;
+    align-items: center;  /* Vertically align content within spacerDiv */
+    justify-content: center;  /* Optionally center horizontally as well */
+    min-height: 50px;
     text-align: center;
     flex-shrink: 0;                      /* Prevent the spacer from shrinking */
 }
@@ -274,7 +277,7 @@ footer .copyright {
 }
 
 #game-congratulations-banner, #game-fallback-banner {
-    align-self: center;
+    align-self: baseline;
     background-color: #FAE5C3; 
     color: #5C4033; /* Gray color, matching the scorecard */
     text-align: center;
@@ -322,6 +325,7 @@ footer .copyright {
 .game-labels-container {
     display: flex;
     justify-content: space-between;  /* Align labels on opposite sides */
+    min-height: 50px;
     width: 100%;
 }
 
@@ -451,12 +455,11 @@ footer .copyright {
 }
 
 .game-word {
+    align-items: center;                 /* Center the word vertically */
     display: flex;
     justify-content: center;             /* Center the word horizontally */
-    align-items: center;                 /* Center the word vertically */
     flex-grow: 1;                        /* Allow the word to take up remaining space */
     text-align: center;
-    min-height: 50px;
 }
 
 .game-word h2 {
@@ -469,20 +472,20 @@ footer .copyright {
 }
 
 .game-word-card {
-    display: flex;
-    flex-direction: column;              /* Stack the label and word vertically */
-    justify-content: center;             /* Center the content vertically */
     align-items: center;                 /* Center the content horizontally */
     background-color: white;
     border: 1px solid #ccc;
     border-radius: 10px;
-    padding: 10px;                /* Reduce padding at the top, add more below */
-    font-size: 1.2em;
-    margin-bottom: 15px !important;
-    color: #333;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    position: relative;                  /* Allow for flexible layout */
+    color: #333;
+    display: flex;
+    flex-direction: column;              /* Stack the label and word vertically */
+    font-size: 1.2em;
+    justify-content: center;             /* Center the content vertically */
+    margin-bottom: 15px !important;
     overflow: hidden;                   /* Prevent overflowing content from changing layout */
+    padding: 10px;                /* Reduce padding at the top, add more below */
+    position: relative;                  /* Allow for flexible layout */
 }
 
 .gender {
@@ -991,6 +994,11 @@ main {
 @media (max-width: 1024px) {
     .back-btn {
         width: 100%; /* Make the button take up full width on mobile */
+    }
+
+    /* Example Sentences */
+    .game-cefr-spacer p {
+        font-size: 0.7em !important;
     }
 
     footer, header {
