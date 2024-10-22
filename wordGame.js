@@ -1,11 +1,12 @@
 let allowProgression = false; // Flag to delay progression
 let allowFallback = false;    // Flag to delay fallback
+let congratulationsBannerVisible = false;
 let currentWord;
 let correctTranslation;
 let correctlyAnsweredWords = [];  // Array to store correctly answered words
 let correctLevelAnswers = 0; // Track correct answers per level
-let congratulationsBannerVisible = false;
 let correctCount = 0;  // Tracks the total number of correct answers
+let correctStreak = 0; // Track the current streak of correct answers
 let currentCEFR = 'A1'; // Start at A1 by default
 let fallbackBannerVisible = false;
 let fallbackThreshold = 0.5; // Fall back if below 50%
@@ -49,6 +50,7 @@ function renderStats() {
 
     const correctPercentage = total > 0 ? (correctCount / total) * 100 : 0;
     const incorrectPercentage = total > 0 ? (incorrectCount / total) * 100 : 0;
+    const wordsToReview = incorrectWordQueue.length; // Number of words in review queue
 
     // Always set flex-grow to 1 to maintain 100% width from the start
     const correctProportion = total > 0 ? (correctCount / total) : 1;
@@ -57,11 +59,18 @@ function renderStats() {
     // Render the stats with full width and percentages
     statsContainer.innerHTML = `
         <div class="game-stats-content" style="width: 100%;">
+            <!-- Streak box on the left -->
+            <div class="game-stats-correct-box">
+                <p>${correctStreak}</p>
+            </div>
             <div class="game-stats-correct-box" style="flex-grow: ${correctProportion};">
                 <p>${Math.round(correctPercentage)}%</p>
             </div>
             <div class="game-stats-incorrect-box" style="flex-grow: ${incorrectProportion};">
                 <p>${Math.round(incorrectPercentage)}%</p>
+            </div>
+            <div class="game-stats-incorrect-box">
+                <p>${wordsToReview}</p>
             </div>
         </div>
     `;
@@ -120,8 +129,8 @@ async function startWordGame() {
             // Render the word game UI, mark this word as reintroduced
             renderWordGameUI(firstWordInQueue.wordObj, uniqueDisplayedTranslations, true);  // 'true' flag for reintroduced word
 
-            // Remove the word from the queue
-            incorrectWordQueue.shift();
+            // Do not remove the word from the queue yet. It will be removed when answered correctly.
+            firstWordInQueue.shown = true; // Mark that this word has been shown again
 
             // Reset counter for new words shown
             wordsSinceLastIncorrect = 0;
@@ -387,10 +396,17 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
             }
         });
         correctCount++;  // Increment correct count globally
+        correctStreak++; // Increment the streak
         correctLevelAnswers++; // Increment correct count for this level
         updateRecentAnswers(true);  // Track this correct answer
         // Add the word to the correctly answered words array to exclude it from future questions
         correctlyAnsweredWords.push(wordObj.ord);
+
+        // If the word was in the review queue and the user answered it correctly, remove it
+        const indexInQueue = incorrectWordQueue.findIndex(incorrectWord => incorrectWord.wordObj.ord === wordObj.ord && incorrectWord.shown);
+        if (indexInQueue !== -1) {
+            incorrectWordQueue.splice(indexInQueue, 1); // Remove from review queue once answered correctly
+        }
     } else {
         // Mark the incorrect card as red
         cards.forEach(card => {
@@ -405,18 +421,22 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
             }
         });
         incorrectCount++;  // Increment incorrect count
+        correctStreak = 0; // Reset the streak
         updateRecentAnswers(false);  // Track this correct answer
 
-        // Add incorrect word to the queue with the CEFR value included
-        incorrectWordQueue.push({
-            wordObj: { 
-                ord: currentWord, 
-                engelsk: correctTranslation, 
-                gender: wordObj.gender, 
-                CEFR: wordObj.CEFR  // Include CEFR value here
-            },
-            counter: 0 // Start counter for this word
-        });
+        // If the word isn't already in the review queue, add it
+        const inQueueAlready = incorrectWordQueue.some(incorrectWord => incorrectWord.wordObj.ord === wordObj.ord);
+        if (!inQueueAlready) {
+            incorrectWordQueue.push({
+                wordObj: { 
+                    ord: currentWord, 
+                    engelsk: correctTranslation, 
+                    gender: wordObj.gender, 
+                    CEFR: wordObj.CEFR  // Include CEFR value here
+                },
+                counter: 0 // Start counter for this word
+            });
+        }
     }
 
     // Enable the "Next Word" button
