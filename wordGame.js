@@ -726,7 +726,9 @@ function updateCEFRSelection() {
 function resetGame() {
     recentAnswers = [];  // Clear the recent answers array
     correctCount = 0;    // Reset correct answers count
+    correctStreak = 0;
     incorrectCount = 0;  // Reset incorrect answers count
+    incorrectWordQueue = [];
     totalQuestions = 0;  // Reset total questions for the current level
     correctLevelAnswers = 0;  // Reset correct answers for the current level
     questionsAtCurrentLevel = 0; // Reset questions counter for the level
