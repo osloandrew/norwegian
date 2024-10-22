@@ -276,26 +276,25 @@ footer .copyright {
     line-height: 1.5;
 }
 
-#game-congratulations-banner, #game-fallback-banner {
+#game-banner-placeholder {
     align-self: baseline;
     background-color: #FAE5C3; 
     color: #5C4033; /* Gray color, matching the scorecard */
     text-align: center;
-    padding: 0px 6px; /* Smaller padding for a more compact banner */
+    padding: 0px 6px !important; /* Smaller padding for a more compact banner */
     border-radius: 10px;
-    font-size: 0.7em !important; /* Smaller font size to fit the text on one line */
+    font-size: 0.6em !important; /* Smaller font size to fit the text on one line */
     font-weight: normal; /* Adjusted to normal to avoid boldness */
     font-family: "Noto Sans", sans-serif; /* Using Noto Sans, sans-serif */
-    margin: 0 auto; /* Reduced spacing between banner and the rest */
+    margin: 0 2px 0 2px 0 auto; /* Reduced spacing between banner and the rest */
     margin-bottom: 5px;
-    line-height: 0; /* Reduced line height for more compact text */
     transition: opacity 0.5s ease-in-out; /* Smooth transition */
     font-weight: 500;
     user-select: none;
 }
 
-#game-congratulations-banner.hidden, #game-fallback-banner.hidden {
-    display: none; /* Initially hidden */
+#game-banner-placeholder p {
+    margin: 0px !important;
 }
 
 .game-grid {
