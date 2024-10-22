@@ -698,16 +698,18 @@ function updateCEFRSelection() {
 }
 
 function resetGame(resetStreak = true) {
-    recentAnswers = [];  // Clear the recent answers array
     correctCount = 0;    // Reset correct answers count
+    correctLevelAnswers = 0;  // Reset correct answers for the current level
     if (resetStreak) {
         correctStreak = 0;  // Reset the streak if the flag is true
     }
+    levelCorrectAnswers = 0;
     incorrectCount = 0;  // Reset incorrect answers count
     incorrectWordQueue = [];
-    totalQuestions = 0;  // Reset total questions for the current level
-    correctLevelAnswers = 0;  // Reset correct answers for the current level
+    levelTotalQuestions = 0;  // Reset this here too
     questionsAtCurrentLevel = 0; // Reset questions counter for the level
+    recentAnswers = [];  // Clear the recent answers array
+    totalQuestions = 0;  // Reset total questions for the current level
     renderStats();  // Re-render the stats display to reflect the reset
 }
 
