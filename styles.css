@@ -282,11 +282,11 @@ footer .copyright {
     color: #5C4033; /* Gray color, matching the scorecard */
     text-align: center;
     padding: 0px 6px !important; /* Smaller padding for a more compact banner */
-    border-radius: 10px;
+    border-radius: 5px;
     font-size: 0.6em !important; /* Smaller font size to fit the text on one line */
     font-weight: normal; /* Adjusted to normal to avoid boldness */
     font-family: "Noto Sans", sans-serif; /* Using Noto Sans, sans-serif */
-    margin: 0 2px 0 2px 0 auto; /* Reduced spacing between banner and the rest */
+    margin: 0 1px 0 1px 0 auto; /* Reduced spacing between banner and the rest */
     margin-bottom: 5px;
     transition: opacity 0.5s ease-in-out; /* Smooth transition */
     font-weight: 500;
@@ -294,7 +294,7 @@ footer .copyright {
 }
 
 #game-banner-placeholder p {
-    margin: 0px !important;
+    margin: 1px !important;
 }
 
 .game-grid {

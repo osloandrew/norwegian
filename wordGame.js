@@ -139,7 +139,7 @@ async function startWordGame() {
     // First, check if there is an incorrect word to reintroduce
     if (incorrectWordQueue.length > 0 && wordsSinceLastIncorrect >= reintroduceThreshold) {
         const firstWordInQueue = incorrectWordQueue[0];
-        if (firstWordInQueue.counter >= 5) {
+        if (firstWordInQueue.counter >= 10) {
             console.log('Reintroducing word from incorrectWordQueue:', firstWordInQueue.wordObj);
 
             // Play the popChime when reintroducing an incorrect word
