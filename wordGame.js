@@ -1,6 +1,5 @@
 let allowProgression = false; // Flag to delay progression
 let allowFallback = false;    // Flag to delay fallback
-let congratulationsBannerVisible = false;
 let currentWord;
 let correctTranslation;
 let correctlyAnsweredWords = [];  // Array to store correctly answered words
@@ -8,7 +7,6 @@ let correctLevelAnswers = 0; // Track correct answers per level
 let correctCount = 0;  // Tracks the total number of correct answers
 let correctStreak = 0; // Track the current streak of correct answers
 let currentCEFR = 'A1'; // Start at A1 by default
-let fallbackBannerVisible = false;
 let fallbackThreshold = 0.5; // Fall back if below 50%
 let gameActive = false;
 let incorrectCount = 0; // Tracks the total number of incorrect answers
@@ -29,6 +27,56 @@ badChime.volume = 0.2;
 
 const gameContainer = document.getElementById('results-container'); // Assume this is where you'll display the game
 const statsContainer = document.getElementById('game-session-stats'); // New container for session stats
+
+// Centralized banner handler
+const banners = {
+    congratulations: 'game-congratulations-banner',
+    fallback: 'game-fallback-banner',
+    streak: 'game-streak-banner', // New banner for 10-word streak
+    clearedPracticeWords: 'game-cleared-practice-banner' // New banner for clearing reintroduced words
+};
+
+function showBanner(type, message) {
+    const bannerPlaceholder = document.getElementById('game-banner-placeholder');
+    
+    // You can manage different banner types by their `type` (e.g., 'congratulations', 'fallback')
+    let bannerHTML = '';
+
+    if (type === 'congratulations') {
+        bannerHTML = `
+            <div class="game-congratulations-banner">
+                <p>Great job! 🎉 You're now at level <span id="next-level">${message}</span>!</p>
+            </div>`;
+    } else if (type === 'fallback') {
+        bannerHTML = `
+            <div class="game-fallback-banner">
+                <p>Nice try! 🎯 You're back at level <span id="prev-level">${message}</span>.</p>
+            </div>`;
+    } else if (type === 'streak') {
+        bannerHTML = `
+            <div class="game-streak-banner">
+                <p>Amazing! 🎉 You've got a 10-word streak!</p>
+            </div>`;
+    } else if (type === 'clearedPracticeWords') {
+        bannerHTML = `
+            <div class="game-cleared-practice-banner">
+                <p>Awesome! 🎉 You cleared all practice words!</p>
+            </div>`;
+    }
+
+    bannerPlaceholder.innerHTML = bannerHTML;  // Inject the banner into the placeholder
+}
+
+function hideAllBanners() {
+    const bannerPlaceholder = document.getElementById('game-banner-placeholder');
+    
+    if (bannerPlaceholder) { // Check if the element exists
+        bannerPlaceholder.innerHTML = '';  // Clear the banner placeholder
+    } else {
+        console.warn("Banner placeholder not found in the DOM.");
+    }
+}
+
 
 function updateRecentAnswers(isCorrect) {
     recentAnswers.push(isCorrect ? 1 : 0);
@@ -79,6 +127,7 @@ function renderStats() {
 
 async function startWordGame() {
     gameActive = true;
+    hideAllBanners(); // Hide banners before starting the new word
 
     // Check if all available words have been answered correctly
     const totalWords = results.filter(r => r.CEFR === currentCEFR && !noRandom.includes(r.ord.toLowerCase()));
@@ -307,6 +356,9 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
         trickyLabel = '<div class="game-tricky-word"><i class="fa fa-repeat" aria-hidden="true"></i></div>';  // Hidden by default
     }
 
+    // Create placeholder for banners (this will be dynamically updated when banners are shown)
+    let bannerPlaceholder = '<div id="game-banner-placeholder"></div>';
+
     gameContainer.innerHTML = `
         <!-- Session Stats Section -->
         <div class="game-stats-content" id="game-session-stats">
@@ -316,12 +368,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
         <div class="result-header game-word-card">
             <div class="game-labels-container">
                 ${cefrLabel}  <!-- Add the CEFR label here if applicable -->
-                <div id="game-congratulations-banner" class="${congratulationsBannerVisible ? '' : 'hidden'}">
-                    <p>Great job! 🎉 You're now at level <span id="next-level">${currentCEFR}</span>!</p>
-                </div>
-                <div id="game-fallback-banner" class="${fallbackBannerVisible ? '' : 'hidden'}">
-                    <p>Nice try! 🎯 You're back at level <span id="prev-level">${currentCEFR}</span>.</p>
-                </div>
+                ${bannerPlaceholder}  <!-- This is where banners will appear dynamically -->
                 ${trickyLabel}  <!-- Add the tricky word label if applicable -->
             </div>
             <div class="game-word">
@@ -358,8 +405,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
 
     // Add event listener for the next word button
     document.getElementById('game-next-word-button').addEventListener('click', async function () {
-        hideCongratulationsBanner();  // Hide the banner when an answer is clicked
-        hideFallbackBanner();  // Hide the banner when an answer is clicked    
+        hideAllBanners(); // Hide all banners when Next Word is clicked
         await startWordGame();  // Move to the next word
     });
 
@@ -406,6 +452,14 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
         const indexInQueue = incorrectWordQueue.findIndex(incorrectWord => incorrectWord.wordObj.ord === wordObj.ord && incorrectWord.shown);
         if (indexInQueue !== -1) {
             incorrectWordQueue.splice(indexInQueue, 1); // Remove from review queue once answered correctly
+        }
+        // Trigger the streak banner if the user reaches a 10-word streak
+        if (correctStreak === 10) {
+            showBanner('streak'); // Show the streak banner
+        }
+        // Trigger the cleared practice words banner ONLY if the queue is now empty
+        if (incorrectWordQueue.length === 0 && indexInQueue !== -1) {
+            showBanner('clearedPracticeWords'); // Show the cleared practice words banner
         }
     } else {
         // Mark the incorrect card as red
@@ -596,7 +650,7 @@ function advanceToNextLevel() {
     // Only advance if we are not already at the next level
     if (currentCEFR !== nextLevel && nextLevel) {
         currentCEFR = nextLevel;
-        showCongratulationsBanner(nextLevel);  // Show the banner
+        showBanner('congratulations', nextLevel);  // Show the banner
 
         // Update the CEFR selection to reflect the new level
         updateCEFRSelection();
@@ -621,7 +675,7 @@ function fallbackToPreviousLevel() {
     if (currentCEFR !== previousLevel && previousLevel) {
         currentCEFR = previousLevel;  // Update the current level to the previous one
         incorrectWordQueue = []; // Reset the incorrect word queue on fallback
-        showFallbackBanner(previousLevel);  // Show the fallback banner
+        showBanner('fallback', previousLevel);  // Show the fallback banner
         updateCEFRSelection(); // Update the CEFR selection to reflect the new level
     }
 }
@@ -677,42 +731,6 @@ function resetGame() {
     correctLevelAnswers = 0;  // Reset correct answers for the current level
     questionsAtCurrentLevel = 0; // Reset questions counter for the level
     renderStats();  // Re-render the stats display to reflect the reset
-}
-
-function showCongratulationsBanner(level) {
-    const banner = document.getElementById('game-congratulations-banner');
-    const levelSpan = document.getElementById('next-level');
-
-    if (levelSpan.textContent !== level) {
-        levelSpan.textContent = level;  // Update the level only if it changed
-    }
-
-    banner.classList.remove('hidden');  // Show the banner
-    congratulationsBannerVisible = true;  // Set banner visibility flag
-}
-
-function hideCongratulationsBanner() {
-    const banner = document.getElementById('game-congratulations-banner');
-    banner.classList.add('hidden');  // Hide the banner
-    congratulationsBannerVisible = false;  // Reset banner visibility flag
-}
-
-function showFallbackBanner(level) {
-    const fallbackBanner = document.getElementById('game-fallback-banner');
-    const levelSpan = document.getElementById('prev-level');
-    
-    if (levelSpan.textContent !== level) {
-        levelSpan.textContent = level;  // Update the level only if it changed
-    }
-
-    fallbackBanner.classList.remove('hidden');  // Show the banner
-    fallbackBannerVisible = true;  // Set banner visibility flag
-}
-
-function hideFallbackBanner() {
-    const banner = document.getElementById('game-fallback-banner');
-    banner.classList.add('hidden');  // Hide the banner
-    fallbackBannerVisible = false;  // Reset banner visibility flag
 }
 
 document.getElementById('cefr-select').addEventListener('change', function() {
