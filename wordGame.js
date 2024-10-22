@@ -38,8 +38,8 @@ function updateRecentAnswers(isCorrect) {
 
 function renderStats() {
     const statsContainer = document.getElementById('game-session-stats');
+
     if (!statsContainer) {
-        console.error("Stats container not found!");
         return;
     }
 
@@ -433,8 +433,10 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
 
     // Fetch an example sentence from the database and display it
     const exampleSentence = await fetchExampleSentence(wordObj);
+    console.log('Fetched example sentence:', exampleSentence); // Check if this logs correctly
     if (exampleSentence) {
         document.querySelector('.game-cefr-spacer').innerHTML = `<p>${exampleSentence}</p>`;
+        console.log('Updated .game-cefr-spacer content'); // Ensure this happens
     } else {
         document.querySelector('.game-cefr-spacer').innerHTML = '';  // Clear if no sentence found
     }
@@ -444,8 +446,14 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
 }
 
 async function fetchExampleSentence(wordObj) {
-    
     console.log("Fetching example sentence for:", wordObj);
+
+    // Ensure gender and CEFR are defined before performing the search
+    if (!wordObj.gender || !wordObj.CEFR || !wordObj.ord) {
+        console.warn('Missing required fields for search:', wordObj);
+        return null;
+    }
+
     // Find the exact matching word object based on 'ord', 'definisjon', 'gender', and 'CEFR'
     const matchingEntry = results.find(result => 
         result.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
@@ -461,14 +469,14 @@ async function fetchExampleSentence(wordObj) {
         console.warn(`No matching entry found for word: ${wordObj.ord}`);
     }
 
-    // If no matching entry is found or if there is no 'eksempel' field, return null
-    if (!matchingEntry || !matchingEntry.eksempel) {
+    // If no 'eksempel' field is present or it's an empty string, return null
+    if (!matchingEntry.eksempel || matchingEntry.eksempel.trim() === "") {
         console.warn(`No example sentence available for word: ${wordObj.ord}`);
         return null;
     }
 
-    // Split example sentences if there are multiple in the 'eksempel' field (assuming they are separated by a common delimiter like '. ')
-    const exampleSentences = matchingEntry.eksempel.split(/(?<=[.!?])\s+/);
+    // Split example sentences and remove any empty entries
+    const exampleSentences = matchingEntry.eksempel.split(/(?<=[.!?])\s+/).filter(sentence => sentence.trim() !== "");
 
     // If there is only one sentence, return it
     if (exampleSentences.length === 1) {
