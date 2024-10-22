@@ -142,11 +142,11 @@ async function startWordGame() {
     if (incorrectWordQueue.length > 0 && wordsSinceLastIncorrect >= reintroduceThreshold) {
         const firstWordInQueue = incorrectWordQueue[0];
         if (firstWordInQueue.counter >= 10) {
-            console.log('Reintroducing word from incorrectWordQueue:', firstWordInQueue.wordObj);
-
             // Play the popChime when reintroducing an incorrect word
             popChime.currentTime = 0; // Reset audio to the beginning
             popChime.play(); // Play the pop sound
+
+            console.log('Reintroducing word from incorrectWordQueue:', firstWordInQueue.wordObj);
 
             // Reintroduce the word
             currentWord = firstWordInQueue.wordObj.ord;
@@ -433,12 +433,12 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
     questionsAtCurrentLevel++; // Increment questions at this level
 
     if (selectedTranslationPart === correctTranslationPart) {
+        goodChime.currentTime = 0; // Reset audio to the beginning
+        goodChime.play(); // Play the chime sound when correct
         // Mark the selected card as green (correct)
         cards.forEach(card => {
             if (card.innerText.trim() === selectedTranslationPart) {
                 card.classList.add('game-correct-card');
-                goodChime.currentTime = 0; // Reset audio to the beginning
-                goodChime.play(); // Play the chime sound when correct
             }
         });
         correctCount++;  // Increment correct count globally
@@ -462,12 +462,12 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
             showBanner('clearedPracticeWords'); // Show the cleared practice words banner
         }
     } else {
+        badChime.currentTime = 0; // Reset audio to the beginning
+        badChime.play(); // Play the chime sound when incorrect
         // Mark the incorrect card as red
         cards.forEach(card => {
             if (card.innerText.trim() === selectedTranslationPart) {
                 card.classList.add('game-incorrect-card'); // Mark incorrect card
-                badChime.currentTime = 0; // Reset audio to the beginning
-                badChime.play(); // Play the chime sound when incorrect
             }
             // Also ensure the correct card is still marked green
             if (card.innerText.trim() === correctTranslationPart) {
