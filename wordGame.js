@@ -18,6 +18,7 @@ let reintroduceThreshold = 10; // Set how many words to show before reintroducin
 let totalQuestions = 0; // Track total questions per level
 let wordsSinceLastIncorrect = 0;  // Counter to track words shown since the last incorrect word
 let wordDataStore = [];
+let questionsAtCurrentLevel = 0; // Track questions answered at current level
 let goodChime = new Audio('goodChime.wav');
 let badChime = new Audio('badChime.wav');
 let popChime = new Audio('popChime.wav');
@@ -77,12 +78,8 @@ function hideAllBanners() {
     }
 }
 
-
 function updateRecentAnswers(isCorrect) {
     recentAnswers.push(isCorrect ? 1 : 0);
-    if (recentAnswers.length > 50) {  // Adjusted to 50 instead of 20
-        recentAnswers.shift();  // Keep only the last 50 answers
-    }    
 }
 
 function renderStats() {
@@ -411,8 +408,6 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
 
 }
 
-let questionsAtCurrentLevel = 0; // Track questions answered at current level
-
 async function handleTranslationClick(selectedTranslation, wordObj) {
     if (!gameActive) return;  // Prevent further clicks if the game is not active
 
@@ -636,44 +631,31 @@ function advanceToNextLevel() {
     }
 
     let nextLevel = '';
-    
-    if (currentCEFR === 'A1') {
-        nextLevel = 'A2';
-    } else if (currentCEFR === 'A2') {
-        nextLevel = 'B1';
-    } else if (currentCEFR === 'B1') {
-        nextLevel = 'B2';
-    } else if (currentCEFR === 'B2') {
-        nextLevel = 'C';
-    }
+    if (currentCEFR === 'A1') nextLevel = 'A2';
+    else if (currentCEFR === 'A2') nextLevel = 'B1';
+    else if (currentCEFR === 'B1') nextLevel = 'B2';
+    else if (currentCEFR === 'B2') nextLevel = 'C';
 
     // Only advance if we are not already at the next level
     if (currentCEFR !== nextLevel && nextLevel) {
         currentCEFR = nextLevel;
+        resetGame(false);  // Preserve streak when progressing
         showBanner('congratulations', nextLevel);  // Show the banner
-
-        // Update the CEFR selection to reflect the new level
         updateCEFRSelection();
     }
 }
 
 function fallbackToPreviousLevel() {
-    let previousLevel = '';  // Initialize previousLevel
-
-    // Determine the previous level based on currentCEFR
-    if (currentCEFR === 'A2') {
-        previousLevel = 'A1';
-    } else if (currentCEFR === 'B1') {
-        previousLevel = 'A2';
-    } else if (currentCEFR === 'B2') {
-        previousLevel = 'B1';
-    } else if (currentCEFR === 'C') {
-        previousLevel = 'B2';
-    }
+    let previousLevel = '';
+    if (currentCEFR === 'A2') previousLevel = 'A1';
+    else if (currentCEFR === 'B1') previousLevel = 'A2';
+    else if (currentCEFR === 'B2') previousLevel = 'B1';
+    else if (currentCEFR === 'C') previousLevel = 'B2';
 
     // Only change the level if it is actually falling back to a previous level
     if (currentCEFR !== previousLevel && previousLevel) {
         currentCEFR = previousLevel;  // Update the current level to the previous one
+        resetGame(false);  // Preserve streak when progressing
         incorrectWordQueue = []; // Reset the incorrect word queue on fallback
         showBanner('fallback', previousLevel);  // Show the fallback banner
         updateCEFRSelection(); // Update the CEFR selection to reflect the new level
@@ -687,27 +669,30 @@ function evaluateProgression() {
 
     console.log("Current accuracy:", accuracy);
 
-    // Check if the user is allowed to progress or fallback based on the flags
-    if (accuracy >= levelThreshold && incorrectWordQueue.length === 0) {
-        if (allowProgression) {
-            advanceToNextLevel();
-            allowProgression = false; // Reset the flag after advancing
+    if (questionsAtCurrentLevel >= 10) {
+        if (accuracy >= levelThreshold && incorrectWordQueue.length === 0) {
+            if (allowProgression) {
+                advanceToNextLevel();
+                allowProgression = false;
+            } else {
+                allowProgression = true; // Allow progression on next check
+            }
+        } else if (accuracy < fallbackThreshold) {
+            if (allowFallback) {
+                fallbackToPreviousLevel();
+                allowFallback = false;
+            } else {
+                allowFallback = true; // Allow fallback on next check
+            }
         } else {
-            allowProgression = true; // Enable progression for the next correct answer
+            // Reset flags if no progression or fallback
+            allowProgression = false;
+            allowFallback = false;
         }
-    } else if (accuracy < fallbackThreshold) {
-        if (allowFallback) {
-            fallbackToPreviousLevel();
-            allowFallback = false; // Reset the flag after falling back
-        } else {
-            allowFallback = true; // Enable fallback for the next incorrect answer
-        }
-    } else {
-        // If no progression or fallback occurs, reset the flags
-        allowProgression = false;
-        allowFallback = false;
+        questionsAtCurrentLevel = 0; // Reset lesson counter after level change
     }
 }
+
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -723,10 +708,12 @@ function updateCEFRSelection() {
     cefrSelect.value = currentCEFR;
 }
 
-function resetGame() {
+function resetGame(resetStreak = true) {
     recentAnswers = [];  // Clear the recent answers array
     correctCount = 0;    // Reset correct answers count
-    correctStreak = 0;
+    if (resetStreak) {
+        correctStreak = 0;  // Reset the streak if the flag is true
+    }
     incorrectCount = 0;  // Reset incorrect answers count
     incorrectWordQueue = [];
     totalQuestions = 0;  // Reset total questions for the current level
