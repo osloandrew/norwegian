@@ -1,5 +1,3 @@
-let allowProgression = false; // Flag to delay progression
-let allowFallback = false;    // Flag to delay fallback
 let currentWord;
 let correctTranslation;
 let correctlyAnsweredWords = [];  // Array to store correctly answered words
@@ -8,6 +6,8 @@ let correctCount = 0;  // Tracks the total number of correct answers
 let correctStreak = 0; // Track the current streak of correct answers
 let currentCEFR = 'A1'; // Start at A1 by default
 let fallbackThreshold = 0.5; // Fall back if below 50%
+let levelCorrectAnswers = 0;
+let levelTotalQuestions = 0;
 let gameActive = false;
 let incorrectCount = 0; // Tracks the total number of incorrect answers
 let incorrectWordQueue = [];  // Queue for storing incorrect words with counters
@@ -78,8 +78,13 @@ function hideAllBanners() {
     }
 }
 
+// Track correct/incorrect answers for each question
 function updateRecentAnswers(isCorrect) {
     recentAnswers.push(isCorrect ? 1 : 0);
+    if (isCorrect) {
+        levelCorrectAnswers++;
+    }
+    levelTotalQuestions++;
 }
 
 function renderStats() {
@@ -494,8 +499,8 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
     // Update the stats after the answer
     renderStats();
 
-    // Only evaluate progression if at least 10 questions have been answered at the current level
-    if (questionsAtCurrentLevel >= 10) {
+    // Only evaluate progression if at least 20 questions have been answered at the current level
+    if (questionsAtCurrentLevel >= 20) {
         evaluateProgression();
         questionsAtCurrentLevel = 0; // Reset the counter after progression evaluation
     }
@@ -662,34 +667,18 @@ function fallbackToPreviousLevel() {
     }
 }
 
+// Check if the user can level up or fall back after 10 questions
 function evaluateProgression() {
-    const correctCount = recentAnswers.reduce((a, b) => a + b, 0);
-    const total = recentAnswers.length;
-    const accuracy = total > 0 ? (correctCount / total) : 0;
+    if (levelTotalQuestions >= 10) {
+        const accuracy = levelCorrectAnswers / levelTotalQuestions;
+        console.log(`Evaluating: Accuracy is ${accuracy * 100}%`);
 
-    console.log("Current accuracy:", accuracy);
-
-    if (questionsAtCurrentLevel >= 10) {
         if (accuracy >= levelThreshold && incorrectWordQueue.length === 0) {
-            if (allowProgression) {
-                advanceToNextLevel();
-                allowProgression = false;
-            } else {
-                allowProgression = true; // Allow progression on next check
-            }
+            advanceToNextLevel();
         } else if (accuracy < fallbackThreshold) {
-            if (allowFallback) {
-                fallbackToPreviousLevel();
-                allowFallback = false;
-            } else {
-                allowFallback = true; // Allow fallback on next check
-            }
-        } else {
-            // Reset flags if no progression or fallback
-            allowProgression = false;
-            allowFallback = false;
+            fallbackToPreviousLevel();
         }
-        questionsAtCurrentLevel = 0; // Reset lesson counter after level change
+        resetLevelStats();  // Reset for the next set of questions
     }
 }
 
@@ -720,6 +709,12 @@ function resetGame(resetStreak = true) {
     correctLevelAnswers = 0;  // Reset correct answers for the current level
     questionsAtCurrentLevel = 0; // Reset questions counter for the level
     renderStats();  // Re-render the stats display to reflect the reset
+}
+
+// Reset level stats after progression or fallback
+function resetLevelStats() {
+    levelCorrectAnswers = 0;
+    levelTotalQuestions = 0;
 }
 
 document.getElementById('cefr-select').addEventListener('change', function() {
