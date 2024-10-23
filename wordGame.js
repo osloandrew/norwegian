@@ -510,7 +510,6 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
     console.log('Fetched example sentence:', exampleSentence); // Check if this logs correctly
     if (exampleSentence) {
         document.querySelector('.game-cefr-spacer').innerHTML = `<p>${exampleSentence}</p>`;
-        console.log('Updated .game-cefr-spacer content'); // Ensure this happens
     } else {
         document.querySelector('.game-cefr-spacer').innerHTML = '';  // Clear if no sentence found
     }
@@ -529,7 +528,7 @@ async function fetchExampleSentence(wordObj) {
     }
 
     // Find the exact matching word object based on 'ord', 'definisjon', 'gender', and 'CEFR'
-    const matchingEntry = results.find(result => 
+    let matchingEntry = results.find(result => 
         result.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
         result.gender === wordObj.gender &&
         result.CEFR === wordObj.CEFR
@@ -543,10 +542,20 @@ async function fetchExampleSentence(wordObj) {
         console.warn(`No matching entry found for word: ${wordObj.ord}`);
     }
 
-    // If no 'eksempel' field is present or it's an empty string, return null
-    if (!matchingEntry.eksempel || matchingEntry.eksempel.trim() === "") {
-        console.warn(`No example sentence available for word: ${wordObj.ord}`);
-        return null;
+    // Step 2: Check if the matching entry has an example sentence
+    if (!matchingEntry || !matchingEntry.eksempel || matchingEntry.eksempel.trim() === "") {
+        console.log(`No example sentence available for word: ${wordObj.ord} with specified gender and CEFR.`);
+
+        // Step 3: Search for another entry with the same 'ord' but without considering 'gender' or 'CEFR'
+        matchingEntry = results.find(result => 
+            result.eksempel && result.eksempel.toLowerCase().startsWith(wordObj.ord.toLowerCase())
+        );
+        if (matchingEntry) {
+            console.log("Found example sentence from another word entry:", matchingEntry.eksempel);
+        } else {
+            console.warn(`No example sentence found in the entire dataset containing the word: ${wordObj.ord}`);
+            return null;  // No example sentence found at all
+        }                       
     }
 
     // Split example sentences and remove any empty entries
