@@ -398,6 +398,9 @@ async function search() {
         // If searching sentences, look for matches in the 'eksempel' field
         matchingResults = cleanResults.filter(r => normalizedQueries.some(normQuery => r.eksempel && r.eksempel.toLowerCase().includes(normQuery)));
 
+        // Additionally, filter by the selected CEFR level
+        matchingResults = filterResultsByCEFR(matchingResults, selectedCEFR);
+
         // Prioritize the matching results using the prioritizeResults function
         matchingResults = prioritizeResults(matchingResults, query, 'eksempel');
 
