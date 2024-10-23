@@ -1299,7 +1299,6 @@ function renderWordDefinition(word) {
 function fetchAndRenderSentences(word, pos) {
 
     const trimmedWord = word.trim().toLowerCase().replace(/[\r\n]+/g, ''); // Remove any carriage returns or newlines
-
     const button = document.querySelector(`button[data-word='${word}']`);
 
     // If the sentences are already visible, toggle them off
@@ -1396,6 +1395,10 @@ function fetchAndRenderSentences(word, pos) {
 
     // Create the sentence content with CEFR labels
     let sentenceContent = matchingResults.slice(0, 10).map(result => {
+        // Split example sentences by common sentence delimiters (period, question mark, exclamation mark)
+        const sentences = result.eksempel ? result.eksempel.split(/(?<=[.!?])\s+/) : [];
+        const translations = result.sentenceTranslation ? result.sentenceTranslation.split(/(?<=[.!?])\s+/) : [];
+        
         // Generate the CEFR label based on the result's CEFR value
         let cefrLabel = '';
         if (result.CEFR === 'A1') {
@@ -1410,22 +1413,23 @@ function fetchAndRenderSentences(word, pos) {
             cefrLabel = '<div class="sentence-cefr-label hard">C</div>';
         }
 
-        // Create the sentence HTML with CEFR label and English translation
-        return `
+        // For each sentence, map it to a card
+        return sentences.map((sentence, index) => `
             <div class="sentence-container">
                 <div class="sentence-box">
                     <div class="sentence-content">
                         ${cefrLabel}
-                        <p class="sentence">${result.eksempel}</p>
+                        <p class="sentence">${sentence}</p>
                     </div>
                 </div>
-                ${result.sentenceTranslation ? `
+                ${translations[index] ? `
                 <div class="sentence-box">
-                    <p class="sentence-translation">${result.sentenceTranslation}</p>
+                    <p class="sentence-translation">${translations[index]}</p>
                 </div>` : ''}
             </div>
-        `;
+        `).join('');
     }).join('');
+
 
 
     if (sentenceContent) {
