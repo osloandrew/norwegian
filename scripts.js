@@ -302,7 +302,7 @@ async function randomWord() {
 
         // Build the sentence HTML
         let sentenceHTML = `
-            <div class="definition result-header">
+            <div class="result-header">
                 <h2>Random Sentence</h2>
             </div>
             <div class="sentence-container">
@@ -1119,7 +1119,7 @@ function renderSentences(sentenceResults, word) {
     if (combinedMatches.length > 0) {
         // Generate the header card
         htmlString += `
-            <div class="definition result-header">
+            <div class="result-header">
                 <h2>Sentence Results for "${word}"</h2>
             </div>
         `;

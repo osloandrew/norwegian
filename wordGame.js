@@ -367,7 +367,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
             <!-- Stats will be updated dynamically in renderStats() -->
         </div>
 
-        <div class="result-header game-word-card">
+        <div class="game-word-card">
             <div class="game-labels-container">
                 ${cefrLabel}  <!-- Add the CEFR label here if applicable -->
                 ${bannerPlaceholder}  <!-- This is where banners will appear dynamically -->
