@@ -395,8 +395,14 @@ async function search() {
     let matchingResults;
 
     if (type === 'sentences') {
-        // If searching sentences, look for matches in the 'eksempel' field
-        matchingResults = cleanResults.filter(r => normalizedQueries.some(normQuery => r.eksempel && r.eksempel.toLowerCase().includes(normQuery)));
+        // If searching sentences, look for matches in both 'eksempel' and 'sentenceTranslation' fields
+        matchingResults = cleanResults.filter(r => {
+            return normalizedQueries.some(normQuery => {
+                const norwegianSentenceMatch = r.eksempel && r.eksempel.toLowerCase().includes(normQuery); // Match in 'eksempel'
+                const englishTranslationMatch = r.sentenceTranslation && r.sentenceTranslation.toLowerCase().includes(normQuery); // Match in 'sentenceTranslation'
+                return norwegianSentenceMatch || englishTranslationMatch;
+            });
+        });
 
         // Additionally, filter by the selected CEFR level
         matchingResults = filterResultsByCEFR(matchingResults, selectedCEFR);
@@ -404,11 +410,13 @@ async function search() {
         // Prioritize the matching results using the prioritizeResults function
         matchingResults = prioritizeResults(matchingResults, query, 'eksempel');
 
-        // Highlight the query in the sentences
+        // Highlight the query in both 'eksempel' and 'sentenceTranslation'
         matchingResults.forEach(result => {
             result.eksempel = highlightQuery(result.eksempel, query);
-        });
-        
+            if (result.sentenceTranslation) {
+                result.sentenceTranslation = highlightQuery(result.sentenceTranslation, query);
+            }
+        });        
         renderSentences(matchingResults, query); // Pass the query for highlighting
     } else {
 
@@ -431,14 +439,10 @@ async function search() {
             return matchesQuery && (!selectedPOS || (selectedPOS === 'noun' && ['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => r.gender.toLowerCase().includes(gender))) || r.gender.toLowerCase().includes(selectedPOS)) && (!selectedCEFR || r.CEFR === selectedCEFR);
         });
 
-        console.log('Matching Results Before Prioritization:', matchingResults);
         matchingResults = prioritizeResults(matchingResults, query, 'ord');
-        console.log('Matching Results After Prioritization:', matchingResults);
-        
         
         // Check if there are **no exact matches**
         const noExactMatches = matchingResults.length === 0;
-        console.log(`No Exact Matches Found: ${noExactMatches}`);
 
         // If no exact matches are found, find inexact matches
         if (noExactMatches) {
@@ -1038,7 +1042,6 @@ function renderSentence(sentenceResult) {
     document.getElementById('results-container').innerHTML = sentenceHTML;
 }
 
-// Render multiple sentences based on a word or query
 function renderSentences(sentenceResults, word) {
     clearContainer(); // Clear previous results
 
@@ -1071,18 +1074,19 @@ function renderSentences(sentenceResults, word) {
         // Iterate through each sentence and match it with its translation
         sentences.forEach((sentence, index) => {
             const trimmedSentence = sentence.trim();
+            const translation = translations[index] || '';
+
             if (!uniqueSentences.has(trimmedSentence)) {
                 // Only add unique sentences
                 uniqueSentences.add(trimmedSentence);
 
-                // Get the corresponding English translation (if available)
-                const translation = translations[index] || '';
-
-                // Exact match (whole word match)
-                if (regexExactMatch.test(sentence.toLowerCase())) {
-                    exactMatches.push({ cefrLabel, sentence: highlightQuery(sentence, query), translation });
-                } else if (sentence.toLowerCase().includes(query)) {
-                    partialMatches.push({ cefrLabel, sentence: highlightQuery(sentence, query), translation });
+                // Check for exact match (whole word match) in both the Norwegian sentence and English translation
+                if (regexExactMatch.test(sentence.toLowerCase()) || regexExactMatch.test(translation.toLowerCase())) {
+                    exactMatches.push({ cefrLabel, sentence: highlightQuery(sentence, query), translation: highlightQuery(translation, query) });
+                } 
+                // Check for partial match in both Norwegian sentence and English translation
+                else if (sentence.toLowerCase().includes(query) || translation.toLowerCase().includes(query)) {
+                    partialMatches.push({ cefrLabel, sentence: highlightQuery(sentence, query), translation: highlightQuery(translation, query) });
                 }
             }
         });
@@ -1090,6 +1094,24 @@ function renderSentences(sentenceResults, word) {
 
     // Combine exact matches first, then partial matches
     const combinedMatches = [...exactMatches, ...partialMatches].slice(0, 10);
+
+    // Debugging log
+    console.log("Exact Matches:", exactMatches);
+    console.log("Partial Matches:", partialMatches);
+    console.log("Combined Matches:", combinedMatches);
+
+    // Check if no results found
+    if (combinedMatches.length === 0) {
+        document.getElementById('results-container').innerHTML = `
+            <div class="definition error-message">
+                <h2 class="word-gender">
+                    Error <span class="gender">No Matching Sentences</span>
+                </h2>
+                <p>No sentences found containing "${query}".</p>
+            </div>
+        `;
+        return;  // Exit early since there's nothing to render
+    }
 
     // Generate HTML for the combined matches
     let htmlString = '';
@@ -1125,18 +1147,6 @@ function renderSentences(sentenceResults, word) {
 
         htmlString += '</div>';  // Close the sentence-container div
     });
-
-    // If no matches were found, display a "No Results" message
-    if (!htmlString) {
-        htmlString = `
-            <div class="definition error-message">
-                <h2 class="word-gender">
-                    Error <span class="gender">No Matching Sentences</span>
-                </h2>
-                <p>No sentences found containing "${query}".</p>
-            </div>
-        `;
-    }
 
     // Insert the generated HTML into the results container
     document.getElementById('results-container').innerHTML = htmlString;
