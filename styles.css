@@ -738,6 +738,30 @@ main {
 }
 
 
+.random-btn {
+    width: 20%; /* Adjust the width of the random button */
+}
+
+.result-header h2 {
+    color: #951b1b;
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    white-space: normal;  /* Allow the text to wrap into multiple lines */
+    overflow-wrap: break-word;  /* Ensure the text breaks into a new line if needed */
+    text-align: center;  /* Center align the header text */
+}
+
+
+#results-container {
+    background-color: rgb(244, 244, 244);
+    margin: 20px auto;
+    text-align: left;
+    width: 50%;
+}
+
+
+
 .search-bar-wrapper {
     border: 1px solid #d1d1d1;
     border-radius: 15px;
@@ -788,6 +812,45 @@ main {
     margin: 0;
 }
 
+
+.search-and-random-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.search-bar-wrapper {
+    width: 100%;
+}
+
+#search-container {
+    background-color: white;
+    border-bottom: 1px solid #ccc;
+    font-family: 'Noto Sans', sans-serif;
+    margin: auto;
+    padding: 10px 0;
+    position: sticky;
+    text-align: center;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+#search-container-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.selectors-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
 .sentence-btn {
     display: block;  /* Block-level element to allow centering */
     margin: 0 auto;  /* Centering with smaller vertical margins */
@@ -830,7 +893,6 @@ main {
 }
 
 .sentence-cefr-label {
-    align-self: flex-start;               /* Align the label to the left */
     padding: 3px 7px;                     /* Smaller padding */
     font-size: 12px;                      /* Smaller font size */
     color: #4F4F4F;
@@ -856,72 +918,30 @@ main {
     background-color: #E9A895;  /* Red for 'C' */
 }
 
+.sentence-box {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    padding: 10px 15px 10px 15px;
+    width: 100%;
+    display: flex;
+    align-items: center;  /* Align items vertically in the center */
+}
+
 .sentence-container {
-    max-width: 600px;
-    margin: 0 auto; /* Center the container */
-    padding: 10px 20px;
-}
-
-
-.random-btn {
-    width: 20%; /* Adjust the width of the random button */
-}
-
-.result-header h2 {
-    color: #951b1b;
-    font-size: 24px;
-    font-weight: 400;
-    letter-spacing: 0.02em;
-    white-space: normal;  /* Allow the text to wrap into multiple lines */
-    overflow-wrap: break-word;  /* Ensure the text breaks into a new line if needed */
-    text-align: center;  /* Center align the header text */
-}
-
-
-#results-container {
-    background-color: rgb(244, 244, 244);
-    margin: 20px auto;
-    text-align: left;
-    width: 50%;
-}
-
-.search-and-random-wrapper {
     display: flex;
+    gap: 20px;  /* Adds space between the boxes */
     justify-content: space-between;
-    gap: 10px;
+    flex-direction: row;
+    align-items: center;  /* Horizontally align content (CEFR and sentence) */
 }
 
-.search-bar-wrapper {
-    width: 100%;
-}
-
-#search-container {
-    background-color: white;
-    border-bottom: 1px solid #ccc;
-    font-family: 'Noto Sans', sans-serif;
-    margin: auto;
-    padding: 10px 0;
-    position: sticky;
-    text-align: center;
-    top: 0;
-    width: 100%;
-    z-index: 100;
-}
-
-#search-container-inner {
+.sentence-content {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 10px;
-    max-width: 850px;
-    margin: 0 auto;
-}
-
-.selectors-wrapper {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-}
+    gap: 20px;  /* Adds space between the Norwegian and English sentences */
+    width: 100%;}
 
 .spinner {
     color: #293a78;

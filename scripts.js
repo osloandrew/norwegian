@@ -288,24 +288,43 @@ async function randomWord() {
     }
 
     if (type === 'sentences') {
-        // If it's a sentence, render it as a sentence
+        // Split the Norwegian and English sentences
         const sentences = randomResult.eksempel.split(/(?<=[.!?])\s+/);  // Split by sentence delimiters
-        const firstSentence = sentences[0];
+        const translations = randomResult.sentenceTranslation ? randomResult.sentenceTranslation.split(/(?<=[.!?])\s+/) : [];
+
+        // Randomly select one sentence and its translation
+        const randomIndex = Math.floor(Math.random() * sentences.length);
+        const selectedSentence = sentences[randomIndex];
+        const selectedTranslation = translations[randomIndex] || '';
 
         // Clear any existing highlights in the sentence
-        const cleanedSentence = firstSentence.replace(/<span style="color: #3c88d4;">(.*?)<\/span>/gi, '$1');
+        const cleanedSentence = selectedSentence.replace(/<span style="color: #3c88d4;">(.*?)<\/span>/gi, '$1');
 
-        const sentenceHTML = `
+        // Build the sentence HTML
+        let sentenceHTML = `
             <div class="definition result-header">
                 <h2>Random Sentence</h2>
             </div>
-            <div class="definition">
-                ${cefrLabel}  <!-- Add the CEFR label in the upper-left corner -->
-                <p class="sentence">${cleanedSentence}</p>
-            </div>
+            <div class="sentence-container">
+                <div class="sentence-box">
+                    <div class="sentence-content">
+                        ${cefrLabel}  <!-- Add the CEFR label in the upper-left corner -->
+                        <p class="sentence">${cleanedSentence}</p>
+                    </div>
+                </div>
         `;
-        document.getElementById('results-container').innerHTML = sentenceHTML;
 
+        if (selectedTranslation) {
+            sentenceHTML += `
+                <div class="sentence-box">
+                    <p class="sentence">${selectedTranslation}</p>
+                </div>
+            `;
+        }
+
+        sentenceHTML += '</div>';  // Close the sentence-container div
+
+        document.getElementById('results-container').innerHTML = sentenceHTML;
         document.title = 'Sentences - Norwegian Dictionary';
     } else {
         // If it's a word, render it with highlighting (if needed)
