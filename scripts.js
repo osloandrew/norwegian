@@ -1049,18 +1049,37 @@ function renderSentences(sentenceResults, word) {
     sentenceResults.forEach(result => {
         // Split example sentences by common sentence delimiters (period, question mark, exclamation mark)
         const sentences = result.eksempel.match(/[^.!?]+[.!?]*/g) || [result.eksempel];
+        const translations = result.sentenceTranslation ? result.sentenceTranslation.match(/[^.!?]+[.!?]*/g) : [];
 
-        sentences.forEach(sentence => {
+        // Generate the CEFR label based on the result's CEFR value
+        let cefrLabel = '';
+        if (result.CEFR === 'A1') {
+            cefrLabel = '<div class="sentence-cefr-label easy">A1</div>';
+        } else if (result.CEFR === 'A2') {
+            cefrLabel = '<div class="sentence-cefr-label easy">A2</div>';
+        } else if (result.CEFR === 'B1') {
+            cefrLabel = '<div class="sentence-cefr-label medium">B1</div>';
+        } else if (result.CEFR === 'B2') {
+            cefrLabel = '<div class="sentence-cefr-label medium">B2</div>';
+        } else if (result.CEFR === 'C') {
+            cefrLabel = '<div class="sentence-cefr-label hard">C</div>';
+        }
+
+        // Iterate through each sentence and match it with its translation
+        sentences.forEach((sentence, index) => {
             const trimmedSentence = sentence.trim();
             if (!uniqueSentences.has(trimmedSentence)) {
                 // Only add unique sentences
                 uniqueSentences.add(trimmedSentence);
 
+                // Get the corresponding English translation (if available)
+                const translation = translations[index] || '';
+
                 // Exact match (whole word match)
                 if (regexExactMatch.test(sentence.toLowerCase())) {
-                    exactMatches.push(highlightQuery(sentence, query));
+                    exactMatches.push({ cefrLabel, sentence: highlightQuery(sentence, query), translation });
                 } else if (sentence.toLowerCase().includes(query)) {
-                    partialMatches.push(highlightQuery(sentence, query));
+                    partialMatches.push({ cefrLabel, sentence: highlightQuery(sentence, query), translation });
                 }
             }
         });
@@ -1081,12 +1100,27 @@ function renderSentences(sentenceResults, word) {
         `;
     }
 
-    combinedMatches.forEach(sentence => {
+    combinedMatches.forEach(match => {
         htmlString += `
-            <div class="definition">
-                <p class="sentence">${sentence}</p>
-            </div>
+            <div class="sentence-container">
+                <div class="sentence-box">
+                    <div class="sentence-content">
+                        ${match.cefrLabel}
+                        <p class="sentence">${match.sentence}</p>
+                    </div>
+                </div>
         `;
+
+        // Only add the English translation box if it exists
+        if (match.translation) {
+            htmlString += `
+                <div class="sentence-box">
+                    <p class="sentence">${match.translation}</p>
+                </div>
+            `;
+        }
+
+        htmlString += '</div>';  // Close the sentence-container div
     });
 
     // If no matches were found, display a "No Results" message
@@ -1104,6 +1138,7 @@ function renderSentences(sentenceResults, word) {
     // Insert the generated HTML into the results container
     document.getElementById('results-container').innerHTML = htmlString;
 }
+
 
 // Highlight search query in text, accounting for Norwegian characters (å, æ, ø) and verb variations
 function highlightQuery(sentence, query) {
