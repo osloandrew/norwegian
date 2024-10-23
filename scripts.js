@@ -1387,13 +1387,46 @@ function fetchAndRenderSentences(word, pos) {
         });
     });
 
-    let backButtonHTML = `
+    let backButtonHTML = `function fetchAndRenderSentences(word, pos) {
+
         <button class="sentence-btn back-btn" onclick="renderWordDefinition('${trimmedWord}')">
             <i class="fas fa-angle-left"></i> Back to Definition
         </button>
     `;
 
-    let sentenceContent = renderSentencesHTML(matchingResults, wordVariations);
+    // Create the sentence content with CEFR labels
+    let sentenceContent = matchingResults.slice(0, 10).map(result => {
+        // Generate the CEFR label based on the result's CEFR value
+        let cefrLabel = '';
+        if (result.CEFR === 'A1') {
+            cefrLabel = '<div class="sentence-cefr-label easy">A1</div>';
+        } else if (result.CEFR === 'A2') {
+            cefrLabel = '<div class="sentence-cefr-label easy">A2</div>';
+        } else if (result.CEFR === 'B1') {
+            cefrLabel = '<div class="sentence-cefr-label medium">B1</div>';
+        } else if (result.CEFR === 'B2') {
+            cefrLabel = '<div class="sentence-cefr-label medium">B2</div>';
+        } else if (result.CEFR === 'C') {
+            cefrLabel = '<div class="sentence-cefr-label hard">C</div>';
+        }
+
+        // Create the sentence HTML with CEFR label and English translation
+        return `
+            <div class="sentence-container">
+                <div class="sentence-box">
+                    <div class="sentence-content">
+                        ${cefrLabel}
+                        <p class="sentence">${result.eksempel}</p>
+                    </div>
+                </div>
+                ${result.sentenceTranslation ? `
+                <div class="sentence-box">
+                    <p class="sentence-translation">${result.sentenceTranslation}</p>
+                </div>` : ''}
+            </div>
+        `;
+    }).join('');
+
 
     if (sentenceContent) {
         sentenceContainer.innerHTML = sentenceContent;
