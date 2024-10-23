@@ -925,8 +925,13 @@ main {
     margin-bottom: 20px;
     padding: 10px 15px 10px 15px;
     width: 100%;
+    min-height: 80px;
     display: flex;
     align-items: center;  /* Align items vertically in the center */
+}
+
+.sentence-box p {
+    margin: 5px 0 5px 0;
 }
 
 .sentence-container {
@@ -1275,6 +1280,11 @@ main {
 
     .sentence-btn {
         width: 100% !important;
+    }
+
+    .sentence-box {
+        font-size: 12px;
+        padding: 5px 10px 5px 10px;
     }
     
     .type-filter, .pos-filter, .cefr-filter {
