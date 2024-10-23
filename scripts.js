@@ -237,6 +237,10 @@ async function randomWord() {
     if (type === 'sentences') {
         // Filter results that contain example sentences (for the 'sentences' type)
         filteredResults = results.filter(r => r.eksempel);  // Assuming sentences are stored under the 'eksempel' key
+
+        // Additionally, filter by the selected CEFR level if applicable
+        filteredResults = filteredResults.filter(r => !selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR));
+
     } else {
         // Filter results by the selected part of speech (for 'words' type)
         filteredResults = filterResultsByPOS(results, selectedPOS);
@@ -267,6 +271,21 @@ async function randomWord() {
     // Reset old highlights by removing any previous span tags
     randomResult.eksempel = randomResult.eksempel ? randomResult.eksempel.replace(/<span[^>]*>(.*?)<\/span>/gi, '$1') : '';
 
+    // Generate CEFR label based on the result's CEFR value
+    let cefrLabel = '';
+    if (randomResult.CEFR === 'A1') {
+        cefrLabel = '<div class="sentence-cefr-label easy">A1</div>';
+    } else if (randomResult.CEFR === 'A2') {
+        cefrLabel = '<div class="sentence-cefr-label easy">A2</div>';
+    } else if (randomResult.CEFR === 'B1') {
+        cefrLabel = '<div class="sentence-cefr-label medium">B1</div>';
+    } else if (randomResult.CEFR === 'B2') {
+        cefrLabel = '<div class="sentence-cefr-label medium">B2</div>';
+    } else if (randomResult.CEFR === 'C') {
+        cefrLabel = '<div class="sentence-cefr-label hard">C</div>';
+    } else {
+        console.warn("CEFR value is missing for this entry:", randomResult);
+    }
 
     if (type === 'sentences') {
         // If it's a sentence, render it as a sentence
@@ -281,6 +300,7 @@ async function randomWord() {
                 <h2>Random Sentence</h2>
             </div>
             <div class="definition">
+                ${cefrLabel}  <!-- Add the CEFR label in the upper-left corner -->
                 <p class="sentence">${cleanedSentence}</p>
             </div>
         `;
@@ -632,9 +652,9 @@ function handleTypeChange() {
         posFilterContainer.classList.add('disabled');  // Add the 'disabled' class
 
         // Disable the CEFR dropdown and gray it out
-        cefrSelect.disabled = true;
+        cefrSelect.disabled = false;  // Enable CEFR filter when sentences are selected
         cefrSelect.value = '';  // Reset to "CEFR Level" option
-        cefrFilterContainer.classList.add('disabled');  // Add the 'disabled' class
+        cefrFilterContainer.classList.remove('disabled');  // Visually enable the CEFR filter
 
         // Revert the label back to "CEFR Level" when not in "WORD GAME"
         cefrSelect.options[0].text = "CEFR Level";

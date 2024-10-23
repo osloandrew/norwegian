@@ -829,6 +829,33 @@ main {
     border-color: #4b0f0f;  /* Darker border */
 }
 
+.sentence-cefr-label {
+    align-self: flex-start;               /* Align the label to the left */
+    padding: 3px 7px;                     /* Smaller padding */
+    font-size: 12px;                      /* Smaller font size */
+    color: #4F4F4F;
+    display: inline-block;    /* Ensure the label takes up only the space it needs */
+    font-weight: bold;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-family: 'Noto Sans', sans-serif;
+    white-space: nowrap;                  /* Prevent text wrapping */
+    margin-bottom: 5px;                  /* Space between the label and the word */
+    user-select: none;  /* Prevent text selection */
+}
+
+.sentence-cefr-label.easy {
+    background-color: #C7E3B6;  /* Green for 'A1, A2' */
+}
+
+.sentence-cefr-label.medium {
+    background-color: #F2D96B;  /* Yellow for 'B1, B2' */
+}
+
+.sentence-cefr-label.hard {
+    background-color: #E9A895;  /* Red for 'C' */
+}
+
 .sentence-container {
     max-width: 600px;
     margin: 0 auto; /* Center the container */
