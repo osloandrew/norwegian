@@ -126,7 +126,6 @@ button:disabled i {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
     padding: 25px;
-    min-height: 260px;
 }
 
 .definition-content {
@@ -583,7 +582,6 @@ label {
 
 /* Modify the landing card styling to match definition cards */
 #landing-card {
-    align-content: center;
     background-color: #ffffff; /* Matches the background of definition cards */
     border-radius: 12px; /* Same border radius as definition cards */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Same box shadow */
@@ -591,7 +589,6 @@ label {
     padding: 25px; /* Matches the padding of definition cards */
     text-align: center;
     width: 45%; /* Same width as definition cards */
-    min-height: 260px !important;
 }
 
 /* Adjust the heading size and color to match the word titles in definition cards */
@@ -921,7 +918,6 @@ main {
     text-transform: uppercase;
     font-family: 'Noto Sans', sans-serif;
     white-space: nowrap;                  /* Prevent text wrapping */
-    margin-bottom: 5px;                  /* Space between the label and the word */
     user-select: none;  /* Prevent text selection */
 }
 
@@ -1310,6 +1306,11 @@ main {
         font-size: 16px;
     }
 
+    .sentence-cefr-label {
+        padding: 2px 4px;                     /* Smaller padding */
+        font-size: 8px;                      /* Smaller font size */
+    }
+
     #search-container {
         align-items: center;
         flex-direction: column;
@@ -1332,7 +1333,7 @@ main {
     }
 
     .sentence-box {
-        font-size: 12px;
+        font-size: 14px;
         margin-bottom: 10px !important;
         padding: 5px 10px 5px 10px;
     }
