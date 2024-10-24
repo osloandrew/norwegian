@@ -3643,7 +3643,7 @@ fishing,A1,et,fiske ,[fi`skə],Old Norse,det å fiske; fangst etter fisk (til vi
 fish,A1,verb,fiske ,[fi`skə],Old Norse,fange fisk,Vi skal fiske i elva i helgen.,We're going fishing in the river this weekend.
 tattle,B2,verb,fisle,,,innynde seg hos noen; smiske; sladre,Jeg fislet bort hele dagen uten å få noe gjort.,I fished away all day without getting anything done.
 "fuzzy, weak",B2,adjective,"fislete, fislet",,,"puslete, svak, veik",Han hadde en litt fislete holdning i diskusjonen.,He had a slightly flippant attitude in the discussion.
-tattletale,B2,en,fisletut,,,person som fisler; sladrehank,Han blåste gjennom en fisletut for å lage musikk.,He blew through a fish spout to make music.
+tattletale,B2,en,fisletut,,,person som fisler; sladrehank,,
 fitness,B2,en,fitness,[fi´tnəs],English,det å være i god fysisk form ved å trene opp muskelstyrke og utholdenhet; konkurranseidrett der en kombinerer kroppsbygging med øvelser som krever utholdenhet og smidighet,,
 feather,A2,ei,"fjær, fjør",,Old Norse: fjǫðr,"hver av de grenete, lette utvekstene som dekker kroppen på en fugl",Fuglen mistet en fjær som dalte ned på bakken.,The bird lost a feather that fell to the ground.
 low tide,B2,ei,"fjære, fjøre",,Old Norse: fjara,periodisk fall i vannstanden i havvann; fallende sjø,Vi gikk en tur på fjæra ved lavvann.,We went for a walk on the shore at low tide.
@@ -6221,7 +6221,7 @@ household waste,B2,et,husholdningsavfall,,Old Norse,avfall fra husholdning,Vi m�
 shush,B2,interjection,husj,,,brukt når en vil jage vekk dyr,Jeg ropte 'husj' for å skremme vekk katten fra bordet.,I shouted 'hush' to scare the cat away from the table.
 remember,A2,verb,huske,,Old Norse: hugsa,"hente frem fra hukommelsen noe en har sett, hørt, opplevd eller følt",Kan du huske hvor du la nøklene?,Can you remember where you left your keys?
 "swing, playground swing",A2,ei,huske,,onomatopoeia,innretning til å huske i; gynge,Vi satt på en huske i parken.,We sat on a swing in the park.
-swing on a playground,B1,verb,huske,,onomatopoeia,bevege opp og ned; gynge; være i bevegelse opp og ned; bevege seg opp og ned,,
+"swing, swing on a playground",B1,verb,huske,,onomatopoeia,bevege opp og ned; gynge; være i bevegelse opp og ned; bevege seg opp og ned,Båten husket i bølgene.,The boat swung in the waves.
 husky,B2,en,husky,[høski],English,"hund av rasen polare spisshunder",De har en vakker husky som elsker å trekke slede om vinteren.,They have a beautiful husky that loves to pull a sled in winter.
 homeless,B2,adjective,husløs,,Old Norse,"som ikke har noe sted å bo",Den husløse mannen sov på gaten i natt.,The homeless man slept on the street last night.
 housing,B2,et,husly,,Old Norse,"opphold i et hus (for kortere tid)",Vi søkte husly fra stormen under et tre.,We sought shelter from the storm under a tree.
@@ -13164,6 +13164,7 @@ turn on,A2,expression,"slå på",,Old Norse,"skru, sette på (lampe, ovn eller 
 succeed,B2,expression,slå til,,Old Norse,gå i oppfyllelse; gi godt resultat,,
 gossip,B1,en,sladder,,,"likegyldig prat, nedsettende omtale",,
 gossip,B1,verb,sladre,,,"snakke, prate; fare med sladder",,
+tattletale,B2,en,"sladrehank, sladderhank",,,person som farer med sladder,Han kalte søsteren for en sladrehank etter at hun fortalte moren deres om spøken.,He called his sister a tattletale after she told their mom about the prank.
 type,B1,et,slag,[ʃla:g],Old Norse: slagr,"art, sort",Han er ikke av det slaget at han stjeler.,He's not the kind of person who steals.
 "hit, battle, blow",B1,et,slag,[ʃla:g],Old Norse: slag,"det å slå; rapp, spark; støt, dunk; smell, plask; noe som rammer en; plutselig lammelse; væpnet kamp; enkelt omgang av spill eller lek; bevegelse i rett linje etter hver gang en skifter retning; oppslag; løstsittende overplagg uten ermer; spor, far",,
 slap in the face,B2,expression,slag i ansiktet,,Old Norse,"(overraskende og) svært skuffende, ubehagelig hendelse eller melding",,
