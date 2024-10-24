@@ -15,7 +15,6 @@ const genreIcons = {
     'economics': '<i class="fas fa-chart-line"></i>',     // Economics genre icon
     'education': '<i class="fas fa-book-reader"></i>',    // Education genre icon
     'fantasy': '<i class="fas fa-dragon"></i>',           // Fantasy genre icon
-    'fantasy': '<i class="fas fa-hat-wizard"></i>',       // Fantasy genre icon (different icon variation)
     'food': '<i class="fas fa-utensils"></i>',            // Food genre icon
     'health': '<i class="fas fa-heartbeat"></i>',         // Health genre icon
     'historical': '<i class="fas fa-landmark"></i>',      // Historical genre icon
