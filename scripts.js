@@ -655,24 +655,60 @@ function handleTypeChange() {
     
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
 
+    const posFilterContainer = document.querySelector('.pos-filter');
+    const genreFilterContainer = document.getElementById('genre-filter'); // Get the Genre filter container
+    const cefrFilterContainer = document.querySelector('.cefr-filter'); // Get the CEFR filter container
+
+    const posSelect = document.getElementById('pos-select');
+    const genreSelect = document.getElementById('genre-select');
+    const cefrSelect = document.getElementById('cefr-select');  // Get the CEFR filter dropdown
+
     // Update the URL with the selected type, query, and POS
     updateURL(query, type, selectedPOS);  // This ensures the type is reflected in the URL
 
-    const posSelect = document.getElementById('pos-select');
-    const posFilterContainer = document.querySelector('.pos-filter');
-    
-    const cefrSelect = document.getElementById('cefr-select');  // Get the CEFR filter dropdown
-    const cefrFilterContainer = document.querySelector('.cefr-filter'); // Get the CEFR filter container
+        // Add logic for the "Stories" type
+    if (type === 'stories') {
 
-    if (type === 'sentences') {
+        genreFilterContainer.style.display = 'inline-flex'; // Show genre dropdown in story mode
+        // Hide search-bar-wrapper and random-btn if word-game is selected
+        searchBarWrapper.style.display = 'none';
+        posFilterContainer.style.display = 'none';
+        randomBtn.style.display = 'none';
+        // Set search-container-inner display to inline-block
+        searchContainerInner.style.display = 'inline-block';
+        // Handle "word-game" option
+        showLandingCard(false);
+
+        cefrSelect.disabled = false;
+        cefrFilterContainer.classList.remove('disabled');
+
+        cefrSelect.value = '';  // Reset to "CEFR Level" option
+
+        document.title = 'Stories - Norwegian Dictionary';
+
+        // Load stories data if not already loaded
+        if (!storyResults.length) {
+            fetchAndLoadStoryData().then(() => {
+                displayStoryList();  // Display the list of stories
+            });
+        } else {
+            displayStoryList();  // Display the list of stories if already loaded
+        }
+
+    } else if (type === 'sentences') {
+
+        // Show POS and CEFR dropdowns, hide Genre dropdown
+        genreFilterContainer.style.display = 'none'; // Hide genre dropdown in sentences mode
+
         searchBarWrapper.style.display = 'inline-flex';
         randomBtn.style.display = 'block';
-        // Revert search-container-inner display back to flex
         searchContainerInner.style.display = 'flex';
+        
         searchContainerInner.classList.remove('word-game-active');
         gameActive = false;
 
         // Disable the POS dropdown and gray it out
+        posFilterContainer.style.display = 'inline-flex';
         posSelect.disabled = true;
         posSelect.value = '';  // Reset to "Part of Speech" option
         posFilterContainer.classList.add('disabled');  // Add the 'disabled' class
@@ -686,6 +722,9 @@ function handleTypeChange() {
         cefrSelect.options[0].text = "CEFR Level";
         // Other existing logic for non-word-game modes...
         searchContainerInner.classList.remove('word-game-active');
+
+        // Revert the label back to "CEFR Level" when not in "WORD GAME"
+        cefrSelect.options[0].text = "CEFR Level";
 
         // Change the browser tab title to reflect sentences
         document.title = 'Sentences - Norwegian Dictionary';
@@ -709,7 +748,11 @@ function handleTypeChange() {
         // Handle "word-game" option
         showLandingCard(false);
 
+        // Show POS and CEFR dropdowns, hide Genre dropdown
+        genreFilterContainer.style.display = 'none'; // Hide genre dropdown in sentences mode
+
         // Ensure POS and CEFR are enabled for the word game
+        posFilterContainer.style.display = 'inline-flex';
         posSelect.disabled = false;
         posFilterContainer.classList.remove('disabled');  // Remove the 'disabled' class
         cefrSelect.disabled = false;
@@ -738,6 +781,9 @@ function handleTypeChange() {
         startWordGame();  // Call the word game function
 
     } else {
+        // Show POS and CEFR dropdowns, hide Genre dropdown
+        genreFilterContainer.style.display = 'none'; // Hide genre dropdown in sentences mode
+
         searchBarWrapper.style.display = 'inline-flex';
         randomBtn.style.display = 'block';
         // Revert search-container-inner display back to flex
@@ -747,6 +793,7 @@ function handleTypeChange() {
         searchContainerInner.classList.remove('word-game-active');
 
         // Enable the POS dropdown and restore color
+        posFilterContainer.style.display = 'inline-flex';
         posSelect.disabled = false;
         posSelect.value = '';  // Reset to "Part of Speech" option
         posFilterContainer.classList.remove('disabled');  // Remove the 'disabled' class
@@ -778,21 +825,36 @@ function handleTypeChange() {
 // Handle change in CEFR filter
 function handleCEFRChange() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
-    
-    // Only start the word game if the 'word-game' tab is active
-    if (gameActive && document.getElementById('type-select').value === 'word-game') {
-        // Adjust the word game instead of triggering a dictionary search
-        startWordGame();  // Re-fetch a new word for the game based on the new CEFR filter
+    const type = document.getElementById('type-select').value;
+    const selectedCEFR = document.getElementById('cefr-select').value.toUpperCase();
+
+    // Check if the 'stories' tab is active
+    if (type === 'stories') {
+        // Filter the stories by the selected CEFR level
+        const filteredStories = storyResults.filter(story => {
+            // If no CEFR is selected, show all stories
+            if (!selectedCEFR) return true;
+            // Otherwise, only show stories that match the selected CEFR level
+            return story.CEFR && story.CEFR.toUpperCase() === selectedCEFR;
+        });
+
+        // Display the filtered list of stories
+        displayStoryList(filteredStories);
+    } 
+    // Handle the word game logic or dictionary search when 'word-game' or 'words' are selected
+    else if (gameActive && type === 'word-game') {
+        startWordGame();  // Adjust the word game based on the new CEFR filter
     } else {
-    // If the search field is empty, generate a random word based on the CEFR level
-    if (!query) {
-        console.log('Search field is empty. Generating random word based on selected CEFR.');
-        randomWord();  // Ensure randomWord() applies the CEFR filter
-    } else {
-        search(); // If there is a query, perform the search with the selected CEFR
+        // If the search field is empty, generate a random word based on the CEFR level
+        if (!query) {
+            console.log('Search field is empty. Generating random word based on selected CEFR.');
+            randomWord();  // Ensure randomWord() applies the CEFR filter
+        } else {
+            search(); // Perform a search with the selected CEFR
+        }
     }
 }
-}
+
 
 // Render a list of results (words)
 function displaySearchResults(results, query = '') {
