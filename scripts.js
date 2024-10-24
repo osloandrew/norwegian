@@ -645,20 +645,24 @@ function handlePOSChange() {
 
 // Handle change in search type (words/sentences)
 function handleTypeChange() {
+    // Retrieve selected type and query from the search bar
     const type = document.getElementById('type-select').value;
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
-    const searchContainerInner = document.getElementById('search-container-inner'); // The container to update
 
-    // Reference to the search-bar-wrapper and random-btn elements
+    // Container to update and other UI elements
+    const searchContainerInner = document.getElementById('search-container-inner'); // The container to update
     const searchBarWrapper = document.getElementById('search-bar-wrapper');
     const randomBtn = document.getElementById('random-btn');
     
+    // Retrieve selected part of speech (POS) if available
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
 
+    // Filter containers for POS, Genre, and CEFR
     const posFilterContainer = document.querySelector('.pos-filter');
     const genreFilterContainer = document.getElementById('genre-filter'); // Get the Genre filter container
     const cefrFilterContainer = document.querySelector('.cefr-filter'); // Get the CEFR filter container
 
+    // Filter dropdowns for POS, Genre, and CEFR
     const posSelect = document.getElementById('pos-select');
     const genreSelect = document.getElementById('genre-select');
     const cefrSelect = document.getElementById('cefr-select');  // Get the CEFR filter dropdown
@@ -666,23 +670,21 @@ function handleTypeChange() {
     // Update the URL with the selected type, query, and POS
     updateURL(query, type, selectedPOS);  // This ensures the type is reflected in the URL
 
-        // Add logic for the "Stories" type
+    // Add logic for the "Stories" type
     if (type === 'stories') {
 
         genreFilterContainer.style.display = 'inline-flex'; // Show genre dropdown in story mode
-        // Hide search-bar-wrapper and random-btn if word-game is selected
-        searchBarWrapper.style.display = 'none';
+        searchBarWrapper.style.display = 'none'; // Hide search-bar-wrapper
         posFilterContainer.style.display = 'none';
-        randomBtn.style.display = 'none';
-        // Set search-container-inner display to inline-block
-        searchContainerInner.style.display = 'inline-block';
-        // Handle "word-game" option
+        randomBtn.style.display = 'none'; // Hide random button
+        searchContainerInner.style.display = 'inline-block'; // Show search container
+        
         showLandingCard(false);
 
-        cefrSelect.disabled = false;
-        cefrFilterContainer.classList.remove('disabled');
-
-        cefrSelect.value = '';  // Reset to "CEFR Level" option
+        cefrSelect.disabled = false; // Enable CEFR filter
+        cefrFilterContainer.classList.remove('disabled'); // Visually enable the CEFR filter
+        cefrSelect.value = '';  // Reset to default "CEFR Level"
+        cefrSelect.options[0].text = "CEFR Level";  // Revert CEFR label to default
 
         document.title = 'Stories - Norwegian Dictionary';
 
@@ -708,8 +710,8 @@ function handleTypeChange() {
         gameActive = false;
 
         // Disable the POS dropdown and gray it out
-        posFilterContainer.style.display = 'inline-flex';
-        posSelect.disabled = true;
+        posFilterContainer.style.display = 'inline-flex'; // Show POS dropdown
+        posSelect.disabled = true; // Disable POS dropdown
         posSelect.value = '';  // Reset to "Part of Speech" option
         posFilterContainer.classList.add('disabled');  // Add the 'disabled' class
 
@@ -718,16 +720,9 @@ function handleTypeChange() {
         cefrSelect.value = '';  // Reset to "CEFR Level" option
         cefrFilterContainer.classList.remove('disabled');  // Visually enable the CEFR filter
 
-        // Revert the label back to "CEFR Level" when not in "WORD GAME"
-        cefrSelect.options[0].text = "CEFR Level";
-        // Other existing logic for non-word-game modes...
-        searchContainerInner.classList.remove('word-game-active');
+        cefrSelect.options[0].text = "CEFR Level";  // Revert CEFR label to default
 
-        // Revert the label back to "CEFR Level" when not in "WORD GAME"
-        cefrSelect.options[0].text = "CEFR Level";
-
-        // Change the browser tab title to reflect sentences
-        document.title = 'Sentences - Norwegian Dictionary';
+        document.title = 'Sentences - Norwegian Dictionary'; // Update browser tab title
         
         // If the search bar is not empty, perform a sentence search
         if (query) {
@@ -738,12 +733,12 @@ function handleTypeChange() {
             randomWord();  // Generate a random sentence if the search bar is empty
         }
     } else if (type === 'word-game') {
-        // Hide search-bar-wrapper and random-btn if word-game is selected
-        searchBarWrapper.style.display = 'none';
-        randomBtn.style.display = 'none';
-        // Set search-container-inner display to inline-block
-        searchContainerInner.style.display = 'inline-block';
-        searchContainerInner.classList.add('word-game-active');
+        // Handle "Word Game" type
+        searchBarWrapper.style.display = 'none'; // Hide search-bar-wrapper
+        randomBtn.style.display = 'none'; // Hide random button
+        searchContainerInner.style.display = 'inline-block'; // Set search container layout
+
+        searchContainerInner.classList.add('word-game-active'); // Indicate word game is active
 
         // Handle "word-game" option
         showLandingCard(false);
@@ -753,12 +748,12 @@ function handleTypeChange() {
 
         // Ensure POS and CEFR are enabled for the word game
         posFilterContainer.style.display = 'inline-flex';
+        posSelect.value = '';  // Reset to "Part of Speech" option
         posSelect.disabled = false;
         posFilterContainer.classList.remove('disabled');  // Remove the 'disabled' class
+
         cefrSelect.disabled = false;
         cefrFilterContainer.classList.remove('disabled');
-
-        posSelect.value = '';  // Reset to "Part of Speech" option
         cefrSelect.value = '';  // Reset to "CEFR Level" option
 
         // Change the label to something more compact when "WORD GAME" is selected
@@ -771,23 +766,17 @@ function handleTypeChange() {
 
         // Change the browser tab title to reflect the word game
         document.title = 'Word Game - Norwegian Dictionary';
-
-        // Other existing logic for word-game...
-        searchContainerInner.classList.add('word-game-active');
-
-        console.log('Word game selected.');
         
         resetGame();
         startWordGame();  // Call the word game function
 
     } else {
-        // Show POS and CEFR dropdowns, hide Genre dropdown
-        genreFilterContainer.style.display = 'none'; // Hide genre dropdown in sentences mode
+        // Handle default case (e.g., "Words" type)
+        genreFilterContainer.style.display = 'none'; // Hide genre dropdown
 
-        searchBarWrapper.style.display = 'inline-flex';
-        randomBtn.style.display = 'block';
-        // Revert search-container-inner display back to flex
-        searchContainerInner.style.display = 'flex';
+        searchBarWrapper.style.display = 'inline-flex'; // Show search-bar-wrapper
+        randomBtn.style.display = 'block'; // Show random button
+        searchContainerInner.style.display = 'flex'; // Set search container layout
 
         gameActive = false;
         searchContainerInner.classList.remove('word-game-active');
@@ -803,10 +792,7 @@ function handleTypeChange() {
         cefrSelect.value = '';  // Reset to "CEFR Level" option
         cefrFilterContainer.classList.remove('disabled');
 
-        // Revert the label back to "CEFR Level" when not in "WORD GAME"
-        cefrSelect.options[0].text = "CEFR Level";
-        // Other existing logic for non-word-game modes...
-        searchContainerInner.classList.remove('word-game-active');
+        cefrSelect.options[0].text = "CEFR Level";  // Revert CEFR label to default
 
         // Change the browser tab title to reflect words
         document.title = 'Words - Norwegian Dictionary';
@@ -827,15 +813,16 @@ function handleCEFRChange() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
     const type = document.getElementById('type-select').value;
     const selectedCEFR = document.getElementById('cefr-select').value.toUpperCase();
+    const selectedGenre = document.getElementById('genre-select').value.trim().toLowerCase();
 
     // Check if the 'stories' tab is active
     if (type === 'stories') {
         // Filter the stories by the selected CEFR level
         const filteredStories = storyResults.filter(story => {
-            // If no CEFR is selected, show all stories
-            if (!selectedCEFR) return true;
-            // Otherwise, only show stories that match the selected CEFR level
-            return story.CEFR && story.CEFR.toUpperCase() === selectedCEFR;
+            const genreMatch = selectedGenre ? story.genre.trim().toLowerCase() === selectedGenre : true;
+            const cefrMatch = selectedCEFR ? story.CEFR && story.CEFR.toUpperCase() === selectedCEFR : true;
+
+            return genreMatch && cefrMatch;
         });
 
         // Display the filtered list of stories
