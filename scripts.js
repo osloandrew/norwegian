@@ -1362,33 +1362,46 @@ function fetchAndRenderSentences(word, pos) {
         });
     });
 
-    // Now, split sentences for relevant entries
+    // Now, split sentences and align translations
     let matchingResults = relevantEntries.map(r => {
 
-        // Split the example into individual sentences by common sentence delimiters
+        // Split both the example sentences and their translations
         const sentences = r.eksempel.split(/(?<=[.!?])\s+/);
+        const translations = r.sentenceTranslation ? r.sentenceTranslation.split(/(?<=[.!?])\s+/) : [];
 
-        // Filter sentences that match any of the word variations
-        const matchedSentences = sentences.filter(sentence => {
-            return wordVariations.some(variation => {
-
+        // Filter sentences that match any of the word variations, and align corresponding translations
+        const matchedSentencesAndTranslations = sentences.reduce((acc, sentence, index) => {
+            const isMatched = wordVariations.some(variation => {
                 if (pos === 'adverb' || pos === 'conjunction' || pos === 'preposition') {
                     const regex = new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, 'gi');
                     return regex.test(sentence);
                 } else {
-                    // For other parts of speech, ensure the word starts a word
                     const regexStartOfWord = new RegExp(`(^|[^\\wåæøÅÆØ])${variation}`, 'i');
                     return regexStartOfWord.test(sentence);
                 }
             });
-        });
 
-        console.log(`Matched sentences for '${r.ord}':`, matchedSentences);
+            if (isMatched) {
+                acc.matchedSentences.push(sentence);
+                if (translations[index]) {
+                    acc.matchedTranslations.push(translations[index]);
+                }
+            }
+
+            return acc;
+        }, { matchedSentences: [], matchedTranslations: [] });
+
+        // Log the matched sentences and their translations
+        console.log(`Matched sentences for '${r.ord}':`, matchedSentencesAndTranslations.matchedSentences);
+        console.log(`Matched translations for '${r.ord}':`, matchedSentencesAndTranslations.matchedTranslations);
         
-        // Return only the matched sentences, or null if none
-        return matchedSentences.length > 0 ? { ...r, eksempel: matchedSentences.join(' ') } : null;
+        // Return only the matched sentences and aligned translations, or null if none
+        return matchedSentencesAndTranslations.matchedSentences.length > 0 ? { 
+            ...r, 
+            eksempel: matchedSentencesAndTranslations.matchedSentences.join(' '), 
+            sentenceTranslation: matchedSentencesAndTranslations.matchedTranslations.join(' ') 
+        } : null;
     }).filter(result => result !== null);
-
 
     // Check if there are any matching results
     if (matchingResults.length === 0) {
@@ -1431,6 +1444,10 @@ function fetchAndRenderSentences(word, pos) {
         // Split example sentences by common sentence delimiters (period, question mark, exclamation mark)
         const sentences = result.eksempel ? result.eksempel.split(/(?<=[.!?])\s+/) : [];
         const translations = result.sentenceTranslation ? result.sentenceTranslation.split(/(?<=[.!?])\s+/) : [];
+
+        // Log the sentenceContent being created
+        console.log(`Final Sentences:`, sentences);
+        console.log(`Final Translations:`, translations);
         
         // Generate the CEFR label based on the result's CEFR value
         let cefrLabel = '';
