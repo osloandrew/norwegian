@@ -1347,25 +1347,48 @@ function fetchAndRenderSentences(word, pos) {
 
     // Generate word variations using the external function
     const wordVariations = trimmedWord.split(',').flatMap(w => generateWordVariationsForSentences(w.trim(), pos));
-    console.log(`Generated word variations for '${trimmedWord}' with POS '${pos}':`, wordVariations);
 
-    // Filter results to find sentences that contain any of the word variations in the 'eksempel' field
-    let matchingResults = results.filter(r => {
-        // Loop through each variation and check if it exists in the sentence
+    // First, filter results to get relevant entries
+    let relevantEntries = results.filter(r => {
         return wordVariations.some(variation => {
             if (pos === 'adverb' || pos === 'conjunction' || pos === 'preposition') {
-                
                 const regex = new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, 'gi');
-                const match = regex.test(r.eksempel);
-                return match;
+                return regex.test(r.eksempel);
             } else {
-                // For all other parts of speech, ensure the word starts a word
-                const regexStartOfWord = new RegExp(`(^|[^\\wåæøÅÆØ])${variation}`, 'i');                
-                const match = regexStartOfWord.test(r.eksempel);
-                return match;
+                // For other parts of speech, ensure the word starts a word
+                const regexStartOfWord = new RegExp(`(^|[^\\wåæøÅÆØ])${variation}`, 'i');
+                return regexStartOfWord.test(r.eksempel);
             }
         });
     });
+
+    // Now, split sentences for relevant entries
+    let matchingResults = relevantEntries.map(r => {
+
+        // Split the example into individual sentences by common sentence delimiters
+        const sentences = r.eksempel.split(/(?<=[.!?])\s+/);
+
+        // Filter sentences that match any of the word variations
+        const matchedSentences = sentences.filter(sentence => {
+            return wordVariations.some(variation => {
+
+                if (pos === 'adverb' || pos === 'conjunction' || pos === 'preposition') {
+                    const regex = new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, 'gi');
+                    return regex.test(sentence);
+                } else {
+                    // For other parts of speech, ensure the word starts a word
+                    const regexStartOfWord = new RegExp(`(^|[^\\wåæøÅÆØ])${variation}`, 'i');
+                    return regexStartOfWord.test(sentence);
+                }
+            });
+        });
+
+        console.log(`Matched sentences for '${r.ord}':`, matchedSentences);
+        
+        // Return only the matched sentences, or null if none
+        return matchedSentences.length > 0 ? { ...r, eksempel: matchedSentences.join(' ') } : null;
+    }).filter(result => result !== null);
+
 
     // Check if there are any matching results
     if (matchingResults.length === 0) {
