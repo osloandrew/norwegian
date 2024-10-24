@@ -53,6 +53,14 @@ button:disabled i {
     cursor: not-allowed;
 }
 
+.cefr-badge {
+    text-align: center !important;
+    display: inline-block;
+    padding: 3px 7px;
+    border-radius: 4px;
+    min-width: 17.5px;
+}
+
 .cefr-filter {
     display: inline-flex;
     align-items: center;
@@ -84,6 +92,15 @@ button:disabled i {
     font-size: 18px;
     pointer-events: none;
     right: 15px;
+}
+
+.cefr-label {
+    display: inline-flex;
+    align-items: center;
+}
+  
+.cefr-label i {
+    margin-right: 5px;
 }
 
 .clear-btn {
@@ -245,10 +262,12 @@ footer .copyright {
     color: #4F4F4F;
     font-weight: bold;
     border-radius: 4px;
+    text-align: center;
     text-transform: uppercase;
     font-family: 'Noto Sans', sans-serif;
     white-space: nowrap;                  /* Prevent text wrapping */
     margin-bottom: 5px;                  /* Space between the label and the word */
+    min-width: 17.5px;
     user-select: none;  /* Prevent text selection */
 }
 
@@ -1341,7 +1360,7 @@ main {
 
     .sentence-box-english, .sentence-box-norwegian {
         font-size: 15px;
-        margin-bottom: 2.5px !important;
+        margin-bottom: 2px !important;
         width: auto;
     }
 
@@ -1358,7 +1377,7 @@ main {
     .sentence-container {
         display: block; /* Stack sentence boxes on top of each other */
         gap: 10px;  /* Adds space between the boxes */
-        margin-bottom: 15px;
+        margin-bottom: 10px;
     }
 
     .sentence-content {
