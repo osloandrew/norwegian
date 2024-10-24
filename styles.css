@@ -971,11 +971,16 @@ main {
 
 .sentence-box-english {
     color: gray;
+    border-radius: 0 12px 12px 0; /* Rounded corners on bottom */
+}
+
+.sentence-box-norwegian {
+    border-radius: 12px 0 0 12px; /* Rounded corners on top */
 }
 
 .sentence-container {
     display: flex;
-    gap: 20px;  /* Adds space between the boxes */
+    gap: 3px;  /* Adds space between the boxes */
     justify-content: space-between;
     flex-direction: row;
     align-items: stretch !important;  /* Horizontally align content (CEFR and sentence) */
