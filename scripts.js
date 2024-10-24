@@ -604,7 +604,7 @@ function checkForSentences(word, pos) {
         // Check if any sentences in the data include this word or its variations in the 'eksempel' field
         if (results.some(result => 
             result.eksempel && wordVariations.some(variation => {
-                if (pos === 'adverb' || pos === 'conjunction' || pos === 'preposition') {
+                if (pos === 'adverb' || pos === 'conjunction' || pos === 'preposition' || pos === 'interjection' || pos === 'numeral') {
                 // Apply the strict match logic for these POS types (perfect match, no special endings)
                 const regex = new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, 'gi');
                 const match = regex.test(result.eksempel);
@@ -1351,7 +1351,7 @@ function fetchAndRenderSentences(word, pos) {
     // First, filter results to get relevant entries
     let relevantEntries = results.filter(r => {
         return wordVariations.some(variation => {
-            if (pos === 'adverb' || pos === 'conjunction' || pos === 'preposition') {
+            if (pos === 'adverb' || pos === 'conjunction' || pos === 'preposition' || pos === 'interjection' || pos === 'numeral') {
                 const regex = new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, 'gi');
                 return regex.test(r.eksempel);
             } else {
@@ -1372,7 +1372,7 @@ function fetchAndRenderSentences(word, pos) {
         // Filter sentences that match any of the word variations, and align corresponding translations
         const matchedSentencesAndTranslations = sentences.reduce((acc, sentence, index) => {
             const isMatched = wordVariations.some(variation => {
-                if (pos === 'adverb' || pos === 'conjunction' || pos === 'preposition') {
+                if (pos === 'adverb' || pos === 'conjunction' || pos === 'preposition' || pos === 'interjection' || pos === 'numeral') {
                     const regex = new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, 'gi');
                     return regex.test(sentence);
                 } else {
