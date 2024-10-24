@@ -306,7 +306,7 @@ async function randomWord() {
                 <h2>Random Sentence</h2>
             </div>
             <div class="sentence-container">
-                <div class="sentence-box">
+                <div class="sentence-box-norwegian">
                     <div class="sentence-content">
                         ${cefrLabel}  <!-- Add the CEFR label in the upper-left corner -->
                         <p class="sentence">${cleanedSentence}</p>
@@ -316,7 +316,7 @@ async function randomWord() {
 
         if (selectedTranslation) {
             sentenceHTML += `
-                <div class="sentence-box">
+                <div class="sentence-box-english">
                     <p class="sentence">${selectedTranslation}</p>
                 </div>
             `;
@@ -1128,7 +1128,7 @@ function renderSentences(sentenceResults, word) {
     combinedMatches.forEach(match => {
         htmlString += `
             <div class="sentence-container">
-                <div class="sentence-box">
+                <div class="sentence-box-norwegian">
                     <div class="sentence-content">
                         ${match.cefrLabel}
                         <p class="sentence">${match.sentence}</p>
@@ -1139,7 +1139,7 @@ function renderSentences(sentenceResults, word) {
         // Only add the English translation box if it exists
         if (match.translation) {
             htmlString += `
-                <div class="sentence-box">
+                <div class="sentence-box-english">
                     <p class="sentence">${match.translation}</p>
                 </div>
             `;
@@ -1466,14 +1466,14 @@ function fetchAndRenderSentences(word, pos) {
         // For each sentence, map it to a card
         return sentences.map((sentence, index) => `
             <div class="sentence-container">
-                <div class="sentence-box">
+                <div class="sentence-box-norwegian">
                     <div class="sentence-content">
                         ${cefrLabel}
                         <p class="sentence">${sentence}</p>
                     </div>
                 </div>
                 ${translations[index] ? `
-                <div class="sentence-box">
+                <div class="sentence-box-english">
                     <p class="sentence-translation">${translations[index]}</p>
                 </div>` : ''}
             </div>

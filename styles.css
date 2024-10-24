@@ -933,7 +933,7 @@ main {
     background-color: #E9A895;  /* Red for 'C' */
 }
 
-.sentence-box {
+.sentence-box-english, .sentence-box-norwegian {
     background-color: #ffffff;
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -944,7 +944,7 @@ main {
     align-items: center;  /* Align items vertically in the center */
 }
 
-.sentence-box p {
+.sentence-box-english p, .sentence-box-norwegian p {
     margin: 5px 0 5px 0;
 }
 
@@ -1332,14 +1332,25 @@ main {
         width: 100% !important;
     }
 
-    .sentence-box {
+    .sentence-box-english, .sentence-box-norwegian {
         font-size: 14px;
-        margin-bottom: 10px !important;
+        margin-bottom: 2.5px !important;
         padding: 5px 10px 5px 10px;
+        width: auto;
+    }
+
+    .sentence-box-english {
+        border-radius: 0 0 12px 12px; /* Rounded corners on bottom */
+    }
+
+    .sentence-box-norwegian {
+        border-radius: 12px 12px 0 0; /* Rounded corners on top */
     }
 
     .sentence-container {
+        display: block; /* Stack sentence boxes on top of each other */
         gap: 10px;  /* Adds space between the boxes */
+        margin-bottom: 20px;
     }
 
     .sentence-content {
