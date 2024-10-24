@@ -919,6 +919,8 @@ main {
     font-family: 'Noto Sans', sans-serif;
     white-space: nowrap;                  /* Prevent text wrapping */
     user-select: none;  /* Prevent text selection */
+    text-align: center;
+    min-width: 15px;
 }
 
 .sentence-cefr-label.easy {
@@ -946,6 +948,10 @@ main {
 
 .sentence-box-english p, .sentence-box-norwegian p {
     margin: 5px 0 5px 0;
+}
+
+.sentence-box-english {
+    color: gray;
 }
 
 .sentence-container {
@@ -1309,6 +1315,7 @@ main {
     .sentence-cefr-label {
         padding: 2px 4px;                     /* Smaller padding */
         font-size: 8px;                      /* Smaller font size */
+        min-width: 10px;
     }
 
     #search-container {
@@ -1333,24 +1340,25 @@ main {
     }
 
     .sentence-box-english, .sentence-box-norwegian {
-        font-size: 14px;
+        font-size: 15px;
         margin-bottom: 2.5px !important;
-        padding: 5px 10px 5px 10px;
         width: auto;
     }
 
     .sentence-box-english {
         border-radius: 0 0 12px 12px; /* Rounded corners on bottom */
+        padding: 5px 10px 5px 38px;
     }
 
     .sentence-box-norwegian {
         border-radius: 12px 12px 0 0; /* Rounded corners on top */
+        padding: 5px 10px 5px 10px;
     }
 
     .sentence-container {
         display: block; /* Stack sentence boxes on top of each other */
         gap: 10px;  /* Adds space between the boxes */
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     }
 
     .sentence-content {
@@ -1362,7 +1370,6 @@ main {
         border-radius: 15px;
         padding: 10px 10px;
     }
-    
 
     .type-filter, .pos-filter, .random-btn, .search-bar-wrapper {
         width: 100%;
