@@ -66,6 +66,7 @@
                             <option value="words">Words</option>
                             <option value="sentences">Sentences</option>
                             <option value="word-game">Word Game</option>
+                            <option value="stories">Stories</option>
                         </select>
                         <i class="fas fa-chevron-down"></i>
                     </div>
@@ -83,6 +84,18 @@
                             <option value="conjunction">Conjunction</option>
                             <option value="pronoun">Pronoun</option>
                             <option value="expression">Expression</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+
+                    <!-- Genre Selector -->
+                    <div class="genre-filter" id="genre-filter" aria-label="Filter by genre" style="display: none;">
+                        <select id="genre-select" onchange="handleGenreChange()">
+                            <option value="">Genre</option>
+                            <option value="fantasy">Fantasy</option>
+                            <option value="history">History</option>
+                            <option value="science">Science</option>
+                            <option value="science fiction">Science Fiction</option>
                         </select>
                         <i class="fas fa-chevron-down"></i>
                     </div>
@@ -270,6 +283,7 @@
     <script src="noRandom.js" defer></script>
     <script src="scripts.js" defer></script>
     <script src="wordGame.js" defer></script>
+    <script src="stories.js" defer></script>
 </body>
 
 </html>

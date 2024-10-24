@@ -523,6 +523,10 @@ footer .copyright {
     text-transform: uppercase;
 }
 
+.genre-filter {
+    display: none;
+}
+
 h1 {
     color: #293a78;
     overflow: hidden;
@@ -777,18 +781,31 @@ main {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
     padding: 25px;
+    justify-content: center; /* Center the title */
+    align-items: center;
+    position: relative; /* Set relative position for positioning the icon */
 }
 
 .result-header h2 {
+    margin: 0; /* Reset margin for the title */
+
     color: #951b1b;
     font-family: "Noto Sans", sans-serif;
-    font-size: 1.1em;  
+    font-size: 1.3em;  
     font-weight: 400;
     white-space: normal;  /* Allow the text to wrap into multiple lines */
     overflow-wrap: break-word;  /* Ensure the text breaks into a new line if needed */
     text-align: center;  /* Center align the header text */
 }
 
+.result-header i {
+    color: #951b1b;
+    position: absolute;
+    left: 15px; /* Position the icon on the far left */
+    cursor: pointer;
+    font-size: 1.3rem; /* Adjust the size as needed */
+    line-height: inherit;
+}
 
 #results-container {
     background-color: rgb(244, 244, 244);
@@ -811,7 +828,8 @@ main {
 .search-bar-wrapper,
 .type-filter,
 .pos-filter,
-.cefr-filter {
+.cefr-filter,
+.genre-filter {
     align-items: center;
     box-sizing: border-box;
     display: flex;
@@ -978,6 +996,74 @@ main {
     border-radius: 12px 0 0 12px; /* Rounded corners on top */
 }
 
+.stories-content {
+    display: flex;
+    flex-direction: column;  /* Stack the title and genre vertically */
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.stories-content h2 {
+    font-size: 1.5rem;
+    margin: 0;                /* Remove extra margins around the title */
+}
+
+.stories-genre {
+    font-family: "Noto Sans", sans-serif;
+    font-size: 16px !important;
+    font-weight: bold;
+    color: #413e3e !important;
+    margin: 5px 0 0 0;         /* Add some space above the genre */
+    text-transform: uppercase;   /* Make the genre label all caps */
+}
+
+.stories-list-item {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;  /* Space between title/genre and CEFR */
+    align-items: center;             /* Vertically center the items */
+    cursor: pointer;
+    padding: 15px;
+}
+
+.stories-list-item:hover {
+    background-color: #f5f5f5;  /* Optional: Change background color on hover */
+}
+
+.stories-list-item p {
+    color: #333;
+    font-size: 20px;
+    line-height: 1.6;
+    margin: 10px 0 10px 0;
+}
+
+.stories-sentence-box-english, .stories-sentence-box-norwegian {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
+    padding: 10px 15px 10px 15px;
+    width: 100%;
+    display: flex;
+    align-items: center;  /* Align items vertically in the center */
+}
+
+.stories-sentence-box-english p, .stories-sentence-box-norwegian p {
+    margin: 5px 0 5px 0;
+}
+
+.stories-sentence-box-english {
+    color: gray;
+    border-radius: 0 12px 12px 0; /* Rounded corners on bottom */
+}
+
+.stories-sentence-box-norwegian {
+    border-radius: 12px 0 0 12px; /* Rounded corners on top */
+}
+
 .sentence-container {
     display: flex;
     gap: 3px;  /* Adds space between the boxes */
@@ -1013,7 +1099,7 @@ main {
     width: 40px;
 }
 
-.type-filter, .pos-filter, .random-btn {
+.type-filter, .pos-filter, .genre-filter, .random-btn {
     display: inline-flex;
     align-items: center;
     background-color: #0d3a69;
@@ -1029,17 +1115,17 @@ main {
 }
 
 /* Gray out both the select text and the arrow when disabled */
-.cefr-filter.disabled select, .type-filter.disabled select, .pos-filter.disabled select {
+.cefr-filter.disabled select, .type-filter.disabled select, .pos-filter.disabled select, .genre-filter.disabled select {
     color: #ccc;
     cursor: not-allowed;
 }
 
-.cefr-filter.disabled i, .type-filter.disabled i, .pos-filter.disabled i {
+.cefr-filter.disabled i, .type-filter.disabled i, .pos-filter.disabled i, .genre-filter.disabled i {
     color: #ccc;  /* Gray out the arrow */
     pointer-events: none;  /* Prevent interaction with the arrow */
 }
 
-.type-filter i, .pos-filter i {
+.type-filter i, .pos-filter i, .genre-filter i {
     color: white;
     font-size: 18px;
     pointer-events: none;
@@ -1047,7 +1133,7 @@ main {
     z-index: 0; /* Ensures the icon is underneath the select element */
 }
 
-.type-filter select, .pos-filter select, .cefr-filter select {
+.type-filter select, .pos-filter select, .cefr-filter select, .genre-filter select {
     appearance: none;
     background-color: inherit;
     border: none;
@@ -1388,24 +1474,44 @@ main {
     .sentence-content {
         gap: 10px !important;  /* Adds space between the Norwegian and English sentences */
     }
+
+    .stories-list-item {
+        margin-bottom: 10px;
+    }
+
+    .stories-sentence-box-english, .stories-sentence-box-norwegian {
+        font-size: 15px;
+        margin-bottom: 2px !important;
+        width: auto;
+    }
+
+    .stories-sentence-box-english {
+        border-radius: 0 0 12px 12px; /* Rounded corners on bottom */
+        padding: 5px 10px 5px 10px;
+    }
+
+    .stories-sentence-box-norwegian {
+        border-radius: 12px 12px 0 0; /* Rounded corners on top */
+        padding: 5px 10px 5px 10px;
+    }
     
-    .type-filter, .pos-filter, .cefr-filter {
+    .type-filter, .pos-filter, .cefr-filter, .genre-filter {
         background-color: #0d3a69;  /* Consistent background for all filters */
         border-radius: 15px;
         padding: 10px 10px;
     }
 
-    .type-filter, .pos-filter, .random-btn, .search-bar-wrapper {
+    .type-filter, .pos-filter, .genre-filter, .random-btn, .search-bar-wrapper {
         width: 100%;
     }
     
-    .type-filter i, .pos-filter i, .cefr-filter i {
+    .type-filter i, .pos-filter i, .cefr-filter i, .genre-filter i {
         padding-left: 6px;
         font-size: 12px; /* Make the arrow smaller */
         pointer-events: none; /* Ensure the icon doesn't block clicks */
     }
 
-    .type-filter select, .pos-filter select, .cefr-filter select {
+    .type-filter select, .pos-filter select, .cefr-filter select, .genre-filter select {
         cursor: pointer;
         width: 100%; /* Extend the clickable area horizontally */
         height: 100%; /* Extend the clickable area vertically */    
