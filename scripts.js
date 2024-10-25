@@ -872,7 +872,6 @@ function handleCEFRChange() {
     }
 }
 
-
 // Render a list of results (words)
 function displaySearchResults(results, query = '') {
     //clearContainer(); // Don't clear the container to avoid overwriting existing content like the "No Exact Matches" message

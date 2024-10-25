@@ -73,19 +73,37 @@ async function displayStoryList(filteredStories = storyResults) {
     removeStoryHeader();
     clearContainer();  // Clear previous results
 
+    // Reset the page title and URL to the main list view
+    document.title = 'Stories - Norwegian Dictionary';
+    history.replaceState({}, '', `${window.location.origin}${window.location.pathname}`);
+    updateURL(null, 'stories', null);
+
+    // Retrieve selected CEFR and genre filter values
+    const selectedCEFR = document.getElementById('cefr-select').value.toUpperCase().trim();
+    const selectedGenre = document.getElementById('genre-select').value.toLowerCase().trim();
+
+    // Filter stories based on selected CEFR and genre
+    let filtered = filteredStories.filter(story => {
+        const genreMatch = selectedGenre ? story.genre && story.genre.trim().toLowerCase() === selectedGenre : true;
+        const cefrMatch = selectedCEFR ? story.CEFR && story.CEFR.trim().toUpperCase() === selectedCEFR : true;
+        return genreMatch && cefrMatch;
+    });
+
+    // Shuffle the filtered stories using Fisher-Yates algorithm
+    for (let i = filtered.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+    }
+
+    // Limit the results to a maximum of 20 stories
+    const limitedStories = filtered.slice(0, 20);
+
+    // Generate HTML for the filtered, shuffled stories
     let htmlString = `
         <div class="result-header">
             <h2>Available Stories</h2>
         </div>
     `;
-
-    // Shuffle the array using Fisher-Yates algorithm
-    for (let i = filteredStories.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [filteredStories[i], filteredStories[j]] = [filteredStories[j], filteredStories[i]];
-    }
-
-    const limitedStories = filteredStories.slice(0, 20);
 
     // Use Promise.all to handle asynchronous audio checks for each story
     const storiesWithAudio = await Promise.all(
@@ -112,7 +130,7 @@ async function displayStoryList(filteredStories = storyResults) {
         })
     );
 
-    // Join the array of story HTML and add to the results container
+    // Join the generated HTML for each story and insert into results container
     htmlString += storiesWithAudio.join('');
     document.getElementById('results-container').innerHTML = htmlString;
 }
@@ -129,6 +147,11 @@ function displayStory(titleNorwegian) {
         console.error(`No story found with the title: ${titleNorwegian}`);
         return;
     }
+
+    document.title = selectedStory.titleNorwegian + ' - Norwegian Dictionary';
+
+    const newUrl = `${window.location.origin}${window.location.pathname}?story=${encodeURIComponent(titleNorwegian)}`;
+    history.pushState({ path: newUrl }, '', newUrl);
 
     clearContainer();
 
