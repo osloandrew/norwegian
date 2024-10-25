@@ -378,8 +378,27 @@ async function search() {
     showLandingCard(false);
     clearContainer(); // Clear previous results
 
-    // Handle empty search query
-    if (!query) {
+    let matchingResults;
+
+    if (type === 'stories') {
+        // If query is empty, display all stories
+        if (!query) {
+            matchingResults = storyResults;
+        } else {
+            // Filter stories based on the query in both 'titleNorwegian' and 'titleEnglish'
+            matchingResults = storyResults.filter(story => {
+                const norwegianTitleMatch = story.titleNorwegian.toLowerCase().includes(query);
+                const englishTitleMatch = story.titleEnglish.toLowerCase().includes(query);
+                return norwegianTitleMatch || englishTitleMatch;
+            });
+        }
+
+        // Render the matching stories
+        displayStoryList(matchingResults);
+    } else if (type === 'sentences') {
+
+        // Handle empty search query
+        if (!query) {
         resultsContainer.innerHTML = `
             <div class="definition error-message">
                 <h2 class="word-gender">
@@ -390,11 +409,8 @@ async function search() {
         `;
         hideSpinner();
         return;
-    }
+        }
 
-    let matchingResults;
-
-    if (type === 'sentences') {
         // If searching sentences, look for matches in both 'eksempel' and 'sentenceTranslation' fields
         matchingResults = cleanResults.filter(r => {
             return normalizedQueries.some(normQuery => {
@@ -419,6 +435,20 @@ async function search() {
         });        
         renderSentences(matchingResults, query); // Pass the query for highlighting
     } else {
+
+        // Handle empty search query
+        if (!query) {
+        resultsContainer.innerHTML = `
+            <div class="definition error-message">
+                <h2 class="word-gender">
+                    Error <span class="gender">Empty Search</span>
+                </h2>
+                <p>Please enter a word in the search field before searching.</p>
+            </div>
+        `;
+        hideSpinner();
+        return;
+        }
 
         // Filter results by query and selected POS for words
         matchingResults = cleanResults.filter(r => {
@@ -653,6 +683,7 @@ function handleTypeChange() {
     const searchContainerInner = document.getElementById('search-container-inner'); // The container to update
     const searchBarWrapper = document.getElementById('search-bar-wrapper');
     const randomBtn = document.getElementById('random-btn');
+    const englishBtn = document.getElementById('english-btn');
     
     // Retrieve selected part of speech (POS) if available
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
@@ -674,11 +705,13 @@ function handleTypeChange() {
     if (type === 'stories') {
 
         genreFilterContainer.style.display = 'inline-flex'; // Show genre dropdown in story mode
-        searchBarWrapper.style.display = 'none'; // Hide search-bar-wrapper
+        searchBarWrapper.style.display = 'inline-flex'; // Hide search-bar-wrapper
         posFilterContainer.style.display = 'none';
         randomBtn.style.display = 'none'; // Hide random button
-        searchContainerInner.style.display = 'inline-block'; // Show search container
-        
+        englishBtn.style.display = 'block'; // Hide random button
+
+        searchContainerInner.classList.remove('word-game-active');
+
         showLandingCard(false);
 
         cefrSelect.disabled = false; // Enable CEFR filter
@@ -704,7 +737,7 @@ function handleTypeChange() {
 
         searchBarWrapper.style.display = 'inline-flex';
         randomBtn.style.display = 'block';
-        searchContainerInner.style.display = 'flex';
+        englishBtn.style.display = 'none';
         
         searchContainerInner.classList.remove('word-game-active');
         gameActive = false;
@@ -736,7 +769,7 @@ function handleTypeChange() {
         // Handle "Word Game" type
         searchBarWrapper.style.display = 'none'; // Hide search-bar-wrapper
         randomBtn.style.display = 'none'; // Hide random button
-        searchContainerInner.style.display = 'inline-block'; // Set search container layout
+        englishBtn.style.display = 'none';
 
         searchContainerInner.classList.add('word-game-active'); // Indicate word game is active
 
@@ -776,7 +809,7 @@ function handleTypeChange() {
 
         searchBarWrapper.style.display = 'inline-flex'; // Show search-bar-wrapper
         randomBtn.style.display = 'block'; // Show random button
-        searchContainerInner.style.display = 'flex'; // Set search container layout
+        englishBtn.style.display = 'none';
 
         gameActive = false;
         searchContainerInner.classList.remove('word-game-active');

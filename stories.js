@@ -10,15 +10,14 @@ const genreIcons = {
     'children': '<i class="fas fa-child"></i>',           // Children’s genre icon
     'comedy': '<i class="fas fa-laugh"></i>',             // Comedy genre icon
     'crime': '<i class="fas fa-gavel"></i>',              // Crime genre icon
-    'documentary': '<i class="fas fa-film"></i>',         // Documentary genre icon
+    'dialogue': '<i class="fas fa-comments"></i>',        // Dialogue genre icon
     'drama': '<i class="fas fa-theater-masks"></i>',      // Drama genre icon
     'economics': '<i class="fas fa-chart-line"></i>',     // Economics genre icon
     'education': '<i class="fas fa-book-reader"></i>',    // Education genre icon
     'fantasy': '<i class="fas fa-dragon"></i>',           // Fantasy genre icon
     'food': '<i class="fas fa-utensils"></i>',            // Food genre icon
     'health': '<i class="fas fa-heartbeat"></i>',         // Health genre icon
-    'historical': '<i class="fas fa-landmark"></i>',      // Historical genre icon
-    'history': '<i class="fas fa-hourglass"></i>',        // History genre icon
+    'history': '<i class="fas fa-landmark"></i>',         // History genre icon
     'horror': '<i class="fas fa-ghost"></i>',             // Horror genre icon
     'mystery': '<i class="fas fa-search"></i>',           // Mystery genre icon
     'music': '<i class="fas fa-music"></i>',              // Music genre icon
@@ -36,9 +35,6 @@ const genreIcons = {
     'technology': '<i class="fas fa-microchip"></i>',     // Technology genre icon
     'thriller': '<i class="fas fa-skull"></i>',           // Thriller genre icon
     'travel': '<i class="fas fa-plane"></i>',             // Travel genre icon
-    'travelogue': '<i class="fas fa-map-marked-alt"></i>', // Travelogue genre icon
-    'war': '<i class="fas fa-fighter-jet"></i>',          // War genre icon
-    'western': '<i class="fas fa-horse"></i>',            // Western genre icon
 };
 
 // Function to load the stories CSV file
@@ -176,6 +172,22 @@ function displayStory(titleNorwegian) {
     htmlString += `</div>`;
 
     document.getElementById('results-container').innerHTML = htmlString;
+}
+
+// Function to toggle the visibility of English sentences and update Norwegian box styles
+function toggleEnglishSentences() {
+    const englishSentenceDivs = document.querySelectorAll('.stories-sentence-box-english');
+    const norwegianSentenceDivs = document.querySelectorAll('.stories-sentence-box-norwegian');
+
+    englishSentenceDivs.forEach((div, index) => {
+        if (div.style.display === 'none') {
+            div.style.display = 'block';  // Show the English div
+            norwegianSentenceDivs[index].style.borderRadius = '';  // Revert to default border-radius from CSS
+        } else {
+            div.style.display = 'none';  // Hide the English div
+            norwegianSentenceDivs[index].style.borderRadius = '12px';  // Add border-radius to Norwegian div
+        }
+    });
 }
 
 function handleGenreChange() {
