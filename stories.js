@@ -104,6 +104,7 @@ function displayStoryList(filteredStories = storyResults) {
 
 function displayStory(titleNorwegian) {
 
+    const searchContainer = document.getElementById('search-container'); // The container to update
     const searchContainerInner = document.getElementById('search-container-inner'); // The container to update
     const selectedStory = storyResults.find(story => story.titleNorwegian === titleNorwegian);
 
@@ -131,6 +132,7 @@ function displayStory(titleNorwegian) {
     `;
     
     // Insert the header HTML at the end of the search-container's current content
+    searchContainer.style.display = 'block';
     searchContainerInner.style.display = 'none';
     document.getElementById('search-container').insertAdjacentHTML('beforeend', headerHTML);
 
@@ -215,7 +217,9 @@ function handleGenreChange() {
 
 // Helper function to remove the story header
 function removeStoryHeader() {
+    const searchContainer = document.getElementById('search-container'); // The container to update
     const storyHeader = document.querySelector('.stories-story-header');
+    searchContainer.style.display = '';
     if (storyHeader) {
         storyHeader.remove();
     }

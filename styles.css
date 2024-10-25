@@ -1143,10 +1143,8 @@ main {
 }
 
 .stories-title-container {
-    text-align: center;
-    flex-grow: 1; /* Center the titles, pushing the arrow and button to the edges */
-    margin: 0 10px; /* Space between icons and titles */
-
+    flex: 1; /* Takes available space between the buttons */
+    text-align: center; /* Center text within the container */
 }
 
 .spinner {
