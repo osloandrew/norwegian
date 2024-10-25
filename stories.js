@@ -254,10 +254,12 @@ function displayStory(titleNorwegian) {
     const combineSentences = (sentences, combineIfContains) => {
         return sentences.reduce((acc, sentence) => {
             const trimmedSentence = sentence.trim();
-
-            if (acc.length > 0 && /^[a-zæøå]/.test(trimmedSentence)) {
+            const lastSentence = acc[acc.length - 1] || '';
+    
+            // Check if the previous sentence ends with a quote and the current sentence contains 'asked'
+            if (acc.length > 0 && combineIfContains && combineIfContains.test(trimmedSentence) && /["”']$/.test(lastSentence)) {
                 acc[acc.length - 1] += ' ' + trimmedSentence;
-            } else if (acc.length > 0 && combineIfContains && combineIfContains.test(trimmedSentence)) {
+            } else if (acc.length > 0 && /^[a-zæøå]/.test(trimmedSentence)) {
                 acc[acc.length - 1] += ' ' + trimmedSentence;
             } else {
                 acc.push(trimmedSentence);
@@ -265,7 +267,7 @@ function displayStory(titleNorwegian) {
             return acc;
         }, []);
     };
-
+    
     norwegianSentences = combineSentences(norwegianSentences);
     englishSentences = combineSentences(englishSentences, /\basked\b/i);
 }
