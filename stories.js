@@ -85,7 +85,7 @@ function displayStoryList(filteredStories = storyResults) {
         const genreIcon = genreIcons[story.genre.toLowerCase()] || '';  // Get the appropriate genre icon, default to empty if not found
 
         htmlString += `
-            <div class="stories-list-item" data-title="${story.titleNorwegian}" onclick="displayStory('${story.titleNorwegian}')">
+            <div class="stories-list-item" data-title="${story.titleNorwegian}" onclick="displayStory('${story.titleNorwegian.replace(/'/g, "\\'")}')">
                 <div class="stories-content">
                     <h2>${story.titleNorwegian}</h2>
                     <p class="stories-subtitle">${story.titleEnglish}</p>
@@ -108,6 +108,9 @@ function displayStory(titleNorwegian) {
     const searchContainerInner = document.getElementById('search-container-inner'); // The container to update
     const selectedStory = storyResults.find(story => story.titleNorwegian === titleNorwegian);
 
+    console.log(`Trying to display story with title: ${titleNorwegian}`);
+
+    
     if (!selectedStory) {
         console.error(`No story found with the title: ${titleNorwegian}`);
         return;
