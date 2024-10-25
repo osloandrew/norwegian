@@ -129,6 +129,7 @@ function renderStats() {
 
 async function startWordGame() {
     gameActive = true;
+    showLandingCard(false);
     hideAllBanners(); // Hide banners before starting the new word
 
     // Check if all available words have been answered correctly
@@ -321,9 +322,10 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
     let displayedWord = wordObj.ord.split(',')[0].trim();
 
     // Check if the first character is lowercase before adding the article (en, et, ei)
-    if (!/^[A-Z]/.test(displayedWord) && 
+    if (!/^[A-ZÆØÅ]/.test(displayedWord) && 
         (wordObj.gender.startsWith('en') || wordObj.gender.startsWith('et') || wordObj.gender.startsWith('ei'))) {
-        displayedWord = `${wordObj.gender} ${displayedWord}`;  // Add gender in front of the word
+        
+        displayedWord = `<span class="game-gender-style">${wordObj.gender}</span> ${displayedWord}`;
     }
 
     // Check if CEFR is selected; if not, add a label based on wordObj.CEFR
@@ -374,7 +376,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
                 ${trickyLabel}  <!-- Add the tricky word label if applicable -->
             </div>
             <div class="game-word">
-            <h2>${displayedWord}</h2>
+                <h2>${displayedWord}</h2>
             </div>
             ${spacerDiv}  <!-- Add the spacer div if CEFR label exists -->
         </div>
@@ -619,7 +621,7 @@ async function fetchRandomWord() {
     
     // If no words match the filters, return a message
     if (filteredResults.length === 0) {
-        alert('No words found matching the selected CEFR and POS filters.');
+        console.log('No words found matching the selected CEFR and POS filters.');
         return null;
     }
 

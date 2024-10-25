@@ -339,6 +339,12 @@ footer .copyright {
     height: 80px; /* Consistent height with the other cards */
 }
 
+.game-gender-style {
+    color: gray;
+    font-family: "Noto Serif", serif;
+    font-weight: 100;
+}
+
 .game-incorrect-card {
     background-color: #E9A895 !important; /* Lighter clay red for incorrect */
     color: white;
