@@ -683,7 +683,6 @@ function handleTypeChange() {
     const searchContainerInner = document.getElementById('search-container-inner'); // The container to update
     const searchBarWrapper = document.getElementById('search-bar-wrapper');
     const randomBtn = document.getElementById('random-btn');
-    const englishBtn = document.getElementById('english-btn');
     
     // Retrieve selected part of speech (POS) if available
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
@@ -698,6 +697,8 @@ function handleTypeChange() {
     const genreSelect = document.getElementById('genre-select');
     const cefrSelect = document.getElementById('cefr-select');  // Get the CEFR filter dropdown
 
+    removeStoryHeader();
+
     // Update the URL with the selected type, query, and POS
     updateURL(query, type, selectedPOS);  // This ensures the type is reflected in the URL
 
@@ -708,7 +709,6 @@ function handleTypeChange() {
         searchBarWrapper.style.display = 'inline-flex'; // Hide search-bar-wrapper
         posFilterContainer.style.display = 'none';
         randomBtn.style.display = 'none'; // Hide random button
-        englishBtn.style.display = 'block'; // Hide random button
 
         searchContainerInner.classList.remove('word-game-active');
 
@@ -737,7 +737,6 @@ function handleTypeChange() {
 
         searchBarWrapper.style.display = 'inline-flex';
         randomBtn.style.display = 'block';
-        englishBtn.style.display = 'none';
         
         searchContainerInner.classList.remove('word-game-active');
         gameActive = false;
@@ -769,7 +768,6 @@ function handleTypeChange() {
         // Handle "Word Game" type
         searchBarWrapper.style.display = 'none'; // Hide search-bar-wrapper
         randomBtn.style.display = 'none'; // Hide random button
-        englishBtn.style.display = 'none';
 
         searchContainerInner.classList.add('word-game-active'); // Indicate word game is active
 
@@ -809,7 +807,6 @@ function handleTypeChange() {
 
         searchBarWrapper.style.display = 'inline-flex'; // Show search-bar-wrapper
         randomBtn.style.display = 'block'; // Show random button
-        englishBtn.style.display = 'none';
 
         gameActive = false;
         searchContainerInner.classList.remove('word-game-active');

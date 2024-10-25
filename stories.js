@@ -69,6 +69,8 @@ function parseStoryCSVData(data) {
 }
 
 function displayStoryList(filteredStories = storyResults) {
+    restoreSearchContainerInner();
+    removeStoryHeader();
     clearContainer();  // Clear previous results
 
     let htmlString = `
@@ -101,6 +103,8 @@ function displayStoryList(filteredStories = storyResults) {
 
 
 function displayStory(titleNorwegian) {
+
+    const searchContainerInner = document.getElementById('search-container-inner'); // The container to update
     const selectedStory = storyResults.find(story => story.titleNorwegian === titleNorwegian);
 
     if (!selectedStory) {
@@ -110,17 +114,34 @@ function displayStory(titleNorwegian) {
 
     clearContainer();  // Clear the list of stories
 
+    // Create the header HTML
+    const headerHTML = `
+    <div class="stories-story-header">
+        <div class="stories-back-btn">
+            <i class="fas fa-chevron-left" onclick="displayStoryList()"></i>
+        </div>
+        <div class="stories-title-container">
+            <h2>${selectedStory.titleNorwegian}</h2>
+            <p class="stories-subtitle">${selectedStory.titleEnglish}</p>
+        </div>
+        <div class="stories-english-btn">
+            <i class="fas fa-comment-alt" onclick="toggleEnglishSentences()"></i>
+        </div>
+    </div>
+    `;
+    
+    // Insert the header HTML at the end of the search-container's current content
+    searchContainerInner.style.display = 'none';
+    document.getElementById('search-container').insertAdjacentHTML('beforeend', headerHTML);
+
     // Improved regex to handle sentence splitting, ignoring quotes and ensuring no sentence starts with lowercase letters
     const sentenceRegex = /(?:(["“”]?.+?[.!?]["“”]?)(?=\s|$))/g;
 
-    // Apply the regex to split Norwegian and English stories into sentences
     let norwegianSentences = selectedStory.norwegian.match(sentenceRegex) || [selectedStory.norwegian];
     let englishSentences = selectedStory.english.match(sentenceRegex) || [selectedStory.english];
 
-    // Function to combine sentences if they start with a lowercase letter
     const combineSentences = (sentences) => {
         return sentences.reduce((acc, sentence) => {
-            // If sentence starts with a lowercase letter, append it to the previous sentence
             if (acc.length > 0 && /^[a-zæøå]/.test(sentence.trim())) {
                 acc[acc.length - 1] += ' ' + sentence.trim();
             } else {
@@ -130,30 +151,16 @@ function displayStory(titleNorwegian) {
         }, []);
     };
 
-    // Combine Norwegian and English sentences properly
     norwegianSentences = combineSentences(norwegianSentences);
     englishSentences = combineSentences(englishSentences);
 
-    // Log the results of the splits for debugging
-    console.log('Norwegian Sentences:', norwegianSentences);
-    console.log('English Sentences:', englishSentences);
+    let contentHTML = `<div class="stories-sentences-container">`;
 
-    let htmlString = `
-    <div class="result-header">
-        <i class="fas fa-chevron-left" style="cursor: pointer;" onclick="displayStoryList()"></i> <!-- Left arrow -->
-        <h2>${selectedStory.titleNorwegian}</h2>
-    </div>
-    `;
-
-    // Add the sentences in two columns: Norwegian on the left and English on the right
-    htmlString += `<div class="stories-sentences-container">`;
-
-    // Loop through both the Norwegian and English sentences
     for (let i = 0; i < norwegianSentences.length; i++) {
         const norwegianSentence = norwegianSentences[i].trim();
         const englishSentence = englishSentences[i] ? englishSentences[i].trim() : '';
 
-        htmlString += `
+        contentHTML += `
             <div class="sentence-container">
                 <div class="stories-sentence-box-norwegian">
                     <div class="sentence-content">
@@ -169,10 +176,10 @@ function displayStory(titleNorwegian) {
         `;
     }
 
-    htmlString += `</div>`;
-
-    document.getElementById('results-container').innerHTML = htmlString;
+    contentHTML += `</div>`;
+    document.getElementById('results-container').innerHTML = contentHTML;
 }
+
 
 // Function to toggle the visibility of English sentences and update Norwegian box styles
 function toggleEnglishSentences() {
@@ -205,3 +212,18 @@ function handleGenreChange() {
     // Call displayStoryList with the filtered stories
     displayStoryList(filteredStories);
 }
+
+// Helper function to remove the story header
+function removeStoryHeader() {
+    const storyHeader = document.querySelector('.stories-story-header');
+    if (storyHeader) {
+        storyHeader.remove();
+    }
+}
+
+// Helper function to restore the inner
+function restoreSearchContainerInner() {
+    const searchContainerInner = document.getElementById('search-container-inner'); // The container to update
+    searchContainerInner.style.display = '';
+}
+
