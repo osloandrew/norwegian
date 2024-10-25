@@ -39,21 +39,25 @@ const genreIcons = {
 
 // Function to load the stories CSV file and display based on URL parameter
 async function fetchAndLoadStoryData() {
-    const cachedData = localStorage.getItem('storyData');
-    if (cachedData) {
-        parseStoryCSVData(cachedData);
-    } else {
-        try {
+    showSpinner(); // Show spinner before loading starts
+    try {
+        const cachedData = localStorage.getItem('storyData');
+        if (cachedData) {
+            parseStoryCSVData(cachedData);
+        } else {
             const response = await fetch('norwegianStories.csv');
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             const data = await response.text();
             localStorage.setItem('storyData', data); // Cache data
             parseStoryCSVData(data);
-        } catch (error) {
-            console.error('Error fetching or parsing stories CSV file:', error);
         }
+    } catch (error) {
+        console.error('Error fetching or parsing stories CSV file:', error);
+    } finally {
+        hideSpinner(); // Hide spinner after data loading completes
     }
 }
+
 
 // Parse the CSV data for stories
 function parseStoryCSVData(data) {
@@ -77,6 +81,7 @@ function parseStoryCSVData(data) {
 }
 
 async function displayStoryList(filteredStories = storyResults) {
+    showSpinner(); // Show spinner before rendering story list
     restoreSearchContainerInner();
     removeStoryHeader();
     clearContainer();  // Clear previous results
@@ -103,8 +108,8 @@ async function displayStoryList(filteredStories = storyResults) {
         [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
     }
 
-    // Limit the results to a maximum of 20 stories
-    const limitedStories = filtered.slice(0, 20);
+    // Limit the results to a maximum of 10 stories
+    const limitedStories = filtered.slice(0, 10);
 
     // Generate HTML for the filtered, shuffled stories
     let htmlString = `
@@ -141,10 +146,12 @@ async function displayStoryList(filteredStories = storyResults) {
     // Join the generated HTML for each story and insert into results container
     htmlString += storiesWithAudio.join('');
     document.getElementById('results-container').innerHTML = htmlString;
+    hideSpinner(); // Hide spinner after story list is rendered
 }
 
 
 function displayStory(titleNorwegian) {
+    showSpinner(); // Show spinner at the start of story loading
     const searchContainer = document.getElementById('search-container');
     const searchContainerInner = document.getElementById('search-container-inner');
     const selectedStory = storyResults.find(story => story.titleNorwegian === titleNorwegian);
@@ -222,6 +229,8 @@ function displayStory(titleNorwegian) {
 
         contentHTML += `</div>`;
         document.getElementById('results-container').innerHTML = contentHTML;
+        hideSpinner(); // Hide spinner after story content is displayed
+
     };
 
     // Check if the audio file exists before finalizing content
