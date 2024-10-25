@@ -1007,6 +1007,17 @@ main {
     width: 100%;
 }
 
+.stories-audio-player {
+    display: block;                  /* Ensure the audio player takes up space */
+    margin: 20px auto;               /* Center it and add margin for spacing */
+    width: 100%;                      /* Set a responsive width */
+    padding: 0;  /* Remove padding to avoid the darker background effect */
+    border-radius: 8px;              /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Add a subtle shadow for depth */
+    background-color: transparent; /* Make it match the inner color */
+    border: 1px solid #ddd;          /* Border for definition */
+}
+
 .stories-back-btn {
     color: #951b1b;
     margin-left: 20px;

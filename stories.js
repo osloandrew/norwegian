@@ -68,7 +68,7 @@ function parseStoryCSVData(data) {
     });
 }
 
-function displayStoryList(filteredStories = storyResults) {
+async function displayStoryList(filteredStories = storyResults) {
     restoreSearchContainerInner();
     removeStoryHeader();
     clearContainer();  // Clear previous results
@@ -87,25 +87,33 @@ function displayStoryList(filteredStories = storyResults) {
 
     const limitedStories = filteredStories.slice(0, 20);
 
-    // Loop through the limited, shuffled stories
-    limitedStories.forEach(story => {
-        const cefrClass = getCefrClass(story.CEFR);  // Determine the CEFR class for styling
-        const genreIcon = genreIcons[story.genre.toLowerCase()] || '';  // Get the appropriate genre icon, default to empty if not found
+    // Use Promise.all to handle asynchronous audio checks for each story
+    const storiesWithAudio = await Promise.all(
+        limitedStories.map(async (story) => {
+            const cefrClass = getCefrClass(story.CEFR);  // Determine the CEFR class for styling
+            const genreIcon = genreIcons[story.genre.toLowerCase()] || '';  // Get the appropriate genre icon
 
-        htmlString += `
-            <div class="stories-list-item" data-title="${story.titleNorwegian}" onclick="displayStory('${story.titleNorwegian.replace(/'/g, "\\'")}')">
-                <div class="stories-content">
-                    <h2>${story.titleNorwegian}</h2>
-                    ${story.titleNorwegian !== story.titleEnglish ? `<p class="stories-subtitle">${story.titleEnglish}</p>` : ''}
-                </div>
-                <div class="stories-detail-container"> <!-- Flex container for genre and CEFR -->
-                    <div class="stories-genre">${genreIcon}</div>  <!-- Genre icon -->
-                    <div class="game-cefr-label ${cefrClass}">${story.CEFR}</div>  <!-- CEFR label on the right -->
-                </div>
-            </div>
-        `;
-    });
+            // Check if audio file exists asynchronously
+            const audioExists = await hasAudio(story.titleNorwegian);
 
+            return `
+                <div class="stories-list-item" data-title="${story.titleNorwegian}" onclick="displayStory('${story.titleNorwegian.replace(/'/g, "\\'")}')">
+                    <div class="stories-content">
+                        <h2>${story.titleNorwegian}</h2>
+                        ${story.titleNorwegian !== story.titleEnglish ? `<p class="stories-subtitle">${story.titleEnglish}</p>` : ''}
+                    </div>
+                    <div class="stories-detail-container">
+                        ${audioExists ? `<div class="stories-genre"><i class="fas fa-volume-up"></i></div>` : ''}  <!-- Audio icon if available -->
+                        <div class="stories-genre">${genreIcon}</div>  <!-- Genre icon -->
+                        <div class="game-cefr-label ${cefrClass}">${story.CEFR}</div>  <!-- CEFR label -->
+                    </div>
+                </div>
+            `;
+        })
+    );
+
+    // Join the array of story HTML and add to the results container
+    htmlString += storiesWithAudio.join('');
     document.getElementById('results-container').innerHTML = htmlString;
 }
 
@@ -143,11 +151,61 @@ function displayStory(titleNorwegian) {
     searchContainerInner.style.display = 'none';
     document.getElementById('search-container').insertAdjacentHTML('beforeend', headerHTML);
 
-    // Standardize quotation marks by replacing curly and angled quotes with straight quotes
+    // Check for the audio file
+    const audioFileName = `audio-${titleNorwegian}.m4a`;
+    const audioFileURL = `${audioFileName}`;  // Adjust path as needed
+    const audioHTML = `<audio controls src="${audioFileURL}" class="stories-audio-player"></audio>`;
+
+    // Set up the audio file handling
+    const audio = new Audio(audioFileURL);
+
+    // Generate content with sentences and optionally include the audio player
+    let contentHTML = `<div class="stories-sentences-container">`;
+
+    // Function to finalize and display the story content, with or without audio
+    const finalizeContent = (includeAudio = false) => {
+        if (includeAudio) {
+            contentHTML = audioHTML + contentHTML;
+        }
+
+        // Loop to create sentence display
+        for (let i = 0; i < norwegianSentences.length; i++) {
+            const norwegianSentence = norwegianSentences[i].trim();
+            const englishSentence = englishSentences[i] ? englishSentences[i].trim() : '';
+
+            contentHTML += `
+                <div class="sentence-container">
+                    <div class="stories-sentence-box-norwegian">
+                        <div class="sentence-content">
+                            <p class="sentence">${norwegianSentence}</p>
+                        </div>
+                    </div>
+                    <div class="stories-sentence-box-english">
+                        <div class="sentence-content">
+                            <p class="sentence">${englishSentence}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        contentHTML += `</div>`;
+        document.getElementById('results-container').innerHTML = contentHTML;
+    };
+
+    // Check if the audio file exists before finalizing content
+    audio.onerror = () => {
+        console.log(`No audio file found for: ${audioFileName}`);
+        finalizeContent(false);  // Display without audio
+    };
+    audio.onloadedmetadata = () => {
+        console.log(`Audio file found: ${audioFileName}`);
+        finalizeContent(true);  // Display with audio
+    };
+
+    // Process story text into sentences
     const standardizedNorwegian = selectedStory.norwegian.replace(/[“”«»]/g, '"');
     const standardizedEnglish = selectedStory.english.replace(/[“”«»]/g, '"');
-
-    // Improved regex to handle sentence splitting, now that all quotes are standardized
     const sentenceRegex = /(?:(["]?.+?[.!?…]["]?)(?=\s|$)|(?:\.\.\."))/g;
 
     let norwegianSentences = standardizedNorwegian.match(sentenceRegex) || [standardizedNorwegian];
@@ -157,51 +215,19 @@ function displayStory(titleNorwegian) {
         return sentences.reduce((acc, sentence) => {
             const trimmedSentence = sentence.trim();
 
-            // If the sentence starts with lowercase (continuing sentence), combine with the previous one
             if (acc.length > 0 && /^[a-zæøå]/.test(trimmedSentence)) {
                 acc[acc.length - 1] += ' ' + trimmedSentence;
-            } 
-            // If "asked" appears in the English sentence, combine it with the previous one
-            else if (acc.length > 0 && combineIfContains && combineIfContains.test(trimmedSentence)) {
+            } else if (acc.length > 0 && combineIfContains && combineIfContains.test(trimmedSentence)) {
                 acc[acc.length - 1] += ' ' + trimmedSentence;
-            } 
-            // Otherwise, push as a new sentence
-            else {
+            } else {
                 acc.push(trimmedSentence);
             }
-
             return acc;
         }, []);
     };
 
-    // Apply combine logic to Norwegian sentences normally, and to English sentences with "asked" rule
     norwegianSentences = combineSentences(norwegianSentences);
     englishSentences = combineSentences(englishSentences, /\basked\b/i);
-
-    let contentHTML = `<div class="stories-sentences-container">`;
-
-    for (let i = 0; i < norwegianSentences.length; i++) {
-        const norwegianSentence = norwegianSentences[i].trim();
-        const englishSentence = englishSentences[i] ? englishSentences[i].trim() : '';
-
-        contentHTML += `
-            <div class="sentence-container">
-                <div class="stories-sentence-box-norwegian">
-                    <div class="sentence-content">
-                        <p class="sentence">${norwegianSentence}</p>
-                    </div>
-                </div>
-                <div class="stories-sentence-box-english">
-                    <div class="sentence-content">
-                        <p class="sentence">${englishSentence}</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    contentHTML += `</div>`;
-    document.getElementById('results-container').innerHTML = contentHTML;
 }
 
 
@@ -253,3 +279,16 @@ function restoreSearchContainerInner() {
     searchContainerInner.style.display = '';
 }
 
+// Async function to check if audio file exists
+async function hasAudio(titleNorwegian) {
+    const audioFileName = `audio-${titleNorwegian}.m4a`;
+    const audioFileURL = `${audioFileName}`;  // Adjust to the correct path
+
+    try {
+        const response = await fetch(audioFileURL, { method: 'HEAD', cache: 'no-cache' });
+        return response.ok;  // true if the audio file exists, false if not
+    } catch (error) {
+        console.error(`Error checking audio file for ${titleNorwegian}:`, error);
+        return false;
+    }
+}
