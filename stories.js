@@ -101,24 +101,20 @@ function displayStoryList(filteredStories = storyResults) {
     document.getElementById('results-container').innerHTML = htmlString;
 }
 
-
 function displayStory(titleNorwegian) {
-
-    const searchContainer = document.getElementById('search-container'); // The container to update
-    const searchContainerInner = document.getElementById('search-container-inner'); // The container to update
+    const searchContainer = document.getElementById('search-container');
+    const searchContainerInner = document.getElementById('search-container-inner');
     const selectedStory = storyResults.find(story => story.titleNorwegian === titleNorwegian);
 
     console.log(`Trying to display story with title: ${titleNorwegian}`);
 
-    
     if (!selectedStory) {
         console.error(`No story found with the title: ${titleNorwegian}`);
         return;
     }
 
-    clearContainer();  // Clear the list of stories
+    clearContainer();
 
-    // Create the header HTML
     const headerHTML = `
     <div class="stories-story-header">
         <div class="stories-back-btn">
@@ -133,31 +129,45 @@ function displayStory(titleNorwegian) {
         </div>
     </div>
     `;
-    
-    // Insert the header HTML at the end of the search-container's current content
+
     searchContainer.style.display = 'block';
     searchContainerInner.style.display = 'none';
     document.getElementById('search-container').insertAdjacentHTML('beforeend', headerHTML);
 
-    // Improved regex to handle sentence splitting, ignoring quotes and ensuring no sentence starts with lowercase letters
-    const sentenceRegex = /(?:(["“”]?.+?[.!?]["“”]?)(?=\s|$))/g;
+    // Standardize quotation marks by replacing curly and angled quotes with straight quotes
+    const standardizedNorwegian = selectedStory.norwegian.replace(/[“”«»]/g, '"');
+    const standardizedEnglish = selectedStory.english.replace(/[“”«»]/g, '"');
 
-    let norwegianSentences = selectedStory.norwegian.match(sentenceRegex) || [selectedStory.norwegian];
-    let englishSentences = selectedStory.english.match(sentenceRegex) || [selectedStory.english];
+    // Improved regex to handle sentence splitting, now that all quotes are standardized
+    const sentenceRegex = /(?:(["]?.+?[.!?…]["]?)(?=\s|$)|(?:\.\.\."))/g;
 
-    const combineSentences = (sentences) => {
+    let norwegianSentences = standardizedNorwegian.match(sentenceRegex) || [standardizedNorwegian];
+    let englishSentences = standardizedEnglish.match(sentenceRegex) || [standardizedEnglish];
+
+    const combineSentences = (sentences, combineIfContains) => {
         return sentences.reduce((acc, sentence) => {
-            if (acc.length > 0 && /^[a-zæøå]/.test(sentence.trim())) {
-                acc[acc.length - 1] += ' ' + sentence.trim();
-            } else {
-                acc.push(sentence.trim());
+            const trimmedSentence = sentence.trim();
+
+            // If the sentence starts with lowercase (continuing sentence), combine with the previous one
+            if (acc.length > 0 && /^[a-zæøå]/.test(trimmedSentence)) {
+                acc[acc.length - 1] += ' ' + trimmedSentence;
+            } 
+            // If "asked" appears in the English sentence, combine it with the previous one
+            else if (acc.length > 0 && combineIfContains && combineIfContains.test(trimmedSentence)) {
+                acc[acc.length - 1] += ' ' + trimmedSentence;
+            } 
+            // Otherwise, push as a new sentence
+            else {
+                acc.push(trimmedSentence);
             }
+
             return acc;
         }, []);
     };
 
+    // Apply combine logic to Norwegian sentences normally, and to English sentences with "asked" rule
     norwegianSentences = combineSentences(norwegianSentences);
-    englishSentences = combineSentences(englishSentences);
+    englishSentences = combineSentences(englishSentences, /\basked\b/i);
 
     let contentHTML = `<div class="stories-sentences-container">`;
 
