@@ -39,21 +39,20 @@ const genreIcons = {
 
 // Function to load the stories CSV file and display based on URL parameter
 async function fetchAndLoadStoryData() {
-    return new Promise(async (resolve, reject) => {
+    const cachedData = localStorage.getItem('storyData');
+    if (cachedData) {
+        parseStoryCSVData(cachedData);
+    } else {
         try {
-            console.log('Attempting to load stories from norwegianStories.csv...');
             const response = await fetch('norwegianStories.csv');
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             const data = await response.text();
-            
-            // Parse CSV data and resolve when done
+            localStorage.setItem('storyData', data); // Cache data
             parseStoryCSVData(data);
-            resolve();
         } catch (error) {
             console.error('Error fetching or parsing stories CSV file:', error);
-            reject(error);
         }
-    });
+    }
 }
 
 // Parse the CSV data for stories
@@ -61,14 +60,17 @@ function parseStoryCSVData(data) {
     Papa.parse(data, {
         header: true,
         skipEmptyLines: true,
-        complete: function (resultsFromParse) {
-            storyResults = resultsFromParse.data.map(entry => {
-                entry.titleNorwegian = entry.titleNorwegian.trim();  // Ensure the title is trimmed
+        chunkSize: 1024, // Parse in chunks to improve performance
+        chunk: function(results, parser) {
+            storyResults.push(...results.data.map(entry => {
+                entry.titleNorwegian = entry.titleNorwegian.trim();
                 return entry;
-            });
+            }));
+        },
+        complete: function() {
             console.log('Parsed and cleaned story data:', storyResults);
         },
-        error: function (error) {
+        error: function(error) {
             console.error('Error parsing story CSV:', error);
         }
     });
@@ -163,7 +165,7 @@ function displayStory(titleNorwegian) {
         const headerHTML = `
             <div class="stories-story-header">
                 <div class="stories-back-btn">
-                    <i class="fas fa-chevron-left" onclick="displayStoryList()"></i>
+                    <i class="fas fa-chevron-left" onclick="storiesBackBtn()"></i>
                 </div>
                 <div class="stories-title-container">
                     <h2>${selectedStory.titleNorwegian}</h2>
@@ -292,6 +294,11 @@ function handleGenreChange() {
 
     // Call displayStoryList with the filtered stories
     displayStoryList(filteredStories);
+}
+
+function storiesBackBtn(){
+    handleTypeChange();
+    displayStoryList();
 }
 
 // Helper function to remove the story header

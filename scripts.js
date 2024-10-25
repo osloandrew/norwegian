@@ -706,6 +706,8 @@ function handleTypeChange() {
     if (type === 'stories') {
 
         genreFilterContainer.style.display = 'inline-flex'; // Show genre dropdown in story mode
+        genreSelect.value = '';  // Reset to default genre
+
         searchBarWrapper.style.display = 'inline-flex'; // Hide search-bar-wrapper
         posFilterContainer.style.display = 'none';
         randomBtn.style.display = 'none'; // Hide random button
