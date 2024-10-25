@@ -1056,6 +1056,7 @@ main {
     display: flex;          /* Use flexbox layout */
     flex-direction: row;    /* Align items in a row */
     align-items: center;    /* Align vertically in the center */
+    margin-left: 10px;
 }
 
 .stories-genre {
@@ -1071,7 +1072,7 @@ main {
     font-family: 'Noto Sans', sans-serif;
     white-space: nowrap;                  /* Prevent text wrapping */
     margin-bottom: 5px;                  /* Space between the label and the word */
-    margin-right: 10px;     /* Add some space between genre and CEFR label */
+    margin-right: 5px;     /* Add some space between genre and CEFR label */
     min-width: 17.5px;
     user-select: none;  /* Prevent text selection */
 }
@@ -1141,7 +1142,7 @@ main {
     font-size: 14px !important;
     font-weight: 400;
     color: #5a1a1a !important;
-    margin: 0;
+    margin: 0 !important;
 }
 
 .stories-story-header {
