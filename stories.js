@@ -79,8 +79,17 @@ function displayStoryList(filteredStories = storyResults) {
         </div>
     `;
 
-    // Loop through either the filtered stories or all stories if no filter is applied
-    filteredStories.forEach(story => {
+    // Shuffle the array using Fisher-Yates algorithm
+    for (let i = filteredStories.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [filteredStories[i], filteredStories[j]] = [filteredStories[j], filteredStories[i]];
+    }
+
+    // Limit to 10 stories
+    const limitedStories = filteredStories.slice(0, 10);
+
+    // Loop through the limited, shuffled stories
+    limitedStories.forEach(story => {
         const cefrClass = getCefrClass(story.CEFR);  // Determine the CEFR class for styling
         const genreIcon = genreIcons[story.genre.toLowerCase()] || '';  // Get the appropriate genre icon, default to empty if not found
 
@@ -100,6 +109,7 @@ function displayStoryList(filteredStories = storyResults) {
 
     document.getElementById('results-container').innerHTML = htmlString;
 }
+
 
 function displayStory(titleNorwegian) {
     const searchContainer = document.getElementById('search-container');
