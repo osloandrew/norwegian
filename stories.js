@@ -85,8 +85,7 @@ function displayStoryList(filteredStories = storyResults) {
         [filteredStories[i], filteredStories[j]] = [filteredStories[j], filteredStories[i]];
     }
 
-    // Limit to 10 stories
-    const limitedStories = filteredStories.slice(0, 10);
+    const limitedStories = filteredStories.slice(0, 20);
 
     // Loop through the limited, shuffled stories
     limitedStories.forEach(story => {
@@ -97,7 +96,7 @@ function displayStoryList(filteredStories = storyResults) {
             <div class="stories-list-item" data-title="${story.titleNorwegian}" onclick="displayStory('${story.titleNorwegian.replace(/'/g, "\\'")}')">
                 <div class="stories-content">
                     <h2>${story.titleNorwegian}</h2>
-                    <p class="stories-subtitle">${story.titleEnglish}</p>
+                    ${story.titleNorwegian !== story.titleEnglish ? `<p class="stories-subtitle">${story.titleEnglish}</p>` : ''}
                 </div>
                 <div class="stories-detail-container"> <!-- Flex container for genre and CEFR -->
                     <div class="stories-genre">${genreIcon}</div>  <!-- Genre icon -->
@@ -132,7 +131,7 @@ function displayStory(titleNorwegian) {
         </div>
         <div class="stories-title-container">
             <h2>${selectedStory.titleNorwegian}</h2>
-            <p class="stories-subtitle">${selectedStory.titleEnglish}</p>
+            ${selectedStory.titleNorwegian !== selectedStory.titleEnglish ? `<p class="stories-subtitle">${selectedStory.titleEnglish}</p>` : ''}
         </div>
         <div class="stories-english-btn">
             <i class="fas fa-comment-alt" onclick="toggleEnglishSentences()"></i>
