@@ -986,10 +986,12 @@ main {
 .sentence-box-english {
     color: gray;
     border-radius: 0 12px 12px 0; /* Rounded corners on bottom */
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .sentence-box-norwegian {
     border-radius: 12px 0 0 12px; /* Rounded corners on top */
+    box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .sentence-container {
@@ -1106,7 +1108,6 @@ main {
 .stories-sentence-box-english, .stories-sentence-box-norwegian {
     background-color: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 10px;
     padding: 10px 15px 10px 15px;
     width: 100%;
@@ -1121,10 +1122,12 @@ main {
 .stories-sentence-box-english {
     color: gray;
     border-radius: 0 12px 12px 0; /* Rounded corners on bottom */
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .stories-sentence-box-norwegian {
     border-radius: 12px 0 0 12px; /* Rounded corners on top */
+    box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .stories-subtitle {
@@ -1537,11 +1540,13 @@ main {
     .sentence-box-english {
         border-radius: 0 0 12px 12px; /* Rounded corners on bottom */
         padding: 5px 10px 5px 38px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
     .sentence-box-norwegian {
         border-radius: 12px 12px 0 0; /* Rounded corners on top */
         padding: 5px 10px 5px 10px;
+        box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
     }
 
     .sentence-container {
@@ -1567,11 +1572,13 @@ main {
     .stories-sentence-box-english {
         border-radius: 0 0 12px 12px; /* Rounded corners on bottom */
         padding: 5px 10px 5px 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
     .stories-sentence-box-norwegian {
         border-radius: 12px 12px 0 0; /* Rounded corners on top */
         padding: 5px 10px 5px 10px;
+        box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
     }
 
     .stories-story-header h2 {
