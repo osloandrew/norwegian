@@ -263,9 +263,11 @@ function toggleEnglishSentences() {
         if (div.style.display === 'none') {
             div.style.display = 'block';  // Show the English div
             norwegianSentenceDivs[index].style.borderRadius = '';  // Revert to default border-radius from CSS
+            norwegianSentenceDivs[index].style.boxShadow = '';  // Add border-radius to Norwegian div
         } else {
             div.style.display = 'none';  // Hide the English div
             norwegianSentenceDivs[index].style.borderRadius = '12px';  // Add border-radius to Norwegian div
+            norwegianSentenceDivs[index].style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.1)';  // Add border-radius to Norwegian div
         }
     });
 }
