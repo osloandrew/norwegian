@@ -1645,32 +1645,54 @@ function prioritizeResults(results, query, key) {
 }
 
 // Update URL based on current search parameters
-function updateURL(query, type, selectedPOS) {
+function updateURL(query, type, selectedPOS, story = null) {
     const url = new URL(window.location);
 
+    // Set or remove the query parameter
     if (query) {
         url.searchParams.set('query', query);
     } else {
         url.searchParams.delete('query');
     }
 
-    url.searchParams.set('type', type);  // Always set the type in the URL
+    // Always set the type parameter in the URL
+    if (type) {
+        url.searchParams.set('type', type);
+    } else {
+        url.searchParams.delete('type');
+    }
 
+    // Set or remove the POS parameter
     if (selectedPOS) {
         url.searchParams.set('pos', selectedPOS);
     } else {
         url.searchParams.delete('pos');
     }
 
+    // Set or remove the story parameter
+    if (story) {
+        url.searchParams.set('story', story);
+    } else {
+        url.searchParams.delete('story');
+    }
+
+    // Update the URL without reloading the page
     window.history.pushState({}, '', url);
 }
 
-// Load the state from the URL and trigger the appropriate search
+// Load the state from the URL and trigger the appropriate search or display
 function loadStateFromURL() {
     const url = new URL(window.location);
     const query = url.searchParams.get('query') || '';  // Default to an empty query if not present
     const type = url.searchParams.get('type') || 'words';  // Default to 'words' if not specified
     const selectedPOS = url.searchParams.get('pos') || '';  // Default to empty POS if not present
+    const storyTitle = url.searchParams.get('story');  // Check for a specific story parameter
+
+    // If there's a story in the URL, display that story and exit
+    if (storyTitle) {
+        displayStory(decodeURIComponent(storyTitle));  // Display the specific story
+        return;  // Exit function as story is being displayed
+    }
 
     // Set the search bar and type select based on the URL parameters
     document.getElementById('search-bar').value = query;
@@ -1681,18 +1703,18 @@ function loadStateFromURL() {
         document.getElementById('pos-select').value = selectedPOS;
     }
 
-    // Only call handleTypeChange if the type is not "words"
-    if (type !== 'words') {
-        handleTypeChange();
+    // Handle type-specific actions
+    if (type === 'word-game') {
+        startWordGame();  // Start word game directly if type is set to word-game
+    } else if (type !== 'words') {
+        handleTypeChange();  // Call handleTypeChange for types other than 'words'
     }
-    // If there's a query in the URL, trigger a search; otherwise, show the landing page
+
+    // Perform a search if a query is specified; otherwise, show the landing page
     if (query) {
         search();  // Perform the search based on the URL state
-    } else if (type === 'word-game') {
-        // If it's the word game, start it directly (the landing card is already hidden in handleTypeChange)
-        startWordGame();
-    } else {
-        showLandingCard(true);  // Show landing card if no query
+    } else if (type === 'words') {
+        showLandingCard(true);  // Show landing card if no query and type is 'words'
     }
 }
 

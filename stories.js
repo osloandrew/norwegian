@@ -37,17 +37,23 @@ const genreIcons = {
     'travel': '<i class="fas fa-plane"></i>',             // Travel genre icon
 };
 
-// Function to load the stories CSV file
+// Function to load the stories CSV file and display based on URL parameter
 async function fetchAndLoadStoryData() {
-    try {
-        console.log('Attempting to load stories from norwegianStories.csv...');
-        const response = await fetch('norwegianStories.csv');
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        const data = await response.text();
-        parseStoryCSVData(data);  // Parse the CSV data
-    } catch (error) {
-        console.error('Error fetching or parsing stories CSV file:', error);
-    }
+    return new Promise(async (resolve, reject) => {
+        try {
+            console.log('Attempting to load stories from norwegianStories.csv...');
+            const response = await fetch('norwegianStories.csv');
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            const data = await response.text();
+            
+            // Parse CSV data and resolve when done
+            parseStoryCSVData(data);
+            resolve();
+        } catch (error) {
+            console.error('Error fetching or parsing stories CSV file:', error);
+            reject(error);
+        }
+    });
 }
 
 // Parse the CSV data for stories
@@ -149,30 +155,30 @@ function displayStory(titleNorwegian) {
     }
 
     document.title = selectedStory.titleNorwegian + ' - Norwegian Dictionary';
-
-    const newUrl = `${window.location.origin}${window.location.pathname}?story=${encodeURIComponent(titleNorwegian)}`;
-    history.pushState({ path: newUrl }, '', newUrl);
+    updateURL(null, 'story', null, titleNorwegian);  // Update URL with story parameter
 
     clearContainer();
 
-    const headerHTML = `
-    <div class="stories-story-header">
-        <div class="stories-back-btn">
-            <i class="fas fa-chevron-left" onclick="displayStoryList()"></i>
-        </div>
-        <div class="stories-title-container">
-            <h2>${selectedStory.titleNorwegian}</h2>
-            ${selectedStory.titleNorwegian !== selectedStory.titleEnglish ? `<p class="stories-subtitle">${selectedStory.titleEnglish}</p>` : ''}
-        </div>
-        <div class="stories-english-btn">
-            <i class="fas fa-comment-alt" onclick="toggleEnglishSentences()"></i>
-        </div>
-    </div>
-    `;
+    if (!document.querySelector('.stories-story-header')) {
+        const headerHTML = `
+            <div class="stories-story-header">
+                <div class="stories-back-btn">
+                    <i class="fas fa-chevron-left" onclick="displayStoryList()"></i>
+                </div>
+                <div class="stories-title-container">
+                    <h2>${selectedStory.titleNorwegian}</h2>
+                    ${selectedStory.titleNorwegian !== selectedStory.titleEnglish ? `<p class="stories-subtitle">${selectedStory.titleEnglish}</p>` : ''}
+                </div>
+                <div class="stories-english-btn">
+                    <i class="fas fa-comment-alt" onclick="toggleEnglishSentences()"></i>
+                </div>
+            </div>
+        `;
 
-    searchContainer.style.display = 'block';
-    searchContainerInner.style.display = 'none';
-    document.getElementById('search-container').insertAdjacentHTML('beforeend', headerHTML);
+        searchContainer.style.display = 'block';
+        searchContainerInner.style.display = 'none';
+        document.getElementById('search-container').insertAdjacentHTML('beforeend', headerHTML);
+    }
 
     // Check for the audio file
     const audioFileName = `audio-${titleNorwegian}.m4a`;
@@ -317,3 +323,11 @@ async function hasAudio(titleNorwegian) {
         return false;
     }
 }
+
+// Initialization on page load
+window.addEventListener('DOMContentLoaded', async () => {
+    // Load the story data and wait for it to complete
+    await fetchAndLoadStoryData();    
+    // Now that the data is loaded, check the URL and display based on the URL parameters
+    loadStateFromURL();
+});
