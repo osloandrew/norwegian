@@ -2868,6 +2868,7 @@ equator,B2,en,ekvator,,Latin,"tenkt sirkellinje rundt jordkloden, eller annen kl
 elasticity,B2,en,elastisitet,,Greek via Latin,det å være elastisk; fleksibilitet; evne og vilje til å tilpasse seg; det å være smidig,,
 elastic,B2,adjective,elastisk,,Greek,"som gjenvinner formen sin etter å ha vært tøyd eller sammentrykt, tøyelig",,
 electric car,B1,en,elbil ,,Greek,elektrisk drevet bil,De første prototypene av norsk-produserte elbiler kommer neste år.,The first prototypes of Norwegian-produced electric cars will arrive next year.
+ancient,,adjective,"eldgammel, eldgammal",,,svært gammel; urgammel,,
 elder care,B2,ei,eldreomsorg,,,sosialomsorg som omfatter alderspensjonister,Eldreomsorgen er et offentlig ansvar.,Care for the elderly is a public responsibility.
 elephant,A2,en,elefant,[elefa´nt],Greek,svært stort pattedyr med to store støttenner og snabel i familien Elephantidae av ordenen Proboscidea,Elefanten løftet snabelen for å drikke vann.,The elephant lifted its trunk to drink water.
 the elephant in the room,B2,expression,elefanten i rommet,,Greek,"det alle vet, men som ingen snakker om; et problem eller en risiko ingen vil diskutere",,
@@ -2903,6 +2904,7 @@ elitism,B2,en,elitisme,,Latin via French,"dyrking, favorisering av eliten, elite
 elitist,B2,en,elitist,,Latin via French,"tilhenger av elitisme",,
 or,A1,conjunction,eller,[e´l:ər],"Old Norse: ellar, elligar",brukt for å sideordne to ledd som gjensidig utelukker hverandre,De kommer med buss eller tog.,They arrive by bus or train.
 "otherwise, or else",A2,adverb,ellers,[e´l:əʃ],"Old Norse: ellar, elligar",i motsatt fall; i andre tilfeller; vanligvis,"Vi må gå, ellers kommer vi for sent.",We have to go or we'll be late.
+eleven,,numeral,elleve,,Old Norse: ellifu,"grunntallet 11",,
 eleventh,A2,adjective,ellevte,,Old Norse: ellifti,som er nummer elleve i en rekkefølge; ordenstall til elleve (11.),Laget ligger på ellevte plass. Prosjektet er inne i sitt ellevte år. Det var ellevte gang hun besøkte byen.,The team is in eleventh place. The project is in its eleventh year. It was the eleventh time she visited the city.
 electric motor,B2,en,elmotor ,,Greek,"elektrisk motor",,
 love,B2,en,elsk,,Old Norse: elska,"kjærlighet, godhet; sterk interesse",,
@@ -6968,6 +6970,7 @@ the ... the,A1,adverb,jo,,,brukt ved sammenstilling av to komparativer,"Jo mer v
 "job, work",A1,en,jobb,[jåb:],English: job,lønnet virksomhet; arbeid,Jeg har glemt veska mi på jobben.,I forgot my bag at work.
 "work, do",A1,verb,jobbe,[jå`b:ə],English: job,ha jobb; arbeide,"Veldig bra jobbet, alle sammen.","Very good work, everyone."
 Jewish person,B1,en,jøde,[jø:`də],Hebrew via Latin via German via Old Norse: júði,etterkommer av et semittisk folk som i oldtiden bodde i Palestina; person som bekjenner seg til den jødiske religionen,Han er jøde og feirer jødiske høytider med familien.,He is Jewish and celebrates Jewish holidays with his family.
+Judaism,,en,jødedom,,,jødisk religion og kultur,,
 antisemitism,B2,et,jødehat,,Hebrew via Latin via German via Old Norse,hat mot jøder og jødedom,Jødehat er en forferdelig form for diskriminering og hat som ikke har plass i vårt samfunn.,Jew-hatred is a terrible form of discrimination and hatred that has no place in our society.
 Jewish,B1,adjective,jødisk,,Hebrew via Latin via German via Old Norse,som hører til eller gjelder jøder eller jødedom,De besøkte et jødisk museum for å lære mer om historien.,They visited a Jewish museum to learn more about its history.
 jog,A2,en,jogg,,English: jog,det å jogge; jogging,Jeg tok en lett jogg i parken i morges.,I went for a light jog in the park this morning.
@@ -9016,6 +9019,7 @@ maneuver,B2,en,manøver,[manø:´vər],Latin via French,bevegelse for å endre f
 maneuver,B2,verb,manøvrere,[manøvre:´rə],Latin via French,styre; gjøre manøvrer; flytte,Båten er lett å manøvrere.,The boat is easy to maneuver.
 cuff,B2,en,mansjett ,[manʃe´t:],Latin via French,(bred) linning nederst på et erme; krage på lysestake eller stempel,,
 cufflink,B2,en,mansjettknapp ,,Latin via French,knapp til å holde en mansjett sammen,,
+manual,,adjective,manuell,,Latin via French,som blir gjort eller betjent med hendene,,
 script,B1,et,manus,[ma:´nus],Latin,kortord for manuskript,,
 manuscript,B2,et,manuskript,[manuskri´pt],Latin,"hånd- eller maskinskrevet tekst som skal trykkes, lages film etter eller fremføres muntlig",,
 folder,A2,ei,mappe ,[ma`p:ə],Latin,"stivt omslag til papirer, tegninger eller lignende",Hun la alle dokumentene i en rød mappe.,She put all the documents in a red folder.
@@ -11760,6 +11764,7 @@ raise a question,B2,expression,reise et spørsmål,,Old Norse,"stille et spørsm
 stand up,A2,expression,reise seg,,Old Norse,"rette seg opp, stå opp; gjøre motstand","Da han kom inn i rommet, reiste alle seg for å ønske ham velkommen.","When he entered the room, everyone stood up to welcome him."
 travel agency,B1,et,reisebyrå,,German,"byrå som gir hjelp til å planlegge reiser, ordner billetter, bestiller plass og så videre",,
 travel destination,B1,et,reisemål,,German,"stedet en skal reise til",,
+"traveler, passenger",,en,reisende,,,person som er på reise; passasjer; person som tilhører romanifolket; tater; handelsreisende,Det var mange reisende med toget.,There were many travelers on the train.
 traveling time,B1,ei,reisetid,,German,tid det tar å reise en bestemt strekning,,
 "shrimp, prawn",A2,ei,reke,,,"dypvannsreke; tifotkreps med langstrakt kropp og fem beinpar, stor halevifte og hornaktig skall; Caridea",Hun bestilte en salat med reker til lunsj.,She ordered a shrimp salad for lunch.
 "row, line",B1,ei,rekke,,Old Norse: rekja,"rad, linje",,
@@ -12210,6 +12215,7 @@ characterize,C,verb,særprege,,Old Norse,"særmerke, kjennetegne",Den gamle byen
 "special, separate",B2,adjective,særskilt,,Old Norse,spesiell,Dette er en særskilt anledning som krever finere klær.,This is a special occasion that calls for finer clothes.
 special position,C,ei,særstilling,,Old Norse,"særegen stilling, unntaksstilling",Han har en spesiell særstilling i samfunnet på grunn av sin jobb.,He has a special position in society because of his job.
 special characteristic,C,et,særtrekk,,Old Norse,karakteristisk trekk,Hennes måte å snakke på var et særtrekk som folk la merke til.,Her way of speaking was a distinctive feature that people noticed.
+safari,,en,safari,,Arabic,"ekspedisjon (opprinnelig i Afrika) for å se på eller drive jakt på ville dyr",,
 juice,A2,ei,saft,,German,"væske som fins i planter, bær og frukt; frodighet, kraft, livskraft",Saften fra appelsinen smakte friskt og søtt.,The juice from the orange tasted fresh and sweet.
 juicy,B2,adjective,saftfull,,German,"full av saft, saftig",Appelsinene var saftfulle og fulle av smak.,The oranges were juicy and full of flavor.
 juicy,B1,adjective,saftig,,German,"saftfull; kraftig, djerv, drøy",Frukten var saftig og deilig å spise.,The fruit was juicy and delicious to eat.
@@ -12259,6 +12265,7 @@ live-in partner,B1,en,samboer,,Old Norse,partner som en bor sammen med uten å v
 in agreement,B2,adjective,samd,[samd],Old Norse,"enig",,
 unanimous,C,adjective,samdrektig,,Old Norse,"enig, enstemmig",,
 unity,C,ei,samdrektighet,,Old Norse,"enighet og harmoni",,
+Sami person,,en,same,,Sami: sápmi,"person som hører til et urfolk som tradisjonelt har vært bosatt i Norge (fra Femundsmarka og nordover), i de nordlige delene av Sverige og Finland og på Kolahalvøya",Mange samer bor i byene. Samene i Norge har blitt utsatt for en hard fornorskingspolitikk.,Many Sami live in the cities. The Sami in Norway have been subjected to a harsh Norwegianization policy.
 coexistence,B2,en,sameksistens ,,Old Norse,"det å leve side om side uten å komme i strid, særlig om forholdet mellom stater og folkegrupper med motstridende ideologi og ulike samfunnsformer",Øst og vest må kunne leve i fredelig sameksistens.,East and West must be able to live in peaceful coexistence.
 "transit, communications",B2,ei,samferdsel ,,Old Norse,"ferdsel, samkvem mellom to eller flere steder",,
 transit minister,B2,en,samferdselsminister ,,Old Norse,"statsråd, minister som leder et samferdselsdepartement",,
@@ -12279,6 +12286,8 @@ unity,B2,et,samhold,,Old Norse,"det å holde sammen, enighet",Det var et godt sa
 connected,B2,adjective,samhørig,[sa`mhøri],Old Norse,som hører sammen,,
 togetherness,B2,ei,samhørighet,,Old Norse,følelse eller tilstand av nært fellesskap med noen,,
 sympathy,C,en,samhug,,Old Norse,"samfølelse, sympati",,
+Sami,,en-et,samisk,,Sami,"finsk-ugrisk språkgruppe hovedsakelig brukt av samer i Nord-Skandinavia, Nord-Finland og til dels i Russland",Samisk har ett kjønn og åtte kasus.,Sami has one gender and eight cases.
+Sami,,adjective,samisk,,Sami,"som gjelder, skriver seg fra eller er karakteristisk for samer eller de samiske områdene",,
 interaction,B2,et,samkvem,,Old Norse,det å komme sammen eller møtes; vennskapelig forbindelse; omgang,,
 "gather, collect",B1,verb,samle,,Old Norse,"bringe, skaffe, plukke sammen",,
 conveyor belt,B1,et,samlebånd ,,Old Norse,transportbånd i fabrikk som fører et uferdig produkt fra arbeider til arbeider (arbeidslag til arbeidslag) inntil produktet er ferdig,,
