@@ -1009,16 +1009,14 @@ main {
 
 .stories-back-btn {
     color: #951b1b;
-    position: absolute;
-    left: 20px;
+    margin-left: 20px;
     font-size: 1.5em;
     cursor: pointer;
 }
 
 .stories-english-btn {
     color: #951b1b;
-    position: absolute;
-    right: 20px;
+    margin-right: 20px;
     font-size: 1.5em;
     cursor: pointer;
 }
@@ -1562,6 +1560,10 @@ main {
     .stories-sentence-box-norwegian {
         border-radius: 12px 12px 0 0; /* Rounded corners on top */
         padding: 5px 10px 5px 10px;
+    }
+
+    .stories-story-header h2 {
+        font-size: 18px;
     }
     
     .type-filter, .pos-filter, .cefr-filter, .genre-filter {
