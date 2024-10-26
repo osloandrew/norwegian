@@ -305,6 +305,9 @@ async function randomWord() {
         let sentenceHTML = `
             <div class="result-header">
                 <h2>Random Sentence</h2>
+                    <button style="display: none" class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations('${randomResult.ord}')">
+                        ${isEnglishVisible ? 'Hide English' : 'Show English'}
+                    </button>
             </div>
             <div class="sentence-container">
                 <div class="sentence-box-norwegian">
@@ -317,7 +320,7 @@ async function randomWord() {
 
         if (selectedTranslation) {
             sentenceHTML += `
-                <div class="sentence-box-english">
+                <div class="sentence-box-english" style="display: ${isEnglishVisible ? 'block' : 'none'};">
                     <p class="sentence">${selectedTranslation}</p>
                 </div>
             `;
@@ -1231,6 +1234,9 @@ function renderSentences(sentenceResults, word) {
         htmlString += `
             <div class="result-header">
                 <h2>Sentence Results for "${word}"</h2>
+                <button style="display: none" class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations('${word}')">
+                    ${isEnglishVisible ? 'Hide English' : 'Show English'}
+                </button>            
             </div>
         `;
     }
@@ -1249,7 +1255,7 @@ function renderSentences(sentenceResults, word) {
         // Only add the English translation box if it exists
         if (match.translation) {
             htmlString += `
-                <div class="sentence-box-english">
+            <div class="sentence-box-english" style="display: ${isEnglishVisible ? 'block' : 'none'};">
                     <p class="sentence">${match.translation}</p>
                 </div>
             `;
