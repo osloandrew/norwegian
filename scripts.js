@@ -1784,7 +1784,21 @@ function loadStateFromURL() {
 // Function to handle clicking on a search result card
 function handleCardClick(event, word, pos, engelsk) {
 
-    console.log(`Word clicked: ${word}, POS: ${pos}`); // Correct POS logged here
+    console.log(`Word clicked: ${word}, POS: ${pos}`); // Log the clicked word and POS
+
+    // Filter to count only visible elements with the specific card class
+    const visibleCards = Array.from(resultsContainer.children).filter(child => 
+        child.classList.contains('definition') && child.offsetParent !== null
+    );
+
+    // Log the count of visible cards
+    console.log("Number of visible cards in resultsContainer:", visibleCards.length);
+
+    // Prevent activation if only one card is displayed
+    if (visibleCards.length === 1) {
+        console.log("Only one card displayed, click action disabled.");
+        return;
+    }
 
     // Filter results by word, POS (part of speech), and the English translation
     const clickedResult = results.filter(r => {
