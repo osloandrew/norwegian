@@ -705,7 +705,6 @@ function handleTypeChange() {
 
     // Add logic for the "Stories" type
     if (type === 'stories') {
-
         genreFilterContainer.style.display = 'inline-flex'; // Show genre dropdown in story mode
         genreSelect.value = '';  // Reset to default genre
 
@@ -735,7 +734,7 @@ function handleTypeChange() {
         }
 
     } else if (type === 'sentences') {
-
+        isEnglishVisible = true;
         // Show POS and CEFR dropdowns, hide Genre dropdown
         genreFilterContainer.style.display = 'none'; // Hide genre dropdown in sentences mode
 
