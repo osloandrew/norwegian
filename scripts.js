@@ -1,5 +1,6 @@
 // Global Variables
 let results = [];
+let isEnglishVisible = true;
 const resultsContainer = document.getElementById('results-container');
 
 // Function to show or hide the landing card
@@ -876,8 +877,6 @@ function handleCEFRChange() {
 
 // Render a list of results (words)
 function displaySearchResults(results, query = '') {
-    //clearContainer(); // Don't clear the container to avoid overwriting existing content like the "No Exact Matches" message
-
     query = query.toLowerCase().trim();  // Ensure the query is lowercased and trimmed
     const defaultResult = results.length <= 1; // Determine if there are multiple results
     const multipleResults = results.length > 1; // Determine if there are multiple results
@@ -913,7 +912,6 @@ function displaySearchResults(results, query = '') {
         // Safely escape the word in JavaScript by replacing special characters
         const escapedWord = result.ord.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\r?\n|\r/g, '');  // Escapes single quotes, double quotes, and removes newlines
 
-
         htmlString += `
 <div 
   class="definition ${multipleResultsDefinition}" 
@@ -934,19 +932,51 @@ function displaySearchResults(results, query = '') {
                     ${result.engelsk ? `<p class="english"><i class="fas fa-language"></i> ${result.engelsk}</p>` : ''}
                     ${result.uttale ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>` : ''}
                     ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
-                    ${result.CEFR ? `<p style="display: inline-flex; align-items: center; font-family: 'Noto Sans', sans-serif; font-weight: bold; text-transform: uppercase; font-size: 12px; color: #4F4F4F;"><i class="fa-solid fa-signal" style="margin-right: 5px;"></i><span style="display: inline-block; padding: 3px 7px; border-radius: 4px; background-color: ${getCefrColor(result.CEFR)};">${result.CEFR}</span></p>` : ''}
+                    ${result.CEFR ? `<p style="display: inline-flex; align-items: center; font-family: 'Noto Sans', sans-serif; font-weight: bold; text-transform: uppercase; font-size: 12px; color: #4F4F4F;"><i class="fa-solid fa-signal" style="margin-right: 5px;"></i><span style="text-align: center; min-width: 15px; display: inline-block; padding: 3px 7px; border-radius: 4px; background-color: ${getCefrColor(result.CEFR)};">${result.CEFR}</span></p>` : ''}
                 </div>
                 <!-- Render the highlighted example sentence here -->
                 <div class="${multipleResultsHiddenContent}">${highlightedExample ? `<p class="example">${formatDefinitionWithMultipleSentences(highlightedExample)}</p>` : ''}</div>
                 <!-- Show "Show Sentences" button only if sentences exist -->
-                <div class="${multipleResultsHiddenContent}">${hasSentences ? `<button class="sentence-btn" data-word="${escapedWord}" onclick="event.stopPropagation(); fetchAndRenderSentences('${escapedWord}', '${result.pos}')">Show Sentences</button>` : ''}</div>
+                <div class="${multipleResultsHiddenContent}">${hasSentences ? `<button class="sentence-btn english-toggle-btn" onclick="event.stopPropagation(); toggleEnglishTranslations('${normalizedWord}')">${isEnglishVisible ? 'Hide English' : 'Show English'}</button>` : ''}</div>
             </div>
             <!-- Sentences container is now outside the definition block -->
             <div class="sentences-container" id="sentences-container-${normalizedWord}"></div>
         `;
     });
     appendToContainer(htmlString);
+
+    // Automatically load sentences for a single result only if sentences exist
+    if (defaultResult && results[0] && checkForSentences(results[0].ord, results[0].pos)) {
+        setTimeout(() => {
+            const singleResult = results[0];
+            fetchAndRenderSentences(singleResult.ord, singleResult.pos, isEnglishVisible);
+        }, 0);
+    }
 }
+
+
+// Function to toggle the visibility of English sentences and update Norwegian box styles
+function toggleEnglishTranslations(wordId) {
+    const englishSentenceDivs = document.querySelectorAll(`#sentences-container-${wordId} .sentence-box-english`);
+    const norwegianSentenceDivs = document.querySelectorAll(`#sentences-container-${wordId} .sentence-box-norwegian`);
+    const englishBtn = document.querySelector(`#sentences-container-${wordId}`).previousElementSibling.querySelector('.english-toggle-btn');
+
+    // Toggle visibility based on the global isEnglishVisible state
+    isEnglishVisible = !isEnglishVisible;
+
+    englishSentenceDivs.forEach(div => {
+        div.style.display = isEnglishVisible ? 'block' : 'none';
+    });
+    
+    norwegianSentenceDivs.forEach(div => {
+        div.classList.toggle('sentence-box-norwegian-hidden', !isEnglishVisible);
+    });
+
+    // Update button text to match the new state
+    englishBtn.textContent = isEnglishVisible ? "Hide English" : "Show English";
+}
+
+
 
 // Function to find the gender of a word
 function getWordGender(word) {
@@ -1386,11 +1416,9 @@ function renderWordDefinition(word) {
 }
 
 // Fetch and render sentences for a word or phrase, including handling comma-separated variations
-function fetchAndRenderSentences(word, pos) {
+function fetchAndRenderSentences(word, pos, showEnglish = true) { // Added showEnglish parameter with default value
     const trimmedWord = word.trim().toLowerCase().replace(/[\r\n]+/g, ''); // Remove any carriage returns or newlines
     const button = document.querySelector(`button[data-word='${word}']`);
-
-    // If the sentences are already visible, toggle them off
     const sentenceContainer = document.getElementById(`sentences-container-${trimmedWord}`);
     
     if (!sentenceContainer) {
@@ -1425,7 +1453,7 @@ function fetchAndRenderSentences(word, pos) {
     }
 
     // Generate word variations using the external function
-    const wordVariations = trimmedWord.split(',').flatMap(w => generateWordVariationsForSentences(w.trim(), pos));
+    const wordVariations = trimmedWord.length < 4 ? [trimmedWord] : trimmedWord.split(',').flatMap(w => generateWordVariationsForSentences(w.trim(), pos));
 
     // First, filter results to get relevant entries
     let relevantEntries = results.filter(r => {
@@ -1538,21 +1566,19 @@ function fetchAndRenderSentences(word, pos) {
         // For each sentence, map it to a card
         return sentences.map((sentence, index) => `
             <div class="sentence-container">
-                <div class="sentence-box-norwegian">
+                <div class="sentence-box-norwegian ${!showEnglish ? 'sentence-box-norwegian-hidden' : ''}">
                     <div class="sentence-content">
                         ${cefrLabel}
                         <p class="sentence">${sentence}</p>
                     </div>
                 </div>
                 ${translations[index] ? `
-                <div class="sentence-box-english">
+                <div class="sentence-box-english" style="display: ${showEnglish ? 'block' : 'none'};">
                     <p class="sentence-translation">${translations[index]}</p>
                 </div>` : ''}
             </div>
         `).join('');
     }).join('');
-
-
 
     if (sentenceContent) {
         sentenceContainer.innerHTML = sentenceContent;
@@ -1565,9 +1591,8 @@ function fetchAndRenderSentences(word, pos) {
     }
 
     sentenceContainer.setAttribute('data-fetched', 'true');
+    
 }
-
-
 
 // Spinner Control Functions
 function showSpinner() {

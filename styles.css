@@ -1000,6 +1000,11 @@ main {
     box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+.sentence-box-norwegian-hidden {
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
 .sentence-container {
     display: flex;
     gap: 3px;  /* Adds space between the boxes */
@@ -1578,6 +1583,12 @@ main {
         border-radius: 12px 12px 0 0; /* Rounded corners on top */
         padding: 5px 10px 5px 10px;
         box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Norwegian box styling when English is hidden */
+    .sentence-box-norwegian-hidden {
+        border-radius: 12px; /* Apply full rounding when only the Norwegian box is visible */
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
     .sentence-container {
