@@ -9,14 +9,19 @@ CEFR Levels: Filter vocabulary based on CEFR levels for structured language acqu
 Dynamic UI: Mobile and desktop-compatible layout with adaptive styling.
 
 Installation
+
 Clone the repository:
 bash
+
 Copy code
 git clone https://github.com/osloandrew/norwegian.git
+
 Navigate to the project directory:
 bash
+
 Copy code
 cd norwegian
+
 Open index.html in a web browser.
 
 Usage
