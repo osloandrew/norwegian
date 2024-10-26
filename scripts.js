@@ -1387,7 +1387,6 @@ function renderWordDefinition(word) {
 
 // Fetch and render sentences for a word or phrase, including handling comma-separated variations
 function fetchAndRenderSentences(word, pos) {
-
     const trimmedWord = word.trim().toLowerCase().replace(/[\r\n]+/g, ''); // Remove any carriage returns or newlines
     const button = document.querySelector(`button[data-word='${word}']`);
 
@@ -1502,7 +1501,7 @@ function fetchAndRenderSentences(word, pos) {
     }
 
     // Prioritize the matching results using the prioritizeResults function
-    matchingResults = prioritizeResults(matchingResults, trimmedWord, 'eksempel');
+    matchingResults = prioritizeResults(matchingResults, trimmedWord, 'eksempel', pos);
 
     // Apply highlighting for the new word and reset any previous highlighting
     matchingResults.forEach(result => {
@@ -1511,13 +1510,6 @@ function fetchAndRenderSentences(word, pos) {
             result.eksempel = highlightedSentence;  // Set the highlighted sentence back
         });
     });
-
-    let backButtonHTML = `function fetchAndRenderSentences(word, pos) {
-
-        <button class="sentence-btn back-btn" onclick="renderWordDefinition('${trimmedWord}')">
-            <i class="fas fa-angle-left"></i> Back to Definition
-        </button>
-    `;
 
     // Create the sentence content with CEFR labels
     let sentenceContent = matchingResults.slice(0, 10).map(result => {
@@ -1587,24 +1579,39 @@ function hideSpinner() {
 }
 
 // Prioritize results based on query position or exact match
-function prioritizeResults(results, query, key) {
-    // Adjust the regex to match the query at the start of a word
-    const regexStartOfWord = new RegExp(`\\b${query}`, 'i');  // Match query at word boundary
-    const regexExactMatch = new RegExp(`\\b${query}\\b`, 'i'); // Exact match of the whole word
+function prioritizeResults(results, query, key, pos) {
+    // Define regex for exact match and start of word
+    const regexStartOfWord = new RegExp(`\\b${query}`, 'i');
+    const regexExactMatch = new RegExp(`\\b${query}\\b`, 'i');
 
     // Define CEFR level order
     const CEFROrder = ['A1', 'A2', 'B1', 'B2', 'C'];
 
+    // Separate `direct examples` where both `ord` and `pos` match
+    const directExamples = results.filter(r => 
+        r.ord.toLowerCase() === query.toLowerCase() && r.pos === pos
+    );
+    const otherResults = results.filter(r => 
+        r.ord.toLowerCase() !== query.toLowerCase() || r.pos !== pos
+    );
 
-    return results.sort((a, b) => {
+    // Sort the other results with the usual criteria
+    const sortedOthers = otherResults.sort((a, b) => {
         const aText = a[key].toLowerCase();
         const bText = b[key].toLowerCase();
+
+        // Prioritize entries with both `eksempel` and `sentenceTranslation`
+        const aHasExampleAndTranslation = a.eksempel && a.sentenceTranslation;
+        const bHasExampleAndTranslation = b.eksempel && b.sentenceTranslation;
+
+        if (aHasExampleAndTranslation && !bHasExampleAndTranslation) return -1;
+        if (!aHasExampleAndTranslation && bHasExampleAndTranslation) return 1;
 
         // First, prioritize CEFR levels (lower levels come first)
         if (a.CEFR && b.CEFR) {
             // Handle missing CEFR values by assigning a default
-            const aCEFR = a.CEFR ? a.CEFR.toUpperCase() : 'C2';
-            const bCEFR = b.CEFR ? b.CEFR.toUpperCase() : 'C2';
+            const aCEFR = a.CEFR ? a.CEFR.toUpperCase() : 'C';
+            const bCEFR = b.CEFR ? b.CEFR.toUpperCase() : 'C';
 
             const aCEFRIndex = CEFROrder.indexOf(aCEFR);
             const bCEFRIndex = CEFROrder.indexOf(bCEFR);
@@ -1631,19 +1638,14 @@ function prioritizeResults(results, query, key) {
         const bStartsWithWord = regexStartOfWord.test(bText);
         
         // Prioritize where the query starts a word
-        if (aStartsWithWord && !bStartsWithWord) {
-            return -1;
-                }
-        if (!aStartsWithWord && bStartsWithWord) {
-            return 1;
-        }
+        if (aStartsWithWord && !bStartsWithWord) return -1;
+        if (!aStartsWithWord && bStartsWithWord) return 1;
 
         // Otherwise, sort by the position of the query in the text (earlier is better)
-        const aIndex = aText.indexOf(query);
-        const bIndex = bText.indexOf(query);
-
-        return aIndex - bIndex;
+        return aText.indexOf(query) - bText.indexOf(query);
     });
+    // Combine direct examples at the top, followed by sorted other results
+    return [...directExamples, ...sortedOthers];
 }
 
 // Update URL based on current search parameters
