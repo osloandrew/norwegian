@@ -1029,15 +1029,36 @@ main {
 .stories-back-btn {
     color: #951b1b;
     margin-left: 20px;
+    margin-right: 100px;
     font-size: 1.5em;
     cursor: pointer;
 }
 
 .stories-english-btn {
-    color: #951b1b;
+    background-color: #f0f0f0;  /* Subtle, lighter background */
+    border: 1px solid #5a1a1a;  /* Thin maroon border */
+    border-radius: 6px;  /* Slightly rounded corners */
+    color: #5a1a1a;  /* Subtle maroon text */
+    cursor: pointer;  /* Pointer on hover */
+    display: block;  /* Block-level element to allow centering */
+    padding: 6px 12px;  /* Smaller padding for a more compact feel */
+    font-family: 'Noto Sans', sans-serif;  /* Clean, modern font */
+    font-size: 12px;  /* Smaller font size for subtlety */
+    font-weight: 400;  /* Normal font weight for less boldness */
+    text-transform: uppercase;  /* Uppercase for consistency */
+    letter-spacing: 0.03em;  /* Slight letter spacing */
+    margin: 0 auto;  /* Centering with smaller vertical margins */
     margin-right: 20px;
-    font-size: 1.5em;
-    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
+}
+
+.stories-english-btn:hover {
+    background-color: #e8e8e8;  /* Slightly darker on hover */
+    border-color: #851a1a;  /* Darker maroon on hover */
+}
+
+.stories-english-btn:active {
+    transform: scale(0.98);  /* Pressed effect */
 }
 
 .stories-content {
@@ -1146,9 +1167,11 @@ main {
 }
 
 .stories-story-header {
-    display: flex;
     align-items: center;
+    display: flex;
     justify-content: space-between;
+    gap: 10px; /* Optional: Adds space between the side and middle divs */
+    position: relative;
 }
 
 .stories-story-header h2 {
@@ -1163,8 +1186,8 @@ main {
 }
 
 .stories-title-container {
-    flex: 1; /* Takes available space between the buttons */
-    text-align: center; /* Center text within the container */
+    flex-grow: 1; /* Keeps the middle div centered */
+    text-align: center;
 }
 
 .spinner {

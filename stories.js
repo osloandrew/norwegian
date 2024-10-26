@@ -178,9 +178,7 @@ function displayStory(titleNorwegian) {
                     <h2>${selectedStory.titleNorwegian}</h2>
                     ${selectedStory.titleNorwegian !== selectedStory.titleEnglish ? `<p class="stories-subtitle">${selectedStory.titleEnglish}</p>` : ''}
                 </div>
-                <div class="stories-english-btn">
-                    <i class="fas fa-comment-alt" onclick="toggleEnglishSentences()"></i>
-                </div>
+                <div class="stories-english-btn" onclick="toggleEnglishSentences()">Hide English</div>
             </div>
         `;
 
