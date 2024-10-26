@@ -719,6 +719,7 @@ function handleTypeChange() {
         searchContainerInner.classList.remove('word-game-active');
 
         showLandingCard(false);
+        clearInput();
 
         cefrSelect.disabled = false; // Enable CEFR filter
         cefrFilterContainer.classList.remove('disabled'); // Visually enable the CEFR filter
@@ -1478,6 +1479,10 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) { // Added showE
         });
     });
 
+    // Use a Set to store unique sentences and translations
+    const uniqueSentences = new Set();
+    const uniqueTranslations = new Set();
+
     // Now, split sentences and align translations
     let matchingResults = relevantEntries.map(r => {
 
@@ -1497,10 +1502,15 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) { // Added showE
                 }
             });
 
+            // Only add unique matched sentences and translations
             if (isMatched) {
-                acc.matchedSentences.push(sentence);
-                if (translations[index]) {
-                    acc.matchedTranslations.push(translations[index]);
+                if (!uniqueSentences.has(sentence)) {
+                    uniqueSentences.add(sentence);  // Track unique sentence
+                    acc.matchedSentences.push(sentence);  // Add to results
+                }
+                if (translations[index] && !uniqueTranslations.has(translations[index])) {
+                    uniqueTranslations.add(translations[index]);  // Track unique translation
+                    acc.matchedTranslations.push(translations[index]);  // Add to results
                 }
             }
 
