@@ -460,12 +460,9 @@ async function search() {
             const matchesQuery = normalizedQueries.some(variation => {
                 const exactRegex = new RegExp(`\\b${variation}\\b`, 'i'); // Exact match regex for whole word
                 const partialRegex = new RegExp(variation, 'i'); // Partial match for larger words like "bevegelsesfrihet"
-        
                 const wordMatch = exactRegex.test(r.ord.toLowerCase()) || partialRegex.test(r.ord.toLowerCase());
-        
                 const englishValues = r.engelsk.toLowerCase().split(',').map(e => e.trim());
                 const englishMatch = englishValues.some(eng => exactRegex.test(eng) || partialRegex.test(eng));
-        
                 return wordMatch || englishMatch;
             });
 
@@ -1528,6 +1525,16 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) { // Added showE
             sentenceTranslation: matchedSentencesAndTranslations.matchedTranslations.join(' ') 
         } : null;
     }).filter(result => result !== null);
+
+    // Ensure the exact 'eksempel' attribute from the matching word entry is added as the first entry
+    if (matchingWordEntry.eksempel && !uniqueSentences.has(matchingWordEntry.eksempel)) {
+        matchingResults.unshift({
+            ...matchingWordEntry,
+            eksempel: matchingWordEntry.eksempel,
+            sentenceTranslation: matchingWordEntry.sentenceTranslation || ''
+        });
+        uniqueSentences.add(matchingWordEntry.eksempel); // Track it to prevent duplicates
+    }
 
     // Check if there are any matching results
     if (matchingResults.length === 0) {
