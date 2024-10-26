@@ -306,6 +306,7 @@ function handleGenreChange() {
 }
 
 function storiesBackBtn(){
+    document.getElementById('type-select').value = 'stories';
     handleTypeChange();
     displayStoryList();
 }
