@@ -1526,14 +1526,23 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) { // Added showE
         } : null;
     }).filter(result => result !== null);
 
-    // Ensure the exact 'eksempel' attribute from the matching word entry is added as the first entry
-    if (matchingWordEntry.eksempel && !uniqueSentences.has(matchingWordEntry.eksempel)) {
-        matchingResults.unshift({
-            ...matchingWordEntry,
-            eksempel: matchingWordEntry.eksempel,
-            sentenceTranslation: matchingWordEntry.sentenceTranslation || ''
+    // Ensure each sentence in the primary 'eksempel' attribute from the matching word entry is added if unique
+    if (matchingWordEntry.eksempel) {
+        const primarySentences = matchingWordEntry.eksempel.split(/(?<=[.!?])\s+/);
+        const primaryTranslations = matchingWordEntry.sentenceTranslation ? matchingWordEntry.sentenceTranslation.split(/(?<=[.!?])\s+/) : [];
+
+        primarySentences.forEach((sentence, index) => {
+            // Check if each sentence is already in uniqueSentences before adding
+            if (!uniqueSentences.has(sentence)) {
+                uniqueSentences.add(sentence); // Track unique primary sentence
+                
+                matchingResults.unshift({
+                    ...matchingWordEntry,
+                    eksempel: sentence, // Add only the unique sentence
+                    sentenceTranslation: primaryTranslations[index] || ''
+                });
+            }
         });
-        uniqueSentences.add(matchingWordEntry.eksempel); // Track it to prevent duplicates
     }
 
     // Check if there are any matching results
