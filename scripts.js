@@ -960,9 +960,12 @@ function displaySearchResults(results, query = '') {
 
 // Function to toggle the visibility of English sentences and update Norwegian box styles
 function toggleEnglishTranslations(wordId) {
-    const englishSentenceDivs = document.querySelectorAll(`#sentences-container-${wordId} .sentence-box-english`);
-    const norwegianSentenceDivs = document.querySelectorAll(`#sentences-container-${wordId} .sentence-box-norwegian`);
-    const englishBtn = document.querySelector(`#sentences-container-${wordId}`).previousElementSibling.querySelector('.english-toggle-btn');
+    // Escape the wordId for use in the selector
+    const safeWordId = CSS.escape(wordId);
+
+    const englishSentenceDivs = document.querySelectorAll(`#sentences-container-${safeWordId} .sentence-box-english`);
+    const norwegianSentenceDivs = document.querySelectorAll(`#sentences-container-${safeWordId} .sentence-box-norwegian`);
+    const englishBtn = document.querySelector(`#sentences-container-${safeWordId}`).previousElementSibling.querySelector('.english-toggle-btn');
 
     // Toggle visibility based on the global isEnglishVisible state
     isEnglishVisible = !isEnglishVisible;
@@ -970,7 +973,7 @@ function toggleEnglishTranslations(wordId) {
     englishSentenceDivs.forEach(div => {
         div.style.display = isEnglishVisible ? 'block' : 'none';
     });
-    
+
     norwegianSentenceDivs.forEach(div => {
         div.classList.toggle('sentence-box-norwegian-hidden', !isEnglishVisible);
     });

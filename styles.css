@@ -1067,6 +1067,14 @@ main {
     transform: scale(0.98);  /* Pressed effect */
 }
 
+.stories-english-btn .mobile-text {
+    display: none;
+}
+
+.stories-english-btn .desktop-text {
+    display: inline;
+}
+
 .stories-content {
     display: flex;
     flex-direction: column;  /* Stack the title and genre vertically */
@@ -1603,6 +1611,18 @@ main {
 
     .stories-back-btn {
         margin-right: 20px;
+    }
+
+    .stories-english-btn {
+        min-width: 0px;
+    }
+
+    .stories-english-btn .mobile-text {
+        display: inline;
+    }
+
+    .stories-english-btn .desktop-text {
+        display: none;
     }
 
     .stories-list-item {

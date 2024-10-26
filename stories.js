@@ -178,7 +178,10 @@ function displayStory(titleNorwegian) {
                     <h2>${selectedStory.titleNorwegian}</h2>
                     ${selectedStory.titleNorwegian !== selectedStory.titleEnglish ? `<p class="stories-subtitle">${selectedStory.titleEnglish}</p>` : ''}
                 </div>
-                <div class="stories-english-btn" onclick="toggleEnglishSentences()">Hide English</div>
+                <div class="stories-english-btn" onclick="toggleEnglishSentences()">
+                    <span class="desktop-text">Hide English</span>
+                    <span class="mobile-text">ENG</span>
+                </div>
             </div>
         `;
 
@@ -276,7 +279,9 @@ function toggleEnglishSentences() {
     const englishSentenceDivs = document.querySelectorAll('.stories-sentence-box-english');
     const norwegianSentenceDivs = document.querySelectorAll('.stories-sentence-box-norwegian');
     const englishBtn = document.querySelector('.stories-english-btn');
-    const isCurrentlyHidden = englishBtn.textContent === "Show English";
+    const desktopText = englishBtn.querySelector('.desktop-text');
+    const mobileText = englishBtn.querySelector('.mobile-text');
+    const isCurrentlyHidden = desktopText.textContent === "Show English";
 
     englishSentenceDivs.forEach((div, index) => {
         if (isCurrentlyHidden) {
@@ -290,8 +295,14 @@ function toggleEnglishSentences() {
         }
     });
 
-    // Toggle the button text
-    englishBtn.textContent = isCurrentlyHidden ? "Hide English" : "Show English";
+    // Toggle the button text for both mobile and desktop
+    if (isCurrentlyHidden) {
+        desktopText.textContent = "Hide English";
+        mobileText.textContent = "ENG";
+    } else {
+        desktopText.textContent = "Show English";
+        mobileText.textContent = "ENG";
+    }
 }
 
 function handleGenreChange() {
