@@ -19,9 +19,9 @@ let totalQuestions = 0; // Track total questions per level
 let wordsSinceLastIncorrect = 0;  // Counter to track words shown since the last incorrect word
 let wordDataStore = [];
 let questionsAtCurrentLevel = 0; // Track questions answered at current level
-let goodChime = new Audio('goodChime.wav');
-let badChime = new Audio('badChime.wav');
-let popChime = new Audio('popChime.wav');
+let goodChime = new Audio('Resources/Audio/goodChime.wav');
+let badChime = new Audio('Resources/Audio/badChime.wav');
+let popChime = new Audio('Resources/Audio/popChime.wav');
 
 goodChime.volume = 0.2;
 badChime.volume = 0.2;
