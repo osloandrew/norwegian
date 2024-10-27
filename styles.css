@@ -906,7 +906,7 @@ main {
 .sentence-btn {
     display: block;  /* Block-level element to allow centering */
     margin: 0 auto;  /* Centering with smaller vertical margins */
-    margin-top: 20px;
+    margin-top: 10px;
     background-color: #f0f0f0;  /* Subtle, lighter background */
     color: #5a1a1a;  /* Subtle maroon text */
     border: 1px solid #5a1a1a;  /* Thin maroon border */
@@ -1302,6 +1302,7 @@ main {
 
     .definition {
         margin-bottom: 10px;
+        padding: 20px;
     }
 
     .random-btn {
@@ -1566,10 +1567,6 @@ main {
 
     #search-container-inner.word-game-active {
         gap: 0;
-    }
-
-    .sentence-btn {
-        width: 100% !important;
     }
 
     .sentence-box-english, .sentence-box-norwegian {
