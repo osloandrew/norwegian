@@ -305,12 +305,12 @@ async function randomWord() {
         let sentenceHTML = `
             <div class="result-header">
                 <h2>Random Sentence</h2>
-                    <button style="display: none" class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations('${randomResult.ord}')">
+                    <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations(this)">
                         ${isEnglishVisible ? 'Hide English' : 'Show English'}
                     </button>
             </div>
             <div class="sentence-container">
-                <div class="sentence-box-norwegian">
+                <div class="sentence-box-norwegian ${!isEnglishVisible ? 'sentence-box-norwegian-hidden' : ''}">
                     <div class="sentence-content">
                         ${cefrLabel}  <!-- Add the CEFR label in the upper-left corner -->
                         <p class="sentence">${cleanedSentence}</p>
@@ -951,13 +951,32 @@ function displaySearchResults(results, query = '') {
 
 
 // Function to toggle the visibility of English sentences and update Norwegian box styles
-function toggleEnglishTranslations(wordId) {
-    // Escape the wordId for use in the selector
-    const safeWordId = CSS.escape(wordId);
+function toggleEnglishTranslations(wordId = null) {
+    // Determine if wordId is a button element
+    const isButton = wordId instanceof HTMLElement;
+    const safeWordId = isButton ? null : CSS.escape(wordId);
+    
+    // Determine target elements based on the presence of wordId or button context
+    const sentenceContainerSelector = safeWordId
+        ? `#sentences-container-${safeWordId}`
+        : '.sentence-container';
+    const sentenceContainer = isButton 
+        ? wordId.closest('.result-header').nextElementSibling
+        : wordId ? document.querySelector(sentenceContainerSelector) : document; // Global context if no wordId
 
-    const englishSentenceDivs = document.querySelectorAll(`#sentences-container-${safeWordId} .sentence-box-english`);
-    const norwegianSentenceDivs = document.querySelectorAll(`#sentences-container-${safeWordId} .sentence-box-norwegian`);
-    const englishBtn = document.querySelector(`#sentences-container-${safeWordId}`).previousElementSibling.querySelector('.english-toggle-btn');
+    if (!sentenceContainer) return;
+
+    const englishSentenceDivs = wordId
+        ? sentenceContainer.querySelectorAll('.sentence-box-english')
+        : document.querySelectorAll('.sentence-box-english'); // Global if no wordId
+    const norwegianSentenceDivs = wordId
+        ? sentenceContainer.querySelectorAll('.sentence-box-norwegian')
+        : document.querySelectorAll('.sentence-box-norwegian'); // Global if no wordId
+
+    // Locate the button within the correct container
+    const englishBtns = wordId
+        ? [isButton ? wordId : sentenceContainer.previousElementSibling.querySelector('.english-toggle-btn')]
+        : document.querySelectorAll('.english-toggle-btn'); // Global if no wordId
 
     // Toggle visibility based on the global isEnglishVisible state
     isEnglishVisible = !isEnglishVisible;
@@ -970,11 +989,14 @@ function toggleEnglishTranslations(wordId) {
         div.classList.toggle('sentence-box-norwegian-hidden', !isEnglishVisible);
     });
 
-    // Update button text to match the new state
-    if (englishBtn) {
-        englishBtn.textContent = isEnglishVisible ? "Hide English" : "Show English";
-    }
+    // Update all button texts to match the new state
+    englishBtns.forEach(btn => {
+        btn.textContent = isEnglishVisible ? "Hide English" : "Show English";
+    });
+
 }
+
+
 
 
 // Function to find the gender of a word
@@ -1230,7 +1252,7 @@ function renderSentences(sentenceResults, word) {
         htmlString += `
             <div class="result-header">
                 <h2>Sentence Results for "${word}"</h2>
-                <button style="display: none" class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations('${word}')">
+                <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations()">
                     ${isEnglishVisible ? 'Hide English' : 'Show English'}
                 </button>            
             </div>
@@ -1240,7 +1262,7 @@ function renderSentences(sentenceResults, word) {
     combinedMatches.forEach(match => {
         htmlString += `
             <div class="sentence-container">
-                <div class="sentence-box-norwegian">
+                <div class="sentence-box-norwegian ${!isEnglishVisible ? 'sentence-box-norwegian-hidden' : ''}">
                     <div class="sentence-content">
                         ${match.cefrLabel}
                         <p class="sentence">${match.sentence}</p>
