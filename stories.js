@@ -10,6 +10,7 @@ const genreIcons = {
     'children': '<i class="fas fa-child"></i>',           // Children’s genre icon
     'comedy': '<i class="fas fa-laugh"></i>',             // Comedy genre icon
     'crime': '<i class="fas fa-gavel"></i>',              // Crime genre icon
+    'culture': '<i class="fas fa-globe"></i>',             // Culture genre icon
     'dialogue': '<i class="fas fa-comments"></i>',        // Dialogue genre icon
     'drama': '<i class="fas fa-theater-masks"></i>',      // Drama genre icon
     'economics': '<i class="fas fa-chart-line"></i>',     // Economics genre icon
