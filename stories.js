@@ -222,11 +222,9 @@ function displayStory(titleNorwegian) {
     }
 
     // Check for the audio file
-    const audioFileName = `audio-${titleNorwegian}.m4a`;
-    const audioFileURL = `Resources/Audio/${audioFileName}`;  // Updated path to include Resources/Audio
+    const encodedTitle = encodeURIComponent(titleNorwegian);  // Encode title for audio path
+    const audioFileURL = `Resources/Audio/audio-${encodedTitle}.m4a`;
     const audioHTML = `<audio controls src="${audioFileURL}" class="stories-audio-player"></audio>`;
-
-    // Set up the audio file handling
     const audio = new Audio(audioFileURL);
 
     // Generate content with sentences and optionally include the audio player
@@ -267,11 +265,11 @@ function displayStory(titleNorwegian) {
 
     // Check if the audio file exists before finalizing content
     audio.onerror = () => {
-        console.log(`No audio file found for: ${audioFileName}`);
+        console.log(`No audio file found for: ${audioFileURL}`);
         finalizeContent(false);  // Display without audio
     };
     audio.onloadedmetadata = () => {
-        console.log(`Audio file found: ${audioFileName}`);
+        console.log(`Audio file found: ${audioFileURL}`);
         finalizeContent(true);  // Display with audio
     };
 
@@ -376,7 +374,8 @@ function restoreSearchContainerInner() {
 
 // Async function to check if audio file exists
 async function hasAudio(titleNorwegian) {
-    const audioFileName = `audio-${titleNorwegian}.m4a`;
+    const encodedTitle = encodeURIComponent(titleNorwegian);  // Encode title for URL safety
+    const audioFileName = `audio-${encodedTitle}.m4a`;
     const audioFileURL = `Resources/Audio/${audioFileName}`;
 
     try {
