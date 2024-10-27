@@ -38,20 +38,41 @@ const genreIcons = {
     'travel': '<i class="fas fa-plane"></i>',             // Travel genre icon
 };
 
-// Function to load the stories CSV file and display based on URL parameter
+const STORY_CACHE_KEY = 'storyData';
+const STORY_CACHE_TIME_KEY = 'storyDataTimestamp';
+const CACHE_EXPIRY_HOURS = 24; // Set cache expiry time
+
 async function fetchAndLoadStoryData() {
     showSpinner(); // Show spinner before loading starts
     try {
-        const cachedData = localStorage.getItem('storyData');
-        if (cachedData) {
+        const cachedData = localStorage.getItem(STORY_CACHE_KEY);
+        const cachedTimestamp = localStorage.getItem(STORY_CACHE_TIME_KEY);
+        
+        // Check if cache is expired
+        const now = new Date().getTime();
+        const cacheAgeHours = cachedTimestamp ? (now - cachedTimestamp) / (1000 * 60 * 60) : Infinity;
+
+        if (cachedData && cacheAgeHours < CACHE_EXPIRY_HOURS) {
+            console.log("Loading stories from cache.");
             parseStoryCSVData(cachedData);
-        } else {
-            const response = await fetch('norwegianStories.csv');
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            const data = await response.text();
-            localStorage.setItem('storyData', data); // Cache data
-            parseStoryCSVData(data);
+            hideSpinner(); // End early since we don't need to fetch new data
+            return;
         }
+
+        console.log("Cache expired or missing. Fetching stories from network.");
+        
+        // Fetch the latest data from the network
+        const response = await fetch('norwegianStories.csv');
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        
+        const data = await response.text();
+        console.log(`Fetched data length: ${data.length}`);
+        
+        // Store CSV text and timestamp in cache
+        localStorage.setItem(STORY_CACHE_KEY, data);
+        localStorage.setItem(STORY_CACHE_TIME_KEY, now);
+        parseStoryCSVData(data);
+
     } catch (error) {
         console.error('Error fetching or parsing stories CSV file:', error);
     } finally {
@@ -356,13 +377,17 @@ function restoreSearchContainerInner() {
 // Async function to check if audio file exists
 async function hasAudio(titleNorwegian) {
     const audioFileName = `audio-${titleNorwegian}.m4a`;
-    const audioFileURL = `Resources/Audio/${audioFileName}`;  // Updated path to include Resources/Audio
+    const audioFileURL = `Resources/Audio/${audioFileName}`;
 
     try {
         const response = await fetch(audioFileURL, { method: 'HEAD', cache: 'no-cache' });
-        return response.ok;  // true if the audio file exists, false if not
+        if (!response.ok && response.status === 404) {
+            // Silently handle 404 without logging an error
+            return false;
+        }
+        return response.ok;
     } catch (error) {
-        console.error(`Error checking audio file for ${titleNorwegian}:`, error);
+        console.error(`Unexpected error checking audio file for ${titleNorwegian}:`, error);
         return false;
     }
 }
