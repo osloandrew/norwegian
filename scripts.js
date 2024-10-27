@@ -882,9 +882,6 @@ function displaySearchResults(results, query = '') {
         result.pos = (['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => result.gender.toLowerCase().includes(gender))) 
                       ? 'noun' : result.gender.toLowerCase();
 
-        // Check if sentences are available using enhanced checkForSentences
-        const hasSentences = checkForSentences(result.ord, result.pos);
-
         // Convert the word to lowercase and trim spaces when generating the ID
         const normalizedWord = result.ord.toLowerCase().trim();
 
@@ -903,6 +900,7 @@ function displaySearchResults(results, query = '') {
 
         // Safely escape the word in JavaScript by replacing special characters
         const escapedWord = result.ord.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\r?\n|\r/g, '');  // Escapes single quotes, double quotes, and removes newlines
+        const hasSentencesPlaceholder = `<button class="sentence-btn english-toggle-btn" style="display: none;" onclick="event.stopPropagation(); toggleEnglishTranslations('${normalizedWord}')">Show English</button>`;
 
         htmlString += `
 <div 
@@ -926,23 +924,28 @@ function displaySearchResults(results, query = '') {
                     ${result.etymologi ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>` : ''}
                     ${result.CEFR ? `<p style="display: inline-flex; align-items: center; font-family: 'Noto Sans', sans-serif; font-weight: bold; text-transform: uppercase; font-size: 12px; color: #4F4F4F;"><i class="fa-solid fa-signal" style="margin-right: 5px;"></i><span style="text-align: center; min-width: 15px; display: inline-block; padding: 3px 7px; border-radius: 4px; background-color: ${getCefrColor(result.CEFR)};">${result.CEFR}</span></p>` : ''}
                 </div>
-                <!-- Render the highlighted example sentence here -->
-                <div class="${multipleResultsHiddenContent}">${highlightedExample ? `<p class="example">${formatDefinitionWithMultipleSentences(highlightedExample)}</p>` : ''}</div>
+                <!-- OLD: Check if example sentence exists -->
+                <!-- <div class="${multipleResultsHiddenContent}">${highlightedExample ? `<p class="example">${formatDefinitionWithMultipleSentences(highlightedExample)}</p>` : ''}</div> -->
                 <!-- Show "Show Sentences" button only if sentences exist -->
-                <div class="${multipleResultsHiddenContent}">${hasSentences ? `<button class="sentence-btn english-toggle-btn" onclick="event.stopPropagation(); toggleEnglishTranslations('${normalizedWord}')">${isEnglishVisible ? 'Hide English' : 'Show English'}</button>` : ''}</div>
-            </div>
+                    <div class="${multipleResultsHiddenContent}">
+                        ${hasSentencesPlaceholder}
+                    </div>            
+                </div>
             <!-- Sentences container is now outside the definition block -->
             <div class="sentences-container" id="sentences-container-${normalizedWord}"></div>
         `;
     });
     appendToContainer(htmlString);
 
-    // Automatically load sentences for a single result only if sentences exist
-    if (defaultResult && results[0] && checkForSentences(results[0].ord, results[0].pos)) {
+    // Automatically load sentences for a single result only if sentences exist in `eksempel`
+    if (defaultResult && results[0] && results[0].eksempel) {
+        console.log("Auto-loading sentences for:", results[0].ord, "because `eksempel` field is populated.");
         setTimeout(() => {
             const singleResult = results[0];
             fetchAndRenderSentences(singleResult.ord, singleResult.pos, isEnglishVisible);
         }, 0);
+    } else {
+        console.log("No sentences to load for:", results[0]?.ord || "No results");
     }
 }
 
@@ -968,9 +971,10 @@ function toggleEnglishTranslations(wordId) {
     });
 
     // Update button text to match the new state
-    englishBtn.textContent = isEnglishVisible ? "Hide English" : "Show English";
+    if (englishBtn) {
+        englishBtn.textContent = isEnglishVisible ? "Hide English" : "Show English";
+    }
 }
-
 
 
 // Function to find the gender of a word
@@ -1609,9 +1613,13 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) { // Added showE
     if (sentenceContent) {
         sentenceContainer.innerHTML = sentenceContent;
         sentenceContainer.style.display = "block";  // Show the container
-        button.innerText = "Hide Sentences";
-        button.classList.remove('show');
-        button.classList.add('hide');
+
+        // Find the button and display it if sentences exist
+        const englishButton = sentenceContainer.parentElement.querySelector('.english-toggle-btn');
+        if (englishButton) {
+            englishButton.style.display = 'block'; // Make the button visible
+            englishButton.innerText = showEnglish ? "Hide English" : "Show English";
+        }
     } else {
         console.warn("No content to show for the word:", trimmedWord);
     }

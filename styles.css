@@ -498,9 +498,6 @@ footer .copyright {
     margin: 0;
     font-family: 'Noto Sans', sans-serif;
     font-weight: 400 !important;
-    white-space: nowrap;                 /* Prevent the word from wrapping */
-    overflow: hidden;
-    text-overflow: ellipsis;             /* Add ellipsis for long words */
 }
 
 .game-word-card {
@@ -1610,7 +1607,7 @@ main {
     }
 
     .stories-back-btn {
-        margin-right: 20px;
+        margin-right: 10px;
     }
 
     .stories-english-btn {
