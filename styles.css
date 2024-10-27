@@ -677,6 +677,11 @@ main {
 .multiple-results-definition {
     min-height: 0 !important;
     padding: 15px 25px 15px 25px;
+    cursor: pointer;
+}
+
+.multiple-results-definition:hover {
+    background-color: #f5f5f5;  /* Optional: Change background color on hover */
 }
 
 /* The word, gender and definition */
