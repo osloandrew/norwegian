@@ -178,16 +178,18 @@ function displayStory(titleNorwegian) {
                     <i class="fas fa-chevron-left" onclick="storiesBackBtn()"></i>
                 </div>
                 <div class="stories-title-container">
-                    <div class="stories-detail-container" style="margin-left: 0px">
-                        <div class="stories-genre">${genreIcon}</div>  <!-- Genre icon -->
-                        <div class="game-cefr-label ${cefrClass}">${selectedStory.CEFR}</div>  <!-- CEFR label -->
-                    </div>
                     <h2>${selectedStory.titleNorwegian}</h2>
                     ${selectedStory.titleNorwegian !== selectedStory.titleEnglish ? `<p class="stories-subtitle">${selectedStory.titleEnglish}</p>` : ''}
                 </div>
-                <div class="stories-english-btn" onclick="toggleEnglishSentences()">
-                    <span class="desktop-text">Hide English</span>
-                    <span class="mobile-text">ENG</span>
+                <div class="stories-rightward-div">
+                    <div class="stories-detail-container" style="margin-left: 0px; margin-top: 5px;">
+                            <div class="stories-genre">${genreIcon}</div>  <!-- Genre icon -->
+                            <div class="game-cefr-label ${cefrClass}">${selectedStory.CEFR}</div>  <!-- CEFR label -->
+                    </div>
+                    <div class="stories-english-btn" onclick="toggleEnglishSentences()">
+                        <span class="desktop-text">Hide English</span>
+                        <span class="mobile-text">ENG</span>
+                    </div>
                 </div>
             </div>
         `;

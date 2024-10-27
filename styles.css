@@ -1050,7 +1050,6 @@ main {
     text-transform: uppercase;  /* Uppercase for consistency */
     letter-spacing: 0.03em;  /* Slight letter spacing */
     margin: 0 auto;  /* Centering with smaller vertical margins */
-    margin-right: 20px;
     min-width: 100px;
     transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
 }
@@ -1143,6 +1142,13 @@ main {
     font-size: 16px;
     font-weight: 400;
     line-height: 1.4;
+}
+
+.stories-rightward-div {
+    display: flex;
+    gap: 10px;  /* Adds space between the elements */
+    align-items: center;
+    margin-right: 20px;
 }
 
 .stories-sentence-box-english, .stories-sentence-box-norwegian {
@@ -1613,8 +1619,12 @@ main {
         margin-right: 10px;
     }
 
+    .stories-detail-container {
+        margin-top: 0px !important;
+    }
+
     .stories-english-btn {
-        min-width: 0px;
+        min-width: 40px;
     }
 
     .stories-english-btn .mobile-text {
@@ -1627,6 +1637,12 @@ main {
 
     .stories-list-item {
         margin-bottom: 10px;
+    }
+
+    .stories-rightward-div {
+        align-items: center;
+        flex-direction: column; /* Stack elements vertically */
+        gap: 0px;
     }
 
     .stories-sentence-box-english, .stories-sentence-box-norwegian {
@@ -1648,7 +1664,15 @@ main {
     }
 
     .stories-story-header h2 {
-        font-size: 18px;
+        font-size: 16px;
+    }
+
+    .stories-subtitle {
+        font-size: 14px !important;
+    }
+
+    .stories-title-container {
+        row-gap: 0px;
     }
     
     .type-filter, .pos-filter, .cefr-filter, .genre-filter {
