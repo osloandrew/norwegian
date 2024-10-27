@@ -116,7 +116,7 @@ function filterResultsByPOS(results, selectedPOS) {
         }
 
         // Handle all other POS types like "verb," "adjective," etc.
-        return r.gender && r.gender.toLowerCase().includes(selectedPOS.toLowerCase());
+        return r.gender && r.gender.toLowerCase().startsWith(selectedPOS.toLowerCase());
     });
 }
 
@@ -206,6 +206,22 @@ function flagMissingWordEntry(word) {
 
 // Generate and display a random word or sentence
 async function randomWord() {
+    const now = Date.now();
+    const cooldownPeriod = 500; // Cooldown period in milliseconds (0.5 seconds)
+
+    // Initialize lastCallTimestamp as a property of randomWord if it doesn't exist
+    if (!randomWord.lastCallTimestamp) {
+        randomWord.lastCallTimestamp = 0;
+    }
+
+    // Check if enough time has passed since the last call
+    if (now - randomWord.lastCallTimestamp < cooldownPeriod) {
+        console.warn("Please wait a moment before trying again.");
+        return; // Exit the function if the cooldown period hasn't passed
+    }
+
+    randomWord.lastCallTimestamp = now; // Update the timestamp for the last call
+
     const type = document.getElementById('type-select').value;
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
     const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';
