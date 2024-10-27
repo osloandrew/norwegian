@@ -192,7 +192,7 @@ function displayStory(titleNorwegian) {
 
     // Check for the audio file
     const audioFileName = `audio-${titleNorwegian}.m4a`;
-    const audioFileURL = `${audioFileName}`;  // Adjust path as needed
+    const audioFileURL = `Resources/Audio/${audioFileName}`;  // Updated path to include Resources/Audio
     const audioHTML = `<audio controls src="${audioFileURL}" class="stories-audio-player"></audio>`;
 
     // Set up the audio file handling
@@ -346,7 +346,7 @@ function restoreSearchContainerInner() {
 // Async function to check if audio file exists
 async function hasAudio(titleNorwegian) {
     const audioFileName = `audio-${titleNorwegian}.m4a`;
-    const audioFileURL = `${audioFileName}`;  // Adjust to the correct path
+    const audioFileURL = `Resources/Audio/${audioFileName}`;  // Updated path to include Resources/Audio
 
     try {
         const response = await fetch(audioFileURL, { method: 'HEAD', cache: 'no-cache' });
