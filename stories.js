@@ -40,7 +40,7 @@ const genreIcons = {
 
 const STORY_CACHE_KEY = 'storyData';
 const STORY_CACHE_TIME_KEY = 'storyDataTimestamp';
-const CACHE_EXPIRY_HOURS = 24; // Set cache expiry time
+const CACHE_EXPIRY_HOURS = 1; // Set cache expiry time
 
 async function fetchAndLoadStoryData() {
     showSpinner(); // Show spinner before loading starts
@@ -58,15 +58,12 @@ async function fetchAndLoadStoryData() {
             hideSpinner(); // End early since we don't need to fetch new data
             return;
         }
-
-        console.log("Cache expired or missing. Fetching stories from network.");
         
         // Fetch the latest data from the network
         const response = await fetch('norwegianStories.csv');
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         
         const data = await response.text();
-        console.log(`Fetched data length: ${data.length}`);
         
         // Store CSV text and timestamp in cache
         localStorage.setItem(STORY_CACHE_KEY, data);
@@ -147,7 +144,7 @@ async function displayStoryList(filteredStories = storyResults) {
             const genreIcon = genreIcons[story.genre.toLowerCase()] || '';  // Get the appropriate genre icon
 
             // Check if audio file exists asynchronously
-            const audioExists = await hasAudio(story.titleNorwegian);
+            const audioExists = await hasAudio(story.titleNorwegian, story.titleEnglish);
 
             return `
                 <div class="stories-list-item" data-title="${story.titleNorwegian}" onclick="displayStory('${story.titleNorwegian.replace(/'/g, "\\'")}')">
@@ -172,13 +169,11 @@ async function displayStoryList(filteredStories = storyResults) {
 }
 
 
-function displayStory(titleNorwegian) {
+async function displayStory(titleNorwegian) {
     showSpinner(); // Show spinner at the start of story loading
     const searchContainer = document.getElementById('search-container');
     const searchContainerInner = document.getElementById('search-container-inner');
     const selectedStory = storyResults.find(story => story.titleNorwegian === titleNorwegian);
-
-    console.log(`Trying to display story with title: ${titleNorwegian}`);
 
     if (!selectedStory) {
         console.error(`No story found with the title: ${titleNorwegian}`);
@@ -222,9 +217,8 @@ function displayStory(titleNorwegian) {
     }
 
     // Check for the audio file
-    const encodedTitle = encodeURIComponent(titleNorwegian);  // Encode title for audio path
-    const audioFileURL = `Resources/Audio/audio-${encodedTitle}.m4a`;
-    const audioHTML = `<audio controls src="${audioFileURL}" class="stories-audio-player"></audio>`;
+    const audioFileURL = await hasAudio(selectedStory.titleNorwegian, selectedStory.titleEnglish);
+    const audioHTML = audioFileURL ? `<audio controls src="${audioFileURL}" class="stories-audio-player"></audio>` : '';
     const audio = new Audio(audioFileURL);
 
     // Generate content with sentences and optionally include the audio player
@@ -372,22 +366,34 @@ function restoreSearchContainerInner() {
     searchContainerInner.style.display = '';
 }
 
-// Async function to check if audio file exists
-async function hasAudio(titleNorwegian) {
-    const encodedTitle = encodeURIComponent(titleNorwegian);  // Encode title for URL safety
-    const audioFileName = `audio-${encodedTitle}.m4a`;
-    const audioFileURL = `Resources/Audio/${audioFileName}`;
+// Check if an audio file exists for either the Norwegian or English title
+async function hasAudio(titleNorwegian, titleEnglish) {
+    const encodedTitleNorwegian = encodeURIComponent(titleNorwegian);
+    const encodedTitleEnglish = encodeURIComponent(titleEnglish);
+    const audioFileNorwegian = `Resources/Audio/audio-${encodedTitleNorwegian}.m4a`;
+    const audioFileEnglish = `Resources/Audio/audio-${encodedTitleEnglish}.m4a`;
 
     try {
-        const response = await fetch(audioFileURL, { method: 'HEAD', cache: 'no-cache' });
-        if (!response.ok && response.status === 404) {
-            // Silently handle 404 without logging an error
-            return false;
+        // Try the Norwegian title first
+        let response = await fetch(audioFileNorwegian, { method: 'HEAD', cache: 'no-cache' });
+        if (response.ok) {
+            console.log(`Audio found for Norwegian title: ${audioFileNorwegian}`);
+            return audioFileNorwegian;
         }
-        return response.ok;
+
+        // If Norwegian title doesn't exist, try the English title
+        response = await fetch(audioFileEnglish, { method: 'HEAD', cache: 'no-cache' });
+        if (response.ok) {
+            console.log(`Audio found for English title: ${audioFileEnglish}`);
+            return audioFileEnglish;
+        }
+
+        // If neither file exists
+        console.log(`No audio found for titles: ${titleNorwegian} or ${titleEnglish}`);
+        return null;
     } catch (error) {
-        console.error(`Unexpected error checking audio file for ${titleNorwegian}:`, error);
-        return false;
+        console.error(`Error checking audio for ${titleNorwegian} or ${titleEnglish}:`, error);
+        return null;
     }
 }
 
