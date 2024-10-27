@@ -1138,10 +1138,11 @@ main {
 }
 
 .stories-list-item h2 {
-    font-family: "Noto Sans", sans-serif !important;
-    font-size: 18px;
-    font-weight: 400;
     color: #0d3a69 !important;
+    font-family: "Noto Sans", sans-serif !important;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.4;
 }
 
 .stories-sentence-box-english, .stories-sentence-box-norwegian {
@@ -1197,8 +1198,12 @@ main {
 }
 
 .stories-title-container {
+    align-items: center;
     flex-grow: 1; /* Keeps the middle div centered */
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    row-gap: 2.5px;
 }
 
 .spinner {
@@ -1264,7 +1269,7 @@ main {
     cursor: pointer;
     font-family: 'Noto Sans', sans-serif;
     padding-right: 30px;
-    font-weight: 400;
+    font-weight: 500;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     height: 100%; /* Extend the clickable area vertically */

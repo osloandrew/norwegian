@@ -169,12 +169,19 @@ function displayStory(titleNorwegian) {
     clearContainer();
 
     if (!document.querySelector('.stories-story-header')) {
+        // Get genre icon and CEFR label
+        const genreIcon = genreIcons[selectedStory.genre.toLowerCase()] || '';
+        const cefrClass = getCefrClass(selectedStory.CEFR);        
         const headerHTML = `
             <div class="stories-story-header">
                 <div class="stories-back-btn">
                     <i class="fas fa-chevron-left" onclick="storiesBackBtn()"></i>
                 </div>
                 <div class="stories-title-container">
+                    <div class="stories-detail-container" style="margin-left: 0px">
+                        <div class="stories-genre">${genreIcon}</div>  <!-- Genre icon -->
+                        <div class="game-cefr-label ${cefrClass}">${selectedStory.CEFR}</div>  <!-- CEFR label -->
+                    </div>
                     <h2>${selectedStory.titleNorwegian}</h2>
                     ${selectedStory.titleNorwegian !== selectedStory.titleEnglish ? `<p class="stories-subtitle">${selectedStory.titleEnglish}</p>` : ''}
                 </div>
