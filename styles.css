@@ -1671,9 +1671,10 @@ main {
         cursor: pointer;
         width: 100%; /* Extend the clickable area horizontally */
         height: 100%; /* Extend the clickable area vertically */    
-        font-size: 8px; /* Further reduce the font size for very small screens */
+        font-size: 10px; /* Further reduce the font size for very small screens */
         text-transform: uppercase;
         padding-right: 0px;
+        text-overflow: ellipsis;             /* Add ellipsis for long words */
     }
 
     .word-gender {

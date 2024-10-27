@@ -720,7 +720,6 @@ function handleTypeChange() {
         cefrSelect.disabled = false; // Enable CEFR filter
         cefrFilterContainer.classList.remove('disabled'); // Visually enable the CEFR filter
         cefrSelect.value = '';  // Reset to default "CEFR Level"
-        cefrSelect.options[0].text = "CEFR Level";  // Revert CEFR label to default
 
         document.title = 'Stories - Norwegian Dictionary';
 
@@ -755,8 +754,6 @@ function handleTypeChange() {
         cefrSelect.value = '';  // Reset to "CEFR Level" option
         cefrFilterContainer.classList.remove('disabled');  // Visually enable the CEFR filter
 
-        cefrSelect.options[0].text = "CEFR Level";  // Revert CEFR label to default
-
         document.title = 'Sentences - Norwegian Dictionary'; // Update browser tab title
         
         // If the search bar is not empty, perform a sentence search
@@ -790,9 +787,6 @@ function handleTypeChange() {
         cefrFilterContainer.classList.remove('disabled');
         cefrSelect.value = '';  // Reset to "CEFR Level" option
 
-        // Change the label to something more compact when "WORD GAME" is selected
-        cefrSelect.options[0].text = "Starting Level";
-
         // Remove the query from the URL
         const url = new URL(window.location);
         url.searchParams.delete('query');
@@ -824,8 +818,6 @@ function handleTypeChange() {
         cefrSelect.disabled = false;
         cefrSelect.value = '';  // Reset to "CEFR Level" option
         cefrFilterContainer.classList.remove('disabled');
-
-        cefrSelect.options[0].text = "CEFR Level";  // Revert CEFR label to default
 
         // Change the browser tab title to reflect words
         document.title = 'Words - Norwegian Dictionary';
