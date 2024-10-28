@@ -882,7 +882,6 @@ main {
     position: sticky;
     text-align: center;
     top: 0;
-    width: 100%;
     z-index: 100;
 }
 
@@ -1536,9 +1535,7 @@ main {
     }
 
     #search-container {
-        display: block;
-        align-items: center;
-        flex-direction: column;
+        padding: 10px;
     }
 
     #search-container-inner {
@@ -1546,7 +1543,7 @@ main {
         grid-template-columns: 1fr;
         grid-template-rows: auto auto;
         gap: 10px;
-        padding: 0 10px 0 10px;
+        min-width: 100%;
     }
 
     #search-container-inner.word-game-active {
@@ -1669,7 +1666,8 @@ main {
         font-size: 11px; /* Further reduce the font size for very small screens */
         text-transform: uppercase;
         padding-right: 0px;
-        text-overflow: ellipsis;             /* Add ellipsis for long words */
+        text-overflow: ellipsis;
+        min-width: 0px;
     }
 
     .word-gender {
