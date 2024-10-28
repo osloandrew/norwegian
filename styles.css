@@ -62,8 +62,6 @@ button:disabled i {
 }
 
 .cefr-filter {
-    display: inline-flex;
-    align-items: center;
     background-color: #0d3a69;
     border: none;
     border-radius: 15px;
@@ -74,17 +72,6 @@ button:disabled i {
     padding: 10px 15px;
     position: relative;
     box-sizing: border-box;
-}
-
-.cefr-filter select {
-    appearance: none;
-    background-color: inherit;
-    border: none;
-    font-size: 12px;
-    color: white;
-    cursor: pointer;
-    font-family: 'Noto Sans', sans-serif;
-    text-transform: uppercase;
 }
 
 .cefr-filter i {
@@ -834,7 +821,6 @@ main {
 .cefr-filter,
 .genre-filter {
     align-items: center;
-    box-sizing: border-box;
     display: flex;
     height: 42px;
     flex: 1;
@@ -1275,12 +1261,10 @@ main {
     appearance: none;
     background-color: inherit;
     border: none;
-    font-size: 12px;
     color: white;
     cursor: pointer;
     font-family: 'Noto Sans', sans-serif;
     padding-right: 30px;
-    font-weight: 500;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     height: 100%; /* Extend the clickable area vertically */
@@ -1700,7 +1684,7 @@ main {
         cursor: pointer;
         width: 100%; /* Extend the clickable area horizontally */
         height: 100%; /* Extend the clickable area vertically */    
-        font-size: 10px; /* Further reduce the font size for very small screens */
+        font-size: 11px; /* Further reduce the font size for very small screens */
         text-transform: uppercase;
         padding-right: 0px;
         text-overflow: ellipsis;             /* Add ellipsis for long words */
