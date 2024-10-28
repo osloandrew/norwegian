@@ -871,26 +871,12 @@ function handleCEFRChange() {
 }
 
 // Render a list of results (words)
-function displaySearchResults(results = [], query = '', previousResults = null) {
-    
-    if (!Array.isArray(results)) {
-        console.error("Expected an array for results, received:", results);
-        results = [];
-    }
-
+function displaySearchResults(results, query = '') {
     query = query.toLowerCase().trim();  // Ensure the query is lowercased and trimmed
     const defaultResult = results.length <= 1; // Determine if there are multiple results
     const multipleResults = results.length > 1; // Determine if there are multiple results
-    let htmlString = '';
 
-    // Add back button only if there are previous results
-    if (previousResults && previousResults.length > 0) {
-        htmlString += `
-            <div class="back-arrow" onclick="goBackToResults('${query}')">
-                <i class="fas fa-arrow-left"></i> Back to Results
-            </div>
-        `;
-    }
+    let htmlString = '';
 
     // Limit to a maximum of 10 results
     results.slice(0, 10).forEach(result => {
@@ -901,8 +887,13 @@ function displaySearchResults(results = [], query = '', previousResults = null) 
 
         // Convert the word to lowercase and trim spaces when generating the ID
         const normalizedWord = result.ord.toLowerCase().trim();
+
+        // Highlight the word being defined (result.ord) in the example sentence
         const highlightedExample = result.eksempel ? highlightQuery(result.eksempel, query || result.ord.toLowerCase()) : '';
+
+        // Determine whether to initially hide the content for multiple results
         const multipleResultsExposedContent = defaultResult ? 'default-hidden-content' : ''; 
+
         const multipleResultsDefinition = multipleResults ? 'multiple-results-definition' : '';  // Hide content if multiple results
         const multipleResultsHiddenContent = multipleResults ? 'multiple-results-hidden-content' : '';  // Hide content if multiple results
         const multipleResultsDefinitionHeader = multipleResults ? 'multiple-results-definition-header' : ''; 
@@ -915,12 +906,12 @@ function displaySearchResults(results = [], query = '', previousResults = null) 
         const hasSentencesPlaceholder = `<button class="sentence-btn english-toggle-btn" style="display: none;" onclick="event.stopPropagation(); toggleEnglishTranslations('${normalizedWord}')">Show English</button>`;
 
         htmlString += `
-        <div 
-        class="definition ${multipleResultsDefinition}" 
-        data-word="${escapedWord}" 
-        data-pos="${result.pos}" 
-        data-engelsk="${result.engelsk}" 
-        onclick="if (!window.getSelection().toString()) handleCardClick(event, '${escapedWord}', '${result.pos.replace(/'/g, "\\'").trim()}', '${result.engelsk.replace(/'/g, "\\'").trim()}')">
+<div 
+  class="definition ${multipleResultsDefinition}" 
+  data-word="${escapedWord}" 
+  data-pos="${result.pos}" 
+  data-engelsk="${result.engelsk}" 
+  onclick="if (!window.getSelection().toString()) handleCardClick(event, '${escapedWord}', '${result.pos.replace(/'/g, "\\'").trim()}', '${result.engelsk.replace(/'/g, "\\'").trim()}')">
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-gender ${multipleResultsWordgender}">
                     ${result.ord}
@@ -961,11 +952,6 @@ function displaySearchResults(results = [], query = '', previousResults = null) 
     }
 }
 
-// Adjust the goBackToResults function
-function goBackToResults(previousResults) {
-    clearContainer();
-    displaySearchResults(previousResults);  // Pass the actual previous results data here
-}
 
 // Function to toggle the visibility of English sentences and update Norwegian box styles
 function toggleEnglishTranslations(wordId = null) {
@@ -1910,9 +1896,6 @@ function handleCardClick(event, word, pos, engelsk) {
         return;
     }
 
-    // Save the current state of results as previousResults before clearing
-    const previousResults = [...results];
-
     // Filter results by word, POS (part of speech), and the English translation
     const clickedResult = results.filter(r => {
         const resolvedPOS = (['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => r.gender.toLowerCase().includes(gender))) 
@@ -1934,8 +1917,8 @@ function handleCardClick(event, word, pos, engelsk) {
     // Clear all other results and keep only the clicked card
     resultsContainer.innerHTML = '';  // Clear the container
 
-    // Display the clicked result, passing previousResults to enable back arrow
-    displaySearchResults(clickedResult, word, previousResults);
+    // Display the clicked result
+    displaySearchResults(clickedResult);  // This ensures only the clicked card remains
 
     // Update the URL to reflect the clicked entry
     updateURL('', 'words', pos, null, word);  // Set the unique URL for this entry
