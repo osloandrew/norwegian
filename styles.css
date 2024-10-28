@@ -902,14 +902,16 @@ main {
     color: #5a1a1a;  /* Subtle maroon text */
     border: 1px solid #5a1a1a;  /* Thin maroon border */
     border-radius: 6px;  /* Slightly rounded corners */
-    padding: 6px 12px;  /* Smaller padding for a more compact feel */
+    padding: 8px 14px;  /* Larger padding for a more clickable feel */
     font-family: 'Noto Sans', sans-serif;  /* Clean, modern font */
     font-size: 12px;  /* Smaller font size for subtlety */
-    font-weight: 400;  /* Normal font weight for less boldness */
+    font-weight: 500;  /* Slightly bolder text */
     text-transform: uppercase;  /* Uppercase for consistency */
     letter-spacing: 0.03em;  /* Slight letter spacing */
     cursor: pointer;  /* Pointer on hover */
     transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
+    touch-action: manipulation;  /* Helps reduce delay on mobile */
+    box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .sentence-btn:hover {
@@ -917,23 +919,20 @@ main {
     border-color: #851a1a;  /* Darker maroon on hover */
 }
 
-.sentence-btn:active {
-    transform: scale(0.98);  /* Pressed effect */
-}
-
-/* Show state - makes it more distinguishable when showing */
+/* Show state - makes it more distinguishable when showing
 .sentence-btn.show {
     background-color: #f0f0f0;
     color: #5a1a1a;
     border: 1px solid #5a1a1a;
 }
 
-/* Hide state - more distinct background and color change */
 .sentence-btn.hide {
-    background-color: #d3d3d3;  /* Slightly darker gray when hiding */
-    color: #4b0f0f;  /* Darker maroon to distinguish */
-    border-color: #4b0f0f;  /* Darker border */
+    background-color: #d3d3d3;  /* Slightly darker gray when hiding
+    color: #4b0f0f;  /* Darker maroon to distinguish
+    border-color: #4b0f0f;  /* Darker border
 }
+
+*/
 
 .sentence-cefr-label {
     padding: 3px 7px;                     /* Smaller padding */
@@ -1043,15 +1042,13 @@ main {
     margin: 0 auto;  /* Centering with smaller vertical margins */
     min-width: 100px;
     transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
+    touch-action: manipulation;  /* Helps reduce delay on mobile */
+    box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .stories-english-btn:hover {
     background-color: #e8e8e8;  /* Slightly darker on hover */
     border-color: #851a1a;  /* Darker maroon on hover */
-}
-
-.stories-english-btn:active {
-    transform: scale(0.98);  /* Pressed effect */
 }
 
 .stories-english-btn .mobile-text {
