@@ -380,6 +380,8 @@ async function search() {
         return result;
     });
 
+    cleanURL(type);
+
     // Update the URL with the search parameters
     updateURL(query, type, selectedPOS);  // <--- Trigger URL update
 
@@ -688,7 +690,7 @@ function handleTypeChange() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
 
     // Clear any remnants from other types in the URL
-    clearURLForTypeChange(type);
+    cleanURL(type);
 
     // Container to update and other UI elements
     const searchContainerInner = document.getElementById('search-container-inner'); // The container to update
@@ -829,9 +831,8 @@ function handleTypeChange() {
 }
 
 // Helper function to clear the URL of remnants from other types
-function clearURLForTypeChange(type) {
+function cleanURL(type) {
     const url = new URL(window.location);
-    
     url.searchParams.delete('query');
     url.searchParams.delete('pos');
     url.searchParams.delete('story');
@@ -839,7 +840,6 @@ function clearURLForTypeChange(type) {
     url.searchParams.set('type', type);
     window.history.pushState({}, '', url);
 }
-
 
 // Handle change in CEFR filter
 function handleCEFRChange() {
@@ -1418,7 +1418,7 @@ function renderSentencesHTML(sentenceResults, wordVariations) {
 }
 
 
-function renderWordDefinition(word) {
+function renderWordDefinition(word, selectedPOS = '') {
     const trimmedWord = word.trim().toLowerCase();
 
     // Switch the type selector back to "words"
@@ -1431,7 +1431,11 @@ function renderWordDefinition(word) {
     const posFilterContainer = document.querySelector('.pos-filter');
     posFilterContainer.classList.remove('disabled');  // Remove the 'disabled' class for visual effect
 
-    const matchingResults = results.filter(r => r.ord.toLowerCase().trim() === trimmedWord);
+    // Filter results based on both word and selected POS if provided
+    const matchingResults = results.filter(r => 
+        r.ord.toLowerCase().trim() === trimmedWord &&
+        (!selectedPOS || r.gender === selectedPOS)
+    );
 
     if (matchingResults.length > 0) {
         displaySearchResults(matchingResults);
@@ -1829,10 +1833,14 @@ function loadStateFromURL() {
     function displayWordIfLoaded() {
         if (results.length > 0) {  // Check if dictionary data is loaded
             if (word) {
-                document.title = `${word} - Norwegian Dictionary`;  // Set title to the word
+                // Set title to the word
+                document.title = `${word} - Norwegian Dictionary`;  
                 showLandingCard(false);
                 resultsContainer.innerHTML = '';
-                renderWordDefinition(word); 
+
+                // Render only matching results by filtering directly within renderWordDefinition
+                renderWordDefinition(word, selectedPOS);
+
                 clearInterval(checkDataLoaded);  // Stop checking once data is loaded
                 return;  // Exit function to prevent further handling
             }
