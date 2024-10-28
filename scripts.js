@@ -1438,10 +1438,19 @@ function renderWordDefinition(word, selectedPOS = '') {
     posFilterContainer.classList.remove('disabled');  // Remove the 'disabled' class for visual effect
 
     // Filter results based on both word and selected POS if provided
-    const matchingResults = results.filter(r => 
-        r.ord.toLowerCase().trim() === trimmedWord &&
-        (!selectedPOS || r.gender === selectedPOS)
-    );
+    const matchingResults = results.filter(r => {
+        const wordMatch = r.ord.toLowerCase().trim() === trimmedWord;
+
+        // Check for noun gender match when selectedPOS is 'noun'
+        const posMatch = selectedPOS === 'noun'
+            ? ['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => r.gender.toLowerCase().includes(gender))
+            : selectedPOS
+            ? r.gender.toLowerCase().includes(selectedPOS)
+            : true;
+
+        return wordMatch && posMatch;
+    });
+
 
     if (matchingResults.length > 0) {
         displaySearchResults(matchingResults);
