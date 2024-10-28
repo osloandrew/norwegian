@@ -1026,7 +1026,7 @@ main {
 .stories-back-btn {
     color: #951b1b;
     margin-left: 20px;
-    margin-right: 115px;
+    margin-right: 190px;
     font-size: 1.5em;
     cursor: pointer;
 }
@@ -1585,6 +1585,7 @@ main {
     }
 
     .stories-back-btn {
+        margin-left: 10px;
         margin-right: 10px;
     }
 
@@ -1612,6 +1613,7 @@ main {
         align-items: center;
         flex-direction: column; /* Stack elements vertically */
         gap: 0px;
+        margin-right: 0px;
     }
 
     .stories-sentence-box-english, .stories-sentence-box-norwegian {
