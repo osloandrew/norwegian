@@ -207,7 +207,7 @@ function flagMissingWordEntry(word) {
 // Generate and display a random word or sentence
 async function randomWord() {
     const now = Date.now();
-    const cooldownPeriod = 500; // Cooldown period in milliseconds (0.5 seconds)
+    const cooldownPeriod = 250; // Cooldown period in milliseconds (0.25 seconds)
 
     // Initialize lastCallTimestamp as a property of randomWord if it doesn't exist
     if (!randomWord.lastCallTimestamp) {
@@ -225,9 +225,6 @@ async function randomWord() {
     const type = document.getElementById('type-select').value;
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
     const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';
-
-    // Do not pass 'random' as the query, instead just update the URL to indicate it's a random query
-    updateURL('', type, selectedPOS);  // Pass an empty string for the query part to avoid "random" in the URL
 
     // Ensure that the 'results' array is populated
     if (!results || !results.length) {
@@ -341,16 +338,13 @@ async function randomWord() {
                 </div>
             `;
         }
-
         sentenceHTML += '</div>';  // Close the sentence-container div
-
         document.getElementById('results-container').innerHTML = sentenceHTML;
-        document.title = 'Sentences - Norwegian Dictionary';
     } else {
+        // Update the URL to include the random word's info
+        updateURL('', type, randomResult.gender, null, randomResult.ord);
         // If it's a word, render it with highlighting (if needed)
         displaySearchResults([randomResult], randomResult.ord);
-
-        document.title = 'Words - Norwegian Dictionary';
     }
     hideSpinner();  // Hide the spinner
 }
@@ -391,9 +385,6 @@ async function search() {
 
     // Show the spinner at the start of the search
     showSpinner();
-
-    // Update document title with the search term
-    document.title = `${query} - Norwegian Dictionary`;
 
     showLandingCard(false);
     clearContainer(); // Clear previous results
@@ -696,6 +687,9 @@ function handleTypeChange() {
     const type = document.getElementById('type-select').value;
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
 
+    // Clear any remnants from other types in the URL
+    clearURLForTypeChange(type);
+
     // Container to update and other UI elements
     const searchContainerInner = document.getElementById('search-container-inner'); // The container to update
     const searchBarWrapper = document.getElementById('search-bar-wrapper');
@@ -737,8 +731,6 @@ function handleTypeChange() {
         cefrFilterContainer.classList.remove('disabled'); // Visually enable the CEFR filter
         cefrSelect.value = '';  // Reset to default "CEFR Level"
 
-        document.title = 'Stories - Norwegian Dictionary';
-
         // Load stories data if not already loaded
         if (!storyResults.length) {
             fetchAndLoadStoryData().then(() => {
@@ -769,8 +761,6 @@ function handleTypeChange() {
         cefrSelect.disabled = false;  // Enable CEFR filter when sentences are selected
         cefrSelect.value = '';  // Reset to "CEFR Level" option
         cefrFilterContainer.classList.remove('disabled');  // Visually enable the CEFR filter
-
-        document.title = 'Sentences - Norwegian Dictionary'; // Update browser tab title
         
         // If the search bar is not empty, perform a sentence search
         if (query) {
@@ -802,14 +792,6 @@ function handleTypeChange() {
         cefrSelect.disabled = false;
         cefrFilterContainer.classList.remove('disabled');
         cefrSelect.value = '';  // Reset to "CEFR Level" option
-
-        // Remove the query from the URL
-        const url = new URL(window.location);
-        url.searchParams.delete('query');
-        window.history.replaceState({}, '', url);  // Update the URL without reloading the page
-
-        // Change the browser tab title to reflect the word game
-        document.title = 'Word Game - Norwegian Dictionary';
         
         resetGame();
         startWordGame();  // Call the word game function
@@ -835,9 +817,6 @@ function handleTypeChange() {
         cefrSelect.value = '';  // Reset to "CEFR Level" option
         cefrFilterContainer.classList.remove('disabled');
 
-        // Change the browser tab title to reflect words
-        document.title = 'Words - Norwegian Dictionary';
-
         // Optionally, generate a random word if needed when switching back to words
         if (query) {
             console.log('Searching for words with query:', query);
@@ -848,6 +827,19 @@ function handleTypeChange() {
         }
     }
 }
+
+// Helper function to clear the URL of remnants from other types
+function clearURLForTypeChange(type) {
+    const url = new URL(window.location);
+    
+    url.searchParams.delete('query');
+    url.searchParams.delete('pos');
+    url.searchParams.delete('story');
+    url.searchParams.delete('word');
+    url.searchParams.set('type', type);
+    window.history.pushState({}, '', url);
+}
+
 
 // Handle change in CEFR filter
 function handleCEFRChange() {
@@ -1746,7 +1738,7 @@ function prioritizeResults(results, query, key, pos) {
 }
 
 // Update URL based on current search parameters
-function updateURL(query, type, selectedPOS, story = null) {
+function updateURL(query, type, selectedPOS, story = null, word = null) {
     const url = new URL(window.location);
 
     // Set or remove the query parameter
@@ -1777,8 +1769,44 @@ function updateURL(query, type, selectedPOS, story = null) {
         url.searchParams.delete('story');
     }
 
+    // Set the word parameter if a specific word entry is clicked
+    if (word) {
+        url.searchParams.set('word', word);
+        document.title = `${word} - Norwegian Dictionary`;  // Set title to the word
+        // Update the URL without reloading the page
+        window.history.pushState({}, '', url);
+        return; // Stop further execution to keep this title
+    }
+
+    // Update the page title based on the context, if no specific word is provided
+    if (story) {
+        document.title = `${decodeURIComponent(story)} - Norwegian Story`;
+    } else if (query) {
+        document.title = `${query} - ${capitalizeType(type)} Search - Norwegian Dictionary`;
+    } else if (type) {
+        document.title = `${capitalizeType(type)} - Norwegian Dictionary`;
+    } else {
+        document.title = 'Norwegian Dictionary';
+    }
+
     // Update the URL without reloading the page
     window.history.pushState({}, '', url);
+}
+
+// Helper function to capitalize and format type correctly
+function capitalizeType(type) {
+    switch (type) {
+        case 'words':
+            return 'Words';
+        case 'word-game':
+            return 'Word Game';
+        case 'sentences':
+            return 'Sentences';
+        case 'stories':
+            return 'Stories';
+        default:
+            return type.charAt(0).toUpperCase() + type.slice(1);
+    }
 }
 
 // Load the state from the URL and trigger the appropriate search or display
@@ -1788,36 +1816,54 @@ function loadStateFromURL() {
     const type = url.searchParams.get('type') || 'words';  // Default to 'words' if not specified
     const selectedPOS = url.searchParams.get('pos') || '';  // Default to empty POS if not present
     const storyTitle = url.searchParams.get('story');  // Check for a specific story parameter
+    const word = url.searchParams.get('word');  // Check for a specific word entry
 
     // If there's a story in the URL, display that story and exit
     if (storyTitle) {
+        document.title = `${decodeURIComponent(storyTitle)} - Norwegian Story`;
         displayStory(decodeURIComponent(storyTitle));  // Display the specific story
         return;  // Exit function as story is being displayed
     }
 
-    // Set the search bar and type select based on the URL parameters
-    document.getElementById('search-bar').value = query;
-    document.getElementById('type-select').value = type;
+    // Function to display the word entry once data is loaded
+    function displayWordIfLoaded() {
+        if (results.length > 0) {  // Check if dictionary data is loaded
+            if (word) {
+                document.title = `${word} - Norwegian Dictionary`;  // Set title to the word
+                showLandingCard(false);
+                resultsContainer.innerHTML = '';
+                renderWordDefinition(word); 
+                clearInterval(checkDataLoaded);  // Stop checking once data is loaded
+                return;  // Exit function to prevent further handling
+            }
+            
+            // Continue with regular URL-based loading if no specific word is in the URL
+            document.getElementById('search-bar').value = query;
+            document.getElementById('type-select').value = type;
+            if (selectedPOS) {
+                document.getElementById('pos-select').value = selectedPOS;
+            }
 
-    // Set the POS select if provided in the URL
-    if (selectedPOS) {
-        document.getElementById('pos-select').value = selectedPOS;
-    }
+            if (type === 'word-game') {
+                startWordGame();
+            } else if (type !== 'words') {
+                handleTypeChange();
+            }
 
-    // Handle type-specific actions
-    if (type === 'word-game') {
-        startWordGame();  // Start word game directly if type is set to word-game
-    } else if (type !== 'words') {
-        handleTypeChange();  // Call handleTypeChange for types other than 'words'
-    }
+            // Perform a search if a query is specified; otherwise, show the landing page
+            if (query) {
+                search();
+            } else if (type === 'words') {
+                showLandingCard(true);
+            }
 
-    // Perform a search if a query is specified; otherwise, show the landing page
-    if (query) {
-        search();  // Perform the search based on the URL state
-    } else if (type === 'words') {
-        showLandingCard(true);  // Show landing card if no query and type is 'words'
+            clearInterval(checkDataLoaded);  // Stop checking once data is loaded
+        }
     }
+    // Set an interval to check data load status before proceeding
+    const checkDataLoaded = setInterval(displayWordIfLoaded, 100);
 }
+
 
 // Function to handle clicking on a search result card
 function handleCardClick(event, word, pos, engelsk) {
@@ -1861,6 +1907,9 @@ function handleCardClick(event, word, pos, engelsk) {
 
     // Display the clicked result
     displaySearchResults(clickedResult);  // This ensures only the clicked card remains
+
+    // Update the URL to reflect the clicked entry
+    updateURL('', 'words', pos, null, word);  // Set the unique URL for this entry
 
 }
 
