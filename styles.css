@@ -6,6 +6,19 @@ a {
     display: none !important; /* Always hidden */
 }
 
+.back-arrow {
+    display: none !important; /* Ensures it’s visible */
+    visibility: visible !important;
+    opacity: 1 !important;
+    background-color: #ddd; /* Temporary styling for visibility */
+    color: black;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+
 .back-btn {
     background-color: #b22222; /* Dark red color */
     color: #fff;
