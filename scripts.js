@@ -915,7 +915,7 @@ function displaySearchResults(results, query = '') {
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-gender ${multipleResultsWordgender}">
                     ${result.ord}
-                    ${result.gender ? `<span class="gender ${multipleResultsgenderClass}">${result.gender}</span>` : ''}
+                    ${result.gender ? `<div class="gender ${multipleResultsgenderClass}">${result.gender}</div>` : ''}
                     ${result.engelsk ? `<p class="english ${multipleResultsExposedContent}">${result.engelsk}</p>` : ''}
                     ${result.CEFR ? `<div class="game-cefr-label ${multipleResultsExposedContent} ${getCefrClass(result.CEFR)}">${result.CEFR}</div>` : ''} 
                 </h2>

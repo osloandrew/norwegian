@@ -7,7 +7,6 @@ a {
 }
 
 .back-arrow {
-    display: none !important; /* Ensures it’s visible */
     visibility: visible !important;
     opacity: 1 !important;
     background-color: #ddd; /* Temporary styling for visibility */
@@ -188,7 +187,7 @@ button:disabled i {
     font-size: 24px;
 }
 
-.error-message .gender {
+.error-message {
     color: #951b1b; /* Error type in a similar error color */
     font-size: 16px;
     font-weight: 600;
@@ -499,12 +498,20 @@ footer .copyright {
 }
 
 .gender {
-    color: #951b1b !important;
+    align-self: flex-start;               /* Align the label to the left */
+    background-color: #f0f0f0;
+    color: #4F4F4F !important;
     font-family: 'Noto Sans', sans-serif;
-    font-size: 18px !important;
-    font-weight: 400;
-    letter-spacing: .04rem;
     text-transform: uppercase;
+    padding: 3px 7px;                     /* Smaller padding */
+    font-size: 10px;                      /* Smaller font size */
+    font-weight: 500 !important;
+    border-radius: 4px;
+    text-align: center;
+    text-transform: uppercase;
+    margin-bottom: 5px;                  /* Space between the label and the word */
+    min-width: 17.5px;
+    user-select: none;  /* Prevent text selection */
 }
 
 .genre-filter {
@@ -687,7 +694,8 @@ main {
 
 /* The gender */
 .multiple-results-gender-class {
-    font-size: 14px !important;
+    font-size: 12px !important;
+    margin: 10px 0px 0px 0px !important;
 }
 
 /* The word and gender */
@@ -1276,7 +1284,7 @@ main {
 
 .word-gender .gender {
     color: #951b1b;
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 400;
     text-transform: uppercase;
     overflow-wrap: break-word;
@@ -1454,11 +1462,6 @@ main {
         overflow-wrap: break-word;
         white-space: normal;
         word-break: break-word;
-    }
-
-    /* The gender */
-    .multiple-results-gender-class {
-        font-size: 12px !important;
     }
 
     /* The word and gender */
@@ -1694,7 +1697,6 @@ main {
     }
 
     .word-gender .gender {
-        font-size: 4vw;
         margin-top: 5px;
     }
 }
