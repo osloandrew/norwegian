@@ -372,6 +372,12 @@ async function search() {
     const type = document.getElementById('type-select').value; // Get the search type (words or sentences)
     const normalizedQueries = [query.toLowerCase().trim()]; // Use only the base query for matching
 
+    // Build the "No Matches" message based on filters
+    const filterMessage = [];
+    if (selectedPOS) filterMessage.push(`POS value of "${selectedPOS}"`);
+    if (selectedCEFR) filterMessage.push(`CEFR level "${selectedCEFR}"`);
+    const filtersText = filterMessage.length > 0 ? ` with the ${filterMessage.join(' and ')}` : '';
+
     // Clear any previous highlights by resetting the `query`
     let cleanResults = results.map(result => {
         if (result.eksempel) {
@@ -503,7 +509,7 @@ async function search() {
                     <h2 class="word-gender">
                         No Exact Matches Found <span class="gender"></span>
                     </h2>
-                    <p>We couldn't find exact matches for "${query}". Here are some inexact results:</p>
+                    <p>We couldn't find exact matches for "${query}"${filtersText}. Here are some inexact results:</p>
                     <button class="sentence-btn back-btn">
                         <i class="fas fa-flag"></i> Flag Missing Word Entry
                     </button>
@@ -539,7 +545,7 @@ async function search() {
                 <h2 class="word-gender">
                     No Matches Found <span class="gender"></span>
                 </h2>
-                <p>We couldn't find any matches for "${query}".</p>
+                <p>We couldn't find any matches for "${query}"${filtersText}.</p>
                 <button class="sentence-btn back-btn">
                     <i class="fas fa-flag"></i> Flag Missing Word Entry
                 </button>
