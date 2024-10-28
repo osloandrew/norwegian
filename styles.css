@@ -61,25 +61,6 @@ button:disabled i {
     min-width: 17.5px;
 }
 
-.cefr-filter {
-    background-color: #0d3a69;
-    border: none;
-    border-radius: 15px;
-    color: white;
-    cursor: pointer;
-    font-family: 'Noto Sans', sans-serif;
-    font-size: 16px;
-    padding: 10px 15px;
-    position: relative;
-    box-sizing: border-box;
-}
-
-.cefr-filter i {
-    color: white;
-    font-size: 18px;
-    pointer-events: none;
-    right: 15px;
-}
 
 .cefr-label {
     display: inline-flex;
@@ -826,6 +807,32 @@ main {
     flex: 1;
 }
 
+.type-filter,
+.pos-filter,
+.cefr-filter,
+.genre-filter {
+    align-items: center;
+    background-color: #0d3a69;
+    border-radius: 15px;
+    box-sizing: border-box;
+    display: flex;
+    height: 42px;
+    flex: 1;
+    padding: 10px 15px;
+    min-width: 180px;
+}
+
+.type-filter i,
+.pos-filter i,
+.cefr-filter i,
+.genre-filter i {
+    color: white;
+    font-size: 18px;
+    pointer-events: none;
+    right: 15px;
+    z-index: 0; /* Ensures the icon is underneath the select element */
+}
+
 .search-btn {
     align-items: center;
     background-color: #0d3a69;
@@ -884,7 +891,6 @@ main {
     justify-content: space-between;
     align-items: center;
     gap: 10px;
-    max-width: 850px;
     margin: 0 auto;
 }
 
@@ -1220,21 +1226,6 @@ main {
     width: 40px;
 }
 
-.type-filter, .pos-filter, .genre-filter, .random-btn {
-    display: inline-flex;
-    align-items: center;
-    background-color: #0d3a69;
-    border: none;
-    border-radius: 15px;
-    color: white;
-    cursor: pointer; /* Ensure the entire button area is clickable */
-    font-family: 'Noto Sans', sans-serif;
-    padding: 10px 15px;
-    position: relative; /* Ensures that the children elements are positioned relative to this container */
-    box-sizing: border-box;
-
-}
-
 /* Gray out both the select text and the arrow when disabled */
 .cefr-filter.disabled select, .type-filter.disabled select, .pos-filter.disabled select, .genre-filter.disabled select {
     color: #ccc;
@@ -1246,14 +1237,6 @@ main {
     pointer-events: none;  /* Prevent interaction with the arrow */
 }
 
-.type-filter i, .pos-filter i, .genre-filter i {
-    color: white;
-    font-size: 18px;
-    pointer-events: none;
-    right: 15px;
-    z-index: 0; /* Ensures the icon is underneath the select element */
-}
-
 .type-filter select, .pos-filter select, .cefr-filter select, .genre-filter select {
     appearance: none;
     background-color: inherit;
@@ -1261,11 +1244,14 @@ main {
     color: white;
     cursor: pointer;
     font-family: 'Noto Sans', sans-serif;
-    padding-right: 30px;
-    letter-spacing: 0.1em;
+    padding-right: 15px; /* Reduce padding to show more text */
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     height: 100%; /* Extend the clickable area vertically */
-    }
+    min-width: fit-content;
+    width: 100%;
+    text-overflow: ellipsis;             /* Add ellipsis for long words */
+}
 
 .word-gender {
     align-items: flex;
@@ -1665,6 +1651,7 @@ main {
         background-color: #0d3a69;  /* Consistent background for all filters */
         border-radius: 15px;
         padding: 10px 10px;
+        min-width: 0px;
     }
 
     .type-filter, .pos-filter, .genre-filter, .random-btn, .search-bar-wrapper {
@@ -1679,8 +1666,6 @@ main {
 
     .type-filter select, .pos-filter select, .cefr-filter select, .genre-filter select {
         cursor: pointer;
-        width: 100%; /* Extend the clickable area horizontally */
-        height: 100%; /* Extend the clickable area vertically */    
         font-size: 11px; /* Further reduce the font size for very small screens */
         text-transform: uppercase;
         padding-right: 0px;
