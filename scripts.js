@@ -487,6 +487,16 @@ async function search() {
 
         matchingResults = prioritizeResults(matchingResults, query, 'ord');
         
+        if (matchingResults.length === 1) {
+            // Update URL and title for a single result
+            const singleResult = matchingResults[0];
+            updateURL(null, type, selectedPOS, null, singleResult.ord); // Set word parameter with the result's Norwegian term
+            // Display this single result directly
+            displaySearchResults([singleResult]);  // Display only this single result
+            hideSpinner(); // Hide the spinner
+            return;
+        } 
+        
         // Check if there are **no exact matches**
         const noExactMatches = matchingResults.length === 0;
 
