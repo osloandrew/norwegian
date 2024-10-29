@@ -1937,6 +1937,9 @@ function handleCardClick(event, word, pos, engelsk) {
         // Append backDiv to resultsContainer
         resultsContainer.appendChild(backDiv);    
     }
+    
+    // Clear the search bar
+    clearInput();
 
     // Display the clicked result
     displaySearchResults(clickedResult);  // This ensures only the clicked card remains
