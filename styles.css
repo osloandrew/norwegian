@@ -388,7 +388,6 @@ footer .copyright {
 #game-next-word-button:active {
     background-color: #f2c18c;  /* Darker background on click */
     border-color: #8a7063;  /* Border matches text color on click */
-    transform: scale(0.98);  /* Slight shrink effect for click feedback */
 }
 
 #game-next-word-button:disabled {
@@ -691,6 +690,7 @@ main {
     min-height: 0 !important;
     padding: 15px 25px 15px 25px;
     cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
 }
 
 .multiple-results-definition:hover {
@@ -796,7 +796,6 @@ main {
 .random-btn:hover {
     background-color: #3c88d4;
     box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
-    transform: scale(1.01);
 }
 
 .return-btn {
@@ -909,7 +908,6 @@ main {
 .search-btn:hover {
     background-color: #4a99ff;
     box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
-    transform: scale(1.01);
 }
 
 .search-btn i {
@@ -1173,6 +1171,7 @@ main {
     cursor: pointer;
     padding: 15px;
     min-height: 60px;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
 }
 
 .stories-list-item:hover {
