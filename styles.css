@@ -1178,6 +1178,42 @@ main {
     line-height: 1.4;
 }
 
+.stories-rating {
+    background-color: #ffffff;  /* Subtle, lighter background */
+    margin: 0 auto;
+    text-align: center;
+    border-radius: 6px;  /* Slightly rounded corners */
+    box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 8px 14px;  /* Larger padding for a more clickable feel */
+    font-family: 'Noto Sans', sans-serif;  /* Clean, modern font */
+    font-size: 12px;  /* Smaller font size for subtlety */
+    font-weight: 500;  /* Slightly bolder text */
+    text-transform: uppercase;  /* Uppercase for consistency */
+    letter-spacing: 0.05em;  /* Slight letter spacing */
+    width: fit-content;
+}
+
+.stories-rating p {
+    margin: 5px 0px 5px 0px;
+}
+
+.stories-rating .stories-star-rating .star {
+    font-size: 24px;          /* Size of stars */
+    cursor: pointer;          /* Show pointer cursor */
+    color: gray;              /* Default color for stars */
+    padding: 0 5px;           /* Space between stars */
+    transition: transform 0.2s, color 0.2s; /* Animation for hover effect */
+}
+
+.stories-rating .stories-star-rating .star:hover,
+.stories-rating .stories-star-rating .star.clicked {
+    color: gold;              /* Gold color for hovered/clicked stars */
+}
+
+.stories-rating .stories-star-rating .star:hover ~ .star {
+    color: gray;              /* Keep remaining stars gray on hover */
+}
+
 .stories-result-header {
     align-content: center;
     background-color: #ffffff;
