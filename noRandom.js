@@ -135,7 +135,7 @@ const noRandom = [
     'utukt',
     'vagina',
     'vellyst',
-    'vellysting',
+    'vellystig',
     'voldta',
     'voldtekt',
     'voldtektsforbryter',
