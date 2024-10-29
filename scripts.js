@@ -508,14 +508,14 @@ async function search(queryOverride = null) {
                         No Exact Matches Found
                     </h2>
                     <p>We couldn't find exact matches for "${query}"${filtersText}. Here are some inexact results:</p>
-                    <button class="sentence-btn back-btn">
+                    <button class="pronunciation-btn">
                         <i class="fas fa-flag"></i> Flag Missing Word Entry
                     </button>
                 </div>
             `;
 
             // Add flag button functionality
-            const flagButton = document.querySelector('.back-btn');
+            const flagButton = document.querySelector('.pronunciation-btn');
             if (flagButton) {
                 flagButton.addEventListener('click', function() {
                     const wordToFlag = document.getElementById('search-bar').value;
@@ -528,7 +528,7 @@ async function search(queryOverride = null) {
                 displaySearchResults(inexactWordMatches);
 
                 // Reattach the flag button functionality AFTER rendering the search results
-                const flagButton = document.querySelector('.back-btn');
+                const flagButton = document.querySelector('.pronunciation-btn');
                 if (flagButton) {
                     flagButton.addEventListener('click', function() {
                         const wordToFlag = document.getElementById('search-bar').value;
@@ -542,13 +542,13 @@ async function search(queryOverride = null) {
             <div class="definition error-message">
                 <h2 class="word-gender">No Matches Found</h2>
                 <p>We couldn't find any matches for "${query}"${filtersText}.</p>
-                <button class="sentence-btn back-btn">
+                <button class="pronunciation-btn">
                     <i class="fas fa-flag"></i> Flag Missing Word Entry
                 </button>
             </div>`
             );
 
-            const flagButton = document.querySelector('.back-btn');
+            const flagButton = document.querySelector('.pronunciation-btn');
             if (flagButton) {
                 flagButton.addEventListener('click', function () {
                     const wordToFlag = document.getElementById('search-bar').value;

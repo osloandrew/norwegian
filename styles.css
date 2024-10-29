@@ -6,25 +6,6 @@ a {
     display: none !important; /* Always hidden */
 }
 
-.back-btn {
-    background-color: #b22222; /* Dark red color */
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    text-align: center;
-    margin: 20px auto; /* Ensure margin around the button */
-    margin-top: 0 !important;
-    display: block;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    max-width: 600px; /* Set a max width to prevent it from being too wide on large screens */
-}
-
-.back-btn i {
-    margin-right: 8px; /* Adds space between the icon and text */
-}
-
 .back-navigation {
     display: block;  /* Block-level element to allow centering */
     line-height: 30px;  /* Matches height for vertical centering */
@@ -758,6 +739,10 @@ main {
     box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.pronunciation-btn i {
+    margin-right: 8px; /* Adds space between the icon and text */
+}
+
 /* Basic styling for the table */
 .pronunciation-table {
     width: 100%;
@@ -1365,10 +1350,6 @@ main {
 }
 
 @media (max-width: 1024px) {
-    .back-btn {
-        width: 100%; /* Make the button take up full width on mobile */
-    }
-
     .definition {
         margin-bottom: 10px;
         padding: 20px;
