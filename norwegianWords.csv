@@ -1734,6 +1734,7 @@ spoiled,B2,adjective,bortskjemt,,Old Norse,"forvent, forkjælt",Han ble veldig b
 expel,B2,verb,bortvise,,Old Norse,vise bort,Læreren måtte bortvise eleven som laget bråk i timen.,The teacher had to expel the student who was causing trouble in class.
 settle,B1,verb,bosette,,Old Norse,"skaffe seg (fast) bolig, slå seg ned",De bestemte seg for å bosette seg i en liten landsby ved kysten.,They decided to settle in a small village on the coast.
 settler,B2,en,"bosetter, busetter",,,person som slår seg ned på ubygd land; nybygger,Han jobbet som bosetter i den nye byen.,He worked as a settler in the new city.
+"crumbs, lint",B2,et,bøss,,,avfall av høy og halm; rusk og rask; boss,,
 bucket,B1,ei,bøsse,,Greek via German via Old Norse: byssa,liten beholder med gjennomhullet lokk eller spalteåpning,Han la penger i bøsse til veldedighet.,He put money in the charity collection box.
 bucket carrier,B2,en,bøssebærer,,Greek via German via Old Norse,person som går rundt med en bøsse for å samle inn penger til et godt formål,Bøssebæreren gikk fra dør til dør med innsamlingsboksen.,The collector went from door to door with the collection box.
 residence,B1,et,bosted ,,Old Norse,sted der en bor,Vi har et fint bosted med utsikt over fjorden.,We have a nice place to live with a view of the fjord.
@@ -1805,8 +1806,8 @@ brake fluid,C,ei,bremsevæske,,German,væske til bremsesystemet i biler,,
 "burn, be passionate",A2,verb,brenne,[bre`n:ə],Old Norse: brenna,"være i brann; stå i flammer; lyse som ild; skinne kraftig; være eller kjennes het; svi, verke; ha sterke følelser for noe; være intenst opptatt av noe; kjenne sterk trang eller lyst",Låven brenner.,The barn is on fire.
 burn one's fingers,B2,expression,"brenne fingrene",,Old Norse,få seg en lærepenge,Han brente fingrene på å investere i feil prosjekt.,He burned his fingers investing in the wrong project.
 burn out,B2,expression,brenne ut,,Old Norse,brenne til det ikke er noe igjen; slutte å være aktiv,"Hvis du jobber for hardt uten pauser, kan du fort brenne ut.","If you work too hard without breaks, you can quickly burn out."
-brand,B2,et,brennemerke,,Old Norse,merke som ble brent inn i pannen på en lovbryter; skamplett,Bonden satte et brennemerke på storfeet. Brennemerket viste at dyrene tilhørte bonden.,The farmer put a brand on the cattle. The brand showed that the animals belonged to the farmer.
 brand,B2,verb,brennemerke,,Old Norse,"sette brennemerke på, stigmatisere",Bonden måtte brennemerke kyrne sine for identifikasjon.,The farmer had to brand his cows for identification.
+brand,B2,et,brennemerke,,Old Norse,merke som ble brent inn i pannen på en lovbryter; skamplett,Bonden satte et brennemerke på storfeet. Brennemerket viste at dyrene tilhørte bonden.,The farmer put a brand on the cattle. The brand showed that the animals belonged to the farmer.
 distillery,B2,et,brenneri,,Old Norse,fabrikk eller anlegg der noe blir fremstilt ved brenning,Brenneriet laget sprit av poteter.,The distillery made spirits from potatoes.
 liquor,B1,et,brennevin,,Old Norse,alkoholholdig drikk med mer enn 21 volumprosent alkohol,Han drakk litt brennevin etter middagen.,He drank a bit of liquor after dinner.
 burning hot,B2,adjective,"brennhet, brennheit",,Old Norse,svært het,Temaet var brennhett.,The topic was a hot one.
@@ -1983,8 +1984,8 @@ cage,A2,et,bur,,Old Norse: búr,"kasse eller rom med gitterverk til å stenge dy
 cage,B2,verb,bure,,Old Norse,stenge inne (i et bur); sette i fengsel,Politiet måtte bure inn mistenkte raskt.,The police had to lock up the suspect quickly.
 burger,A2,en,burger,[bu´rgər],English: burger,kortform av hamburger,Jeg vil gjerne ha en burger med ost.,I would like a burger with cheese.
 birthday,A1,en,bursdag,[bu´ʃdag],German: Geburtstag,årsdag for en persons fødsel; fødselsdag,Hvor lenge er det til du har bursdag?,How long is it until your birthday?
-blurt,B2,verb,buse,,German,"storme, ruse frem (uten å tenke seg om)",Barna begynte å buse inn i rommet da de fikk lov til å leke.,The children started to rush into the room when they were allowed to play.
 "bogeyman, booger",B2,en,buse,,German,(stor og) skremmende person; pågående person; klump av størknet snørr,Plutselig kom det en buse ned fra trærne.,"Suddenly, a buzzard came down from the trees."
+blurt,B2,verb,buse,,German,"storme, ruse frem (uten å tenke seg om)",Barna begynte å buse inn i rommet da de fikk lov til å leke.,The children started to rush into the room when they were allowed to play.
 blurt out,B2,expression,buse ut,,German,si noe brått og ubetenksomt,Han begynte å buse ut sine meninger uten å tenke.,He began to blurt out his opinions without thinking.
 "bogeyman, booger",B1,en,busemann,,German,slem og streng person (som virker skremmende); bølle,Barnet var redd for busemannen under senga.,The child was afraid of the boogeyman under the bed.
 bush,A2,en,busk,,Old Norse: buskr,"forholdsvis lav, flerårig plante med treaktige grener som forgrener seg nær jorda; lite tre som ligner en busk",Det vokser en stor busk i hagen vår.,There is a large shrub growing in our garden.
@@ -2436,6 +2437,7 @@ dinosaur,A2,en,"dinosaur, dinosaurus",,Greek,"dyr fra en utdødd dyregruppe som 
 diploma,B1,et,diplom,,Greek,"dokument fra middelalderen, særlig med rettslig innhold; dokument som utstedes som bevis for rettighet, tittel, eksamen, utmerkelse",Han fikk et diplom etter kurset.,He got a diploma after the course.
 diplomat,B2,en,diplomat,,Greek via French,"person som er offisiell representant for sin stat i en annen stat; person som går klokt og smidig frem, særlig i forhandlinger",Diplomaten arbeidet for fred mellom nasjonene.,The diplomat worked for peace between nations.
 diplomacy,B2,et,diplomati,,Greek via French,kunsten å føre forhandlinger med andre stater; diplomatisk virksomhet; etat som driver diplomati; stab av diplomater; klok og smidig fremgangsmåte,Godt diplomati kan forhindre konflikter.,Good diplomacy can prevent conflicts.
+diplomatic,B2,adjective,diplomatisk,,,"som gjelder diplomati og diplomater; som opptrer klokt og smidig og på den måten unngår å såre, provosere eller utløse en konflikt",Hun er ikke videre diplomatisk.,She's not very diplomatic.
 dip,B2,en,dipp,,English,saus til å dyppe noe i,Vi lagde en hjemmelaget dipp til chipsen.,We made a homemade dip for the chips.
 management,C,en,direksjon,[direkʃo:´n],Latin,gruppe av personer med ansvar for den daglige ledelsen av en økonomisk virksomhet,Han sitter i direksjonen.,He is a member of the Executive Board.
 direct,A2,adjective,direkte,"[dire´ktə], [di´r:ektə]",Latin,uten omveier eller avbrudd,Noen tog går direkte og andre stopper på flere stasjoner.,Some trains go directly and others stop at several stations.
@@ -2707,8 +2709,8 @@ dynasty,B2,et,dynasti,,Greek,slekt som har hatt regjeringsmakt i en stat gjennom
 dynastic,C,adjective,dynastisk,,Greek,som angår et dynasti,,
 "duvet, comforter",A2,ei,dyne ,,Old Norse: dýna,fylt teppe til å ha over seg i en seng,Jeg la meg under dyna og leste litt før jeg sovnet.,I lay down under the duvet and read a little before falling asleep.
 dune,B2,en,dyne ,[dy:`nə],German,sammenblåst sandhaug,Sanden samler seg i dyner.,The sand collects in dunes.
-"deep, profound",A2,adjective,dyp,,Old Norse: djúpr,"som rekker langt nedover eller innover; som har bunnen langt nede fra overflaten eller langt inne; tung, alvorlig, sterk, intens",Lokalsamfunnet er i dyp sorg.,The local community is in deep mourning.
 depth,B2,et,dyp,,Old Norse: djúp,sted der det er langt til bunnen; sted som ligger dypt,Han dykket langt ned i det dype vannet.,He dived deep into the deep water.
+"deep, profound",A2,adjective,dyp,,Old Norse: djúpr,"som rekker langt nedover eller innover; som har bunnen langt nede fra overflaten eller langt inne; tung, alvorlig, sterk, intens",Lokalsamfunnet er i dyp sorg.,The local community is in deep mourning.
 deep dive,B2,et,dypdykk,,Old Norse,det å dykke til dyp som er større enn 20 m; dypdykking; det å fordype seg i noe; dypdykking,Han har gjort et dypdykk både i historiebøkene og i arkivene.,He has taken a deep dive into both the history books and the archives.
 deep dive,B2,verb,dypdykke,,Old Norse,foreta et dypdykk; fordype seg i noe,Forskere må ofte dypdykke for å studere marine organismer.,Scientists often have to dive deep to study marine organisms.
 deep diving,B2,ei,dypdykking,,Old Norse,dykking til dyp som er større enn 20 m; det å fordype seg i noe,Ved dypdykking skal tiden ikke overskride tre timer.,"For deep diving, the time should not exceed three hours."
@@ -4966,8 +4968,11 @@ genius,B2,et,geni,[ʃeni:´],Latin via French,høyeste grad av nyskapende begave
 "genius, great",B2,adjective,genial,[genia:´l],Latin via French,"som har eller vitner om geni, sinnrik, oppfinnsom",,
 genital,C,adjective,genital,[genita:´l],Latin,"som gjelder kjønnsorganene",,
 genitals,C,en,genitalier,,Latin,"kjønnsorganer",,
+genetically modify,C,verb,genmodifisere,,,"endre arvestoffet i en levende organisme",,
 sweater,A1,en,genser,,,"hel, strikket trøye til å trekke over hodet",Hun hadde på seg en varm genser i dag.,She was wearing a warm sweater today.
 gentleman,B1,en,"gentleman, gentlemann",[dʒe´nt(ə)lmæn],Latin via French via English,mann med taktfull og beleven oppførsel,Han der er ingen gentleman.,This guy is no gentleman.
+gentrify,C,verb,gentrifisere,[gentrifise:´rə],English,"oppgradere (dårlig ansett) bydel, bygningsmasse e.l. så det fremstår som mer attraktivt enn tidligere",,
+gentrification,C,ei,gentrifisering,,English,"endring av et byområdes sosiale status som følge av at billige boliger og beboere med lav inntekt gradvis erstattes av dyrere boliger og mer velhavende beboere",,
 genuine,B2,adjective,genuin,[genu-i:´n],Latin,"naturlig, medfødt; ekte, uforfalsket",,
 genus,C,en,genus,,Latin,"slekt; grammatisk kjønn ved substantiv, adjektiv og pronomen; kategori av verbform",,
 geology,B2,en,geologi,,Greek,lære om jordklodens oppbygning og historie; lære om berg- og jordarter,,
@@ -5592,6 +5597,7 @@ halve,B2,verb,halvere ,,Old Norse,dele i to like store deler,De bestemte seg for
 half-finished,B2,adjective,halvferdig ,,Old Norse,halvveis ferdig,Huset var bare halvferdig.,The house was only half finished.
 half-full,B2,adjective,halvfull ,,Old Norse,"halvveis full, halvfylt",Glasset var halvfullt med vann.,The glass was half full of water.
 demigod,C,en,halvgud ,,Old Norse,menneske som er opptatt blant gudene; hero; menneske som blir dyrket eller lar seg dyrke som en gud,Hercules var en halvgud i gresk mytologi.,Hercules was a demigod in Greek mythology.
+hemisphere,B2,ei,halvkule,,,halvdel av en kule; halvdel av jordkloden,,
 semiconductor,C,en,halvleder,,Old Norse,stoff med elektrisk ledningsevne som ligger mellom ledningsevnen til metalliske ledere og isolatorer,Halvledere er avgjørende for elektroniske enheter.,Semiconductors are essential for electronic devices.
 "crescent, half-moon",B2,en,halvmåne,,Old Norse,den halve lysende måneskiva; symbol for islam,Det er halvmåne i kveld.,There is a half moon tonight.
 semi-darkness,B2,et,halvmørke ,,Old Norse,"dimt lys; tussmørke, skumring",Vi gikk i halvmørket gjennom skogen.,We walked in the semi-darkness through the forest.
@@ -7805,6 +7811,8 @@ means of communication,B2,et,kommunikasjonsmiddel,,Latin,"fremkomstmiddel; midde
 communications satellite,C,en,kommunikasjonssatellitt,,Latin,"sambandssatellitt",,
 communicate,B1,verb,kommunisere,,Latin,"meddele, gi underretning",Vi må lære å kommunisere bedre med hverandre.,We need to learn to communicate better with each other.
 communism,B2,en,kommunisme ,,Latin,politisk ideologi som har som mål å skape et klasseløst samfunn med felleseie av produksjonsmidlene og lik fordeling av produksjonsresultatene,,
+communist,B2,en,kommunist,,,tilhenger av kommunisme,Hun er gammel kommunist.,She is an old communist.
+"communistic, communist",B2,adjective,kommunistisk,,,som gjelder kommunisme og kommunister,Kina er fortsatt et kommunistisk land.,China is still a communist country.
 compact,B1,adjective,kompakt,,Latin,"sammentrengt, tett, fast; om personbil: uten overflødig plass, forminsket","Leiligheten var liten, men kompakt.",The apartment was small but compact.
 company,B2,et,kompani,,Latin,"handels-, forretningstiltak som flere driver sammen, handelsselskap; hæravdeling på cirka 150 mann under kommando av kaptein eller major",,
 business partner,B2,en,kompanjong,,Latin,"medinnehaver av et firma",,
@@ -8811,6 +8819,7 @@ outlook on life,B2,et,livssyn ,,Old Norse,"syn på menneskelivet, livsanskuelse"
 life-threatening,B2,adjective,livstruende ,,Old Norse,"som ser farlig ut, som gir inntrykk av en farlig utvikling",,
 vital,B2,adjective,livsviktig,,Old Norse,som er avgjørende for (det organiske) livet; svært viktig,,
 bodyguard,B2,ei,livvakt ,,Old Norse,"avdeling soldater som holder vakt for en fyrste eller en annen fremstående person, livgarde; person som holder seg i nærheten av en fremstående person for å beskytte mot angrep",,
+lint,B1,ei,lo,,,"dott av fibre som slites av tekstiler; lodden overflate på stoff, laget av kortendene av tråder; luv",Kluten legger igjen lo på vinduet.,The cloth leaves lint on the window.
 lobby,B1,en,lobby,[lå´b:i],Latin via English,"inngangshall, forrom, korridor (særlig i en parlamentsbygning; (press)gruppe som driver lobbyvirksomhet",De møtte i lobbyen til hotellet.,They met in the lobby of the hotel.
 lobbyist,B2,en,lobbyist,,Latin via English,person som driver lobbyvirksomhet,,
 lobbying,C,ei,lobbyvirksomhet,,Latin via English,"forsøk som ikke-politikere gjør på å påvirke politikere i en sak, korridorpolitikk",,
@@ -8818,6 +8827,7 @@ metal weight,B1,et,lodd,,,metallklump med en viss vekt brukt til å veie med,Han
 "furry, fluffy",B2,adjective,lodden ,[lå`d:(ə)n],,som har et lag hår eller ull,,
 vertical,B1,adjective,loddrett,,,"i samme retning som loddlinjen, vertikal",Stigen må stå loddrett.,The ladder must be vertical.
 white bread,A2,en,loff,[lof:],English: loaf,"brød bakt av fint, hvitt hvetemel",Vi kjøpte fersk loff til frokosten.,We bought fresh white bread for breakfast.
+lint filter,B2,et,lofilter,,,filter som samler opp lo,,
 attic,A2,et,loft,[låft],,"etasje eller rom under taket i et hus; tak i et rom; laftet bygning i to etasjer, ofte med svalgang, særlig om andre etasje med sengerom",De gamle lekene er oppbevart på loftet.,The old toys are stored in the attic.
 "lift, boost",B1,et,løft,,,det å løfte; noe som blir løftet; bør; krafttak; noe som letter en situasjon,Den hyggelige kommentaren ga dagen et løft.,The nice comment gave the day a boost.
 "lift, raise",A2,verb,løfte ,[lø`ftə],,"heve opp fra underlaget, lette",Kan du hjelpe meg å løfte denne tunge boksen?,Can you help me lift this heavy box?
@@ -10126,6 +10136,7 @@ the Nordic countries,B1,et,Norden,,,"fellesbetegnelse på Danmark, Finland, Fær
 from the north,B1,preposition,"nordfra, nordafra, nordenfra",,,fra nord i (eller ved); fra et sted i nord; fra Nord-Norge,Spillerne ble hentet nordfra Moss. Familien hennes er nordfra.,The players were brought in from north of Moss. Her family is from the north.
 Nordic,B1,adjective,nordisk,,,som hører til eller gjelder Norden,Den nordiske kulturen er fascinerende.,Nordic culture is fascinating.
 northerner,B1,en,nordlending,,,person fra Nordland; person fra Nord-Norge,"Lars er en nordlending, og han har en sterk nordnorsk dialekt.","Lars is a northerner, and he has a strong northern Norwegian accent."
+northern,B1,adjective,nordlig,,,som hører til i eller ligger i nord; som går eller fører mot nord; som kommer fra nord,,
 Northern Lights,B1,et,nordlys ,,Old Norse,polarlys på natthimmelen i nordlige strøk,Nordlyset danset over himmelen i kveld.,The Northern Lights danced across the sky tonight.
 Norwegian person,A1,en,nordmann ,,Old Norse,person fra Norge,Nordmannen elsket ski og vintersport.,The Norwegian loved skiing and winter sports.
 Northern Norwegian,B2,en-et,nordnorsk,,,dialekter som blir talt i Nord-Norge,,
@@ -10231,6 +10242,7 @@ watch out,A2,interjection,obs,[åps],Latin,"legg merke til","Obs, møtet begynn
 observant,B2,adjective,observant,[åpserva´ŋ:],Latin,"våken, oppmerksom, som har øynene med seg",,
 observation,B2,en,observasjon,,Latin,"det å observere, iakttakelse, måling, undersøkelse",,
 observer,B2,en,observatør,,Latin,person som holder utkikk; iakttaker,,
+observatory,B2,et,observatorium,,Latin,"bygning innrettet til astronomiske undersøkelser",,
 observe,B1,verb,observere,[åpserve:´rə],Latin,"iaktta, legge merke til",Hun begynte å observere fuglene.,She started observing the birds.
 obscure,C,adjective,obskur,[åpsku:´r],Latin via French,"vanskelig å forstå; dunkel; lyssky, moralsk tvilsom",Stein Mehrens essays kan nok tidvis virke obskure.,Stein Mehren's essays may seem obscure at times.
 obsolete,C,adjective,obsolet,[åpsole:´t],Latin: obsoletus,ute av bruk; foreldet,,
@@ -10643,6 +10655,7 @@ Baltic country,C,et,østersjøland,,Old Norse,"land som grenser til Østersjøen
 cheese sauce,A2,en,ostesaus,,Old Norse,hvit saus tilsatt ost,Pizzaen var dekket med ostesaus.,The pizza was covered with cheese sauce.
 from the east,B1,preposition,"østfra, austfra",,,fra et sted i øst; østafra; fra øst,Flyet gikk inn for landing østfra.,The plane went in for landing from the east.
 easterner,B1,en,"østlending, austlending",,,person fra Østlandet,Hun er østlending og har bodd i Oslo hele livet.,She is from the east and has lived in Oslo all her life.
+eastern,B1,adjective,"østlig, austlig",,,"som ligger i øst; som går, fører mot øst; fra øst",Vinden er østlig.,The wind is easterly.
 Eastern Norwegian,B2,en-et,"østnorsk, austnorsk",,,"fellesbetegnelse på dialektene på Østlandet, Nordmøre og i Trøndelag",,
 eastern Norwegian,B2,adjective,"østnorsk, austnorsk",,,som gjelder Østlandet; som er særmerkt for østnorsk,,
 estrogen,B2,et,østrogen,,Greek,hormon som dannes særlig i eggstokkene hos kvinnen (men som også kan fremstilles syntetisk),,
@@ -11029,6 +11042,8 @@ passion fruit,B1,ei,pasjonsfrukt,,Latin,spiselig rødlilla eller gul frukt av vi
 Easter egg,A2,et,påskeegg,,Hebrew,(etterligning av) egg med farger eller påskrift brukt som foræring i påsken,Barna gleder seg til å finne påskeegg fylt med sjokolade.,The children look forward to finding chocolate-filled Easter eggs.
 Easter murder mystery,B1,en,påskekrim,,Hebrew,"krim som en leser, ser eller hører i påsken",Mange ser påskekrim på fjernsyn.,Many people watch Easter crime on television.
 Easter Island,B1,ei,Påskeøya,,Hebrew,en chilensk øy i Stillehavet som ligger 3512 kilometer vest for Chile,Påskeøya er kjent for sine store statuer.,Easter Island is known for its large statues.
+inscribed,B2,adjective,"påskreven, påskrevet",,,som det er skrevet på,,
+inscription,B2,ei,påskrift,,,det å skrive på; underskrift; noe som er skrevet på noe annet,Kontrakten ligger til påskrift.,The contract is waiting to be signed.
 pretext,C,et,påskudd ,,,"faktisk eller oppdiktet grunn, unnskyldning",,
 "expedite, speed up",C,verb,påskynde,,,skynde på; øke farten,,
 passport,A2,et,pass,[pas:],,offisielt legitimasjonsbevis som dokumenterer innehaverens nasjonalitet og identitet ved reiser i utlandet,Politiet utsteder pass.,The police issue passports.
@@ -11253,6 +11268,7 @@ platonic,B2,adjective,platonsk,[plato:´nsk],Greek,platonisk,Forholdet deres var
 platform,B1,ei,plattform,,French,"stor konstruksjon som er bygd for utvinning av olje og gass til havs; flat forhøyning til å stå på eller sette noe på; perrong, rampe; grunnlag, utgangspunkt; program; maskinvare eller programvare som kan brukes til et bestemt, avgrenset sett av programmer, applikasjoner, innhold og lignende",De ventet på plattformen til toget kom.,They waited on the platform for the train to arrive.
 plausible,B2,adjective,plausibel,,Latin via French,"rimelig, troverdig",Teorien hans er ganske plausibel.,His theory is quite plausible.
 plebeian,C,en,plebeier,[plebæi´ər],,"en som hørte til underklassen i det gamle Roma; ukultivert, udannet person",Han var en plebeier i det gamle Roma.,He was a plebeian in ancient Rome.
+blanket,A2,et,pledd,,,"tykt teppe, ofte av ull",,
 "tend to, usually",A2,verb,pleie,[plæi`ə],Old Norse: plega,"bruke, ha for vane",Han pleier å gjøre det.,He usually does.
 "care for, nurse, nurture",A2,verb,pleie,[plæi`ə],Old Norse: plega,"passe, stelle; dyrke",Hun pleier å besøke besteforeldrene sine hver uke.,She usually visits her grandparents every week.
 "care, nursing",B1,ei,pleie ,[plæi`ə],Old Norse: plega,"stell, pass, tilsyn",Hun fikk god pleie på sykehuset.,She received good care at the hospital.
@@ -11283,6 +11299,7 @@ emphasize,B2,verb,poengtere,[på-eŋte:´rə],Latin via French,"legge vekt på, 
 pogrom,C,en,pogrom,,Russian,"organisert voldelig angrep på en etnisk eller religiøs minoritet, særlig brukt om jødeforfølgelse; folkemord",,
 poker,B1,en,poker,[po:´kər],English,"kortspill med innsats","Vi spilte poker i går kveld, og jeg vant en runde.","We played poker last night, and I won a round."
 poker face,B2,et,pokerfjes,[po:´kərfje:s],English,"ansikt som ikke viser følelser, uttrykksløst ansikt",Han var utstyrt med det motsatte av pokerfjes.,He was equipped with the opposite of a poker face.
+damn,B2,en,pokker,,,fanden,"Hva pokker gjør vi nå? Du må bruke vettet, for pokker!","What the hell do we do now? You have to use your brain, damn it!"
 pole,B1,en,pol,,Greek,"hvert av endepunktene (og områdene rundt) på jordaksen eller himmelaksen; hvert av endepunktene i en magnet eller elektrisk leder; punkt som linjer eller andre punkter står i et visst forhold til; motsetning, kontrast",Motsatte poler tiltrekker hverandre.,Opposite poles attract each other.
 wine monopoly,B1,et,pol,,Greek via Latin,"kortform av vinmonopol",Kompasset peker mot nordpolen.,The compass points to the North Pole.
 polar,B2,adjective,polar ,[pola:´r],Greek,"som gjelder, hører til, er særmerkt for polstrøkene; stikk motsatt",I polare strøk er det mørkt store deler av året.,"In polar regions, it is dark for much of the year."
@@ -13740,6 +13757,7 @@ sad,B2,adjective,sørgmodig,[sørgmo:´di],Old Norse,"trist, bedrøvet",,
 sadness,B2,ei,sørgmodighet,,Old Norse,det å være sørgmodig; melankoli,,
 sorrowful,B2,adjective,sorgtung,,Old Norse,"tynget, preget av sorg",,
 southerner,B1,en,sørlending,,,person fra Sørlandet,En typisk sørlending elsker sol og sjø.,A typical southerner loves the sun and sea.
+southern,B1,adjective,"sørlig, sydlig",,,"som ligger mot, i sør; fra sør; mot sør",Kursen var sørlig.,The course was southerly.
 southward,B1,adverb,"sørover, sydover",,Old Norse,"i retning mot sør",Fuglene fløy sørover mot varmere klima.,The birds flew south towards warmer climates.
 slop,A2,ei,sørpe,,Old Norse: sorp,"søle; våt masse av smeltende snø eller is, slaps; oppbløtt fôr til dyr av hakkels, høy eller korn",Det var mye sørpe i gatene etter snøfallet.,There was a lot of slush in the streets after the snowfall.
 sloppy conditions,B2,et,sørpeføre,,Old Norse,"sørpet føre, slapseføre",,
@@ -13760,6 +13778,7 @@ societal ethics,C,en,sosialetikk,,Latin,"samfunnsmoral",,
 social welfare,B2,ei,sosialhjelp,,Latin,"hjelp til vanskeligstilte i samfunnet",,
 socialism,B2,en,sosialisme,,Latin,samfunnssystem der staten forvalter produksjonsmidlene og fordeler utbyttet,,
 socialist,B2,en,sosialist,,Latin,tilhenger av sosialisme,,
+"socialistic, socialist",B2,adjective,sosialistisk,,,"som gjelder sosialisme",,
 community center,B2,et,sosialkontor,,Latin,kontor som administrerer og samordner all sosial virksomhet i en kommune,,
 social work,B2,expression,"sosialt arbeid",,Latin,"fagfelt som beskjeftiger seg med å forebygge, løse og redusere sosiale problemer (for enkeltmennesker eller grupper av mennesker)",,
 social lubricant,B2,expression,sosialt glidemiddel,,Latin,"noe som gjøre det lettere å samtale og ha det hyggelig sammen; noe som gjør det lettere å oppnå nærhet, tilknytning til andre mennesker",,
@@ -15268,6 +15287,7 @@ thunderstorm,B1,et,tordenvær,,Old Norse,vær med lyn og torden,Tordenværet kom
 drying,B2,en,tørk,,,"det å tørke(s), det å bli tørr",Vind og sol gir god tørk.,Wind and sun provide good drying.
 drought,B2,ei,tørke ,[tø`rkə],,langvarig tørt vær,Landbruket lider under den verste tørken på ti år.,Agriculture is suffering from the worst drought in a decade.
 "dry, wipe",A2,verb,tørke ,[tø`rkə],,gjøre tørr,Jeg må tørke tallerkenene før jeg setter dem bort.,I have to dry the plates before I put them away.
+dryer,A2,en,tørketrommel,,,kunstig oppvarmet trommel til å tørke noe (særlig klær) i,,
 "small farm, cottage",B2,et,torp ,,,"liten gård, småbruk",Familien har et lite torp ute på landet.,The family has a small croft in the countryside.
 dry,A2,adjective,tørr,,,som ikke inneholder eller er dekket av væte,Vinen er veldig tørr og passer godt til maten.,The wine is very dry and goes well with food.
 dare,B1,verb,"tørre, tore",[tø`r:ə],Old Norse: þora,våge,"De torde ikke forstyrre henne. Hva gjør dere her, om jeg tør spørre?","They didn't dare disturb her. What are you doing here, if I may ask?"
@@ -16538,6 +16558,7 @@ wetsuit,B1,ei,våtdrakt ,,Old Norse,"dykkerdrakt der et lag vann mellom kroppen 
 by,A1,preposition,ved,[ve:],Old Norse,"(nær) inntil, i nærheten av",Jeg krysset elven ved å svømme.,I crossed the river by swimming.
 "firewood, wood",A1,en,ved,[ve:],Old Norse: viðr,"hos trær, busker og lyng: dødt og hardt cellevev i røtter, stammer og grener; trevirke brukt til brensel",Jeg har nok ved for hele vinteren.,I have enough firewood for the whole winter.
 accidentally,B1,expression,ved et uhell,,Old Norse,"som ikke var planlagt eller ønsket, men som skjedde som et resultat av en feil eller uoppmerksomhet",Han slo glasset i gulvet ved et uhell.,He accidentally knocked the glass to the floor.
+up to date,B2,adverb,"ved like",,,"i stand, ved lag",,
 "beside, on the side",A2,expression,"ved siden av",,Old Norse,utenom; like ved; i umiddelbar nærhet av; ekstra; i tillegg,Han satte seg ved siden av meg på bussen.,He sat down next to me on the bus.
 "impact, happen to",C,verb,vederfares,,German,"bli til del; hende, skje",At dette skulle vederfares oss!,That this should be done to us!
 reliable,C,adjective,vederheftig,"[ve:`dərhefti], [vedərhe´fti]",German,"pålitelig, tilforlatelig",,
@@ -16698,6 +16719,7 @@ worldly,B2,adjective,verdensvant,,Old Norse,vant til å ta seg frem mellom fremm
 "value, worth",B1,en,verdi ,,German via Old Norse,"beløp, pris som noe kan omsettes for",Kjærlighet har en stor verdi i livet.,Love has a great value in life.
 valuable,B1,adjective,verdifull ,,German via Old Norse,høyt verdsatt,Smykket var både gammelt og verdifullt.,The jewelry was both old and valuable.
 worthless,B2,adjective,verdiløs ,,German via Old Norse,til ingen nytte,"Den gamle stolen var full av rifter og skader, og virket helt verdiløs.","The old chair was full of scratches and damage, and seemed completely worthless."
+security,C,et,verdipapir,,,"gjeldsbrev som kan omsettes","Aksjer, obligasjoner og veksler er verdipapirer.","Shares, bonds and bills of exchange are securities."
 item of value,B2,ei,verdisak ,,German via Old Norse,"(mindre) ting, eiendeler som har (relativt stor) pengeverdi",Tyvene tømte huset for verdisaker.,The thieves emptied the house of valuables.
 wealth creation,B2,ei,verdiskapning,,German via Old Norse,"det å skape materielle eller åndelige verdier",Vi må øke den industrielle verdiskapingen i Fastlands-Norge.,We must increase industrial value creation in mainland Norway.
 "appreciate, value",B2,verb,verdsette,,German via Old Norse,vurdere; taksere; vurdere; sette pris på,Jeg verdsetter din ærlighet og åpne kommunikasjon.,I appreciate your honesty and open communication.
@@ -16747,6 +16769,7 @@ vest,A2,en,vest,[vest],,midjelangt klesplagg uten ermer,Politiet hadde på seg s
 west bank,B2,ei,vestbredd,,,"vestlig, vestvendt bredd av fjord, elv",,
 from the west,B1,preposition,vestfra,,,"fra vest, vestafra",De kom vestfra.,They came from the west.
 westerner,B1,en,vestlending,,,person fra Vestlandet,En typisk vestlending er vant til mye regn.,A typical Westerner is used to a lot of rain.
+western,B1,adjective,vestlig,,,"som ligger i vest; som går, fører mot vest; fra vest; som gjelder Vesten",,
 Western Norwegian,B2,en-et,vestnorsk,,,fellesbetegnelse for vestlandsk og nordnorsk,,
 western Norwegian,B2,adjective,vestnorsk,,,som gjelder Vest-Norge og vestlendinger,,
 veteran,B2,en,veteran,,Latin,"soldat med (lang) krigstjeneste; person med lang erfaring, tjeneste, virksomhet bak seg",,
