@@ -1,6 +1,7 @@
 // Global Variables
 let results = [];
 let isEnglishVisible = true;
+let latestMultipleResults = null;
 const resultsContainer = document.getElementById('results-container');
 
 // Function to show or hide the landing card
@@ -344,8 +345,9 @@ function generateInexactMatches(query) {
 }
 
 // Perform a search based on the input query and selected POS
-async function search() {
-    const query = document.getElementById('search-bar').value.toLowerCase().trim();
+async function search(queryOverride = null) {
+    const query = queryOverride || document.getElementById('search-bar').value.toLowerCase().trim();
+    console.log("Search triggered with query:", query);
     const selectedPOS = document.getElementById('pos-select') ? document.getElementById('pos-select').value.toLowerCase() : '';
     const selectedCEFR = document.getElementById('cefr-select') ? document.getElementById('cefr-select').value.toUpperCase() : '';  // Fetch the selected CEFR level
     const type = document.getElementById('type-select').value; // Get the search type (words or sentences)
@@ -475,6 +477,13 @@ async function search() {
             hideSpinner(); // Hide the spinner
             return;
         } 
+
+        if (matchingResults.length > 1) {
+            latestMultipleResults = query;
+            console.log("Stored latestMultipleResults:", latestMultipleResults);
+        } else {
+            latestMultipleResults = null;
+        }        
         
         // Check if there are **no exact matches**
         const noExactMatches = matchingResults.length === 0;
@@ -496,7 +505,7 @@ async function search() {
             resultsContainer.innerHTML = `
                 <div class="definition error-message">
                     <h2 class="word-gender">
-                        No Exact Matches Found <span class="gender"></span>
+                        No Exact Matches Found
                     </h2>
                     <p>We couldn't find exact matches for "${query}"${filtersText}. Here are some inexact results:</p>
                     <button class="sentence-btn back-btn">
@@ -1545,10 +1554,6 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) { // Added showE
 
             return acc;
         }, { matchedSentences: [], matchedTranslations: [] });
-
-        // Log the matched sentences and their translations
-        console.log(`Matched sentences for '${r.ord}':`, matchedSentencesAndTranslations.matchedSentences);
-        console.log(`Matched translations for '${r.ord}':`, matchedSentencesAndTranslations.matchedTranslations);
         
         // Return only the matched sentences and aligned translations, or null if none
         return matchedSentencesAndTranslations.matchedSentences.length > 0 ? { 
@@ -1916,6 +1921,26 @@ function handleCardClick(event, word, pos, engelsk) {
     // Clear all other results and keep only the clicked card
     resultsContainer.innerHTML = '';  // Clear the container
 
+    if (latestMultipleResults) {
+
+        const backDiv = document.createElement('div');
+        backDiv.className = 'back-navigation';
+    
+        // Create the icon element
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-chevron-left';
+    
+        // Create the text element
+        const text = document.createTextNode(` Back to Results for "${latestMultipleResults}"`);
+    
+        // Append icon and text to backDiv
+        backDiv.appendChild(icon);
+        backDiv.appendChild(text);
+    
+        // Append backDiv to resultsContainer
+        resultsContainer.appendChild(backDiv);    
+    }
+
     // Display the clicked result
     displaySearchResults(clickedResult);  // This ensures only the clicked card remains
 
@@ -2005,4 +2030,10 @@ window.onload = function() {
 
     // Add event listener to the search bar to trigger handleKey on key press
     document.getElementById('search-bar').addEventListener('keyup', handleKey);
+
+    document.addEventListener('click', (event) => {
+        if (event.target.matches('.back-navigation')) {
+            search(latestMultipleResults);
+        }
+    });
 };

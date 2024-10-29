@@ -6,18 +6,6 @@ a {
     display: none !important; /* Always hidden */
 }
 
-.back-arrow {
-    visibility: visible !important;
-    opacity: 1 !important;
-    background-color: #ddd; /* Temporary styling for visibility */
-    color: black;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 5px;
-    font-size: 16px;
-}
-
-
 .back-btn {
     background-color: #b22222; /* Dark red color */
     color: #fff;
@@ -37,6 +25,25 @@ a {
     margin-right: 8px; /* Adds space between the icon and text */
 }
 
+.back-navigation {
+    display: block;  /* Block-level element to allow centering */
+    margin: 0 0 10px 0;  /* Remove auto margin and set bottom margin only */
+    margin-bottom: 10px;
+    background-color: #ffffff;  /* Subtle, lighter background */
+    color: #5a1a1a;  /* Subtle maroon text */
+    border-radius: 6px;  /* Slightly rounded corners */
+    padding: 8px 14px;  /* Larger padding for a more clickable feel */
+    font-family: 'Noto Sans', sans-serif;  /* Clean, modern font */
+    font-size: 12px;  /* Smaller font size for subtlety */
+    font-weight: 500;  /* Slightly bolder text */
+    text-transform: uppercase;  /* Uppercase for consistency */
+    letter-spacing: 0.03em;  /* Slight letter spacing */
+    cursor: pointer;  /* Pointer on hover */
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
+    touch-action: manipulation;  /* Helps reduce delay on mobile */
+    box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: fit-content;
+}
 
 body {
     background-color: #f4f4f4;
