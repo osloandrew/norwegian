@@ -500,10 +500,10 @@ footer .copyright {
 .gender {
     align-self: flex-start;               /* Align the label to the left */
     background-color: #f0f0f0;
-    color: #4F4F4F !important;
+    color: #6A6A6A !important;
     font-family: 'Noto Sans', sans-serif;
     text-transform: uppercase;
-    padding: 3px 7px;                     /* Smaller padding */
+    padding: 3px 4px;                     /* Smaller padding */
     font-size: 10px;                      /* Smaller font size */
     font-weight: 500 !important;
     border-radius: 4px;
@@ -686,6 +686,10 @@ main {
     font-size: 18px !important;
     margin-left: 20px;  /* Space between the gender/word and definition */
     width: 50%;  /* Definition takes up exactly 60% of the container */
+}
+
+.multiple-results-english {
+    margin: 8px 0px 10px 0px !important;
 }
 
 .multiple-results-hidden-content {

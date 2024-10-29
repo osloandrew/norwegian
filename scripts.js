@@ -400,7 +400,7 @@ async function search() {
         resultsContainer.innerHTML = `
             <div class="definition error-message">
                 <h2 class="word-gender">
-                    Error <span class="gender">Empty Search</span>
+                    Error <div class="gender">Empty Search</div>
                 </h2>
                 <p>Please enter a word in the search field before searching.</p>
             </div>
@@ -531,9 +531,7 @@ async function search() {
                 clearContainer();
                 appendToContainer(`
             <div class="definition error-message">
-                <h2 class="word-gender">
-                    No Matches Found <span class="gender"></span>
-                </h2>
+                <h2 class="word-gender">No Matches Found</h2>
                 <p>We couldn't find any matches for "${query}"${filtersText}.</p>
                 <button class="sentence-btn back-btn">
                     <i class="fas fa-flag"></i> Flag Missing Word Entry
@@ -895,6 +893,7 @@ function displaySearchResults(results, query = '') {
         const multipleResultsExposedContent = defaultResult ? 'default-hidden-content' : ''; 
 
         const multipleResultsDefinition = multipleResults ? 'multiple-results-definition' : '';  // Hide content if multiple results
+        const multipleResultsEnglish = multipleResults ? 'multiple-results-english' : '';  // Hide content if multiple results
         const multipleResultsHiddenContent = multipleResults ? 'multiple-results-hidden-content' : '';  // Hide content if multiple results
         const multipleResultsDefinitionHeader = multipleResults ? 'multiple-results-definition-header' : ''; 
         const multipleResultsWordgender = multipleResults ? 'multiple-results-word-gender' : ''; 
@@ -916,7 +915,7 @@ function displaySearchResults(results, query = '') {
                 <h2 class="word-gender ${multipleResultsWordgender}">
                     ${result.ord}
                     ${result.gender ? `<div class="gender ${multipleResultsgenderClass}">${result.gender}</div>` : ''}
-                    ${result.engelsk ? `<p class="english ${multipleResultsExposedContent}">${result.engelsk}</p>` : ''}
+                    ${result.engelsk ? `<p class="english ${multipleResultsExposedContent} ${multipleResultsEnglish}">${result.engelsk}</p>` : ''}
                     ${result.CEFR ? `<div class="game-cefr-label ${multipleResultsExposedContent} ${getCefrClass(result.CEFR)}">${result.CEFR}</div>` : ''} 
                 </h2>
                 ${result.definisjon ? `<p class="${multipleResultsDefinitionText}">${result.definisjon}</p>` : ''}
