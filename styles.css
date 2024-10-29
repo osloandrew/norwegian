@@ -297,7 +297,6 @@ footer .copyright {
     justify-content: center;  /* Optionally center horizontally as well */
     min-height: 50px;
     text-align: center;
-    flex-shrink: 0;                      /* Prevent the spacer from shrinking */
 }
  
 /* Example Sentences */
