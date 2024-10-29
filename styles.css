@@ -235,6 +235,34 @@ footer .copyright {
     font-size: 12px;
 }
 
+
+#game-banner-placeholder {
+    align-self: baseline;
+    background-color: #FAE5C3; 
+    color: #5C4033; /* Gray color, matching the scorecard */
+    text-align: center;
+    padding: 0px 6px !important; /* Smaller padding for a more compact banner */
+    border-radius: 5px;
+    font-size: 0.6em !important; /* Smaller font size to fit the text on one line */
+    font-weight: normal; /* Adjusted to normal to avoid boldness */
+    font-family: "Noto Sans", sans-serif; /* Using Noto Sans, sans-serif */
+    margin: 0 1px 0 1px 0 auto; /* Reduced spacing between banner and the rest */
+    margin-bottom: 5px;
+    transition: opacity 0.5s ease-in-out; /* Smooth transition */
+    font-weight: 500;
+    user-select: none;
+}
+
+#game-banner-placeholder p {
+    margin: 1px !important;
+}
+
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 15px; /* Slightly increase space between the cards */
+}
+
 .game-cefr-label {
     align-self: flex-start;               /* Align the label to the left */
     padding: 3px 7px;                     /* Smaller padding */
@@ -283,33 +311,6 @@ footer .copyright {
     line-height: 1.5;
 }
 
-#game-banner-placeholder {
-    align-self: baseline;
-    background-color: #FAE5C3; 
-    color: #5C4033; /* Gray color, matching the scorecard */
-    text-align: center;
-    padding: 0px 6px !important; /* Smaller padding for a more compact banner */
-    border-radius: 5px;
-    font-size: 0.6em !important; /* Smaller font size to fit the text on one line */
-    font-weight: normal; /* Adjusted to normal to avoid boldness */
-    font-family: "Noto Sans", sans-serif; /* Using Noto Sans, sans-serif */
-    margin: 0 1px 0 1px 0 auto; /* Reduced spacing between banner and the rest */
-    margin-bottom: 5px;
-    transition: opacity 0.5s ease-in-out; /* Smooth transition */
-    font-weight: 500;
-    user-select: none;
-}
-
-#game-banner-placeholder p {
-    margin: 1px !important;
-}
-
-.game-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-gap: 15px; /* Slightly increase space between the cards */
-}
-
 .game-correct-card {
     background-color: #C7E3B6 !important; /* Lighter olive green for correct */
     color: white;
@@ -319,10 +320,21 @@ footer .copyright {
     height: 80px; /* Consistent height with the other cards */
 }
 
-.game-gender-style {
-    color: gray;
-    font-family: "Noto Serif", serif;
-    font-weight: 100;
+.game-gender {
+    align-self: flex-end;               /* Align the label to the left */
+    background-color: #f0f0f0;
+    color: #6A6A6A !important;
+    font-family: 'Noto Sans', sans-serif;
+    text-transform: uppercase;
+    padding: 3px 4px;                     /* Smaller padding */
+    font-size: 10px;                      /* Smaller font size */
+    font-weight: 500 !important;
+    border-radius: 4px;
+    text-align: center;
+    text-transform: uppercase;
+    margin-bottom: 5px;                  /* Space between the label and the word */
+    min-width: 17.5px;
+    user-select: none;  /* Prevent text selection */
 }
 
 .game-incorrect-card {

@@ -320,35 +320,28 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
 
     // Split the word at the comma and use the first part
     let displayedWord = wordObj.ord.split(',')[0].trim();
+    let displayedGender = wordObj.gender;
 
-    // Check if the first character is lowercase before adding the article (en, et, ei)
     if (!/^[A-ZÆØÅ]/.test(displayedWord) && 
         (wordObj.gender.startsWith('en') || wordObj.gender.startsWith('et') || wordObj.gender.startsWith('ei'))) {
-        
-        displayedWord = `<span class="game-gender-style">${wordObj.gender}</span> ${displayedWord}`;
+        displayedGender = "Noun - " + displayedGender;
     }
 
     // Check if CEFR is selected; if not, add a label based on wordObj.CEFR
     let cefrLabel = '';
-    let spacerDiv = '<div class="game-cefr-spacer"></div>';  // Default empty spacer div
     let trickyLabel = '';  // Placeholder for the tricky word label
 
     // Always show the CEFR label if CEFR is available
     if (wordObj.CEFR === 'A1') {
         cefrLabel = '<div class="game-cefr-label easy">A1</div>';
-        spacerDiv = '<div class="game-cefr-spacer"></div>';
     } else if (wordObj.CEFR === 'A2') {
         cefrLabel = '<div class="game-cefr-label easy">A2</div>';
-        spacerDiv = '<div class="game-cefr-spacer"></div>';
     } else if (wordObj.CEFR === 'B1') {
         cefrLabel = '<div class="game-cefr-label medium">B1</div>';
-        spacerDiv = '<div class="game-cefr-spacer"></div>';
     } else if (wordObj.CEFR === 'B2') {
         cefrLabel = '<div class="game-cefr-label medium">B2</div>';
-        spacerDiv = '<div class="game-cefr-spacer"></div>';
     } else if (wordObj.CEFR === 'C') {
         cefrLabel = '<div class="game-cefr-label hard">C</div>';
-        spacerDiv = '<div class="game-cefr-spacer"></div>';
     } else {
         console.warn("CEFR value is missing for this word:", wordObj);
     }
@@ -378,7 +371,11 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
             <div class="game-word">
                 <h2>${displayedWord}</h2>
             </div>
-            ${spacerDiv}  <!-- Add the spacer div if CEFR label exists -->
+            <div class="game-labels-container">
+                <div class="game-gender">${displayedGender}</div>
+                <div class="game-cefr-spacer"></div>
+                <div style="visibility: hidden;" class="game-gender">${displayedGender}</div>
+            </div>
         </div>
 
         <!-- Translations Grid Section -->
