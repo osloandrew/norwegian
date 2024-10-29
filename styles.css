@@ -897,14 +897,14 @@ main {
     margin: 0;
 }
 
-
 .search-and-random-wrapper {
     display: flex;
-    justify-content: space-between;
     gap: 10px;
+    justify-content: space-between;
 }
 
 .search-bar-wrapper {
+    min-width: 0px;
     width: 100%;
 }
 
@@ -959,21 +959,6 @@ main {
     background-color: #e8e8e8;  /* Slightly darker on hover */
     border-color: #851a1a;  /* Darker maroon on hover */
 }
-
-/* Show state - makes it more distinguishable when showing
-.sentence-btn.show {
-    background-color: #f0f0f0;
-    color: #5a1a1a;
-    border: 1px solid #5a1a1a;
-}
-
-.sentence-btn.hide {
-    background-color: #d3d3d3;  /* Slightly darker gray when hiding
-    color: #4b0f0f;  /* Darker maroon to distinguish
-    border-color: #4b0f0f;  /* Darker border
-}
-
-*/
 
 .sentence-cefr-label {
     padding: 3px 7px;                     /* Smaller padding */
@@ -1531,18 +1516,22 @@ main {
 
     #results-container {
         margin: 10px auto;
+        width: 95%;
     }
 
     .search-and-random-wrapper {
-        display: flex;
         align-items: center; /* Vertically align items */
+        box-sizing: border-box; /* Include padding and border within width */
+        display: flex;
         justify-content: space-between;
         gap: 10px;
+        width: 100%;
     }
 
-    .search-bar-wrapper,
-    #results-container {
-        width: 95%;
+    #search-bar {
+        flex-grow: 1;
+        flex-basis: 70%; /* Use percentage for flexibility */
+        min-width: 10px; /* Minimum width to avoid excessive shrinking */
     }
 
     .search-bar-wrapper label {
@@ -1551,10 +1540,12 @@ main {
 
     .search-btn {
         padding: 8px;
-        width: 20% !important; /* This makes the search button take up full width on mobile */
+        min-width: 60px !important;
+        max-width: 60px !important;
     }
     
     .search-btn i {
+        text-align: center;
         font-size: 16px;
     }
 
@@ -1565,19 +1556,25 @@ main {
     }
 
     #search-container {
+        box-sizing: border-box;
+        overflow: hidden;
         padding: 10px;
     }
 
     #search-container-inner {
-        display: grid;
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto;
-        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
         min-width: 100%;
     }
 
     #search-container-inner.word-game-active {
         gap: 0;
+    }
+
+    .selectors-wrapper {
+        box-sizing: border-box !important;
+        width: 100%;
     }
 
     .sentence-box-english, .sentence-box-norwegian {
@@ -1677,6 +1674,7 @@ main {
     }
     
     .type-filter, .pos-filter, .cefr-filter, .genre-filter {
+        box-sizing: border-box !important;
         background-color: #0d3a69;  /* Consistent background for all filters */
         border-radius: 15px;
         padding: 10px 10px;
@@ -1684,6 +1682,7 @@ main {
     }
 
     .type-filter, .pos-filter, .genre-filter, .random-btn, .search-bar-wrapper {
+        box-sizing: border-box !important;
         width: 100%;
     }
     
@@ -1694,6 +1693,7 @@ main {
     }
 
     .type-filter select, .pos-filter select, .cefr-filter select, .genre-filter select {
+        box-sizing: border-box !important;
         cursor: pointer;
         font-size: 11px; /* Further reduce the font size for very small screens */
         text-transform: uppercase;
