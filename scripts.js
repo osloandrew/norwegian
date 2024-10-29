@@ -949,9 +949,9 @@ function displaySearchResults(results, query = '') {
     });
     appendToContainer(htmlString);
 
-    // Automatically load sentences for a single result only if sentences exist in `eksempel`
-    if (defaultResult && results[0] && results[0].eksempel) {
-        console.log("Auto-loading sentences for:", results[0].ord, "because `eksempel` field is populated.");
+    // Automatically load sentences for a single result, regardless of whether sentences exist in `eksempel`
+    if (defaultResult && results[0]) {
+        console.log("Auto-loading sentences for:", results[0].ord);
         setTimeout(() => {
             const singleResult = results[0];
             fetchAndRenderSentences(singleResult.ord, singleResult.pos, isEnglishVisible);
@@ -1585,19 +1585,7 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) { // Added showE
 
     // Check if there are any matching results
     if (matchingResults.length === 0) {
-        console.warn(`No sentences found for the word variations.`);
-        sentenceContainer.innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-gender">
-                    Error <span class="gender">No Sentences Available</span>
-                </h2>
-                <p>No example sentences available for "${trimmedWord}".</p>
-            </div>
-        `;
-        sentenceContainer.style.display = "block";
-        button.innerText = "Show Sentences";
-        button.classList.remove('hide');
-        button.classList.add('show');
+        console.log(`No sentences found for the word variations.`);
         return;
     }
 
