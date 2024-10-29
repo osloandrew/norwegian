@@ -978,12 +978,13 @@ main {
     font-weight: 500;  /* Slightly bolder text */
     height: 50px;
     margin: 0 auto;  /* Centering with smaller vertical margins */
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin-top: 12.5px;
+    margin-bottom: 12.5px;
     padding: 8px 14px;  /* Larger padding for a more clickable feel */
     text-transform: uppercase;  /* Uppercase for consistency */
     letter-spacing: 0.03em;  /* Slight letter spacing */
     width: 100%;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
 }
 
 .sentence-btn:hover {
