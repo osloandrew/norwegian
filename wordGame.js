@@ -322,9 +322,26 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
     let displayedWord = wordObj.ord.split(',')[0].trim();
     let displayedGender = wordObj.gender;
 
-    if (!/^[A-ZÆØÅ]/.test(displayedWord) && 
-        (wordObj.gender.startsWith('en') || wordObj.gender.startsWith('et') || wordObj.gender.startsWith('ei'))) {
-        displayedGender = "Noun - " + displayedGender;
+    if (wordObj.gender.startsWith('en') || wordObj.gender.startsWith('et') || wordObj.gender.startsWith('ei')) {
+        displayedGender = "N - " + displayedGender;
+    } else if (wordObj.gender.startsWith('adjective')) {
+        displayedGender = "Adj";
+    } else if (wordObj.gender.startsWith('adverb')) {
+        displayedGender = "Adv";
+    } else if (wordObj.gender.startsWith('conjunction')) {
+        displayedGender = "Conj";
+    } else if (wordObj.gender.startsWith('expression')) {
+        displayedGender = "Exp";
+    } else if (wordObj.gender.startsWith('interjection')) {
+        displayedGender = "Inter";
+    } else if (wordObj.gender.startsWith('numeral')) {
+        displayedGender = "Num";
+    } else if (wordObj.gender.startsWith('possessive')) {
+        displayedGender = "Poss";
+    } else if (wordObj.gender.startsWith('preposition')) {
+        displayedGender = "Prep";
+    } else if (wordObj.gender.startsWith('pronoun')) {
+        displayedGender = "Pron";
     }
 
     // Check if CEFR is selected; if not, add a label based on wordObj.CEFR
