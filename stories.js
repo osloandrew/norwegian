@@ -132,7 +132,7 @@ async function displayStoryList(filteredStories = storyResults) {
 
     // Generate HTML for the filtered, shuffled stories
     let htmlString = `
-        <div class="result-header">
+        <div class="stories-result-header">
             <h2>Available Stories</h2>
         </div>
     `;

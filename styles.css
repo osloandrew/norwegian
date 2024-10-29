@@ -27,6 +27,7 @@ a {
 
 .back-navigation {
     display: block;  /* Block-level element to allow centering */
+    line-height: 30px;  /* Matches height for vertical centering */
     margin: 0 0 10px 0;  /* Remove auto margin and set bottom margin only */
     margin-bottom: 10px;
     background-color: #ffffff;  /* Subtle, lighter background */
@@ -43,6 +44,12 @@ a {
     touch-action: manipulation;  /* Helps reduce delay on mobile */
     box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
     width: fit-content;
+    height: 30px;
+}
+
+.back-navigation:hover {
+    background-color: #f7f7f7;  /* Slightly darker background on hover */
+    box-shadow: 0 6px 12px rgba(135, 135, 135, 0.3), 0 3px 6px rgba(0, 0, 0, 0.15);  /* Slightly larger shadow */
 }
 
 body {
@@ -731,6 +738,26 @@ main {
     justify-content: center;  /* Vertically center the word and gender within their container */
 }
 
+.pronunciation-btn {
+    display: block;  /* Block-level element to allow centering */
+    margin: 0 auto;  /* Centering with smaller vertical margins */
+    margin-top: 10px;
+    background-color: #f0f0f0;  /* Subtle, lighter background */
+    color: #5a1a1a;  /* Subtle maroon text */
+    border: 1px solid #5a1a1a;  /* Thin maroon border */
+    border-radius: 6px;  /* Slightly rounded corners */
+    padding: 8px 14px;  /* Larger padding for a more clickable feel */
+    font-family: 'Noto Sans', sans-serif;  /* Clean, modern font */
+    font-size: 12px;  /* Smaller font size for subtlety */
+    font-weight: 500;  /* Slightly bolder text */
+    text-transform: uppercase;  /* Uppercase for consistency */
+    letter-spacing: 0.03em;  /* Slight letter spacing */
+    cursor: pointer;  /* Pointer on hover */
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
+    touch-action: manipulation;  /* Helps reduce delay on mobile */
+    box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 /* Basic styling for the table */
 .pronunciation-table {
     width: 100%;
@@ -794,7 +821,6 @@ main {
     background-color: #ffffff;
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
     padding: 25px;
     justify-content: center; /* Center the title */
     align-items: center;
@@ -827,7 +853,6 @@ main {
     text-align: left;
     width: 50%;
 }
-
 .search-bar-wrapper,
 .type-filter,
 .pos-filter,
@@ -941,28 +966,29 @@ main {
 }
 
 .sentence-btn {
+    background-color: #ffffff;  /* Subtle, lighter background */
+    border: none !important;  /* Thin maroon border */
+    border-radius: 9px;  /* Slightly rounded corners */
+    box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: #5a1a1a;  /* Subtle maroon text */
+    cursor: pointer;  /* Pointer on hover */
     display: block;  /* Block-level element to allow centering */
+    font-family: 'Noto Sans', sans-serif;  /* Clean, modern font */
+    font-size: 14px;  /* Smaller font size for subtlety */
+    font-weight: 500;  /* Slightly bolder text */
+    height: 50px;
     margin: 0 auto;  /* Centering with smaller vertical margins */
     margin-top: 10px;
-    background-color: #f0f0f0;  /* Subtle, lighter background */
-    color: #5a1a1a;  /* Subtle maroon text */
-    border: 1px solid #5a1a1a;  /* Thin maroon border */
-    border-radius: 6px;  /* Slightly rounded corners */
+    margin-bottom: 10px;
     padding: 8px 14px;  /* Larger padding for a more clickable feel */
-    font-family: 'Noto Sans', sans-serif;  /* Clean, modern font */
-    font-size: 12px;  /* Smaller font size for subtlety */
-    font-weight: 500;  /* Slightly bolder text */
     text-transform: uppercase;  /* Uppercase for consistency */
     letter-spacing: 0.03em;  /* Slight letter spacing */
-    cursor: pointer;  /* Pointer on hover */
-    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
-    touch-action: manipulation;  /* Helps reduce delay on mobile */
-    box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
 }
 
 .sentence-btn:hover {
-    background-color: #e8e8e8;  /* Slightly darker on hover */
-    border-color: #851a1a;  /* Darker maroon on hover */
+    background-color: #f7f7f7;  /* Slightly darker background on hover */
+    box-shadow: 0 6px 12px rgba(135, 135, 135, 0.3), 0 3px 6px rgba(0, 0, 0, 0.15);  /* Slightly larger shadow */
 }
 
 .sentence-cefr-label {
@@ -1036,6 +1062,10 @@ main {
     align-items: center;
     gap: 20px;  /* Adds space between the Norwegian and English sentences */
     width: 100%;
+}
+
+.single-result-definition {
+    margin-bottom: 0px;
 }
 
 .stories-audio-player {
@@ -1161,6 +1191,38 @@ main {
     font-size: 16px;
     font-weight: 400;
     line-height: 1.4;
+}
+
+.stories-result-header {
+    align-content: center;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    margin-bottom: 10px;
+    justify-content: center; /* Center the title */
+    align-items: center;
+    position: relative; /* Set relative position for positioning the icon */
+}
+
+.stories-result-header h2 {
+    margin: 0; /* Reset margin for the title */
+    color: #951b1b;
+    font-family: "Noto Sans", sans-serif;
+    font-size: 1.3em;  
+    font-weight: 400;
+    white-space: normal;  /* Allow the text to wrap into multiple lines */
+    overflow-wrap: break-word;  /* Ensure the text breaks into a new line if needed */
+    text-align: center;  /* Center align the header text */
+}
+
+.stories-result-header i {
+    color: #951b1b;
+    position: absolute;
+    left: 15px; /* Position the icon on the far left */
+    cursor: pointer;
+    font-size: 1.3rem; /* Adjust the size as needed */
+    line-height: inherit;
 }
 
 .stories-rightward-div {
@@ -1515,7 +1577,6 @@ main {
     }
 
     .result-header {
-        margin-bottom: 10px;
         padding: 20px;
     }
 
@@ -1610,6 +1671,11 @@ main {
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
+    .sentence-btn {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
     .sentence-container {
         display: block; /* Stack sentence boxes on top of each other */
         gap: 10px;  /* Adds space between the boxes */
@@ -1643,6 +1709,10 @@ main {
 
     .stories-list-item {
         margin-bottom: 10px;
+    }
+
+    .stories-result-header {
+        padding: 20px;
     }
 
     .stories-rightward-div {

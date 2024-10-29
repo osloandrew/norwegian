@@ -298,10 +298,10 @@ async function randomWord() {
         let sentenceHTML = `
             <div class="result-header">
                 <h2>Random Sentence</h2>
-                    <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations(this)">
-                        ${isEnglishVisible ? 'Hide English' : 'Show English'}
-                    </button>
             </div>
+            <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations(this)">
+                ${isEnglishVisible ? 'Hide English' : 'Show English'}
+            </button>
             <div class="sentence-container">
                 <div class="sentence-box-norwegian ${!isEnglishVisible ? 'sentence-box-norwegian-hidden' : ''}">
                     <div class="sentence-content">
@@ -901,7 +901,7 @@ function displaySearchResults(results, query = '') {
         // Determine whether to initially hide the content for multiple results
         const multipleResultsExposedContent = defaultResult ? 'default-hidden-content' : ''; 
 
-        const multipleResultsDefinition = multipleResults ? 'multiple-results-definition' : '';  // Hide content if multiple results
+        const multipleResultsDefinition = multipleResults ? 'multiple-results-definition' : 'single-result-definition';  // Hide content if multiple results
         const multipleResultsEnglish = multipleResults ? 'multiple-results-english' : '';  // Hide content if multiple results
         const multipleResultsHiddenContent = multipleResults ? 'multiple-results-hidden-content' : '';  // Hide content if multiple results
         const multipleResultsDefinitionHeader = multipleResults ? 'multiple-results-definition-header' : ''; 
@@ -937,11 +937,12 @@ function displaySearchResults(results, query = '') {
                 </div>
                 <!-- OLD: Check if example sentence exists -->
                 <!-- <div class="${multipleResultsHiddenContent}">${highlightedExample ? `<p class="example">${formatDefinitionWithMultipleSentences(highlightedExample)}</p>` : ''}</div> -->
-                <!-- Show "Show Sentences" button only if sentences exist -->
+     
+                </div>
+                                <!-- Show "Show Sentences" button only if sentences exist -->
                     <div class="${multipleResultsHiddenContent}">
                         ${hasSentencesPlaceholder}
-                    </div>            
-                </div>
+                    </div>       
             <!-- Sentences container is now outside the definition block -->
             <div class="sentences-container" id="sentences-container-${normalizedWord}"></div>
         `;
@@ -972,8 +973,8 @@ function toggleEnglishTranslations(wordId = null) {
         ? `#sentences-container-${safeWordId}`
         : '.sentence-container';
     const sentenceContainer = isButton 
-        ? wordId.closest('.result-header').nextElementSibling
-        : wordId ? document.querySelector(sentenceContainerSelector) : document; // Global context if no wordId
+    ? wordId.nextElementSibling // Update to directly select the next sibling after the button
+    : wordId ? document.querySelector(sentenceContainerSelector) : document; // Global context if no wordId
 
     if (!sentenceContainer) return;
 
@@ -1263,10 +1264,10 @@ function renderSentences(sentenceResults, word) {
         htmlString += `
             <div class="result-header">
                 <h2>Sentence Results for "${word}"</h2>
-                <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations()">
-                    ${isEnglishVisible ? 'Hide English' : 'Show English'}
-                </button>            
             </div>
+            <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations()">
+                ${isEnglishVisible ? 'Hide English' : 'Show English'}
+            </button>    
         `;
     }
 
@@ -1616,10 +1617,6 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) { // Added showE
         // Split example sentences by common sentence delimiters (period, question mark, exclamation mark)
         const sentences = result.eksempel ? result.eksempel.split(/(?<=[.!?])\s+/) : [];
         const translations = result.sentenceTranslation ? result.sentenceTranslation.split(/(?<=[.!?])\s+/) : [];
-
-        // Log the sentenceContent being created
-        console.log(`Final Sentences:`, sentences);
-        console.log(`Final Translations:`, translations);
         
         // Generate the CEFR label based on the result's CEFR value
         let cefrLabel = '';
