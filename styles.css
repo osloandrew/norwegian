@@ -641,6 +641,7 @@ label {
     letter-spacing: 0.01em;
     user-select: none;
     white-space: pre-line;
+    line-height: 1.1;
 }
 
 /* Adjust the paragraph text inside the landing card to be more similar to definition content */
@@ -1534,12 +1535,6 @@ main {
         width: 82.5%; /* Ensure it takes up more space on mobile */
         margin: 10px auto; /* Matches the margin of definition cards */
         padding: 20px; /* Add more padding for mobile readability */
-    }
-
-    /* Adjust landing card heading (h2) for mobile */
-    #landing-card h2 {
-        line-height: 1.1;
-        white-space: pre-line !important;
     }
 
     /* Adjust landing card heading (h3) for mobile */
