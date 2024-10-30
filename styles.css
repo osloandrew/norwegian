@@ -633,7 +633,8 @@ label {
 
 /* Adjust the paragraph text inside the landing card to be more similar to definition content */
 #landing-card p {
-    font-size: 16px; /* Matches the font size of other definition content */
+    font-family: "Noto Sans", sans-serif;
+    font-size: 14px !important; /* Matches the font size of other definition content */
     color: #555; /* Similar color to definition content */
     text-align: justify;
     margin: 0 60px 0 60px;
@@ -657,6 +658,7 @@ label {
     transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
     touch-action: manipulation;  /* Helps reduce delay on mobile */
     box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-width: 120px; 
 }
 
 .landing-card-btn:hover {
