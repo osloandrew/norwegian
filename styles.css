@@ -66,6 +66,7 @@ button:disabled i {
 }
 
 .button-container p {
+    font-size: 5px !important;
     text-align: center !important;
 }
 
@@ -625,10 +626,11 @@ label {
 
 /* Adjust the heading size and color to match the word titles in definition cards */
 #landing-card h2 {
-    color: #3c88d4; /* Matches the heading color of definition cards */
-    font-family: "Noto Sans", sans-serif;
-    font-size: 30px; /* Matches the font size of definition card headings */
+    color: #0d3a69; /* Matches the heading color of definition cards */
+    font-family: 'Grenze Gotisch', serif;
+    font-size: 34px !important; /* Matches the font size of definition card headings */
     margin-bottom: 10px;
+    letter-spacing: 0.01em;
 }
 
 /* Adjust the paragraph text inside the landing card to be more similar to definition content */
@@ -646,7 +648,7 @@ label {
     margin-bottom: 10px;
     background-color: #f0f0f0;  /* Subtle, lighter background */
     color: #4a4a4a;  /* Soft gray text */
-    border: 1px solid #a0a0a0;  /* Light gray border */
+    border: 0.5px solid #a0a0a0;  /* Light gray border */
     border-radius: 6px;  /* Slightly rounded corners */
     padding: 8px 14px;  /* Larger padding for a more clickable feel */
     font-family: 'Noto Sans', sans-serif;  /* Clean, modern font */
@@ -1529,9 +1531,8 @@ main {
 
     /* Adjust landing card heading (h2) for mobile */
     #landing-card h2 {
-        font-size: 24px; /* Reduce font size to fit smaller screens */
+        font-size: 20px !important; /* Reduce font size to fit smaller screens */
         line-height: 1.4;
-        word-break: keep-all;
     }
 
     /* Adjust landing card heading (h3) for mobile */
@@ -1546,7 +1547,7 @@ main {
 
     /* Adjust landing card paragraph text for mobile */
     #landing-card p {
-        font-size: 12px; /* Reduce paragraph font size */
+        font-size: 10px; /* Reduce paragraph font size */
     }
 
     .landing-card-btn {
