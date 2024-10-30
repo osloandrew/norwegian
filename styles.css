@@ -1537,6 +1537,10 @@ main {
         padding: 20px; /* Add more padding for mobile readability */
     }
 
+    #landing-card h2 {
+        font-size: 32px !important;
+    }
+
     /* Adjust landing card heading (h3) for mobile */
     #landing-card h3 {
         font-size: 14px; /* Reduce font size to fit smaller screens */
