@@ -636,7 +636,8 @@ label {
     font-family: "Noto Sans", sans-serif;
     font-size: 14px !important; /* Matches the font size of other definition content */
     color: #555; /* Similar color to definition content */
-    text-align: justify;
+    line-height: 1.6; /* Increase line height for readability */
+    text-align: left;
 }
 
 .landing-card-btn {
@@ -1546,9 +1547,6 @@ main {
     /* Adjust landing card paragraph text for mobile */
     #landing-card p {
         font-size: 12px; /* Reduce paragraph font size */
-        line-height: 1.6; /* Increase line height for readability */
-        text-align: justify;
-        margin: 0 15px 0 15px;
     }
 
     .landing-card-btn {
