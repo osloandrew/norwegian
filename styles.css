@@ -656,8 +656,9 @@ label {
 .landing-card-btn {
     display: block;  /* Block-level element to allow centering */
     margin: 0 auto;  /* Centering with smaller vertical margins */
-    margin-bottom: 10px;
-    background-color: #f0f0f0;  /* Subtle, lighter background */
+    margin-bottom: 15px;
+    margin-top: 15px;
+    background-color: #fff;  /* Subtle, lighter background */
     color: #4a4a4a;  /* Soft gray text */
     border: 0.5px solid #a0a0a0;  /* Light gray border */
     border-radius: 6px;  /* Slightly rounded corners */
@@ -675,7 +676,7 @@ label {
 }
 
 .landing-card-btn:hover {
-    background-color: #e0e0e0;  /* Slightly darker on hover */
+    background-color: #f0f0f0;  /* Slightly darker on hover */
     border-color: #6a6a6a;  /* Darker gray on hover */
 }
 
@@ -692,14 +693,10 @@ label {
 }
 
 .landing-card-image {
-    width: 140px; 
-    height: 140px;
-    margin: 0px 0px 10px 0px;
-    border-radius: 10%; /* Slightly rounded corners for the image */
-    object-fit: cover; 
-    -webkit-filter: grayscale(100%); /* Full grayscale for Safari */
-    filter: grayscale(25%);
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Soft shadow under image */}
+    fill: #ff0000; /* changes the color to red */
+    width: 80px; 
+    height: 80px;
+}
 
 .links {
     display: flex;
@@ -707,7 +704,6 @@ label {
     margin: 10px 0 10px 0;
     align-items: center; /* Vertically align both buttons */
     justify-content: center;
-
 }
 
 .linkedin-btn {
@@ -1542,7 +1538,6 @@ main {
 
     /* Adjust landing card heading (h2) for mobile */
     #landing-card h2 {
-        font-size: 36px !important; /* Reduce font size to fit smaller screens */
         line-height: 1.1;
         white-space: pre-line !important;
     }
