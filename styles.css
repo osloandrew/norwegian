@@ -553,6 +553,14 @@ h2 {
     text-overflow: ellipsis;
 }
 
+h3 {
+    user-select: none;
+}
+
+h4 {
+    user-select: none;
+}
+
 header {
     background-color: #d2dce5;
     color: #0d3a69;
@@ -628,9 +636,10 @@ label {
 #landing-card h2 {
     color: #0d3a69; /* Matches the heading color of definition cards */
     font-family: 'Grenze Gotisch', serif;
-    font-size: 34px !important; /* Matches the font size of definition card headings */
+    font-size: 38px !important; /* Matches the font size of definition card headings */
     margin-bottom: 10px;
     letter-spacing: 0.01em;
+    user-select: none;
 }
 
 /* Adjust the paragraph text inside the landing card to be more similar to definition content */
@@ -640,6 +649,7 @@ label {
     color: #555; /* Similar color to definition content */
     line-height: 1.6; /* Increase line height for readability */
     text-align: left;
+    user-select: none;
 }
 
 .landing-card-btn {
@@ -660,7 +670,7 @@ label {
     transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
     touch-action: manipulation;  /* Helps reduce delay on mobile */
     box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
-    min-width: 120px; 
+    min-width: 140px; 
 }
 
 .landing-card-btn:hover {
@@ -681,8 +691,8 @@ label {
 }
 
 .landing-card-image {
-    width: 120px; 
-    height: 120px;
+    width: 140px; 
+    height: 140px;
     margin: 0px 0px 10px 0px;
     border-radius: 10%; /* Slightly rounded corners for the image */
     object-fit: cover; 
@@ -1531,8 +1541,8 @@ main {
 
     /* Adjust landing card heading (h2) for mobile */
     #landing-card h2 {
-        font-size: 20px !important; /* Reduce font size to fit smaller screens */
-        line-height: 1.4;
+        font-size: 36px !important; /* Reduce font size to fit smaller screens */
+        line-height: 1.1;
     }
 
     /* Adjust landing card heading (h3) for mobile */
