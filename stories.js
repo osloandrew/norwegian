@@ -350,7 +350,7 @@ function handleGenreChange() {
 
 function storiesBackBtn(){
     document.getElementById('type-select').value = 'stories';
-    handleTypeChange();
+    handleTypeChange('stories');
     displayStoryList();
 }
 
@@ -450,8 +450,6 @@ function createRatingDiv(storyTitle) {
 
     return ratingDiv.outerHTML;
 }
-
-
 
 // Initialization on page load
 window.addEventListener('DOMContentLoaded', async () => {

@@ -14,17 +14,11 @@ function showLandingCard(show) {
 
 // Function to navigate back to the landing card when the H1 is clicked
 function returnToLandingPage() {
-    clearInput();  // Clear the search input field
-    showLandingCard(true);  // Show the landing card again
 
-    // Ensure that only results are cleared, not the landing card
-    clearContainer();  // Ensure this does not remove landing card
-
-    // Update the URL to indicate we're on the landing page
-    const url = new URL(window.location);
-    url.searchParams.set('landing', 'true');
-    url.searchParams.delete('query');  // Remove the query parameter
-    window.history.pushState({}, '', url);
+    // Update the URL to the base URL without any query parameters
+    const baseUrl = window.location.origin + window.location.pathname;
+    window.history.pushState({}, '', baseUrl);
+    window.location.reload();
 }
 
 
@@ -685,10 +679,19 @@ function handlePOSChange() {
 }
 }
 
+function selectType(type) {
+    // Set the dropdown value to match the selected type
+    document.getElementById('type-select').value = type;
+    // Call handleTypeChange with the type
+    handleTypeChange(type);
+}
+
+
 // Handle change in search type (words/sentences)
-function handleTypeChange() {
-    // Retrieve selected type and query from the search bar
-    const type = document.getElementById('type-select').value;
+function handleTypeChange(type) {
+
+    // If type is not passed in (e.g., called from dropdown), get it from the dropdown
+    type = type || document.getElementById('type-select').value;
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
 
     // Clear any remnants from other types in the URL
@@ -1848,7 +1851,7 @@ function loadStateFromURL() {
             if (type === 'word-game') {
                 startWordGame();
             } else if (type !== 'words') {
-                handleTypeChange();
+                handleTypeChange(type);
             }
 
             // Perform a search if a query is specified; otherwise, show the landing page

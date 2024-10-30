@@ -50,7 +50,7 @@
 
 <body>
     <header>
-        <h1 id="site-title">Norwegian Dictionary</h1>
+        <h1 id="site-title" onclick="returnToLandingPage()">Norwegian Dictionary</h1>
         <p id="site-subtitle">Search in Norwegian or English</p>
     </header>
 
@@ -62,7 +62,7 @@
                 <div class="selectors-wrapper">
                     <!-- Words/Sentences Selector -->
                     <div class="type-filter">
-                        <select id="type-select" aria-label="Search by words or sentences" onchange="handleTypeChange()">
+                        <select id="type-select" aria-label="Search by words or sentences" onchange="handleTypeChange(this.value)">
                             <option value="words">Words</option>
                             <option value="sentences">Sentences</option>
                             <option value="stories">Stories</option>
@@ -152,10 +152,47 @@
         <div id="loading-spinner" class="spinner" style="display: none;"></div> <!-- Moved outside the results-container -->
         <div id="landing-card" class="definition"> 
             <h2>Welcome to the Norwegian Dictionary</h2>
-            <p style="text-align:center">Type a word in the search bar to get started.</p>
+            <p style="text-align:center">Explore Norwegian vocabulary interactively. <br> Click on one of the buttons below to get started.</p>
 
-            <button class="pronunciation-btn" id="toggle-pronunciation" onclick="togglePronunciationGuide()">Pronunciation Guide</button>
+            <div class="button-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
         
+                <!-- Dictionary Search Button -->
+                <div class="button-container">
+                    <i class="fas fa-book fa-2x"></i>
+                    <button class="pronunciation-btn" onclick="selectType('words')">Dictionary Search</button>
+                    <p>Search for individual Norwegian words and their meanings.</p>
+                </div>
+                
+                <!-- Sentence Search Button -->
+                <div class="button-container">
+                    <i class="fas fa-align-left fa-2x"></i>
+                    <button class="pronunciation-btn" onclick="selectType('sentences')">Sentence Search</button>
+                    <p>Find sentences that use specific Norwegian words.</p>
+                </div>
+                
+                <!-- Norwegian Stories Button -->
+                <div class="button-container">
+                    <i class="fas fa-book-open fa-2x"></i>
+                    <button class="pronunciation-btn" onclick="selectType('stories')">Norwegian Stories</button>
+                    <p>Read and learn from authentic Norwegian stories.</p>
+                </div>
+                
+                <!-- Word Game Button -->
+                <div class="button-container">
+                    <i class="fas fa-gamepad fa-2x"></i>
+                    <button class="pronunciation-btn" onclick="selectType('word-game')">Word Game</button>
+                    <p>Practice vocabulary with an interactive word game.</p>
+                </div>
+                
+                <!-- Pronunciation Guide Button -->
+                <div class="button-container">
+                    <i class="fas fa-volume-up fa-2x"></i>
+                    <button class="pronunciation-btn" id="toggle-pronunciation" onclick="togglePronunciationGuide()">Pronunciation Guide</button>
+                    <p>Learn how to pronounce Norwegian sounds.</p>
+                </div>
+            </div>
+        
+                
             <div class="pronunciation-wrapper hidden"> <!-- Changed this class -->
             <h3>Norwegian Pronunciation Guide for English Speakers</h3>
             <p>

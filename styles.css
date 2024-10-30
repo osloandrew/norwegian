@@ -60,6 +60,15 @@ button:disabled i {
     cursor: not-allowed;
 }
 
+.button-container i {
+    color: #0d3a69;
+    margin-bottom: 10px;
+}
+
+.button-container p {
+    text-align: center !important;
+}
+
 .cefr-badge {
     text-align: center !important;
     display: inline-block;
@@ -67,7 +76,6 @@ button:disabled i {
     border-radius: 4px;
     min-width: 17.5px;
 }
-
 
 .cefr-label {
     display: inline-flex;
@@ -618,6 +626,7 @@ label {
 /* Adjust the heading size and color to match the word titles in definition cards */
 #landing-card h2 {
     color: #3c88d4; /* Matches the heading color of definition cards */
+    font-family: "Noto Sans", sans-serif;
     font-size: 30px; /* Matches the font size of definition card headings */
     margin-bottom: 10px;
 }
@@ -727,7 +736,7 @@ main {
 .pronunciation-btn {
     display: block;  /* Block-level element to allow centering */
     margin: 0 auto;  /* Centering with smaller vertical margins */
-    margin-top: 10px;
+    margin-bottom: 10px;
     background-color: #f0f0f0;  /* Subtle, lighter background */
     color: #5a1a1a;  /* Subtle maroon text */
     border: 1px solid #5a1a1a;  /* Thin maroon border */
@@ -742,6 +751,11 @@ main {
     transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
     touch-action: manipulation;  /* Helps reduce delay on mobile */
     box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pronunciation-btn:hover {
+    background-color: #e8e8e8;  /* Slightly darker on hover */
+    border-color: #851a1a;  /* Darker maroon on hover */
 }
 
 .pronunciation-btn i {
@@ -1058,7 +1072,13 @@ main {
 }
 
 #site-title {
+    color: #293a78;
+    cursor: pointer;
     margin: -5px 0px 10px 0px;
+}
+
+#site-title:hover {
+    color: #4d5c94; /* Choose one of the suggested colors here */
 }
 
 #site-subtitle {
