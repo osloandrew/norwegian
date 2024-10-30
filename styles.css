@@ -1111,9 +1111,9 @@ main {
 
 .stories-english-btn {
     background-color: #f0f0f0;  /* Subtle, lighter background */
-    border: 1px solid #5a1a1a;  /* Thin maroon border */
+    border: 1px solid #a0a0a0;  /* Light gray border */
     border-radius: 6px;  /* Slightly rounded corners */
-    color: #5a1a1a;  /* Subtle maroon text */
+    color: #4a4a4a;  /* Soft gray text */
     cursor: pointer;  /* Pointer on hover */
     display: block;  /* Block-level element to allow centering */
     padding: 6px 12px;  /* Smaller padding for a more compact feel */
