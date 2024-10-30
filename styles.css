@@ -637,7 +637,6 @@ label {
     font-size: 14px !important; /* Matches the font size of other definition content */
     color: #555; /* Similar color to definition content */
     text-align: justify;
-    margin: 0 60px 0 60px;
 }
 
 .landing-card-btn {
