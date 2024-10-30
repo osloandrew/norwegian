@@ -1052,6 +1052,14 @@ main {
     margin-bottom: 0px;
 }
 
+#site-title {
+    margin: -5px 0px 10px 0px;
+}
+
+#site-subtitle {
+    margin: 0px;
+}
+
 .stories-audio-player {
     display: block;                  /* Ensure the audio player takes up space */
     margin: 20px auto;               /* Center it and add margin for spacing */
