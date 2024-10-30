@@ -330,6 +330,8 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
         displayedGender = "Adv";
     } else if (wordObj.gender.startsWith('conjunction')) {
         displayedGender = "Conj";
+    } else if (wordObj.gender.startsWith('determiner')) {
+        displayedGender = "Det";
     } else if (wordObj.gender.startsWith('expression')) {
         displayedGender = "Exp";
     } else if (wordObj.gender.startsWith('interjection')) {
