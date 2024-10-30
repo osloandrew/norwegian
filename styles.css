@@ -1544,6 +1544,7 @@ main {
     #landing-card h2 {
         font-size: 36px !important; /* Reduce font size to fit smaller screens */
         line-height: 1.1;
+        white-space: pre-line !important;
     }
 
     /* Adjust landing card heading (h3) for mobile */
