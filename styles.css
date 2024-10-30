@@ -639,6 +639,35 @@ label {
     margin: 0 60px 0 60px;
 }
 
+.landing-card-btn {
+    display: block;  /* Block-level element to allow centering */
+    margin: 0 auto;  /* Centering with smaller vertical margins */
+    margin-bottom: 10px;
+    background-color: #f0f0f0;  /* Subtle, lighter background */
+    color: #4a4a4a;  /* Soft gray text */
+    border: 1px solid #a0a0a0;  /* Light gray border */
+    border-radius: 6px;  /* Slightly rounded corners */
+    padding: 8px 14px;  /* Larger padding for a more clickable feel */
+    font-family: 'Noto Sans', sans-serif;  /* Clean, modern font */
+    font-size: 12px;  /* Smaller font size for subtlety */
+    font-weight: 500;  /* Slightly bolder text */
+    text-transform: uppercase;  /* Uppercase for consistency */
+    letter-spacing: 0.03em;  /* Slight letter spacing */
+    cursor: pointer;  /* Pointer on hover */
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
+    touch-action: manipulation;  /* Helps reduce delay on mobile */
+    box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.landing-card-btn:hover {
+    background-color: #e0e0e0;  /* Slightly darker on hover */
+    border-color: #6a6a6a;  /* Darker gray on hover */
+}
+
+.landing-card-btn i {
+    color: #5a1a1a;
+    margin-right: 8px; /* Adds space between the icon and text */
+}
 
 .links {
     display: flex;
@@ -731,35 +760,6 @@ main {
     line-height: 1.5 !important;
     width: 50%;  /* The word and gender take up 40% of the container */
     justify-content: center;  /* Vertically center the word and gender within their container */
-}
-
-.pronunciation-btn {
-    display: block;  /* Block-level element to allow centering */
-    margin: 0 auto;  /* Centering with smaller vertical margins */
-    margin-bottom: 10px;
-    background-color: #f0f0f0;  /* Subtle, lighter background */
-    color: #5a1a1a;  /* Subtle maroon text */
-    border: 1px solid #5a1a1a;  /* Thin maroon border */
-    border-radius: 6px;  /* Slightly rounded corners */
-    padding: 8px 14px;  /* Larger padding for a more clickable feel */
-    font-family: 'Noto Sans', sans-serif;  /* Clean, modern font */
-    font-size: 12px;  /* Smaller font size for subtlety */
-    font-weight: 500;  /* Slightly bolder text */
-    text-transform: uppercase;  /* Uppercase for consistency */
-    letter-spacing: 0.03em;  /* Slight letter spacing */
-    cursor: pointer;  /* Pointer on hover */
-    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;  /* Subtle transitions */
-    touch-action: manipulation;  /* Helps reduce delay on mobile */
-    box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.pronunciation-btn:hover {
-    background-color: #e8e8e8;  /* Slightly darker on hover */
-    border-color: #851a1a;  /* Darker maroon on hover */
-}
-
-.pronunciation-btn i {
-    margin-right: 8px; /* Adds space between the icon and text */
 }
 
 /* Basic styling for the table */
@@ -1533,6 +1533,12 @@ main {
         text-align: justify;
         margin: 0 15px 0 15px;
     }
+
+    .landing-card-btn {
+        font-size: 10px;  /* Smaller font size for subtlety */
+        padding: 6px 8px;
+    }
+    
 
     .linkedin-btn {
         font-size: 12px; /* Slightly smaller font size */
