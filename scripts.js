@@ -1467,6 +1467,39 @@ function renderWordDefinition(word, selectedPOS = '') {
     }
 }
 
+// Helper function to construct CEFR-labeled HTML for each sentence set with translation
+function buildCefrLabeledSentenceHTML(sentences, translations, cefr, showEnglish) {
+    // Generate the CEFR label based on the CEFR value
+    let cefrLabel = '';
+    if (cefr === 'A1') {
+        cefrLabel = '<div class="sentence-cefr-label easy">A1</div>';
+    } else if (cefr === 'A2') {
+        cefrLabel = '<div class="sentence-cefr-label easy">A2</div>';
+    } else if (cefr === 'B1') {
+        cefrLabel = '<div class="sentence-cefr-label medium">B1</div>';
+    } else if (cefr === 'B2') {
+        cefrLabel = '<div class="sentence-cefr-label medium">B2</div>';
+    } else if (cefr === 'C') {
+        cefrLabel = '<div class="sentence-cefr-label hard">C</div>';
+    }
+
+    // Map each sentence and translation into HTML
+    return sentences.map((sentence, index) => `
+        <div class="sentence-container">
+            <div class="sentence-box-norwegian ${!showEnglish ? 'sentence-box-norwegian-hidden' : ''}">
+                <div class="sentence-content">
+                    ${cefrLabel}
+                    <p class="sentence">${sentence}</p>
+                </div>
+            </div>
+            ${translations[index] ? `
+            <div class="sentence-box-english" style="display: ${showEnglish ? 'block' : 'none'};">
+                <p class="sentence-translation">${translations[index]}</p>
+            </div>` : ''}
+        </div>
+    `).join('');
+}
+
 // Fetch and render sentences for a word or phrase, including handling comma-separated variations
 function fetchAndRenderSentences(word, pos, showEnglish = true) { // Added showEnglish parameter with default value
     const trimmedWord = word.trim().toLowerCase().replace(/[\r\n]+/g, ''); // Remove any carriage returns or newlines
@@ -1603,41 +1636,11 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) { // Added showE
         });
     });
 
-    // Create the sentence content with CEFR labels
-    let sentenceContent = matchingResults.slice(0, 10).map(result => {
-        // Split example sentences by common sentence delimiters (period, question mark, exclamation mark)
+    // Build the HTML using the helper function for each result
+    let sentenceContent = matchingResults.map(result => {
         const sentences = result.eksempel ? result.eksempel.split(/(?<=[.!?])\s+/) : [];
         const translations = result.sentenceTranslation ? result.sentenceTranslation.split(/(?<=[.!?])\s+/) : [];
-        
-        // Generate the CEFR label based on the result's CEFR value
-        let cefrLabel = '';
-        if (result.CEFR === 'A1') {
-            cefrLabel = '<div class="sentence-cefr-label easy">A1</div>';
-        } else if (result.CEFR === 'A2') {
-            cefrLabel = '<div class="sentence-cefr-label easy">A2</div>';
-        } else if (result.CEFR === 'B1') {
-            cefrLabel = '<div class="sentence-cefr-label medium">B1</div>';
-        } else if (result.CEFR === 'B2') {
-            cefrLabel = '<div class="sentence-cefr-label medium">B2</div>';
-        } else if (result.CEFR === 'C') {
-            cefrLabel = '<div class="sentence-cefr-label hard">C</div>';
-        }
-
-        // For each sentence, map it to a card
-        return sentences.map((sentence, index) => `
-            <div class="sentence-container">
-                <div class="sentence-box-norwegian ${!showEnglish ? 'sentence-box-norwegian-hidden' : ''}">
-                    <div class="sentence-content">
-                        ${cefrLabel}
-                        <p class="sentence">${sentence}</p>
-                    </div>
-                </div>
-                ${translations[index] ? `
-                <div class="sentence-box-english" style="display: ${showEnglish ? 'block' : 'none'};">
-                    <p class="sentence-translation">${translations[index]}</p>
-                </div>` : ''}
-            </div>
-        `).join('');
+        return buildCefrLabeledSentenceHTML(sentences, translations, result.CEFR, showEnglish);
     }).join('');
 
     if (sentenceContent) {
@@ -1653,9 +1656,7 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) { // Added showE
     } else {
         console.warn("No content to show for the word:", trimmedWord);
     }
-
     sentenceContainer.setAttribute('data-fetched', 'true');
-    
 }
 
 // Spinner Control Functions
