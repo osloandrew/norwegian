@@ -292,7 +292,7 @@ seriousness,B2,ei,alvorlighet ,,Old Norse,det at noe er alvorlig; alvor; noe som
 amateur,B1,en,amatør,[amatø:´r],French,"person som driver med vitenskap, kunst, idrett og lignende uten å ha det som levevei og av interesse",Dette stykket henvender seg til amatører.,This piece is aimed at amateurs.
 "amateurish, unprofessional",B2,adjective,amatørmessig,,French,"som er utført av amatører; ikke profesjonell, slett, elendig",Det var amatørmessig utført.,It was amateurishly done.
 embassy,B1,en,ambassade,[ambasa:`də],French,"utenriks, diplomatisk stasjon der en ambassadør er leder",Ulike representanter for ambassaden deltar.,Various representatives of the embassy participate.
-embassador,B1,en,ambassadør,,French,"diplomatisk utsending av høyeste rang, oftest ved en ambassade; representant",De norske sjøfolkene er gode ambassadører for landet.,The Norwegian seafarers are good ambassadors for the country.
+ambassador,B1,en,ambassadør,,French,"diplomatisk utsending av høyeste rang, oftest ved en ambassade; representant",De norske sjøfolkene er gode ambassadører for landet.,The Norwegian seafarers are good ambassadors for the country.
 ambitious,B2,adjective,ambisiøs,,French,"som har høye mål, ambisjoner; ærgjerrig",Den ambisiøse gründeren hadde store planer for sin nyskapende bedrift.,The ambitious entrepreneur had big plans for his innovative business.
 ambitious,B2,en,ambisjon,,Latin,"ønske om å hevde seg, gjøre karriere; mål",Han har ingen ambisjoner i den retning.,He has no ambitions in that direction.
 ambivalence,C,en,ambivalens,[ambivale´ns],Latin via German: Ambivalenz,"det å inneholde motsatte tendenser; (ubevisste) motstridende holdninger, følelser",Mange føler ambivalens ved livsvalgene sine.,Many people feel ambivalent about their life choices.
@@ -10427,7 +10427,7 @@ circumcise,C,verb,omskjære,,Latin: circumcidere,fjerne forhuden på penis,Hos o
 rewrite,B2,verb,omskrive,,Old Norse,skrive om; formulere annerledes; tegne en linje rundt,,
 rewrite the story,B2,expression,omskrive historien,,Old Norse,gi en ny og endret versjon av noe som har hendt,,
 envelope,B1,et,omslag,,Old Norse,"beskyttelse rundt bøker, dokumenter og annet",Boken har et vakkert omslag.,The book has a beautiful cover.
-concern,B1,ei,omsorg,,Old Norse,det å sørge for,Hun viser stor omsorg for sine venner.,She shows great care for her friends.
+"care, concern",B1,ei,omsorg,,Old Norse,det å sørge for,Hun viser stor omsorg for sine venner.,She shows great care for her friends.
 restart,B2,en,omstart ,,Old Norse,det å starte(s) om igjen; ny start,PC-en fungerte fint igjen etter omstart.,The PC worked fine again after the reboot.
 "meticulous, comprehensive",B2,adjective,omstendelig,[åmste´nd(ə)li],German,utførlig og detaljert; som tar med både vesentlig og uvesentlig; overdrevent nøyaktig; pirkete,Han er så omstendelig at han aldri blir ferdig.,He's so meticulous that he never finishes.
 circumstance,B2,ei,omstendighet,[åmste´ndihet],German,"forhold, faktor; tilfelle; vilkår i omgivelsene; formalitet",Lillesøsteren Elisabeth omkommer under tragiske omstendigheter.,Her younger sister Elisabeth dies in tragic circumstances.
@@ -11312,9 +11312,10 @@ herbivorous,B2,adjective,planteetende,,,som især lever av planter,,
 plant kingdom,B2,et,planterike,,,brukt i bestemt form entall som fellesbetegnelse for alle planter,,
 splash,B2,et,plask ,,,det å plaske; plaskende lyd,,
 splash,B1,verb,plaske ,,,"skvalpe, slå, skvette",Regnet plasket ned.,The rain splashed down.
-space,A2,en,plass,,,"flatt, åpent areal brukt til et spesielt formål",Han fant en plass til bilen i parkeringshuset.,He found a place for the car in the parking garage.
-space-saving,B2,adjective,plassbesparende ,,,som tar mindre plass,Dette skapet er veldig plassbesparende.,This cabinet is very space-saving.
-lack of space,B2,en,plassmangel ,,,mangel på plass,Det er stor plassmangel i byen for tiden.,There is a major shortage of space in the city at the moment.
+space,A2,en,plass,,Latin via German via Old Norse: plaz,"flatt, åpent areal brukt til et spesielt formål",Han fant en plass til bilen i parkeringshuset.,He found a place for the car in the parking garage.
+space-saving,B2,adjective,plassbesparende ,,Latin via German via Old Norse,som tar mindre plass,Dette skapet er veldig plassbesparende.,This cabinet is very space-saving.
+place,,verb,plassere,,French,sette eller legge noe på et sted; gi noe eller noen en plass; anbringe; gi eller få en plass i en rekkefølge; kjenne igjen; identifisere; investere,Jeg plasserte meg i sofaen. Hvor skal de plassere skylden? Han plasserte seg som nummer to i konkurransen. Jeg kunne ikke plassere henne i farten.,I sat down on the sofa. Where should they place the blame? He placed second in the competition. I couldn't place her on the fly.
+lack of space,B2,en,plassmangel ,,Latin via German via Old Norse,mangel på plass,Det er stor plassmangel i byen for tiden.,There is a major shortage of space in the city at the moment.
 plastic,A2,en,plast,,,"kunststoff som under fabrikasjon blir plastisk og lar seg forme, formstoff",Hun kjøpte en plastflaske på butikken.,She bought a plastic bottle at the store.
 bandage,A2,et,plaster,,,deigaktig masse til å smøre på sår; stoffstykke preparert med legemiddel til å klebe på huden,Jeg trenger et plaster for kuttet mitt.,I need a band-aid for my cut.
 plastic wrap,B1,en,plastfolie,,,tynn duk av myk plast,Maten ble pakket inn i plastfolie.,The food was wrapped in plastic wrap.
@@ -11327,13 +11328,13 @@ platonic,B2,adjective,platonisk,[plato:´nisk],Greek,"som hører til eller stemm
 platonic,B2,adjective,platonsk,[plato:´nsk],Greek,platonisk,Forholdet deres var platonsk.,Their relationship was platonic.
 platform,B1,ei,plattform,,French,"stor konstruksjon som er bygd for utvinning av olje og gass til havs; flat forhøyning til å stå på eller sette noe på; perrong, rampe; grunnlag, utgangspunkt; program; maskinvare eller programvare som kan brukes til et bestemt, avgrenset sett av programmer, applikasjoner, innhold og lignende",De ventet på plattformen til toget kom.,They waited on the platform for the train to arrive.
 plausible,B2,adjective,plausibel,,Latin via French,"rimelig, troverdig",Teorien hans er ganske plausibel.,His theory is quite plausible.
-plebeian,C,en,plebeier,[plebæi´ər],,"en som hørte til underklassen i det gamle Roma; ukultivert, udannet person",Han var en plebeier i det gamle Roma.,He was a plebeian in ancient Rome.
+plebeian,C,en,plebeier,[plebæi´ər],Latin: plebeius,"en som hørte til underklassen i det gamle Roma; ukultivert, udannet person",Han var en plebeier i det gamle Roma.,He was a plebeian in ancient Rome.
 blanket,A2,et,pledd,,,"tykt teppe, ofte av ull",Hun la et pledd over beina for å holde varmen.,She put a blanket over her legs to keep warm.
-"tend to, usually",A2,verb,pleie,[plæi`ə],Old Norse: plega,"bruke, ha for vane",Han pleier å gjøre det.,He usually does.
-"care for, nurse, nurture",A2,verb,pleie,[plæi`ə],Old Norse: plega,"passe, stelle; dyrke",Hun pleier å besøke besteforeldrene sine hver uke.,She usually visits her grandparents every week.
+"tend to, usually",A2,verb,pleie,[plæi`ə],Old Norse: plega,ha for vane; bruke,Hun pleier å besøke besteforeldrene sine hver uke. Han pleier å gjøre det.,She usually visits her grandparents every week. He usually does.
+"care for, take care of, nurse, nurture",B1,verb,pleie,[plæi`ə],Old Norse: plega,passe og stelle et sykt eller svakt menneske eller dyr; stelle (en del av) kroppen så den holdes ren og sunn; holde noe i god stand; holde ved like; dyrke,Han pleide den gamle moren sin. Hun pleier neglene regelmessig.,He cared for his old mother. She takes care of her nails regularly.
 "care, nursing",B1,ei,pleie ,[plæi`ə],Old Norse: plega,"stell, pass, tilsyn",Hun fikk god pleie på sykehuset.,She received good care at the hospital.
 nursing home,B2,et,pleiehjem ,,Old Norse,"hjem for syke, gamle eller for bortsatte barn",Bestemoren hennes bor på et pleiehjem.,Her grandmother lives in a nursing home.
-caretaker,A2,en,pleier ,,Old Norse,"en som pleier syke og gamle",Pleieren kom inn med medisinen.,The nurse came in with the medicine.
+caretaker,B1,en,pleier ,,Old Norse,"en som pleier syke og gamle",Pleieren kom inn med medisinen.,The nurse came in with the medicine.
 lawn,A2,en,plen,,French: plaine,"jordstykke som er tilsådd med fint, jevnt gress",De klipper plenen hver helg for å holde den fin.,They mow the lawn every weekend to keep it looking good.
 "duty, obligation",B1,ei,plikt,[plikt],German,"skyldighet, forpliktelse",Plikten kaller.,Duty calls.
 be obliged,B2,verb,plikte,,German,"være forpliktet",Han pliktet å holde i stand veien.,It was his duty to maintain the road.
@@ -14432,7 +14433,7 @@ penalty kick,B1,et,straffespark ,,German,spark direkte mot mål som kan tildeles
 penalty shoot-out,B2,en,straffesparkkonkurranse ,,German,"konkurranse som består i at fem spillere fra hvert lag skyter ett straffespark hver, benyttet for å avgjøre (cup)kamp hvor det står uavgjort etter ekstraomganger",Kampen måtte til slutt avgjøres ved straffesparkkonkurranse.,"In the end, the match had to be decided by a penalty shootout."
 sentencing,C,ei,straffeutmåling,,German,"en dommers fastsettelse av hvor streng en straff skal være","Straffeutmålingen skal skje i juli, like før republikanerne holder sitt landsmøte.","The sentencing will take place in July, just before the Republicans hold their national convention."
 tought,B2,adjective,strak,,German,"rett, stram, utstrakt; bein, rak",Hev bekkenet fra underlaget til kroppen er strak.,Raise your pelvis off the ground until your body is straight.
-just,A2,adverb,straks,,German,"like, tett; omgående; med det samme",Huset lå straks bortenfor.,The house was just beyond.
+"just, immediately",A2,adverb,straks,,German,"like, tett; omgående; med det samme",Huset lå straks bortenfor.,The house was just beyond.
 ray,B1,en,stråle,,German,"energibølge som går i rett linje",Solen begynte å stråle gjennom skyene etter regnet.,The sun began to shine through the clouds after the rain.
 "shine, beam, radiate",B1,verb,stråle ,,German,"sende ut stråler, lyse, skinne",Stjernene stråler.,The stars are shining.
 radiation treatment,C,ei,strålebehandling,,German,"behandling av sykdom med røntgen- eller radiumstråling",Pasienten fikk strålebehandling for å bekjempe kreftcellene.,The patient received radiotherapy to fight the cancer cells.
