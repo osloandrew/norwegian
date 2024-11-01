@@ -338,6 +338,214 @@ function generateInexactMatches(query) {
     return variations;
 }
 
+function prioritizeMatchingResults(results, query, field) {
+    const queryLower = query.toLowerCase();
+    
+    return results.sort((a, b) => {
+        // 1. Prioritize exact match in the Norwegian term
+        const isExactMatchA = a[field].toLowerCase() === queryLower;
+        const isExactMatchB = b[field].toLowerCase() === queryLower;
+        if (isExactMatchA && !isExactMatchB) {
+            return -1;
+        }
+        if (!isExactMatchA && isExactMatchB) {
+            return 1;
+        }
+
+        // 2. Prioritize whole word match (even if part of a phrase or longer sentence)
+        const regexExactMatch = new RegExp(`\\b${queryLower}\\b`, 'i'); // Whole word boundary match
+        const aExactInPhrase = regexExactMatch.test(a[field]);
+        const bExactInPhrase = regexExactMatch.test(b[field]);
+        if (aExactInPhrase && !bExactInPhrase) {
+            return -1;
+        }
+        if (!aExactInPhrase && bExactInPhrase) {
+            return 1;
+        }
+
+        // 3. Prioritize exact match in the comma-separated list of English definitions
+        const aIsInCommaList = a.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
+        const bIsInCommaList = b.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
+        if (aIsInCommaList && !bIsInCommaList) {
+            return -1;
+        }
+        if (!aIsInCommaList && bIsInCommaList) {
+            return 1;
+        }
+
+        // 4. Deprioritize compound words where the query appears in a larger word
+        const aContainsInWord = a[field].toLowerCase().includes(queryLower) && a[field].toLowerCase() !== queryLower;
+        const bContainsInWord = b[field].toLowerCase().includes(queryLower) && b[field].toLowerCase() !== queryLower;
+        if (aContainsInWord && !bContainsInWord) {
+            return 1;
+        }
+        if (!aContainsInWord && bContainsInWord) {
+            return -1;
+        }
+
+        // 5. Sort by the position of the query in the word (earlier is better)
+        const aIndex = a[field].toLowerCase().indexOf(queryLower);
+        const bIndex = b[field].toLowerCase().indexOf(queryLower);
+        return aIndex - bIndex;
+    });
+}
+
+// Specific function to handle story searches
+function searchStories(query, filtersText) {
+    // Ensure storyResults is an array
+    const storiesArray = Array.isArray(storyResults) ? storyResults : [];
+
+    let matchingResults;
+    if (!query) {
+        matchingResults = storiesArray;
+    } else {
+        // Filter stories based on the query in both 'titleNorwegian' and 'titleEnglish'
+        matchingResults = storiesArray.filter(story => {
+            const norwegianTitleMatch = story.titleNorwegian.toLowerCase().includes(query);
+            const englishTitleMatch = story.titleEnglish.toLowerCase().includes(query);
+            return norwegianTitleMatch || englishTitleMatch;
+        });
+    }
+
+    displayStoryList(matchingResults);
+    return matchingResults;
+}
+
+
+
+function searchSentences(query, cleanResults, normalizedQueries, selectedCEFR) {
+    if (!query) {
+        resultsContainer.innerHTML = `
+            <div class="definition error-message">
+                <h2 class="word-gender">
+                    Error <div class="gender">Empty Search</div>
+                </h2>
+                <p>Please enter a word in the search field before searching.</p>
+            </div>
+        `;
+        hideSpinner();
+        return [];
+    }
+
+    let matchingResults = cleanResults.filter(r => {
+        return normalizedQueries.some(normQuery => {
+            const norwegianSentenceMatch = r.eksempel && r.eksempel.toLowerCase().includes(normQuery);
+            const englishTranslationMatch = r.sentenceTranslation && r.sentenceTranslation.toLowerCase().includes(normQuery);
+            return norwegianSentenceMatch || englishTranslationMatch;
+        });
+    });
+
+    // Filter by the selected CEFR level
+    matchingResults = filterResultsByCEFR(matchingResults, selectedCEFR);
+
+    // Prioritize the results specifically for sentences
+    matchingResults = prioritizeResults(matchingResults, query, 'eksempel');
+
+    // Highlight the query in both 'eksempel' and 'sentenceTranslation'
+    matchingResults.forEach(result => {
+        result.eksempel = highlightQuery(result.eksempel, query);
+        if (result.sentenceTranslation) {
+            result.sentenceTranslation = highlightQuery(result.sentenceTranslation, query);
+        }
+    });
+
+    // Render the matching sentences
+    renderSentences(matchingResults, query);
+
+    return matchingResults;
+}
+
+
+function searchWords(query, cleanResults, normalizedQueries, selectedPOS, selectedCEFR) {
+    if (!query) {
+        resultsContainer.innerHTML = `
+            <div class="definition error-message">
+                <h2 class="word-gender">
+                    Error <span class="gender">Empty Search</span>
+                </h2>
+                <p>Please enter a word in the search field before searching.</p>
+            </div>
+        `;
+        hideSpinner();
+        return [];
+    }
+
+    let matchingResults = cleanResults.filter(r => {
+        const matchesQuery = normalizedQueries.some(variation => {
+            const exactRegex = new RegExp(`\\b${variation}\\b`, 'i');
+            const partialRegex = new RegExp(variation, 'i');
+            const wordMatch = exactRegex.test(r.ord.toLowerCase()) || partialRegex.test(r.ord.toLowerCase());
+            const englishValues = r.engelsk.toLowerCase().split(',').map(e => e.trim());
+            const englishMatch = englishValues.some(eng => exactRegex.test(eng) || partialRegex.test(eng));
+            return wordMatch || englishMatch;
+        });
+
+        return matchesQuery &&
+            (!selectedPOS || (selectedPOS === 'noun' && ['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => r.gender.toLowerCase().includes(gender))) || 
+            r.gender.toLowerCase().includes(selectedPOS)) &&
+            (!selectedCEFR || r.CEFR === selectedCEFR);
+    });
+
+    matchingResults = prioritizeResults(matchingResults, query, 'ord');
+
+    // Single result logic
+    if (matchingResults.length === 1) {
+        const singleResult = matchingResults[0];
+        updateURL(null, 'words', selectedPOS, null, singleResult.ord);
+        displaySearchResults([singleResult]);
+        hideSpinner();
+        return matchingResults;
+    } 
+
+    // Handle no exact matches by searching for inexact matches
+    if (matchingResults.length === 0) {
+        const inexactWordQueries = generateInexactMatches(query);
+        let inexactWordMatches = results.filter(r => {
+            const matchesInexact = inexactWordQueries.some(inexactQuery => 
+                r.ord.toLowerCase().includes(inexactQuery) || r.engelsk.toLowerCase().includes(inexactQuery)
+            );
+            return matchesInexact &&
+                (!selectedPOS || (selectedPOS === 'noun' && ['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => r.gender.toLowerCase().includes(gender))) || 
+                r.gender.toLowerCase().includes(selectedPOS)) &&
+                (!selectedCEFR || r.CEFR === selectedCEFR);
+        }).slice(0, 10); 
+
+        resultsContainer.innerHTML = `
+            <div class="definition error-message">
+                <h2 class="word-gender">No Exact Matches Found</h2>
+                <p>We couldn't find exact matches for "${query}". Here are some inexact results:</p>
+                <button class="landing-card-btn">
+                    <i class="fas fa-flag"></i> Flag Missing Word Entry
+                </button>
+            </div>
+        `;
+
+        const flagButton = document.querySelector('.landing-card-btn');
+        if (flagButton) {
+            flagButton.addEventListener('click', function() {
+                flagMissingWordEntry(query);
+            });
+        }
+
+        if (inexactWordMatches.length > 0) {
+            displaySearchResults(inexactWordMatches);
+        } else {
+            resultsContainer.innerHTML += `
+                <div class="definition error-message">
+                    <h2 class="word-gender">No Matches Found</h2>
+                    <p>We couldn't find any matches for "${query}".</p>
+                </div>
+            `;
+        }
+    } else {
+        displaySearchResults(matchingResults);
+    }
+
+    hideSpinner();
+    return matchingResults;
+}
+
+
 // Perform a search based on the input query and selected POS
 async function search(queryOverride = null) {
     const query = queryOverride || document.getElementById('search-bar').value.toLowerCase().trim();
@@ -362,255 +570,23 @@ async function search(queryOverride = null) {
     });
 
     cleanURL(type);
-
-    // Update the URL with the search parameters
     updateURL(query, type, selectedPOS);  // <--- Trigger URL update
-
-    // Show the spinner at the start of the search
     showSpinner();
-
     showLandingCard(false);
     clearContainer(); // Clear previous results
 
     let matchingResults;
-
     if (type === 'stories') {
-        // If query is empty, display all stories
-        if (!query) {
-            matchingResults = storyResults;
-        } else {
-            // Filter stories based on the query in both 'titleNorwegian' and 'titleEnglish'
-            matchingResults = storyResults.filter(story => {
-                const norwegianTitleMatch = story.titleNorwegian.toLowerCase().includes(query);
-                const englishTitleMatch = story.titleEnglish.toLowerCase().includes(query);
-                return norwegianTitleMatch || englishTitleMatch;
-            });
-        }
-
-        // Render the matching stories
-        displayStoryList(matchingResults);
+        matchingResults = searchStories(query, filtersText);
     } else if (type === 'sentences') {
-
-        // Handle empty search query
-        if (!query) {
-        resultsContainer.innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-gender">
-                    Error <div class="gender">Empty Search</div>
-                </h2>
-                <p>Please enter a word in the search field before searching.</p>
-            </div>
-        `;
-        hideSpinner();
-        return;
-        }
-
-        // If searching sentences, look for matches in both 'eksempel' and 'sentenceTranslation' fields
-        matchingResults = cleanResults.filter(r => {
-            return normalizedQueries.some(normQuery => {
-                const norwegianSentenceMatch = r.eksempel && r.eksempel.toLowerCase().includes(normQuery); // Match in 'eksempel'
-                const englishTranslationMatch = r.sentenceTranslation && r.sentenceTranslation.toLowerCase().includes(normQuery); // Match in 'sentenceTranslation'
-                return norwegianSentenceMatch || englishTranslationMatch;
-            });
-        });
-
-        // Additionally, filter by the selected CEFR level
-        matchingResults = filterResultsByCEFR(matchingResults, selectedCEFR);
-
-        // Prioritize the matching results using the prioritizeResults function
-        matchingResults = prioritizeResults(matchingResults, query, 'eksempel');
-
-        // Highlight the query in both 'eksempel' and 'sentenceTranslation'
-        matchingResults.forEach(result => {
-            result.eksempel = highlightQuery(result.eksempel, query);
-            if (result.sentenceTranslation) {
-                result.sentenceTranslation = highlightQuery(result.sentenceTranslation, query);
-            }
-        });        
-        renderSentences(matchingResults, query); // Pass the query for highlighting
+        matchingResults = searchSentences(query, cleanResults, normalizedQueries, selectedCEFR, filtersText);
     } else {
-
-        // Handle empty search query
-        if (!query) {
-        resultsContainer.innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-gender">
-                    Error <span class="gender">Empty Search</span>
-                </h2>
-                <p>Please enter a word in the search field before searching.</p>
-            </div>
-        `;
+        matchingResults = searchWords(query, cleanResults, normalizedQueries, selectedPOS, selectedCEFR, filtersText);
+    }
         hideSpinner();
         return;
-        }
-
-        // Filter results by query and selected POS for words
-        matchingResults = cleanResults.filter(r => {
-            // Exact and partial match logic
-            const matchesQuery = normalizedQueries.some(variation => {
-                const exactRegex = new RegExp(`\\b${variation}\\b`, 'i'); // Exact match regex for whole word
-                const partialRegex = new RegExp(variation, 'i'); // Partial match for larger words like "bevegelsesfrihet"
-                const wordMatch = exactRegex.test(r.ord.toLowerCase()) || partialRegex.test(r.ord.toLowerCase());
-                const englishValues = r.engelsk.toLowerCase().split(',').map(e => e.trim());
-                const englishMatch = englishValues.some(eng => exactRegex.test(eng) || partialRegex.test(eng));
-                return wordMatch || englishMatch;
-            });
-
-            // Handle POS filtering for nouns and other parts of speech
-            return matchesQuery && (!selectedPOS || (selectedPOS === 'noun' && ['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => r.gender.toLowerCase().includes(gender))) || r.gender.toLowerCase().includes(selectedPOS)) && (!selectedCEFR || r.CEFR === selectedCEFR);
-        });
-
-        matchingResults = prioritizeResults(matchingResults, query, 'ord');
-        
-        if (matchingResults.length === 1) {
-            // Update URL and title for a single result
-            const singleResult = matchingResults[0];
-            updateURL(null, type, selectedPOS, null, singleResult.ord); // Set word parameter with the result's Norwegian term
-            // Display this single result directly
-            displaySearchResults([singleResult]);  // Display only this single result
-            hideSpinner(); // Hide the spinner
-            return;
-        } 
-
-        if (matchingResults.length > 1) {
-            latestMultipleResults = query;
-            console.log("Stored latestMultipleResults:", latestMultipleResults);
-        } else {
-            latestMultipleResults = null;
-        }        
-        
-        // Check if there are **no exact matches**
-        const noExactMatches = matchingResults.length === 0;
-
-        // If no exact matches are found, find inexact matches
-        if (noExactMatches) {
-
-            // Generate inexact matches based on transformations
-            const inexactWordQueries = generateInexactMatches(query);
-            console.log(`Inexact Queries Generated: ${inexactWordQueries}`);
-
-            // Now search for results using these inexact queries
-            let inexactWordMatches = results.filter(r => {
-                const matchesInexact = inexactWordQueries.some(inexactQuery => r.ord.toLowerCase().includes(inexactQuery) || r.engelsk.toLowerCase().includes(inexactQuery));
-                return matchesInexact && (!selectedPOS || (selectedPOS === 'noun' && ['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => r.gender.toLowerCase().includes(gender))) || r.gender.toLowerCase().includes(selectedPOS)) && (!selectedCEFR || r.CEFR === selectedCEFR);
-            }).slice(0, 10); // Limit to 10 results
-
-            // Display the "No Exact Matches" message
-            resultsContainer.innerHTML = `
-                <div class="definition error-message">
-                    <h2 class="word-gender">
-                        No Exact Matches Found
-                    </h2>
-                    <p>We couldn't find exact matches for "${query}"${filtersText}. Here are some inexact results:</p>
-                    <button class="landing-card-btn">
-                        <i class="fas fa-flag"></i> Flag Missing Word Entry
-                    </button>
-                </div>
-            `;
-
-            // Add flag button functionality
-            const flagButton = document.querySelector('.landing-card-btn');
-            if (flagButton) {
-                flagButton.addEventListener('click', function() {
-                    const wordToFlag = document.getElementById('search-bar').value;
-                    flagMissingWordEntry(wordToFlag);
-                });
-            }
-
-            // If inexact matches are found, display them below the message
-            if (inexactWordMatches.length > 0) {
-                displaySearchResults(inexactWordMatches);
-
-                // Reattach the flag button functionality AFTER rendering the search results
-                const flagButton = document.querySelector('.landing-card-btn');
-                if (flagButton) {
-                    flagButton.addEventListener('click', function() {
-                        const wordToFlag = document.getElementById('search-bar').value;
-                        console.log("Flagging word:", wordToFlag);  // Debugging log
-                        flagMissingWordEntry(wordToFlag);
-                    });
-                }
-            } else {
-                clearContainer();
-                appendToContainer(`
-            <div class="definition error-message">
-                <h2 class="word-gender">No Matches Found</h2>
-                <p>We couldn't find any matches for "${query}"${filtersText}.</p>
-                <button class="landing-card-btn">
-                    <i class="fas fa-flag"></i> Flag Missing Word Entry
-                </button>
-            </div>`
-            );
-
-            const flagButton = document.querySelector('.landing-card-btn');
-            if (flagButton) {
-                flagButton.addEventListener('click', function () {
-                    const wordToFlag = document.getElementById('search-bar').value;
-                    flagMissingWordEntry(wordToFlag);
-                });
-            }
-        }
-
-            hideSpinner();
-            return;
-        }
-
-        // Prioritization logic for words (preserving the exact behavior)
-        matchingResults = matchingResults.sort((a, b) => {
-            const queryLower = query.toLowerCase();
-                
-            // 1. Prioritize exact match in the Norwegian term
-            const isExactMatchA = a.ord.toLowerCase() === queryLower;
-            const isExactMatchB = b.ord.toLowerCase() === queryLower;
-            if (isExactMatchA && !isExactMatchB) {
-                return -1;
-            }
-            if (!isExactMatchA && isExactMatchB) {
-                return 1;
-            }
-        
-            // 2. Prioritize whole word match (even if part of a phrase or longer sentence)
-            const regexExactMatch = new RegExp(`\\b${queryLower}\\b`, 'i'); // Whole word boundary match
-            const aExactInPhrase = regexExactMatch.test(a.ord);
-            const bExactInPhrase = regexExactMatch.test(b.ord);
-            if (aExactInPhrase && !bExactInPhrase) {
-                return -1;
-            }
-            if (!aExactInPhrase && bExactInPhrase) {
-                return 1;
-            }
-        
-            // 3. Prioritize exact match in the comma-separated list of English definitions
-            const aIsInCommaList = a.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
-            const bIsInCommaList = b.engelsk.toLowerCase().split(',').map(str => str.trim()).includes(queryLower);
-            if (aIsInCommaList && !bIsInCommaList) {
-                return -1;
-            }
-            if (!aIsInCommaList && bIsInCommaList) {
-                return 1;
-            }
-        
-            // 4. Deprioritize compound words where the query appears in a larger word
-            const aContainsInWord = a.ord.toLowerCase().includes(queryLower) && a.ord.toLowerCase() !== queryLower;
-            const bContainsInWord = b.ord.toLowerCase().includes(queryLower) && b.ord.toLowerCase() !== queryLower;
-            if (aContainsInWord && !bContainsInWord) {
-                return 1;
-            }
-            if (!aContainsInWord && bContainsInWord) {
-                return -1;
-            }
-        
-            // 5. Sort by the position of the query in the word (earlier is better)
-            const aIndex = a.ord.toLowerCase().indexOf(queryLower);
-            const bIndex = b.ord.toLowerCase().indexOf(queryLower);
-            return aIndex - bIndex;
-        });                
-
-        displaySearchResults(matchingResults); // Render word-specific results
-    }
-
-    hideSpinner(); // Hide the spinner
 }
+
 
 // Check if any sentences exist for a word or its variations
 function checkForSentences(word, pos) {
