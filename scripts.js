@@ -455,7 +455,6 @@ function searchSentences(query, cleanResults, normalizedQueries, selectedCEFR) {
     return matchingResults;
 }
 
-
 function searchWords(query, cleanResults, normalizedQueries, selectedPOS, selectedCEFR) {
     if (!query) {
         resultsContainer.innerHTML = `
@@ -469,7 +468,6 @@ function searchWords(query, cleanResults, normalizedQueries, selectedPOS, select
         hideSpinner();
         return [];
     }
-
     let matchingResults = cleanResults.filter(r => {
         const matchesQuery = normalizedQueries.some(variation => {
             const exactRegex = new RegExp(`\\b${variation}\\b`, 'i');
@@ -479,7 +477,6 @@ function searchWords(query, cleanResults, normalizedQueries, selectedPOS, select
             const englishMatch = englishValues.some(eng => exactRegex.test(eng) || partialRegex.test(eng));
             return wordMatch || englishMatch;
         });
-
         return matchesQuery &&
             (!selectedPOS || (selectedPOS === 'noun' && ['en', 'et', 'ei', 'en-et', 'en-ei-et'].some(gender => r.gender.toLowerCase().includes(gender))) || 
             r.gender.toLowerCase().includes(selectedPOS)) &&
@@ -495,12 +492,12 @@ function searchWords(query, cleanResults, normalizedQueries, selectedPOS, select
         displaySearchResults([singleResult]);
         hideSpinner();
         return matchingResults;
-    } 
+    }
 
-    // Handle no exact matches by searching for inexact matches
+    // No exact matches: proceed to inexact matches
     if (matchingResults.length === 0) {
         const inexactWordQueries = generateInexactMatches(query);
-        let inexactWordMatches = results.filter(r => {
+        let inexactWordMatches = cleanResults.filter(r => {
             const matchesInexact = inexactWordQueries.some(inexactQuery => 
                 r.ord.toLowerCase().includes(inexactQuery) || r.engelsk.toLowerCase().includes(inexactQuery)
             );
@@ -510,16 +507,32 @@ function searchWords(query, cleanResults, normalizedQueries, selectedPOS, select
                 (!selectedCEFR || r.CEFR === selectedCEFR);
         }).slice(0, 10); 
 
-        resultsContainer.innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-gender">No Exact Matches Found</h2>
-                <p>We couldn't find exact matches for "${query}". Here are some inexact results:</p>
-                <button class="landing-card-btn">
-                    <i class="fas fa-flag"></i> Flag Missing Word Entry
-                </button>
-            </div>
-        `;
+        // Check if we have inexact matches to display
+        if (inexactWordMatches.length > 0) {
+            resultsContainer.innerHTML = `
+                <div class="definition error-message">
+                    <h2 class="word-gender">No Exact Matches Found</h2>
+                    <p>We couldn't find exact matches for "${query}". Here are some inexact results:</p>
+                    <button class="landing-card-btn">
+                        <i class="fas fa-flag"></i> Flag Missing Word Entry
+                    </button>
+                </div>
+            `;
+            displaySearchResults(inexactWordMatches);
+        } else {
+            // No exact or inexact matches
+            resultsContainer.innerHTML = `
+                <div class="definition error-message">
+                    <h2 class="word-gender">No Matches Found</h2>
+                    <p>We couldn't find any matches for "${query}".</p>
+                    <button class="landing-card-btn">
+                        <i class="fas fa-flag"></i> Flag Missing Word Entry
+                    </button>
+                </div>
+            `;
+        }
 
+        // Add flag button functionality
         const flagButton = document.querySelector('.landing-card-btn');
         if (flagButton) {
             flagButton.addEventListener('click', function() {
@@ -527,24 +540,14 @@ function searchWords(query, cleanResults, normalizedQueries, selectedPOS, select
             });
         }
 
-        if (inexactWordMatches.length > 0) {
-            displaySearchResults(inexactWordMatches);
-        } else {
-            resultsContainer.innerHTML += `
-                <div class="definition error-message">
-                    <h2 class="word-gender">No Matches Found</h2>
-                    <p>We couldn't find any matches for "${query}".</p>
-                </div>
-            `;
-        }
     } else {
+        // Display exact matches if they exist
         displaySearchResults(matchingResults);
     }
-
+    
     hideSpinner();
     return matchingResults;
 }
-
 
 // Perform a search based on the input query and selected POS
 async function search(queryOverride = null) {
