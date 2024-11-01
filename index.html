@@ -1,340 +1,510 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
     <title>Norwegian Dictionary | Search in Norwegian or English</title>
 
     <!-- Meta Description -->
-    <meta name="description" content="Norwegian Dictionary is your resource for finding words in both Norwegian and English. Search, filter by part of speech, and discover new words.">
+    <meta
+      name="description"
+      content="Norwegian Dictionary is your resource for finding words in both Norwegian and English. Search, filter by part of speech, and discover new words."
+    />
 
     <!-- Meta Keywords -->
-    <meta name="keywords" content="Norwegian dictionary, Norwegian to English, English to Norwegian, word search, language learning, part of speech filter, random words">
+    <meta
+      name="keywords"
+      content="Norwegian dictionary, Norwegian to English, English to Norwegian, word search, language learning, part of speech filter, random words"
+    />
 
     <!-- Open Graph for Social Media Sharing -->
-    <meta property="og:title" content="Norwegian Dictionary | Search in Norwegian or English">
-    <meta property="og:description" content="Use the Norwegian Dictionary to find translations and definitions for words in Norwegian and English.">
-    <meta property="og:image" content="Resources/Icons/android-chrome-512x512.png">
-    <meta property="og:url" content="https://osloandrew.github.io/norwegian/">
+    <meta
+      property="og:title"
+      content="Norwegian Dictionary | Search in Norwegian or English"
+    />
+    <meta
+      property="og:description"
+      content="Use the Norwegian Dictionary to find translations and definitions for words in Norwegian and English."
+    />
+    <meta
+      property="og:image"
+      content="Resources/Icons/android-chrome-512x512.png"
+    />
+    <meta property="og:url" content="https://osloandrew.github.io/norwegian/" />
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="styles.css">
-    <link rel="apple-touch-icon" sizes="180x180" href="Resources/Icons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="Resources/Icons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="Resources/Icons/favicon-16x16.png">
-    
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="Resources/Icons/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="Resources/Icons/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="Resources/Icons/favicon-16x16.png"
+    />
+
     <!-- Google Fonts -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@100..900&display=swap');
+      @import url("https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@100..900&display=swap");
     </style>
 
     <!-- External Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <!-- Font Awesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
 
     <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-M5H81RF3DT"></script>
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-M5H81RF3DT"
+    ></script>
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-        gtag('js', new Date());
-        gtag('config', 'G-M5H81RF3DT');
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-M5H81RF3DT");
     </script>
-</head>
+  </head>
 
-<body>
+  <body>
     <header>
-        <h1 id="site-title" onclick="returnToLandingPage()">Norwegian Dictionary</h1>
-        <p id="site-subtitle">Search in Norwegian or English</p>
+      <h1 id="site-title" onclick="returnToLandingPage()">
+        Norwegian Dictionary
+      </h1>
+      <p id="site-subtitle">Search in Norwegian or English</p>
     </header>
 
     <main>
-        <!-- Search container with full-width background -->
-        <section id="search-container">
-            <div id="search-container-inner">
-                <!-- Grouped Selectors (Type and POS) -->
-                <div class="selectors-wrapper">
-                    <!-- Words/Sentences Selector -->
-                    <div class="type-filter">
-                        <select id="type-select" aria-label="Search by words or sentences" onchange="handleTypeChange(this.value)">
-                            <option value="words">Words</option>
-                            <option value="sentences">Sentences</option>
-                            <option value="stories">Stories</option>
-                            <option value="word-game">Word Game</option>
-                        </select>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-            
-                    <!-- POS Selector -->
-                    <div class="pos-filter">
-                        <select id="pos-select" onchange="search()" aria-label="Filter by part of speech">
-                            <option value="">POS</option>
-                            <option value="noun">Noun</option>
-                            <option value="adjective">Adjective</option>
-                            <option value="verb">Verb</option>
-                            <option value="expression">Expression</option>
-                            <option value="adverb">Adverb</option>
-                            <option value="preposition">Preposition</option>
-                            <option value="numeral">Numeral</option>
-                            <option value="conjunction">Conjunction</option>
-                            <option value="interjection">Interjection</option>
-                            <option value="pronoun">Pronoun</option>
-                        </select>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-
-                    <!-- Genre Selector -->
-                    <div class="genre-filter" id="genre-filter" aria-label="Filter by genre" style="display: none;">
-                        <select id="genre-select" onchange="handleGenreChange()">
-                            <option value="">Genre</option>
-                            <option value="art">Art</option>
-                            <option value="biography">Biography</option>
-                            <option value="culture">Culture</option>
-                            <option value="dialogue">Dialogue</option>
-                            <option value="drama">Drama</option>
-                            <option value="fantasy">Fantasy</option>
-                            <option value="food">Food</option>
-                            <option value="health">Health</option>
-                            <option value="history">History</option>
-                            <option value="horror">Horror</option>
-                            <option value="philosophy">Philosophy</option>
-                            <option value="politics">Politics</option>
-                            <option value="psychology">Psychology</option>
-                            <option value="science">Science</option>
-                            <option value="science fiction">Science Fiction</option>
-                            <option value="technology">Technology</option>
-                            <option value="travel">Travel</option>
-                        </select>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-
-                    <!-- CEFR Level Selector -->
-                    <div class="cefr-filter">
-                        <select id="cefr-select" onchange="search()" aria-label="Filter by CEFR level">
-                            <option value="">Level</option>
-                            <option value="A1">A1</option>
-                            <option value="A2">A2</option>
-                            <option value="B1">B1</option>
-                            <option value="B2">B2</option>
-                            <option value="C">C</option>
-                        </select>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                </div>
-            
-                <!-- Grouped Search Bar and Random Button -->
-                <div class="search-and-random-wrapper">
-                    <!-- Search Bar -->
-                    <div id="search-bar-wrapper" class="search-bar-wrapper">
-                        <input type="text" id="search-bar" placeholder=" " onkeydown="handleKey(event)" aria-label="Search for Norwegian or English words">
-                        <button id="clear-btn" class="clear-btn" aria-label="Clear search field" onclick="clearInput()">
-                            <i class="fas fa-xmark"></i>
-                        </button>
-                        <button id="search-btn" class="search-btn" aria-label="Search for the word" onclick="search()">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-            
-                    <!-- Random Button -->
-                    <button id="random-btn" class="random-btn" aria-label="Generate a random word" onclick="randomWord(),popChime.currentTime = 0, popChime.play()" title="Generate a random word">
-                        <i class="fas fa-dice"></i>
-                    </button>
-                </div>
-            </div>            
-        </section>
-        
-        <div id="loading-spinner" class="spinner" style="display: none;"></div> <!-- Moved outside the results-container -->
-        <div id="landing-card" class="definition"> 
-            <h2>Welcome to the <br> Norwegian Dictionary</h2>
-            <p style="text-align:center">Explore Norwegian vocabulary interactively. <br> Click on one of the buttons below to get started.</p>
-
-            <div class="landing-card-button-grid">
-        
-                <!-- Dictionary Search Button -->
-                <div class="button-container">
-                    <img class="landing-card-image" src="Resources/Photos/words.svg" alt="Words">                 
-                    <button class="landing-card-btn" onclick="selectType('words')">Dictionary Search</button>
-                    <p>Discover words and their meanings with detailed examples.</p>
-                </div>
-                
-                <!-- Sentence Search Button -->
-                <div class="button-container">
-                    <img class="landing-card-image" src="Resources/Photos/sentences.svg" alt="Sentences">
-                    <button class="landing-card-btn" onclick="selectType('sentences')">Sentence Search</button>
-                    <p>Explore real sentences in context using your chosen words.</p>
-                </div>
-                
-                <!-- Norwegian Stories Button -->
-                <div class="button-container">
-                    <img class="landing-card-image" src="Resources/Photos/stories.svg" alt="Stories">
-                    <button class="landing-card-btn" onclick="selectType('stories')">Norwegian Stories</button>
-                    <p>Immerse yourself in fiction and non-fiction to deepen your language skills.</p>
-                </div>
-                
-                <!-- Word Game Button -->
-                <div class="button-container">
-                    <img class="landing-card-image" src="Resources/Photos/word-game.svg" alt="Word Games">
-                    <button class="landing-card-btn" onclick="selectType('word-game')">Word Game</button>
-                    <p>Master vocabulary with an interactive game that adapts to your skill level.</p>
-                </div>
-                
-                <!-- Pronunciation Guide Button -->
-                <div class="button-container">
-                    <img class="landing-card-image" src="Resources/Photos/pronunciation.svg" alt="Pronunciation">
-                    <button class="landing-card-btn" id="toggle-pronunciation" onclick="togglePronunciationGuide()">Pronunciation Guide</button>
-                    <p>Perfect your pronunciation by learning Norwegian sounds.</p>
-                </div>
+      <!-- Search container with full-width background -->
+      <section id="search-container">
+        <div id="search-container-inner">
+          <!-- Grouped Selectors (Type and POS) -->
+          <div class="selectors-wrapper">
+            <!-- Words/Sentences Selector -->
+            <div class="type-filter">
+              <select
+                id="type-select"
+                aria-label="Search by words or sentences"
+                onchange="handleTypeChange(this.value)"
+              >
+                <option value="words">Words</option>
+                <option value="sentences">Sentences</option>
+                <option value="stories">Stories</option>
+                <option value="word-game">Word Game</option>
+              </select>
+              <i class="fas fa-chevron-down"></i>
             </div>
-        
-                
-            <div class="pronunciation-wrapper hidden"> <!-- Changed this class -->
-            <h3>Norwegian Pronunciation Guide for English Speakers</h3>
-            <p>
-                Norwegian pronunciation can be tricky for English speakers. The table below outlines common Norwegian sounds, with their pronunciation symbols and examples.
-            </p>
-        
-            <table class="pronunciation-table">
-                <thead>
-                    <tr>
-                        <th>Norwegian Sound</th>
-                        <th>Pronunciation Symbol</th>
-                        <th>Example (Norwegian)</th>
-                        <th>Similar English Sound</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td data-label="Norwegian Sound">kj-lyd</td>
-                        <td data-label="Pronunciation Symbol">ç</td>
-                        <td data-label="Example (Norwegian)">kiste – [çi`stə]</td>
-                        <td data-label="Similar English Sound">Like the "h" sound in "huge", but younger generations increasingly use [ʃ] instead</td>
-                    </tr>
-                    <tr>
-                        <td data-label="Norwegian Sound">Stemt sj</td>
-                        <td data-label="Pronunciation Symbol">dʒ</td>
-                        <td data-label="Example (Norwegian)">juice – [dʒu:s]</td>
-                        <td data-label="Similar English Sound">As in "juice"</td>
-                    </tr>
-                    <tr>
-                        <td data-label="Norwegian Sound">Stavelsesdannende l</td>
-                        <td data-label="Pronunciation Symbol">(ə)l</td>
-                        <td data-label="Example (Norwegian)">aksel – [a`ks(ə)l]</td>
-                        <td data-label="Similar English Sound">Similar to "l" in "bottle" (syllable-forming)</td>
-                    </tr>
-                    <tr>
-                        <td data-label="Norwegian Sound">Stavelsesdannende n</td>
-                        <td data-label="Pronunciation Symbol">(ə)n</td>
-                        <td data-label="Example (Norwegian)">voksen – [vå`ks(ə)n]</td>
-                        <td data-label="Similar English Sound">Similar to "n" in "button" (syllable-forming)</td>
-                    </tr>
-                    <tr>
-                        <td data-label="Norwegian Sound">Tykk l</td>
-                        <td data-label="Pronunciation Symbol">L</td>
-                        <td data-label="Example (Norwegian)">pælme – [pæ`Lmə]</td>
-                        <td data-label="Similar English Sound">A thicker "l" sound, common in Eastern Norwegian</td>
-                    </tr>
-                    <tr>
-                        <td data-label="Norwegian Sound">ng-lyd</td>
-                        <td data-label="Pronunciation Symbol">ŋ</td>
-                        <td data-label="Example (Norwegian)">sang – [saŋ:]</td>
-                        <td data-label="Similar English Sound">Like "ng" in "song"</td>
-                    </tr>
-                    <tr>
-                        <td data-label="Norwegian Sound">sj-lyd</td>
-                        <td data-label="Pronunciation Symbol">ʃ</td>
-                        <td data-label="Example (Norwegian)">sjakk – [ʃak:]</td>
-                        <td data-label="Similar English Sound">Like "sh" in "shack"</td>
-                    </tr>
-                    <tr>
-                        <td data-label="Norwegian Sound">th-lyd</td>
-                        <td data-label="Pronunciation Symbol">þ</td>
-                        <td data-label="Example (Norwegian)">bluetooth – [blu:´tuþ]</td>
-                        <td data-label="Similar English Sound">Like "th" in "thin"</td>
-                    </tr>
-                    <tr>
-                        <td data-label="Norwegian Sound">ch-lyd</td>
-                        <td data-label="Pronunciation Symbol">x</td>
-                        <td data-label="Example (Norwegian)">nachspiel – [na´xʃpil]</td>
-                        <td data-label="Similar English Sound">Like "ch" in Scottish "loch"</td>
-                    </tr>
-                    <tr>
-                        <td data-label="Norwegian Sound">rd, rl, rn, rt (bound)</td>
-                        <td data-label="Pronunciation Symbol">-</td>
-                        <td data-label="Example (Norwegian)">leopard – [leopa´r-d], barn – [ba:rn]</td>
-                        <td data-label="Similar English Sound">Split articulation of "r" sounds in some words</td>
-                    </tr>
-                    <tr>
-                        <td data-label="Norwegian Sound">Pregløs e-lignende vokal</td>
-                        <td data-label="Pronunciation Symbol">ə</td>
-                        <td data-label="Example (Norwegian)">kube – [ku:`bə]</td>
-                        <td data-label="Similar English Sound">Like the second vowel sound in "sofa"</td>
-                    </tr>
-                    <tr>
-                        <td data-label="Norwegian Sound">Diphthong æi</td>
-                        <td data-label="Pronunciation Symbol">æi</td>
-                        <td data-label="Example (Norwegian)">stein – [stæin]</td>
-                        <td data-label="Similar English Sound">Like "ai" in "aisle"</td>
-                    </tr>
-                    <tr>
-                        <td data-label="Norwegian Sound">Diphthong æu</td>
-                        <td data-label="Pronunciation Symbol">æu</td>
-                        <td data-label="Example (Norwegian)">sau – [sæu]</td>
-                        <td data-label="Similar English Sound">Like "ow" in "cow"</td>
-                    </tr>
-                </tbody>
-                </table>
-        
-            <h4>Tonem 1 and Tonem 2 in Norwegian</h4>
-            <p>
-                Norwegian has two tones, called <strong>Tonem 1</strong> and <strong>Tonem 2</strong>, which help distinguish between words that are spelled the same but have different meanings. These tones are most noticeable in Eastern Norwegian dialects like those spoken in Oslo.
-            </p>
-        
-            <p>
-                - <strong>Tonem 1</strong>: This is a flatter tone that starts low and rises slightly. It's often used in monosyllabic words or words with endings like -el and -en. For example, in Eastern Norwegian, the word <em>ånden</em> (the spirit) uses Tonem 1.<br>
-                - <strong>Tonem 2</strong>: This is a more dynamic tone, starting high, dipping, and then rising again. It typically occurs in polysyllabic words, like <em>ånden</em> (the breath). It can change the meaning of a word entirely.
-            </p>
-            <p>
-                Think of Tonem 1 as a simple, steady tone, while Tonem 2 has more pitch movement, making it sound more expressive.
-            </p>
-        
-            <h4>Additional Pronunciation Symbols and Rules</h4>
-            <p>
-                - ´ represents stress with Tonem 1, as in <strong>betale</strong> – [beta:´lə]<br>
-                - ` represents stress with Tonem 2, as in <strong>tale</strong> – [ta:`lə]<br>
-                - Long vowels are marked with a colon after them, as in <strong>bile</strong> – [bi:`lə]<br>
-                - Long consonants are also marked with a colon after them, as in <strong>bille</strong> – [bi`l:ə]
-            </p>
+
+            <!-- POS Selector -->
+            <div class="pos-filter">
+              <select
+                id="pos-select"
+                onchange="search()"
+                aria-label="Filter by part of speech"
+              >
+                <option value="">POS</option>
+                <option value="noun">Noun</option>
+                <option value="adjective">Adjective</option>
+                <option value="verb">Verb</option>
+                <option value="expression">Expression</option>
+                <option value="adverb">Adverb</option>
+                <option value="preposition">Preposition</option>
+                <option value="numeral">Numeral</option>
+                <option value="conjunction">Conjunction</option>
+                <option value="interjection">Interjection</option>
+                <option value="pronoun">Pronoun</option>
+              </select>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+
+            <!-- Genre Selector -->
+            <div
+              class="genre-filter"
+              id="genre-filter"
+              aria-label="Filter by genre"
+              style="display: none"
+            >
+              <select id="genre-select" onchange="handleGenreChange()">
+                <option value="">Genre</option>
+                <option value="art">Art</option>
+                <option value="biography">Biography</option>
+                <option value="culture">Culture</option>
+                <option value="dialogue">Dialogue</option>
+                <option value="drama">Drama</option>
+                <option value="fantasy">Fantasy</option>
+                <option value="food">Food</option>
+                <option value="health">Health</option>
+                <option value="history">History</option>
+                <option value="horror">Horror</option>
+                <option value="philosophy">Philosophy</option>
+                <option value="politics">Politics</option>
+                <option value="psychology">Psychology</option>
+                <option value="science">Science</option>
+                <option value="science fiction">Science Fiction</option>
+                <option value="technology">Technology</option>
+                <option value="travel">Travel</option>
+              </select>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+
+            <!-- CEFR Level Selector -->
+            <div class="cefr-filter">
+              <select
+                id="cefr-select"
+                onchange="search()"
+                aria-label="Filter by CEFR level"
+              >
+                <option value="">Level</option>
+                <option value="A1">A1</option>
+                <option value="A2">A2</option>
+                <option value="B1">B1</option>
+                <option value="B2">B2</option>
+                <option value="C">C</option>
+              </select>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+          </div>
+
+          <!-- Grouped Search Bar and Random Button -->
+          <div class="search-and-random-wrapper">
+            <!-- Search Bar -->
+            <div id="search-bar-wrapper" class="search-bar-wrapper">
+              <input
+                type="text"
+                id="search-bar"
+                placeholder=" "
+                onkeydown="handleKey(event)"
+                aria-label="Search for Norwegian or English words"
+              />
+              <button
+                id="clear-btn"
+                class="clear-btn"
+                aria-label="Clear search field"
+                onclick="clearInput()"
+              >
+                <i class="fas fa-xmark"></i>
+              </button>
+              <button
+                id="search-btn"
+                class="search-btn"
+                aria-label="Search for the word"
+                onclick="search()"
+              >
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+
+            <!-- Random Button -->
+            <button
+              id="random-btn"
+              class="random-btn"
+              aria-label="Generate a random word"
+              onclick="randomWord(),popChime.currentTime = 0, popChime.play()"
+              title="Generate a random word"
+            >
+              <i class="fas fa-dice"></i>
+            </button>
+          </div>
         </div>
-    </div>
-                
-                     
-        <section id="results-container">
-        </section>        
+      </section>
+
+      <div id="loading-spinner" class="spinner" style="display: none"></div>
+      <!-- Moved outside the results-container -->
+      <div id="landing-card" class="definition">
+        <h2>
+          Welcome to the <br />
+          Norwegian Dictionary
+        </h2>
+        <p style="text-align: center">
+          Explore Norwegian vocabulary interactively. <br />
+          Click on one of the buttons below to get started.
+        </p>
+
+        <div class="landing-card-button-grid">
+          <!-- Dictionary Search Button -->
+          <div class="button-container">
+            <img
+              class="landing-card-image"
+              src="Resources/Photos/words.svg"
+              alt="Words"
+            />
+            <button class="landing-card-btn" onclick="selectType('words')">
+              Dictionary Search
+            </button>
+            <p>Discover words and their meanings with detailed examples.</p>
+          </div>
+
+          <!-- Sentence Search Button -->
+          <div class="button-container">
+            <img
+              class="landing-card-image"
+              src="Resources/Photos/sentences.svg"
+              alt="Sentences"
+            />
+            <button class="landing-card-btn" onclick="selectType('sentences')">
+              Sentence Search
+            </button>
+            <p>Explore real sentences in context using your chosen words.</p>
+          </div>
+
+          <!-- Norwegian Stories Button -->
+          <div class="button-container">
+            <img
+              class="landing-card-image"
+              src="Resources/Photos/stories.svg"
+              alt="Stories"
+            />
+            <button class="landing-card-btn" onclick="selectType('stories')">
+              Norwegian Stories
+            </button>
+            <p>
+              Immerse yourself in fiction and non-fiction to deepen your
+              language skills.
+            </p>
+          </div>
+
+          <!-- Word Game Button -->
+          <div class="button-container">
+            <img
+              class="landing-card-image"
+              src="Resources/Photos/word-game.svg"
+              alt="Word Games"
+            />
+            <button class="landing-card-btn" onclick="selectType('word-game')">
+              Word Game
+            </button>
+            <p>
+              Master vocabulary with an interactive game that adapts to your
+              skill level.
+            </p>
+          </div>
+
+          <!-- Pronunciation Guide Button -->
+          <div class="button-container">
+            <img
+              class="landing-card-image"
+              src="Resources/Photos/pronunciation.svg"
+              alt="Pronunciation"
+            />
+            <button
+              class="landing-card-btn"
+              id="toggle-pronunciation"
+              onclick="togglePronunciationGuide()"
+            >
+              Pronunciation Guide
+            </button>
+            <p>Perfect your pronunciation by learning Norwegian sounds.</p>
+          </div>
+        </div>
+
+        <div class="pronunciation-wrapper hidden">
+          <!-- Changed this class -->
+          <h3>Norwegian Pronunciation Guide for English Speakers</h3>
+          <p>
+            Norwegian pronunciation can be tricky for English speakers. The
+            table below outlines common Norwegian sounds, with their
+            pronunciation symbols and examples.
+          </p>
+
+          <table class="pronunciation-table">
+            <thead>
+              <tr>
+                <th>Norwegian Sound</th>
+                <th>Pronunciation Symbol</th>
+                <th>Example (Norwegian)</th>
+                <th>Similar English Sound</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Norwegian Sound">kj-lyd</td>
+                <td data-label="Pronunciation Symbol">ç</td>
+                <td data-label="Example (Norwegian)">kiste – [çi`stə]</td>
+                <td data-label="Similar English Sound">
+                  Like the "h" sound in "huge", but younger generations
+                  increasingly use [ʃ] instead
+                </td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">Stemt sj</td>
+                <td data-label="Pronunciation Symbol">dʒ</td>
+                <td data-label="Example (Norwegian)">juice – [dʒu:s]</td>
+                <td data-label="Similar English Sound">As in "juice"</td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">Stavelsesdannende l</td>
+                <td data-label="Pronunciation Symbol">(ə)l</td>
+                <td data-label="Example (Norwegian)">aksel – [a`ks(ə)l]</td>
+                <td data-label="Similar English Sound">
+                  Similar to "l" in "bottle" (syllable-forming)
+                </td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">Stavelsesdannende n</td>
+                <td data-label="Pronunciation Symbol">(ə)n</td>
+                <td data-label="Example (Norwegian)">voksen – [vå`ks(ə)n]</td>
+                <td data-label="Similar English Sound">
+                  Similar to "n" in "button" (syllable-forming)
+                </td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">Tykk l</td>
+                <td data-label="Pronunciation Symbol">L</td>
+                <td data-label="Example (Norwegian)">pælme – [pæ`Lmə]</td>
+                <td data-label="Similar English Sound">
+                  A thicker "l" sound, common in Eastern Norwegian
+                </td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">ng-lyd</td>
+                <td data-label="Pronunciation Symbol">ŋ</td>
+                <td data-label="Example (Norwegian)">sang – [saŋ:]</td>
+                <td data-label="Similar English Sound">Like "ng" in "song"</td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">sj-lyd</td>
+                <td data-label="Pronunciation Symbol">ʃ</td>
+                <td data-label="Example (Norwegian)">sjakk – [ʃak:]</td>
+                <td data-label="Similar English Sound">Like "sh" in "shack"</td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">th-lyd</td>
+                <td data-label="Pronunciation Symbol">þ</td>
+                <td data-label="Example (Norwegian)">bluetooth – [blu:´tuþ]</td>
+                <td data-label="Similar English Sound">Like "th" in "thin"</td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">ch-lyd</td>
+                <td data-label="Pronunciation Symbol">x</td>
+                <td data-label="Example (Norwegian)">nachspiel – [na´xʃpil]</td>
+                <td data-label="Similar English Sound">
+                  Like "ch" in Scottish "loch"
+                </td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">rd, rl, rn, rt (bound)</td>
+                <td data-label="Pronunciation Symbol">-</td>
+                <td data-label="Example (Norwegian)">
+                  leopard – [leopa´r-d], barn – [ba:rn]
+                </td>
+                <td data-label="Similar English Sound">
+                  Split articulation of "r" sounds in some words
+                </td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">Pregløs e-lignende vokal</td>
+                <td data-label="Pronunciation Symbol">ə</td>
+                <td data-label="Example (Norwegian)">kube – [ku:`bə]</td>
+                <td data-label="Similar English Sound">
+                  Like the second vowel sound in "sofa"
+                </td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">Diphthong æi</td>
+                <td data-label="Pronunciation Symbol">æi</td>
+                <td data-label="Example (Norwegian)">stein – [stæin]</td>
+                <td data-label="Similar English Sound">Like "ai" in "aisle"</td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">Diphthong æu</td>
+                <td data-label="Pronunciation Symbol">æu</td>
+                <td data-label="Example (Norwegian)">sau – [sæu]</td>
+                <td data-label="Similar English Sound">Like "ow" in "cow"</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h4>Tonem 1 and Tonem 2 in Norwegian</h4>
+          <p>
+            Norwegian has two tones, called <strong>Tonem 1</strong> and
+            <strong>Tonem 2</strong>, which help distinguish between words that
+            are spelled the same but have different meanings. These tones are
+            most noticeable in Eastern Norwegian dialects like those spoken in
+            Oslo.
+          </p>
+
+          <p>
+            - <strong>Tonem 1</strong>: This is a flatter tone that starts low
+            and rises slightly. It's often used in monosyllabic words or words
+            with endings like -el and -en. For example, in Eastern Norwegian,
+            the word <em>ånden</em> (the spirit) uses Tonem 1.<br />
+            - <strong>Tonem 2</strong>: This is a more dynamic tone, starting
+            high, dipping, and then rising again. It typically occurs in
+            polysyllabic words, like <em>ånden</em> (the breath). It can change
+            the meaning of a word entirely.
+          </p>
+          <p>
+            Think of Tonem 1 as a simple, steady tone, while Tonem 2 has more
+            pitch movement, making it sound more expressive.
+          </p>
+
+          <h4>Additional Pronunciation Symbols and Rules</h4>
+          <p>
+            - ´ represents stress with Tonem 1, as in <strong>betale</strong> –
+            [beta:´lə]<br />
+            - ` represents stress with Tonem 2, as in <strong>tale</strong> –
+            [ta:`lə]<br />
+            - Long vowels are marked with a colon after them, as in
+            <strong>bile</strong> – [bi:`lə]<br />
+            - Long consonants are also marked with a colon after them, as in
+            <strong>bille</strong> – [bi`l:ə]
+          </p>
+        </div>
+      </div>
+
+      <section id="results-container"></section>
     </main>
 
-    <audio id="audio-player" style="display: none;" controls></audio>
+    <audio id="audio-player" style="display: none" controls></audio>
 
     <footer>
-        <p class="copyright">© 2024 Norwegian Dictionary, with input from Språkrådet, Universitetet i Bergen, and Det Norske Akademi for Språk og Litteratur</p>
-        <div class="links">
-            <a href="https://www.linkedin.com/in/afeinberg1/" target="_blank" rel="noopener noreferrer" class="linkedin-btn">
-                <img src="Resources/Icons/linkedin-icon.png" alt="LinkedIn Logo" class="linkedin-icon"><span>Connect with me on LinkedIn</span>
-            </a>
-            <a href="https://www.buymeacoffee.com/afeinberg4l" class="coffee-btn">
-                <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=afeinberg4l&button_colour=0d3a69&font_colour=ffffff&font_family=Lato&outline_colour=ffffff&coffee_colour=FFDD00" class="coffee-img" />
-            </a>
-        </div>
+      <p class="copyright">
+        © 2024 Norwegian Dictionary, with input from Språkrådet, Universitetet i
+        Bergen, and Det Norske Akademi for Språk og Litteratur
+      </p>
+      <div class="links">
+        <a
+          href="https://www.linkedin.com/in/afeinberg1/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="linkedin-btn"
+        >
+          <img
+            src="Resources/Icons/linkedin-icon.png"
+            alt="LinkedIn Logo"
+            class="linkedin-icon"
+          /><span>Connect with me on LinkedIn</span>
+        </a>
+        <a href="https://www.buymeacoffee.com/afeinberg4l" class="coffee-btn">
+          <img
+            src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=afeinberg4l&button_colour=0d3a69&font_colour=ffffff&font_family=Lato&outline_colour=ffffff&coffee_colour=FFDD00"
+            class="coffee-img"
+          />
+        </a>
+      </div>
     </footer>
     <script src="noRandom.js" defer></script>
     <script src="scripts.js" defer></script>
     <script src="wordGame.js" defer></script>
     <script src="stories.js" defer></script>
-</body>
-
+  </body>
 </html>
