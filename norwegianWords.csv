@@ -168,6 +168,7 @@ stock fund,B2,et,aksjefond,,Latin,"fond som plasserer midlene i aksjer, og som e
 share capital,B2,en,aksjekapital,,Latin,samlet pålydende verdi av alle aksjene i et aksjeselskap,Bedriften økte sin aksjekapital i fjor.,The company increased its share capital last year.
 stock price,B2,en,aksjekurs,,Latin,kurs som oppgir verdien til en aksje,Aksjekursen falt med over to prosent.,The share price fell by over two percent.
 stock market,B2,et,aksjemarked,,Latin,marked hvor det kjøpes og selges aksjer,Aksjemarkedet har vært svært volatilt i det siste.,The stock market has been very volatile lately.
+"corporation, limited liability company",B2,et,aksjeselskap,,,selskap med fastsatt grunnkapital der innskyterne bare er ansvarlige for det de har skutt inn,Vi vurderer å starte et lite aksjeselskap for prosjektet vårt.,We are considering starting a small corporation for our project.
 campaign,B2,en,aksjon,,Latin,organisert handling som har til formål å gripe inn i eller endre en situasjon,Fagforeningen varslet en aksjon mot de nye arbeidsvilkårene.,The union announced an action against the new working conditions.
 shareholder,B2,en,aksjonær,,Latin,aksjeeier,Som aksjonær har han en liten andel i selskapets fortjeneste.,"As a shareholder, he has a small share in the company's profits."
 take action,B2,verb,aksjonere,,Latin,"gå til aksjon, for eksempel med demonstrasjon eller streik",De planlegger å aksjonere foran rådhuset for å få oppmerksomhet rundt saken.,They plan to take action in front of the town hall to draw attention to the issue.
@@ -1110,6 +1111,7 @@ deceive,B2,verb,bedra,,German,"svindle, snyte","De prøvde å bedra systemet, me
 deception,B2,et,bedrag,,German,"svik, snyteri, narring; handlingen med å villede eller forlede noen med den hensikt å oppnå en fordel eller skade",Bedraget var større enn noen hadde forventet.,The fraud was larger than anyone had expected.
 better,A2,adjective,bedre,,Old Norse,mer tilfredsstillende eller hensiktsmessig; med høyere verdi,Jeg føler meg mye bedre i dag enn i går.,I feel much better today than yesterday.
 improve,B1,verb,bedre ,,Old Norse,gjøre bedre,Hun prøvde å bedre situasjonen ved å snakke med sjefen.,She tried to improve the situation by talking to her manager.
+better half,B1,expression,bedre halvdel,,,ektefelle,Her ligger min bedre halvdel og sover.,My better half is sleeping here.
 know-it-all,B2,adjective,bedrevitende,,German,som tror en forstår og vet mer enn andre; som gir uttrykk for eller er preget av tro på at en forstår og vet mer enn andre,Han hadde en bedrevitende holdning i diskusjonen.,He had a know-it-all attitude in the discussion.
 know-it-all,B2,en,bedreviter,,German,"bedrevitende person; person som fremstår som overdrevent kunnskapsrik, selvtilfreds eller overlegen når det gjelder en gitt sak eller emne",Alle syntes han var en bedreviter uten like.,Everybody thought he was a know-it-all without equal.
 "business, company",B1,en,bedrift,,German,"handels-, håndverks- eller industriforetak",Han startet sin egen bedrift for to år siden.,He started his own business two years ago.
@@ -1121,7 +1123,7 @@ business advisor,C,en,bedriftsrådgiver,,,rådgiver for næringslivet,,
 commander,B2,et,befal,,German,fellesbetegnelse for offiserer og underoffiserer i Forsvaret; fellesbetegnelse for offiserer i handelsflåten,Båten hadde norsk befal og kinesisk mannskap.,The boat had Norwegian officers and a Chinese crew.
 "command, require",B2,verb,befale,,German,gi ordre til; påby,Sjefen bestemte seg for å befale en endring i strategien.,The manager decided to order a change in strategy.
 commander,B2,en,befalhavende,,German,offiser som har kommando,En befalhavende ledet styrkene i oppdraget.,A commander led the forces in the mission.
-"commadment, requirement",B2,ei,befaling,,German,"det å befale; påbud, ordre",De fulgte hennes befaling uten spørsmål.,They followed her command without question.
+"commandment, requirement",B2,ei,befaling,,German,"det å befale; påbud, ordre",De fulgte hennes befaling uten spørsmål.,They followed her command without question.
 concern,C,ei,befatning,,German,det å ha noe å gjøre med en person eller et forhold; forbindelse; berøring,Jeg vil ikke ha noen befatning med henne.,I don't want to have anything to do with her.
 deal with,B2,verb,befatte ,[befa´t:ə],German,beskjeftige seg med; ha å gjøre med,Hun ville ikke befatte seg med sladderen.,She didn't want to deal with the gossip.
 concern oneself with,B2,expression,befatte seg med,,German,beskjeftige seg med; ha å gjøre med,Jeg befatter meg ikke med politikk.,I'm not involved in politics.
@@ -1817,6 +1819,7 @@ brake pedal,B2,en,bremsepedal,,German,"pedal til fotbrems (på bil)",Sjåføren
 brake fluid,C,ei,bremsevæske,,German,væske til bremsesystemet i biler,,
 "burn, be passionate",A2,verb,brenne,[bre`n:ə],Old Norse: brenna,"være i brann; stå i flammer; lyse som ild; skinne kraftig; være eller kjennes het; svi, verke; ha sterke følelser for noe; være intenst opptatt av noe; kjenne sterk trang eller lyst",Låven brenner.,The barn is on fire.
 burn one's fingers,B2,expression,"brenne fingrene",,Old Norse,få seg en lærepenge,Han brente fingrene på å investere i feil prosjekt.,He burned his fingers investing in the wrong project.
+be passionate about,B1,expression,brenne for,,,"være sterkt engasjert i, opptatt av",Hun brenner for å hjelpe andre mennesker.,She is passionate about helping other people.
 burn out,B2,expression,brenne ut,,Old Norse,brenne til det ikke er noe igjen; slutte å være aktiv,"Hvis du jobber for hardt uten pauser, kan du fort brenne ut.","If you work too hard without breaks, you can quickly burn out."
 brand,B2,verb,brennemerke,,Old Norse,"sette brennemerke på, stigmatisere",Bonden måtte brennemerke kyrne sine for identifikasjon.,The farmer had to brand his cows for identification.
 brand,B2,et,brennemerke,,Old Norse,merke som ble brent inn i pannen på en lovbryter; skamplett,Bonden satte et brennemerke på storfeet. Brennemerket viste at dyrene tilhørte bonden.,The farmer put a brand on the cattle. The brand showed that the animals belonged to the farmer.
@@ -2660,6 +2663,7 @@ drop,B1,verb,droppe,,English: drop,slippe ned; la falle; slippe ball eller puck 
 drop out,B1,expression,droppe ut,,English,falle fra; slutte,Mange ungdommer vurderer å droppe ut av videregående skole.,Many young people are considering dropping out of high school.
 "cab, taxi",A2,ei,drosje,,Russian via German,bil med sjåfør som en leier for å kjøre personer; taxi,Kan du ringe etter en drosje til meg?,Can you call me a cab?
 "lord, liege",C,en,drott,,Old Norse: dróttinn,"eldre betegnelse for konge eller fyrste; monark, spesielt en konge",Han var drotten som holdt hele nasjonen sammen.,He was the queen who held the whole nation together.
+grape,A1,ei,drue,,German,liten lysegrønn eller blå frukt som vokser på vinranke,Vil du ha en drue?,Would you like a grape?
 drip,B1,verb,dryppe,,German via Old Norse: drjúpa,falle i dråper,Regnet begynte å dryppe fra taket.,The rain began to drip from the roof.
 sprinkle,B1,verb,drysse,[dry`s:ə],Old Norse,falle tett i små partikler og spres utover,Hun drysset litt sukker på pannekakene.,She sprinkled some sugar on the pancakes.
 you,A1,pronoun,du,"[du:], [du]",Old Norse: þú,"andre person entall, i tiltale; en, man",Hvor bor du?,Where do you live?
@@ -3406,6 +3410,7 @@ fax,B2,en,faks,,Latin,"kortord for telefaks",Meldingen kom gjennom på en gamme
 fax,B2,verb,fakse,,Latin,"overføre tekst eller bilder over telefaks",Han måtte fakse dokumentet for å få det sendt raskt.,He had to fax the document to get it sent quickly.
 fact sheet,B1,et,faktaark,,Latin,"ark (eller tilsvarende elektronisk side) som presenterer, oppsummerer fakta om en sak",Faktaarket ga oss viktig informasjon.,The fact sheet gave us important information.
 actual,B1,adjective,faktisk,,Latin via German,"virkelig, reell; sant å si",Boka ble faktisk populær.,The book actually became popular.
+factor,B1,en,faktor,,Latin,hvert av to eller flere tall eller uttrykk som multiplisert med hverandre gir et produkt; viktig årsak; medvirkende omstendighet; teknisk leder i et trykkeri; faktoringselskap,Mange faktorer spiller inn. Prisøkningen er en faktor vi må regne med. Sykdommen har en arvelig faktor.,Many factors come into play. The price increase is a factor we have to reckon with. The disease has a hereditary factor.
 factual,B2,adjective,faktuell,,Latin,som er preget av fakta; full av fakta,Rapporten var full av faktuelle opplysninger.,The report was full of factual information.
 fact,B1,et,faktum,,Latin,"kjensgjerning, virkelighet",Det er et faktum at jorden er rund.,It is a fact that the earth is round.
 invoice,B1,en,faktura,,Latin,"spesifisert regning som kjøperen får samtidig med varene",Han mottok en faktura for reparasjonen.,He received an invoice for the repair.
@@ -4899,7 +4904,7 @@ go out of date,B2,expression,gå ut på dato,,Old Norse,"gå over holdbarhetsdat
 "walking, going",B2,adjective,gående ,,Old Norse,"som går",De har fortsatt en gående diskusjon om emnet.,They still have an ongoing discussion on the subject.
 crazy,B2,adjective,gæren,,,galen; galt,Han var helt gæren etter den nye spillkonsollen.,He was going crazy after the new game console.
 duct tape,B1,en,"gaffateip, gaffatape",,English,"bred og kraftig teip",Han fikset trommene med gaffateip. Gaffateipen fikser alt.,He fixed the drums with duct tape. Duct tape fixes everything.
-fork,A2,en,gaffel,[ga´f:(ə)l],German,"redskap med skaft og to eller flere spisse grener, brukt til å spise eller lesse med",Kan du gi meg en gaffel til salaten?,Can you give me a fork for the salad?
+fork,A1,en,gaffel,[ga´f:(ə)l],German,"redskap med skaft og to eller flere spisse grener, brukt til å spise eller lesse med",Kan du gi meg en gaffel til salaten?,Can you give me a fork for the salad?
 forklift,B1,en,gaffeltruck,[ga´f:(ə)ltrøk:],German,lite motorkjøretøy med gaffelformet lastearm som kan heves og senkes,Han kjører en gaffeltruck på lageret.,He drives a forklift truck in the warehouse.
 gag,B2,en,"gag, gagg",[gægg],English: gag,"improvisert, komisk påfunn eller effekt i film, revy eller lignende",Komikeren startet showet med en morsom gag.,The comedian started the show with a funny gag.
 pedestrian street,B1,ei,gågate ,,Old Norse,gate for fotgjengere der biltrafikk er helt eller delvis forbudt,Byen har en koselig gågate.,The city has a cozy pedestrian street.
@@ -5645,6 +5650,7 @@ straw,B2,en,halm,[halm],Old Norse: halmr,"visne eller tørkede strå av korn, er
 "behead, decapitate",B2,verb,"halshogge, halshugge",,Old Norse,"henrette ved å hogge hodet av",Fangen ble halshogget for sin forbrytelse i middelalderen.,The prisoner was beheaded for his crime in the Middle Ages.
 necklace,B1,en-et,halskjede,,Old Norse,"kjede til å bære om halsen",Hun bar et vakkert halskjede som glitret i solen.,She wore a beautiful necklace that sparkled in the sun.
 half,A2,adjective,halv ,[hal:],Old Norse: halfr,"som utgjør den ene av to (mer eller mindre) like store deler",Han tok en halv kopp kaffe til frokost.,He had half a cup of coffee for breakfast.
+half,B1,en,halvdel,,,hver av de to like store delene som noe er delt eller kan deles i; halvpart,"Jeg delte kaken i to, slik at hver fikk en halvdel.","I divided the cake in half, so that everyone got a half."
 halve,B2,verb,halvere ,,Old Norse,dele i to like store deler,De bestemte seg for å halvere kostnadene på prosjektet.,They decided to halve the cost of the project.
 half-finished,B2,adjective,halvferdig ,,Old Norse,halvveis ferdig,Huset var bare halvferdig.,The house was only half finished.
 half-full,B2,adjective,halvfull ,,Old Norse,"halvveis full, halvfylt",Glasset var halvfullt med vann.,The glass was half full of water.
@@ -5652,9 +5658,11 @@ demigod,C,en,halvgud ,,Old Norse,menneske som er opptatt blant gudene; hero; men
 hemisphere,B2,ei,halvkule,,,halvdel av en kule; halvdel av jordkloden,Vi bor på den nordlige halvkule.,We live in the northern hemisphere.
 semiconductor,C,en,halvleder,,Old Norse,stoff med elektrisk ledningsevne som ligger mellom ledningsevnen til metalliske ledere og isolatorer,Halvledere er avgjørende for elektroniske enheter.,Semiconductors are essential for electronic devices.
 "crescent, half-moon",B2,en,halvmåne,,Old Norse,den halve lysende måneskiva; symbol for islam,Det er halvmåne i kveld.,There is a half moon tonight.
+half-dark,B2,adjective,halvmørk,,,"ganske mørk; skym, tussmørk; mørk, men ikke så mørk at alt lys er borte","Rommet var halvmørkt, og det var vanskelig å se detaljene.",The room was semi-dark and it was difficult to see the details.
 semi-darkness,B2,et,halvmørke ,,Old Norse,"dimt lys; tussmørke, skumring",Vi gikk i halvmørket gjennom skogen.,We walked in the semi-darkness through the forest.
 semi-desert,C,en,halvørken ,,Old Norse,strøk som er så tørt at det nesten er ørken,"Landskapet var som en halvørken, tørt og goldt.","The landscape was like a semi-desert, dry and barren."
 peninsula,B1,ei,halvøy ,,Old Norse,"landområde som er omgitt av vann, men landfast på én side",Vi bodde på en vakker halvøy ved sjøen.,We stayed on a beautiful peninsula by the sea.
+half,A2,en,halvpart,,,halvdel,Nesten en halvpart av gruppen var enige i forslaget.,Almost half of the group agreed with the proposal.
 half-rotten,B2,adjective,halvråtten ,,Old Norse,"halvt eller delvis råtten",Eplet var halvråttent da jeg fant det.,The apple was half rotten when I found it.
 more or less,B2,expression,"halvt om halvt",,Old Norse,"bortimot, så å si",Vi vant halvt om halvt i konkurransen.,We won half and half in the competition.
 half-empty,B2,adjective,halvtom ,,Old Norse,"halvveis tom",Rommet var halvtomt etter festen.,The room was half empty after the party.
@@ -6892,34 +6900,34 @@ run-up,B2,en,innspurt,,,spurt like før mål i et løp; siste del av noe en hold
 restrict,C,verb,innstramme,,German,stramme inn,Myndighetene innstrammer bankenes utlånsrammer.,The authorities are tightening banks' lending limits.
 restriction,C,ei,innstramming,,German,"det å stramme inn",Finansrådmannen varsler økonomiske innstramminger.,The CFO announces financial austerity measures.
 insight,B2,et,innsyn,,German,det (å ha mulighet til) å se inn (i noe),Myndighetene krever større innsyn i private selskapers virksomhet.,The authorities are demanding greater transparency in private companies' operations.
-"consume, take in",B2,verb,innta,,German,ta inn; erobre,,
-"intake, input",B2,et,inntak,,German,det å ta inn,,
+"consume, take in",B2,verb,innta,,German,ta inn; erobre,Du kan innta plassene dine når konserten begynner.,You can take your seats when the concert begins.
+"intake, input",B2,et,inntak,,German,det å ta inn,Daglig inntak av grønnsaker er viktig for helsen.,Daily consumption of vegetables is important for health.
 charming,C,adjective,inntakende,,German,"tiltrekkende, sjarmerende",,
 income,B2,en,inntekt ,[i`ntekt],Old Norse: inntekt,beløp som en tjener,Forretningen hadde gitt dem mere bekymringer enn inntekter.,The business had given them more worries than income.
 income source,C,en,inntektskilde ,,Old Norse,"noe som gir inntekt",,
-income tax,B2,en,inntektsskatt ,,Old Norse,skatt som beregnes av en skattyters samlede nettoinntekt,,
+income tax,B2,en,inntektsskatt ,,Old Norse,skatt som beregnes av en skattyters samlede nettoinntekt,Alle må betale inntektsskatt basert på inntekten sin.,Everyone has to pay income tax based on their income.
 until,B2,conjunction,inntil,,,"innleder en leddsetning som uttrykker at noe går frem til et visst tidspunkt; helt frem til, helt til; til","Ordningen gjelder inntil noe annet blir bestemt. Inntil jeg traff deg, var jeg ensom.","The arrangement applies until otherwise decided. Until I met you, I was lonely."
 up to,B1,preposition,inntil,,,"inn til, bort til; borte ved, inn mot; helt til et punkt som representerer en yttergrense; opp til, frem til",Kommunen garanterer for et lån på inntil fire millioner kroner.,The municipality guarantees a loan of up to NOK 4 million.
 occur,B2,verb,inntre,[i´ntre],German: intredden,"finne sted, komme",Døden inntrådte momentant. Det store omslaget inntrådte i fjor.,Death was instantaneous. The big change occurred last year.
-"happen, occur",B2,verb,inntreffe ,,German,"hende (plutselig), finne sted, oppstå",,
+"happen, occur",B2,verb,inntreffe ,,German,"hende (plutselig), finne sted, oppstå",Det kan inntreffe endringer i programmet på kort varsel.,There may be changes to the program at short notice.
 intrude,C,verb,inntrenge,,German,trenge seg inn,,
 intruder,C,en,inntrenger,,German,person som trenger seg inn,,
-impression,B2,et,inntrykk ,,German,"påvirkning, følelse, forestilling, fornemmelse",,
-immigrate,B2,verb,innvandre ,,German,"vandre, dra inn (i et land for å leve der varig), immigrere",,
+impression,B2,et,inntrykk ,,German,"påvirkning, følelse, forestilling, fornemmelse",Han fikk et godt inntrykk av teamet etter intervjuet.,He got a good impression of the team after the interview.
+immigrate,B2,verb,innvandre ,,German,"vandre, dra inn (i et land for å leve der varig), immigrere",Mange drømmer om å innvandre til Norge for et bedre liv.,Many people dream of immigrating to Norway for a better life.
 immigrant,B1,en,innvandrer ,,German,"person som har innvandret i et land, immigrant",Han har en venn som er innvandrer.,He has a friend who is an immigrant.
-immigration,B2,ei,innvandring,,German,"det å innvandre, immigrasjon",,
+immigration,B2,ei,innvandring,,German,"det å innvandre, immigrasjon",Innvandring har påvirket norsk kultur på mange måter.,Immigration has influenced Norwegian culture in many ways.
 object,C,verb,innvende,,German,komme med innvendinger; si imot; opponere,Hun innvendte at noe slikt hadde hun aldri ment.,She objected that she had never meant anything like that.
 internal,B2,adjective,innvendig,,German,som hører til det indre av noe; som befinner seg eller foregår på innsiden av noe,,
 objection,B2,ei,innvending,,German,ytring mot noe; innsigelse,Det ble reist en rekke innvendinger mot forslaget.,A number of objections were raised against the proposal.
-inaugurate,B2,verb,innvie,,German: einweihen,"vie, hellige; markere ved seremoni eller fest at noe er ferdig og skal tas i bruk; gjøre delaktig i; fortelle om",,
+inaugurate,B2,verb,innvie,,German: einweihen,"vie, hellige; markere ved seremoni eller fest at noe er ferdig og skal tas i bruk; gjøre delaktig i; fortelle om",De ønsket å innvie den nye bygningen med en stor fest.,They wanted to inaugurate the new building with a big party.
 inauguration,C,en,innvielse,,German,"det å innvie eller bli innviet",Vi skal feire innvielsen av det nye huset.,We will celebrate the opening of the new building.
-"complex, complicated",B2,adjective,innviklet ,,German,"vanskelig, innfløkt",,
+"complex, complicated",B2,adjective,innviklet ,,German,"vanskelig, innfløkt",Problemet ble raskt innviklet og vanskelig å løse.,The problem quickly became complex and difficult to solve.
 "grant, approve",B2,verb,innvilge,,German,gå med på; samtykke i noe det er søkt om,Banken innvilget lånet.,The bank granted the loan.
 "impact, effect",C,verb,innvirke,,German,øve innflytelse på,,
 "impact, effect",B2,ei,innvirkning,,German,"innflytelse; påvirkning; effekten, påvirkningen eller konsekvensen av en handling, hendelse eller situasjon på noe eller noen",Protestene fikk ingen innvirkning på utfallet av saken.,The protests had no impact on the outcome of the case.
 insect,A2,et,insekt,,,leddyr av klassen Insecta; type leddyr som tilhører klassen Insecta innenfor dyrekongeriket,Jeg så et lite insekt krype langs veggen.,I saw a small insect crawling along the wall.
 insect bite,B1,et,insektbitt,,,bitt av insekt,Et insektbitt gjorde at huden ble rød.,An insect bite turned the skin red.
-insecticide,B2,et,insektmiddel ,,,middel til å drepe insekter med,,
+insecticide,B2,et,insektmiddel ,,,middel til å drepe insekter med,De brukte insektmiddel for å bli kvitt mygg i hagen.,They used insecticide to get rid of mosquitoes in the garden.
 incentive,B2,et,"insentiv, incentiv",,Latin via English,oppmuntring; stimulans; motivasjon,,
 insider,C,en,"insider, innsider",[i´nsaidər],English,"person som har tilgang til eller sitter inne med interne, fortrolige opplysninger om noe",Han er en innsider i selskapet og vet hva som virkelig foregår.,He's an insider in the company and knows what's really going on.
 insist,B2,verb,insistere,,Latin,holde fast ved; stå fast på; ikke gi seg,"Han insisterte på å kjøre oss hjem. Siden du insisterer, skal jeg gi meg.","He insisted on driving us home. Since you insist, I'll stop."
@@ -12036,6 +12044,7 @@ savior,B2,en,redningsmann,,German,person som redder annen person; person som avv
 life vest,B2,en,redningsvest,,German,vestlignende redningsbelte,,
 fear,B1,en,redsel,[re´ts(ə)l],Old Norse: hræzla,"skrekk, gru; redselsfull hending",Jeg har en sann redsel for eksamener.,I have a real fear of exams.
 tool,B1,en-et,redskap,"[re:`dskap], [re`skap]",German,"verktøy, utstyr (til et spesielt arbeid)",Hullet var laget med et spisst redskap.,The hole was made with a pointed tool.
+reduction,B1,en,reduksjon,,,"det å redusere eller bli redusert; innskrenkning, nedsettelse; kjemisk prosess der et stoff tar opp elektroner fra et reduksjonsmiddel; forenkling av matematiske uttrykk",Selskapet måtte gjøre en betydelig reduksjon i kostnadene.,The company had to make a significant reduction in costs.
 reduce,A2,verb,redusere,,Latin,sette ned; innskrenke; koke til mengden væske er blitt mindre; (få et stoff til å) ta opp elektroner; fjerne oksygen fra et stoff; gjøre om til enklere form; som er blitt mindre eller dårligere,Vi må redusere utslippet av klimagasser. Tilsett fløte og kraft og reduser til halvparten.,We need to reduce greenhouse gas emissions. Add cream and stock and reduce to half.
 real,B2,adjective,reell,[re-e´l:],Latin,"virkelig, faktisk; redelig, ærlig",Det viktigste er at det blir en reell aldersgrense.,The most important thing is that there is a real age limit.
 reference,B2,en,referanse,,Latin,"henvisning til tredjemann som kan gi opplysninger om et firma, en person som søker en stilling eller lignende",Alle referansene er samlet alfabetisk bak i boken.,All references are listed alphabetically at the back of the book.
@@ -12182,6 +12191,9 @@ representative,B2,en,representant,[reprəs(ə)nta´nt],Latin via French,"valgt m
 representation,B2,en,representasjon ,,Latin,det å representere,,
 represent,B2,verb,representere ,,Latin,"opptre i stedet for, være utsending for",,
 repression,C,en,represjon,,Latin,"undertrykkelse, underkuing; motforholdsregel",,
+reproduction,B2,en,reproduksjon,,Latin,"det å øke en bestand; formering; mangfoldiggjøring av bilde, kart og lignende; gjengivelse, avtrykk",Bildet var bare en reproduksjon.,The image was just a reproduction.
+reproduce,B2,verb,reprodusere,,Latin,skape på nytt; formere; lage (nøyaktig) avtrykk av; mangfoldiggjøre,Makrell reproduserer fort.,Mackerel reproduce quickly.
+reproduction,B2,expression,reprodusere seg,,Latin,avle frem nye generasjoner,Folket må reprodusere seg. Fugler trenger større habitater for å reprodusere seg.,People need to reproduce. Birds need larger habitats to reproduce.
 republican,B2,en,republikaner ,,Latin,tilhenger av republikk,,
 republican,B2,adjective,republikansk ,[republika´nsk],Latin,"som angår, som er karakteristisk for en republikk",,
 republic,B1,en,republikk,[republi´k:],Latin via French,stat der statsoverhodet velges for et begrenset tidsrom,USA var den første moderne republikken.,The US was the first modern republic.
@@ -12384,7 +12396,9 @@ space shuttle,B1,ei,"romferge, romferje",,,"flylignende, rakettdrevet romfartøy
 "accomodate, hold",B1,verb,romme,,,ha plass til,Stadionet kan romme over femti tusen tilskuere.,The stadium can hold over fifty thousand spectators.
 sour cream,A2,en,rømme,[rø`m:ə],,(sur) tykk fløte,Han serverte rømme ved siden av det tradisjonelle måltidet.,He served sour cream alongside the traditional meal.
 "run away, flee",B1,verb,rømme,[rø`m:ə],,"trekke seg bort fra, forlate",Fangene prøvde å rømme fra fengselet ved midnatt.,The prisoners tried to escape from the prison at midnight.
+"spacious, plenty of",B2,adjective,rommelig,,,"som rommer mye, romslig; flott; rikelig",Huset var rommelig.,The house was spacious.
 spaceship,B2,et,romskip,,,fartøy som brukes til reiser i verdensrommet,Romskipet suste gjennom galaksen på vei til en fjern planet.,The spaceship hurtled through the galaxy on its way to a distant planet.
+spacious,B1,adjective,romslig,,,"rommelig, vid; ikke smålig, vidsynt",Leiligheten er ganske romslig med plass til mange møbler.,The apartment is quite spacious with room for a lot of furniture.
 space probe,B2,en,romsonde,,,"ubemannet romfartøy",Romsonden sendte tilbake data fra det ytre solsystemet.,The spacecraft sent back data from the outer solar system.
 space station,B2,en,romstasjon,,,"større, bemannet romfartøy som kan oppholde seg i bane, for eksempel rundt jorden, i lang tid",Romstasjonen kretset rundt jorden i flere år.,The space station orbited the Earth for several years.
 X-ray,B2,en,røntgen,[rø´ntg(ə)n],German,"kortord for røntgenbehandling, røntgenbilde, røntgenstråler og så videre","Da vi hadde vært inne til røntgen, fikk overlegen se fotografiene.","When we had been in for an X-ray, the consultant saw the photographs."
@@ -13475,6 +13489,8 @@ screw,A2,en,skrue,[skru:`ə],German: schrǖve,(mindre) bolt med hode og gjenger,
 screw top,B2,en,skrukork,,,flaskekork med skruegjenger,,
 scruple,C,en,skruppel,,,"nagende tvil, samvittighetsnag",,
 screwdriver,A2,en,skrutrekker,,German,redskap av jern eller stål til å feste eller løsne skruer med (som passer inn i sporet i et skruehode),Han brukte en skrutrekker til å reparere kjøkkenbordet.,He used a screwdriver to repair the kitchen table.
+"brag, boast",B2,verb,skryte,,,"lage høy, skrikende lyd; prale, braute",,
+"braggart, boaster",C,en,skrythals,,,storskryter,,
 push,B2,en-et,skubb,,,"puff, støt",,
 push,B2,verb,skubbe,,,"puffe, støte",,
 shot,B1,et,skudd ,,,"det å skyte, avfyre skytevåpen",Jeg hørte et skudd i det fjerne.,I heard a shot in the distance.
@@ -14280,6 +14296,7 @@ stationary,B2,adjective,stasjonær,,,som er varig knyttet til et bestemt sted,Gr
 station,B2,verb,stasjonere,,Latin,plassere,Atomvåpen skal ikke stasjoneres i Norge i fredstid.,Nuclear weapons should not be stationed in Norway in peacetime.
 station building,B2,ei,stasjonsbygning ,,Latin,"(hoved)bygning på jernbanestasjon",,
 station wagon,B1,ei,stasjonsvogn ,,Latin,"bil med dør bak og flyttbart baksete som egner seg til både vare- og persontransport",Familien kjørte en stor stasjonsvogn.,The family drove a large station wagon.
+"standpoint, perspective",B2,et,ståsted,,,"utgangspunkt, plattform",,
 state,B1,en,stat,,Latin via German,"land, rike; del av større land med en viss selvstendighet; de organer som organiserer, styrer et land; sammenslutning, institusjon som har stor selvstendighet",Staten må støtte utsatte næringer.,The state must support vulnerable industries.
 statics,C,en,statikk,,Greek,"læren om krefters og legemers likevekt",,
 static,B2,adjective,statisk ,[sta:´tisk],Greek,stillestående; som er i likevekt,,
@@ -14483,6 +14500,7 @@ storm ,B2,verb,storme,,Old Norse,"være i sterkt indre opprør, heftig bevegelse
 gust of wind,B1,et,stormkast,,Old Norse,"sterkt og plutselig kast, tak av storm",Det kom et kraftig stormkast som nesten blåste dem overende.,There was a strong gust of wind that almost blew them over.
 size,A2,en,størrelse,[stø`r:(ə)lsə],Old Norse,det å være (så eller så) stor; noe som kan måles og uttrykkes med tall; kjent person,Dyret var på størrelse som en rev.,The animal was the size of a fox.
 order of magnitude,B2,en,størrelsesorden,,Old Norse,grad av størrelse eller dimensjoner,Utgiftene er av en helt annen størrelsesorden enn inntektene.,Expenses are of a completely different order of magnitude than revenues.
+"braggart, boaster",C,en,storskryter,,,"person som skryter stort, voldsomt",,
 impressive,B2,adjective,storslagen,,Old Norse,"storslått, storartet, imponerende",,
 magnificence,C,ei,storslagenhet,,,det å være storslagen,,
 "grand, large-scale",B2,adjective,storstilt,,Old Norse,"som foregår i stor stil",,
@@ -14985,6 +15003,7 @@ waist,B2,ei,talje,,,"liv, midje",,
 "talc, talcum",B2,en,talk,[talk],Arabic via French via German,"grønnaktig eller hvitt vannholdig, gjennomskinnelig mineral (magnesiumsilikat) som er hovedbestanddelen i blant annet kleberstein",,
 talk show,B2,et,talkshow,[tå:´kʃåv],English,underholdningsprogram hvor en programleder prater med kjente personer foran et publikum,Jeg elsker å se på talkshow om kvelden.,I love watching talk shows in the evening.
 number,A1,et,tall,,,matematisk enhet eller grunnbegrep; talltegn; antall,Huset har et høyt tall på fasaden.,The house has a high number on the facade.
+plate,A1,en,tallerken,,German,rund og (mer eller mindre) flat skive med opphøyde kanter til å spise av; så mye mat som det er plass til på en tallerken; tallerkenlignende gjenstand,Hun la maten pent opp på en stor tallerken.,She put the food neatly on a big plate.
 numerical,B2,adjective,tallmessig,,,"når det gjelder tall, numerisk",,
 countless,B2,adjective,talløs,,,"som ikke kan telles, utallig",,
 numerous,B2,adjective,tallrik,,,"som er mange, består av et stort antall",,
@@ -15852,8 +15871,8 @@ tyrann,B2,et,tyranni,,Greek,"voldsherredømme; undertrykkelse, råskap",,
 bullfighting,B2,ei,tyrefekting,,Old Norse,"folkeforlystelse i Spania og noen andre søreuropeiske og latinamerikanske land der oksen tirres og i noen land drepes etter visse regler",,
 "Turkish person, Turk",A2,en,tyrker,[ty´rkər],,"person fra Tyrkia, osman; person som hører til en av de tyrkiske folkestammene som bor spredt fra Balkan gjennom Sentral-Asia til Øst-Sibir",Han møtte en tyrker på reisen sin til Istanbul.,He met a Turk on his journey to Istanbul.
 Turkey,A1,et,Tyrkia,,,"land mellom Svartehavet og det østlige Middelhavet som grenser til Georgia i nordøst, til Iran, Aserbajdsjan og Armenia i øst, Syria og Irak i sør, Hellas i vest og Bulgaria i nordvest",Vi planlegger en reise til Tyrkia neste sommer.,We are planning a trip to Turkey next summer.
-Turkish,A2,adjective,tyrkisk,,,"som gjelder Tyrkia og tyrkere","Jeg elsker tyrkisk mat, spesielt kebab og baklava. Denne restauranten serverer tyrkisk mat.","I love Turkish food, especially kebabs and baklava. This restaurant serves Turkish cuisine."
 Turkish,A2,en-et,tyrkisk,,,"språk hovedsakelig brukt i Tyrkia; språkfamilie med språk som hovedsakelig blir brukt i Midt-Østen, Sentral-Asia og delvis i Øst-Europa",Jeg har begynt å lære tyrkisk på språkkurs.,“I've started learning Turkish in language courses.
+Turkish,A2,adjective,tyrkisk,,,"som gjelder Tyrkia og tyrkere","Jeg elsker tyrkisk mat, spesielt kebab og baklava. Denne restauranten serverer tyrkisk mat.","I love Turkish food, especially kebabs and baklava. This restaurant serves Turkish cuisine."
 German,A1,adjective,tysk,,,som gjelder Tyskland og tyskere; som gjelder språket og faget tysk,"Han er tysk, men bor i Norge nå. Jeg elsker tysk sjokolade.","He is German, but lives in Norway now. I love German chocolate."
 German,A1,en-et,tysk,,,"gren av vestgermansk som blir brukt blant annet i Tyskland, Østerrike og deler av Sveits; tysk språk som undervisningsfag",Læreren vår snakker tysk.,Our teacher speaks German.
 German person,A1,en,tysker,[ty´skər],,"person fra Tyskland",Tyskerne reiste jorden rundt.,The Germans traveled around the world.
@@ -17181,7 +17200,7 @@ vodka,A2,en,vodka,[vå´dka],Russian,"russisk brennevin",Han bestilte en drink 
 "carriage, wagon",A2,ei,vogn,[våŋn],Old Norse: vagn,"kjøretøy, transportredskap med overstell som må hvile på minst én aksling med hjul på hver side",Faren ville ikke låne bort vogna.,His father didn't want to lend the trailer.
 fleet,B2,en,vognpark ,,Old Norse,"vogner (biler, sporvogner eller jernbanevogner) som hører til en institusjon, en bedrift eller som finnes i et land",Busselskapet hadde en stor vognpark.,The bus company had a large fleet of vehicles.
 road train,B2,et,vogntog ,,Old Norse,"rekke av (minst to) sammenkoblede vogner, særlig brukt om stor lastebil med tilhenger",,
-vowel,A2,en,vokal,[voka:´l],Latin,"stemt språklyd som en lager med artikulasjonsorganene når en lar luft strømme mer eller mindre fritt ut gjennom munnen, selvlyd","Vokalene våre er a, e, i, o, u, y, æ, ø og å.","Our vowels are a, e, i, o, u, y, æ, ø and å."
+vowel,A2,en,vokal,[voka:´l],Latin,"stemt språklyd som en lager med artikulasjonsorganene når en lar luft strømme mer eller mindre fritt ut gjennom munnen, selvlyd","Vokalene våre er a, e, i, o, u, y, æ, ø og å.","Our vowels are a, e, i, o, u, y, æ, ø, and å."
 vocal,B2,adjective,vokal,[voka:´l],Latin,"som gjelder stemmeklangen, bruken av (sang)stemmen",,
 vocalize,C,verb,vokalisere,,Latin,"uttale som vokal; utvikle seg til vokal; sette inn vokaltegn i skrift der de mangler, for eksempel i semittiske skriftspråk",,
 vocalist,B2,en,vokalist,,Latin,"person som synger til tonefølge av et underholdningsensemble eller danseorkester",,
