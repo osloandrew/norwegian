@@ -1648,72 +1648,58 @@ function hideSpinner() {
 
 // Prioritize results based on query position or exact match
 function prioritizeResults(results, query, key, pos) {
-    // Define regex for exact match and start of word
     const regexStartOfWord = new RegExp(`\\b${query}`, 'i');
     const regexExactMatch = new RegExp(`\\b${query}\\b`, 'i');
-
-    // Define CEFR level order
     const CEFROrder = ['A1', 'A2', 'B1', 'B2', 'C'];
 
-    // Separate `direct examples` where both `ord` and `pos` match exactly
-    const directExamples = results.filter(r => 
-        r.ord.toLowerCase() === query.toLowerCase() && r.pos === pos
-    );
+    // Step 1: Exact match for `ord` irrespective of POS
+    const exactOrdMatches = results.filter(r => r.ord.toLowerCase() === query.toLowerCase());
+    // Step 2: Exact match in `engelsk` field (meaning)
+    const exactMeaningMatches = results.filter(r => 
+        r.engelsk.toLowerCase().split(',').map(e => e.trim()).includes(query.toLowerCase())
+    ).filter(r => !exactOrdMatches.includes(r)); // Avoid duplicates
+
+    // Step 3: Remaining results that are neither exact `ord` nor exact meaning matches
     const otherResults = results.filter(r => 
-        r.ord.toLowerCase() !== query.toLowerCase() || r.pos !== pos
+        !exactOrdMatches.includes(r) && !exactMeaningMatches.includes(r)
     );
 
-    // Sort the other results based on the provided criteria
+    // Sort the `otherResults` based on existing criteria
     const sortedOthers = otherResults.sort((a, b) => {
         const aText = a[key].toLowerCase();
         const bText = b[key].toLowerCase();
 
-        // Prioritize entries with both `eksempel` and `sentenceTranslation`
         const aHasExampleAndTranslation = a.eksempel && a.sentenceTranslation;
         const bHasExampleAndTranslation = b.eksempel && b.sentenceTranslation;
-
         if (aHasExampleAndTranslation && !bHasExampleAndTranslation) return -1;
         if (!aHasExampleAndTranslation && bHasExampleAndTranslation) return 1;
 
-        // First, prioritize CEFR levels (lower levels come first)
+        // Prioritize CEFR levels
         if (a.CEFR && b.CEFR) {
-            // Handle missing CEFR values by assigning a default
-            const aCEFR = a.CEFR ? a.CEFR.toUpperCase() : 'C';
-            const bCEFR = b.CEFR ? b.CEFR.toUpperCase() : 'C';
-
-            const aCEFRIndex = CEFROrder.indexOf(aCEFR);
-            const bCEFRIndex = CEFROrder.indexOf(bCEFR);
-
-            if (aCEFRIndex !== bCEFRIndex) {
-                return aCEFRIndex - bCEFRIndex;
-            }
+            const aCEFRIndex = CEFROrder.indexOf(a.CEFR.toUpperCase() || 'C');
+            const bCEFRIndex = CEFROrder.indexOf(b.CEFR.toUpperCase() || 'C');
+            if (aCEFRIndex !== bCEFRIndex) return aCEFRIndex - bCEFRIndex;
         }
 
-        // Prioritize exact matches
+        // Prioritize exact matches in `key`
         const aExactMatch = regexExactMatch.test(aText);
         const bExactMatch = regexExactMatch.test(bText);
         if (aExactMatch && !bExactMatch) return -2;
         if (!aExactMatch && bExactMatch) return 2;
 
-        const aEnglishExactMatch = a.engelsk.toLowerCase().split(',').map(e => e.trim()).includes(query.toLowerCase());
-        const bEnglishExactMatch = b.engelsk.toLowerCase().split(',').map(e => e.trim()).includes(query.toLowerCase());
-        if (aEnglishExactMatch && !bEnglishExactMatch) return -1;
-        if (!aEnglishExactMatch && bEnglishExactMatch) return 1;
-
-        // Check if the query appears at the start of a word
+        // Prioritize start-of-word matches
         const aStartsWithWord = regexStartOfWord.test(aText);
         const bStartsWithWord = regexStartOfWord.test(bText);
         if (aStartsWithWord && !bStartsWithWord) return -1;
         if (!aStartsWithWord && bStartsWithWord) return 1;
 
-        // Otherwise, sort by the position of the query in the text (earlier is better)
+        // Sort by the position of the query in the text
         return aText.indexOf(query) - bText.indexOf(query);
     });
 
-    // Combine direct examples at the top, followed by sorted other results
-    return [...directExamples, ...sortedOthers];
+    // Return exact `ord` matches first, then exact meaning matches, followed by sorted other results
+    return [...exactOrdMatches, ...exactMeaningMatches, ...sortedOthers];
 }
-
 
 // Update URL based on current search parameters
 function updateURL(query, type, selectedPOS, story = null, word = null) {
