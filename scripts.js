@@ -1857,34 +1857,11 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
 
   // Generate word variations using the external function
   const wordVariations =
-    trimmedWord.length < 4
+    trimmedWord.length < 5
       ? [trimmedWord]
       : trimmedWord
           .split(",")
           .flatMap((w) => generateWordVariationsForSentences(w.trim(), pos));
-
-  // First, filter results to get relevant entries
-  let relevantEntries = results.filter((r) => {
-    return wordVariations.some((variation) => {
-      if (
-        pos === "adverb" ||
-        pos === "conjunction" ||
-        pos === "preposition" ||
-        pos === "interjection" ||
-        pos === "numeral"
-      ) {
-        const regex = new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, "gi");
-        return regex.test(r.eksempel);
-      } else {
-        // For other parts of speech, ensure the word starts a word
-        const regexStartOfWord = new RegExp(
-          `(^|[^\\wåæøÅÆØ])${variation}`,
-          "i"
-        );
-        return regexStartOfWord.test(r.eksempel);
-      }
-    });
-  });
 
   const uniqueKeys = new Set();
 
@@ -2099,7 +2076,6 @@ function prioritizeResults(results, query, key, pos) {
     ...sortedOthers,
   ];
 }
-
 
 // Update URL based on current search parameters
 function updateURL(query, type, selectedPOS, story = null, word = null) {
