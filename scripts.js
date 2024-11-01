@@ -1655,7 +1655,7 @@ function prioritizeResults(results, query, key, pos) {
     // Define CEFR level order
     const CEFROrder = ['A1', 'A2', 'B1', 'B2', 'C'];
 
-    // Separate `direct examples` where both `ord` and `pos` match
+    // Separate `direct examples` where both `ord` and `pos` match exactly
     const directExamples = results.filter(r => 
         r.ord.toLowerCase() === query.toLowerCase() && r.pos === pos
     );
@@ -1663,7 +1663,7 @@ function prioritizeResults(results, query, key, pos) {
         r.ord.toLowerCase() !== query.toLowerCase() || r.pos !== pos
     );
 
-    // Sort the other results with the usual criteria
+    // Sort the other results based on the provided criteria
     const sortedOthers = otherResults.sort((a, b) => {
         const aText = a[key].toLowerCase();
         const bText = b[key].toLowerCase();
@@ -1687,34 +1687,33 @@ function prioritizeResults(results, query, key, pos) {
             if (aCEFRIndex !== bCEFRIndex) {
                 return aCEFRIndex - bCEFRIndex;
             }
-
         }
 
         // Prioritize exact matches
         const aExactMatch = regexExactMatch.test(aText);
         const bExactMatch = regexExactMatch.test(bText);
-        
-        if (aExactMatch && !bExactMatch) {
-            return -2;
-        }
-        if (!aExactMatch && bExactMatch) {
-            return 2;
-        }
+        if (aExactMatch && !bExactMatch) return -2;
+        if (!aExactMatch && bExactMatch) return 2;
+
+        const aEnglishExactMatch = a.engelsk.toLowerCase().split(',').map(e => e.trim()).includes(query.toLowerCase());
+        const bEnglishExactMatch = b.engelsk.toLowerCase().split(',').map(e => e.trim()).includes(query.toLowerCase());
+        if (aEnglishExactMatch && !bEnglishExactMatch) return -1;
+        if (!aEnglishExactMatch && bEnglishExactMatch) return 1;
 
         // Check if the query appears at the start of a word
         const aStartsWithWord = regexStartOfWord.test(aText);
         const bStartsWithWord = regexStartOfWord.test(bText);
-        
-        // Prioritize where the query starts a word
         if (aStartsWithWord && !bStartsWithWord) return -1;
         if (!aStartsWithWord && bStartsWithWord) return 1;
 
         // Otherwise, sort by the position of the query in the text (earlier is better)
         return aText.indexOf(query) - bText.indexOf(query);
     });
+
     // Combine direct examples at the top, followed by sorted other results
     return [...directExamples, ...sortedOthers];
 }
+
 
 // Update URL based on current search parameters
 function updateURL(query, type, selectedPOS, story = null, word = null) {
