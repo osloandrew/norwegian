@@ -657,6 +657,7 @@ async function search(queryOverride = null) {
     queryOverride ||
     document.getElementById("search-bar").value.toLowerCase().trim();
   console.log("Search triggered with query:", query);
+  latestMultipleResults = query; // Track the latest search query
   const selectedPOS = document.getElementById("pos-select")
     ? document.getElementById("pos-select").value.toLowerCase()
     : "";
@@ -1739,6 +1740,76 @@ function renderWordDefinition(word, selectedPOS = "") {
   }
 }
 
+function filterAndDeduplicateSentences(
+  results,
+  variations,
+  pos,
+  uniqueKeys,
+  primaryEntry
+) {
+  let matchingResults = results
+    .map((r) => {
+      // Split the example and translation sentences
+      const sentences = r.eksempel.split(/(?<=[.!?])\s+/);
+      const translations = r.sentenceTranslation
+        ? r.sentenceTranslation.split(/(?<=[.!?])\s+/)
+        : [];
+
+      // Filter and deduplicate sentences based on variations
+      const matchedSentences = sentences.reduce((acc, sentence, index) => {
+        const isMatched = variations.some((variation) => {
+          const regex =
+            pos === "adverb" ||
+            pos === "conjunction" ||
+            pos === "preposition" ||
+            pos === "interjection" ||
+            pos === "numeral"
+              ? new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, "gi")
+              : new RegExp(`(^|[^\\wåæøÅÆØ])${variation}`, "i");
+          return regex.test(sentence);
+        });
+
+        // Create a unique key for each sentence
+        const sentenceKey = `${sentence}_${pos}`;
+
+        if (isMatched && !uniqueKeys.has(sentenceKey)) {
+          uniqueKeys.add(sentenceKey); // Track unique sentence
+          acc.push({
+            sentence: sentence,
+            translation: translations[index] || "",
+          });
+        }
+        return acc;
+      }, []);
+
+      // Format matched sentences and translations for rendering
+      return matchedSentences.length > 0 ? { ...r, matchedSentences } : null;
+    })
+    .filter((result) => result !== null);
+
+  // Ensure primary example sentences are included if unique
+  if (primaryEntry.eksempel) {
+    const primarySentences = primaryEntry.eksempel.split(/(?<=[.!?])\s+/);
+    const primaryTranslations = primaryEntry.sentenceTranslation
+      ? primaryEntry.sentenceTranslation.split(/(?<=[.!?])\s+/)
+      : [];
+
+    primarySentences.forEach((sentence, index) => {
+      const primaryKey = `${sentence}_${pos}`;
+      if (!uniqueKeys.has(primaryKey)) {
+        uniqueKeys.add(primaryKey);
+        matchingResults.unshift({
+          ...primaryEntry,
+          eksempel: sentence,
+          sentenceTranslation: primaryTranslations[index] || "",
+        });
+      }
+    });
+  }
+
+  return matchingResults;
+}
+
 // Fetch and render sentences for a word or phrase, including handling comma-separated variations
 function fetchAndRenderSentences(word, pos, showEnglish = true) {
   // Added showEnglish parameter with default value
@@ -1815,97 +1886,16 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
     });
   });
 
-  // Use a Set to store unique sentences and translations
-  const uniqueSentences = new Set();
-  const uniqueTranslations = new Set();
+  const uniqueKeys = new Set();
 
   // Now, split sentences and align translations
-  let matchingResults = relevantEntries
-    .map((r) => {
-      // Split both the example sentences and their translations
-      const sentences = r.eksempel.split(/(?<=[.!?])\s+/);
-      const translations = r.sentenceTranslation
-        ? r.sentenceTranslation.split(/(?<=[.!?])\s+/)
-        : [];
-
-      // Filter sentences that match any of the word variations, and align corresponding translations
-      const matchedSentencesAndTranslations = sentences.reduce(
-        (acc, sentence, index) => {
-          const isMatched = wordVariations.some((variation) => {
-            if (
-              pos === "adverb" ||
-              pos === "conjunction" ||
-              pos === "preposition" ||
-              pos === "interjection" ||
-              pos === "numeral"
-            ) {
-              const regex = new RegExp(
-                `(^|\\s)${variation}($|[\\s.,!?;])`,
-                "gi"
-              );
-              return regex.test(sentence);
-            } else {
-              const regexStartOfWord = new RegExp(
-                `(^|[^\\wåæøÅÆØ])${variation}`,
-                "i"
-              );
-              return regexStartOfWord.test(sentence);
-            }
-          });
-
-          // Only add unique matched sentences and translations
-          if (isMatched) {
-            if (!uniqueSentences.has(sentence)) {
-              uniqueSentences.add(sentence); // Track unique sentence
-              acc.matchedSentences.push(sentence); // Add to results
-            }
-            if (
-              translations[index] &&
-              !uniqueTranslations.has(translations[index])
-            ) {
-              uniqueTranslations.add(translations[index]); // Track unique translation
-              acc.matchedTranslations.push(translations[index]); // Add to results
-            }
-          }
-
-          return acc;
-        },
-        { matchedSentences: [], matchedTranslations: [] }
-      );
-
-      // Return only the matched sentences and aligned translations, or null if none
-      return matchedSentencesAndTranslations.matchedSentences.length > 0
-        ? {
-            ...r,
-            eksempel:
-              matchedSentencesAndTranslations.matchedSentences.join(" "),
-            sentenceTranslation:
-              matchedSentencesAndTranslations.matchedTranslations.join(" "),
-          }
-        : null;
-    })
-    .filter((result) => result !== null);
-
-  // Ensure each sentence in the primary 'eksempel' attribute from the matching word entry is added if unique
-  if (matchingWordEntry.eksempel) {
-    const primarySentences = matchingWordEntry.eksempel.split(/(?<=[.!?])\s+/);
-    const primaryTranslations = matchingWordEntry.sentenceTranslation
-      ? matchingWordEntry.sentenceTranslation.split(/(?<=[.!?])\s+/)
-      : [];
-
-    primarySentences.forEach((sentence, index) => {
-      // Check if each sentence is already in uniqueSentences before adding
-      if (!uniqueSentences.has(sentence)) {
-        uniqueSentences.add(sentence); // Track unique primary sentence
-
-        matchingResults.unshift({
-          ...matchingWordEntry,
-          eksempel: sentence, // Add only the unique sentence
-          sentenceTranslation: primaryTranslations[index] || "",
-        });
-      }
-    });
-  }
+  let matchingResults = filterAndDeduplicateSentences(
+    results,
+    wordVariations,
+    pos,
+    uniqueKeys,
+    matchingWordEntry
+  );
 
   // Check if there are any matching results
   if (matchingResults.length === 0) {
@@ -2258,26 +2248,14 @@ function handleCardClick(event, word, pos, engelsk) {
   // Clear all other results and keep only the clicked card
   resultsContainer.innerHTML = ""; // Clear the container
 
-  if (latestMultipleResults) {
-    const backDiv = document.createElement("div");
-    backDiv.className = "back-navigation";
+    if (latestMultipleResults) {
+      const backDiv = document.createElement("div");
+      backDiv.className = "back-navigation";
+      backDiv.innerHTML = `<i class="fas fa-chevron-left"></i> Back to Results for "${latestMultipleResults}"`;
 
-    // Create the icon element
-    const icon = document.createElement("i");
-    icon.className = "fas fa-chevron-left";
-
-    // Create the text element
-    const text = document.createTextNode(
-      ` Back to Results for "${latestMultipleResults}"`
-    );
-
-    // Append icon and text to backDiv
-    backDiv.appendChild(icon);
-    backDiv.appendChild(text);
-
-    // Append backDiv to resultsContainer
-    resultsContainer.appendChild(backDiv);
-  }
+      backDiv.addEventListener("click", () => search(latestMultipleResults));
+      resultsContainer.appendChild(backDiv);
+    }
 
   // Clear the search bar
   clearInput();
