@@ -2003,36 +2003,64 @@ function hideSpinner() {
   document.getElementById("loading-spinner").style.display = "none";
 }
 
-// Prioritize results based on query position or exact match
+// Prioritize results based on query position, exact match, and matching POS
 function prioritizeResults(results, query, key, pos) {
   const regexStartOfWord = new RegExp(`\\b${query}`, "i");
   const regexExactMatch = new RegExp(`\\b${query}\\b`, "i");
   const CEFROrder = ["A1", "A2", "B1", "B2", "C"];
 
-  // Step 1: Exact match for `ord` irrespective of POS
-  const exactOrdMatches = results.filter(
-    (r) => r.ord.toLowerCase() === query.toLowerCase()
+  // Ensure pos is a valid string
+  const posLowerCase = pos ? pos.toLowerCase() : "";
+
+  // Step 1: Exact match for `ord` with matching POS
+  const exactOrdMatchesWithPOS = results.filter(
+    (r) =>
+      r.ord?.toLowerCase() === query.toLowerCase() &&
+      (r.gender?.toLowerCase().includes(posLowerCase) ||
+        (posLowerCase === "noun" &&
+          ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
+            r.gender?.toLowerCase().includes(gender)
+          )))
   );
-  // Step 2: Exact match in `engelsk` field (meaning)
-  const exactMeaningMatches = results
+
+  // Step 2: Exact match for `ord` irrespective of POS (if POS matches are not found)
+  const exactOrdMatches = results.filter(
+    (r) =>
+      r.ord?.toLowerCase() === query.toLowerCase() &&
+      !exactOrdMatchesWithPOS.includes(r)
+  );
+
+  // Step 3: Exact match in `engelsk` field (meaning) with POS match
+  const exactMeaningMatchesWithPOS = results
     .filter((r) =>
       r.engelsk
-        .toLowerCase()
+        ?.toLowerCase()
         .split(",")
         .map((e) => e.trim())
         .includes(query.toLowerCase())
     )
-    .filter((r) => !exactOrdMatches.includes(r)); // Avoid duplicates
+    .filter(
+      (r) =>
+        (r.gender?.toLowerCase().includes(posLowerCase) ||
+          (posLowerCase === "noun" &&
+            ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
+              r.gender?.toLowerCase().includes(gender)
+            ))) &&
+        !exactOrdMatchesWithPOS.includes(r)
+    );
 
-  // Step 3: Remaining results that are neither exact `ord` nor exact meaning matches
+  // Step 4: Remaining results that are neither exact `ord` nor exact meaning matches
   const otherResults = results.filter(
-    (r) => !exactOrdMatches.includes(r) && !exactMeaningMatches.includes(r)
+    (r) =>
+      !exactOrdMatchesWithPOS.includes(r) &&
+      !exactOrdMatches.includes(r) &&
+      !exactMeaningMatchesWithPOS.includes(r)
   );
 
   // Sort the `otherResults` based on existing criteria
   const sortedOthers = otherResults.sort((a, b) => {
-    const aText = a[key].toLowerCase();
-    const bText = b[key].toLowerCase();
+    const aText = a[key]?.toLowerCase() || "";
+    const bText = b[key]?.toLowerCase() || "";
 
     const aHasExampleAndTranslation = a.eksempel && a.sentenceTranslation;
     const bHasExampleAndTranslation = b.eksempel && b.sentenceTranslation;
@@ -2062,9 +2090,16 @@ function prioritizeResults(results, query, key, pos) {
     return aText.indexOf(query) - bText.indexOf(query);
   });
 
-  // Return exact `ord` matches first, then exact meaning matches, followed by sorted other results
-  return [...exactOrdMatches, ...exactMeaningMatches, ...sortedOthers];
+  // Return matches with `ord` and POS first, then exact meaning matches with POS,
+  // followed by other exact `ord` matches, then sorted other results
+  return [
+    ...exactOrdMatchesWithPOS,
+    ...exactMeaningMatchesWithPOS,
+    ...exactOrdMatches,
+    ...sortedOthers,
+  ];
 }
+
 
 // Update URL based on current search parameters
 function updateURL(query, type, selectedPOS, story = null, word = null) {
@@ -2248,14 +2283,14 @@ function handleCardClick(event, word, pos, engelsk) {
   // Clear all other results and keep only the clicked card
   resultsContainer.innerHTML = ""; // Clear the container
 
-    if (latestMultipleResults) {
-      const backDiv = document.createElement("div");
-      backDiv.className = "back-navigation";
-      backDiv.innerHTML = `<i class="fas fa-chevron-left"></i> Back to Results for "${latestMultipleResults}"`;
+  if (latestMultipleResults) {
+    const backDiv = document.createElement("div");
+    backDiv.className = "back-navigation";
+    backDiv.innerHTML = `<i class="fas fa-chevron-left"></i> Back to Results for "${latestMultipleResults}"`;
 
-      backDiv.addEventListener("click", () => search(latestMultipleResults));
-      resultsContainer.appendChild(backDiv);
-    }
+    backDiv.addEventListener("click", () => search(latestMultipleResults));
+    resultsContainer.appendChild(backDiv);
+  }
 
   // Clear the search bar
   clearInput();
