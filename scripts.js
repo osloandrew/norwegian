@@ -392,272 +392,12 @@ function generateInexactMatches(query) {
   return variations;
 }
 
-function prioritizeMatchingResults(results, query, field) {
-  const queryLower = query.toLowerCase();
-
-  return results.sort((a, b) => {
-    // 1. Prioritize exact match in the Norwegian term
-    const isExactMatchA = a[field].toLowerCase() === queryLower;
-    const isExactMatchB = b[field].toLowerCase() === queryLower;
-    if (isExactMatchA && !isExactMatchB) {
-      return -1;
-    }
-    if (!isExactMatchA && isExactMatchB) {
-      return 1;
-    }
-
-    // 2. Prioritize whole word match (even if part of a phrase or longer sentence)
-    const regexExactMatch = new RegExp(`\\b${queryLower}\\b`, "i"); // Whole word boundary match
-    const aExactInPhrase = regexExactMatch.test(a[field]);
-    const bExactInPhrase = regexExactMatch.test(b[field]);
-    if (aExactInPhrase && !bExactInPhrase) {
-      return -1;
-    }
-    if (!aExactInPhrase && bExactInPhrase) {
-      return 1;
-    }
-
-    // 3. Prioritize exact match in the comma-separated list of English definitions
-    const aIsInCommaList = a.engelsk
-      .toLowerCase()
-      .split(",")
-      .map((str) => str.trim())
-      .includes(queryLower);
-    const bIsInCommaList = b.engelsk
-      .toLowerCase()
-      .split(",")
-      .map((str) => str.trim())
-      .includes(queryLower);
-    if (aIsInCommaList && !bIsInCommaList) {
-      return -1;
-    }
-    if (!aIsInCommaList && bIsInCommaList) {
-      return 1;
-    }
-
-    // 4. Deprioritize compound words where the query appears in a larger word
-    const aContainsInWord =
-      a[field].toLowerCase().includes(queryLower) &&
-      a[field].toLowerCase() !== queryLower;
-    const bContainsInWord =
-      b[field].toLowerCase().includes(queryLower) &&
-      b[field].toLowerCase() !== queryLower;
-    if (aContainsInWord && !bContainsInWord) {
-      return 1;
-    }
-    if (!aContainsInWord && bContainsInWord) {
-      return -1;
-    }
-
-    // 5. Sort by the position of the query in the word (earlier is better)
-    const aIndex = a[field].toLowerCase().indexOf(queryLower);
-    const bIndex = b[field].toLowerCase().indexOf(queryLower);
-    return aIndex - bIndex;
-  });
-}
-
-// Specific function to handle story searches
-function searchStories(query, filtersText) {
-  // Ensure storyResults is an array
-  const storiesArray = Array.isArray(storyResults) ? storyResults : [];
-
-  let matchingResults;
-  if (!query) {
-    matchingResults = storiesArray;
-  } else {
-    // Filter stories based on the query in both 'titleNorwegian' and 'titleEnglish'
-    matchingResults = storiesArray.filter((story) => {
-      const norwegianTitleMatch = story.titleNorwegian
-        .toLowerCase()
-        .includes(query);
-      const englishTitleMatch = story.titleEnglish
-        .toLowerCase()
-        .includes(query);
-      return norwegianTitleMatch || englishTitleMatch;
-    });
-  }
-
-  displayStoryList(matchingResults);
-  return matchingResults;
-}
-
-function searchSentences(query, cleanResults, normalizedQueries, selectedCEFR) {
-  if (!query) {
-    resultsContainer.innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-gender">
-                    Error <div class="gender">Empty Search</div>
-                </h2>
-                <p>Please enter a word in the search field before searching.</p>
-            </div>
-        `;
-    hideSpinner();
-    return [];
-  }
-
-  let matchingResults = cleanResults.filter((r) => {
-    return normalizedQueries.some((normQuery) => {
-      const norwegianSentenceMatch =
-        r.eksempel && r.eksempel.toLowerCase().includes(normQuery);
-      const englishTranslationMatch =
-        r.sentenceTranslation &&
-        r.sentenceTranslation.toLowerCase().includes(normQuery);
-      return norwegianSentenceMatch || englishTranslationMatch;
-    });
-  });
-
-  // Filter by the selected CEFR level
-  matchingResults = filterResultsByCEFR(matchingResults, selectedCEFR);
-
-  // Prioritize the results specifically for sentences
-  matchingResults = prioritizeResults(matchingResults, query, "eksempel");
-
-  // Highlight the query in both 'eksempel' and 'sentenceTranslation'
-  matchingResults.forEach((result) => {
-    result.eksempel = highlightQuery(result.eksempel, query);
-    if (result.sentenceTranslation) {
-      result.sentenceTranslation = highlightQuery(
-        result.sentenceTranslation,
-        query
-      );
-    }
-  });
-
-  // Render the matching sentences
-  renderSentences(matchingResults, query);
-
-  return matchingResults;
-}
-
-function searchWords(
-  query,
-  cleanResults,
-  normalizedQueries,
-  selectedPOS,
-  selectedCEFR
-) {
-  if (!query) {
-    resultsContainer.innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-gender">
-                    Error <span class="gender">Empty Search</span>
-                </h2>
-                <p>Please enter a word in the search field before searching.</p>
-            </div>
-        `;
-    hideSpinner();
-    return [];
-  }
-  let matchingResults = cleanResults.filter((r) => {
-    const matchesQuery = normalizedQueries.some((variation) => {
-      const exactRegex = new RegExp(`\\b${variation}\\b`, "i");
-      const partialRegex = new RegExp(variation, "i");
-      const wordMatch =
-        exactRegex.test(r.ord.toLowerCase()) ||
-        partialRegex.test(r.ord.toLowerCase());
-      const englishValues = r.engelsk
-        .toLowerCase()
-        .split(",")
-        .map((e) => e.trim());
-      const englishMatch = englishValues.some(
-        (eng) => exactRegex.test(eng) || partialRegex.test(eng)
-      );
-      return wordMatch || englishMatch;
-    });
-    return (
-      matchesQuery &&
-      (!selectedPOS ||
-        (selectedPOS === "noun" &&
-          ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
-            r.gender.toLowerCase().includes(gender)
-          )) ||
-        r.gender.toLowerCase().includes(selectedPOS)) &&
-      (!selectedCEFR || r.CEFR === selectedCEFR)
-    );
-  });
-
-  matchingResults = prioritizeResults(matchingResults, query, "ord");
-
-  // Single result logic
-  if (matchingResults.length === 1) {
-    const singleResult = matchingResults[0];
-    updateURL(null, "words", selectedPOS, null, singleResult.ord);
-    displaySearchResults([singleResult]);
-    hideSpinner();
-    return matchingResults;
-  }
-
-  // No exact matches: proceed to inexact matches
-  if (matchingResults.length === 0) {
-    const inexactWordQueries = generateInexactMatches(query);
-    let inexactWordMatches = cleanResults
-      .filter((r) => {
-        const matchesInexact = inexactWordQueries.some(
-          (inexactQuery) =>
-            r.ord.toLowerCase().includes(inexactQuery) ||
-            r.engelsk.toLowerCase().includes(inexactQuery)
-        );
-        return (
-          matchesInexact &&
-          (!selectedPOS ||
-            (selectedPOS === "noun" &&
-              ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
-                r.gender.toLowerCase().includes(gender)
-              )) ||
-            r.gender.toLowerCase().includes(selectedPOS)) &&
-          (!selectedCEFR || r.CEFR === selectedCEFR)
-        );
-      })
-      .slice(0, 10);
-
-    // Check if we have inexact matches to display
-    if (inexactWordMatches.length > 0) {
-      resultsContainer.innerHTML = `
-                <div class="definition error-message">
-                    <h2 class="word-gender">No Exact Matches Found</h2>
-                    <p>We couldn't find exact matches for "${query}". Here are some inexact results:</p>
-                    <button class="landing-card-btn">
-                        <i class="fas fa-flag"></i> Flag Missing Word Entry
-                    </button>
-                </div>
-            `;
-      displaySearchResults(inexactWordMatches);
-    } else {
-      // No exact or inexact matches
-      resultsContainer.innerHTML = `
-                <div class="definition error-message">
-                    <h2 class="word-gender">No Matches Found</h2>
-                    <p>We couldn't find any matches for "${query}".</p>
-                    <button class="landing-card-btn">
-                        <i class="fas fa-flag"></i> Flag Missing Word Entry
-                    </button>
-                </div>
-            `;
-    }
-
-    // Add flag button functionality
-    const flagButton = document.querySelector(".landing-card-btn");
-    if (flagButton) {
-      flagButton.addEventListener("click", function () {
-        flagMissingWordEntry(query);
-      });
-    }
-  } else {
-    // Display exact matches if they exist
-    displaySearchResults(matchingResults);
-  }
-
-  hideSpinner();
-  return matchingResults;
-}
-
 // Perform a search based on the input query and selected POS
 async function search(queryOverride = null) {
   const query =
     queryOverride ||
     document.getElementById("search-bar").value.toLowerCase().trim();
   console.log("Search triggered with query:", query);
-  latestMultipleResults = query; // Track the latest search query
   const selectedPOS = document.getElementById("pos-select")
     ? document.getElementById("pos-select").value.toLowerCase()
     : "";
@@ -686,34 +426,303 @@ async function search(queryOverride = null) {
   });
 
   cleanURL(type);
+
+  // Update the URL with the search parameters
   updateURL(query, type, selectedPOS); // <--- Trigger URL update
+
+  // Show the spinner at the start of the search
   showSpinner();
+
   showLandingCard(false);
   clearContainer(); // Clear previous results
 
   let matchingResults;
+
   if (type === "stories") {
-    matchingResults = searchStories(query, filtersText);
+    // If query is empty, display all stories
+    if (!query) {
+      matchingResults = storyResults;
+    } else {
+      // Filter stories based on the query in both 'titleNorwegian' and 'titleEnglish'
+      matchingResults = storyResults.filter((story) => {
+        const norwegianTitleMatch = story.titleNorwegian
+          .toLowerCase()
+          .includes(query);
+        const englishTitleMatch = story.titleEnglish
+          .toLowerCase()
+          .includes(query);
+        return norwegianTitleMatch || englishTitleMatch;
+      });
+    }
+
+    // Render the matching stories
+    displayStoryList(matchingResults);
   } else if (type === "sentences") {
-    matchingResults = searchSentences(
-      query,
-      cleanResults,
-      normalizedQueries,
-      selectedCEFR,
-      filtersText
-    );
+    // Handle empty search query
+    if (!query) {
+      resultsContainer.innerHTML = `
+            <div class="definition error-message">
+                <h2 class="word-gender">
+                    Error <div class="gender">Empty Search</div>
+                </h2>
+                <p>Please enter a word in the search field before searching.</p>
+            </div>
+        `;
+      hideSpinner();
+      return;
+    }
+
+    // If searching sentences, look for matches in both 'eksempel' and 'sentenceTranslation' fields
+    matchingResults = cleanResults.filter((r) => {
+      return normalizedQueries.some((normQuery) => {
+        const norwegianSentenceMatch =
+          r.eksempel && r.eksempel.toLowerCase().includes(normQuery); // Match in 'eksempel'
+        const englishTranslationMatch =
+          r.sentenceTranslation &&
+          r.sentenceTranslation.toLowerCase().includes(normQuery); // Match in 'sentenceTranslation'
+        return norwegianSentenceMatch || englishTranslationMatch;
+      });
+    });
+
+    // Additionally, filter by the selected CEFR level
+    matchingResults = filterResultsByCEFR(matchingResults, selectedCEFR);
+
+    // Prioritize the matching results using the prioritizeResults function
+    matchingResults = prioritizeResults(matchingResults, query, "eksempel");
+
+    // Highlight the query in both 'eksempel' and 'sentenceTranslation'
+    matchingResults.forEach((result) => {
+      result.eksempel = highlightQuery(result.eksempel, query);
+      if (result.sentenceTranslation) {
+        result.sentenceTranslation = highlightQuery(
+          result.sentenceTranslation,
+          query
+        );
+      }
+    });
+    renderSentences(matchingResults, query); // Pass the query for highlighting
   } else {
-    matchingResults = searchWords(
-      query,
-      cleanResults,
-      normalizedQueries,
-      selectedPOS,
-      selectedCEFR,
-      filtersText
-    );
+    // Handle empty search query
+    if (!query) {
+      resultsContainer.innerHTML = `
+            <div class="definition error-message">
+                <h2 class="word-gender">
+                    Error <span class="gender">Empty Search</span>
+                </h2>
+                <p>Please enter a word in the search field before searching.</p>
+            </div>
+        `;
+      hideSpinner();
+      return;
+    }
+
+    // Filter results by query and selected POS for words
+    matchingResults = cleanResults.filter((r) => {
+      // Exact and partial match logic
+      const matchesQuery = normalizedQueries.some((variation) => {
+        const exactRegex = new RegExp(`\\b${variation}\\b`, "i"); // Exact match regex for whole word
+        const partialRegex = new RegExp(variation, "i"); // Partial match for larger words like "bevegelsesfrihet"
+        const wordMatch =
+          exactRegex.test(r.ord.toLowerCase()) ||
+          partialRegex.test(r.ord.toLowerCase());
+        const englishValues = r.engelsk
+          .toLowerCase()
+          .split(",")
+          .map((e) => e.trim());
+        const englishMatch = englishValues.some(
+          (eng) => exactRegex.test(eng) || partialRegex.test(eng)
+        );
+        return wordMatch || englishMatch;
+      });
+
+      // Handle POS filtering for nouns and other parts of speech
+      return (
+        matchesQuery &&
+        (!selectedPOS ||
+          (selectedPOS === "noun" &&
+            ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
+              r.gender.toLowerCase().includes(gender)
+            )) ||
+          r.gender.toLowerCase().includes(selectedPOS)) &&
+        (!selectedCEFR || r.CEFR === selectedCEFR)
+      );
+    });
+
+    matchingResults = prioritizeResults(matchingResults, query, "ord");
+
+    if (matchingResults.length === 1) {
+      // Update URL and title for a single result
+      const singleResult = matchingResults[0];
+      updateURL(null, type, selectedPOS, null, singleResult.ord); // Set word parameter with the result's Norwegian term
+      // Display this single result directly
+      displaySearchResults([singleResult]); // Display only this single result
+      hideSpinner(); // Hide the spinner
+      return;
+    }
+
+    if (matchingResults.length > 1) {
+      latestMultipleResults = query;
+      console.log("Stored latestMultipleResults:", latestMultipleResults);
+    } else {
+      latestMultipleResults = null;
+    }
+
+    // Check if there are **no exact matches**
+    const noExactMatches = matchingResults.length === 0;
+
+    // If no exact matches are found, find inexact matches
+    if (noExactMatches) {
+      // Generate inexact matches based on transformations
+      const inexactWordQueries = generateInexactMatches(query);
+      console.log(`Inexact Queries Generated: ${inexactWordQueries}`);
+
+      // Now search for results using these inexact queries
+      let inexactWordMatches = results
+        .filter((r) => {
+          const matchesInexact = inexactWordQueries.some(
+            (inexactQuery) =>
+              r.ord.toLowerCase().includes(inexactQuery) ||
+              r.engelsk.toLowerCase().includes(inexactQuery)
+          );
+          return (
+            matchesInexact &&
+            (!selectedPOS ||
+              (selectedPOS === "noun" &&
+                ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
+                  r.gender.toLowerCase().includes(gender)
+                )) ||
+              r.gender.toLowerCase().includes(selectedPOS)) &&
+            (!selectedCEFR || r.CEFR === selectedCEFR)
+          );
+        })
+        .slice(0, 10); // Limit to 10 results
+
+      // Display the "No Exact Matches" message
+      resultsContainer.innerHTML = `
+                <div class="definition error-message">
+                    <h2 class="word-gender">
+                        No Exact Matches Found
+                    </h2>
+                    <p>We couldn't find exact matches for "${query}"${filtersText}. Here are some inexact results:</p>
+                    <button class="landing-card-btn">
+                        <i class="fas fa-flag"></i> Flag Missing Word Entry
+                    </button>
+                </div>
+            `;
+
+      // Add flag button functionality
+      const flagButton = document.querySelector(".landing-card-btn");
+      if (flagButton) {
+        flagButton.addEventListener("click", function () {
+          const wordToFlag = document.getElementById("search-bar").value;
+          flagMissingWordEntry(wordToFlag);
+        });
+      }
+
+      // If inexact matches are found, display them below the message
+      if (inexactWordMatches.length > 0) {
+        displaySearchResults(inexactWordMatches);
+
+        // Reattach the flag button functionality AFTER rendering the search results
+        const flagButton = document.querySelector(".landing-card-btn");
+        if (flagButton) {
+          flagButton.addEventListener("click", function () {
+            const wordToFlag = document.getElementById("search-bar").value;
+            console.log("Flagging word:", wordToFlag); // Debugging log
+            flagMissingWordEntry(wordToFlag);
+          });
+        }
+      } else {
+        clearContainer();
+        appendToContainer(`
+            <div class="definition error-message">
+                <h2 class="word-gender">No Matches Found</h2>
+                <p>We couldn't find any matches for "${query}"${filtersText}.</p>
+                <button class="landing-card-btn">
+                    <i class="fas fa-flag"></i> Flag Missing Word Entry
+                </button>
+            </div>`);
+
+        const flagButton = document.querySelector(".landing-card-btn");
+        if (flagButton) {
+          flagButton.addEventListener("click", function () {
+            const wordToFlag = document.getElementById("search-bar").value;
+            flagMissingWordEntry(wordToFlag);
+          });
+        }
+      }
+
+      hideSpinner();
+      return;
+    }
+
+    // Prioritization logic for words (preserving the exact behavior)
+    matchingResults = matchingResults.sort((a, b) => {
+      const queryLower = query.toLowerCase();
+
+      // 1. Prioritize exact match in the Norwegian term
+      const isExactMatchA = a.ord.toLowerCase() === queryLower;
+      const isExactMatchB = b.ord.toLowerCase() === queryLower;
+      if (isExactMatchA && !isExactMatchB) {
+        return -1;
+      }
+      if (!isExactMatchA && isExactMatchB) {
+        return 1;
+      }
+
+      // 2. Prioritize whole word match (even if part of a phrase or longer sentence)
+      const regexExactMatch = new RegExp(`\\b${queryLower}\\b`, "i"); // Whole word boundary match
+      const aExactInPhrase = regexExactMatch.test(a.ord);
+      const bExactInPhrase = regexExactMatch.test(b.ord);
+      if (aExactInPhrase && !bExactInPhrase) {
+        return -1;
+      }
+      if (!aExactInPhrase && bExactInPhrase) {
+        return 1;
+      }
+
+      // 3. Prioritize exact match in the comma-separated list of English definitions
+      const aIsInCommaList = a.engelsk
+        .toLowerCase()
+        .split(",")
+        .map((str) => str.trim())
+        .includes(queryLower);
+      const bIsInCommaList = b.engelsk
+        .toLowerCase()
+        .split(",")
+        .map((str) => str.trim())
+        .includes(queryLower);
+      if (aIsInCommaList && !bIsInCommaList) {
+        return -1;
+      }
+      if (!aIsInCommaList && bIsInCommaList) {
+        return 1;
+      }
+
+      // 4. Deprioritize compound words where the query appears in a larger word
+      const aContainsInWord =
+        a.ord.toLowerCase().includes(queryLower) &&
+        a.ord.toLowerCase() !== queryLower;
+      const bContainsInWord =
+        b.ord.toLowerCase().includes(queryLower) &&
+        b.ord.toLowerCase() !== queryLower;
+      if (aContainsInWord && !bContainsInWord) {
+        return 1;
+      }
+      if (!aContainsInWord && bContainsInWord) {
+        return -1;
+      }
+
+      // 5. Sort by the position of the query in the word (earlier is better)
+      const aIndex = a.ord.toLowerCase().indexOf(queryLower);
+      const bIndex = b.ord.toLowerCase().indexOf(queryLower);
+      return aIndex - bIndex;
+    });
+
+    displaySearchResults(matchingResults); // Render word-specific results
   }
-  hideSpinner();
-  return;
+
+  hideSpinner(); // Hide the spinner
 }
 
 // Check if any sentences exist for a word or its variations
@@ -1740,76 +1749,6 @@ function renderWordDefinition(word, selectedPOS = "") {
   }
 }
 
-function filterAndDeduplicateSentences(
-  results,
-  variations,
-  pos,
-  uniqueKeys,
-  primaryEntry
-) {
-  let matchingResults = results
-    .map((r) => {
-      // Split the example and translation sentences
-      const sentences = r.eksempel.split(/(?<=[.!?])\s+/);
-      const translations = r.sentenceTranslation
-        ? r.sentenceTranslation.split(/(?<=[.!?])\s+/)
-        : [];
-
-      // Filter and deduplicate sentences based on variations
-      const matchedSentences = sentences.reduce((acc, sentence, index) => {
-        const isMatched = variations.some((variation) => {
-          const regex =
-            pos === "adverb" ||
-            pos === "conjunction" ||
-            pos === "preposition" ||
-            pos === "interjection" ||
-            pos === "numeral"
-              ? new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, "gi")
-              : new RegExp(`(^|[^\\wåæøÅÆØ])${variation}`, "i");
-          return regex.test(sentence);
-        });
-
-        // Create a unique key for each sentence
-        const sentenceKey = `${sentence}_${pos}`;
-
-        if (isMatched && !uniqueKeys.has(sentenceKey)) {
-          uniqueKeys.add(sentenceKey); // Track unique sentence
-          acc.push({
-            sentence: sentence,
-            translation: translations[index] || "",
-          });
-        }
-        return acc;
-      }, []);
-
-      // Format matched sentences and translations for rendering
-      return matchedSentences.length > 0 ? { ...r, matchedSentences } : null;
-    })
-    .filter((result) => result !== null);
-
-  // Ensure primary example sentences are included if unique
-  if (primaryEntry.eksempel) {
-    const primarySentences = primaryEntry.eksempel.split(/(?<=[.!?])\s+/);
-    const primaryTranslations = primaryEntry.sentenceTranslation
-      ? primaryEntry.sentenceTranslation.split(/(?<=[.!?])\s+/)
-      : [];
-
-    primarySentences.forEach((sentence, index) => {
-      const primaryKey = `${sentence}_${pos}`;
-      if (!uniqueKeys.has(primaryKey)) {
-        uniqueKeys.add(primaryKey);
-        matchingResults.unshift({
-          ...primaryEntry,
-          eksempel: sentence,
-          sentenceTranslation: primaryTranslations[index] || "",
-        });
-      }
-    });
-  }
-
-  return matchingResults;
-}
-
 // Fetch and render sentences for a word or phrase, including handling comma-separated variations
 function fetchAndRenderSentences(word, pos, showEnglish = true) {
   // Added showEnglish parameter with default value
@@ -1857,22 +1796,126 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
 
   // Generate word variations using the external function
   const wordVariations =
-    trimmedWord.length < 5
+    trimmedWord.length < 4
       ? [trimmedWord]
       : trimmedWord
           .split(",")
           .flatMap((w) => generateWordVariationsForSentences(w.trim(), pos));
 
-  const uniqueKeys = new Set();
+  // First, filter results to get relevant entries
+  let relevantEntries = results.filter((r) => {
+    return wordVariations.some((variation) => {
+      if (
+        pos === "adverb" ||
+        pos === "conjunction" ||
+        pos === "preposition" ||
+        pos === "interjection" ||
+        pos === "numeral"
+      ) {
+        const regex = new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, "gi");
+        return regex.test(r.eksempel);
+      } else {
+        // For other parts of speech, ensure the word starts a word
+        const regexStartOfWord = new RegExp(
+          `(^|[^\\wåæøÅÆØ])${variation}`,
+          "i"
+        );
+        return regexStartOfWord.test(r.eksempel);
+      }
+    });
+  });
+
+  // Use a Set to store unique sentences and translations
+  const uniqueSentences = new Set();
+  const uniqueTranslations = new Set();
 
   // Now, split sentences and align translations
-  let matchingResults = filterAndDeduplicateSentences(
-    results,
-    wordVariations,
-    pos,
-    uniqueKeys,
-    matchingWordEntry
-  );
+  let matchingResults = relevantEntries
+    .map((r) => {
+      // Split both the example sentences and their translations
+      const sentences = r.eksempel.split(/(?<=[.!?])\s+/);
+      const translations = r.sentenceTranslation
+        ? r.sentenceTranslation.split(/(?<=[.!?])\s+/)
+        : [];
+
+      // Filter sentences that match any of the word variations, and align corresponding translations
+      const matchedSentencesAndTranslations = sentences.reduce(
+        (acc, sentence, index) => {
+          const isMatched = wordVariations.some((variation) => {
+            if (
+              pos === "adverb" ||
+              pos === "conjunction" ||
+              pos === "preposition" ||
+              pos === "interjection" ||
+              pos === "numeral"
+            ) {
+              const regex = new RegExp(
+                `(^|\\s)${variation}($|[\\s.,!?;])`,
+                "gi"
+              );
+              return regex.test(sentence);
+            } else {
+              const regexStartOfWord = new RegExp(
+                `(^|[^\\wåæøÅÆØ])${variation}`,
+                "i"
+              );
+              return regexStartOfWord.test(sentence);
+            }
+          });
+
+          // Only add unique matched sentences and translations
+          if (isMatched) {
+            if (!uniqueSentences.has(sentence)) {
+              uniqueSentences.add(sentence); // Track unique sentence
+              acc.matchedSentences.push(sentence); // Add to results
+            }
+            if (
+              translations[index] &&
+              !uniqueTranslations.has(translations[index])
+            ) {
+              uniqueTranslations.add(translations[index]); // Track unique translation
+              acc.matchedTranslations.push(translations[index]); // Add to results
+            }
+          }
+
+          return acc;
+        },
+        { matchedSentences: [], matchedTranslations: [] }
+      );
+
+      // Return only the matched sentences and aligned translations, or null if none
+      return matchedSentencesAndTranslations.matchedSentences.length > 0
+        ? {
+            ...r,
+            eksempel:
+              matchedSentencesAndTranslations.matchedSentences.join(" "),
+            sentenceTranslation:
+              matchedSentencesAndTranslations.matchedTranslations.join(" "),
+          }
+        : null;
+    })
+    .filter((result) => result !== null);
+
+  // Ensure each sentence in the primary 'eksempel' attribute from the matching word entry is added if unique
+  if (matchingWordEntry.eksempel) {
+    const primarySentences = matchingWordEntry.eksempel.split(/(?<=[.!?])\s+/);
+    const primaryTranslations = matchingWordEntry.sentenceTranslation
+      ? matchingWordEntry.sentenceTranslation.split(/(?<=[.!?])\s+/)
+      : [];
+
+    primarySentences.forEach((sentence, index) => {
+      // Check if each sentence is already in uniqueSentences before adding
+      if (!uniqueSentences.has(sentence)) {
+        uniqueSentences.add(sentence); // Track unique primary sentence
+
+        matchingResults.unshift({
+          ...matchingWordEntry,
+          eksempel: sentence, // Add only the unique sentence
+          sentenceTranslation: primaryTranslations[index] || "",
+        });
+      }
+    });
+  }
 
   // Check if there are any matching results
   if (matchingResults.length === 0) {
@@ -1980,101 +2023,73 @@ function hideSpinner() {
   document.getElementById("loading-spinner").style.display = "none";
 }
 
-// Prioritize results based on query position, exact match, and matching POS
+// Prioritize results based on query position or exact match
 function prioritizeResults(results, query, key, pos) {
+  // Define regex for exact match and start of word
   const regexStartOfWord = new RegExp(`\\b${query}`, "i");
   const regexExactMatch = new RegExp(`\\b${query}\\b`, "i");
+
+  // Define CEFR level order
   const CEFROrder = ["A1", "A2", "B1", "B2", "C"];
 
-  // Ensure pos is a valid string
-  const posLowerCase = pos ? pos.toLowerCase() : "";
-
-  // Step 1: Exact match for `ord` with matching POS
-  const exactOrdMatchesWithPOS = results.filter(
-    (r) =>
-      r.ord?.toLowerCase() === query.toLowerCase() &&
-      (r.gender?.toLowerCase().includes(posLowerCase) ||
-        (posLowerCase === "noun" &&
-          ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
-            r.gender?.toLowerCase().includes(gender)
-          )))
+  // Separate `direct examples` where both `ord` and `pos` match
+  const directExamples = results.filter(
+    (r) => r.ord.toLowerCase() === query.toLowerCase() && r.pos === pos
   );
-
-  // Step 2: Exact match for `ord` irrespective of POS (if POS matches are not found)
-  const exactOrdMatches = results.filter(
-    (r) =>
-      r.ord?.toLowerCase() === query.toLowerCase() &&
-      !exactOrdMatchesWithPOS.includes(r)
-  );
-
-  // Step 3: Exact match in `engelsk` field (meaning) with POS match
-  const exactMeaningMatchesWithPOS = results
-    .filter((r) =>
-      r.engelsk
-        ?.toLowerCase()
-        .split(",")
-        .map((e) => e.trim())
-        .includes(query.toLowerCase())
-    )
-    .filter(
-      (r) =>
-        (r.gender?.toLowerCase().includes(posLowerCase) ||
-          (posLowerCase === "noun" &&
-            ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
-              r.gender?.toLowerCase().includes(gender)
-            ))) &&
-        !exactOrdMatchesWithPOS.includes(r)
-    );
-
-  // Step 4: Remaining results that are neither exact `ord` nor exact meaning matches
   const otherResults = results.filter(
-    (r) =>
-      !exactOrdMatchesWithPOS.includes(r) &&
-      !exactOrdMatches.includes(r) &&
-      !exactMeaningMatchesWithPOS.includes(r)
+    (r) => r.ord.toLowerCase() !== query.toLowerCase() || r.pos !== pos
   );
 
-  // Sort the `otherResults` based on existing criteria
+  // Sort the other results with the usual criteria
   const sortedOthers = otherResults.sort((a, b) => {
-    const aText = a[key]?.toLowerCase() || "";
-    const bText = b[key]?.toLowerCase() || "";
+    const aText = a[key].toLowerCase();
+    const bText = b[key].toLowerCase();
 
+    // Prioritize entries with both `eksempel` and `sentenceTranslation`
     const aHasExampleAndTranslation = a.eksempel && a.sentenceTranslation;
     const bHasExampleAndTranslation = b.eksempel && b.sentenceTranslation;
+
     if (aHasExampleAndTranslation && !bHasExampleAndTranslation) return -1;
     if (!aHasExampleAndTranslation && bHasExampleAndTranslation) return 1;
 
-    // Prioritize CEFR levels
+    // First, prioritize CEFR levels (lower levels come first)
     if (a.CEFR && b.CEFR) {
-      const aCEFRIndex = CEFROrder.indexOf(a.CEFR.toUpperCase() || "C");
-      const bCEFRIndex = CEFROrder.indexOf(b.CEFR.toUpperCase() || "C");
-      if (aCEFRIndex !== bCEFRIndex) return aCEFRIndex - bCEFRIndex;
+      // Handle missing CEFR values by assigning a default
+      const aCEFR = a.CEFR ? a.CEFR.toUpperCase() : "C";
+      const bCEFR = b.CEFR ? b.CEFR.toUpperCase() : "C";
+
+      const aCEFRIndex = CEFROrder.indexOf(aCEFR);
+      const bCEFRIndex = CEFROrder.indexOf(bCEFR);
+
+      if (aCEFRIndex !== bCEFRIndex) {
+        return aCEFRIndex - bCEFRIndex;
+      }
     }
 
-    // Prioritize exact matches in `key`
+    // Prioritize exact matches
     const aExactMatch = regexExactMatch.test(aText);
     const bExactMatch = regexExactMatch.test(bText);
-    if (aExactMatch && !bExactMatch) return -2;
-    if (!aExactMatch && bExactMatch) return 2;
 
-    // Prioritize start-of-word matches
+    if (aExactMatch && !bExactMatch) {
+      return -2;
+    }
+    if (!aExactMatch && bExactMatch) {
+      return 2;
+    }
+
+    // Check if the query appears at the start of a word
     const aStartsWithWord = regexStartOfWord.test(aText);
     const bStartsWithWord = regexStartOfWord.test(bText);
+
+    // Prioritize where the query starts a word
     if (aStartsWithWord && !bStartsWithWord) return -1;
     if (!aStartsWithWord && bStartsWithWord) return 1;
 
-    // Sort by the position of the query in the text
+    // Otherwise, sort by the position of the query in the text (earlier is better)
     return aText.indexOf(query) - bText.indexOf(query);
   });
-
-  // Return matches with `ord` and POS first, then exact meaning matches with POS,
-  // followed by other exact `ord` matches, then sorted other results
-  return [
-    ...exactOrdMatchesWithPOS,
-    ...exactMeaningMatchesWithPOS,
-    ...exactOrdMatches,
-    ...sortedOthers,
-  ];
+  // Combine direct examples at the top, followed by sorted other results
+  return [...directExamples, ...sortedOthers];
 }
 
 // Update URL based on current search parameters
@@ -2262,9 +2277,21 @@ function handleCardClick(event, word, pos, engelsk) {
   if (latestMultipleResults) {
     const backDiv = document.createElement("div");
     backDiv.className = "back-navigation";
-    backDiv.innerHTML = `<i class="fas fa-chevron-left"></i> Back to Results for "${latestMultipleResults}"`;
 
-    backDiv.addEventListener("click", () => search(latestMultipleResults));
+    // Create the icon element
+    const icon = document.createElement("i");
+    icon.className = "fas fa-chevron-left";
+
+    // Create the text element
+    const text = document.createTextNode(
+      ` Back to Results for "${latestMultipleResults}"`
+    );
+
+    // Append icon and text to backDiv
+    backDiv.appendChild(icon);
+    backDiv.appendChild(text);
+
+    // Append backDiv to resultsContainer
     resultsContainer.appendChild(backDiv);
   }
 
