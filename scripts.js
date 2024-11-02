@@ -660,9 +660,21 @@ async function search(queryOverride = null) {
     matchingResults = matchingResults.sort((a, b) => {
       const queryLower = query.toLowerCase();
 
-      // 1. Prioritize exact match in the Norwegian term
-      const isExactMatchA = a.ord.toLowerCase() === queryLower;
-      const isExactMatchB = b.ord.toLowerCase() === queryLower;
+      // 1. Prioritize exact match in the Norwegian or English term
+      const isExactMatchA =
+        a.ord.toLowerCase() === queryLower ||
+        a.engelsk
+          .toLowerCase()
+          .split(",")
+          .map((str) => str.trim())
+          .includes(queryLower);
+      const isExactMatchB =
+        b.ord.toLowerCase() === queryLower ||
+        b.engelsk
+          .toLowerCase()
+          .split(",")
+          .map((str) => str.trim())
+          .includes(queryLower);
       if (isExactMatchA && !isExactMatchB) {
         return -1;
       }
@@ -721,7 +733,6 @@ async function search(queryOverride = null) {
 
     displaySearchResults(matchingResults); // Render word-specific results
   }
-
   hideSpinner(); // Hide the spinner
 }
 
