@@ -302,16 +302,15 @@ footer .copyright {
 
 .game-cefr-spacer {
   display: flex;
-  align-items: center; /* Vertically align content within spacerDiv */
+  align-items: flex-end; /* Vertically align content within spacerDiv */
   justify-content: center; /* Optionally center horizontally as well */
-  min-height: 50px;
   text-align: center;
 }
 
 /* Example Sentences */
 .game-cefr-spacer p {
   color: #413e3e;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Noto Serif", serif;
   font-size: 0.8em !important;
   padding: 0 10px 0 10px;
   text-align: center;
@@ -340,8 +339,7 @@ footer .copyright {
   border-radius: 4px;
   text-align: center;
   text-transform: uppercase;
-  margin-bottom: 5px; /* Space between the label and the word */
-  min-width: 40px;
+  min-width: fit-content;
   user-select: none; /* Prevent text selection */
 }
 
@@ -357,7 +355,7 @@ footer .copyright {
 .game-labels-container {
   display: flex;
   justify-content: space-between; /* Align labels on opposite sides */
-  min-height: 50px;
+  min-height: 60px;
   width: 100%;
 }
 
