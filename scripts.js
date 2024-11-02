@@ -932,11 +932,11 @@ function handleTypeChange(type) {
     // Show POS and CEFR dropdowns, hide Genre dropdown
     genreFilterContainer.style.display = "none"; // Hide genre dropdown in sentences mode
 
-    // Ensure POS and CEFR are enabled for the word game
-    posFilterContainer.style.display = "inline-flex";
+    // Disable the POS dropdown and gray it out
+    posFilterContainer.style.display = "inline-flex"; // Show POS dropdown
+    posSelect.disabled = true; // Disable POS dropdown
     posSelect.value = ""; // Reset to "Part of Speech" option
-    posSelect.disabled = false;
-    posFilterContainer.classList.remove("disabled"); // Remove the 'disabled' class
+    posFilterContainer.classList.add("disabled"); // Add the 'disabled' class
 
     cefrSelect.disabled = false;
     cefrFilterContainer.classList.remove("disabled");
