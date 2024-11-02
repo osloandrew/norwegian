@@ -760,10 +760,16 @@ main {
 
 /* The definition */
 .multiple-results-definition-text {
+  display: -webkit-box;
   flex: 1;
   font-size: 18px !important;
   margin-left: 20px; /* Space between the gender/word and definition */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4; /* Number of lines before truncating */
   width: 50%; /* Definition takes up exactly 60% of the container */
+  word-break: break-word; /* Tries to keep words together */
 }
 
 .multiple-results-english {
