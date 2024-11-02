@@ -764,6 +764,7 @@ main {
   flex: 1;
   font-size: 18px !important;
   margin-left: 20px; /* Space between the gender/word and definition */
+  line-clamp: 4;
   overflow: hidden;
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;
