@@ -828,6 +828,22 @@ function handlePOSChange() {
   }
 }
 
+// Function to toggle visibility of header and footer
+function toggleHeader(show) {
+  // Select the header and footer elements
+  const header = document.querySelector("header");
+
+  if (header) {
+    if (show) {
+      header.classList.remove("hidden");
+    } else {
+      header.classList.add("hidden");
+    }
+  } else {
+    console.warn("Header element not found.");
+  }
+}
+
 function selectType(type) {
   // Set the dropdown value to match the selected type
   document.getElementById("type-select").value = type;
@@ -846,6 +862,7 @@ function handleTypeChange(type) {
 
   // Clear any remnants from other types in the URL
   cleanURL(type);
+  toggleHeader(true);
 
   // Container to update and other UI elements
   const searchContainerInner = document.getElementById(
@@ -932,27 +949,6 @@ function handleTypeChange(type) {
     }
   } else if (type === "word-game") {
     // Handle "Word Game" type
-    searchBarWrapper.style.display = "none"; // Hide search-bar-wrapper
-    randomBtn.style.display = "none"; // Hide random button
-
-    searchContainerInner.classList.add("word-game-active"); // Indicate word game is active
-
-    // Handle "word-game" option
-    showLandingCard(false);
-
-    // Show POS and CEFR dropdowns, hide Genre dropdown
-    genreFilterContainer.style.display = "none"; // Hide genre dropdown in sentences mode
-
-    // Disable the POS dropdown and gray it out
-    posFilterContainer.style.display = "inline-flex"; // Show POS dropdown
-    posSelect.disabled = true; // Disable POS dropdown
-    posSelect.value = ""; // Reset to "Part of Speech" option
-    posFilterContainer.classList.add("disabled"); // Add the 'disabled' class
-
-    cefrSelect.disabled = false;
-    cefrFilterContainer.classList.remove("disabled");
-    cefrSelect.value = ""; // Reset to "CEFR Level" option
-
     resetGame();
     startWordGame(); // Call the word game function
   } else {

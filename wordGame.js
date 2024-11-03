@@ -128,9 +128,46 @@ function renderStats() {
 }
 
 async function startWordGame() {
+  const searchContainerInner = document.getElementById(
+    "search-container-inner"
+  ); // The container to update
+  const searchBarWrapper = document.getElementById("search-bar-wrapper");
+  const randomBtn = document.getElementById("random-btn");
+
+  // Filter containers for POS, Genre, and CEFR
+  const posFilterContainer = document.querySelector(".pos-filter");
+  const genreFilterContainer = document.getElementById("genre-filter"); // Get the Genre filter container
+  const cefrFilterContainer = document.querySelector(".cefr-filter"); // Get the CEFR filter container
+
+  // Filter dropdowns for POS, Genre, and CEFR
+  const posSelect = document.getElementById("pos-select");
+  const cefrSelect = document.getElementById("cefr-select"); // Get the CEFR filter dropdown
+
   gameActive = true;
   showLandingCard(false);
+  toggleHeader(false);
   hideAllBanners(); // Hide banners before starting the new word
+
+  searchBarWrapper.style.display = "none"; // Hide search-bar-wrapper
+  randomBtn.style.display = "none"; // Hide random button
+
+  searchContainerInner.classList.add("word-game-active"); // Indicate word game is active
+
+  // Handle "word-game" option
+  showLandingCard(false);
+
+  // Show POS and CEFR dropdowns, hide Genre dropdown
+  genreFilterContainer.style.display = "none"; // Hide genre dropdown in sentences mode
+
+  // Disable the POS dropdown and gray it out
+  posFilterContainer.style.display = "inline-flex"; // Show POS dropdown
+  posSelect.disabled = true; // Disable POS dropdown
+  posSelect.value = ""; // Reset to "Part of Speech" option
+  posFilterContainer.classList.add("disabled"); // Add the 'disabled' class
+
+  cefrSelect.disabled = false;
+  cefrFilterContainer.classList.remove("disabled");
+  cefrSelect.value = ""; // Reset to "CEFR Level" option
 
   // Check if all available words have been answered correctly
   const totalWords = results.filter(

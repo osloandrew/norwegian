@@ -1491,10 +1491,6 @@ main {
     grid-gap: 10px; /* Slightly increase space between the cards */
   }
 
-  #game-next-word-button {
-    margin-top: 10px;
-  }
-
   footer,
   header {
     width: 100%; /* Ensure both footer and header are the same width */
