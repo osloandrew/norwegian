@@ -354,9 +354,14 @@ footer .copyright {
   height: 80px; /* Consistent height with the other cards */
 }
 
+.game-label-subgroup {
+  display: flex;
+}
+
 .game-labels-container {
   display: flex;
   min-height: 60px;
+  justify-content: space-between;
   width: 100%;
 }
 
