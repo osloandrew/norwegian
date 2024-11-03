@@ -302,9 +302,9 @@ footer .copyright {
 
 .game-cefr-spacer {
   display: flex;
-  align-items: flex-end; /* Vertically align content within spacerDiv */
-  justify-content: center; /* Optionally center horizontally as well */
+  justify-content: end; /* Optionally center horizontally as well */
   text-align: center;
+  flex-direction: column;
 }
 
 /* Example Sentences */
@@ -312,7 +312,7 @@ footer .copyright {
   color: #413e3e;
   font-family: "Noto Serif", serif;
   font-size: 0.8em !important;
-  padding: 0 10px 0 10px;
+  padding: 0 2px 0 2px;
   text-align: center;
   margin: 0;
   line-height: 1.5;
@@ -897,7 +897,8 @@ main {
 .type-filter,
 .pos-filter,
 .cefr-filter,
-.genre-filter {
+.genre-filter,
+.game-english-filter {
   align-items: center;
   display: flex;
   height: 42px;
@@ -907,7 +908,8 @@ main {
 .type-filter,
 .pos-filter,
 .cefr-filter,
-.genre-filter {
+.genre-filter,
+.game-english-filter {
   align-items: center;
   background-color: #0d3a69;
   border-radius: 15px;
@@ -922,7 +924,8 @@ main {
 .type-filter i,
 .pos-filter i,
 .cefr-filter i,
-.genre-filter i {
+.genre-filter i,
+.game-english-filter i {
   color: white;
   font-size: 18px;
   pointer-events: none;
@@ -1417,7 +1420,8 @@ main {
 .cefr-filter.disabled select,
 .type-filter.disabled select,
 .pos-filter.disabled select,
-.genre-filter.disabled select {
+.genre-filter.disabled select,
+.game-english-filter.disabled select {
   color: #ccc;
   cursor: not-allowed;
 }
@@ -1425,7 +1429,8 @@ main {
 .cefr-filter.disabled i,
 .type-filter.disabled i,
 .pos-filter.disabled i,
-.genre-filter.disabled i {
+.genre-filter.disabled i,
+.game-english-filter.disabled i {
   color: #ccc; /* Gray out the arrow */
   pointer-events: none; /* Prevent interaction with the arrow */
 }
@@ -1433,7 +1438,8 @@ main {
 .type-filter select,
 .pos-filter select,
 .cefr-filter select,
-.genre-filter select {
+.genre-filter select,
+.game-english-filter select {
   appearance: none;
   background-color: inherit;
   border: none;
@@ -1866,7 +1872,8 @@ main {
   .type-filter,
   .pos-filter,
   .cefr-filter,
-  .genre-filter {
+  .genre-filter,
+  .game-english-filter {
     box-sizing: border-box !important;
     background-color: #0d3a69; /* Consistent background for all filters */
     border-radius: 15px;
@@ -1877,6 +1884,7 @@ main {
   .type-filter,
   .pos-filter,
   .genre-filter,
+  .game-english-filter,
   .random-btn,
   .search-bar-wrapper {
     box-sizing: border-box !important;
@@ -1886,7 +1894,8 @@ main {
   .type-filter i,
   .pos-filter i,
   .cefr-filter i,
-  .genre-filter i {
+  .genre-filter i,
+  .game-english-filter i {
     padding-left: 6px;
     font-size: 12px; /* Make the arrow smaller */
     pointer-events: none; /* Ensure the icon doesn't block clicks */
@@ -1895,7 +1904,8 @@ main {
   .type-filter select,
   .pos-filter select,
   .cefr-filter select,
-  .genre-filter select {
+  .genre-filter select,
+  .game-english-filter select {
     box-sizing: border-box !important;
     cursor: pointer;
     font-size: 11px; /* Further reduce the font size for very small screens */

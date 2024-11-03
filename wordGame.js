@@ -88,6 +88,19 @@ function updateRecentAnswers(isCorrect) {
   levelTotalQuestions++;
 }
 
+function toggleGameEnglish() {
+  const englishSelect = document.getElementById("game-english-select");
+  const translationElement = document.querySelector(
+    ".game-cefr-spacer p:nth-child(2)"
+  ); // Assumes the English translation is the second <p> in .game-cefr-spacer
+
+  if (englishSelect.value === "show-english") {
+    translationElement.style.display = "block"; // Show the English translation
+  } else if (englishSelect.value === "hide-english") {
+    translationElement.style.display = "none"; // Hide the English translation
+  }
+}
+
 function renderStats() {
   const statsContainer = document.getElementById("game-session-stats");
 
@@ -138,10 +151,14 @@ async function startWordGame() {
   const posFilterContainer = document.querySelector(".pos-filter");
   const genreFilterContainer = document.getElementById("genre-filter"); // Get the Genre filter container
   const cefrFilterContainer = document.querySelector(".cefr-filter"); // Get the CEFR filter container
+  const gameEnglishFilterContainer = document.querySelector(
+    ".game-english-filter"
+  );
 
   // Filter dropdowns for POS, Genre, and CEFR
   const posSelect = document.getElementById("pos-select");
-  const cefrSelect = document.getElementById("cefr-select"); // Get the CEFR filter dropdown
+  const cefrSelect = document.getElementById("cefr-select");
+  const gameEnglishSelect = document.getElementById("game-english-select");
 
   gameActive = true;
   showLandingCard(false);
@@ -156,18 +173,17 @@ async function startWordGame() {
   // Handle "word-game" option
   showLandingCard(false);
 
-  // Show POS and CEFR dropdowns, hide Genre dropdown
-  genreFilterContainer.style.display = "none"; // Hide genre dropdown in sentences mode
+  genreFilterContainer.style.display = "none";
+
+  gameEnglishSelect.style.display = "inline-flex"; // Hide random button
+  gameEnglishFilterContainer.style.display = "inline-flex";
 
   // Disable the POS dropdown and gray it out
-  posFilterContainer.style.display = "inline-flex"; // Show POS dropdown
-  posSelect.disabled = true; // Disable POS dropdown
-  posSelect.value = ""; // Reset to "Part of Speech" option
-  posFilterContainer.classList.add("disabled"); // Add the 'disabled' class
+  posFilterContainer.style.display = "none";
 
   cefrSelect.disabled = false;
-  cefrFilterContainer.classList.remove("disabled");
   cefrSelect.value = ""; // Reset to "CEFR Level" option
+  cefrFilterContainer.classList.remove("disabled");
 
   // Check if all available words have been answered correctly
   const totalWords = results.filter(
@@ -632,12 +648,21 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
   }
 
   // Fetch an example sentence from the database and display it
-  const exampleSentence = await fetchExampleSentence(wordObj);
+  const { exampleSentence, sentenceTranslation } = await fetchExampleSentence(
+    wordObj
+  );
   console.log("Fetched example sentence:", exampleSentence); // Check if this logs correctly
   if (exampleSentence) {
-    document.querySelector(
-      ".game-cefr-spacer"
-    ).innerHTML = `<p>${exampleSentence}</p>`;
+    const englishFilter = document.getElementById("game-english-select").value;
+    const translationHTML =
+      englishFilter === "show-english"
+        ? `<p style="color: gray;">${sentenceTranslation}</p>`
+        : ""; // Only include translation if filter is set to show-english
+
+    document.querySelector(".game-cefr-spacer").innerHTML = `
+      <p>${exampleSentence}</p>
+      ${translationHTML}
+    `;
   } else {
     document.querySelector(".game-cefr-spacer").innerHTML = ""; // Clear if no sentence found
   }
@@ -705,14 +730,25 @@ async function fetchExampleSentence(wordObj) {
     .split(/(?<=[.!?])\s+/)
     .filter((sentence) => sentence.trim() !== "");
 
-  // If there is only one sentence, return it
+  const translations = matchingEntry.sentenceTranslation
+    ? matchingEntry.sentenceTranslation
+        .split(/(?<=[.!?])\s+/)
+        .filter((translation) => translation.trim() !== "")
+    : [];
+
+  // If there is only one sentence, return it with its translation if available
   if (exampleSentences.length === 1) {
-    return exampleSentences[0];
+    return {
+      exampleSentence: exampleSentences[0],
+      sentenceTranslation: translations[0] || "",
+    };
   }
 
   // If there are multiple sentences, pick one at random
   const randomIndex = Math.floor(Math.random() * exampleSentences.length);
-  return exampleSentences[randomIndex];
+  const exampleSentence = exampleSentences[randomIndex];
+  const sentenceTranslation = translations[randomIndex] || ""; // Provide an empty string if translation is unavailable
+  return { exampleSentence, sentenceTranslation };
 }
 
 async function fetchRandomWord() {

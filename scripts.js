@@ -871,6 +871,11 @@ function handleTypeChange(type) {
   const searchBarWrapper = document.getElementById("search-bar-wrapper");
   const randomBtn = document.getElementById("random-btn");
 
+  const gameEnglishFilterContainer = document.querySelector(
+    ".game-english-filter"
+  );
+  const gameEnglishSelect = document.getElementById("game-english-select");
+
   // Retrieve selected part of speech (POS) if available
   const selectedPOS = document.getElementById("pos-select")
     ? document.getElementById("pos-select").value.toLowerCase()
@@ -887,6 +892,9 @@ function handleTypeChange(type) {
   const cefrSelect = document.getElementById("cefr-select"); // Get the CEFR filter dropdown
 
   removeStoryHeader();
+
+  gameEnglishFilterContainer.style.display = "none";
+  gameEnglishSelect.style.display = "none"; // Hide random button
 
   // Update the URL with the selected type, query, and POS
   updateURL(query, type, selectedPOS); // This ensures the type is reflected in the URL
