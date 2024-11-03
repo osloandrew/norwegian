@@ -305,6 +305,7 @@ footer .copyright {
   justify-content: end; /* Optionally center horizontally as well */
   text-align: center;
   flex-direction: column;
+  min-height: 60px;
 }
 
 /* Example Sentences */
@@ -328,7 +329,7 @@ footer .copyright {
 }
 
 .game-gender {
-  align-self: flex-end; /* Align the label to the left */
+  align-self: flex-start; /* Align the label to the left */
   background-color: #f0f0f0;
   color: #6a6a6a !important;
   font-family: "Noto Sans", sans-serif;
@@ -339,6 +340,7 @@ footer .copyright {
   border-radius: 4px;
   text-align: center;
   text-transform: uppercase;
+  margin: 0px 5px 0px 5px;
   min-width: fit-content;
   user-select: none; /* Prevent text selection */
 }
@@ -354,7 +356,6 @@ footer .copyright {
 
 .game-labels-container {
   display: flex;
-  justify-content: space-between; /* Align labels on opposite sides */
   min-height: 60px;
   width: 100%;
 }

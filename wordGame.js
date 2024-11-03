@@ -498,17 +498,14 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
         <div class="game-word-card">
             <div class="game-labels-container">
                 ${cefrLabel}  <!-- Add the CEFR label here if applicable -->
-                ${bannerPlaceholder}  <!-- This is where banners will appear dynamically -->
+                <div class="game-gender">${displayedGender}</div>
                 ${trickyLabel}  <!-- Add the tricky word label if applicable -->
+                ${bannerPlaceholder}  <!-- This is where banners will appear dynamically -->
             </div>
             <div class="game-word">
                 <h2>${displayedWord}</h2>
             </div>
-            <div class="game-labels-container">
-                <div class="game-gender">${displayedGender}</div>
-                <div class="game-cefr-spacer"></div>
-                <div style="visibility: hidden;" class="game-gender">${displayedGender}</div>
-            </div>
+            <div class="game-cefr-spacer"></div>
         </div>
 
         <!-- Translations Grid Section -->
