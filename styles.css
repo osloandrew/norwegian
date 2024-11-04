@@ -534,7 +534,7 @@ footer .copyright {
   text-align: center;
   text-transform: uppercase;
   margin-bottom: 5px; /* Space between the label and the word */
-  min-width: 17.5px;
+  min-width: fit-content;
   user-select: none; /* Prevent text selection */
 }
 
