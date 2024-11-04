@@ -460,7 +460,11 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
 
   // Check if CEFR is selected; if not, add a label based on wordObj.CEFR
   let cefrLabel = "";
-  let trickyLabel = ""; // Placeholder for the tricky word label
+  const firstTrickyLabelPlaceholder =
+    '<div class="game-tricky-word" style="visibility: hidden;"><i class="fa fa-repeat" aria-hidden="true"></i></div>';
+  const secondTrickyLabel = isReintroduced
+    ? '<div class="game-tricky-word visible"><i class="fa fa-repeat" aria-hidden="true"></i></div>'
+    : '<div class="game-tricky-word" style="visibility: hidden;"><i class="fa fa-repeat" aria-hidden="true"></i></div>';
 
   // Always show the CEFR label if CEFR is available
   if (wordObj.CEFR === "A1") {
@@ -477,15 +481,6 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
     console.warn("CEFR value is missing for this word:", wordObj);
   }
 
-  // Add "tricky word" label if the word is reintroduced
-  if (isReintroduced) {
-    trickyLabel =
-      '<div class="game-tricky-word visible"><i class="fa fa-repeat" aria-hidden="true"></i></div>';
-  } else {
-    trickyLabel =
-      '<div class="game-tricky-word"><i class="fa fa-repeat" aria-hidden="true"></i></div>'; // Hidden by default
-  }
-
   // Create placeholder for banners (this will be dynamically updated when banners are shown)
   let bannerPlaceholder = '<div id="game-banner-placeholder"></div>';
 
@@ -500,13 +495,13 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
               <div class="game-label-subgroup">
                 ${cefrLabel}  <!-- Add the CEFR label here if applicable -->
                 <div class="game-gender">${displayedGender}</div>
-                ${trickyLabel}  <!-- Add the tricky word label if applicable -->
+                ${firstTrickyLabelPlaceholder}
               </div>
                 ${bannerPlaceholder}  <!-- This is where banners will appear dynamically -->
                 <div class="game-label-subgroup">
-                  <div class="game-tricky-word" style="visibility: hidden;">${trickyLabel}</div>
                   <div class="game-gender" style="visibility: hidden;">${displayedGender}</div>
                   <div class="game-cefr-label easy" style="visibility: hidden;">${cefrLabel}</div>
+                  ${secondTrickyLabel}
                 </div>
             </div>
             <div class="game-word">
