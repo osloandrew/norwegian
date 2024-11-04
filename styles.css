@@ -357,7 +357,6 @@ footer .copyright {
   display: flex;
   align-items: center;
   align-self: flex-start;
-  flex: 1 !important; /* Ensure equal width */
 }
 
 .game-labels-container {

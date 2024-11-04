@@ -177,7 +177,7 @@ async function startWordGame() {
   gameEnglishSelect.style.display = "inline-flex"; // Hide random button
   gameEnglishFilterContainer.style.display = "inline-flex";
 
-  // Disable the POS dropdown and gray it out
+  posSelect.value = ""; // Reset to "Part of Speech" option
   posFilterContainer.style.display = "none";
 
   cefrSelect.disabled = false;
