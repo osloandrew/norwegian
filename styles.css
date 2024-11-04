@@ -313,7 +313,6 @@ footer .copyright {
   color: #413e3e;
   font-family: "Noto Serif", serif;
   font-size: 0.8em !important;
-  padding: 0 2px 0 2px;
   text-align: center;
   margin: 0;
   line-height: 1.5;
@@ -331,13 +330,13 @@ footer .copyright {
 .game-gender {
   align-self: flex-start; /* Align the label to the left */
   background-color: #f0f0f0;
-  color: #6a6a6a !important;
-  font-family: "Noto Sans", sans-serif;
-  text-transform: uppercase;
-  padding: 3px 4px; /* Smaller padding */
-  font-size: 12px; /* Smaller font size */
-  font-weight: 500 !important;
   border-radius: 4px;
+  color: #4f4f4f !important;
+  font-family: "Noto Sans", sans-serif;
+  padding: 3px 7px;
+  font-size: 12px; /* Smaller font size */
+  font-weight: bold !important;
+  letter-spacing: 0.02em;
   text-align: center;
   text-transform: uppercase;
   margin: 0px 5px 0px 5px;
