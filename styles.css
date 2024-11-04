@@ -776,11 +776,16 @@ main {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4; /* Number of lines before truncating */
   width: 50%; /* Definition takes up exactly 60% of the container */
-  word-break: break-word; /* Tries to keep words together */
 }
 
 .multiple-results-english {
+  display: -webkit-box;
+  line-clamp: 3;
   margin: 8px 0px 10px 0px !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3; /* Number of lines before truncating */
 }
 
 .multiple-results-hidden-content {
