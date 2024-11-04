@@ -257,6 +257,7 @@ footer .copyright {
   font-family: "Noto Sans", sans-serif; /* Using Noto Sans, sans-serif */
   margin: 0 1px 0 1px 0 auto; /* Reduced spacing between banner and the rest */
   margin-bottom: 5px;
+  max-width: 50%;
   transition: opacity 0.5s ease-in-out; /* Smooth transition */
   font-weight: 500;
   user-select: none;
@@ -283,7 +284,6 @@ footer .copyright {
   text-transform: uppercase;
   font-family: "Noto Sans", sans-serif;
   white-space: nowrap; /* Prevent text wrapping */
-  margin-bottom: 5px; /* Space between the label and the word */
   min-width: 17.5px;
   user-select: none; /* Prevent text selection */
 }
@@ -339,7 +339,7 @@ footer .copyright {
   letter-spacing: 0.02em;
   text-align: center;
   text-transform: uppercase;
-  margin: 0px 5px 0px 5px;
+  margin: 0px 0px 5px 0px !important;
   min-width: fit-content;
   user-select: none; /* Prevent text selection */
 }
@@ -357,6 +357,7 @@ footer .copyright {
   display: flex;
   align-items: center;
   align-self: flex-start;
+  flex-direction: column;
 }
 
 .game-labels-container {
@@ -401,7 +402,7 @@ footer .copyright {
 }
 
 .game-tricky-word {
-  align-self: flex-start; /* Align to the top */
+  align-self: flex-end; /* Align to the top */
   padding: 3px 7px; /* Same padding as CEFR label */
   font-size: 12px; /* Same font size as CEFR label */
   color: #4f4f4f;
