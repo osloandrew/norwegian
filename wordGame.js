@@ -91,13 +91,12 @@ function updateRecentAnswers(isCorrect) {
 function toggleGameEnglish() {
   const englishSelect = document.getElementById("game-english-select");
   const translationElement = document.querySelector(
-    ".game-cefr-spacer p:nth-child(2)"
-  ); // Assumes the English translation is the second <p> in .game-cefr-spacer
+    ".game-cefr-spacer .english-translation"
+  );
 
-  if (englishSelect.value === "show-english") {
-    translationElement.style.display = "block"; // Show the English translation
-  } else if (englishSelect.value === "hide-english") {
-    translationElement.style.display = "none"; // Hide the English translation
+  if (translationElement) {
+    translationElement.style.display =
+      englishSelect.value === "show-english" ? "block" : "none";
   }
 }
 
@@ -646,27 +645,26 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
     questionsAtCurrentLevel = 0; // Reset the counter after progression evaluation
   }
 
-  // Fetch an example sentence from the database and display it
   const { exampleSentence, sentenceTranslation } = await fetchExampleSentence(
     wordObj
   );
-  console.log("Fetched example sentence:", exampleSentence); // Check if this logs correctly
+  console.log("Fetched example sentence:", exampleSentence);
+
   if (exampleSentence) {
-    const englishFilter = document.getElementById("game-english-select").value;
-    const translationHTML =
-      englishFilter === "show-english"
-        ? `<p style="color: gray;">${sentenceTranslation}</p>`
-        : ""; // Only include translation if filter is set to show-english
+    const translationHTML = `<p class="english-translation" style="display: ${
+      document.getElementById("game-english-select").value === "show-english"
+        ? "block"
+        : "none"
+    }; color: gray;">${sentenceTranslation}</p>`;
 
     document.querySelector(".game-cefr-spacer").innerHTML = `
       <p>${exampleSentence}</p>
       ${translationHTML}
     `;
   } else {
-    document.querySelector(".game-cefr-spacer").innerHTML = ""; // Clear if no sentence found
+    document.querySelector(".game-cefr-spacer").innerHTML = "";
   }
 
-  // Show the "Next Word" button after an answer is selected
   document.getElementById("game-next-word-button").style.display = "block";
 }
 
