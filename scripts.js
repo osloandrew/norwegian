@@ -682,7 +682,42 @@ async function search(queryOverride = null) {
         return 1;
       }
 
-      // 2. Prioritize whole word match (even if part of a phrase or longer sentence)
+      // 2. Prioritize by CEFR level if both English translations or Norwegian words are identical
+      const cefrOrder = { A1: 1, A2: 2, B1: 3, B2: 4, C: 5 };
+      const aCEFRValue = cefrOrder[a.CEFR] || 99; // Use high default if CEFR is missing
+      const bCEFRValue = cefrOrder[b.CEFR] || 99;
+
+      // Check for identical English translations
+      const aEngelskSet = new Set(
+        a.engelsk
+          .toLowerCase()
+          .split(",")
+          .map((e) => e.trim())
+      );
+      const bEngelskSet = new Set(
+        b.engelsk
+          .toLowerCase()
+          .split(",")
+          .map((e) => e.trim())
+      );
+      const commonTranslations = [...aEngelskSet].filter((eng) =>
+        bEngelskSet.has(eng)
+      );
+
+      if (commonTranslations.length > 0) {
+        if (aCEFRValue !== bCEFRValue) {
+          return aCEFRValue - bCEFRValue; // Lower CEFR value appears first
+        }
+      }
+
+      // Check for identical Norwegian words
+      if (a.ord.toLowerCase() === b.ord.toLowerCase()) {
+        if (aCEFRValue !== bCEFRValue) {
+          return aCEFRValue - bCEFRValue; // Lower CEFR value appears first
+        }
+      }
+
+      // 3. Prioritize whole word match (even if part of a phrase or longer sentence)
       const regexExactMatch = new RegExp(`\\b${queryLower}\\b`, "i"); // Whole word boundary match
       const aExactInPhrase = regexExactMatch.test(a.ord);
       const bExactInPhrase = regexExactMatch.test(b.ord);
@@ -693,7 +728,7 @@ async function search(queryOverride = null) {
         return 1;
       }
 
-      // 3. Prioritize exact match in the comma-separated list of English definitions
+      // 4. Prioritize exact match in the comma-separated list of English definitions
       const aIsInCommaList = a.engelsk
         .toLowerCase()
         .split(",")
@@ -711,7 +746,7 @@ async function search(queryOverride = null) {
         return 1;
       }
 
-      // 4. Deprioritize compound words where the query appears in a larger word
+      // 5. Deprioritize compound words where the query appears in a larger word
       const aContainsInWord =
         a.ord.toLowerCase().includes(queryLower) &&
         a.ord.toLowerCase() !== queryLower;
@@ -725,7 +760,7 @@ async function search(queryOverride = null) {
         return -1;
       }
 
-      // 5. Sort by the position of the query in the word (earlier is better)
+      // 6. Sort by the position of the query in the word (earlier is better)
       const aIndex = a.ord.toLowerCase().indexOf(queryLower);
       const bIndex = b.ord.toLowerCase().indexOf(queryLower);
       return aIndex - bIndex;
