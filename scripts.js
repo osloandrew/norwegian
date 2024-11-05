@@ -770,7 +770,6 @@ async function search(queryOverride = null) {
   }
   hideSpinner(); // Hide the spinner
 }
-
 // Check if any sentences exist for a word or its variations
 function checkForSentences(word, pos) {
   const lowerCaseWord = word.trim().toLowerCase();
@@ -863,22 +862,6 @@ function handlePOSChange() {
   }
 }
 
-// Function to toggle visibility of header and footer
-function toggleHeader(show) {
-  // Select the header and footer elements
-  const header = document.querySelector("header");
-
-  if (header) {
-    if (show) {
-      header.classList.remove("hidden");
-    } else {
-      header.classList.add("hidden");
-    }
-  } else {
-    console.warn("Header element not found.");
-  }
-}
-
 function selectType(type) {
   // Set the dropdown value to match the selected type
   document.getElementById("type-select").value = type;
@@ -897,7 +880,6 @@ function handleTypeChange(type) {
 
   // Clear any remnants from other types in the URL
   cleanURL(type);
-  toggleHeader(true);
 
   // Container to update and other UI elements
   const searchContainerInner = document.getElementById(
@@ -905,7 +887,6 @@ function handleTypeChange(type) {
   ); // The container to update
   const searchBarWrapper = document.getElementById("search-bar-wrapper");
   const randomBtn = document.getElementById("random-btn");
-
   const gameEnglishFilterContainer = document.querySelector(
     ".game-english-filter"
   );
@@ -927,7 +908,6 @@ function handleTypeChange(type) {
   const cefrSelect = document.getElementById("cefr-select"); // Get the CEFR filter dropdown
 
   removeStoryHeader();
-
   gameEnglishFilterContainer.style.display = "none";
   gameEnglishSelect.style.display = "none"; // Hide random button
 
@@ -992,6 +972,8 @@ function handleTypeChange(type) {
     }
   } else if (type === "word-game") {
     // Handle "Word Game" type
+
+
     resetGame();
     startWordGame(); // Call the word game function
   } else {

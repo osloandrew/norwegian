@@ -161,7 +161,6 @@ async function startWordGame() {
 
   gameActive = true;
   showLandingCard(false);
-  toggleHeader(false);
   hideAllBanners(); // Hide banners before starting the new word
 
   searchBarWrapper.style.display = "none"; // Hide search-bar-wrapper
@@ -181,7 +180,6 @@ async function startWordGame() {
   posFilterContainer.style.display = "none";
 
   cefrSelect.disabled = false;
-  cefrSelect.value = ""; // Reset to "CEFR Level" option
   cefrFilterContainer.classList.remove("disabled");
 
   // Check if all available words have been answered correctly
@@ -915,10 +913,14 @@ function resetLevelStats() {
 }
 
 document.getElementById("cefr-select").addEventListener("change", function () {
-  const selectedCEFR = this.value.toUpperCase(); // Get the newly selected CEFR level
-  currentCEFR = selectedCEFR; // Set the current CEFR level to the new one
-  resetGame(); // Reset the game stats
-  startWordGame(); // Start the game with the new CEFR level
+  const typeValue = document.getElementById("type-select").value; // Get the current value of the type selector
+
+  if (typeValue === "word-game") {
+    const selectedCEFR = this.value.toUpperCase(); // Get the newly selected CEFR level
+    currentCEFR = selectedCEFR; // Set the current CEFR level to the new one
+    resetGame(); // Reset the game stats
+    startWordGame(); // Start the game with the new CEFR level
+  }
 });
 
 document.addEventListener("keydown", function (event) {
