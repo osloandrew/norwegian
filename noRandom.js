@@ -33,6 +33,7 @@ const noRandom = [
   "fuckings",
   "fy faen",
   "geil",
+  "genital",
   "genitalier",
   "gruppesex",
   "gruppevoldtekt",
