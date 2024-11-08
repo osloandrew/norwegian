@@ -636,10 +636,11 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
     if (!inQueueAlready) {
       incorrectWordQueue.push({
         wordObj: {
-          ord: currentWord,
+          ord: wordObj.ord, // explicitly using wordObj.ord here
           engelsk: correctTranslation,
           gender: wordObj.gender,
-          CEFR: wordObj.CEFR, // Include CEFR value here
+          CEFR: wordObj.CEFR,
+          uttale: wordObj.uttale,
         },
         counter: 0, // Start counter for this word
       });
