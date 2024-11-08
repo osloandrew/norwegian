@@ -91,7 +91,7 @@ function updateRecentAnswers(isCorrect) {
 function toggleGameEnglish() {
   const englishSelect = document.getElementById("game-english-select");
   const translationElement = document.querySelector(
-    ".game-cefr-spacer .english-translation"
+    ".game-cefr-spacer .game-english-translation"
   );
 
   if (translationElement) {
@@ -647,11 +647,12 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
   console.log("Fetched example sentence:", exampleSentence);
 
   if (exampleSentence) {
-    const translationHTML = `<p class="english-translation" style="display: ${
-      document.getElementById("game-english-select").value === "show-english"
-        ? "block"
-        : "none"
-    }; color: gray;">${sentenceTranslation}</p>`;
+    const translationHTML = `
+      <p class="game-english-translation" style="display: ${
+        document.getElementById("game-english-select").value === "show-english"
+          ? "inline-block"
+          : "none"
+      };">${sentenceTranslation}</p>`;
 
     document.querySelector(".game-cefr-spacer").innerHTML = `
       <p>${exampleSentence}</p>
