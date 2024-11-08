@@ -247,8 +247,8 @@ footer .copyright {
 
 #game-banner-placeholder {
   align-self: baseline;
-  background-color: #fae5c3;
-  color: #5c4033; /* Gray color, matching the scorecard */
+  background-color: #f8f8f8;
+  color: #4f4f4f; /* Gray color, matching the scorecard */
   text-align: center;
   padding: 0px 6px !important; /* Smaller padding for a more compact banner */
   border-radius: 5px;
@@ -406,6 +406,13 @@ footer .copyright {
   border-color: #d1c4b5; /* Muted border when disabled */
   cursor: not-allowed; /* Disabled cursor */
   box-shadow: none; /* No shadow when disabled */
+}
+
+.game-pronunciation {
+  font-family: "Noto Serif", serif;
+  font-size: 20px;
+  font-weight: 300;
+  letter-spacing: 0.04rem;
 }
 
 .game-tricky-word {

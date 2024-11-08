@@ -283,7 +283,7 @@ async function startWordGame() {
   // If no words match the filters, stop the game
   if (!randomWordObj) return;
 
-  currentWord = randomWordObj.ord;
+  currentWord = randomWordObj;
   correctTranslation = randomWordObj.engelsk;
 
   // Fetch incorrect translations with the same gender
@@ -308,6 +308,7 @@ async function startWordGame() {
 
   // Render the updated stats box
   renderStats();
+  displayPronunciation(currentWord);
 }
 
 function ensureUniqueDisplayedValues(translations) {
@@ -417,6 +418,22 @@ function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
   }
 
   return incorrectTranslations;
+}
+
+function displayPronunciation(word) {
+  const pronunciationContainer = document.querySelector(
+    "#game-banner-placeholder"
+  );
+  if (pronunciationContainer && word.uttale) {
+    const uttaleText = word.uttale.split(",")[0].trim(); // Get the part before the first comma
+    pronunciationContainer.innerHTML = `
+      <p class="game-pronunciation">${uttaleText}</p>
+    `;
+  } else if (pronunciationContainer) {
+    pronunciationContainer.innerHTML = ""; // Clear if no pronunciation
+  } else {
+    console.log("No container found.");
+  }
 }
 
 function renderWordGameUI(wordObj, translations, isReintroduced = false) {
@@ -818,6 +835,7 @@ async function fetchRandomWord() {
     engelsk: randomResult.engelsk,
     gender: randomResult.gender, // Add gender
     CEFR: randomResult.CEFR, // Make sure CEFR is returned here
+    uttale: randomResult.uttale, // Ensure uttale is included here
   };
 }
 
