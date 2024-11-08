@@ -37,6 +37,8 @@ const noRandom = [
   "genitalier",
   "gruppesex",
   "gruppevoldtekt",
+  "hallik",
+  "hallikvirksomhet",
   "hardcore",
   "hevnporno",
   "hiv",
