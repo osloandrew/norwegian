@@ -252,14 +252,14 @@ footer .copyright {
   text-align: center;
   padding: 0px 6px !important; /* Smaller padding for a more compact banner */
   border-radius: 5px;
-  font-size: 0.6em !important; /* Smaller font size to fit the text on one line */
+  font-size: 16px !important; /* Smaller font size to fit the text on one line */
   font-weight: normal; /* Adjusted to normal to avoid boldness */
-  font-family: "Noto Sans", sans-serif; /* Using Noto Sans, sans-serif */
+  font-family: "Noto Serif", serif; /* Using Noto Sans, sans-serif */
   margin: 0 1px 0 1px 0 auto; /* Reduced spacing between banner and the rest */
   margin-bottom: 5px;
-  max-width: 50%;
+  max-width: 60%;
   transition: opacity 0.5s ease-in-out; /* Smooth transition */
-  font-weight: 500;
+  font-weight: 400;
   user-select: none;
 }
 
@@ -1144,6 +1144,7 @@ main {
   color: #293a78;
   cursor: pointer;
   margin: -5px 0px 10px 0px;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
 }
 
 #site-title:hover {
