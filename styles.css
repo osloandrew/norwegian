@@ -303,7 +303,7 @@ footer .copyright {
 .game-cefr-spacer {
   align-items: flex-end;
   display: flex;
-  gap: 2px; /* Optional: Space between the elements */
+  gap: 5px; /* Optional: Space between the elements */
   text-align: center;
   flex-direction: row;
   min-height: 70px;
@@ -314,11 +314,15 @@ footer .copyright {
 .game-cefr-spacer p {
   color: #413e3e;
   font-family: "Noto Serif", serif;
-  font-size: 0.8em !important;
+  font-size: 0.7em !important;
   flex: 1; /* Makes each <p> element take up equal width */
   text-align: center;
   margin: 0;
   line-height: 1.5;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .game-correct-card {
