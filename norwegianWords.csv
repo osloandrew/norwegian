@@ -16,7 +16,7 @@ average person,B2,et,A4-menneske,"[a: fi:`rə me`n:əskə], [a: fi:`rə me`nskə
 abandon,C,verb,abandonere,"[abaŋdåne:´re], [abandåne:´re]",French,"gi fra seg, forlate, avstå",Prosjektet ble abandonert etter budsjettoverskridelser.,The project was abandoned after budget overruns.
 abbey,C,et,abbedi,[abədi:´],German: abbedie,kloster som blir ledet av en abbed eller abbedisse,Abbediet lå i en vakker dal omgitt av skog.,The abbey was located in a beautiful valley surrounded by forest.
 ABCs,B2,ei,abc,"[abese:´], [abəse:´]",,lærebok i staving og lesing; abc-bok; bok som inneholder elementære kunnskaper innenfor et fag eller emne; grunnbok,"De startet med det grunnleggende, eller abc-en, i emnet.","They started with the basics, or the ABCs, of the subject."
-abdication,C,en,abdikasjon,,,det å abdisere,Kongens abdikasjon sjokkerte hele nasjonen.,The king's abdication shocked the entire nation.
+abdication,C,en,abdikasjon,,Latin,det å abdisere,Kongens abdikasjon sjokkerte hele nasjonen.,The king's abdication shocked the entire nation.
 abdicate,C,verb,abdisere,,Latin: abdicare,"frasi seg, gi avkall på sin krone; frasi seg lederverv",Kongen valgte å abdisere til fordel for sin sønn.,The king chose to abdicate in favor of his son.
 downside,C,et,aber,,German,"hake, ulempe, uheldig forhold, men",Det er et aber ved saken. Aberet er at dette er kostbart.,There's a downside to the case. The problem is that this is expensive.
 abnormal,B2,adjective,abnorm,[abnå´rm],Latin,"avvikende, sykelig, unormal, defekt",Pasienten søkte Freud blant annet på grunn av en abnorm frykt for at hans far.,The patient sought out Freud partly because of an abnormal fear of his father.
@@ -898,6 +898,7 @@ arrange,B2,verb,avholde,,German,la finne sted; arrangere,Lederen bestemte seg fo
 abstain from,B2,expression,"avholde seg fra",,German,nekte seg; avstå,"Jeg kunne ha sagt noe, men jeg avholdt meg fra det.","I could have said something, but I refrained from it."
 abstinent,B2,adjective,avholdende,,German,som avholder seg fra nyting,Hun var avholdende fra å delta i diskusjonen.,She was reluctant to participate in the discussion.
 abstention,B2,ei,avholdenhet,,German,det å være avholdende,Avholdenhet fra alkohol er en del av hans livsstil.,Abstinence from alcohol is part of his lifestyle.
+well-liked,B2,adjective,avholdt,,,"godt likt, populær, kjær",Læreren var svært avholdt av elevene sine.,The teacher was very well liked by her students.
 newspaper,A1,ei,avis,[avi:´s],Latin via French,regelmessig publikasjon som inneholder aktuelle saker og nyheter; blad; økonomisk foretak som utgir en avis; lokale der en avis holder til,Det sto i avisen i går.,It was in the newspaper yesterday.
 newsprint,A2,et,avispapir ,,Latin via French,billig papir som aviser blir trykt på,Jeg pakket inn gaven i avispapir.,I wrapped the gift in newspaper.
 giving up,B2,et,avkall,,German,"det å oppgi, si fra seg noe, resignere (overfor noe)",Han måtte gi avkall på tronen.,He had to renounce his throne.
@@ -3938,6 +3939,7 @@ dexterous,C,adjective,fingernem,,,flink og rask med fingrene; netthendt; fingerf
 fingertip,A2,en,fingertupp,,Old Norse,ytterste del av en finger,Fingertuppen min er litt sår etter å ha brukt mobilen mye.,My fingertip is a bit sore from using my phone a lot.
 fiddle,B2,verb,fingre ,[fi`ŋrə],Old Norse,føle på med fingrene; tukle,Hun fingrer med stetten på vinglasset.,She fingers the stem of the wine glass.
 finely tune,B2,verb,finjustere ,,Old Norse,gjøre små endringer for å oppnå bedre resultat,Vi må finjustere planen før møtet.,We need to fine-tune the plan before the meeting.
+finely grind,B2,verb,finmale,,,male i små biter,Du må finmale kaffebønnene før du lager espresso.,You need to finely grind the coffee beans before you make the espresso.
 "Finnish person, Finn",A1,en,finne,[fi`n:ə],Old Norse: finnr,person fra Finland; innbygger av Finland,En finne hjalp oss med å finne veien i Helsingfors.,A Finnish woman helped us find our way in Helsinki.
 find,A1,verb,finne,[fi`n:ə],Old Norse: finna,"komme over, treffe på, oppdage",Jeg klarte ikke å finne nøklene mine.,I couldn't find my keys.
 fin,A2,en,finne,[fi`n:ə],unknown,svømme- og styreorgan hos fisk og hval,Fisken har en finne som hjelper den å svømme.,The fish has a fin to help it swim.
@@ -4650,6 +4652,7 @@ research,B1,verb,forske,[få`ʃkə],German,undersøke vitenskapelig,Hun elsker �
 difference,A2,en,forskjell,,German,det at to eller flere ting eller forhold har ulike egenskaper,Hva er forskjellene mellom norsk og svensk?,What are the differences between Norwegian and Swedish?
 "different, various",A2,adjective,forskjellig,,German,"med ulike egenskaper eller kjennetegn",De to søstrene har svært forskjellige interesser.,The two sisters have very different interests.
 discriminate,C,verb,forskjellsbehandle,,,behandle ulikt; diskriminere,Det er ulovlig å forskjellsbehandle på grunn av kjønn eller rase.,It is illegal to discriminate on the basis of gender or race.
+beautify,B2,verb,forskjønne,,,gjøre vakrere; som nedtoner realiteten,Den hatten forskjønner henne ikke akkurat.,That hat doesn't exactly beautify her.
 research,B1,ei,forskning,,German,det å skape ny kunnskap gjennom vitenskapelige metoder,Forskningen på sykdommen har gitt viktige resultater.,Research into the disease has yielded important results.
 startle,B2,verb,forskrekke,,German,gjøre noen redd; skremme,Nyheten forskrekket hele lokalsamfunnet.,The news startled the entire local community.
 "dismay, horror",B2,en,forskrekkelse,,German,"det å bli eller være forskrekket; noe som forskrekker en; bestyrtelse, sjokk, støkk",Hennes forskrekkelse var synlig da hun oppdaget feilen.,Her horror was visible when she discovered the error.
@@ -4888,7 +4891,9 @@ resign,B2,verb,fratre ,,,"slutte, trekke seg tilbake",Han fratrådte stillingen
 absent,B1,adjective,fraværende,,,ikke til stede; uttrykksløs,Tre elever er fraværende.,Three students are absent.
 peace,A1,en,fred,[fre:d],Old Norse: friðr,"tilstand uten krig; slutt på en krig; våpenhvile, fredsslutning; harmoni, godt forhold; tilstand uten forstyrrelse; ro; opphøyd, fullkommen ro, mild stemning",Vær så snill å la oss i fred!,Please leave us alone!
 Friday,A1,en,fredag,[fre:´dag],Old Norse: frjádagr,"femte dag i uka",Vi reiser på fredag.,We leave on Friday.
+protect,B2,verb,frede,,Old Norse: friða,"verne dyr ved fangstforbud; ved lov verne områder, ting, hus, minnesmerker mot forandring",Bjørnen er fredet. Bygningen er fredet. Dette området er fredet. Dette treet er fredet.,The bear is protected. The building is protected. This area is protected. This tree is protected.
 peaceful,A2,adjective,fredelig,[fre:`d(ə)li],Old Norse,"som vil leve i fred og forsoning med andre; godlynt, forsonlig; uten strid eller krig, uten vold, ikke-militær, ukrigersk, forsonlig, vennlig",Det var en fredelig kveld ved innsjøen.,It was a peaceful evening by the lake.
+"protected, peaceful",B1,adjective,"fredet, freda",,,fredelig; som er vernet av lov,Området er fredet for å beskytte det mot utbygging.,The area is protected to safeguard it from development.
 "peaceful, quiet",B1,adjective,fredfull,,Old Norse,idyllisk; fylt av fred,Det var en fredfull dag i skogen.,It was a peaceful day in the forest.
 peace treaty,B2,en,fredsavtale,,Old Norse,avtale om fred mellom krigførende parter,Landene signerte en historisk fredsavtale.,The countries signed a historic peace treaty.
 peacekeeping,B2,adjective,fredsbevarende,,Old Norse,"som bevarer, opprettholder fred",De bidro til fredsbevarende tiltak i området.,They contributed to peacekeeping efforts in the area.
@@ -7422,6 +7427,8 @@ intensify,B2,verb,intensivere,,Latin,gjøre mer effektiv; forsterke,Begge parter
 intention,B2,en,intensjon,,Latin,"hensikt, tanke, mening",Intensjonene med det nye forslaget var de aller beste.,The intentions of the new proposal were the very best.
 interact,B2,verb,interagere,,Latin via English,være i interaksjon med,Vi må interagere med hverandre for å løse dette problemet.,We need to interact with each other to solve this problem.
 interaction,B2,en,interaksjon,,Latin via English,"gjensidig påvirkning; samhandling, vekselvirkning",Det var en interessant interaksjon mellom de to forskerne.,It was an interesting interaction between the two researchers.
+interactive,B1,adjective,interaktiv,,,"som gjelder eller bygger på interaksjon, særlig brukt om samspill mellom bruker og dataprogram",Skjermen var interaktiv og lot brukerne klikke på objektene.,The screen was interactive and allowed users to click on the objects.
+interactivity,B2,en,interaktivitet,,,det å virke eller fungere sammen; samspill,Møteplassene er lagt til rette for interaktivitet.,The meeting places are designed for interactivity.
 intercom,C,en,intercom,[i´ntərkåm],Latin via English,toveis samtaleanlegg i kontorbygg og lignende,Intercom-systemet i bygget fungerer ikke som det skal.,The intercom system in the building is not working properly.
 interesting,A2,adjective,interessant,[int(ə)resa´ŋ:],Latin via French: intéressant,som vekker interesse,"Reklame er mye mer interessant enn kunst, fordi den har et budskap.","Advertising is much more interesting than art, because it has a message."
 interest,A2,en,interesse,,Latin,egenskap som vekker oppmerksomhet,Hun har en stor interesse for moderne kunst.,She has a great interest in modern art.
@@ -10946,6 +10953,7 @@ nostalgic,B2,adjective,nostalgisk,,Greek via Latin,"som har, er utslag av nostal
 especially,C,adverb,notabene,[notabe:`nə],Latin,"vel å merke, legg godt merke til, forkorting NB","Du greier nok eksamenen, notabene hvis du forbereder deg.","You'll probably pass the exam, especially if you prepare."
 note,A2,et,notat,[nota:´t],Latin,"opptegning, anmerkning; beretning, redegjørelse",Han skrev et notat til kollegaene sine.,He wrote a note to his colleagues.
 note,A2,verb,notere,[note:´rə],Latin,"opptegne, skrive ned",Studentene noterte under forelesningen.,The students took notes during the lecture.
+listing,B2,ei,notering,,,"det å notere; pris, kurs fastsatt på en børs",Noteringen av aksjene ble utført på børsen i dag.,The listing of the shares was carried out on the stock exchange today.
 "article, notice",B2,en,notis,[noti:´s],Latin via French,"kort opptegnelse, kort melding",Det sto en notis om ulykken i avisen.,There was a notice about the accident in the newspaper.
 nut,B1,ei,nøtt,,Old Norse: hnot,frukt med hardt skall rundt en spiselig kjerne,Jeg spiste en nøtt som snacks.,I ate a nut as a snack.
 nutshell,A2,et,nøtteskall,,,hardt skall rundt kjernen i en nøtt,Forklaringen var enkel og oppsummert i et nøtteskall.,The explanation was simple and summarized in a nutshell.
@@ -11868,6 +11876,8 @@ parliamentary,C,adjective,parlamentarisk,,Latin,som gjelder parlamentet,De holdt
 parliamentarianism,B2,en,parlamentarisme,,,"styreform der det parti eller de partier som har flertall i parlamentet, danner eller utpeker regjeringen, og som må gå av hvis den ikke lenger har flertallets tillit",Parlamentarisme er viktig i det politiske systemet.,Parliamentarianism is important in the political system.
 Parmesan,A2,en,parmesan,[parmesa:´n],Italian,parmesanost,Jeg liker å drysse parmesan på pastaen min for ekstra smak.,I like to sprinkle parmesan on my pasta for extra flavor.
 slogan,B2,en,parole,[paro:`lə],Greek via Latin via French,oppfordring til felles holdning i visse situasjoner; slagord; orienterings- og instruksjonsmøte ved politiavdeling,Arbeiderne gikk ut i streik under parolen om bedre lønn.,The workers went on strike under the slogan of better wages.
+"next of kin, relative",B1,en,pårørende,,,nær slektning eller familiemedlem; person som står en nær,"Når du blir syk, er det viktig at pårørende blir informert.","When you fall ill, it's important that your next of kin are informed."
+"bereavement center, next of kin center",B2,et,pårørendesenter,,,"samlingssted for pårørende, som regel etter en ulykke eller lignende",Pårørendesenteret tilbyr støtte til familier som har mistet et familiemedlem.,The bereavement center offers support to families who have lost a family member.
 "part, party",B2,en,part,,Latin via Old Norse: partr,"del (av et hele); person eller gruppe i forhold til andre, for eksempel i en konflikt; andel, lodd",Han dekket sin part av utgiftene.,He covered his share of the expenses.
 party to the case,C,expression,part i saken,,Latin,person eller gruppe som har personlige interesser i en sak,Jeg forsøkte å protestere fordi min svigersønn var part i saken.,I tried to protest because my son-in-law was a party to the case.
 party,B1,et,parti ,[parti:´],Latin,"del av noe, en viss avgrenset mengde, et begrenset område; gruppe av personer som har sluttet seg sammen",Jeg har stemt på samme parti i hele mitt liv.,I have voted for the same party all my life.
@@ -13257,6 +13267,8 @@ rugby,B2,en,rugby,[røgbi],English,"engelsk ballspill med oval ball som bæres, 
 brute,B2,en,rugg ,,,"stort, kraftig menneske eller dyr","Han var en stor rugg av en mann, med brede skuldre og sterk kropp.","He was a big hulk of a man, with broad shoulders and a strong body."
 "rock, budge",B2,verb,rugge,,Old Norse: rugga,"vogge, gynge; rokke, lee",Stolen rugget sakte frem og tilbake mens hun leste.,The chair slowly rocked back and forth as she read.
 rocking chair,B2,en,ruggestol,,,"gyngestol",Han satt avslappet i ruggestolen på verandaen.,He sat relaxed in the rucksack on the veranda.
+ruin,A2,en,ruin,,Latin,"(rest av) sammenstyrtet byggverk; ødeleggelse, undergang",De ble begravet i ruinene.,They were buried in the ruins.
+ruin,B1,verb,ruinere,,Latin,"ødelegge, skade; ødelegge økonomisk; gjøre fattig",Saken har nesten ruinert kommunens omdømme. Mange ble ruinert etter børskrakket.,The case has almost ruined the municipality's reputation. Many were ruined after the stock market crash.
 "roll, roller",A2,en,rull ,,Latin via German,"sylinderformet gjenstand, særlig redskap til å rulle åker med; noe som er rullet sammen",Han kastet rullen med teip på bordet.,He threw the roll of tape on the table.
 roll,A2,verb,rulle,,Latin via German,"bevege seg (bortover et underlag) ved å dreie seg rundt sin egen akse; trille; få til å rulle; jevne med rull eller rulle; glatte, slette; lage (noe som ligner) en kule eller rull; gå i bølgegang; bevege seg fra side til side i bølgene; drønne; rumle lenge; uttale norsk ‘r’ med tungespissen",Ballen begynte å rulle nedover bakken.,The ball started to roll down the hill.
 runway,B2,en,rullebane,,Latin via German,"bane på flyplass der fly kan ta av og lande",I mørket så det ut som om de store flyene skulle lande på hustakene rett ved rullebanen.,"In the darkness, it looked as if the big planes were going to land on the rooftops right next to the runway."
@@ -18281,12 +18293,12 @@ virulence,C,en,virulens,,Latin,evne til å fremkalle infeksjon,Forskere undersø
 virulent,C,adjective,virulent,,Latin,"infeksjonsfremkallende; ondskapsfull, giftig",Viruset var svært virulent og spredte seg raskt.,The virus was highly virulent and spread quickly.
 virus,B1,et,virus,,Latin,"sykdomsfremkallende ultramikroskopisk enhet som blant annet består av nukleinsyre; skjult dataprogram som kan kopieres inn i datafiler, programmer og operativsystemer og ødelegge dem; datavirus",Et nytt virus spredte seg raskt i befolkningen.,A new virus quickly spread through the population.
 "vortex, vertebra",B1,en,virvel ,[vi´rv(ə)l],Old Norse: hvirfill,rask kretsbevegelse; hver av de ringformede knoklene som danner ryggraden,På himmelen så vi en vakker virvel av snø.,In the sky we saw a beautiful swirl of snow.
-vertebrate ,C,et,virveldyr ,,Old Norse: hvirfill,"dyr med virvelsøyle av gruppen Vertebrata, som omfatter fisker, amfibier, krypdyr, fugler og pattedyr","Virveldyr har ryggrader og omfatter pattedyr, fugler og fisk.","Vertebrates have spines and include mammals, birds and fish."
-invertebrate ,C,adjective,virvelløs ,,Old Norse: hvirfill,som mangler ryggrad,Medusene er virvelløse skapninger som finnes i havet.,Jellyfish are invertebrate creatures found in the sea.
-"vertebral column, spinal column",C,ei,virvelsøyle,,,"en rekke nær forbundne knokler fra hodeskalle til halespiss, ryggrad","Menneskets virvelsøyle består av sju halsvirvler, tolv brystvirvler, fem bukvirvler, fem korsvirvler og fire–fem ufullstendige halevirvler.","The human vertebral column consists of seven cervical vertebrae, twelve thoracic vertebrae, five abdominal vertebrae, five sacral vertebrae and four or five incomplete caudal vertebrae."
-"tornado, typhoon",B2,en,virvelstorm ,,Old Norse: hvirfill,"større uværsområde der luftstrømmen følger sirkulære eller elliptiske baner omkring et sentralt parti med lavt trykk, tropisk storm, syklon",En kraftig virvelstorm rammet kysten i natt.,A powerful whirlwind hit the coast last night.
-whirlwind,B2,en,virvelvind ,,Old Norse: hvirfill,"sterk vind som virvler",En plutselig virvelvind skapte kaos på torget.,A sudden whirlwind created chaos in the town square.
-"spin, swirl",B1,verb,virvle,[vi`rvlə],Old Norse: hvirfill,bevege seg i virvler,Vinden begynte å virvle opp løvet.,The wind started to stir up the leaves.
+vertebrate ,C,et,virveldyr ,,Old Norse,"dyr med virvelsøyle av gruppen Vertebrata, som omfatter fisker, amfibier, krypdyr, fugler og pattedyr","Virveldyr har ryggrader og omfatter pattedyr, fugler og fisk.","Vertebrates have spines and include mammals, birds and fish."
+invertebrate ,C,adjective,virvelløs ,,Old Norse,som mangler ryggrad,Medusene er virvelløse skapninger som finnes i havet.,Jellyfish are invertebrate creatures found in the sea.
+"vertebral column, spinal column",C,ei,virvelsøyle,,Old Norse,"en rekke nær forbundne knokler fra hodeskalle til halespiss, ryggrad","Menneskets virvelsøyle består av sju halsvirvler, tolv brystvirvler, fem bukvirvler, fem korsvirvler og fire–fem ufullstendige halevirvler.","The human vertebral column consists of seven cervical vertebrae, twelve thoracic vertebrae, five abdominal vertebrae, five sacral vertebrae and four or five incomplete caudal vertebrae."
+"tornado, typhoon",B2,en,virvelstorm ,,Old Norse,"større uværsområde der luftstrømmen følger sirkulære eller elliptiske baner omkring et sentralt parti med lavt trykk, tropisk storm, syklon",En kraftig virvelstorm rammet kysten i natt.,A powerful whirlwind hit the coast last night.
+whirlwind,B2,en,virvelvind ,,Old Norse,"sterk vind som virvler",En plutselig virvelvind skapte kaos på torget.,A sudden whirlwind created chaos in the town square.
+"spin, swirl",B1,verb,virvle,[vi`rvlə],Old Norse: hvirfla,bevege seg i virvler; sette i virvelbevegelse,Vinden begynte å virvle opp løvet.,The wind started to stir up the leaves.
 wise,A2,adjective,vis,[vi:s],Old Norse: víss,"svært klok, klarsynt",Han er en vis mann med mange kloke råd.,He is a wise man with a lot of wise advice.
 "way, manner",B1,en-ei-et,vis,[vi:s],Old Norse: vís,"måte, bruk, skikk",Han er snill på sitt vis.,He's kind in his own way.
 opposite,C,preposition,vis-à-vis,[visavi:´],French,"overfor, rett imot",De satt vis-à-vis oss ved bordet.,They sat opposite us at the table.
