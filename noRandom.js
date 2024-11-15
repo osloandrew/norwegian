@@ -4,6 +4,7 @@ const noRandom = [
   "analsex",
   "anus",
   "b",
+  "balle",
   "bitch",
   "brunst",
   "brunstig",
