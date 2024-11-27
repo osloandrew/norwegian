@@ -443,26 +443,29 @@ function restoreSearchContainerInner() {
 // Check if an audio file exists based on the English title
 async function hasAudio(titleEnglish) {
   const encodedTitleEnglish = encodeURIComponent(titleEnglish);
-  const audioFileURL = `Resources/Audio/audio-${encodedTitleEnglish}.m4a`;
+  const audioFileURLs = [
+    `Resources/Audio/${encodedTitleEnglish}.m4a`,
+    `Resources/Audio/${encodedTitleEnglish}.mp3`,
+  ];
 
-  try {
-    // Check if audio exists for the English title
-    const response = await fetch(audioFileURL, {
-      method: "HEAD",
-      cache: "no-cache",
-    });
-    if (response.ok) {
-      console.log(`Audio found for English title: ${audioFileURL}`);
-      return audioFileURL;
+  for (const audioFileURL of audioFileURLs) {
+    try {
+      // Check if the audio file exists
+      const response = await fetch(audioFileURL, {
+        method: "HEAD",
+        cache: "no-cache",
+      });
+      if (response.ok) {
+        console.log(`Audio found: ${audioFileURL}`);
+        return audioFileURL;
+      }
+    } catch (error) {
+      console.error(`Error checking audio for ${audioFileURL}:`, error);
     }
-
-    // If the file does not exist
-    console.log(`No audio found for title: ${titleEnglish}`);
-    return null;
-  } catch (error) {
-    console.error(`Error checking audio for ${titleEnglish}:`, error);
-    return null;
   }
+
+  console.log(`No audio found for title: ${titleEnglish}`);
+  return null; // Return null if no audio file is found
 }
 
 // Generate a rating div for each story
