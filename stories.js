@@ -144,32 +144,20 @@ async function displayStoryList(filteredStories = storyResults) {
     [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
   }
 
-  // Limit the results to a maximum of 10 stories
-  const limitedStories = filtered.slice(0, 10);
-
   // Generate HTML for the filtered, shuffled stories
-  let htmlString = `
-        <div class="stories-result-header">
-            <h2>Available Stories</h2>
-        </div>
-    `;
+  let htmlString = ""; // Start with an empty string, as we don't need the header anymore.
 
-  // Use Promise.all to handle asynchronous audio checks for each story
-  const storiesWithAudio = await Promise.all(
-    limitedStories.map(async (story) => {
-      const cefrClass = getCefrClass(story.CEFR); // Determine the CEFR class for styling
-      const genreIcon = genreIcons[story.genre.toLowerCase()] || ""; // Get the appropriate genre icon
+  for (const story of filtered) {
+    const cefrClass = getCefrClass(story.CEFR); // Determine the CEFR class for styling
+    const genreIcon = genreIcons[story.genre.toLowerCase()] || ""; // Get the appropriate genre icon
 
-      // Check if audio file exists asynchronously
-      const audioExists = await hasAudio(story.titleEnglish);
-
-      return `
+    htmlString += `
                 <div class="stories-list-item" data-title="${
                   story.titleNorwegian
                 }" onclick="displayStory('${story.titleNorwegian.replace(
-        /'/g,
-        "\\'"
-      )}')">
+      /'/g,
+      "\\'"
+    )}')">
                     <div class="stories-content">
                         <h2>${story.titleNorwegian}</h2>
                         ${
@@ -179,23 +167,16 @@ async function displayStoryList(filteredStories = storyResults) {
                         }
                     </div>
                     <div class="stories-detail-container">
-                        ${
-                          audioExists
-                            ? `<div class="stories-genre"><i class="fas fa-volume-up"></i></div>`
-                            : ""
-                        }  <!-- Audio icon if available -->
                         <div class="stories-genre">${genreIcon}</div>  <!-- Genre icon -->
                         <div class="game-cefr-label ${cefrClass}">${
-        story.CEFR
-      }</div>  <!-- CEFR label -->
+      story.CEFR
+    }</div>  <!-- CEFR label -->
                     </div>
                 </div>
             `;
-    })
-  );
+  }
 
   // Join the generated HTML for each story and insert into results container
-  htmlString += storiesWithAudio.join("");
   document.getElementById("results-container").innerHTML = htmlString;
   hideSpinner(); // Hide spinner after story list is rendered
 }
