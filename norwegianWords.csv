@@ -104,7 +104,7 @@ badge of honor,B2,ei,æresbevisning,,German via Old Norse,"utmerkelse, ærefullt
 sense of honor,C,en,æresfølelse ,,German via Old Norse,"følelse for hva som sømmer seg, omhu for sin vandel",Hans æresfølelse er veldig sterk.,His sense of honor is very strong.
 guest of honor,C,en,æresgjest ,,German via Old Norse,hedersgjest,Æresgjesten ankom til stor applaus.,The guest of honor arrived to great applause.
 word of honor,B2,et,æresord,,German via Old Norse,"forsikring gitt med ryktet eller æren som sikkerhet",Æresordet hans betydde mye for ham.,His word of honor meant a lot to him.
-honorary prize,B2,en,ærespris,,,"pris utdelt som særlig ærefull belønning (i vitenskap, kunst eller idrett)",Han ble tildelt en ærespris for sitt livslange arbeid innen forskning.,He was awarded an honorary prize for his lifelong work in research.
+honorary prize,B2,en,ærespris,,German via Old Norse,"pris utdelt som særlig ærefull belønning (i vitenskap, kunst eller idrett)",Han ble tildelt en ærespris for sitt livslange arbeid innen forskning.,He was awarded an honorary prize for his lifelong work in research.
 matter of honor,C,ei,æressak,,German via Old Norse,"noe en er æresforpliktet til",Det var en æressak for ham å betale spillegjelden.,It was a matter of honor for him to pay the gambling debt.
 obsessed with honor,C,adjective,"æresyk, æresjuk",,German via Old Norse,"besatt av trang til å vinne ære og berømmelse",Han ble ansett som æresyk på grunn av sin stolthet.,He was considered honor-bound because of his pride.
 honest,A2,adjective,ærlig ,,German via Old Norse,"sannferdig, oppriktig, uforstilt",Hun er kjent for å være ærlig i alle situasjoner.,She is known for being honest in all situations.
@@ -133,6 +133,7 @@ agenda,B1,en,agenda,[age´nda],Latin,"sakliste, dagsorden; tenkt liste over sent
 agent,B1,en,agent,[age´nt],Latin,"selger, salgsrepresentant; person som arbeider i etterretningstjeneste; spion",Han jobber som agent for et internasjonalt selskap.,He works as an agent for an international company.
 act,C,verb,agere,,Latin,spille (en rolle); opptre som; handle,Han måtte agere raskt for å løse problemet.,He had to act quickly to solve the problem.
 "aggregate, unit",B2,et,aggregat,,Latin,samling av mange enkeltdeler; kombinasjon av maskiner som virker sammen; frittstående maskin som produserer strøm; sammensatt jordpartikkel; mineral av flere krystaller,Generatoren koblet til et stort aggregat.,The generator connected to a large aggregate.
+aggregate state,C,en,aggregattilstand,,,"enhver av de fire hovedformene et stoff kan finnes i (fast stoff, væske, gass, plasma)","Vann kan ha fast, flytende eller gassform som sin aggregattilstand.","Water can have solid, liquid or gaseous form as its aggregate state."
 aggregate,C,verb,aggregere,,Latin,koble sammen; samle i en bestemt orden; samle seg,Dataene ble aggregert for å lage en samlet rapport.,The data was aggregated to create an overall report.
 aggression,B2,en,aggresjon,,Latin,væpnet overfall; angrep; følelse eller atferd som er preget av en fiendtlig holdning; oppførsel som har til hensikt å forårsake skade eller smerte,Aggresjonen hans overrasket alle som kjente ham som en rolig person.,His aggression surprised everyone who knew him as a calm person.
 aggressive,B2,adjective,aggressiv,[a´gresiv],Latin,"stridslysten, truende",Krokodiller er mer aggressive overfor mennesker enn alligatorer.,Crocodiles are more aggressive towards humans than alligators.
@@ -1183,6 +1184,7 @@ clash,B2,verb,barke,,,"bære, fare, sette; komme i fysisk konfrontasjon; ryke, t
 bosom,B2,en,barm,,Old Norse: baðmr,"bringe, bryst; kvinnebryst",Hun la hånden over barmen i lettelse.,She put her hand over her bosom in relief.
 merciful,B2,adjective,barmhjertig,[barmjæ´rti],German,"godhjertet, nådig",Dommeren viste seg barmhjertig og ga den unge lovbryteren en mild straff.,The judge showed mercy and gave the young offender a lenient sentence.
 mercy,B2,ei,barmhjertighet,,German,det å være barmhjertig; medlidenhet,"I en handling av barmhjertighet, tilga hun sin tidligere venn for de sårende ordene.","In an act of mercy, she forgave her former friend for the hurtful words."
+mercy killing,C,et,barmhjertighetsdrap,,,drap som blir begått for å spare en dødssyk for lidelser; eutanasi,Noen land tillater barmhjertighetsdrap under strenge medisinske vilkår.,Some countries allow mercy killing under strict medical conditions.
 child,A1,et,barn,[ba:rn],Old Norse: barn,avkom i første ledd etter mennesker; person som ikke er voksen; foster; nyfødt barn,Filmen er forbudt for barn.,The film is prohibited for children.
 child of one's time,B2,expression,barn av sin tid,,Old Norse,person formet av tiden han eller hun lever i,"Han var virkelig et barn av sin tid, formet av 80-tallets trender.","He was truly a child of his time, shaped by the trends of the 80s."
 childhood years,B1,et,barneår,,Old Norse,år da en er barn; barndom,"Jeg husker fortsatt de lykkelige barneårene mine, da sommerdagene varte evig og bekymringene var få.","I still remember my happy childhood years, when summer days lasted forever and worries were few."
@@ -4421,6 +4423,8 @@ tribe,B2,en,folkestamme,,Old Norse,gruppe folk med felles opphav,Arkeologene fan
 population,B2,et,folketall ,,Old Norse,antall innbyggere; innbyggertall,Byen har et raskt voksende folketall.,The city has a rapidly growing population.
 census,B2,ei,folketelling,,Old Norse,"offisiell opptelling av innbyggere",De gjennomførte en stor folketelling i hele landet.,They conducted a major census of the entire country.
 popular belief,B2,ei,folketro ,,Old Norse,"folkelig tro på eller forestilling om magiske eller mytiske fenomener",Han fortalte om tradisjonene i folketroen.,He talked about the traditions of folklore.
+"elected, popularly elected",B2,adjective,folkevalgt,,,valgt av folket i frie valg,Den folkevalgte representanten holdt en tale om demokratiets betydning.,The elected representative gave a speech on the importance of democracy.
+common sense,B1,et,folkevett,,,sunn forstand,Litt folkevett sier at man bør behandle andre med respekt.,Some common sense says that you should treat others with respect.
 popularity,B2,en,folkeyndest,,Old Norse,folkegunst,Hun ble møtt med stor folkeyndest for sin innsats.,She was met with great public appreciation for her efforts.
 crowded,B1,adjective,folksom,,,med mye folk samlet,Her var det folksomt.,Here it was crowded.
 "yield, bounty, fold",C,et,"foll, fold",,,avlingsmengde i forhold til såmengde; avkastning,Åkeren gir kun tre til fire foll.,The field only yields three- to fourfold.
@@ -4438,6 +4442,7 @@ phonetic,B2,adjective,fonetisk,,Greek,som gjelder fonetikk; lydrett,Ordet uttale
 phoenix,B2,en,"føniks, fugl føniks",,Greek,"fugl som lever fem hundre år, brenner seg selv og står opp igjen; noe positivt som vokser fram fra en vanskelig eller håpløs situasjon; noe eller noen som greier å snu noe ødelagt eller negativt",Føniksen er et symbol på gjenfødelse og oppstandelse fra asken.,The phoenix is a symbol of rebirth and resurrection from the ashes.
 "for, in front of, too",A1,preposition,for,[får:],"Old Norse: fyr, fyrir","foran, fremfor, nær; med utgangspunkt i, i forhold til; til støtte, gagn for; med hensyn til, når det gjelder; med formål om; på grunn av; som er beregnet på, tiltenkt; sett ut fra, i relasjon til; med tanke på; ved tildeling av egenskap eller identitet; som; mot; i stedet for; altfor, i overkant",Kan du vaske den for meg? Det blir for langt å sykle.,Can you wash it for me? It's too far to cycle.
 "because, since",A1,conjunction,for,[får:],"Old Norse: fyr, fyrir","sideordnende konjunksjon ved grunn, årsak","Han lå, for han var syk.",He was lying down because he was sick.
+feed,A2,et,fôr,,Old Norse: fóðr,mat til husdyr,Vi kjøpte mer fôr til hestene i går.,We bought more feed for the horses yesterday.
 "heavy, capable",C,adjective,før,,Old Norse: fǿrr,"som greier eller kan; i stand (til); dugende, egnet; i god form; sterk, sprek; som ter seg eller er på en viss måte; tykkfallen, ferm","Hun fyldte en god del av sengen, brei og før som hun var.","She took up a good part of the bed, wide and heavy as she was."
 before,A1,preposition,før,[fø:r],Old Norse: fyrr,tidligere enn; på et tidligere tidspunkt; heller,Slik var det før i tiden.,That's how it used to be.
 ago,A2,expression,"for ... siden, for ... sia",,,brukt til å betegne at utfyllingen angir det tidsrommet som skiller noe tidligere fra det nåværende,Hennes egen generasjon ble borte for et kvart århundre siden.,Her own generation disappeared a quarter of a century ago.
@@ -4483,7 +4488,6 @@ for the most part,B2,expression,for størstedelen,,Old Norse,"for det meste, ves
 for time and eternity,B2,expression,for tid og evighet,,Old Norse,for all fremtid,Valget er tatt for tid og evighet.,The choice is made for time and eternity.
 for the time being,A2,expression,for tiden,,Old Norse,nå,Jeg jobber for tiden som frivillig i en organisasjon.,I currently work as a volunteer in an organization.
 before the common era,B2,expression,"før vår tidsregning",,Old Norse,"før år 1",Den første boken om temaet ble skrevet før vår tidsregning.,The first book on the subject was written before our era.
-feed,A2,et,"fôr, for",,Old Norse: fóðr,mat til husdyr,Vi kjøpte mer fôr til hestene i går.,We bought more feed for the horses yesterday.
 "gift, give as a gift",B2,verb,forære,,German,gi som gave,Museet ble forært en samling moderne kunst.,The museum was presented with a collection of modern art.
 "gift, present",B2,ei,foræring,,German,gave,Hun fikk et arvestykke som en foræring fra familien.,She received an heirloom as a gift from her family.
 contempt,B2,en,forakt,,German,"følelse, tanke eller opptreden preget av mishag og motvilje",Han følte en dyp forakt for urettferdigheten.,He felt a deep contempt for the injustice.
@@ -4573,6 +4577,7 @@ disappear,B1,verb,fordufte,,German,forsvinne,"Da politiet kom, var tyven forduft
 deepen,B2,verb,fordype,,German,gjøre dypere,Jeg elsker å fordype meg i gode bøker om filosofi.,I love to immerse myself in good books on philosophy.
 "immerse oneself, specialize oneself",B2,expression,fordype seg,,,sette seg grundig inn i noe,Hun ville fordype seg i filosofi for å forstå livets store spørsmål.,She wanted to immerse herself in philosophy to understand life's big questions.
 "immersion, specialization, depression",B2,ei,"fordypning, fordyping, fordjupning, fordjuping",,,det å fordype seg; søkk,Studiet hadde en egen fordypning i moderne litteratur.,The program had a separate specialization in modern literature.
+feed,B2,verb,fôre,,Old Norse: fóðra,gi fôr,De måtte fôre dyrene hver morgen.,They had to feed the animals every morning.
 road conditions,B2,et,føre,,Old Norse: fǿri,"tilstand på veidekke eller jordoverflaten, særlig ved snø og med tanke på ferdsel",Uværet har ført til dårlig føre på veiene.,The storm has led to poor conditions on the roads.
 "lead, guide",A2,verb,føre,,Old Norse: fǿra,"flytte fra ett punkt til et annet; bringe, frakte, transportere; vise vei fra ett punkt til et annet; gi adgang (til); bringe til en tilstand eller situasjon; få til følge, føre med seg; resultere i; påvirke til å flytte seg i en bestemt retning; lede, drive, styre; stå i spissen for; lede, styre, kommandere; drive med (over lengre tid); utføre, gjøre; skrive ned systematisk eller fortløpende; ha til salgs; være utstyrt med",De er kjent for å føre en aggressiv politikk.,They are known for their aggressive policies.
 lead the way,B2,expression,føre an,,Old Norse,stå i spissen (for); gå først,Lederen for syttendemaikomiteen førte an i barnetoget.,The head of the Seventeenth May Committee led the children's procession.
@@ -4581,7 +4586,6 @@ succeed,B2,expression,føre frem,,Old Norse,gi (positivt) resultat; lykkes,Anken
 come with,B2,expression,føre med seg,,Old Norse,"få som følge, resultat eller konsekvens",Vervet fører med seg mye ansvar. Klimaendringene fører med seg mer ekstremvær.,The job comes with a lot of responsibility. Climate change brings more extreme weather.
 build,B2,expression,føre opp,,Old Norse,bygge (en bygning); skrive ned på liste eller lignende,Hytta ble ført opp på rekordtid.,The cabin was erected in record time.
 conduct oneself,B2,expression,føre seg,,Old Norse,"te seg, oppføre seg; fremgå, fremtre",Du må føre deg med verdighet. Han fører seg med selvsikkerhet og autoritet.,You need to carry yourself with dignity. He carries himself with confidence and authority.
-feed,B2,verb,"fôre, fore",,Old Norse: fóðra,gi fôr,De måtte fôre dyrene hver morgen.,They had to feed the animals every morning.
 prevent,B2,verb,forebygge ,,German,hindre at noe negativt skjer,Det er lettere å forebygge enn å helbrede.,It's easier to prevent than to cure.
 refine,B2,verb,foredle,,German,"gjøre edlere, mer verdifull; bearbeide (råstoff eller halvfabrikater) til industrivarer",Å foredle råmaterialer til ferdige produkter krever dyktighet.,Turning raw materials into finished products requires skill.
 "address, lecture",B2,verb,foredra,,German,fremføre; holde foredrag; forelese,Han liker å foredra om historiske temaer.,He enjoys lecturing on historical topics.
@@ -5306,7 +5310,9 @@ deep-fry,B2,verb,fritere,[frite:´rə],French,"koke eller steke i frityr",Hun v
 free time,A1,ei,fritid ,,German,"tid da en har fri fra arbeid, skole eller lignende",Det er slikt jeg gjør i fritiden.,That's what I do in my spare time.
 leisure activity,A2,en,fritidsaktivitet ,,German,aktivitet som drives på fritiden,Fisking er en populær fritidsaktivitet.,Fishing is a popular leisure activity.
 free fall,B2,expression,"fritt fall",,German,"fall som ikke blir hindret av mekanisk motstand; rask og kraftig nedgang i verdi, prestisje eller lignende",Vekten raste ned i fritt fall.,The weight came down in free fall.
+outspoken,B2,adjective,"frittalende, fritt-talende, fritalende",,,som taler åpent og beint frem,Hun er kjent som en frittalende kvinne.,She's known as an outspoken woman.
 detached,B2,adjective,frittstående,,German,som står for seg selv,Huset sto helt frittstående uten andre bygninger rundt.,The house stood alone with no other buildings around it.
+free-floating,C,adjective,frittsvevende,,,som glir fritt (i lufta); uten bestemt forbindelse eller sammenheng,Teorien hans om frittsvevende planeter ble møtt med skepsis.,His theory about free-floating planets was met with skepticism.
 frying oil,B1,en,frityr,[frity:´r],French,"fett eller olje som en koker eller steker mat i",Restauranten serverte mat laget i frityr.,The restaurant served deep-fried food.
 voluntary,B1,adjective,frivillig,,,"av egen vilje, selvvalgt, godvillig, valgfri; som gjør noe frivillig",Arbeidet var helt frivillig.,The work was completely voluntary.
 lush,B2,adjective,frodig,,,"grøderik, blomstrende, fruktbar, kraftig; yppig; livlig, rik",Hagen var grønn og frodig etter sommerregnet.,The garden was green and lush after the summer rain.
@@ -5912,6 +5918,7 @@ philanthropy,C,ei,godgjørenhet,,Old Norse,"det å være godgjørende",Hennes g
 "goodness, kindness",A2,ei,godhet,,Old Norse,"sympati, velvilje; barmhjertighet",Han viste stor godhet overfor de fattige.,He showed great kindness to the poor.
 virtue signaling,C,ei,godhetsposering,,Old Norse,ytringer eller handlinger som er ment å fremstå som moralsk høyverdige for andre,Hennes innlegg om veldedighet var bare godhetsposering.,Her post about charity was just good-natured posturing.
 virtue signaler,C,en,godhetsposør,,Old Norse,"person som utviser eller viser tilsynelatende godhet eller moralsk høyverdige holdninger, men som blir oppfattet som overfladisk eller hyklersk",Han er en typisk godhetsposør som alltid viser seg frem.,He's a typical do-gooder who's always showing off.
+"kind-hearted, kindhearted",B1,adjective,"godhjertet, godhjerta",,,"omsorgsfull, snill og hjelpsom mot andre; gavmild, raus",Hun var en godhjertet kvinne som alltid hjalp dem som trengte det.,She was a kind-hearted woman who always helped those in need.
 "candy, treat",A2,en,godis,[go:´dis],Swedish,søtsak; slikkeri; godbit,Kan jeg få en godis?,Can I have a candy?
 approve,B2,verb,godkjenne,,Old Norse,"stadfeste som gyldig eller god nok; godta, ratifisere",Planene må godkjennes først.,The plans must be approved first.
 "good-natured, cheerful",B2,adjective,godlynt,,,"vennlig, snill og fredelig; mild, godslig, godmodig",Han var en godlynt person som alltid spredte glede rundt seg.,He was a good-natured person who always spread joy around him.
@@ -6172,6 +6179,8 @@ godfather,B2,en,gudfar,,Old Norse,"mann som bærer eller har båret et barn til 
 goddess,B2,ei,gudinne,[gudi`n:ə],Old Norse,"kvinnelig gud",Den gamle gudinnen ble tilbedt i antikken.,The ancient goddess was worshipped in antiquity.
 blasphemous,C,adjective,gudsbespottelig,,Old Norse,som spotter Gud; blasfemisk,Han ble anklaget for en gudsbespottelig uttalelse.,He was accused of making a blasphemous statement.
 blasphemy,C,en,gudsbespottelse,,Old Norse,det å spotte Gud eller religion; blasfemi,De diskuterte betydningen av gudsbespottelse i ulike kulturer.,They discussed the meaning of blasphemy in different cultures.
+"worship, worship of God",C,en,gudsdyrkelse,,,det å tilbe og dyrke Gud (i en monoteistisk religion); gudsdyrking,Gudsdyrkelse har tatt mange forskjellige former gjennom historien.,Worship has taken many different forms throughout history.
+"worship, worship of God",C,ei,gudsdyrking,,,det å tilbe og dyrke Gud (i en monoteistisk religion); gudsdyrkelse,Gudsdyrking kan være både individuell og kollektiv praksis.,Worship can be both an individual and collective practice.
 house of worship,B1,et,gudshus,,Old Norse,bygning der det foregår gudsdyrkelse,De samlet seg til gudstjeneste i det gamle gudshuset.,They gathered for a church service in the old church building.
 "thank God, thankfully",B1,interjection,"gudskjelov, gud skje lov",,,takk og pris; heldigvis,Gudskjelov at du kom.,Thank God you came.
 church service,B1,en,gudstjeneste,,Old Norse,seremoniell sammenkomst for å dyrke Gud,Vi gikk til gudstjeneste hver søndag.,We went to church every Sunday.
@@ -10721,6 +10730,8 @@ masterful,C,adjective,mesterlig,,Old Norse,"spesielt dyktig utført; utmerket, y
 masterpiece,B2,et,mesterstykke,,Latin,prøvearbeid som en svenn måtte gjøre for å bli mester; fremragende arbeid eller prestasjon,Det mesterstykket kan ingen gjøre henne etter.,No one can replicate that masterpiece.
 masterpiece,B2,et,mesterverk,,Latin,"mesterstykke, storverk",Kunstverket ble sett på som et ekte mesterverk.,The artwork was seen as a true masterpiece.
 master,B1,verb,mestre ,,Latin,"beherske, ha tak på, greie, være herre over",Han jobber hardt for å mestre sporten.,He works hard to master the sport.
+mastery,B2,ei,mestring,,,"det å mestre noe, for eksempel problemer, stress og utfordringer",For alle kronisk syke er kunnskap og mestring en kilde til bedre livskvalitet.,"For all chronically ill people, knowledge and mastery are a source of better quality of life."
+"sense of accomplishment, sense of achievement, sense of mastery",B2,en,mestringsfølelse,,,god følelse av å mestre noe,Hun følte en sterk mestringsfølelse da hun bestod eksamen.,She felt a strong sense of accomplishment when she passed the exam.
 metadata,B2,en,metadata,,,"informasjon som beskriver annen informasjon, for eksempel en digital fil (tekstdokument, bilde, film); data om data",Vi ønsker ikke en generell grensekryssende overvåking av nordmenns metadata.,We do not want general cross-border surveillance of Norwegians' metadata.
 metaphor,B2,en,metafor,[metafo:´r],Greek,"ord eller uttrykk som blir brukt i overført betydning, for eksempel speil i stedet for vannflate",Reisen er en urgammel metafor for livet.,Travel is an ancient metaphor for life.
 metaphorical,B2,adjective,metaforisk,,Greek,"overført, billedlig",Ordet er brukt metaforisk.,The word is used metaphorically.
@@ -11063,6 +11074,8 @@ motorcycle,A2,en,motorsykkel,,Latin,større tohjulet kjøretøy med styrehåndta
 opposite,B1,adjective,motsatt ,,Old Norse,"annen, omvendt, helt ulik; som er satt eller stilt imot",De to partiene har motsatte synspunkter på saken.,The two parties have opposing views on the matter.
 "contrast, contradiction",B1,ei,motsetning,,Old Norse,motstykke; motsatt forhold; kontrast; noe som står i strid med noe annet,Resultatet står i skarp motsetning til innsatsen.,The result is in stark contrast to the effort.
 "oppose, resist",B2,verb,motsette ,,Old Norse,"sette seg imot, prøve å hindre, opponere mot",Han bestemte seg for å motsette seg avgjørelsen.,He decided to oppose the decision.
+contradict,B1,verb,motsi,,,"si imot, innvende mot, opponere mot",Han likte ikke å motsi sjefen sin i møter.,He didn't like to contradict his boss in meetings.
+contradiction,B2,en,motsigelse,,,"ytring mot noe; innvending, innsigelse, protest; inkonsekvens, misforhold; motsetning",Det var en tydelig motsigelse mellom hans ord og handlinger.,There was a clear contradiction between his words and actions.
 opposing player,B2,en,motspiller ,,Old Norse,ofte til forskjell fra medspiller; spiller i forhold til den han eller hun spiller mot,Motspilleren hans var veldig dyktig under hele kampen.,His opponent was very good throughout the match.
 resistance,B1,en,motstand,[mo:`tstan],Old Norse,"det å sette seg imot eller prøve å hindre, motarbeiding",Motstanden mot prosjektet har økt de siste månedene.,Opposition to the project has increased in recent months.
 opponent,B1,en,motstander,,Old Norse,"konkurrent, motpart; fiende",Motstanderen tapte kampen etter flere feil.,The opponent lost the match after several errors.
@@ -12112,6 +12125,7 @@ ladle,B2,ei,"øse, ause",,Old Norse: ausa,rund beholder eller skål med håndtak
 "ladle, scoop, pour",B2,verb,"øse, ause",,Old Norse: ausa,"ta opp væske eller løs masse med øse eller lignende; tømme (særlig for vann); lense; styrte, strømme, hølje; komme med en flom av ord (i følelsesutbrudd); ta for seg; gjøre seg nytte av (noe som fins i store mengder); bruke",De begynte å øse vannet ut av båten.,They started to scoop the water out of the boat.
 Oslo,A1,et,Oslo,[o`ʃlo],,"Norges hovedstad og største by, og dessuten en av de eldste byene i landet",Oslo er hovedstaden i Norge og en av de eldste byene i landet.,Oslo is the capital of Norway and one of the oldest cities in the country.
 person from Oslo,B2,en,osloenser,,,person fra Oslo,Han er en ekte osloenser med stolthet for byen sin.,He's a true Oslo native with pride in his city.
+"Ottoman person, Ottoman",C,en,osman,,,tyrker som tilhørte Det osmanske riket,En osman ledet hæren under slaget.,An Ottoman led the army during the battle.
 Ottoman,C,adjective,osmansk,[osma:´nsk],Arabic,tyrkisk,"Venezia, Genova, paven og det spanske monarkiet gikk sammen mot de osmanske tyrkerne.","Venice, Genoa, the Pope and the Spanish monarchy joined forces against the Ottoman Turks."
 cheese,A1,en,ost,[ost],Old Norse: ostr,næringsmiddel av ostemasse eller innkokt myseblanding som brukes til pålegg,Jeg liker å spise ost på brødskiva.,I like to eat cheese on a slice of bread.
 east,A1,et,"øst, aust",[øst],Old Norse,"himmelretning der sola står opp",Solen står opp i øst hver morgen.,The sun rises in the east every morning.
@@ -17144,6 +17158,7 @@ timeline,B2,ei,tidslinje,,,"lineær oversikt over klokkeslett, datoer eller års
 "time-related, temporal",B2,adjective,tidsmessig,,Old Norse,"som passer for, tilfredsstiller tidens krav (for eksempel moter)",Huset var innredet på en tidsmessig passende måte.,The house was decorated in a time-appropriate manner.
 in due time,B1,adverb,tidsnok,,,tidlig nok,Du hører tidsnok fra ligningskontoret.,You will hear from the tax office in due time.
 habitually late person,B2,en,tidsoptimist,,Old Norse,person som (stadig) undervurderer hvor lang tid noe tar og derfor får det travelt eller blir forsinket,Han var kjent som en optimistisk tidsoptimist som ofte kom sent.,He was known as a time optimist who was often late.
+time pressure,B1,et,tidspress,,,"(virkning på et menneske av det å ha) dårlig tid",Jeg jobber best under tidspress.,I work best under time pressure.
 point in time,A2,et,tidspunkt,,Old Norse,"tid, klokkeslett, øyeblikk",Vi har avtalt et bestemt tidspunkt for møtet.,We have agreed on a specific time for the meeting.
 era,B2,ei,tidsregning,,,måte å beregne og inndele tiden på,Vår tidsregning begynner med Kristi fødsel.,Our era begins with the birth of Christ.
 time period,B1,et,tidsrom,,Old Norse,"periode",Kurset foregår over et tidsrom av tre uker.,The course takes place over a period of three weeks.
@@ -17162,6 +17177,7 @@ begging letter,B2,et,tiggerbrev,,Old Norse,"brev der en ber mottakeren om penger
 "to, of",A1,preposition,til,[til:],Old Norse: til,"ved angivelse av bevegelse mot et bestemmelsessted, mål eller sluttpunkt",Jeg skal til butikken senere.,I'm going to the store later.
 at all hours of the day,B2,expression,"til alle døgnets tider",,Old Norse,støtt,Vaktene arbeider til alle døgnets tider for sikkerheten.,The guards work around the clock to ensure safety.
 "partly, partially, in part",B2,expression,til dels,,,til en viss grad; delvis,Det var meldt opphold og til dels pent vær.,The weather was forecast to be no rain and partly sunny.
+to death,B1,expression,til døde,,,(gjøre noe) med døden som resultat,Han ble slått til døde i en voldelig krangel.,He was beaten to death in a violent argument.
 forever,B2,expression,"til evig tid",,Old Norse,"for bestandig",Monumentet skulle stå der til evig tid.,The monument was to stand there forever.
 in vain,B2,expression,til fånyttes,,Old Norse,til ingen nytte,Forsøket endte til fånyttes.,The attempt ended in failure.
 in common,B1,expression,til felles,,Old Norse,"dele, ha sammen (egenskap, interesse eller erfaring)",Vi har mye til felles i interesser.,We have a lot in common in our interests.
@@ -19120,6 +19136,7 @@ toolbox,B1,ei,verktøykasse ,,,mer eller mindre spesialbygd kasse til verktøy,M
 protection,B2,et,vern ,,Old Norse,beskyttelse; det å verne,Regjeringen arbeider med å styrke nasjonal vern av naturen.,The government is working to strengthen national protection of nature.
 protect,B1,verb,verne,[væ:`rnə],Old Norse: verna,"forsvare, trygge, verge",Vi må verne naturen for fremtiden.,We need to protect nature for the future.
 safety glasses,B2,ei,vernebrille,,Old Norse,brille med solide glass og tettsluttende innfatning brukt som vern mot øyenskader ved visse typer arbeid,Bruk vernebriller under sveising!,Wear safety goggles during welding!
+"hard hat, safety helmet",B1,en,vernehjelm,,,hjelm som skal verne hodet mot slag og støt,Alle arbeidere på byggeplassen måtte bruke vernehjelm.,All workers on the construction site had to wear hard hats.
 protected area,B1,et,verneområde,,Old Norse,område hvor myndighetene har bestemt at naturen skal vernes mot inngrep eller forstyrrelser,Det er det største naturreservatet i Oslo og Oslos nest største verneområde.,It's the largest nature reserve in Oslo and Oslo's second largest protected area.
 conscription,B2,ei,verneplikt,,Old Norse,"(plikt til å gjøre) militærtjeneste","I Norge er det allmenn verneplikt, noe som betyr at både menn og kvinner kan bli innkalt til militærtjeneste.","Norway has universal conscription, which means that both men and women can be called up for military service."
 conscripted,B2,adjective,vernepliktig,,Old Norse,"som har verneplikt",Han er vernepliktig og må tjenestegjøre i hæren.,He is a conscript and has to serve in the army.
