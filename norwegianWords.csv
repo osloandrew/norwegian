@@ -250,8 +250,10 @@ alien,B2,en,alien,[ei´liən],Latin via French via English: alien,utenomjordisk 
 alienation,C,en,alienasjon,[alienaʃo:´n],Latin via English: alienation,fremmedgjøring; fremmedgjorthet,Alienasjonen i samfunnet kan føre til følelser av ensomhet.,Alienation in society can lead to feelings of loneliness.
 alienate,C,verb,alienere,[aliene:´rə],Latin: alienare,fremmedgjøre,Hans upassende kommentarer begynte å alienere vennene hans.,His inappropriate comments began to alienate his friends.
 alcohol,A2,en,alkohol,"[alkoho:´l], [a´lkohol]",Arabic via Latin,"rusdrikk, særlig brennevin",Jeg nyter ikke alkohol.,I do not enjoy alcohol.
+alcohol poisoning,B2,ei,alkoholforgiftning,,,forgiftning som skyldes alkoholmisbruk,,
 alcoholic,B2,adjective,alkoholholdig ,,Arabic via Latin,"som inneholder alkohol",De serverte både alkoholholdige og alkoholfrie drikker.,They served both alcoholic and non-alcoholic drinks.
 alcoholic,B2,en,alkoholiker,[alkoho:´likər],Arabic via Latin,"person med sykelig trang til alkohol, alkoholist","Han har vært alkoholiker i mange år, men er nå i behandling.","He has been an alcoholic for many years, but is now in treatment."
+alcoholism,B2,en,alkoholisme,,,avhengighet av alkohol som går ut over fysisk og psykisk helse; kronisk alkoholforgiftning,,
 alcohol abuse,B2,en-et,alkoholmisbruk,,Arabic via Latin,"overdrevet inntak, misbruk, av alkohol over lengre tid",Alkoholmisbruk er et alvorlig samfunnsproblem.,Alcohol abuse is a serious social problem.
 all,A1,numeral,all,[al:],Old Norse: allr,"hel, uten unntak; i fullt omfang; i (altfor) stor mengde; størst mulig, største; hva som helst; enhver form for; hver eneste; hver og en; allting; det hele; det eneste; så mye som",Det er tydelig for all verden.,It's clear for all the world to see.
 all PR is good PR,B2,expression,all PR er god PR,,,all (offentlig) oppmerksomhet er bra,"All PR er god PR, som de sier.","All PR is good PR, as they say."
@@ -3060,6 +3062,7 @@ drizzle,C,et,dusk,,,duskregn,"Det kom en svak dusk fra skyene, så de tok på re
 drizzle,B2,et,duskregn,,,fint og lett regn,Folk ventet i duskregnet.,People waited in the drizzle.
 drizzle,B2,verb,duskregne,,,regne lett; yre,Det duskregner og er kaldt.,It's drizzling and cold.
 reward,B1,en,dusør,[dusø:´r],French,belønning for å finne noe; finnerlønn,Det var satt en dusør på fangsten av tyven.,There was a reward for the capture of the thief.
+dust,C,verb,duste,,,"støve; strø, drysse, pudre; tørke støv; boltre seg, leke; duge, virke, nytte",,
 "silly, dusty",B2,adjective,"dustete, dustet",,,"støvete; tomsete, toskete",Filmen virket litt dustete og urealistisk.,The movie seemed a bit silly and unrealistic.
 hibernation,B2,en,dvale,,Old Norse,"tilstand (hos levende organismer) med nedsatt aktivitet, stopp i vekst og nedsatte livsfunksjoner på grunn av ugunstige ytre forhold; passivitet, ventetid, pause",Dyret går i dvale om vinteren.,The animal hibernates in winter.
 "dwell, rest",B2,verb,dvele,,Old Norse: dvelja,"drøye, ta seg god tid",Han liker å dvele ved filosofiske tanker.,He likes to dwell on philosophical thoughts.
@@ -5143,6 +5146,7 @@ great,B2,adjective,framifrå,"[fra`m:ifrå], [fra´m:ifrå]",Old Norse,"gjev, yp
 franchise,B2,en,franchise,[fræ´ntʃais],,"lisensordning for produksjon, salg eller markedsføring av varer og tjenester under et varemerke eller en logo etter nærmere fastsatte retningslinjer",Selskapet tilbyr en franchise i alle regioner.,The company offers a franchise in all regions.
 deductible,B2,en,franchise,[fraŋʃi:`sə],,"et visst minimumsbeløp (eller prosentvis beregnet beløp) som en skade må komme opp i før den erstattes av forsikreren, eller som fratrekkes skadebeløpet",Forsikringen har en franchise på fem tusen kroner per skade.,The insurance has a deductible of five thousand kroner per claim.
 Frank,C,en,franker,,Old Norse,"person av germanske stammer som bodde utenfor Romerrikets grenser, og som erobret Frankrike på 500-tallet",Frankerne var en germansk folkegruppe som etablerte seg i dagens Frankrike.,The Franks were a Germanic people who settled in modern-day France.
+Frankish,C,adjective,frankisk,,,som gjelder frankerne,,
 France,A1,et,Frankrike,,,republikk i Vest-Europa og Europas tredje største stat i utstrekning,Frankrike er kjent for god mat og vakre byer.,France is known for its great food and beautiful cities.
 French,A1,en-et,fransk,[fransk],German: fransch,romansk språk hovedsakelig brukt i Frankrike og Canada og brukt som offisielt og administrativt språk i mange land i Afrika; fransk språk som undervisningsfag,Boka er oversatt fra fransk.,The book has been translated from French.
 French,A1,adjective,fransk,[fransk],German: fransch,som gjelder Frankrike og franskmenn; som gjelder språket og faget fransk,Den franske presidenten er på besøk i Oslo.,The French President is visiting Oslo.
@@ -5586,6 +5590,7 @@ gaydar,C,en,gaydar,[gei:´dar],English: gaydar,evne til å registrere at (fremme
 broken,C,adjective,gebrokken,[gebrå´k:(ə)n],German,"ukorrekt, ubehjelpelig, med aksent",Hans tale var vanskelig å forstå på grunn av hans gebrokne norsk.,His speech was difficult to understand due to his broken Norwegian.
 birthday,C,en,gebursdag,"[jebu:´ʃdag], [gebu:´ʃdag]",German,fødselsdag,Han inviterte vennene sine til en stor gebursdag.,He invited his friends to a big birthday party.
 fee,B1,et,gebyr,[geby:´r],German: Gebühr,"beløp som må betales for tjenester eller forseelser, særlig til det offentlige",Banken krevde et gebyr på uttaket.,The bank demanded a fee for the withdrawal.
+solid,B2,adjective,gedigen,,German: gedeihen,"ekte, ren; solid, verdifull; stor, skikkelig",,
 "quality, content",C,en,gehalt,[geha´lt],"German: Gehalt ""innhold""",innhold; åndelig innhold eller kvalitet,"Essayet manglet dybde, men hadde høy gehalt.","The essay lacked depth, but had high quality."
 "ear, hearing",B2,et,gehør,[gehø:´r],German: Gehör,"evne til å oppfatte og gjengi en tone eller melodi; forståelse, respons",Musikeren hadde et perfekt gehør for toner.,The musician had a perfect ear for notes.
 horny,C,adjective,geil,"[jæil], [gæil]",German: geil,seksuelt opphisset; brunstig,Han var i et spesielt geil humør.,He was in a particularly randy mood.
@@ -8726,6 +8731,8 @@ go pubbing,C,verb,kneipe,[knæi`pə],German,"gå på, besøke kneipe eller vinst
 pub,B2,ei,kneipe,[knæi`pə],German,"enkelt serveringssted; enkelt utstyrt bevertningssted (hvor det serveres alkoholholdige drikker, især øl)",Hun var på kneipe med en kanadier.,She was on a date with a Canadian.
 "tower, be upright",C,verb,kneise,[knæi`sə],Old Norse: kneikja,være rank; rage i været; ruve,Fjelltoppen kneiste over dalen og ga oss en fantastisk utsikt.,The mountain peak towered over the valley and gave us a fantastic view.
 hold one's head high,C,expression,"kneise med nakken",,Old Norse,være overlegen,Han pleier å kneise med nakken når han er stolt.,He usually cranes his neck when he's proud.
+"blow, bend",B2,en,knekk,,,"plutselig, kort sammenbøyning; vinkelformet bøyning; sprekk, revne; fysisk eller psykisk skade etter stor påkjenning, ulykke eller lignende; brunt, hardt slikkeri av blant annet brunet sukker",,
+"creak, crack",B2,et,knekk,,,skarp lyd av noe som knekker; knett,,
 "snap, crack",B1,verb,knekke,[kne`k:ə],onomatopoeia,brekke med smell,Planken knakk i to. Biter av breen knekker av. Det knakk i isen.,The plank broke in two. Pieces of the glacier break off. It broke in the ice.
 crispbread,A2,et,knekkebrød,,Swedish,"hardt, tykt flatbrød av rugmel, hvetemel eller andre kornsorter",Jeg spiser ofte knekkebrød til frokost.,I often eat crispbread for breakfast.
 knee-length,B2,adjective,knelang,,Old Norse,som rekker ned til knærne,Kjolen hennes var knelang og passet perfekt til anledningen.,Her knee-length dress was perfect for the occasion.
@@ -9934,6 +9941,7 @@ relief,B2,ei,lindring,,German,"det å lindre eller bli lindret",Tablettene gir 
 "cord, string, line",A2,ei,line,,Old Norse,"tynt, sterkt tau; utspent tau til å balansere på; langt fiskesnøre med mange angler",Fiskeren kastet ei line ut i vannet for å fange laks.,The fisherman threw a line into the water to catch salmon.
 linear,B2,adjective,lineær,,Latin via French,"som består av linjer; linjeformet, rettlinjet; som er av første grad",Øvelsen krevde en lineær progresjon for å lære teknikken.,The exercise required a linear progression to learn the technique.
 flax seed,B2,et,linfrø,,Old Norse: lín,frø av planter i linfamilien,Linfrø er populært i helseprodukter.,Flaxseed is popular in health products.
+lingua franca,C,et,lingua franca,[li´ŋgva fra´ŋka],Italian,"blandingsspråk som oppstod i korsfarertiden, brukt omkring Middelhavet; språk brukt i kommunikasjon mellom personer som ikke har felles morsmål, for eksempel fransk som diplomatspråk",,
 ruler,A1,en,linjal,[linja:´l],Latin,"redskap til å tegne opp rette linjer eller måle avstand med, ofte inndelt i millimeter og centimenter",Han er rett i ryggen som en linjal.,His back is straight as a ruler.
 link,B1,en,link,[liŋk],English,"ledd; kjede av sender- og mottagerstasjoner hvor signalet sendes fra stasjon til stasjon; kobling; forbindelse; henvisning, kobling til nettsted; hyperlink; lenke",Nederst på nettsiden finner du en link til andre relevante nettsider.,At the bottom of the website you will find a link to other relevant websites.
 gentle,C,adjective,linn,,Old Norse: linr,mild; lite salt; forsiktig; bløt; varlig; lett (og forsiktig),Lindt tar han om hendes slanke midje.,Lindt takes care of her slim waist.
@@ -11488,6 +11496,7 @@ Nobel Prize,B1,en,nobelpris,,Swedish,"årlig pris til personer eller grupper som
 Nobel Peace Prize,B1,en,Nobels fredspris,,Swedish,årlig pris som Den Norske Nobelkomité deler ut til en person eller en gruppe som de mener har gjort en stor innsats for freden,Nobels fredspris deles ut i Oslo hvert år.,The Nobel Peace Prize is awarded in Oslo every year.
 "need, distress",B1,ei,nød,[nø:d],"Old Norse: nauðr, nauð","vanskelig situasjon, trengsel, ulykke, fare","De er i nød ute på havet!",They are in distress out at sea!
 emergency unit,C,et,nødaggregat,,,aggregat (ved sykehus eller fabrikk) som brukes når ordinær kraftforsyning svikter,Vi trenger et nødaggregat i tilfelle strømbrudd.,We need an emergency generator in case of a power outage.
+white lie,B2,ei,nødløgn,,,løgn som en griper til i nødsfall; hvit løgn,,
 emergency light,B2,et,nødlys,,Old Norse,"lys med alternativ strømkilde, for eksempel nødaggregat, som brukes ved svikt i normal belysning",Nødlysene ble slått på under evakueringen.,The emergency lights were switched on during the evacuation.
 emergency,B2,et,nødsfall ,,Old Norse,"tvingende omstendighet, forhold",Han døde i et tragisk nødsfall.,He died in a tragic emergency.
 emergency,B2,en,nødssituasjon,,Old Norse,"vanskelig situasjon, tvingende omstendighet, trengsmål",Vi må forberede oss på enhver nødssituasjon.,We need to prepare for any emergency situation.
@@ -11983,6 +11992,7 @@ encouragement,B1,ei,oppmuntring,,German,det å oppmuntre(s); noe som oppmuntrer,
 achievement,B2,en,oppnåelse,,German,det å oppnå (noe),Å nå målet var en stor oppnåelse for henne.,Reaching her goal was a great achievement for her.
 "nickname, mean-spirited nickname",B2,et,oppnavn,,German,"økenavn, utnavn",Han fikk et morsomt oppnavn av vennene sine.,He was given a funny nickname by his friends.
 appoint,B2,verb,oppnevne,,German,utpeke (til et verv),Kongen bestemte seg for å oppnevne en ny rådgiver.,The king decided to appoint a new advisor.
+appointment,C,en,oppnevnelse,,,det å peke ut eller tildele et verv eller en oppgave,,
 oppose,C,verb,opponere,,,"si imot, komme med innvendinger; opptre som opponent ved doktordisputas","De som ønsker å opponere fra auditoriet, må gi melding om dette til disputasens leder.",Those who wish to present from the auditorium must notify the chair of the defense.
 "up, upwards, upward",A2,preposition,oppover,,,mot den øvre delen av noe; mot noe lenger opp; oppetter; innover fra kysten eller i retning nord,Fuglene trekker oppover.,The birds migrate upwards.
 redress,B2,ei,oppreisning,,,gjenoppretting av sosial eller moralsk anseelse; det at en urett eller fornærmelse gjøres god igjen; det at en person som i en sivilsak har forsømt en frist eller et rettsmøte får fastsatt ny frist eller nytt møte av retten,Hun søkte oppriktig etter oppreisning etter feiltrinnet.,She sincerely sought redress for her mistake.
@@ -15517,6 +15527,8 @@ soon,A1,adverb,snart,[sna:´rt],Old Norse,"om kort tid",Romfareren er snart ute
 "quick-witted, resourceful",B2,adjective,snartenkt,,,snarrådig,Han var snartenkt og fant en rask løsning på problemet.,He was quick-witted and found a quick solution to the problem.
 shortcut,B1,en,snarvei,,Old Norse,"beinvei; raskere, kortere vei enn den vanlige; gjenvei; tastaturkommando som utfører mer sammensatt kommando; lenke, for eksempel fra et ikon på datamaskinens skrivebord, som fører direkte til en fil eller et program","I stedet for å følge banen, tok jeg en snarvei gjennom skogen overfor Ris.","Instead of following the track, I took a shortcut through the forest opposite Ris."
 "cute, quirky",B2,adjective,snasen,[sna:`s(ə)n],unknown,rask; behendig; lekker; snerten,Folder er snasne detaljer som kan sprite opp de mest kjedelige klær.,Pleats are quirky details that can spice up the most boring clothes.
+bare,B2,adjective,snau,,Old Norse: snauðr,"uten noe på; bar, naken; skallet; blakk, pengelens; ikke fullt; noe mindre enn; knapp",,
+"hardly, barely, little",B2,adverb,snaut,,Old Norse,bare så vidt; knapt,Det var snaut noen som visste om det.,Hardly anyone knew about it.
 clever,B2,adjective,snedig,,,"lur, behendig; hendig",Han kom opp med en snedig løsning på problemet.,He came up with a clever solution to the problem.
 "snail, slug",A2,en,"snegl, snegle, snile",[snæil],Old Norse: snigill,"bløtdyr av gruppen Gastropoda med tydelig hode, fot og innvollssekk",Vi så en stor snegl på stien etter regnet.,We saw a large snail on the path after the rain.
 "cut, slice, cut across",B2,verb,sneie ,,,"skjære, snitte (på skrå); streife",Bilen sneide borti hekken da han svingte.,The car brushed against the hedge when he turned.
@@ -18899,6 +18911,7 @@ duration,B2,ei,varighet,,,det å vare,Behandlingen har en lang varighet på fler
 "hot, warm",A1,adjective,varm,[varm],Old Norse: varmr,"het, som gir varme",Det er veldig varmt her inne.,It's very hot in here.
 warm-blooded,B2,adjective,varmblodig,,Old Norse,"som har (forholdsvis) konstant kroppstemperatur; sanselig, lidenskapelig, temperamentsfull",Hesten er en varmblodig rase med stor utholdenhet.,The horse is a warm-blooded breed with great stamina.
 "warmth, heat",A2,en,varme,,Old Norse,det å være varm; (forholdsvis) høy temperatur,Varmen fra peisen gjorde stua koselig.,The heat from the fireplace made the living room cozy.
+heat source,B2,en,varmekilde,,,noe som lager eller skaffer varme,,
 thermal radiation,B2,ei,varmestråling,,Old Norse,elektromagnetisk stråling ut fra en flate eller et legeme på grunn av temperaturen til legemet,Sola ga fra seg sterk varmestråling på ettermiddagen.,The sun emitted strong heat radiation in the afternoon.
 hot air,B2,ei,varmluft,,Old Norse,"oppvarmet luft",Ovnene i huset var basert på varmluft.,The ovens in the house were based on hot air.
 hot air balloon,B2,en,varmluftsballong,,Old Norse,luftfartøy som får oppdrift ved at luft oppvarmes på innsiden av en ballong,De fløy over byen i en stor varmluftsballong.,They flew over the city in a big hot air balloon.
