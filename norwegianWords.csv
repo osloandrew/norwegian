@@ -8391,8 +8391,13 @@ carton,A2,en,kartong,[kartå´ŋ:],Greek via Latin via Italian via  French,tynn 
 carton milk,B2,ei,"kartongmelk, kartongmjølk",,,melk på kartong,Kartongmelk holder seg ofte lenger enn ferskmelk i åpnet tilstand.,Carton milk often keeps longer than fresh milk when opened.
 "map drawing, cartography",B2,ei,karttegning,,,det å tegne kart; kartografi,Karttegningen viste alle småveiene rundt innsjøen.,The map showed all the small roads around the lake.
 "merry-go-round, carousel",B2,en,karusell,[karuse´l:],Italian via French,innretning med sitteplasser som kan dreies raskt rundt,De kjører mange karuseller.,They run many carousels.
+<<<<<<< HEAD
 carve,C,verb,karve,,,"skjære i småbiter, hakke med kniv; skjære ut (i tre eller bein)",Hun karvet navnet inn i treet. Han liker å karve ut små figurer i tre på fritiden.,"She carved her name into the tree. In his spare time, he likes to carve small wooden figures."
 caraway,B2,en,karve,,,toårig plante i skjermplantefamilien; Carum carvi; frukt av karve brukt som krydder,Hun brukte karve i brødet for å gi det en krydret smak.,She used caraway in the bread to give it a spicy flavor.
+=======
+caraway,B2,en,karve,,,toårig plante i skjermplantefamilien; Carum carvi; frukt av karve brukt som krydder,Hun karvet navnet inn i treet.,She carved her name into the tree.
+carve,C,verb,karve,,,"skjære i småbiter, hakke med kniv; skjære ut (i tre eller bein)",Han liker å karve ut små figurer i tre på fritiden.,"In his spare time, he likes to carve small wooden figures."
+>>>>>>> 5d6e5a3a37cd1753f6233be4b601bdeaf6492a34
 casino,B2,et,kasino,[kasi:´no],Italian,"sted der en driver legalisert hasardspill som rulett, poker eller lignende; spillelokale",De spilte bort alle pengene sine på kasino.,They gambled away all their money in casinos.
 cashew,B1,ei,kasjunøtt,,,spiselig nyreformet frø av kasjutreet,Kasjunøttene var ristet og hadde en deilig smak.,The cashew nuts were roasted and had a delicious taste.
 cash register,B1,et,kassaapparat,,Latin via Italian via German,"apparat for registrering av kontante inn- og utbetalinger i butikker, kontorer og lignende, kasseregister",Han slo inn varene på kassaapparatet.,He punched in the items on the cash register.
@@ -15503,8 +15508,13 @@ owe,B1,verb,skylde,,Old Norse,"stå i, ha gjeld; ha plikt til (å gi)",Du skylde
 blame,B1,expression,skylde på,,Old Norse,legge skylden på,Han prøvde å skylde på søsteren sin.,He tried to blame his sister.
 guilty,B1,adjective,skyldig,[ʃy`ldi],Old Norse,"som har, står i (moralsk) skyld; som er skyld i skade, forsømmelse og lignende, som har gjort noe galt",Er du skyldig i å ha gjort det?,Are you guilty of doing that?
 duty,B2,ei,skyldighet,,,plikt,Hun hadde alltid en skyldighet til å hjelpe familien.,She always had an obligation to help the family.
+<<<<<<< HEAD
 rinse,B1,verb,skylle,,,"flomme, fosse; føre eller rive med seg; spre seg; gjøre seg stadig med gjeldende; rense i eller med vann",Han skylte salaten grundig før han la den i bollen.,He rinsed the salad thoroughly before putting it in the bowl.
 "deluge, flood",C,en,skylle,,,"strøm, flom",Etter regnskyllet kom en voldsom skylle som flommet over veiene.,The downpour was followed by a massive deluge that flooded the roads.
+=======
+"deluge, flood",C,en,skylle,,,"strøm, flom",Etter regnskyllet kom en voldsom skylle som flommet over veiene.,The downpour was followed by a massive deluge that flooded the roads.
+rinse,B1,verb,skylle,,,"flomme, fosse; føre eller rive med seg; spre seg; gjøre seg stadig med gjeldende; rense i eller med vann",Han skylte salaten grundig før han la den i bollen.,He rinsed the salad thoroughly before putting it in the bowl.
+>>>>>>> 5d6e5a3a37cd1753f6233be4b601bdeaf6492a34
 skyscraper,B1,en,skyskraper,,Old Norse,tårnhøyt hus med mange etasjer,Den nye bygningen blir en høy skyskraper.,The new building will be a tall skyscraper.
 ride,A2,en,skyss,,Old Norse,det å skysse folk; transport; fremkomstmiddel,Skyssen svingte opp foran døra.,The shuttle swung up in front of the door.
 "shuttle, give a ride",B1,verb,skysse,,Old Norse,"frakte reisende; jage, føyse",Vi skal skysse barna til skolen i morgen.,We're taking the children to school tomorrow.
@@ -15749,8 +15759,13 @@ trunk,B2,en,snabel ,,,"lang, spiss nese- eller munndannelse på visse dyr",Elef
 elephant,C,et,snabeldyr,,,elefant,Elefanten er et stort snabeldyr med imponerende intelligens.,"The elephant is a large, fast animal with impressive intelligence."
 snack bar,B1,en,snackbar,[snæ´kbar],English,"spisested der det serveres småretter, leskedrikker og lignende (over disk)",Vi tok en matbit på snackbar.,We grabbed a bite to eat at the snack bar.
 snack,A1,en,snacks,[snæks],English,"smårett; godbit som spises utenom måltidene, snadder, knask",Kan du kjøpe noen snacks til filmen?,Can you buy some snacks for the movie?
+<<<<<<< HEAD
 "goody, goodie",B2,et,snadder,,,"godbit, slikkeri; noe som er svært bra",Mye snadder ble vist fram på spillmessen.,A lot of goodies were on display at the gaming fair.
 "gossip, chatter",C,et,snadder,,,"det å snadre; snadrende skrik; skravl, sladder","Alt han kom med, var gammelt snadder og uinteressant prat.",All he came up with was old gossip and uninteresting talk.
+=======
+"gossip, chatter",C,et,snadder,,,"det å snadre; snadrende skrik; skravl, sladder","Alt han kom med, var gammelt snadder og uinteressant prat.",All he came up with was old gossip and uninteresting talk.
+"goody, goodie",B2,et,snadder,,,"godbit, slikkeri; noe som er svært bra",Mye snadder ble vist fram på spillmessen.,A lot of goodies were on display at the gaming fair.
+>>>>>>> 5d6e5a3a37cd1753f6233be4b601bdeaf6492a34
 greedy,C,adjective,snak,[sna:k],Old Norse: snaka,"forsluken, grådig; tyvaktig, langfingret","Inderlig skamfulle vilde han gjøre dem, skamfulle som snake hunder!","He would make them as ashamed, as ashamed as dogs!"
 sniff out,C,verb,snake,[sna:`kə],Old Norse: snaka,"snike, snuse (etter noe spiselig); rapse, kvarte",Reven snaket en høne.,The fox sniffed out a chicken.
 talk,A2,en-et,snakk ,,German: snack,"prat, samtale",Vi hadde en lang snakk om planene for helgen.,We had a long talk about the plans for the weekend.
@@ -17956,8 +17971,13 @@ workout session,B2,ei,treningsøkt,,Latin via French via English,"økt anvendt t
 "gym, fitness center",A2,et,treningssenter,,Latin via French via English,senter med variert treningstilbud; større treningsstudio,"Jeg kunne se tre treningssentra fra der jeg sto, alle fullbooket fra morgen til kveld.","I could see three gyms from where I was standing, all fully booked from morning to night."
 "gym, fitness center",B1,et,treningsstudio,,Latin via French via English,"lokale med apparater for fysisk trening",Hun savnet et skikkelig treningsstudio med et godt utvalg frivekter og styrkeapparater.,She missed a proper gym with a good selection of free weights and strength machines.
 tree trunk,A2,en,trestamme,,,stamme,Trestammen var bred og krevde en kraftig sag.,The tree trunk was wide and required a powerful saw.
+<<<<<<< HEAD
 "quarrel, argument",C,ei,trette,,Old Norse,"hissig ordveksling; ordstrid, krangel, munnhoggeri",Diskusjonen utviklet seg til en trette.,The discussion developed into a quarrel.
 "quarrel, argue",C,verb,trette,,Old Norse,"ha en trette; kives, krangle, munnhogges",De trettet om hvem som hadde skylden.,They quarreled about who was to blame.
+=======
+"quarrel, argue",C,verb,trette,,Old Norse,"ha en trette; kives, krangle, munnhogges",De trettet om hvem som hadde skylden.,They quarreled about who was to blame.
+"quarrel, argument",C,ei,trette,,Old Norse,"hissig ordveksling; ordstrid, krangel, munnhoggeri",Diskusjonen utviklet seg til en trette.,The discussion developed into a quarrel.
+>>>>>>> 5d6e5a3a37cd1753f6233be4b601bdeaf6492a34
 quarrelsome,C,adjective,trettekjær,,Old Norse,som er tilbøyelig til å trette; kranglevoren,Han ble sett på som en typisk trettekjær nabo som alltid klaget.,He was seen as a typical tiresome neighbor who always complained.
 thirteen,A1,numeral,tretten,[tre`t:(ə)n],Old Norse: þrettán,grunntallet 13; etter overtroen et ulykkestall,Han fikk tretten poeng på prøven. Tretten er et uheldig tall for noen.,He scored thirteen points on the test. Thirteen is an unfortunate number for some.
 thirteenth,A2,adjective,trettende,,Old Norse: þrettándi,ordenstall til 13 (13.),"Den trettende juli er bursdagen min, så vi pleier å feire da.","The thirteenth of July is my birthday, so we usually celebrate then."
