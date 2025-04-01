@@ -119,6 +119,7 @@ honorable,C,adjective,ærverdig ,,German via Old Norse,"verdig eller respektinng
 affair,B2,en,affære,[afæ:´rə],French,"sak, gjøremål, hending; kjærlighetshistorie; romantisk eller seksuelt forhold mellom to personer som ikke er gift eller samboende med hverandre, spesielt når det gjelder hemmelige eller skjulte forhold","Æsj, for noe kliss!","Yuck, what a mess!"
 affect,B2,en,affekt,,Latin,"sterk, brå sinnsbevegelse",I ren affekt slo han døren igjen.,"In sheer excitement, he slammed the door shut."
 "affect, pretend",C,verb,affektere,[afekte:´rə],Latin,"late som, hykle; gi seg mine av; berøre; ramme; affisere","Han prøvde å affektere publikums følelser, men det virket falskt.","He tried to affect the audience's emotions, but it seemed false."
+affected,C,adjective,affektert,,,"som gjør seg til eller later som; tilgjort, unaturlig",Han virket veldig affektert i måten han snakket på.,He seemed very affected in the way he spoke.
 affective,C,adjective,affektiv,,Latin,som står i forbindelse med sinn eller følelser; emosjonell,Hans affektive lidelse gjorde det vanskelig for ham å regulere følelsene sine.,His affective disorder made it difficult for him to regulate his emotions.
 affect,C,verb,affisere,[afise:´rə],Latin: afficere,"gjøre inntrykk på, påvirke",Hun fortsatte å arbeide uten å la seg affisere.,She continued to work without letting herself be affected.
 Afghan,B2,adjective,afghansk,[afga:´nsk],,som gjelder Afghanistan og afghanere,De laget en rett inspirert av afghansk matkultur.,They made a dish inspired by Afghan food culture.
@@ -1504,6 +1505,7 @@ bedrock,B2,en,berggrunn,,Old Norse,fast undergrunn under de løse avleiringene p
 "rescue, salvage, recovery",B2,ei,berging,,Old Norse,"det å berge, bli berget, redning",Bergingen var vanskelig.,The rescue was difficult.
 rescue vehicle,B2,en,bergingsbil,,Old Norse,"kranbil som er særskilt utrustet for å berge biler som har kollidert eller hatt annet uhell",En bergingsbil kom raskt til stedet etter ulykken.,A tow truck quickly arrived at the scene after the accident.
 mining town,B2,en,bergstad,,Old Norse,by med bergverksdrift,Gruvedriften i bergstaden var en viktig del av historien.,Mining in the mining town was an important part of its history.
+captivate,C,verb,bergta,,,"lokke (folk) inn i berget; forhekse, fortrylle",Musikken bergtok henne.,The music captivated her.
 rock wall,B2,en,bergvegg,,,loddrett side på berg; fjellvegg,Fjellklatrerne jobbet seg sakte oppover den bratte bergveggen.,The mountain climbers slowly worked their way up the steep rock wall.
 "mine, mining",B2,et,bergverk,,Old Norse,anlegg for malm- og mineralutvinning,Arbeiderne fant gull i det gamle bergverket.,Workers found gold in the old mine.
 enrich,B2,verb,berike,[beri:´kə],German,"gjøre mer innholdsrik, verdifull",Danmark skal ikke være et land som beriker seg på forliste fartøyer.,Denmark should not be a country that enriches itself on shipwrecks.
@@ -4909,6 +4911,7 @@ having a cold,A2,adjective,"forkjølet, forkjøla, forkjølt",,,som har en forkj
 pre-emptive right,C,en,forkjøpsrett,,,førsterett til kjøp,Som medlem har du forkjøpsrett på nye boliger i borettslaget.,"As a member, you have the right of first refusal on new homes in the cooperative."
 explain,A2,verb,forklare,,German,gjøre tydelig og forståelig,Læreren prøvde å forklare det kompliserte temaet på en enkel måte.,The teacher tried to explain the complicated topic in a simple way.
 explanation,A2,ei,forklaring,,German,noe som forklarer eller forklares,Forklaringen hans var så forvirrende at ingen forsto hva han mente.,His explanation was so confusing that no one understood what he meant.
+some explaining to do,C,et,forklaringsproblem,,,manglende evne til å redegjøre for et forhold eller til å forsvare noe en har sagt eller gjort,"Dersom påstanden stemmer, har regjeringen et forklaringsproblem.","If the claim is true, the government has some explaining to do."
 disguise,B2,verb,forkle,,German,"kle ut, maskere",Han prøvde å forkle sitt sanne motiv med en falsk unnskyldning.,He tried to disguise his true motive with a false excuse.
 apron,A2,et,forkle,,German,"klesplagg til å ha på fremsiden av kroppen, utenpå de andre klærne, som vern mot søl og slitasje",Hun tok på seg et forkle før hun begynte å lage mat.,She put on an apron before she started cooking.
 disguise,B2,ei,forkledning,,German,det å kle (seg) ut eller maskere; drakt som en er forkledd i,Hun brukte en smart forkledning for å unngå å bli gjenkjent.,She used a clever disguise to avoid being recognized.
@@ -5692,6 +5695,7 @@ wear,B1,expression,"gå med, gå i",,,"opptre, være kledd i, utstyrt med",Han m
 go down with a man and a mouse,B2,expression,gå ned med mann og mus,,,synke med alt om bord,Skipet gikk ned med mann og mus etter å ha truffet et skjær.,The ship went down with man and mouse after hitting a reef.
 "be about, go around",B1,expression,"gå om",,Old Norse,dreie seg om; handle om,"Det går om stoff, arbeidsløshet og sosial nød.","It's about drugs, unemployment and social distress."
 cross all boundaries,B2,expression,gå over alle grenser,,Old Norse,gå for vidt,Nå gikk det over alle grenser.,Now it crossed all boundaries.
+run smoothly,B2,verb,gå på skinner,,,"fungere, gå som det skal",Alt går på skinner i norsk økonomi.,Everything is running smoothly in the Norwegian economy.
 "cut to the chase, go straight to the point",B2,expression,gå rett på sak,,,snakke rett ut om noe,La oss gå rett på sak og finne en løsning på problemet.,Let's cut to the chase and find a solution to the problem.
 go like hot cakes,B2,expression,"gå som varmt hvetebrød",,Old Norse,selges raskt og i store mengder; være sterkt etterspurt,Nyheten gikk som varmt hvetebrød i lokalmiljøet.,The news went down like hotcakes in the local community.
 get stuck in,B2,expression,gå surr i,,,"bli forvirret, miste oversikten over (noe)",Det begynte å gå surr i regnskapet etter alle endringene.,The accounts started to go haywire after all the changes.
@@ -7055,6 +7059,9 @@ Hindu,B1,adjective,"hinduisk, hinduistisk",,,som gjelder hinduer og hinduisme,Fe
 Hinduism,A2,en,hinduisme,,,fellesbetegnelse på en rekke religionsformer som har oppstått på det indiske subkontinentet,Hun studerte hinduisme for å forstå religiøse tradisjoner bedre.,She studied Hinduism to better understand religious traditions.
 stallion,B2,en,hingst,[hiŋst],German,ukastrert hest; grahest; mann med sterk kjønnsdrift; kjønnsatlet,Hingsten galopperte stolt over beitet med halen høyt hevet.,The stallion galloped proudly across the pasture with his tail held high.
 membrane,C,ei,hinne ,,Old Norse: hinna,"tynn hudlignende dannelse (oftest som beskyttelse omkring et organ); tynt, beskyttende dekke på visse plantedeler; tynt belegg, overtrekk over noe; film, snerk",Øyet er bygd opp av flere hinner.,The eye is made up of several membranes.
+beyond,C,preposition,hinsides,,,langt bort fra; bortenfor; svært,Dette er dokumentert hinsides enhver tvil. Honoraret er hinsides. Forventningene var helt hinsides.,This is documented beyond any doubt. The fee is outrageous. The expectations were completely out of this world.
+beyond good and evil,C,expression,hinsides godt og ondt,,,utenfor vanlige normer,Han hever seg over andre og handler hinsides godt og ondt.,He rises above others and acts beyond good and evil.
+beyond the grave,C,expression,hinsides graven,,,i tilværelsen etter døden,Mange tror at sjelen lever videre hinsides graven.,Many people believe that the soul lives on beyond the grave.
 hip,C,adjective,hipp,[hip:],,"som er i skuddet; moteriktig, inne","Han hadde møtt henne på en av disse nye, hippe barene som lå rundt Youngtorget.","He had met her at one of these new, hip bars around Youngtorget."
 hippie,B2,en,hippie,,English,"(ung) person som sluttet seg til en uorganisert bevegelse i storbyene i USA og Vest-Europa i slutten av 1960-årene som protest mot det materialistiske samfunnet, og som brukte blomster som symbol på kjærlighet og fred; blomsterbarn",Faren hennes var hippie og reiste rundt i Europa på 70-tallet.,Her father was a hippie who traveled around Europe in the 1970s.
 hippie movement,B2,en,hippiebevegelse,,English,"uorganisert ungdomsbevegelse som oppstod i USA og Vest-Europa i slutten av 1960-årene som protest mot det materialistiske samfunnet, der tilhengerne blant annet gikk med eksotiske klær, hadde langt hår og levde frigjort fra samfunnsnormer og -plikter",Hippiebevegelsen preget en hel generasjon med sitt budskap om kjærlighet og fred.,The hippie movement influenced an entire generation with its message of love and peace.
@@ -8474,6 +8481,7 @@ cold fish,B2,expression,kald fisk,,Old Norse,hard og hensynsløs person,Han virk
 cold war,B2,expression,"kald krig",,Old Norse,"spent, men ublodig forhold mellom to eller flere stater",Den kalde krigen preget internasjonal politikk i flere tiår.,The Cold War dominated international politics for decades.
 calendar,A1,en,kalender,[kale´ndər],Latin via German,"oversikt over dager, uker og måneder i et visst år; almanakk; bok, program eller lignende til å holde orden på avtaler, gjøremål og merkedager; system for tidsregning; årbok (med navnelister og lignende)",Jeg skal skrive det ned i kalenderen. Møtet ligger i kalenderen på mobilen. Jeg skal sjekke i kalenderen når vi kan møtes.,I'll write it down in the calendar. The meeting is in the calendar on your phone. I'll check the calendar to see when we can meet.
 calendar year,A2,et,kalenderår,,Latin via German,tiden fra og med første januar til og med trettiførste desember,Et nytt kalenderår starter første januar.,A new calendar year starts on January first.
+"canopy, cover",B2,en,kalesje,,Czech via German,tak på vogn eller båt som kan klappes sammen eller skyves ned; lett firehjuls kjøretøy med kalesje,Vi satt under kalesjen og nøt utsikten mens regnet trommet lett.,We sat under the canopy and enjoyed the view while the rain drummed lightly.
 Californian person,B1,en,"kalifornier, californier",[kalifå:´rniər],English,person fra California (stat i USA),Kaliforniere elsker ofte utendørsaktiviteter.,Californians often love the outdoors.
 Californian,B1,adjective,"kalifornisk, californisk",[kalifå:´rnisk],English,som gjelder California og kaliforniere,Landskapet er klassisk kalifornisk med palmer og sandstrender.,The landscape is classic Californian with palm trees and sandy beaches.
 lime,B2,en,kalk,,,kalsiumholdig steinslag,Kalk ble brukt til å forbedre jorden.,Lime was used to improve the soil.
@@ -8562,6 +8570,7 @@ rivalry,B2,en,kappestrid,,Latin,det å kappes; konkurranse,Lagene var i en inten
 race,B2,et,kappløp,,,det å løpe om kapp; det å kappes om å være først; kappestrid,"Kappløpet var tøft, men spennende å se på.","The race was tough, but exciting to watch."
 eat competitively,C,verb,kappspise,,Latin,kappes om å spise mest eller fortest,Hun kappspiste til hun spydde.,She fought until she threw up.
 "hijack, take over",B2,verb,kapre,[ka:`prə],German,få tak i (med kupp eller knep); erobre med kaperskip,Pirater har kapret et italiensk lasteskip.,Pirates have hijacked an Italian cargo ship.
+hijacker,B2,en,kaprer,,,person som kaprer noe,Politiet overmannet kapreren.,The police overpowered the hijacker.
 capricious,C,adjective,kaprisiøs,[kaprisiø:´s],French,lunefull; livlig,Han kom stadig med kaprisiøse ytringer.,He constantly made capricious statements.
 capsule,B2,en,kapsel,,Latin,hylster av metall eller plast; deksel; lokk til å tette åpning med; (liten) beholder; romskip,Astronautene sitter i en kapsel.,The astronauts sit in a capsule.
 guy,B2,en,kar,[ka:r],Old Norse: karl,"mann eller eldre unggutt; fyr; mannfolk; rik, velstående mann; kakse; handlekraftig, sterk og dyktig mann",Det er jammen litt av en kar hun har fått.,That's one hell of a guy she's got.
@@ -9480,6 +9489,7 @@ crucifixion,B2,en,korsfestelse ,,Latin via English via Old Norse,"det å korsfes
 crusade,B2,et,korstog ,,Latin via English via Old Norse,"i middelalderen: hærtog for å befri Det hellige land fra muslimene; krigersk ekspedisjon mot vantro og kjettere og for å utbre den kristne tro; kamp for en god, viktig sak",Mange deltok i korstogene på 1100-tallet.,Many took part in the Crusades in the 12th century.
 short,A1,adjective,kort,[kårt],Latin via German via Old Norse: kortr,"stutt, ikke lang",Dette er en kort vei til skolen.,This is a short way to school.
 card,A1,et,kort,[kårt],Greek via Latin,"lite rektangulært blad av papir, papp eller plast som brukes til forskjellige bestemte formål",Jeg fikk et kort til bursdagen min.,I received a card for my birthday.
+simply,B1,expression,kort og godt,,,kort sagt; rett og slett,Dette var kort og godt ikke bra nok.,This was simply not good enough.
 "in short, simply put",B2,expression,kort sagt,,,"med få ord, i sammendrag",Kort sagt: planen fungerte ikke slik vi hadde håpet.,"In short, the plan didn't work as we had hoped."
 shorts,A2,ei,kortbukse,,Latin via German via Old Norse,"bukse som ikke når til kneet",Hun hadde på seg kortbukser siden det var en varm sommerdag.,She was wearing shorts as it was a hot summer day.
 short-sleeved,A2,adjective,"kortermet, korterma",,,med korte ermer,Han hadde på seg en kortermet skjorte på den varme sommerdagen.,He wore a short-sleeved shirt on the hot summer day.
@@ -9760,6 +9770,7 @@ art critic,C,en,kunstkritiker ,,German,person som utøver kunstkritikk,Som kunst
 art criticism,C,en,kunstkritikk ,,German,"vurdering av kunst, kunstanmeldelse",Det har vært mye diskusjon rundt kunstkritikk og dens rolle.,There has been a lot of discussion about art criticism and its role.
 artist,B1,en,kunstner,,German,"person som lager, utfører kunst",Hun er en dyktig kunstner.,She is an accomplished artist.
 artistic,B2,adjective,kunstnerisk,,German,som gjelder kunst og kunstnere,Maleren har et stort kunstnerisk talent.,The painter has great artistic talent.
+art movement,B2,ei,kunstretning,,,retning eller tendens i utviklingen innenfor kunst,Impresjonismen er en kjent kunstretning fra det nittende århundre.,Impressionism is a well-known art movement from the nineteenth century.
 "work of art, artwork",A2,et,kunstverk,,German,"gjenstand eller verk laget av en kunstner, for eksempel et maleri, et litterært verk eller et musikkstykke; gjenstand som er svært vakkert utført",Museet stilte ut sju kunstverk av den unge kunstneren. De små kakene var kunstverk.,The museum exhibited seven works of art by the young artist. The small cakes were works of art.
 "dock, cut off",C,verb,kupere,[kupe:´rə],French,"særlig om hester og hunder: klippe av hale eller ører",Veterinæren måtte kupere hundens hale på grunn av skade.,The veterinarian had to dock the dog's tail because of an injury.
 coupon,B1,en,kupong,[kupå´ŋ:],French: coupon,"del som kan rives fra blankett, billetthefte og lignende; renteanvisning, utbytteanvisning som følger med obligasjoner som klippes av ved utbetalingen",Denne innflydelsesrike mann fra underholdningsindustrien er ingen vanlig aksjonær som nøyer seg med å klippe kuponger.,This influential man from the entertainment industry is no ordinary shareholder content with clipping coupons.
@@ -9775,6 +9786,7 @@ curiosity,C,en,kuriositet,,Latin,merkverdig ting; sjeldenhet; raritet,Han samler
 instruct,B2,verb,kurse,,Latin,"gi undervisning, opplæring i form av kurs",Både ledelsen og de tilsatte i bedriften skal kurses.,Both management and employees in the company will be trained.
 cursive,B2,en,kursiv,[kuʃi:´v],Latin,trykkskrift som heller mot høyre; skråstilt skrift; håndskrift der bokstavene er bundet sammen med hverandre; løkkeskrift,Ord med kursiv markeres ofte for å skille seg ut.,Words in italics are often highlighted to stand out.
 cursive,B2,adjective,kursiv,[kuʃi:´v],Latin,som gjelder kursiv; som er skråstilt,Teksten var markert i kursiv.,The text was marked in italics.
+"court, flirt with",C,verb,kurtisere,,French,vise romatisk eller seksuell oppmerksomhet til en annen person; flørte; være innsmigrende; smiske,Han er vant til å bli kurtisert. Landet kurtiserer sin mektige nabo.,He is used to being courted. The country is courting its powerful neighbor.
 basket,A2,en,"kurv, korg",,Latin via German via Old Norse: korf,"(flettet) beholder av varierende størrelse, ofte med håndtak, til å lagre eller bære noe i; blomsterstand der mange blomster sitter tett sammen på en flat eller noe kuleformet plate",Bærene koster førti kroner kurven.,The berries cost forty kroner a basket.
 "female cousin, cousin",A1,ei,kusine,,French,kvinnelig søskenbarn,Jeg har to kusiner og en fetter.,I have two female cousins and one male cousin.
 cut,B1,et,kutt,,unknown,"det å kutte, skjære, snitt",Legen måtte gjøre et lite kutt.,The doctor had to make a small cut.
@@ -10801,6 +10813,7 @@ jellyfish,B2,ei,manet,[mane:´t],Old Norse: marneta,"(meduseform av) stormanet, 
 manga,B2,en,manga,[ma´ŋga],Japanese,"japansk tegneserietype, ofte med tegninger i svart-hvitt med enkel skyggelegging og figurer med store øyne og strittende hår",Den første mangaen ble utgitt i 1814 av kunstneren Katsushika.,The first manga was published in 1814 by the artist Katsushika.
 many,A1,adjective,mange ,[ma`ŋ:ə],Old Norse: mangr,"tallrike, atskillige, ikke så få",Mange mennesker kom på festen.,Many people came to the party.
 many years of,B2,adjective,mangeårig ,,Old Norse,"gammel, som har vart i mange år",De har et mangeårig vennskap bak seg.,They have a long-standing friendship behind them.
+polygonal,B2,adjective,"mangekantet, mangekanta",,,"med mange kanter, hjørner eller sider; polygon","Huset hadde et vakkert, mangekantet tårn med utsikt i alle retninger.","The house had a beautiful, polygonal tower with views in all directions."
 "lack, shortage",B1,en,mangel,,German,"det å være uten noe en trenger; skort, underskudd; feil, lyte",Det er mangel på kvalifisert arbeidskraft.,There is a shortage of qualified labor.
 "deficient, inadequate",B1,adjective,mangelfull,,,"som har mangler; ufullkommen, ufullstendig",Systemet er mangelfullt utbygd.,The system is inadequately developed.
 diversity,B2,et,mangfold ,,Old Norse,stort og variert antall av noe,Byen har et kulturelt mangfold som er unikt.,The city has a cultural diversity that is unique.
@@ -12996,6 +13009,7 @@ cardboard,B1,en,papp,[pap:],German,"tykt og stivt papir, kartong",Eskene var lag
 dad,A1,en,pappa,[pa`p:a],,barns navn på sin far; far,Pappa jobber på et kontor i byen.,Dad works in an office in the city.
 paper mache,B2,en,"pappmasjé, pappmasje",,German,stoff fremstilt av papirmasse som kan formes til gjenstander,Hun laget en skulptur av papirmasjé.,She made a sculpture out of paper mache.
 numbskull,B2,en,pappskalle,,German,dum person,Han ble kalt en pappskalle etter feilen.,He was called a cardboard head after the mistake.
+"bell pepper, sweet pepper, pepper",A2,en,paprika,,Latin,"plante i søtvierfamilien med mørkegrønne, lansettformede blader og hule frukter i ulike farger og størrelser, som blir brukt som grønnsak eller krydder; Capsicum; frukt fra paprika, benyttet som grønnsak; krydder av tørket frukt av paprika; paprikapulver",Jeg liker å ha paprika i salaten for litt ekstra farge og smak.,I like to add peppers to my salad for extra color and flavor.
 "parable, parabola",C,en,parabel,,Greek via Latin,"kort fortelling, gjerne fra dagliglivet, der poenget anskueliggjør en dypere sannhet, lignelse; krum linje der hvert punkt på linjen har like stor avstand fra et fast punkt (brennpunktet) som fra en gitt rett linje (styrelinjen)",Læreren forklarte parabelformen i matematikken.,The teacher explained the parabolic form in mathematics.
 display,B2,en,parade,[para:`də],Latin via Spanish via French,"fremvisning, utstilling; oppstilling av militæravdeling for inspeksjon, mønstring; straff i skolen som består i ekstra tidlig fremmøte; avvergende bevegelse eller støt i fekting, boksing, bryting; brå stans av hest som er i stor fart",Byen holdt en stor parade på nasjonaldagen.,The city held a big parade on National Day.
 paradigmatic,C,adjective,paradigmatisk,,Greek,som gjelder paradigma eller paradigme,Et paradigmatisk eksempel på fenomenet ble presentert.,A paradigmatic example of the phenomenon was presented.
@@ -13367,7 +13381,7 @@ yolk,B2,ei,plomme,[plo`m:ə],Latin via Old Norse: plóma,den rødgule delen av e
 plum,A2,ei,plomme,[plo`m:ə],Latin via Old Norse: plóma,frukt av plommetre; noe som har form som en plomme,Jeg spiste en saftig plomme til lunsj.,I had a juicy plum for lunch.
 plunk,B2,et,plopp,[plop:],,"plumpende lyd",Hun slipper teposen ned i koppen igjen med et lite plopp.,She drops the tea bag back into the cup with a little plop.
 plough,B2,verb,pløye,[pløi`ə],Old Norse: plǿgja,"brøyte, skjære gjennom noe (med eller som en plog)",Frigjorte ressurser skal pløyes tilbake til etaten.,Freed-up resources will be plowed back into the agency.
-"peg, sturdy person",B2,en,plugg,,,"nagle, pinne, kile; tettvokst person",Han brukte en plugg til å henge opp bildet.,He used a plug to hang up the picture.
+"plug, peg, sturdy person",B2,en,plugg,,German,"nagle, pinne, kile eller lignende, brukt som propp eller til å forbinde eller feste noe med; tettvokst person (særlig gutt eller mann); tennplugg; støpsel",Han brukte en plugg til å henge opp bildet.,He used a peg to hang up the picture.
 "pick, pluck",A2,verb,plukke ,,,"sanke, rive; fingre, pille",Vi skal plukke bær i helgen.,We'll be picking berries this weekend.
 plus,B1,et,pluss,,,"tegnet +; overskudd; noe positivt; fordel, fortrinn",I denne stillingen er språkkunnskaper et stort pluss.,"In this position, language skills are a big plus."
 plus,B1,adverb,pluss,,,med tillegg av (i matematikk skrevet +); brukt foran et tall for å angi at dette har en verdi større enn null; brukt etter skolekarakter for å vise at resultatet er litt bedre enn det karakteren står for,To pluss to er fire.,Two plus two equals four.
@@ -13435,6 +13449,8 @@ poltergeist,B2,en,poltergeist,"[på´ltərgæist], [på´ltərgaist]",German,"sp
 polyamory,C,en,polyamori,,Greek,det å åpent ha flere kjærlighetsforhold samtidig,Polyamori har blitt mer akseptert i samfunnet.,Polyamory has become more accepted in society.
 polyamorous,C,adjective,polyamorøs,,Greek,som har et forhold til to eller flere seksualpartnere samtidig; som omfatter flere enn to partnere,Han er polyamorøs og har flere nære relasjoner.,He is polyamorous and has several close relationships.
 polygamy,C,et,polygami,,Greek,"det forhold at en person har flere ektefeller samtidig, mangegifte; særlig brukt om flerkoneri",Polygami er lovlig i enkelte kulturer og samfunn.,Polygamy is legal in some cultures and societies.
+polygonal,B2,adjective,polygon,,Greek,"med mange kanter; mangekantet, polygonal",Bygget hadde et polygonalt takdesign som virkelig skilte seg ut.,The building had a polygonal roof design that really stood out.
+polygon,B2,en,polygon,,Greek,geometrisk figur som er satt sammen av rette linjer; mangekant,I matte lærte vi at en polygon er en figur med mange rette sider.,"In math class, we learned that a polygon is a shape with many straight sides."
 polytheism,C,en,polyteisme,,Greek,"tro på flere guder",Polyteisme innebærer troen på flere guder.,Polytheism involves the belief in multiple gods.
 french fries,A2,en,pommes frites,[påmfri´t:],French,"potetstrimler kokt gyllenbrune i olje eller smult, franske poteter",Jeg bestilte en stor pommes frites til burgeren min.,I ordered a large fries with my burger.
 pompous,B2,adjective,pompøs,,French: pompeux,"praktfull, staselig, storslagen; høyttravende, oppblåst",Språket i boka er litt for pompøst.,The language in the book is a little too pompous.
@@ -14740,6 +14756,7 @@ legendary figure,B2,en,sagnfigur,,Old Norse,"person som det har dannet seg sagn 
 "case, matter",A2,ei,sak,[sa:k],Old Norse: sǫk,tvistemål som er under rettslig behandling,Dette er en viktig sak som vi må diskutere på neste møte.,This is an important issue that we need to discuss at the next meeting.
 so-called,B2,adjective,såkalt,,Old Norse: svá,"som kalles, benevnes slik som et direkte følgende ord (substantiv eller adjektiv) angir; som (egentlig) ikke fortjener å kalles; tilsynelatende",Vi har flere såkalte mediatek.,We have several so-called mediatek.
 "sake, rice wine",B1,en,sake,[sa:`kə],Japanese,japansk risvin; gjæret drikk av polert ris; risvin med alkoholstyrke opptil 19%,Han vinket på serveringsdamen og ba henne bytte pilsen med en liten krukke sake.,He waved at the waitress and asked her to exchange the peach for a small jar of sake.
+"proceedings, legal representation",C,en,sakførsel,,,det å føre en rettslig sak; det å prosedere,Advokaten tok seg av hele sakførselen i retten.,The lawyer took care of all the proceedings in court.
 slow down,B2,verb,sakke,,,minske på farten,Bilen begynte å sakke farten opp bakken.,The car began to slow down up the hill.
 "expertise, expert knowledge",C,en,sakkunnskap,,Old Norse,grundig kunnskap på et visst område; fagkunnskap,Prosjektet krever sakkunnskap innen teknisk analyse.,The project requires expertise in technical analysis.
 expert,C,adjective,sakkyndig ,,Old Norse,som har sakkunnskap om noe,En sakkyndig ble kalt inn som vitne under rettssaken.,An expert was called as a witness during the trial.
@@ -15579,6 +15596,7 @@ ham,A1,ei,skinke,[ʃi`ŋkə],German: schinke,baklår av gris,Skinken smakte veld
 "hide, skin",B1,et,skinn,[ʃin:],Old Norse: skinn,"dyrehud (med eller uten hår); hud, hinne på frukt, bær og lignende; person, menneske",Dyret hadde et tykt skinn for å beskytte seg.,The animal had a thick skin to protect itself.
 "shine, appearance",B1,et,skinn,[ʃin:],Old Norse,"lysskjær, glans; utseende, ytre (vesen)",Skinnet bedrar.,Appearances are deceiving.
 shine,A1,verb,skinne,[ʃi`n:ə],Old Norse: skína,"lyse, stråle; vise, syne",Snøfjella skinte i sola.,The snowy mountains shone in the sun.
+rail,B1,ei,skinne,,German,"lang, profilert stålbjelke, særlig brukt i bærekonstruksjoner og til kjørebaner for tog og trikk; fast maskindel som tjener til styring for en bevegelig del; langt, smalt stykke av fast materiale brukt til å holde en skadet legemsdel i ro",Toget sporet av etter at det hadde kommet ut av skinnen.,The train derailed after coming off the track.
 shine through,B2,expression,skinne gjennom,,Old Norse,være merkbar,Hennes glede skinte gjennom da hun fikk nyheten.,Her joy shone through when she received the news.
 shining,B2,adjective,skinnende,,,som skinner; slik at det skinner,Bilen var skinnende ren etter en grundig vask.,The car was sparkling clean after a thorough wash.
 sanctimonious,B2,adjective,skinnhellig,,German,"som gir seg ut for å være from og gudfryktig, hyklersk",Han ble ofte ansett som skinnhellig i diskusjoner.,He was often seen as sanctimonious in discussions.
@@ -17122,6 +17140,7 @@ strive,B1,verb,streve,[stre:`və],German: streven,"arbeide hardt, slite",Hun st
 warhead,C,et,stridshode,,,"sprengladning i rakett",Raketten var utstyrt med et eksplosivt stridshode.,The rocket was equipped with an explosive warhead.
 belligerent,C,adjective,stridslysten,,,kamplysten; stridsglad,Han er alltid stridslysten og klar for en debatt.,He is always combative and ready for a debate.
 tank,B2,ei,stridsvogn,,,"lett, tohjult kampvogn; helpansret beltekjøretøy med kanon som hovedvåpen",Stridsvognen beveget seg sakte gjennom terrenget.,The tank moved slowly through the terrain.
+burlap,B2,en,strie,,Old Norse: strigi,"grovt, vevd stoff av lin, jute eller hamp",Sekken var sydd av grov strie og luktet sterkt av støv.,The sack was made of coarse burlap and smelled strongly of dust.
 "band, tie",A2,en,strikk,,,gummistrikk; elastisk snor eller bånd,Hun brukte en strikk til å holde håret på plass.,She used a rubber band to hold her hair in place.
 knit,A2,verb,strikke ,,,"binde, spøte",Bestemor strikket en varm genser til meg til jul.,My grandmother knitted me a warm sweater for Christmas.
 knitting needle,A2,en,strikkepinne,,,"tynn pinne, stikke til å strikke med",Hun mistet en av strikkepinnene under strikkeøkten.,She lost one of her knitting needles during the knitting session.
@@ -18040,6 +18059,7 @@ obscure,B2,verb,tilsløre,,German,"tåkelegge, holde skjult",Hun prøvde å til
 "condition, state",B1,en,tilstand,,German,"situasjon, forhold",Tilstanden hans ble betraktet som kritisk etter operasjonen.,His condition was considered critical after the surgery.
 presence,B2,en,tilstedeværelse ,,German,det å være til stede,Hennes tilstedeværelse i rommet ble umiddelbart lagt merke til.,Her presence in the room was immediately noticed.
 event,C,ei,"tilstelning, tilstelling",,,"festlig sammenkomst, arrangement",Den årlige tilstelningen samlet hele nabolaget til en hyggelig kveld.,The annual event brought the whole neighborhood together for an enjoyable evening.
+"clog, block",B2,verb,tilstoppe,,,gjøre tett; tette,Vasken er tilstoppet.,The sink is clogged.
 happen,B2,verb,"tilstøte, tilstøyte",,,hende,Jeg er redd det kan ha tilstøtt henne noe alvorlig.,I'm afraid something serious may have happened to her.
 "adjacent, adjoining",B2,adjective,tilstøtende,,,"som støter (ligger, grenser) opp til (noe); som ligger side om side med (noe); tilgrensende; tilliggende",Det var et lite tilstøtende rom til hovedsalen.,There was a small adjoining room to the main hall.
 "adjacent room, adjoining room",B2,expression,tilstøtende rom,,,"naborom, tilliggende rom",Kjøkkenet og stuen var tilstøtende rom med åpen løsning.,The kitchen and living room were adjoining rooms with an open solution.
@@ -18081,8 +18101,8 @@ thyme,B1,en,timian,,Greek via German,krydderplante av slekta Thymus i leppebloms
 timing,B1,ei,timing,[tai´miŋ],English,"valg eller bestemmelse av det rette tidspunkt, øyeblikk for noe som skal utføres; beregning, fastsettelse av tid for noe i forhold til noe annet som det skal fungere sammen med",Timingen var perfekt for å lansere produktet.,The timing was perfect to launch the product.
 sparkle,B2,et,tinder,,,"tindrende lys",Stjernene i fjellet gnistret som tindre på nattehimmelen.,The stars in the mountains sparkled like tinder in the night sky.
 sparkle,B2,verb,tindre,,,"skinne sterkt og glimtende, funkle",Lysene begynte å tindre i mørket.,The lights began to dim in the darkness.
-"assembly, court",B2,et,ting,,Old Norse:þing,forsamling av folkevalgte som utøver lokalt selvstyre,I gamle tider ble viktige saker avgjort på tinget.,"In ancient times, important matters were decided at the court."
-thing,A1,en,ting,[tiŋ:],Old Norse:þing,"sak, anliggende; gjenstand",Jeg har mange ting å gjøre i dag.,I have a lot of things to do today.
+"assembly, court",B2,et,ting,,Old Norse:þing,"forsamling av folkevalgte som utøver lokalt selvstyre; forsamling av representanter fra lokallag i en landsomfattende organisasjon; Stortinget; forsamling av frie menn eller særskilt valgte utsendinger som drøftet lovspørsmål, rettstvister eller lignende",I gamle tider ble viktige saker avgjort på tinget.,"In ancient times, important matters were decided at the court."
+thing,A1,en,ting,[tiŋ:],Old Norse:þing,"sak, anliggende; forhold; fag, yrke; gjenstand",Jeg har mange ting å gjøre i dag.,I have a lot of things to do today.
 courthouse,B2,et,tinghus,,Old Norse,"bygning med rettslokale",Rettssaken fant sted i det gamle tinghuset i byen.,The trial took place in the old courthouse in the city.
 tin,B1,et,tinn,,Old Norse: tin,sølvhvitt metallisk grunnstoff med atomnummer 50; gjenstand av tinn,Lysestaken var laget av gammelt tinn.,The candlestick was made of old tin.
 temporal bone,C,et,"tinningbein, tinningben",,,den delen av hjerneskallen som ligger mellom pannen og øret,Tinningbeinet beskytter deler av hjernen og det indre øret.,The temporal bone protects parts of the brain and the inner ear.
@@ -19426,6 +19446,8 @@ unfold,C,verb,utspinne,,,"foregå, utvikle seg, utspille seg",Det utspant seg et
 questioning,B2,ei,utspørring,,,"det å spørre ut, eksaminasjon, intervju",Journalisten gjennomførte en grundig utspørring.,The journalist conducted a thorough interrogation.
 origins,B2,et,utspring,,,"begynnelse, grunnlag; fremspring",Glomma har sitt utspring i Tydalsfjella.,The Glomma has its source in Tydalsfjella.
 issue,B2,verb,utstede,,,skrive ut på juridisk korrekt vis,Politiet utsteder pass.,The police issue passports.
+"protrusion, cutter",B2,en,utstikker,,,noe som stikker ut; brygge som stikker så langt ut at fartøyer kan legge til på begge sider; redskap til å stikke ut eller forme med,Bruk en rund utstikker til å stikke ut deigen.,Use a round cutter to poke out the dough.
+"jetty, pier",B2,ei,utstikkerbrygge,,,brygge som stikker så langt ut at fartøyer kan legge til på begge sider; utstikker,Vi la til ved en stor utstikkerbrygge innerst i havna.,We docked at a large jetty at the end of the harbor.
 "exhibit, exhibition, display",B1,ei,utstilling,,,"det å utstille (varer, kunstverk og annet), fremvisning; (sted med) samling av utstilte gjenstander",De besøkte en imponerende utstilling på museet.,They visited an impressive exhibition at the museum.
 mannequin,B2,ei,"utstillingsdukke, utstillingsdokke",,,"menneskefigur til å stille ut klær på",Butikken hadde en ny utstillingsdukke i vinduet.,The store had a new mannequin in the window.
 shop window,B1,et,"utstillingsvindu",,,"(forretnings)vindu til å stille ut varer i",Klærne ble plassert i utstillingsvinduet.,The clothes were placed in the shop window.
