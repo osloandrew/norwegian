@@ -1233,6 +1233,7 @@ childhood years,B1,et,barneår,,Old Norse,år da en er barn; barndom,"Jeg husker
 children's book,A2,ei,barnebok,,Old Norse,bok for barn,"Rune Christiansen har tidligere skrevet tre romaner, åtte diktsamlinger og én barnebok.","Rune Christiansen has previously written three novels, eight poetry collections and one children's book."
 children's performance,B1,ei,barneforestilling ,,Old Norse,"forestilling (på kino, teater og lignende) for barn","Hun kom inn i det svarte, lange skjørtet og liknet ei ond heks fra en barneforestilling på teatret.",She came in wearing a long black skirt and looked like a wicked witch from a children's play at the theater.
 kindergarten,A2,en,barnehage,,German: Kindergarten,pedagogisk tilbud på dagtid for barn under skolepliktig alder,Barna i nabolaget går alle sammen til den samme barnehagen.,The children in the neighborhood all go to the same kindergarten.
+kindergarten assistant,B1,en,barnehageassistent,,,person uten pedagogisk utdanning som arbeider i barnehage,Barnehageassistenten hjalp barna med å kle på seg før de skulle ut og leke.,The nursery assistant helped the children get dressed before they went out to play.
 orphanage,B1,et,barnehjem,,Old Norse,hjem for barn som trenger omsorg,"Hvis en barneforestilling ikke trakk mange betalende, kunne man distribuere gratisbilletter til barnehjem.","If a children's performance didn't attract many paying customers, free tickets could be distributed to orphanages."
 pediatrician,B2,en,barnelege,,,lege som er spesialist i barnesykdommer,Barnelegen var vennlig og tok seg god tid med pasientene.,The pediatrician was friendly and took his time with the patients.
 baby food,A2,en,barnemat,,Old Norse,"mat som passer for småbarn; noe lett, enkelt",Å løfte femti kilo var bare barnemat for han.,Lifting fifty kilograms was a piece of cake for him.
@@ -1730,6 +1731,7 @@ ticket inspection,B1,en,billettkontroll,,,kontroll av billetter,Billettkontrolle
 ticket inspector,B1,en,billettkontrollør,,French,"person som kontrollerer billetter",Billettkontrolløren sjekket billettene til alle passasjerene før toget forlot stasjonen.,The ticket inspector checked the tickets of all passengers before the train left the station.
 cheap,A1,adjective,billig,[bi`l:i],German: billich,som ikke koster mye; rimelig; tarvelig; lettkjøpt,Det var utrolig billig. Den kjolen var ikke billig! Maskinen er billig i drift.,It was incredibly cheap. That dress was not cheap! The machine is cheap to run.
 trillion,C,en,billion,,French,grunntallet 1 000 000 000 000; en million millioner; tusen millioner; milliard,Verdien ble oppgitt i billioner av dollar.,The value was stated in trillions of dollars.
+"car mechanic, auto mechanic",B1,en,bilmekaniker,,,fagarbeider som driver med reparasjon og vedlikehold av biler,Bilmekanikeren oppdaget feilen på motoren og fikset den samme dag.,The car mechanic discovered a faulty engine and fixed it the same day.
 car key,A2,en,bilnøkkel ,,Danish,nøkkel til bil,Jeg klarte ikke å finne bilnøkkelen min før jeg oppdaget at den var i lomma på jakken.,I couldn't find my car key until I realized it was in the pocket of my jacket.
 license plate,B1,et,bilskilt,,,skilt med registreringsnummer på bil,Bilskiltet var skittent og vanskelig å lese.,The license plate was dirty and hard to read.
 car traffic,A2,en,biltrafikk,,Danish,trafikk av biler,Biltrafikken var så tett i sentrum at vi måtte bruke nesten en time på å komme til møtet.,The traffic was so dense in the city center that we had to spend almost an hour to get to the meeting.
@@ -1946,6 +1948,7 @@ bubble,B2,verb,boble,[bå`blə],German: bubbeln,være i bevegelse på grunn av l
 bubble bath,B2,et,boblebad,,German,badekar eller basseng med boblende vann som gir massasjevirkning,De slappet av i boblebadet etter en lang dag.,They relaxed in the hot tub after a long day.
 bubble jacket,B1,ei,boblejakke,,German,jakke i boblestoff,Hun hadde på seg en varm boblejakke.,She was wearing a warm bubble jacket.
 "storage room, stall",A2,en,bod,,,"mindre rom eller lite hus til å oppbevare mat, utstyr og lignende i; lite hus der noe selges; lagerhus",Til leiligheten hører carport og boder.,The apartment comes with a carport and storage rooms.
+executioner,C,en,bøddel,,German,person som har til yrke å iverksette dødsdommer; skarpretter; person som er hard og hjerteløs og gjerne piner andre; sadist,Bøddelen la repet om halsen til den dødsdømte.,The executioner put the rope around the condemned man's neck.
 living conditions,B2,et,"boforhold, buforhold",,,forhold en bor under,Boforholdene i området har blitt betydelig forbedret de siste årene.,Living conditions in the area have improved significantly in recent years.
 book,A1,ei,bok,[bo:k],Old Norse: bók,sammenheftede eller innbunde ark med tekst og/eller bilder på,Hun leste en spennende bok om norske vikingtider.,She read an exciting book about Norwegian Viking times.
 beech,B1,en,bøk,,Old Norse: bók,"tre med glatt, grå bark og ellipseformede blad i bøkefamilien",Bøken i hagen gir mye skygge om sommeren.,The beech tree in the garden provides a lot of shade in the summer.
@@ -2013,7 +2016,7 @@ castle,B1,ei,borg ,[bårg],Old Norse: borg,(befestet) slott; festningsverk med t
 citizen,B1,en,borger ,[bå`rgər],German,person med borgerrett i et land; statsborger,Som borger i Norge har du mange rettigheter.,"As a citizen of Norway, you have many rights."
 citizen king,C,en,borgerkonge,,German,konge som heller vil være den første blant borgerne enn eneveldig monark av Guds nåde,"Borgerkongen, en symbolsk leder valgt av folket, ble hedret under seremonien for hans bidrag til nasjonens utvikling.","The Citizen King, a symbolic leader elected by the people, was honored during the ceremony for his contribution to the nation's development."
 civil war,B2,en,borgerkrig ,,German,innbyrdes krig mellom borgerne i en stat,Landet ble rammet av en ødeleggende borgerkrig som førte til store menneskelige og økonomiske tap.,The country was hit by a devastating civil war that led to huge human and economic losses.
-"middle-class, civil",B2,adjective,borgerlig ,,German,"som er tilhenger av en konservativ, liberal eller kristelig ideologi; ikke-sosialistisk; som ikke er kirkelig eller religiøs; verdslig; i samsvar med middelklassens normer; som vedkommer en statsborger; samfunnsmessig; sivil; ikke adelig eller kongelig",Den borgerlige kandidaten vant valget og lovet å fremme økonomisk vekst og sosial stabilitet.,The conservative candidate won the election promising to promote economic growth and social stability.
+"conservative, right-wing, middle-class, civil",B2,adjective,borgerlig ,,German,"som er tilhenger av en konservativ, liberal eller kristelig ideologi; ikke-sosialistisk; som ikke er kirkelig eller religiøs; verdslig; i samsvar med middelklassens normer; som vedkommer en statsborger; samfunnsmessig; sivil; ikke adelig eller kongelig",Den borgerlige kandidaten vant valget og lovet å fremme økonomisk vekst og sosial stabilitet.,The conservative candidate won the election promising to promote economic growth and social stability.
 mayor,B2,en,borgermester ,,German,øverste administrative leder for en by,Borgermesteren holdt en tale på den årlige festivalen for å feire lokalsamfunnets bidrag og innsats.,The mayor gave a speech at the annual festival to celebrate the community's contributions and efforts.
 citizenship,B2,et,borgerskap ,,German,det å være borger,Hun søkte om norsk borgerskap etter å ha bodd i landet i mange år og ønsket å bli en del av det norske samfunnet.,She applied for Norwegian citizenship after living in the country for many years and wanted to become part of Norwegian society.
 citizen parade,C,et,borgertog,,German,tog av borgere; folketog på 17. mai,"Det var et flott syn å se borgertoget marsjere gjennom byen under nasjonaldagen, med folk som heiet og vinket fra sidelinjen.","It was a great sight to see the citizen's procession marching through the city during the national day, with people cheering and waving from the sidelines."
@@ -2124,6 +2127,7 @@ brake fluid,C,ei,bremsevæske,,German,væske til bremsesystemet i biler,Mekanike
 "burn, be passionate",A2,verb,brenne,[bre`n:ə],Old Norse: brenna,"være i brann; stå i flammer; lyse som ild; skinne kraftig; være eller kjennes het; svi, verke; ha sterke følelser for noe; være intenst opptatt av noe; kjenne sterk trang eller lyst",Låven brenner.,The barn is on fire.
 burn one's fingers,B2,expression,"brenne fingrene",,Old Norse,få seg en lærepenge,Han brente fingrene på å investere i feil prosjekt.,He burned his fingers investing in the wrong project.
 be passionate about,B1,expression,brenne for,,,"være sterkt engasjert i, opptatt av",Hun brenner for å hjelpe andre mennesker.,She is passionate about helping other people.
+there is a fire in the outhouse,B2,expression,brenne på dass,,,være krise,Alle må bidra når det brenner på dass.,Everyone has to help when there's a fire in the outhouse.
 burn out,B2,expression,brenne ut,,Old Norse,brenne til det ikke er noe igjen; slutte å være aktiv,"Hvis du jobber for hardt uten pauser, kan du fort brenne ut.","If you work too hard without breaks, you can quickly burn out."
 brand,B2,verb,brennemerke,,Old Norse,"sette brennemerke på, stigmatisere",Bonden måtte brennemerke kyrne sine for identifikasjon.,The farmer had to brand his cows for identification.
 brand,B2,et,brennemerke,,Old Norse,merke som ble brent inn i pannen på en lovbryter; skamplett,Bonden satte et brennemerke på storfeet. Brennemerket viste at dyrene tilhørte bonden.,The farmer put a brand on the cattle. The brand showed that the animals belonged to the farmer.
@@ -2378,6 +2382,7 @@ bus stop,A1,en-et,"busstopp, buss-stopp",[bus:tåp:],Latin,stoppested for buss; 
 bus trip,A2,en,busstur,,Latin,reise eller utflukt med buss; strekning en tilbakelegger i buss,Vi tok en lang busstur gjennom fjellene.,We took a long bus ride through the mountains.
 "store, shop",A1,en,butikk,[buti´k:],Greek via French,lokale for salg av forbruksvarer; forretning; virksomhet eller etablissement hvor varer eller tjenester blir solgt til forbrukere,Jeg skal gå til butikken for å handle mat.,I'm going to the store to buy food.
 store owner,B1,en,butikkeier,,Greek via French,eier av butikk,Butikkeieren hilste oss vennlig da vi kom inn.,The store owner greeted us kindly when we entered.
+store employee,A2,en,butikkmedarbeider,,,person som jobber i butikk,Butikkmedarbeideren satt varer på plass i hyllene og hjalp kundene med spørsmål.,The shop assistant put goods on the shelves and helped customers with questions.
 "shopping center, shopping mall",B1,et,butikksenter ,,Greek via French,plass eller bygning der butikker av forskjellige slag er samlet; kjøpesenter,Butikksenteret er alltid travelt på lørdager.,The shopping center is always busy on Saturdays.
 shop window,A2,et,butikkvindu,,Greek via French,"utstillingsvindu",Jeg så en fin jakke i butikkvinduet.,I saw a nice jacket in the shop window.
 blunt,B2,adjective,butt,[but:],German,uten skarp odd eller egg; avrundet,"Denne kniven har en butt ende, så den er ikke skarp.","This knife has a blunt end, so it is not sharp."
@@ -2566,6 +2571,7 @@ Danish,A2,adjective,dansk,[dansk],Old Norse: Danishr,som gjelder Danmark og dans
 "bad, poor",A1,adjective,dårlig,[då:`rli],Old Norse: dáligr,"syk, skadet, skrøpelig; ikke frisk; lite tjenlig; mangelfull; lite flink; udugelig; ikke nok; knapp, utilstrekkelig; som er til ulempe for noen; som vekker ubehag; (moralsk) mindreverdig, forkastelig",Været var dårlig hele helgen.,The weather was bad all weekend.
 "bad business, poor business",B1,expression,"dårlig butikk",,,ulønnsom virksomhet; noe som det ikke er mye penger å tjene på; dårlig forretning,Det er dårlig butikk når det ikke kommer folk.,It's bad business when people don't show up.
 "foolishness, stupidity",B2,en,dårskap,,German,"tåpelig gjerning; dumhet, uforstand",Historien hans om dårskap fikk alle til å le.,His story of folly made everyone laugh.
+"outhouse, crapper",A2,en-et,dass,,German,"rom eller doskål der en gjør fra seg; do, toalett","Det gamle huset hadde fortsatt et utedo, eller dass, bak låven.","The old house still had an outhouse, or outhouse, behind the barn."
 data,A1,en,data,[da:´ta],Latin: data,"opplysninger om verden som blir brukt i forskning, databehandling eller liknende",Alle data er kodet for automatisk bearbeidelse.,All data is coded for automatic processing.
 database,B1,en,database,,Latin,"samling data som er lagt til rette for et bestemt formål eller dataprogram",Bedriften bruker en stor database for å lagre kundeinformasjon.,The company uses a large database to store customer information.
 data processing,B2,ei,databehandling,,Latin,"registrering, lagring, sortering, bearbeiding og presentasjon av data",Databehandling er viktig i store bedrifter.,Computing is important in big business.
@@ -2872,8 +2878,8 @@ poetry piece,C,et,diktverk,,,"større, litterært verk (i poetisk form)",Hans si
 dildo,B2,en,dildo,[di´l:do],English,"penisetterligning brukt til seksuell stimulering",Butikken selger mange typer dildoer i forskjellige størrelser.,The store sells many types of dildos in different sizes.
 dilemma,B2,et,dilemma,[dile´m:a],Greek,situasjon der en er nødt til å velge mellom to like ubehagelige muligheter; knipe,Hun står for tiden i et vanskelig dilemma.,She is currently in a difficult dilemma.
 dimension,B2,en,dimensjon,,,"fysisk utstrekning i én retning; omfang av en bestemt størrelse; et bestemt trekk ved en sak, et fenomen eller lignende; side, aspekt",En flate har to dimensjoner. Einstein innførte tiden som den fjerde dimensjon.,A surface has two dimensions. Einstein introduced time as the fourth dimension.
-"obscure, blur, dim",C,verb,dimme,,Old Norse: dimma,"gjøre eller bli uklar, dim; mørkne, dimmes","Tåken dimmet landskapet, og vi kunne knapt se veien foran oss.",The fog obscured the landscape and we could barely see the road in front of us.
 "fog, blurriness, twilight",C,ei,dimme,,Old Norse: dimma,uklarhet i lufta; dis; halvmørke,Det lå en tett dimme over fjellene tidlig om morgenen.,There was a dense fog over the mountains in the early morning.
+"obscure, blur, dim",C,verb,dimme,,Old Norse: dimma,"gjøre eller bli uklar, dim; mørkne, dimmes","Tåken dimmet landskapet, og vi kunne knapt se veien foran oss.",The fog obscured the landscape and we could barely see the road in front of us.
 dimmer,B2,en,dimmer,,,innretning til å regulere lysstyrken i et elektrisk lys med; dimmebryter,Jeg installerte en dimmer for å justere lyset på soverommet.,I installed a dimmer to adjust the light in the bedroom.
 your,A1,possessive,din,[di:n],Old Norse,"som adjektiv, ved eiendoms- og tilhørighetsforhold; i tiltale foran et substantiv, oftest skjellsord, med betydning du","Er dette din sykkel, eller er den noen andres?","Is this your bike, or is it someone else's?"
 "thingy, gadget",B1,en,dings,,German: Dings,"liten ting som en ikke kan eller ikke bryr seg om å nevne med sitt egentlige navn; tingest, greie",Hva slags dings er det?,What kind of gadget is that?
@@ -3697,6 +3703,9 @@ experience,B1,verb,erfare,[ærfa:´rə],German,bli klar over gjennom egen opplev
 experienced,B1,adjective,erfaren,,German,som har erfaring,Han er en erfaren sjåfør.,He is an experienced driver.
 experience,A2,ei,erfaring,,German,"ferdighet, innsikt eller viten som er oppnådd gjennom egen opplevelse eller øvelse",Hun har mye erfaring med å jobbe i helsevesenet.,She has a lot of experience working in healthcare.
 "irritating, irritated",B2,adjective,ergerlig,,,som skaper ergrelse,Situasjonen var veldig ergerlig.,The situation was very annoying.
+ergonomics,B2,en,ergonomi,,Greek,"fag som gjelder tilrettelegging av arbeidsmiljø, særlig med tanke på tilpasning av arbeidsredskaper og andre fysiske forhold",God ergonomi på arbeidsplassen kan forhindre belastningsskader.,Good ergonomics in the workplace can prevent strain injuries.
+"occupational therapist, ergotherapist",B2,en,ergoterapeut,,Greek,yrkesutøver med fagutdanning i ergoterapi,Ergoterapeuten hjalp pasienten med å tilpasse hverdagen etter ulykken.,The occupational therapist helped the patient adapt to everyday life after the accident.
+"occupational therapy, ergotherapy",B2,en,ergoterapi,,Greek,"behandling av helseproblemer ved hjelp av aktiviteter, tilpasning av omgivelsene og bruk av tekniske hjelpemidler",Ergoterapi kan være en viktig del av rehabiliteringen etter en skade.,Occupational therapy can be an important part of rehabilitation after an injury.
 irritate,B2,verb,ergre,[æ`rgrə],,"gjøre ergerlig; forarge, irritere",De småtingene begynte å ergre ham.,Those little things started to bother him.
 irritation,B2,en,ergrelse,,,noe som skaper irritasjon,Klagen førte til en ergrelse over situasjonen.,The complaint led to a resentment of the situation.
 erect,B2,verb,erigere,,Latin,reise seg; svulme opp,De måtte erigere en mur rundt eiendommen.,They had to erect a wall around the property.
@@ -4511,6 +4520,7 @@ fluoride,B2,et,fluorid,,,salt som dannes når fluor forbinder seg med et annet g
 fly,A1,verb,fly,[fly:],Old Norse: fljúga,flytte seg i lufta ved hjelp av vinger,Fugleungene har ikke lært å fly ennå.,The baby birds have not yet learned to fly.
 pissed off,B2,expression,fly forbanna,,Old Norse,svært sint,Han ble fly forbanna da han fikk høre nyheten.,He was furious when he heard the news.
 airborne,C,adjective,"flybåren, flybåret",,,som er fraktet med fly,Vaksinen beskytter mot flybårne virus.,The vaccine protects against airborne viruses.
+air traffic controller,B2,en,"flygeleder, flyveleder",,,person som regulerer flytrafikken ved en flyplass,Flygelederen instruerte pilotene om riktig innflygingshøyde.,The air traffic controller instructed the pilots on the correct approach altitude.
 "pilot, aviator",B1,en,flyger ,,,fører av fly,Flygeren navigerte flyet gjennom stormen.,The pilot navigated the aircraft through the storm.
 flying,B1,ei,"flying, flyging",,,det å fly,Hun elsker følelsen av frihet under flyging med småfly.,She loves the feeling of freedom when flying small planes.
 "flee, run away",A2,verb,flykte ,,German,rømme (særlig fra fare); komme seg unna; unngå,De måtte flykte fra landet på grunn av krigen.,They had to flee the country because of the war.
@@ -5644,7 +5654,10 @@ futurology,C,en,futurologi,,Latin: futurum,fremtidsforskning,Han er interessert 
 yikes,A2,interjection,fy,,Old Norse: fy,brukt til å uttrykke avsky eller bebreidelse,"Fy, det var frekt sagt!",What a rude thing to say!
 holy shit,B2,expression,fy faen,,Old Norse,"brukt for å uttrykke beundring, avsky eller annen reaksjon","Fy faen, så bra!","Damn, so good!"
 holy smokes,B1,expression,fy søren,,Old Norse,"brukt til å uttrykke beundring, avsky eller annen reaksjon","Fy søren, det var nære på!","Damn, that was close!"
+holy smokes,B2,expression,fy til grisen,,,"brukt til å uttrykke beundring, avsky eller annen reaksjon",Fy til grisen for en gjeng!,"Holy smokes, what a bunch of people!"
 holy shit,C,expression,fy til helvete,,Old Norse,"brukt for å uttrykke beundring, avsky eller annen reaksjon","Da han mistet kontrollen, ropte han: ""fy til helvete!""","When he lost control, he shouted: “go to hell!”"
+holy smokes,B2,expression,fy til katta,,,"brukt til å uttrykke beundring, avsky eller annen reaksjon",Fy til katta som du ser ut!,"Holy smokes, how you look!"
+holy smokes,C,expression,fy til rakkeren,,,"brukt for å uttrykke beundring, avsky eller annen reaksjon",Fy til rakkeren for et liv!,"Holy smokes, what a life!"
 whizz,B2,verb,fyke,,Old Norse: fjúka,drive gjennom lufta; fare fort eller brått,Snøen begynte å fyke over veien i vinden.,Snow began to blow across the road in the wind.
 whizzing,B2,adjective,fykende,,Old Norse,"susende, lynrask; svært",Han kom fykende inn døra med gode nyheter.,He came bursting through the door with good news.
 fullness,B2,en,fylde,,Old Norse,"rikelig mengde, overflod",Det var en herlig fylde i smaken av vinen.,There was a wonderful fullness in the taste of the wine.
@@ -5703,6 +5716,7 @@ go through fire and water,B2,expression,"gå gjennom ild og vann",,Old Norse,"i
 "miss out on, miss",B1,expression,gå glipp av,,,ikke oppnå eller få med seg; miste muligheten til,Du vet ikke hva du går glipp av. Hun har gått glipp av tre skoledager på grunn av sykdom. Han fikk rødt kort og gikk glipp av de neste sju kampene.,You don't know what you're missing. She has missed three days of school due to illness. He got a red card and missed the next seven games.
 go hand in hand,B2,expression,"gå hånd i hånd",,Old Norse,gå og leie hverandre; gå for seg samtidig; utvikle seg parallelt,Ulikhet og ufrihet går hånd i hånd.,Inequality and unfreedom go hand in hand.
 be passed down,B2,expression,gå i arv,,,"være arvelig, bli (ned)arvet",Denne gamle klokka har gått i arv i familien i flere generasjoner.,This old watch has been passed down in the family for several generations.
+go down the drain,B2,expression,gå i dass,,,"bli en fiasko; bli bortkastet, forgjeves",Alt strevet kan gå i dass. Konserten gikk rett i dass. Fem hundre kroner rett i dass.,All the effort can go down the drain. The concert went down the drain. Five hundred kroner down the drain.
 "hibernate, go into hibernation",B2,expression,gå i hi,,,gå i vinterdvale i en hule; trekke seg helt tilbake fra selskap med andre,Bjørnen går i hi om høsten. Han går i hi når noe butter imot.,The bear hibernates in the fall. He hibernates when something goes wrong.
 go to the dogs,B2,expression,gå i hundene,,Old Norse,"gå til grunne, forkomme",Etter den økonomiske krisen begynte bedriften å gå i hundene.,"After the economic crisis, the business started to go down the drain."
 clash,B2,expression,gå i klinsj,,English,komme så tett innpå hverandre at det ikke blir rom for fullt slag; havne i konflikt med noen,Politikerne gikk i klinsj med lokalbefolkningen.,The politicians clashed with the locals.
@@ -6894,6 +6908,7 @@ holiness,B2,ei,hellighet,,Old Norse,det å være hellig,Klosteret var kjent for 
 health,A2,ei,helse,[he`lsə],Old Norse: heilsa,"fysisk og psykisk tilstand; sunnhet; konstitusjon; helsebot; legemlig (og psykisk) sunnhet og kraft, vigør",God helse er det viktigste i livet.,Good health is the most important thing in life.
 good for you,C,adjective,helsebringende,,,som er godt for helsa,"Frukt, grønnsaker og mosjon er helsebringende.","Fruit, vegetables and exercise are good for you."
 health drink,C,en,helsedrikk,,,sunn og helsebringende drikk; legende drikk,De serverte en grønn helsedrikk laget av spinat og ingefær.,They served a green health drink made from spinach and ginger.
+health worker,B1,en,helsefagarbeider,,,person med kurs i elementær sykepleie som har lov til å utføre visse arbeidsoppgaver i sykehus og sykehjem og i hjemmesykepleien,Helsefagarbeideren tok blodtrykket og fulgte opp medisineringen.,The health professional took blood pressure and followed up on medication.
 health freak,C,en,helsefrik,,Old Norse,person som er ekstremt opptatt av helse,Han regnes som en helsefrik og unngår alt usunt.,He is considered a health freak and avoids anything unhealthy.
 "healthcare waiting line, healthcare queue",B2,en,helsekø,,,kø eller ventetid for å få tilgang til helsetjenester,Mange står i helsekø for behandling.,Many people stand in the health queue for treatment.
 health food,B2,en,helsekost,,,sunn og næringsrik kost; naturprodukter og andre produkter som er framstilt for å ha en helsebringende effekt,Butikken selger helsekost og naturlige produkter.,The store sells health food and natural products.
@@ -7610,6 +7625,7 @@ cabin trip,A2,en,hyttetur,,German,"tur til hytte med overnatting; reise eller en
 "tonight, this evening",B1,expression,i aften,,Old Norse,"denne aften eller denne dags aften",Jeg skal se på teateret i aften.,I'm going to the theater tonight.
 "mainly, basically",B2,expression,i all hovedsak,,Old Norse,stort sett; for det meste,I all hovedsak er vi enige om planen.,"In general, we agree with the plan."
 "in all its glory and splendor",C,expression,"i all sin prakt og velde",,Old Norse,"i all sin storhet",Slottet sto der i all sin prakt og velde.,The castle stood there in all its splendor and grandeur.
+on earth,B1,expression,i alle dager,,,i uttrykk for undring,"I alle dager, hva er dette for noe? Hva i alle dager var det som skjedde? Hvorfor i alle dager er de ikke blitt enige?",What on earth is this? What on earth happened? Why on earth haven't they come to an agreement?
 "at least, in any case",B1,expression,"i alle fall, iallfall",,,i alle tilfeller; i det minste,Vi skal komme oss dit i alle fall før mørket faller på. Jeg skal iallfall prøve å være der.,We will get there at least before darkness falls. I will at least try to be there.
 "in total, in all",A2,expression,i alt,,,til sammen; totalt,Utgiftene kom på ti tusen kroner i alt.,The expenses amounted to ten thousand kroner in total.
 this year,A1,expression,i år,,Old Norse,"i inneværende år",Vi skal på ferie i år igjen.,We're going on vacation again this year.
@@ -8508,6 +8524,7 @@ coffee maker,A2,en,kaffetrakter,,Arabic,"apparat til å trakte kaffe med","Kaff
 Kafkaesque,C,adjective,kafkask,[ka´fkask],Czech,som virker absurd og meningsløs; marerittaktig,Filmen skildrer en kafkask verden.,The movie depicts a Kafkaesque world.
 cabin,B2,ei,kahytt,[kahy´t:],French: cahute,"oppholdsrom på mindre båt, kabin, lugar",De bodde i en liten kahytt på båten.,They lived in a small cabin on the boat.
 "quay, wharf, dock",A2,ei,kai,[kai],Dutch: kaai,"byggverk for lasting og lossing av fartøy, brygge, pir, utstikker",Fergen ligger til kai i sentrum av byen.,The ferry is docked in the city center.
+kayak,A2,en,kajakk,,Greenlandic: qajaq,"smal, lukket enmannsbåt som padles med tobladet åre; i kajakksport også med plass til to eller fire personer",Vi padlet i kajakk langs kysten i solnedgangen.,We kayaked along the coast at sunset.
 cake,A1,ei,kake,[ka:`kə],Old Norse: kaka,bakverk av deig,Til bursdagen min bakte bestemor en deilig sjokoladekake med krem og friske bær.,"For my birthday, my grandmother baked a delicious chocolate cake with cream and fresh berries."
 cake mold,A2,ei,kakeform,,Old Norse: kaka,form til å steke kake i,Jeg brukte en hjerteformet kakeform til bursdagskaken.,I used a heart-shaped cake tin for the birthday cake.
 "cockroach, roach",B1,en,kakerlakk,"[kakərla´k:], [ka´k:ərlak]",Spanish via Dutch,"flattrykt, oftest brunt, altetende insekt med bitemunn, av ordenen Blattaria",En kakerlakk kravlet over gulvet.,A cockroach crawled across the floor.
@@ -9960,6 +9977,7 @@ apprenticeship,B2,ei,læretid,,German via Old Norse,tid da en går i lære,Hun e
 "learning disability, learning difficulty",B2,en,lærevanske,,,"tilstand som hindrer læring (i skolefag)",Han har en liten lærevanske som gjør læring utfordrende.,He has a slight learning disability that makes learning challenging.
 learning,B1,ei,læring,,German via Old Norse,relativt varig atferdsendring som resultat av erfaring og øving; det å lære,Læring skjer hele livet.,Learning happens throughout life.
 learning curve,B2,en,læringskurve,,,kurve over læringsutvikling (i et diagram),Det har vært en bratt læringskurve i den nye jobben.,It's been a steep learning curve in the new job.
+learning outcomes,B2,et,læringsutbytte,,,resultat av læring i form av kunnskaper eller ferdigheter,Studentene måtte vise læringsutbytte etter endt kurs.,The students had to show learning outcomes after completing the course.
 apprentice,A2,en,lærling,,German via Old Norse,"person som læres opp i et håndverk og praktiserer yrket under oppsyn av arbeidsgiveren",Snekkeren har en lærling med seg.,The carpenter has an apprentice with her.
 leather strap,B2,ei,"lærreim, lærrem",,Old Norse: leðr,reim av lær,Beltet er laget av solid lærreim.,The belt is made of solid leather strap.
 hilarious,B1,adjective,lættis,[læ´t:is],,latterlig; tåpelig; komisk; morsomt,Dagen var full av lettis øyeblikk.,The day was full of light-hearted moments.
@@ -10237,6 +10255,7 @@ layman,C,en,"lekmann, legmann",,,ufaglært person,Han er en lekmann innen teolog
 lexicography,C,en,leksikografi,,Greek,vitenskapelig gransking av ordforrådet; ordbok- eller leksikonarbeid,Studier i leksikografi fokuserer på ord og definisjoner.,Studies in lexicography focus on words and definitions.
 lexicon,B2,et,leksikon,,Greek,"håndbok, kunnskapsverk med alfabetisk ordnede oppslagsord; ordbok; ordtilfang i et språk",Han slo opp i et leksikon for å finne svar.,He looked up an encyclopedia to find the answer.
 lesson,B1,en,leksjon,[lekʃo:´n],,undervisningstime; del av et kurs; skjennepreken,Læreren ga en viktig leksjon om historie.,The teacher gave an important lesson on history.
+lecturer,B2,en,lektor,,Latin,"lærer som har mastergrad eller tilsvarende, og som har pedagogisk utdanning",Lektoren underviser i historie på videregående skole.,The lecturer teaches history at upper secondary school.
 reading,B2,en,lektyre,,Latin via French,noe å lese i; lesestoff,Jeg tok med meg en lett lektyre til ferien.,I took a light reading book with me for the holidays.
 "hatch, panel",B2,en,lem,,Old Norse: hlemmr,"plate til å lukke for en åpning i gulv, tak eller vegg; luke; trev, hems, loft",Han åpnet lemmen i gulvet for å hente noe fra kjelleren.,He opened the trapdoor in the floor to get something from the basement.
 "limb, member",B2,et,lem,,Old Norse: limr,"bevegelig kroppsdel, særlig om arm og bein; penis; medlem",Hun fikk et kraftig slag i høyre lem etter fallet.,She suffered a severe blow to her right limb after the fall.
@@ -10501,6 +10520,8 @@ logistical,B2,adjective,logistisk,,Greek via Latin,"som hører til, har sammenhe
 "lie, falsehood",B1,ei,løgn,[løin],Old Norse: lygi,utsagn som ikke er sant,Han har fortalt deg en løgn. ,He has told you a lie.
 lie detector,B2,en,løgndetektor,,Old Norse,"apparat som registrerer små fysiologiske forandringer som en tror kommer av følelsesreaksjoner når en person lyver, og som dermed kan avsløre en løgner",Løgndetektoren ble brukt under avhøret.,The lie detector was used during the interview.
 liar,B1,en,løgner,,Old Norse,"person som lyver",Han ble kjent som en løgner.,He became known as a liar.
+speech therapist,B2,en,logoped,,Greek,spesialpedagog med utdanning innen logopedi,Logopeden jobbet med barn som hadde uttalevansker.,The speech therapist worked with children who had pronunciation difficulties.
+speech therapy,B2,en,logopedi,,Greek,"fagområde som gjelder (behandling av) vanskeligheter med tale, språk, stemme, svelging eller lese- og skrivevansker",Logopedi er et fagfelt som kombinerer pedagogikk og medisin.,Speech therapy is a field that combines pedagogy and medicine.
 wag one's tail,B2,verb,logre,[lå`grə],,"svinge med halen som tegn på glede, iver; smiske",Hunden logrer når det kommer gjester.,The dog wags when guests arrive.
 loyal,B2,adjective,lojal,,Latin via French,"trofast mot en person, en gruppe, en institusjon eller en sak; pålitelig; lovlydig",Han er en lojal venn som alltid stiller opp.,He's a loyal friend who's always there for you.
 loyalty,B2,en,lojalitet,,Latin via French,det å være lojal,Lojaliteten hennes til bedriften var beundringsverdig.,Her loyalty to the company was admirable.
@@ -10513,6 +10534,7 @@ local community,B1,et,lokalsamfunn,,Latin,"mindre, ensartet samfunn, nabolag, gr
 local train,A2,et,lokaltog,,Latin,"tog som går i lokaltrafikk",Vi tok lokaltoget til byen i morges.,We took the local train into town this morning.
 local traffic,B1,en,lokaltrafikk,,,trafikk innenfor et mindre område,Bussene går i lokaltrafikk rundt byen.,The buses run in local traffic around the city.
 local election,B2,et,lokalvalg,,Latin,"valg på lokalplan, i lokalpolitikk",Resultatene fra lokalvalget ble offentliggjort i går.,The results of the local elections were announced yesterday.
+train driver,B1,en,lokfører,,,lokomotivfører,Lokføreren sørget for at toget holdt riktig hastighet gjennom svingen.,The driver ensured that the train maintained the correct speed through the curve.
 "lid, cover",A2,et,lokk,,,"noe til å lukke en åpning på en beholder, et skrin eller lignende med, deksel",Gryta må stå med lokk på for å koke ordentlig.,The pot must be left with the lid on to cook properly.
 "lock of hair, curl",B2,en,lokk,,,"liten snodd eller buet masse av menneskehår, krølle",Han skrudde av lokket på syltetøyglasset.,He unscrewed the lid of the jam jar.
 "allure, attract",B1,verb,lokke,,,"kalle, rope til seg; (forsøke å) påvirke, overtale, friste, narre",De prøvde å lokke katten ut av treet med mat.,They tried to lure the cat out of the tree with food.
@@ -10550,6 +10572,7 @@ flea market,A2,et,loppemarked,,French: marché aux puces,marked der det blir sol
 flea market,A2,en,loppis,,Swedish,loppemarked,Vi skal på en loppis i nabolaget i helgen.,We're going to a flea market in the neighborhood this weekend.
 Saturday,A1,en,lørdag,[lø:´rdag],"Old Norse: laugardagr ""vaskedag""",sjette dag i uka,Vi drar på kino på lørdag.,We go to the movies on Saturday.
 "wishy-washy, flaky, weak",B2,expression,løs i fisken,,Old Norse,"ha slappe, veike muskler; løs i konsistensen; uselvstendig eller upålitelig; usammenhengende; uferdig",Han er kjent for å være litt løs i fisken.,He's known for being a bit flaky.
+loose cannon,C,expression,løs kanon,,,person som handler på uforutsigelig måte,Han blir beskrevet som en løs kanon på dekk. Hun er en løs kanon som ikke lar seg kontrollere.,He is described as a loose cannon on deck. She is a loose cannon that cannot be controlled.
 loose,A2,adjective,"løs, laus",,Old Norse: lauss,"som ikke er bundet eller festet til noe, fri, som har løsnet eller kan løses lett","Skruen er løs, så vi må stramme den.","The screw is loose, so we need to tighten it."
 loose,B2,adjective,"løsaktig, lausaktig",,Old Norse,"upålitelig; lettferdig, usedelig",Hun ble sett på som løsaktig på grunn av sitt frie liv.,She was seen as promiscuous because of her free life.
 redeem,B2,expression,løse inn,,,"betale for å få igjen et verdipapir, et pant eller lignende",Du kan løse inn gavekortet i butikken.,You can redeem the gift card in the store.
@@ -10825,12 +10848,14 @@ grind,A2,verb,male,,Old Norse: mala,"knuse til mel (med kvern), pulverisere; svi
 measure,A2,verb,måle ,[må:`lə],Old Norse,"finne størrelse, mengde eller lignende ved hjelp av måleredskap, ta mål av",Jeg må måle veggene før jeg kjøper maling.,I have to measure the walls before I buy paint.
 unit of measurement,B1,ei,"måleenhet, målenhet",,Old Norse,enhet for måling,Vi bruker centimeter som måleenhet.,We use centimeters as a unit of measurement.
 painting,A2,et,maleri,[maləri:´],German via Old Norse: mála,"skildring i farger på forskjellige slags flater, oftest på lerret",Maleriet på veggen var laget av en kjent kunstner.,The painting on the wall was made by a well-known artist.
+master painter,B2,en,malermester,,,håndverksmester i malerfaget,Malermesteren ga oss et pristilbud på å male hele huset.,The painter gave us a quote to paint the whole house.
 yardstick,B1,en,målestokk,,Old Norse,"stokk, linjal med skala for lengdemåling; noe som tjener til sammenligning",Vi må bruke en større målestokk for å se detaljene.,We need to use a larger scale to see the details.
 the goal is reached,B2,expression,målet er fullt,,Old Norse,grensen er nådd,"Nå er målet fullt, og vi må finne en løsning.",Now the target is full and we need to find a solution.
 the ends justify the means,B2,expression,målet helliger middelet,,Old Norse,et godt formål rettferdiggjør uheldige eller umoralske fremgangsmåter,For ham helliger målet middelet i viktige saker.,"For him, the end justifies the means in important matters."
 dialect,C,et,målføre,,Old Norse,dialekt,Dette målføret skiller seg fra standardnorsk.,This dialect differs from standard Norwegian.
 dialectologist,C,en,målføregransker,,Old Norse,"person som driver med målføregransking",Han er en kjent målføregransker.,He is a well-known dialectologist.
 dialectology,C,ei,målføregransking,,Old Norse,"gransking av målfører og utbredelsen av språktrekk, dialektologi",Målføregransking er viktig for å forstå språkutviklingen.,Dialectology is important for understanding language development.
+target group,B2,ei,målgruppe,,English: target group,"gruppe som for eksempel informasjon, reklame eller politisk propaganda retter seg mot",Målgruppa for tidsskriftet er folk med teknisk utdanning.,The target group for the magazine is people with a technical education.
 paint,A2,ei,maling,,German via Old Norse,farge til å male med,Jeg trenger mer maling til å male stua.,I need more paint to paint the living room.
 malice,C,en,malise,[mali:`sə],Latin via French: malice,"ondskap, skadefryd",Han handlet med ren malise og ønsket å såre.,He acted with pure malice and wanted to hurt.
 "malicious, mean-spirited",C,adjective,malisiøs,[malisiø:´s],Latin via French,"ondskapsfull, skadefro",Kommentaren hennes var unødvendig og malisiøs.,Her comment was unnecessary and mean-spirited.
@@ -11008,6 +11033,7 @@ dish,A2,en,matrett,,,mat som er tilbebredt og klar for servering; rett,Min favor
 matriarch,C,en,matriark,,Greek,eldre kvinne som har posisjon som overhode for både sine barn og fjernere slektninger,Hun ble en respektert matriark i familien.,She became a respected matriarch of the family.
 matriarchy,C,et,matriarkat,,Greek,"samfunnsform der moren er overhode i familien, og barna arver rettene hennes; kvinnestyre",Samfunnet hennes var organisert som et matriarkat.,Her society was organized as a matriarchy.
 matrix,C,en,matrise,[matri:`sə],French,"negativ støpe- eller stanseform til mynter, typografiske tegn, klisjeer og annet; systematisk ordnet symbolskjema",Tallene legges inn i en matrise for videre analyse.,The numbers are entered into a matrix for further analysis.
+edible mushroom,B1,en,matsopp,,,"sopp som blir brukt til mat",I skogen fant vi en matsopp som vi tok med hjem og stekte til middag.,"In the forest, we found a mushroom that we took home and cooked for dinner."
 diet,B2,et,matstell,,Old Norse,"stell, arbeid med matlagning",Asbjørnsen ville gjøre det norske matstellet sunnere.,Asbjørnsen wanted to make Norwegian food healthier.
 math,A2,en,matte,[ma`t:ə],Greek,kortord for matematikk,Jeg sliter litt med matte på skolen.,I struggle with math at school.
 "mat, rug",A2,ei,matte,[ma`t:ə],,"fillerye; madrasslignende underlag for turn, bryting og lignende",Vi tørket føttene på matta før vi gikk inn i huset.,We wiped our feet on the mat before entering the house.
@@ -13357,6 +13383,7 @@ pioneer,B2,en,pioner,[pione:´r],French,"spesialutdannet soldat som bygger eller
 "chimney, pipe",A2,ei,pipe,,,rørformet musikkinstrument eller del av musikkinstrument; rørformet gjenstand med hulrom; murt kanal som fører røyk fra ildsted opp og ut over hustaket; del av skorstein som rager over taket; redskap til å røyke tobakk med,Røyken steg opp fra pipa på huset.,Smoke rose from the chimney of the house.
 peep,A2,verb,pipe,,,"lage en høy, tynn lyd",Vinden begynte å pipe gjennom sprekkene i vinduet.,The wind began to whistle through the cracks in the window.
 pipeline,B2,en,pipeline,[pai´plain],English,rørledning til transport av petroleum,Oljeselskapet har investert i en ny pipeline for å transportere råolje fra Nordsjøen til fastlandet.,The oil company has invested in a new pipeline to transport crude oil from the North Sea to the mainland.
+beep,B2,en,pipetone,,,"pipende tone, især som signal i telefonsvarer",Jeg skulle lese inn en beskjed etter pipetonen.,I had to record a message after the beep.
 trickle,B2,verb,piple,,,"tyte, sive; vokse, bryte frem",Vannet begynte å piple ut fra kranen.,The water started to trickle out of the tap.
 pier,B1,en,pir,,English: pier,stor utstikkerbrygge,De gikk ut på piren for å nyte solnedgangen.,They went out on the pier to enjoy the sunset.
 pirate,B1,en,pirat,,Latin,"sjørøver, kaprer; ulovlig virksomhet eller person som driver med noe ulovlig",Kapteinen så en pirat i horisonten.,The captain saw a pirate on the horizon.
@@ -14021,6 +14048,7 @@ crack,B2,ei,råk,,Old Norse,åpen renne i is,"Isbryteren brøt råk for dem. Det
 "affect, impact",B2,verb,rake,,German,"vedkomme, angå","Dette problemet raker oss alle, ikke bare ledelsen.","This problem affects all of us, not just management."
 shave,C,verb,rake,,,"bruke ildrake, rive eller lignende for å samle eller spre noe; barbere med kniv eller høvel",Han raket bort barten sin.,He shaved off his mustache.
 rocket,B1,en,rakett,[rake´t:],Italian via German,"prosjektil med sylinderform, som får stor fart og kan fly høyt eller langt ved hjelp av en reaksjonsdrevet motor eller lignende; våpen med et sylinderformet ytre og en rakettmotor og en sprengladning; rakettvåpen; sylinder av papp som ved hjelp av en drivladning og krutt eksploderer i lufta og gir fine farger; fyrverkeri; fartøy med rakettmotor og plass til mennesker og utstyr for reiser i verdensrommet; rakett som blir skutt opp som nødsignal; nødrakett",Flere hus ble ødelagt av rakettene. Landet skjøt opp flere raketter.,Several houses were destroyed by the rockets. The country launched more rockets.
+"rascal, bastard",C,en,rakker,,,"en som utfører skittent og foraktet arbeid; medhjelper for bøddel; kjeltring, skurk; fanden",Han ble kalt en rakker fordi han stadig gjorde sleipe ting mot andre.,He was called a rascal because he constantly did nasty things to others.
 unravel,B2,verb,rakne,,Old Norse,"få rift, gå opp; revne; trevle seg opp; falle fra hverandre; gå i oppløsning",Sømmene i jakken begynte å rakne.,The seams in the jacket began to unravel.
 upright,B2,adjective,"rakrygget, rakrygga",,,rett i ryggen; som er karakterfast og real,Han sto rakrygget under presset.,He stood tall under the pressure.
 "good, skilled",B2,adjective,ram,,Old Norse: rammr,"dyktig, flink; utspekulert; fæl, svær; fast, urokkelig; harsk, stram",De var ramme til å løpe.,They were ready to run.
@@ -14429,6 +14457,7 @@ right angle,B1,expression,rett vinkel,,Old Norse,vinkel på 90°,De sørget for 
 orthodoxy,C,ei,rett-troenhet,,Old Norse,"det å følge eller ha den rette tro; det å følge, ha de gjengse, anerkjente meninger (på et visst felt)",Hennes rett-troenhet ble beundret av mange i menigheten.,Her orthodoxy was admired by many in the congregation.
 "correct, straighten",A2,verb,rette ,,Old Norse,"gjøre rett eller bein; strekke ut; strekke frem, opp eller ut; rekke, peke; vende mot noen eller noe; henvende, adressere, mynte på; ordne eller sette på plass; rå bot på; avhjelpe; fjerne eller påpeke feil og mangler; korrigere; komme seg, bli bra",Han rettet kritikken mot regjeringen.,He directed his criticism at the government.
 "blame the wrong person, let something happen to an innocent",B2,expression,rette baker for smed,,Old Norse,la noe gå ut over en uskyldig,Du kan ikke rette baker for smed og straffe feil person.,You can't correct the baker for the blacksmith and punish the wrong person.
+"rightful, legitimate",C,adjective,rettelig,,Old Norse,"som noen eller noe skal være; virkelig, ordentlig; helt ut, rent, til gangs; svært; med rette",Hun hadde rettelig krav på arven etter sin mor.,She was entitled to her mother's inheritance.
 correction,B2,en,rettelse ,,Old Norse,korrigering,Artikkelen ble publisert med flere rettelser dagen etter.,The article was published with several corrections the next day.
 "righteous, honorable",C,adjective,"rettenkt, rett-tenkt",,,"som legger vekt på å være ærlig og rettferdig; hederlig, ærlig",Hun er en rettenkt person som alltid gjør det rette.,She is a righteous person who always does the right thing.
 trial,C,en,rettergang,,,en saks behandling for retten; prosess,Rettergangen varte i flere måneder på grunn av sakens kompleksitet.,The trial lasted several months due to the complexity of the case.
@@ -15472,6 +15501,7 @@ in civilian clothing,B2,adjective,sivilkledd,,Latin,"kledd i vanlige klær (og i
 civil law,C,en,sivilrett,,Latin,"privatrett",Sivilrett omhandler forhold mellom privatpersoner.,Civil law deals with relationships between private individuals.
 viewing,B2,et,sjå,[ʃå:],Old Norse: sjá,"den en ser, syn, i sammensetninger som; utstilling, særlig dyrskue",Han besøkte det store sjået for å se på utstillingen av dyr.,He visited the big shed to look at the exhibition of animals.
 stencil,B2,en,sjablong,,French via German,"utskåret mønster, form, modell; mekanisk etterligning, uselvstendig gjengivelse",Han brukte en sjablong for å male det perfekte mønsteret.,He used a stencil to paint the perfect pattern.
+driver,A2,en,sjåfør,[ʃåfø:´r],French: chauffeur,"bilfører, særlig person som har til yrke å kjøre bil",Sjåføren ventet tålmodig mens passasjerene steg om bord.,The driver waited patiently while the passengers boarded.
 shah,B2,en,sjah,[ʃa:],Persian,"kongetittel i Iran, Afghanistan og enkelte naboland",Etter sjahen kommer parlamentarismen med frie valg.,After the Shah comes parliamentarianism with free elections.
 chess,B1,en,sjakk,[ʃak:],Persian via Arabic via Latin via Old Norse: skák,"brettspill for to personer; svært gammelt brettspill, som spilles av to personer på sjakkbrett med 16 brikker hver, og som går ut på ved flytting av brikkene etter bestemte regler å sette den viktigste brikken (det vil si kongen) matt",Jeg tror vi trygt kan si at sjakken er det mest utførlig studerte domenet innen kunstig intelligens.,I think we can safely say that chess is the most extensively studied domain in artificial intelligence.
 chessboard,B1,et,sjakkbrett,,Persian via Arabic via Latin via Old Norse,kvadratisk brett med 64 ruter til å spille sjakk på,Han er av den sorten som velter sjakkbrettet når de taper i sjakk.,He's the kind of person who knocks over the chessboard when they lose at chess.
@@ -15613,6 +15643,7 @@ cut,B2,verb,skåre,,,"hogge eller skjære skår eller innsnitt i noe (med øks);
 score,B1,verb,"skåre, score",,English,lage mål; vinne poeng; få støtte eller sympati for et utsagn eller lignende; prestere i en test; få poeng på en prøve,Han skåret to mål i første omgang. Hun skåret et billig poeng.,He scored two goals in the first half. She scored a cheap point.
 "sharp, pungent",A2,adjective,skarp,,,kvass,"Kniven er skarp, så vær forsiktig når du kutter grønnsakene.","The knife is sharp, so be careful when cutting the vegetables."
 sharpness,B2,ei,skarphet,,,det å være skarp; det å ha klare og markerte konturer,Bildet hadde en imponerende skarphet.,The image had an impressive sharpness.
+executioner,C,en,skarpretter,,German: scharprichter,"person som iverksetter dødsdommer, opprinnelig bare ved halshogging",Skarpretteren ble fryktet i gamle dager da dødsstraff fortsatt var lovlig.,The executioner was feared in the old days when the death penalty was still legal.
 "astute, shrewd",C,adjective,skarpsindig,,,"som tenker skarpt og klart",Hun kom med en skarpsindig analyse av situasjonen.,She provided an incisive analysis of the situation.
 acumen,C,et,skarpsinn,,,"skarp, klar forstand",Det trengs politisk kløkt og analytisk skarpsinn.,Political savvy and analytical acumen are needed.
 "treasure, tax",A2,en,skatt,[skat:],Old Norse: skattr,"samling av penger eller verdifulle ting; noe som har særlig stor verdi; avgift, ytelse (i penger) til det offentlige",De fant en skjult skatt på øya.,They found a hidden treasure on the island.
@@ -15986,6 +16017,7 @@ ride,A2,en,skyss,,Old Norse,det å skysse folk; transport; fremkomstmiddel,Skyss
 shoot,B1,verb,skyte,[ʃy:`tə],Old Norse: skjóta,"skyve, støte; sette, stikke; sende ut; styrte, fare; stige; sende av sted, avfyre skudd; fotografere, filme; minere; drive frem; sette skudd, spire; vokse",De ble skutt ned og drept.,They were shot down and killed.
 shoot from the hip,B2,expression,skyte fra hofta,,Old Norse,"skyte raskt mens en støtter et håndvåpen mot hofta; kommentere uten å tenke seg om; tippe, prøve seg",Mange skyter fra hofta i mangel på gode argumenter.,Many shoot from the hip in the absence of good arguments.
 shoot oneself in the foot,B2,expression,"skyte seg selv i foten",,Old Norse,begå en feil som skader en selv,Han endte med å skyte seg selv i foten med den kommentaren.,He ended up shooting himself in the foot with that comment.
+shoot sparrows with cannons,C,expression,skyte spurv med kanoner,,,bruke for sterke midler mot en svak motstander eller i en liten sak,Å bruke så sterke tiltak for en liten feil er som å skyte spurv med kanoner.,Using such strong measures for a small mistake is like shooting sparrows with cannons.
 shooting range,B2,en,skytebane,,,bane for øvelse eller konkurranse i skyting,De øvde på målet på skytebanen.,They practiced their aim at the shooting range.
 firing range,B2,et,skytefelt,,Old Norse,"skuddfelt",Soldatene trente på et stort skytefelt utenfor byen.,The soldiers were training on a large firing range outside the city.
 shooting target,B2,ei,skyteskive,,Old Norse,"skive eller plate som brukes som mål ved øvelse eller konkurranse i skyting; person som må ta imot kritikk, spott og lignende",Pilene traff nesten midt i skyteskiven.,The arrows almost hit the center of the target.
@@ -16402,6 +16434,7 @@ solvent,C,en,solvent,[sålve´nt],Latin ,"stoff som kan oppløse andre stoffer, 
 silverfish,B2,et,sølvkre,,Old Norse,"sølvglinsende, vingeløst insekt, Lepisma saccharina",Hjemmet ble invadert av sølvkre på kjøkkenet.,The home was invaded by silverfish in the kitchen.
 silversmith,B2,en,sølvsmed,,Old Norse,"håndverker som lager og utsmykker gjenstander av sølv",Sølvsmeden laget vakre smykker.,The silversmith made beautiful jewelry.
 "that, who, as",A1,conjunction,som,[såm:],Old Norse: sem,brukt til å innlede en relativsetning,Det er han som hjalp meg i går.,He's the one who helped me yesterday.
+"like a dump, like a crapper",B2,expression,som en dass,,,"sjuskete, uflidd; elendig, horribel",Byen ser ut som en dass. Laget spilte som en dass.,The city looks like a dump. The team played like a dump.
 like a dog,B2,expression,som en hund,,Old Norse,"brukt for å forsterke noe negativt: veldig, svært",Han jobbet som en hund for å få alt ferdig.,He worked like a dog to get everything done.
 whatsoever,B1,expression,som helst,,,det skal være; i det hele,Jeg vet ikke noe som helst om dette.,I don't know anything about this.
 like dogs and cats,B2,expression,som hund og katt,,Old Norse,i stadig fiendskap,De levde som hund og katt.,They lived like cats and dogs.
@@ -16415,6 +16448,7 @@ as if,A2,expression,"som om",,Old Norse,"innleder en leddsetning som uttrykker 
 as a rule,A2,expression,som regel,,Old Norse,"vanligvis, som oftest","Som regel er bussen presis, men i dag var den forsinket.","Usually the bus is on time, but today it was late."
 as this,B2,expression,"som så",,Old Norse,"brukt for å beskrive en størrelse",Det var ikke noe problem med reglene som så.,There was no problem with the rules as such.
 as such,B2,expression,"som sådan",,Old Norse,"generelt, i seg selv",Som sådan fungerer systemet godt for alle brukerne.,"As such, the system works well for all users."
+as if shot out of a cannon,B2,expression,som skutt ut av en kanon,,,med svært stor fart,Hun kom inn i rommet som skutt ut av en kanon.,She entered the room as if shot out of a cannon.
 Somali,B2,en-et,somali,,,kusjittisk språk hovedsakelig brukt i Somalia,Hun har studert somali og kan språket godt.,She has studied Somali and knows the language well.
 Somali person,B2,en,somalier,,,person fra Somalia,Han møtte en somalier som nettopp hadde flyttet til byen.,He met a Somali who had just moved to the city.
 Somali,B2,adjective,somalisk,,,som gjelder Somalia og somaliere,Restauranten serverte autentiske somaliske retter.,The restaurant served authentic Somali cuisine.
@@ -16777,6 +16811,8 @@ cracked,B1,adjective,sprukken,,,"ru, rusten","Vasen ble ødelagt, og nå er den 
 splash,A2,en,sprut,,,"(kraftig) stråle, skvett, sprøyt; sprutende, fykende smådeler; futt, fart",Spruten fra vannet traff ham i ansiktet.,The spray from the water hit him in the face.
 splash,A2,verb,sprute,,,stråle; skvette; fyke; sprøyte; sende ut; briste,Det sprutet vann ut av slangen. Søla sprutet om beina.,Water squirted out of the hose. Mud splashed around their legs.
 sprint,B1,verb,spurte,[spu`rtə],,"sette opp farten under konkurranseløp, særlig like foran mål; løpe raskt",Hun spurtet mot målstreken og vant løpet.,She sprinted to the finish line and won the race.
+sparrow,A2,en,spurv,,Old Norse: spǫrr,gråspurv,En spurv satt og kvitret på vinduskarmen.,A sparrow sat chirping on the windowsill.
+sparrow in a crane dance,C,expression,spurv i tranedans,,Old Norse,person eller virksomhet som er helt underlegen,Den lille bedriften følte seg som en spurv i tranedans blant de store aktørene.,The small business felt like a sparrow in a crane dance among the big players.
 "puke, throw-up, vomit",B1,et,spy,[spy:],,oppkast; egg av spyflue,Barnet hadde blitt kvalm og kastet opp spy.,The child had become nauseous and vomited.
 "puke, throw up, vomit",B1,verb,spy,[spy:],,"kaste opp; støte ut, gi fra seg",Han spurta bak nærmeste tre og spydde.,He sprinted behind the nearest tree and threw up.
 "spear, javelin",B2,et,spyd,,Old Norse: spjót,kaste- eller støtvåpen brukt i eldre tid eller blant naturfolk; redskap som ligner spyd brukt til kasteøvelse i friidrett,Soldatene trente med spyd på feltet.,The soldiers trained with spears on the field.
@@ -17272,8 +17308,10 @@ studio,B1,et,studio,[stu:´dio],Italian: studio,"lokale som er spesialinnredet f
 studio host,B2,en,studiovert,,Italian,"person som leder TV-program, TV-reportasje fra et studio",Studioverten ønsket gjestene velkommen med et smil.,The studio host welcomed the guests with a smile.
 "study, studying",B2,et,studium,[stu:´dium],Latin,"det å studere",Han fullførte sitt femårige studium i medisin.,He completed his five-year degree in medicine.
 living room,A1,ei,stue,[stu:`ə],Old Norse: stofa,"lite, enkelt hus, stove; oppholdsrom i bolighus",Olav sitter i den eneste lenestolen i stua.,Olav sits in the only armchair in the living room.
+stew,B2,verb,stue,,German,"koke forskjellige matvarer, særlig grønnsaker, i jevning eller saus",Hun valgte å stue grønnsakene med fløte og krydder til middagen.,She chose to stew the vegetables with cream and spices for dinner.
 person who stays indoors,B2,en,stuegris,,Old Norse,gris som en hadde inne i stua; person som helst holder seg innendørs,Den lille stuegrisen ligger alltid på sofaen.,The little piggy is always lying on the sofa.
 housekeeper,B1,ei,stuepike,,Old Norse,person som steller værelsene på et hotell; hushjelp (som særlig arbeider med stuer og soverom),Stuepiken ryddet rommet hver morgen.,The maid cleaned the room every morning.
+"stewing, stew",B2,ei,stuing,,German,det å stue; stuede grønnsaker eller lignende,Vi serverte kjøttkaker med poteter og stuing.,We served meatballs with potatoes and stew.
 "mute, dumb",B1,adjective,stum,,German,som ikke kan eller vil snakke; uten ord; som ikke uttales,I blikket lå det en stum bønn.,There was a silent prayer in her eyes.
 stub,B1,en,stump,,German via Old Norse: stumpr,"bit, stykke av noe, stubb; undre mersseil; bakende",Jeg tråkket på en sigarettstump på fortauet.,I stepped on a cigarette butt on the sidewalk.
 stub,B2,verb,stumpe,,German via Old Norse,"gå ustøtt, stabbe; falle ujevnt, være for kort",Kjolen stumper litt foran.,The dress stumps a little at the front.
@@ -17762,6 +17800,7 @@ toothpaste,A1,en,tannkrem ,,Old Norse,"krem med slipemiddel til å pusse tennene
 dentist,A2,en,tannlege,,Old Norse,person med odontologisk utdanning som har til yrke å arbeide med tann- og munnsykdommer,Jeg skal til tannlegen for en sjekk i morgen.,I'm going to the dentist for a check-up tomorrow.
 toothless,B2,adjective,tannløs ,,Old Norse,"som mangler tenner; som er uten brodd, harmløs, tam",Den gamle hunden hadde blitt nesten helt tannløs.,The old dog had become almost completely toothless.
 toothache,A2,ei,tannpine,,Old Norse,tannverk,Hun har hatt tannpine i flere dager nå.,She has had a toothache for several days now.
+dental hygienist,B2,en,tannpleier,,,fagutdannet person som (særlig) driver med forebyggende tannrøkt,Tannpleieren ga gode råd om hvordan man kan unngå hull i tennene.,The dental hygienist gave good advice on how to avoid cavities.
 tooth decay,B2,en,tannråte,,Old Norse,ødeleggelse av hardsubstansen i tennene på grunn av syredannelse,Barnet måtte behandles for tidlig tannråte.,The child had to be treated for early tooth decay.
 "set of teeth, dentures",B2,et,tannsett,,Old Norse,"sett av tenner; sett av kunstige, innsatte tenner",Tannlegen anbefalte et sunt tannsett.,The dentist recommended a healthy set of teeth.
 tartar,B2,en,tannstein,,Old Norse,"ansamling på tennene av mineraler utskilt fra spyttet; hard, kalkholdig substans som dannes på tennene over tid",Han gikk til tannlegen for å fjerne tannstein.,He went to the dentist to remove tartar.
@@ -18280,6 +18319,7 @@ rule of thumb,B1,en,tommelfingerregel,,,lettfattelig huskeregel; enkel og genere
 "timber, lumber",B1,et,tømmer,,Old Norse: timbr,(avkvistede og avbarkede) trestammer som materiale,Skogen ble felt for tømmer til bygging.,The forest was felled for timber for building.
 log,B1,en,tømmerstokk,,,enkelt trestamme av tømmer,Han løftet en tung tømmerstokk opp på lasteplanet.,He lifted a heavy log onto the truck bed.
 build,C,verb,tømre,,Old Norse: timbra,bygge av tømmer eller annet trevirke; få i stand,De gamle hyttene ble tømret med solide tømmerstokker.,The old cabins were carpentered with solid logs.
+"carpenter, woodworker",B1,en,tømrer,,,person som har tømring som yrke,Tømreren bygde en ny terrasse bak huset vårt.,The carpenter built a new terrace behind our house.
 plot,B1,ei,tomt,,,"grunn der det står, har stått eller skal stå hus","Huset er revet, og det skal bygges boligblokk på tomta.",The house has been demolished and a block of flats will be built on the site.
 tone,A2,en,tone,[to:`nə],Greek via Old Norse: tóni,"lyd som er dannet av regelmessige svingninger",Pianisten spilte en vakker tone på klaveret.,The pianist played a beautiful note on the piano.
 influential,B2,adjective,toneangivende ,,Greek via Old Norse,"ledende, som bestemmer moten","Det jeg gjør, blir ikke sett på som kunst blant de toneangivende innen kunstlivet.",What I do is not seen as art among the leading figures in the art world.
@@ -18698,6 +18738,8 @@ troll,B1,en,"tuss, tusse",,Old Norse,"underjordisk vesen; troll, jotun",Eventyre
 twilight,B2,et,tussmørke,,Old Norse,"dunkel belysning, halvmørke",Landskapet lå i mystisk tussmørke ved solnedgang.,The landscape lay in mysterious twilight at sunset.
 "horn, honk",B2,et,tut,,,"tutende signal fra instrument, varslingsapparat eller lignende; skrik, hyl",Et høyt tut lød fra lastebilen som nærmet seg veikrysset.,A loud horn sounded from the truck approaching the crossroads.
 spout,B2,en,tut,,,"rør eller annet framspring til å helle væske igjennom; lydtrakt på blåseinstrument, gammeldags grammofon og annet",Vannet rant stille ut gjennom tuten på den gamle kannen.,The water flowed silently out through the spout of the old jug.
+"hoot, honk, howl, whine, cry",B2,verb,tute,,,"ule; blåse (i lange støt) i et musikkinstrument; strigråte, skrike",Hva er det du står og tuter for?,What are you whining about?
+"always say, howl one's ears full of",B2,expression,tute ørene fulle med,,,stadig få høre om noe,Mor tutet oss ørene fulle om at frokost var dagens viktigste måltid. Vi tutes ørene fulle av formaninger.,My mother told us that breakfast was the most important meal of the day. Our ears were filled with exhortations.
 "TV, television",A1,en,TV,[te:`ve],Greek via English,fjernsyn,Han vil se på TV.,He wants to watch TV.
 "TV channel, television channel",A2,en,TV-kanal,,Greek via English,"fjernsynskanal",Vi så en interessant dokumentar på en annen TV-kanal i går kveld.,We saw an interesting documentary on another TV channel last night.
 video surveillance,B2,ei,TV-overvåking,,Greek via English,"fjernsynsovervåking",Butikken var utstyrt med TV-overvåking for sikkerhet.,The store was equipped with video surveillance for security.
@@ -19116,6 +19158,7 @@ support,B2,verb,understøtte ,,Old Norse,"holde oppe, støtte opp under",Taket 
 support,B2,en,understøttelse,,,"(økonomisk) hjelp, stønad",Han mottok økonomisk understøttelse for å klare seg etter ulykken.,He received financial support to cope after the accident.
 "underline, stress",B1,verb,understreke,,Old Norse,"sette strek under; betone, presisere",Han vil gjerne understreke viktigheten av sikkerhet.,He would like to emphasize the importance of security.
 sign something,B2,verb,undertegne,,Old Norse,sette navnetrekket sitt under (som tegn på godkjenning eller samtykke),Han måtte undertegne dokumentet før han kunne gå videre.,He had to sign the document before he could move on.
+"subtitle, subtext",B1,ei,undertekst,,,film- eller fjernsynstekst plassert nederst på bildet; tekst til fotografi eller tegning; underliggende budskap i en tekst,Filmen hadde undertekster på både norsk og engelsk.,The movie had subtitles in both Norwegian and English.
 subtitle,B1,en,undertittel,,Old Norse,"opplysende tillegg under hovedtittelen på bok, avisreportasje og lignende",Filmen hadde en informativ undertittel.,The movie had an informative subtitle.
 undertone,B2,en,undertone,,,tone som klinger dempet sammen med en sterkere grunntone; uttrykk for følelse eller oppfatning som bare kommer frem indirekte,Det var en undertone av engstelse i stemmen.,There was an undertone of anxiety in her voice.
 underwear,A2,et,undertøy,,Old Norse,"lett tøy som bæres nærmest kroppen under annet tøy",Undertøyet er laget av myk bomull.,The underwear is made of soft cotton.
@@ -19704,6 +19747,7 @@ stagger,B2,verb,vakle,,German,"stå, gå ustøtt; holde på å falle; være usik
 vaccine,B1,en,vaksine,[vaksi:`nə],Latin,innpodningsstoff til beskyttelse mot smittsomme sykdommer,Nesesprayvaksinen mot influensa er en levende vaksine som benytter svekkete virus.,The nasal spray vaccine against influenza is a live vaccine that uses attenuated viruses.
 vaccinate,B2,verb,vaksinere,[vaksine:´rə],Latin,"pode inn vaksine",Alle skal vaksineres mot influensaen.,Everyone should be vaccinated against the flu.
 "watch, guard",B1,ei,vakt,[vakt],German: wacht,"det å vokte, passe på, verge; person som holder vakt",Doktor Johnsen har vakt i kveld.,Doctor Johnsen is on duty tonight.
+security guard,B1,en,vaktmann,,,"person som har til yrke å holde vakt, for eksempel på et anlegg eller en fabrikk",Vaktmannen patruljerte området flere ganger i løpet av natten.,The security guard patrolled the area several times during the night.
 caretaker,B1,en,vaktmester,,German,"person som er ansatt for å ha tilsyn med en større bygning eller et anlegg",Vaktmesteren fikset det ødelagte røret.,The caretaker fixed the broken pipe.
 watchful,B2,adjective,vaktsom,,German,"påpasselig, årvåken",Jeg liker å være vaktsom når jeg går i mørket.,I like to be vigilant when I walk in the dark.
 vacuum,B2,et,vakuum,[va:´kum],Latin: vacuum,"lufttomt rom; rom (i beholder) med lavt lufttrykk, undertrykk; tomrom",Vitenskapen arbeider ofte i et vakuum.,Science often works in a vacuum.
@@ -19924,6 +19968,7 @@ exchange,A2,verb,veksle,[ve`kʃlə],German,bytte,Jeg måtte veksle penger før j
 change,B1,en,vekslepenger,,German,"småpenger til veksling",Han lette etter vekslepenger for å betale i butikken.,He was looking for change to pay at the store.
 growth,B1,en,vekst,[vekst],Old Norse: vǫxtr,det å vokse; størrelse; vegetasjon; plante,Palmen har rank vekst.,The palm has straight growth.
 "weight, Libra",A2,ei,vekt,,Old Norse: vekt,"kraft som et legeme i likevekt virker på et underlag med, tyngde; vektsystem; så mye (av vare, stoff) som en veier på én gang; redskap, innretning til å veie med; person som er født i stjernetegnet Vekten (mellom 23. september og 22. oktober); vektklasse i kamp- og kraftidretter",Potetsekken holder ikke vekten.,The potato sack does not hold its weight.
+security guard,B1,en,vekter,,German,"offentlig vaktmann som sørget for orden i en by (om natta), varslet brann og ropte ut tid og vindretning; vaktmann; person som utfører vakttjeneste for et vaktselskap",Vekteren sjekket at alle dører var låst før han forlot bygget.,The security guard checked that all doors were locked before he left the building.
 "weighty, heavy",B2,adjective,vektig,,German,som har en viss vekt i forhold til en standard; tungtveiende; overbevisende,Stenen var for vektig til å løftes uten hjelp.,The stone was too heavy to be lifted without help.
 emphasize,B2,verb,vektlegge,,Old Norse,"legge vekt på",Læreren prøver alltid å vektlegge viktige poeng i timen.,The teacher always tries to emphasize important points in the lesson.
 weightlifter,B2,en,vektløfter ,,Old Norse,person som driver med vektløfting,Han er en erfaren vektløfter og deltar i konkurranser.,He is an experienced weightlifter and participates in competitions.
