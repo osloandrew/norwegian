@@ -177,6 +177,7 @@ axiomatic,C,adjective,aksiomatisk,,Greek,som gjelder aksiomer; selvinnlysende,Al
 "stock, share",B2,en,aksje,[a´kʃə],Latin: actio,eierandel i et aksjeselskap,Partiets aksjer har steget.,The party's shares have risen.
 shareholder,C,en,aksjeeier,,Latin,eier av én eller flere aksjer,Aksjeeieren deltok på generalforsamlingen.,The shareholder attended the general meeting.
 stock fund,B2,et,aksjefond,,Latin,"fond som plasserer midlene i aksjer, og som en kan kjøpe andeler i",Jeg investerte i et aksjefond for å spare til pensjon.,I invested in a mutual fund to save for retirement.
+stock index,B2,en,aksjeindeks,,,indeks som angir gjennomsnittsnivå for aksjers kursverdi,Tirsdag falt de store aksjeindeksene på kontinentet med over to prosent.,"On Tuesday, the major stock indices on the continent fell by more than two percent."
 share capital,B2,en,aksjekapital,,Latin,samlet pålydende verdi av alle aksjene i et aksjeselskap,Bedriften økte sin aksjekapital i fjor.,The company increased its share capital last year.
 stock price,B2,en,aksjekurs,,Latin,kurs som oppgir verdien til en aksje,Aksjekursen falt med over to prosent.,The share price fell by over two percent.
 stock market,B2,et,aksjemarked,,Latin,marked hvor det kjøpes og selges aksjer,Aksjemarkedet har vært svært volatilt i det siste.,The stock market has been very volatile lately.
@@ -4821,6 +4822,7 @@ obsolescence,B2,en,foreldelse,[fåre´ld(ə)lsə],German,det å bli foreldet; pr
 parent,A1,en,forelder,[fåre´ldər],Old Norse: forellar,mor eller far til barn; mor og far,Man gjør jo sikkert en del feil som forelder.,You're bound to make some mistakes as a parent.
 become obsolete,B2,verb,foreldes,[fåre´ldəs],German,bli for gammel eller utidsmessig,Gamle dokumenter kan foreldes hvis de ikke oppbevares riktig.,Old documents can become obsolete if not stored correctly.
 obsolete,B2,adjective,"foreldet, forelda",[fåre´ldət],German,"for gammel, avleggs; umoderne; ugyldig",Loven er foreldet og trenger en oppdatering.,The law is outdated and needs an update.
+parental leave,B1,en,foreldrepermisjon,,,permisjon for foreldre i forbindelse med fødsel eller adopsjon,Hun tok foreldrepermisjon for å være hjemme med barnet det første året.,She took parental leave to stay at home with the child for the first year.
 injunction,B2,et,forelegg,,German,krav fra politiet om mulkt for en forseelse,Han fikk et forelegg etter å ha parkert ulovlig.,He received a fine after parking illegally.
 submit,B2,verb,forelegge,,German,"fremføre, forevise",Saken har ikke vært forelagt Stortinget.,The case has not been submitted to the Norwegian Parliament.
 lecture,B1,verb,forelese,,German,undervise ved en høyskole eller et universitet; holde forelesning,Han foreleste over boka.,He lectured over the book.
@@ -5816,6 +5818,7 @@ guard,B2,verb,gardere,[garde:´rə],French,"beskytte, sikre, vokte",Soldatene m�
 dressing room,A2,en,garderobe,[gar-dəro:`bə],French,"rom til å ha ytterklær i, særlig i offentlig bygning; omkledningsrom for skuespillere, idrettsutøvere, skoleelever eller lignende",Skuespillerne bytter klær i garderoben bak scenen.,The actors change clothes in the dressing room backstage.
 wardrobe,A2,et,garderobeskap,,French,stort klesskap,Jeg la bøkene mine i garderobeskapet.,I put my books in the wardrobe.
 guard soldier,B2,en,gardist,,,soldat i garde; gardesoldat,Den unge gardisten besvimte på vakt.,The young guard fainted on duty.
+farm,B1,et,"gårdsbruk, gardsbruk",,,gård; gårdsdrift,De driver et lite gårdsbruk med sauer og grønnsaker.,They run a small farm with sheep and vegetables.
 courtyard,B2,en,gårdsplass,,,åpen plass ved eller mellom hus,Barn lekte på gårdsplassen utenfor huset.,Children playing in the courtyard outside the house.
 "yarn, net",A2,et,garn,,Old Norse: garn,"tråd som er spunnet av ull, bomull, lin eller kunststoff; nettformet fangstredskap, særlig til fiske",Fisken spreller i garnet.,The fish jumps in the net.
 garnish,C,et,garnityr,,,"pynt, tilbehør til matrett; det er vanligvis små mengder mat som legges til retten rett før servering for å gi ekstra smak, farge eller tekstur",Blomster og blader kan brukes til garnityr.,Flowers and leaves can be used for garnish.
@@ -6893,6 +6896,7 @@ overall picture,C,et,helhetsbilde ,,Old Norse,samlet bilde; totalbilde,Boken gir
 holistic view,C,et,helhetssyn,,Old Norse,syn som tar hensyn til helheten; det at en prøver å se enkeltheter i en sammenheng,En god leder har ofte et helhetssyn på virksomheten.,A good manager often has a holistic view of the business.
 helicopter,A2,et,helikopter,,Greek,vingeløst luftfartøy som ved hjelp av horisontal(e) rotor(er) kan gå rett opp eller ned eller stå stille i lufta,Et helikopter fløy lavt over byen.,A helicopter flew low over the city.
 helium,B1,et,helium,,,grunnstoff med atomnummer 2 som hører til edelgassene,Ballongen ble fylt med helium.,The balloon was filled with helium.
+whole grain,B1,et,"helkorn, heilkorn",,,"helt, umalt korn",Brødet er bakt med helkorn og er veldig sunt.,The bread is baked with whole grains and is very healthy.
 luck,A2,et,hell ,,Old Norse: heill,"lykke, flaks, tur",Med litt hell vil vi rekke toget.,"With any luck, we'll catch the train."
 Greece,B2,et,Hellas,,Greek,republikk i Sør-Europa på den sørligste delen av Balkanhalvøya,De planlegger en tur til Hellas til sommeren.,They are planning a trip to Greece this summer.
 stone disc,B2,ei,helle,,Old Norse: hella,"flat, tynn skive av naturstein eller kunstig materiale; jernplate til å steke på; takke; fast lag eller flate (for eksempel av hard jord eller is); underlag; flat liten grunne av berg i sjø eller vann; flatt berg ved sjøen",En helle falt ned og traff bakken med et brak.,A stone disc fell down and hit the ground with a crash.
@@ -7625,6 +7629,7 @@ cabin trip,A2,en,hyttetur,,German,"tur til hytte med overnatting; reise eller en
 "tonight, this evening",B1,expression,i aften,,Old Norse,"denne aften eller denne dags aften",Jeg skal se på teateret i aften.,I'm going to the theater tonight.
 "mainly, basically",B2,expression,i all hovedsak,,Old Norse,stort sett; for det meste,I all hovedsak er vi enige om planen.,"In general, we agree with the plan."
 "in all its glory and splendor",C,expression,"i all sin prakt og velde",,Old Norse,"i all sin storhet",Slottet sto der i all sin prakt og velde.,The castle stood there in all its splendor and grandeur.
+"on earth, in the world",B2,expression,i all verdens rike,,,brukt forsterkende,Hva i all verdens rike driver dere med?,What on earth are you doing?
 on earth,B1,expression,i alle dager,,,i uttrykk for undring,"I alle dager, hva er dette for noe? Hva i alle dager var det som skjedde? Hvorfor i alle dager er de ikke blitt enige?",What on earth is this? What on earth happened? Why on earth haven't they come to an agreement?
 "at least, in any case",B1,expression,"i alle fall, iallfall",,,i alle tilfeller; i det minste,Vi skal komme oss dit i alle fall før mørket faller på. Jeg skal iallfall prøve å være der.,We will get there at least before darkness falls. I will at least try to be there.
 "in total, in all",A2,expression,i alt,,,til sammen; totalt,Utgiftene kom på ti tusen kroner i alt.,The expenses amounted to ten thousand kroner in total.
@@ -10433,7 +10438,7 @@ link,B1,en,link,[liŋk],English,"ledd; kjede av sender- og mottagerstasjoner hvo
 gentle,C,adjective,linn,,Old Norse: linr,mild; lite salt; forsiktig; bløt; varlig; lett (og forsiktig),Lindt tar han om hendes slanke midje.,Lindt takes care of her slim waist.
 waistband,B2,ei,linning,,Old Norse: lín,"foldet eller forsterket kant på et klesplagg",Buksa har ei bred linning i livet.,The trousers have a wide waistband.
 "lentil, lens",B2,ei,linse,[li`nsə],German: Linse,"plante i erteblomstfamilien med spiselige frø, Lens culinaris; frø av linse; gjennomsiktig, lysbrytende legeme (av glass) som er avgrenset av to motsatte bueflater eller av en plan flate og en bueflate",Kameraet har ei skarp linse.,The camera has a sharp lens.
-lira,B2,en,lira,,Latin,myntenhet i Tyrkia; tidligere myntenhet på Malta,Jeg hørte ei lira i skogen.,I heard a lira in the forest.
+lira,B2,en,lira,,Latin,myntenhet i Tyrkia; tidligere myntenhet på Malta,Han vekslet euro til lira før reisen til Tyrkia.,He exchanged euros for lira before traveling to Turkey.
 lire,B2,en,lire,,Latin,"tidligere myntenhet i Italia",Han spilte en vakker melodi på lire.,He played a beautiful melody on the lute.
 pry,B2,verb,lirke,[li`rkə],Old Norse: liða,lee forsiktig på noe som sitter fast eller er vanskelig å få på plass; få frem med list og lempe; gjøre små bevegelser for å bringe noe i en viss stilling; forsiktig og snedig få til,Hun lirket av seg skoene.,She pried off her shoes.
 Lisbon,A2,et,Lisboa,,,hovedstad og største by i Portugal,Lisboa er hovedstaden i Portugal og ligger ved kysten.,Lisbon is the capital of Portugal and is located on the coast.
@@ -10870,6 +10875,7 @@ meal,A2,et,måltid,,German,tid da en spiser eller pleier å spise; mat som en sp
 mistreat,B2,verb,maltraktere,[maltrakte:´rə],French,"mishandle, skamfere",Tyven maltrakterte innboet.,The thief mauled the contents.
 "goalkeeper, goalee",B1,ei,målvakt,,Old Norse,spiller som skal hindre at ballen kommer i mål; keeper,Målvakten gjorde en flott redning.,The goalkeeper made a great save.
 mom,A1,en,mamma,[ma`m:a],,barns navn på sin mor; mor,Mamma lager alltid den beste maten.,Mom always makes the best food.
+maternal leave,B1,en,mammapermisjon,,,del av foreldrepermisjon som barnets mor tar ut,Etter fødselen tok hun mammapermisjon i ni måneder.,"After the birth, she took maternity leave for nine months."
 Mammon,C,en,mammon,,,"rikdom, penger, jordisk gods",Mammon kan lede til grådighet.,Mammon can lead to greed.
 mammoth,B2,en,mammut,[ma´m:ut],German: Mammut,"utdødd elefantdyr av slekten Mammuthus",En mammut ble utstilt på museet.,A mammoth was exhibited at the museum.
 "one, you",B1,pronoun,man,,Old Norse,"en, folk",Man kan aldri vite. Man har ikke godt av nikotin. Man kan hva man vil.,You can never know. Nicotine is not good for you. You know what you want.
@@ -13095,6 +13101,7 @@ paper trail,C,et,papirspor,,English,"spor i form av tekst i dokumenter, på papi
 paper tiger,C,en,papirtiger,,English,"person eller stat som gir inntrykk av å være farlig, men som i virkeligheten er svak",Motstanderen viste seg å være en papirtiger uten reell styrke.,The opponent turned out to be a paper tiger with no real strength.
 cardboard,B1,en,papp,[pap:],German,"tykt og stivt papir, kartong",Eskene var laget av papp.,The boxes were made of cardboard.
 dad,A1,en,pappa,[pa`p:a],,barns navn på sin far; far,Pappa jobber på et kontor i byen.,Dad works in an office in the city.
+paternal leave,B1,en,pappapermisjon,,,del av foreldrepermisjon som barnets far tar ut,Han startet pappapermisjon da barnet var seks måneder gammelt.,He started paternity leave when the child was six months old.
 paper mache,B2,en,"pappmasjé, pappmasje",,German,stoff fremstilt av papirmasse som kan formes til gjenstander,Hun laget en skulptur av papirmasjé.,She made a sculpture out of paper mache.
 numbskull,B2,en,pappskalle,,German,dum person,Han ble kalt en pappskalle etter feilen.,He was called a cardboard head after the mistake.
 "bell pepper, sweet pepper, pepper",A2,en,paprika,,Latin,"plante i søtvierfamilien med mørkegrønne, lansettformede blader og hule frukter i ulike farger og størrelser, som blir brukt som grønnsak eller krydder; Capsicum; frukt fra paprika, benyttet som grønnsak; krydder av tørket frukt av paprika; paprikapulver",Jeg liker å ha paprika i salaten for litt ekstra farge og smak.,I like to add peppers to my salad for extra color and flavor.
@@ -13297,7 +13304,10 @@ periphery,B2,en,periferi,[periferi:´],Greek: peripheria,"omkrets; ytterkant, ut
 "period, term",A2,en,periode,[perio:`də],Greek,avgrenset tidsrom,Med den franske revolusjon begynner en ny periode i europeisk historie.,The French Revolution marks the beginning of a new period in European history.
 period ticket,B1,en,periodebillett,,,"billett som gjelder for en viss periode, for eksempel på offentlig transport",Perioden hans med periodebillett er snart over.,His period with a season ticket will soon be over.
 periodic,B2,adjective,periodisk,,Greek,"som hører til en periode; som regelmessig kommer igjen, hender med visse mellomrom",Den periodiske sjekken av maskinen er nødvendig.,The periodic check of the machine is necessary.
+cover,B2,en,perm,,,hver av de to sideplatene på en innbundet bok; omslag til løse papirer,Jeg har lest boka fra perm til perm.,I have read the book from cover to cover.
+"leave, time off",B1,en,perm,,,kortord for permisjon,Jeg skal ha perm neste uke og reise til fjells.,I'm going on leave next week and traveling to the mountains.
 permanent,B2,adjective,permanent,,Latin,"som holder seg uforandret i uavgrenset eller svært lang tid; varig, uavbrutt",De er i permanent pengemangel. Krisetiltakene er ikke permanente. Vi satser på å drive på permanent basis.,They are in a permanent cash shortage. The crisis measures are not permanent. We are aiming to operate on a permanent basis.
+"leave, time off",B1,en,permisjon,,Latin,midlertidig fritak fra fast arbeid; permittering,Han har søkt permisjon uten lønn. Hun har permisjon mens hun tar videreutdanning.,He has applied for unpaid leave. She is on leave while she takes further education.
 "lay off, furlough",B2,verb,permittere,,,gi permisjon; midlertidig pålegge arbeidstaker stopp i arbeid og stanse lønnsutbetaling; foreta permittering,Soldatene ble permittert lørdag og søndag. Bedriften har måttet permittere over to hundre arbeidere.,The soldiers were laid off on Saturday and Sunday. The company has had to lay off over two hundred workers.
 "layoff, furlough",B2,ei,permittering,,,midlertidig oppheving av kontrakt mellom arbeidsgiver og arbeidstaker,Flere bedrifter har gått til permitteringer og oppsigelser.,Several companies have resorted to layoffs and redundancies.
 "layoff notice, furlough notice",C,et,permitteringsvarsel,,,varsel fra arbeidsgiver om at arbeidstaker kommer til å bli permittert,Bedriften har sendt ut over to hundre permitteringsvarsler.,The company has sent out over two hundred layoff notices.
@@ -14537,6 +14547,9 @@ rhyme,B2,verb,rime,,,"lage rim; stemme overens, passe",Dette rimer ikke med tidl
 ring,A2,en,ring ,[riŋ:],Old Norse: hringr,"smal og tynn sirkelformet gjenstand med åpning i midten; krets, sirkel",Folk stod i ring rundt den skadede.,People stood in a circle around the injured man.
 "ring, ringing",B1,et,ring ,[riŋ:],Old Norse,(enkelt) lyd av klokke eller telefon som ringer; ringelyd,Han svarte alt etter det første ringet.,He answered after the first ring.
 "call, ring",A1,verb,ringe,[ri`ŋ:ə],Old Norse: hringja,"kime, klinge",Jeg må ringe legen for å bestille time.,I have to call the doctor to make an appointment.
+"contempt, disrespect",C,en,ringeakt,,,"forakt, vanakt",Hans holdning vitnet om ren ringeakt for andres meninger.,His attitude showed pure contempt for the opinions of others.
+"disdain, disrespect",C,verb,ringeakte,,,se ned på,Han ringeakter vitenskap.,He disdains science.
+"disdainful, disrespectful, contemptuous",C,adjective,ringeaktende,,,nedsettende,Hun svarte med en ringeaktende tone og så en annen vei.,She replied with a disdainful tone and looked the other way.
 ring finger,A2,en,ringfinger,,,finger mellom lillefinger og langfinger,Ringen hennes satt perfekt på ringfingeren.,Her ring fit perfectly on her ring finger.
 ring-shaped,B2,adjective,"ringformet, ringforma",,,med form som en ring,De bakte en ringformet kake til festen.,They baked a ring-shaped cake for the party.
 rice,A2,en,ris,,Greek via Old Norse: rís,(korn av) plante av slekta Oryza i gressfamilien,Ris er en grunnleggende ingrediens i mange asiatiske retter.,Rice is a basic ingredient in many Asian dishes.
@@ -16154,6 +16167,9 @@ be a coincidence,B2,verb,slumpe,,,gjøre noe på slump; inntreffe tilfeldig; hen
 slender,B2,adjective,slunken,,,"(nesten) tom; som henger slapt ned; uttært, mager",Han så slunken ut etter flere dager uten skikkelig mat.,He looked ragged after several days without proper food.
 gulp,B1,en,slurk,,,"munnfull, svelg",Han tok en slurk vann etter treningen.,He took a sip of water after his workout.
 gulp,B2,verb,slurke,,,drikke i store drag,Han måtte slurke i seg kaffen for å rekke toget.,He had to slurp his coffee to catch the train.
+sloppiness,B2,et,slurv,,,det å slurve; uordentlig arbeid,De tåler ikke slurv.,They can't stand sloppiness.
+slob,B2,en,slurv,,,"slurvete, sjuskete person",Han var en ekte slurv og ryddet aldri opp etter seg.,He was a real slob and never cleaned up after himself.
+be sloppy,B2,verb,slurve,,,arbeide sjuskete og uordentlig; gjøre dårlig arbeid; være unøyaktig; slumse,Han slurver ofte noe skrekkelig.,He often makes a terrible mess.
 sloppy,B1,adjective,"slurvete, slurvet",,,"skjødesløs, uordentlig",Arbeidet var slurvete utført.,The work was done sloppily.
 conclusion,B2,ei,slutning,,,"det å slutte; slutt; avtale, kontrakt (om skipsfrakt); konklusjon",Dommeren kom til en endelig slutning etter vitneutsagnene.,The judge came to a final conclusion after the testimony.
 end,A2,en,slutt,[ʃlut:],,"ende, utgang",Ferien lir mot slutten. Filmen hadde en trist slutt.,The holidays are coming to an end. The movie had a sad ending.
@@ -17307,8 +17323,8 @@ field of study,B2,ei,studieretning,,Latin,"faglig hovedretning (ved universitet,
 studio,B1,et,studio,[stu:´dio],Italian: studio,"lokale som er spesialinnredet for visse aktiviteter",De spilte inn albumet i et profesjonelt studio.,They recorded the album in a professional studio.
 studio host,B2,en,studiovert,,Italian,"person som leder TV-program, TV-reportasje fra et studio",Studioverten ønsket gjestene velkommen med et smil.,The studio host welcomed the guests with a smile.
 "study, studying",B2,et,studium,[stu:´dium],Latin,"det å studere",Han fullførte sitt femårige studium i medisin.,He completed his five-year degree in medicine.
-living room,A1,ei,stue,[stu:`ə],Old Norse: stofa,"lite, enkelt hus, stove; oppholdsrom i bolighus",Olav sitter i den eneste lenestolen i stua.,Olav sits in the only armchair in the living room.
 stew,B2,verb,stue,,German,"koke forskjellige matvarer, særlig grønnsaker, i jevning eller saus",Hun valgte å stue grønnsakene med fløte og krydder til middagen.,She chose to stew the vegetables with cream and spices for dinner.
+living room,A1,ei,stue,[stu:`ə],Old Norse: stofa,"lite, enkelt hus, stove; oppholdsrom i bolighus",Olav sitter i den eneste lenestolen i stua.,Olav sits in the only armchair in the living room.
 person who stays indoors,B2,en,stuegris,,Old Norse,gris som en hadde inne i stua; person som helst holder seg innendørs,Den lille stuegrisen ligger alltid på sofaen.,The little piggy is always lying on the sofa.
 housekeeper,B1,ei,stuepike,,Old Norse,person som steller værelsene på et hotell; hushjelp (som særlig arbeider med stuer og soverom),Stuepiken ryddet rommet hver morgen.,The maid cleaned the room every morning.
 "stewing, stew",B2,ei,stuing,,German,det å stue; stuede grønnsaker eller lignende,Vi serverte kjøttkaker med poteter og stuing.,We served meatballs with potatoes and stew.
