@@ -725,6 +725,21 @@ label {
   height: 80px;
 }
 
+/* Progress bar container and fill */
+.level-progress-bar-bg {
+  background-color: #eee;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.level-progress-bar-fill {
+  background-color: #c7e3b6;
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
 .links {
   display: flex;
   gap: 10px; /* Space between the buttons */

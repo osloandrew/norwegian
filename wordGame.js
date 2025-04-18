@@ -158,41 +158,72 @@ function toggleGameEnglish() {
 
 function renderStats() {
   const statsContainer = document.getElementById("game-session-stats");
-
-  if (!statsContainer) {
-    return;
-  }
+  if (!statsContainer) return;
 
   const total = recentAnswers.length;
   const correctCount = recentAnswers.reduce((a, b) => a + b, 0);
   const incorrectCount = total - correctCount;
 
   const correctPercentage = total > 0 ? (correctCount / total) * 100 : 0;
-  const incorrectPercentage = total > 0 ? (incorrectCount / total) * 100 : 0;
-  const wordsToReview = incorrectWordQueue.length; // Number of words in review queue
+  const incorrectPercentage = 100 - correctPercentage;
+  const wordsToReview = incorrectWordQueue.length;
 
-  // Always set flex-grow to 1 to maintain 100% width from the start
-  const correctProportion = total > 0 ? correctCount / total : 1;
-  const incorrectProportion = total > 0 ? incorrectCount / total : 1;
+  function getProgressColor(accuracy) {
+    const { up, down } = levelThresholds[currentCEFR];
 
-  // Render the stats with full width and percentages
+    if (up !== null && accuracy >= up * 100) return "green";
+    if (down !== null && accuracy < down * 100) return "red";
+    return "yellow";
+  }
+
+  const progressColor = getProgressColor(correctPercentage);
+
   statsContainer.innerHTML = `
-        <div class="game-stats-content" style="width: 100%;">
-            <!-- Streak box on the left -->
-            <div class="game-stats-correct-box">
-                <p>${correctStreak}</p>
-            </div>
-            <div class="game-stats-correct-box" style="flex-grow: ${correctProportion};">
-                <p>${Math.round(correctPercentage)}%</p>
-            </div>
-            <div class="game-stats-incorrect-box" style="flex-grow: ${incorrectProportion};">
-                <p>${Math.round(incorrectPercentage)}%</p>
-            </div>
-            <div class="game-stats-incorrect-box">
-                <p>${wordsToReview}</p>
-            </div>
-        </div>
-    `;
+    <div class="game-stats-content" style="width: 100%;">
+      <!-- Left: Streak -->
+      <div class="game-stats-correct-box">
+        <p>${correctStreak}</p>
+      </div>
+
+    <div class="level-progress-bar-bg" style="flex-grow: 1; border-radius: 10px; overflow: hidden; position: relative;">
+      <div class="level-progress-bar-fill"
+          style="width: ${correctPercentage}%; background-color: ${
+    progressColor === "green"
+      ? "#c7e3b6"
+      : progressColor === "yellow"
+      ? "#f2e29b"
+      : "#e9a895"
+  }; height: 100%; transition: width 0.3s ease;">
+      </div>
+        <p style="
+          position: absolute;
+          width: 100%;
+          text-align: center;
+          line-height: 100%;
+          z-index: 1;
+          margin: 0;
+          user-select: none;
+          font-family: 'Noto Sans', sans-serif;
+          font-size: 18px;
+          font-weight: 500;
+          color: ${
+            progressColor === "green"
+              ? "#6b9461"
+              : progressColor === "yellow"
+              ? "#a0881c"
+              : "#b5634d"
+          };
+        ">
+          ${Math.round(correctPercentage)}%
+        </p>
+    </div>
+
+      <!-- Right: Words to review -->
+      <div class="game-stats-incorrect-box">
+        <p>${wordsToReview}</p>
+      </div>
+    </div>
+  `;
 }
 
 async function startWordGame() {
