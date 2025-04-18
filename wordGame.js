@@ -5,13 +5,18 @@ let correctLevelAnswers = 0; // Track correct answers per level
 let correctCount = 0; // Tracks the total number of correct answers
 let correctStreak = 0; // Track the current streak of correct answers
 let currentCEFR = "A1"; // Start at A1 by default
-let fallbackThreshold = 0.5; // Fall back if below 50%
 let levelCorrectAnswers = 0;
 let levelTotalQuestions = 0;
 let gameActive = false;
 let incorrectCount = 0; // Tracks the total number of incorrect answers
 let incorrectWordQueue = []; // Queue for storing incorrect words with counters
-let levelThreshold = 0.95; // 95% correct to level up
+const levelThresholds = {
+  A1: { up: 0.85, down: null }, // Starting level — can't go lower
+  A2: { up: 0.9, down: 0.6 },
+  B1: { up: 0.94, down: 0.7 },
+  B2: { up: 0.975, down: 0.8 },
+  C: { up: null, down: 0.9 }, // Final level — can fall from here, but not climb higher
+};
 let previousWord = null;
 let recentAnswers = []; // Track the last X answers, 1 for correct, 0 for incorrect
 let reintroduceThreshold = 10; // Set how many words to show before reintroducing incorrect ones
@@ -55,9 +60,9 @@ function showBanner(type, message) {
             </div>`;
   } else if (type === "streak") {
     bannerHTML = `
-            <div class="game-streak-banner">
-                <p>Amazing! 🎉 You've got a 10-word streak!</p>
-            </div>`;
+    <div class="game-streak-banner">
+        <p>Amazing! 🎉 You've hit a ${message}-word streak!</p>
+    </div>`;
   } else if (type === "clearedPracticeWords") {
     bannerHTML = `
             <div class="game-cleared-practice-banner">
@@ -604,9 +609,9 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
     if (indexInQueue !== -1) {
       incorrectWordQueue.splice(indexInQueue, 1); // Remove from review queue once answered correctly
     }
-    // Trigger the streak banner if the user reaches a 10-word streak
-    if (correctStreak === 10) {
-      showBanner("streak"); // Show the streak banner
+    // Trigger the streak banner if the user reaches a streak
+    if (correctStreak % 10 === 0) {
+      showBanner("streak", correctStreak);
     }
     // Trigger the cleared practice words banner ONLY if the queue is now empty
     if (incorrectWordQueue.length === 0 && indexInQueue !== -1) {
@@ -881,18 +886,19 @@ function fallbackToPreviousLevel() {
   }
 }
 
-// Check if the user can level up or fall back after 10 questions
+// Check if the user can level up or fall back
 function evaluateProgression() {
   if (levelTotalQuestions >= 10) {
     const accuracy = levelCorrectAnswers / levelTotalQuestions;
-    console.log(`Evaluating: Accuracy is ${accuracy * 100}%`);
+    const { up, down } = levelThresholds[currentCEFR];
+    console.log(`Evaluating: Accuracy is ${Math.round(accuracy * 100)}%`);
 
-    if (accuracy >= levelThreshold && incorrectWordQueue.length === 0) {
+    if (accuracy >= up && incorrectWordQueue.length === 0) {
       advanceToNextLevel();
-    } else if (accuracy < fallbackThreshold) {
+    } else if (accuracy < down) {
       fallbackToPreviousLevel();
     }
-    resetLevelStats(); // Reset for the next set of questions
+    resetLevelStats();
   }
 }
 
