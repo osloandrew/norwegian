@@ -376,6 +376,7 @@ function generateInexactMatches(query) {
     "er",
     "es",
     "et",
+    "i",
     "ing",
     "ly",
     "ne",
