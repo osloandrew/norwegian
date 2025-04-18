@@ -732,6 +732,10 @@ label {
   overflow: hidden;
   display: flex;
   align-items: center;
+  flex-grow: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
 }
 
 .level-progress-bar-fill {

@@ -162,68 +162,71 @@ function renderStats() {
 
   const total = recentAnswers.length;
   const correctCount = recentAnswers.reduce((a, b) => a + b, 0);
-  const incorrectCount = total - correctCount;
-
   const correctPercentage = total > 0 ? (correctCount / total) * 100 : 0;
-  const incorrectPercentage = 100 - correctPercentage;
   const wordsToReview = incorrectWordQueue.length;
 
-  function getProgressColor(accuracy) {
-    const { up, down } = levelThresholds[currentCEFR];
+  const currentThresholds = levelThresholds[currentCEFR];
+  let fillColor = "#c7e3b6"; // default green
+  let fontColor = "#6b9461";
 
-    if (up !== null && accuracy >= up * 100) return "green";
-    if (down !== null && accuracy < down * 100) return "red";
-    return "yellow";
+  if (total === 0) {
+    // Before the user answers any question
+    fillColor = "#ddd"; // neutral gray
+    fontColor = "#444"; // dark gray text
+  } else if (
+    currentThresholds.down !== null &&
+    correctPercentage < currentThresholds.down * 100
+  ) {
+    fillColor = "#e9a895"; // red
+    fontColor = "#b5634d";
+  } else if (
+    currentThresholds.up !== null &&
+    correctPercentage < currentThresholds.up * 100
+  ) {
+    fillColor = "#f2e29b"; // yellow
+    fontColor = "#a0881c";
   }
 
-  const progressColor = getProgressColor(correctPercentage);
+  // Inject HTML only if it hasn't been rendered yet
+  if (!statsContainer.querySelector(".level-progress-bar-fill")) {
+    statsContainer.innerHTML = `
+      <div class="game-stats-content" style="width: 100%;">
+        <div class="game-stats-correct-box"><p id="streak-count">${correctStreak}</p></div>
 
-  statsContainer.innerHTML = `
-    <div class="game-stats-content" style="width: 100%;">
-      <!-- Left: Streak -->
-      <div class="game-stats-correct-box">
-        <p>${correctStreak}</p>
-      </div>
+        <div class="level-progress-bar-bg" style="flex-grow: 1; border-radius: 10px; overflow: hidden; position: relative;">
+          <div class="level-progress-bar-fill"
+            style="width: 0%; background-color: ${fillColor}; height: 100%;"></div>
+          <p class="level-progress-label"
+            style="position: absolute; width: 100%; text-align: center; margin: 0; user-select: none;
+                   font-family: 'Noto Sans', sans-serif; font-size: 18px; font-weight: 500;
+                   z-index: 1; color: ${fontColor}; line-height: 38px;">
+            ${Math.round(correctPercentage)}%
+          </p>
+        </div>
 
-    <div class="level-progress-bar-bg" style="flex-grow: 1; border-radius: 10px; overflow: hidden; position: relative;">
-      <div class="level-progress-bar-fill"
-          style="width: ${correctPercentage}%; background-color: ${
-    progressColor === "green"
-      ? "#c7e3b6"
-      : progressColor === "yellow"
-      ? "#f2e29b"
-      : "#e9a895"
-  }; height: 100%; transition: width 0.3s ease;">
+        <div class="game-stats-incorrect-box"><p id="review-count">${wordsToReview}</p></div>
       </div>
-        <p style="
-          position: absolute;
-          width: 100%;
-          text-align: center;
-          line-height: 100%;
-          z-index: 1;
-          margin: 0;
-          user-select: none;
-          font-family: 'Noto Sans', sans-serif;
-          font-size: 18px;
-          font-weight: 500;
-          color: ${
-            progressColor === "green"
-              ? "#6b9461"
-              : progressColor === "yellow"
-              ? "#a0881c"
-              : "#b5634d"
-          };
-        ">
-          ${Math.round(correctPercentage)}%
-        </p>
-    </div>
+    `;
+  }
 
-      <!-- Right: Words to review -->
-      <div class="game-stats-incorrect-box">
-        <p>${wordsToReview}</p>
-      </div>
-    </div>
-  `;
+  // Update existing elements only
+  const fillEl = statsContainer.querySelector(".level-progress-bar-fill");
+  const labelEl = statsContainer.querySelector(".level-progress-label");
+  const streakEl = statsContainer.querySelector("#streak-count");
+  const reviewEl = statsContainer.querySelector("#review-count");
+
+  if (fillEl) {
+    fillEl.style.width = `${correctPercentage}%`;
+    fillEl.style.backgroundColor = fillColor;
+  }
+
+  if (labelEl) {
+    labelEl.textContent = `${Math.round(correctPercentage)}%`;
+    labelEl.style.color = fontColor;
+  }
+
+  if (streakEl) streakEl.textContent = correctStreak;
+  if (reviewEl) reviewEl.textContent = wordsToReview;
 }
 
 async function startWordGame() {
