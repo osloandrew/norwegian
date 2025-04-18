@@ -2419,3 +2419,7 @@ window.onload = function () {
     }
   });
 };
+
+window.addEventListener("popstate", () => {
+  loadStateFromURL(); // Re-load everything based on current URL
+});
