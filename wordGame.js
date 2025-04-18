@@ -42,35 +42,86 @@ const banners = {
   clearedPracticeWords: "game-cleared-practice-banner", // New banner for clearing reintroduced words
 };
 
-function showBanner(type, message) {
-  const bannerPlaceholder = document.getElementById("game-banner-placeholder");
+const clearedPracticeMessages = [
+  "🎉 Awesome! You've cleared all practice words!",
+  "👏 Great job! Practice makes perfect.",
+  "🌟 Stellar effort! Practice words completed.",
+  "🏆 Victory! Practice session conquered.",
+  "🚀 You're ready for the next challenge!",
+  "🎓 Practice complete! Onward to new words.",
+  "🔥 Practice words? Done and dusted!",
+  "💡 Bright work! Practice session finished.",
+  "🎯 Target achieved! Practice words cleared.",
+  "🧠 Brainpower at its best! Practice complete.",
+];
 
-  // You can manage different banner types by their `type` (e.g., 'congratulations', 'fallback')
+const congratulationsMessages = [
+  "🎉 Fantastic work! You've reached level {X}!",
+  "🏅 Congratulations! Level {X} achieved!",
+  "🌟 You're shining bright at level {X}!",
+  "🚀 Level up! Welcome to level {X}!",
+  "👏 Great job! You've advanced to level {X}!",
+  "🎯 Target hit! Now at level {X}!",
+  "🎓 Smart move! Level {X} unlocked!",
+  "🔥 Keep it up! Level {X} is yours!",
+  "💡 Brilliant! You've made it to level {X}!",
+  "🏆 Victory! Level {X} reached!",
+];
+
+const fallbackMessages = [
+  "🔄 Don't worry! You're back at level {X}. Keep going!",
+  "💪 Stay strong! Level {X} is a chance to improve.",
+  "🌱 Growth time! Revisit level {X} and conquer it.",
+  "🎯 Aim steady! Level {X} is your new target.",
+  "🚀 Regroup at level {X} and launch again!",
+  "🔥 Keep the fire alive! Level {X} awaits.",
+  "🧠 Sharpen your skills at level {X}.",
+  "🎓 Learning is a journey. Level {X} is part of it.",
+  "🏗️ Rebuild your streak starting at level {X}.",
+  "💡 Reflect and rise! Level {X} is your step forward.",
+];
+
+const streakMessages = [
+  "🔥 You're on fire with a {X}-word streak!",
+  "💪 Power streak! That's {X} in a row!",
+  "🎯 Precision mode: {X} correct straight!",
+  "🎉 Amazing! You've hit a {X}-word streak!",
+  "👏 Well done! {X} correct answers without a miss!",
+  "🌟 Stellar performance! {X} consecutive correct answers!",
+  "🚀 You're soaring! {X} right answers in a row!",
+  "🏆 Champion streak! {X} correct answers and counting!",
+  "🎓 Scholar level: {X} correct answers straight!",
+  "🧠 Brainpower unleashed! {X} correct answers consecutively!",
+];
+
+function showBanner(type, level) {
+  const bannerPlaceholder = document.getElementById("game-banner-placeholder");
   let bannerHTML = "";
+  let message = "";
 
   if (type === "congratulations") {
-    bannerHTML = `
-            <div class="game-congratulations-banner">
-                <p>Great job! 🎉 You're now at level <span id="next-level">${message}</span>!</p>
-            </div>`;
+    const randomIndex = Math.floor(
+      Math.random() * congratulationsMessages.length
+    );
+    message = congratulationsMessages[randomIndex].replace("{X}", level);
+    bannerHTML = `<div class="game-congratulations-banner"><p>${message}</p></div>`;
   } else if (type === "fallback") {
-    bannerHTML = `
-            <div class="game-fallback-banner">
-                <p>Nice try! 🎯 You're back at level <span id="prev-level">${message}</span>.</p>
-            </div>`;
+    const randomIndex = Math.floor(Math.random() * fallbackMessages.length);
+    message = fallbackMessages[randomIndex].replace("{X}", level);
+    bannerHTML = `<div class="game-fallback-banner"><p>${message}</p></div>`;
   } else if (type === "streak") {
-    bannerHTML = `
-    <div class="game-streak-banner">
-        <p>Amazing! 🎉 You've hit a ${message}-word streak!</p>
-    </div>`;
+    const randomIndex = Math.floor(Math.random() * streakMessages.length);
+    message = streakMessages[randomIndex].replace("{X}", level);
+    bannerHTML = `<div class="game-streak-banner"><p>${message}</p></div>`;
   } else if (type === "clearedPracticeWords") {
-    bannerHTML = `
-            <div class="game-cleared-practice-banner">
-                <p>Awesome! 🎉 You cleared all practice words!</p>
-            </div>`;
+    const randomIndex = Math.floor(
+      Math.random() * clearedPracticeMessages.length
+    );
+    message = clearedPracticeMessages[randomIndex];
+    bannerHTML = `<div class="game-cleared-practice-banner"><p>${message}</p></div>`;
   }
 
-  bannerPlaceholder.innerHTML = bannerHTML; // Inject the banner into the placeholder
+  bannerPlaceholder.innerHTML = bannerHTML;
 }
 
 function hideAllBanners() {
