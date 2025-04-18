@@ -973,7 +973,6 @@ function handleTypeChange(type) {
   } else if (type === "word-game") {
     // Handle "Word Game" type
 
-
     resetGame();
     startWordGame(); // Call the word game function
   } else {
@@ -1862,71 +1861,53 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
   const uniqueTranslations = new Set();
 
   // Now, split sentences and align translations
-  let matchingResults = relevantEntries
-    .map((r) => {
-      // Split both the example sentences and their translations
-      const sentences = r.eksempel.split(/(?<=[.!?])\s+/);
-      const translations = r.sentenceTranslation
-        ? r.sentenceTranslation.split(/(?<=[.!?])\s+/)
-        : [];
+  let matchingResults = [];
+  outerLoop: for (const r of relevantEntries) {
+    const sentences = r.eksempel.split(/(?<=[.!?])\s+/);
+    const translations = r.sentenceTranslation
+      ? r.sentenceTranslation.split(/(?<=[.!?])\s+/)
+      : [];
 
-      // Filter sentences that match any of the word variations, and align corresponding translations
-      const matchedSentencesAndTranslations = sentences.reduce(
-        (acc, sentence, index) => {
-          const isMatched = wordVariations.some((variation) => {
-            if (
-              pos === "adverb" ||
-              pos === "conjunction" ||
-              pos === "preposition" ||
-              pos === "interjection" ||
-              pos === "numeral"
-            ) {
-              const regex = new RegExp(
-                `(^|\\s)${variation}($|[\\s.,!?;])`,
-                "gi"
-              );
-              return regex.test(sentence);
-            } else {
-              const regexStartOfWord = new RegExp(
-                `(^|[^\\wåæøÅÆØ])${variation}`,
-                "i"
-              );
-              return regexStartOfWord.test(sentence);
-            }
-          });
+    const matched = { matchedSentences: [], matchedTranslations: [] };
 
-          // Only add unique matched sentences and translations
-          if (isMatched) {
-            if (!uniqueSentences.has(sentence)) {
-              uniqueSentences.add(sentence); // Track unique sentence
-              acc.matchedSentences.push(sentence); // Add to results
-            }
-            if (
-              translations[index] &&
-              !uniqueTranslations.has(translations[index])
-            ) {
-              uniqueTranslations.add(translations[index]); // Track unique translation
-              acc.matchedTranslations.push(translations[index]); // Add to results
-            }
-          }
+    sentences.forEach((sentence, index) => {
+      const isMatched = wordVariations.some((variation) => {
+        const regex =
+          pos === "adverb" ||
+          pos === "conjunction" ||
+          pos === "preposition" ||
+          pos === "interjection" ||
+          pos === "numeral"
+            ? new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, "gi")
+            : new RegExp(`(^|[^\\wåæøÅÆØ])${variation}`, "i");
+        return regex.test(sentence);
+      });
 
-          return acc;
-        },
-        { matchedSentences: [], matchedTranslations: [] }
-      );
+      if (isMatched) {
+        if (!uniqueSentences.has(sentence)) {
+          uniqueSentences.add(sentence);
+          matched.matchedSentences.push(sentence);
+        }
+        if (
+          translations[index] &&
+          !uniqueTranslations.has(translations[index])
+        ) {
+          uniqueTranslations.add(translations[index]);
+          matched.matchedTranslations.push(translations[index]);
+        }
+      }
+    });
 
-      // Return only the matched sentences and aligned translations, or null if none
-      return matchedSentencesAndTranslations.matchedSentences.length > 0
-        ? {
-            ...r,
-            eksempel:
-              matchedSentencesAndTranslations.matchedSentences.join(" "),
-            sentenceTranslation:
-              matchedSentencesAndTranslations.matchedTranslations.join(" "),
-          }
-        : null;
-    })
-    .filter((result) => result !== null);
+    if (matched.matchedSentences.length > 0) {
+      matchingResults.push({
+        ...r,
+        eksempel: matched.matchedSentences.join(" "),
+        sentenceTranslation: matched.matchedTranslations.join(" "),
+      });
+    }
+
+    if (uniqueSentences.size >= 10) break outerLoop;
+  }
 
   // Ensure each sentence in the primary 'eksempel' attribute from the matching word entry is added if unique
   if (matchingWordEntry.eksempel) {
