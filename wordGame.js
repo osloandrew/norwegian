@@ -763,9 +763,11 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
       };">${sentenceTranslation}</p>`;
 
     document.querySelector(".game-cefr-spacer").innerHTML = `
-      <p>${exampleSentence}</p>
-      ${translationHTML}
-    `;
+  <div class="sentence-pair">
+    <p>${exampleSentence}</p>
+    ${translationHTML}
+  </div>
+`;
   } else {
     document.querySelector(".game-cefr-spacer").innerHTML = "";
   }

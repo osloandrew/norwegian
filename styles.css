@@ -1159,6 +1159,23 @@ main {
   width: 100%;
 }
 
+.sentence-pair {
+  display: flex;
+  align-items: flex-start; /* Align tops of the two sentences */
+  gap: 5px;
+  width: 100%;
+  justify-content: center;
+}
+
+.sentence-pair p {
+  flex: 1;
+  max-width: 50%;
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
 .single-result-definition {
   margin-bottom: 0px;
 }
