@@ -396,9 +396,17 @@ function generateInexactMatches(query) {
 
 // Perform a search based on the input query and selected POS
 async function search(queryOverride = null) {
-  const query =
+  const originalQuery =
     queryOverride ||
     document.getElementById("search-bar").value.toLowerCase().trim();
+
+  // Try to find a base form in the dataset
+  const variations = generateInexactMatches(originalQuery);
+  const query =
+    variations.find((base) =>
+      results.some((r) => r.ord.toLowerCase() === base)
+    ) || originalQuery;
+  const isInexactMatch = originalQuery !== query;
   console.log("Search triggered with query:", query);
   const selectedPOS = document.getElementById("pos-select")
     ? document.getElementById("pos-select").value.toLowerCase()
@@ -573,31 +581,35 @@ async function search(queryOverride = null) {
     const noExactMatches = matchingResults.length === 0;
 
     // If no exact matches are found, find inexact matches
-    if (noExactMatches) {
+    if (noExactMatches || isInexactMatch) {
       // Generate inexact matches based on transformations
       const inexactWordQueries = generateInexactMatches(query);
       console.log(`Inexact Queries Generated: ${inexactWordQueries}`);
 
       // Now search for results using these inexact queries
-      let inexactWordMatches = results
-        .filter((r) => {
-          const matchesInexact = inexactWordQueries.some(
-            (inexactQuery) =>
-              r.ord.toLowerCase().includes(inexactQuery) ||
-              r.engelsk.toLowerCase().includes(inexactQuery)
-          );
-          return (
-            matchesInexact &&
-            (!selectedPOS ||
-              (selectedPOS === "noun" &&
-                ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
-                  r.gender.toLowerCase().includes(gender)
-                )) ||
-              r.gender.toLowerCase().includes(selectedPOS)) &&
-            (!selectedCEFR || r.CEFR === selectedCEFR)
-          );
-        })
-        .slice(0, 10); // Limit to 10 results
+      let inexactWordMatches = results.filter((r) => {
+        const matchesInexact = inexactWordQueries.some(
+          (inexactQuery) =>
+            r.ord.toLowerCase().includes(inexactQuery) ||
+            r.engelsk.toLowerCase().includes(inexactQuery)
+        );
+        return (
+          matchesInexact &&
+          (!selectedPOS ||
+            (selectedPOS === "noun" &&
+              ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
+                r.gender.toLowerCase().includes(gender)
+              )) ||
+            r.gender.toLowerCase().includes(selectedPOS)) &&
+          (!selectedCEFR || r.CEFR === selectedCEFR)
+        );
+      });
+
+      // 🧠 Sort the inexact matches using the same prioritization logic
+      inexactWordMatches = prioritizeResults(inexactWordMatches, query, "ord");
+
+      // ✂️ Limit to 10 results after sorting
+      inexactWordMatches = inexactWordMatches.slice(0, 10);
 
       // Display the "No Exact Matches" message
       resultsContainer.innerHTML = `
@@ -605,7 +617,7 @@ async function search(queryOverride = null) {
                     <h2 class="word-gender">
                         No Exact Matches Found
                     </h2>
-                    <p>We couldn't find exact matches for "${query}"${filtersText}. Here are some inexact results:</p>
+                    <p>We couldn't find exact matches for "${originalQuery}"${filtersText}. Here are some inexact results:</p>
                     <button class="landing-card-btn">
                         <i class="fas fa-flag"></i> Flag Missing Word Entry
                     </button>
