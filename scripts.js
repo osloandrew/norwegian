@@ -404,7 +404,13 @@ async function search(queryOverride = null) {
   const variations = generateInexactMatches(originalQuery);
   const query =
     variations.find((base) =>
-      results.some((r) => r.ord.toLowerCase() === base)
+      results.some((r) =>
+        r.ord
+          .toLowerCase()
+          .split(",")
+          .map((s) => s.trim())
+          .includes(base)
+      )
     ) || originalQuery;
   const isInexactMatch = originalQuery !== query;
   console.log("Search triggered with query:", query);
