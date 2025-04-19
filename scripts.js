@@ -1068,6 +1068,28 @@ function handleCEFRChange() {
   }
 }
 
+function makeDefinitionClickable(defText) {
+  if (!defText) return "";
+  return defText
+    .split(/\s+/)
+    .map((token) => {
+      // Match words that may have parentheses around them
+      const match = token.match(/^(\()?([a-zA-ZæøåÆØÅ\-']+)(\))?([.,;!?]*)$/);
+      if (match) {
+        const [_, openParen, word, closeParen, punctuation] = match;
+        const safeWord = word.replace(/"/g, "&quot;");
+        return `${
+          openParen || ""
+        }<span class="clickable-definition-word" data-word="${safeWord}">${word}</span>${
+          closeParen || ""
+        }${punctuation || ""}`;
+      } else {
+        return token;
+      }
+    })
+    .join(" ");
+}
+
 // Render a list of results (words)
 function displaySearchResults(results, query = "") {
   query = query.toLowerCase().trim(); // Ensure the query is lowercased and trimmed
@@ -1160,7 +1182,11 @@ function displaySearchResults(results, query = "") {
                 </h2>
                 ${
                   result.definisjon
-                    ? `<p class="${multipleResultsDefinitionText}">${result.definisjon}</p>`
+                    ? `<p class="${multipleResultsDefinitionText}">${
+                        defaultResult
+                          ? makeDefinitionClickable(result.definisjon)
+                          : result.definisjon
+                      }</p>`
                     : ""
                 }
                 </div>
@@ -2422,4 +2448,17 @@ window.onload = function () {
 
 window.addEventListener("popstate", () => {
   loadStateFromURL(); // Re-load everything based on current URL
+});
+
+document.addEventListener("click", (event) => {
+  const target = event.target;
+  if (target.classList.contains("clickable-definition-word")) {
+    const word = target.getAttribute("data-word");
+    const searchInput = document.getElementById("search-bar");
+    if (searchInput) {
+      searchInput.value = ""; // ✅ Clear the bar
+      clearInput(); // ✅ Also call your built-in clear function
+      search(word); // 🔍 Trigger search
+    }
+  }
 });

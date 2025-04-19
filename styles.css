@@ -109,6 +109,15 @@ button:disabled i {
   color: #666; /* Slightly darker shade for hover */
 }
 
+.clickable-definition-word {
+  cursor: pointer;
+  color: #3c88d4;
+}
+
+.clickable-definition-word:hover {
+  background-color: #f0f8ff;
+}
+
 .coffee-btn {
   display: inline-flex;
   align-items: center;
