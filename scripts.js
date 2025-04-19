@@ -676,7 +676,11 @@ async function search(queryOverride = null) {
 
       // 1. Prioritize exact match in the Norwegian or English term
       const isExactMatchA =
-        a.ord.toLowerCase() === queryLower ||
+        a.ord
+          .toLowerCase()
+          .split(",")
+          .map((str) => str.trim())
+          .includes(queryLower) ||
         a.engelsk
           .toLowerCase()
           .split(",")
