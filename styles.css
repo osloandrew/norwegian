@@ -182,6 +182,11 @@ button:disabled i {
   font-weight: 500;
 }
 
+.distractor-muted {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .error-message {
   align-content: center;
   background-color: #ffffff;

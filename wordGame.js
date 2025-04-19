@@ -658,9 +658,13 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
 
   const cards = document.querySelectorAll(".game-translation-card");
 
-  // Reset all cards to the default background before applying the color change
+  // Reset all cards to their default visual state
   cards.forEach((card) => {
-    card.classList.remove("game-correct-card", "game-incorrect-card");
+    card.classList.remove(
+      "game-correct-card",
+      "game-incorrect-card",
+      "distractor-muted"
+    );
   });
 
   // Extract the part before the comma for both correct and selected translations
@@ -675,8 +679,11 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
     goodChime.play(); // Play the chime sound when correct
     // Mark the selected card as green (correct)
     cards.forEach((card) => {
-      if (card.innerText.trim() === selectedTranslationPart) {
+      const cardText = card.innerText.trim();
+      if (cardText === selectedTranslationPart) {
         card.classList.add("game-correct-card");
+      } else if (cardText !== correctTranslationPart) {
+        card.classList.add("distractor-muted");
       }
     });
     correctCount++; // Increment correct count globally
@@ -707,12 +714,14 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
     badChime.play(); // Play the chime sound when incorrect
     // Mark the incorrect card as red
     cards.forEach((card) => {
-      if (card.innerText.trim() === selectedTranslationPart) {
-        card.classList.add("game-incorrect-card"); // Mark incorrect card
-      }
-      // Also ensure the correct card is still marked green
-      if (card.innerText.trim() === correctTranslationPart) {
-        card.classList.add("game-correct-card"); // Highlight the correct card
+      const cardText = card.innerText.trim();
+
+      if (cardText === selectedTranslationPart) {
+        card.classList.add("game-incorrect-card");
+      } else if (cardText === correctTranslationPart) {
+        card.classList.add("game-correct-card");
+      } else {
+        card.classList.add("distractor-muted");
       }
     });
     incorrectCount++; // Increment incorrect count
