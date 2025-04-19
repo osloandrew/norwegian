@@ -1070,22 +1070,39 @@ function handleCEFRChange() {
 
 function makeDefinitionClickable(defText) {
   if (!defText) return "";
+
   return defText
     .split(/\s+/)
     .map((token) => {
-      // Match words that may have parentheses around them
-      const match = token.match(/^(\()?([a-zA-ZæøåÆØÅ\-']+)(\))?([.,;!?]*)$/);
-      if (match) {
-        const [_, openParen, word, closeParen, punctuation] = match;
-        const safeWord = word.replace(/"/g, "&quot;");
-        return `${
-          openParen || ""
-        }<span class="clickable-definition-word" data-word="${safeWord}">${word}</span>${
-          closeParen || ""
-        }${punctuation || ""}`;
-      } else {
-        return token;
+      // Match optional parentheses + any Unicode letters + punctuation
+      const match = token.match(
+        /^(\()?(?<prefix>[\p{L}\-']+)?(\))?(?<base>[\p{L}\-']+)?([.,;!?]*)$/u
+      );
+
+      if (!match || !match.groups) return token;
+
+      const { prefix, base } = match.groups;
+      const punctuation = token.match(/[.,;!?]+$/)?.[0] || "";
+      const open = token.startsWith("(") ? "(" : "";
+      const close = token.includes(")") ? ")" : "";
+
+      const parts = [];
+
+      if (prefix) {
+        parts.push(
+          `${open}<span class="clickable-definition-word" data-word="${prefix}">${prefix}</span>${close}`
+        );
+      } else if (open || close) {
+        parts.push(`${open}${close}`);
       }
+
+      if (base) {
+        parts.push(
+          `<span class="clickable-definition-word" data-word="${base}">${base}</span>`
+        );
+      }
+
+      return parts.join("") + punctuation;
     })
     .join(" ");
 }
