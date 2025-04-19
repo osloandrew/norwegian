@@ -736,13 +736,21 @@ async function search(queryOverride = null) {
       }
 
       // 3. Prioritize whole word match (even if part of a phrase or longer sentence)
-      const regexExactMatch = new RegExp(`\\b${queryLower}\\b`, "i"); // Whole word boundary match
-      const aExactInPhrase = regexExactMatch.test(a.ord);
-      const bExactInPhrase = regexExactMatch.test(b.ord);
-      if (aExactInPhrase && !bExactInPhrase) {
+      const aWords = a.ord
+        .toLowerCase()
+        .split(",")
+        .map((s) => s.trim());
+      const bWords = b.ord
+        .toLowerCase()
+        .split(",")
+        .map((s) => s.trim());
+
+      const aHasExactWord = aWords.includes(queryLower);
+      const bHasExactWord = bWords.includes(queryLower);
+      if (aHasExactWord && !bHasExactWord) {
         return -1;
       }
-      if (!aExactInPhrase && bExactInPhrase) {
+      if (!aHasExactWord && bHasExactWord) {
         return 1;
       }
 
@@ -1087,38 +1095,49 @@ function handleCEFRChange() {
 function makeDefinitionClickable(defText) {
   if (!defText) return "";
 
+  function wrapToken(token) {
+    const match = token.match(
+      /^(\()?(?<prefix>[\p{L}\-']+)?(\))?(?<base>[\p{L}\-']+)?([.,;!?]*)$/u
+    );
+
+    if (!match || !match.groups) return token;
+
+    const { prefix, base } = match.groups;
+    const punctuation = token.match(/[.,;!?]+$/)?.[0] || "";
+    const open = token.startsWith("(") ? "(" : "";
+    const close = token.includes(")") ? ")" : "";
+
+    const parts = [];
+
+    // 👇 Check for trailing hyphen outside the word
+    const endsWithHyphen = token.endsWith("-");
+
+    const word = (prefix || base || "").replace(/-$/, "");
+
+    if (word) {
+      parts.push(
+        `${open}<span class="clickable-definition-word" data-word="${word}">${word}</span>${
+          endsWithHyphen ? "-" : ""
+        }${close}`
+      );
+    } else if (open || close) {
+      parts.push(`${open}${close}`);
+    }
+
+    return parts.join("") + punctuation;
+  }
+
   return defText
     .split(/\s+/)
     .map((token) => {
-      // Match optional parentheses + any Unicode letters + punctuation
-      const match = token.match(
-        /^(\()?(?<prefix>[\p{L}\-']+)?(\))?(?<base>[\p{L}\-']+)?([.,;!?]*)$/u
-      );
-
-      if (!match || !match.groups) return token;
-
-      const { prefix, base } = match.groups;
-      const punctuation = token.match(/[.,;!?]+$/)?.[0] || "";
-      const open = token.startsWith("(") ? "(" : "";
-      const close = token.includes(")") ? ")" : "";
-
-      const parts = [];
-
-      if (prefix) {
-        parts.push(
-          `${open}<span class="clickable-definition-word" data-word="${prefix}">${prefix}</span>${close}`
-        );
-      } else if (open || close) {
-        parts.push(`${open}${close}`);
+      if (token.includes("/") && !token.startsWith("http")) {
+        return token
+          .split("/")
+          .map((subToken) => wrapToken(subToken))
+          .join("/");
+      } else {
+        return wrapToken(token);
       }
-
-      if (base) {
-        parts.push(
-          `<span class="clickable-definition-word" data-word="${base}">${base}</span>`
-        );
-      }
-
-      return parts.join("") + punctuation;
     })
     .join(" ");
 }
