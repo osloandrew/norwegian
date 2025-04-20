@@ -2511,7 +2511,8 @@ window.addEventListener("popstate", () => {
 document.addEventListener("click", (event) => {
   const target = event.target;
   if (target.classList.contains("clickable-definition-word")) {
-    const word = target.getAttribute("data-word");
+    let word = target.getAttribute("data-word");
+    word = word.toLowerCase(); // 🔧 Ensure lowercase for accurate matching
     const searchInput = document.getElementById("search-bar");
     if (searchInput) {
       searchInput.value = ""; // ✅ Clear the bar
