@@ -38,18 +38,12 @@ function handleKey(event) {
 }
 
 function clearContainer() {
-  const landingCard = document.getElementById("landing-card");
-  if (landingCard) {
-    // Temporarily remove the landing card from the container, then clear everything else
-    landingCard.parentNode.removeChild(landingCard);
-  }
-
-  resultsContainer.innerHTML = ""; // Clear everything else in the container
-
-  // Restore the landing card
-  if (landingCard) {
-    resultsContainer.appendChild(landingCard);
-  }
+  const allChildren = Array.from(resultsContainer.children);
+  allChildren.forEach((child) => {
+    if (child.id !== "landing-card") {
+      resultsContainer.removeChild(child);
+    }
+  });
 }
 
 function appendToContainer(content) {
@@ -2349,6 +2343,7 @@ function loadStateFromURL() {
       if (query) {
         search();
       } else if (type === "words") {
+        clearContainer(); // ✅ removes all search results
         showLandingCard(true);
       }
 
