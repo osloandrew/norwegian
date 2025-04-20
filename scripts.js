@@ -1102,6 +1102,37 @@ function makeDefinitionClickable(defText) {
   if (!defText) return "";
 
   function wrapToken(token) {
+    // Håndter sammensatte ord med parentes, som (språk)gruppe eller språk(gruppe)
+    const complexParenMatch = token.match(
+      /^([\p{L}\-']*)\(([\p{L}\-']+)\)([\p{L}\-']*)([.,;!?]*)$/u
+    );
+    if (complexParenMatch) {
+      const [, before, inside, after, punctuation] = complexParenMatch;
+      const parts = [];
+
+      if (before) {
+        parts.push(
+          `<span class="clickable-definition-word" data-word="${before}">${before}</span>`
+        );
+      }
+
+      parts.push("(");
+      parts.push(
+        `<span class="clickable-definition-word" data-word="${inside}">${inside}</span>`
+      );
+      parts.push(")");
+
+      if (after) {
+        parts.push(
+          `<span class="clickable-definition-word" data-word="${after}">${after}</span>`
+        );
+      }
+
+      parts.push(punctuation || "");
+      return parts.join("");
+    }
+
+    // Opprinnelig logikk for alt annet
     const match = token.match(
       /^(\()?(?<prefix>[\p{L}\-']+)?(\))?(?<base>[\p{L}\-']+)?([.,;!?]*)$/u
     );
