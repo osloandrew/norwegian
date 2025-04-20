@@ -406,13 +406,17 @@ async function search(queryOverride = null) {
   const variations = generateInexactMatches(originalQuery);
   const query =
     variations.find((base) =>
-      results.some((r) =>
-        r.ord
+      results.some((r) => {
+        const ordList = r.ord
           .toLowerCase()
           .split(",")
-          .map((s) => s.trim())
-          .includes(base)
-      )
+          .map((s) => s.trim());
+        const engelskList = r.engelsk
+          .toLowerCase()
+          .split(",")
+          .map((s) => s.trim());
+        return ordList.includes(base) || engelskList.includes(base);
+      })
     ) || originalQuery;
   const isInexactMatch = originalQuery !== query;
   console.log("Search triggered with query:", query);
@@ -804,6 +808,7 @@ async function search(queryOverride = null) {
   }
   hideSpinner(); // Hide the spinner
 }
+
 // Check if any sentences exist for a word or its variations
 function checkForSentences(word, pos) {
   const lowerCaseWord = word.trim().toLowerCase();
