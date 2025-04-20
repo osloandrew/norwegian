@@ -112,10 +112,16 @@ button:disabled i {
 .clickable-definition-word {
   cursor: pointer;
   color: #3c88d4;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(60, 136, 212, 0.4);
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
 }
 
 .clickable-definition-word:hover {
-  background-color: #f0f8ff;
+  color: #1f4f80; /* darker and cooler than #2b6ca3 */
+  text-decoration-color: transparent; /* fades underline out smoothly */
 }
 
 .coffee-btn {
