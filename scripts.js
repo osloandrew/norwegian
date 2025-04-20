@@ -2345,6 +2345,8 @@ function loadStateFromURL() {
       } else if (type === "words") {
         clearContainer(); // ✅ removes all search results
         showLandingCard(true);
+        document.title =
+          "Norwegian Dictionary | Search in Norwegian or English";
       }
 
       clearInterval(checkDataLoaded); // Stop checking once data is loaded
