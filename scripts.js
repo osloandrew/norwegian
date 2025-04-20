@@ -38,12 +38,18 @@ function handleKey(event) {
 }
 
 function clearContainer() {
-  const allChildren = Array.from(resultsContainer.children);
-  allChildren.forEach((child) => {
-    if (child.id !== "landing-card") {
-      resultsContainer.removeChild(child);
-    }
-  });
+  const landingCard = document.getElementById("landing-card");
+  if (landingCard) {
+    // Temporarily remove the landing card from the container, then clear everything else
+    landingCard.parentNode.removeChild(landingCard);
+  }
+
+  resultsContainer.innerHTML = ""; // Clear everything else in the container
+
+  // Restore the landing card
+  if (landingCard) {
+    resultsContainer.appendChild(landingCard);
+  }
 }
 
 function appendToContainer(content) {
@@ -1130,14 +1136,13 @@ function makeDefinitionClickable(defText) {
 
     // Opprinnelig logikk for alt annet
     const match = token.match(
-      /^(\()?(?<prefix>[\p{L}\-']+)?(\))?(?<base>[\p{L}\-']+)?([:.,;!?]*)$/u
+      /^(\()?(?<prefix>[\p{L}\-']+)?(\))?(?<base>[\p{L}\-']+)?([.,;!?]*)$/u
     );
 
     if (!match || !match.groups) return token;
 
     const { prefix, base } = match.groups;
-    const punctuationMatch = token.match(/[:.,;!?]+$/);
-    const punctuation = punctuationMatch ? punctuationMatch[0] : "";
+    const punctuation = token.match(/[.,;!?]+$/)?.[0] || "";
     const open = token.startsWith("(") ? "(" : "";
     const close = token.includes(")") ? ")" : "";
 
@@ -2343,10 +2348,7 @@ function loadStateFromURL() {
       if (query) {
         search();
       } else if (type === "words") {
-        clearContainer(); // ✅ removes all search results
         showLandingCard(true);
-        document.title =
-          "Norwegian Dictionary | Search in Norwegian or English";
       }
 
       clearInterval(checkDataLoaded); // Stop checking once data is loaded
