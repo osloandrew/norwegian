@@ -813,7 +813,7 @@ main {
 }
 
 .multiple-results-definition:hover {
-  background-color: #f5f5f5; /* Optional: Change background color on hover */
+  background-color: #f2f9fd; /* Hover effect same as word card */
 }
 
 /* The word, gender and definition */
