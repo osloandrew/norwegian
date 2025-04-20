@@ -1136,13 +1136,14 @@ function makeDefinitionClickable(defText) {
 
     // Opprinnelig logikk for alt annet
     const match = token.match(
-      /^(\()?(?<prefix>[\p{L}\-']+)?(\))?(?<base>[\p{L}\-']+)?([.,;!?]*)$/u
+      /^(\()?(?<prefix>[\p{L}\-']+)?(\))?(?<base>[\p{L}\-']+)?([:.,;!?]*)$/u
     );
 
     if (!match || !match.groups) return token;
 
     const { prefix, base } = match.groups;
-    const punctuation = token.match(/[.,;!?]+$/)?.[0] || "";
+    const punctuationMatch = token.match(/[:.,;!?]+$/);
+    const punctuation = punctuationMatch ? punctuationMatch[0] : "";
     const open = token.startsWith("(") ? "(" : "";
     const close = token.includes(")") ? ")" : "";
 
