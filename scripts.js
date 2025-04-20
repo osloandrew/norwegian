@@ -7,8 +7,22 @@ const resultsContainer = document.getElementById("results-container");
 // Function to show or hide the landing card
 function showLandingCard(show) {
   const landingCard = document.getElementById("landing-card");
-  if (landingCard) {
-    landingCard.style.display = show ? "block" : "none";
+  const main = document.querySelector("main");
+
+  if (!landingCard || !main) return;
+
+  if (show) {
+    // Move the card back into main, if it’s inside resultsContainer
+    if (landingCard.parentNode !== main) {
+      landingCard.remove();
+      main.insertBefore(
+        landingCard,
+        document.getElementById("results-container")
+      );
+    }
+    landingCard.style.display = "block";
+  } else {
+    landingCard.style.display = "none";
   }
 }
 
@@ -2354,6 +2368,9 @@ function loadStateFromURL() {
       if (query) {
         search();
       } else if (type === "words") {
+        document.title =
+          "Norwegian Dictionary | Search in Norwegian or English";
+        clearContainer();
         showLandingCard(true);
       }
 
