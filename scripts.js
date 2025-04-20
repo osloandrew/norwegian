@@ -379,6 +379,8 @@ function generateInexactMatches(query) {
     "i",
     "ing",
     "ly",
+    "men",
+    "n",
     "ne",
     "r",
     "s",
