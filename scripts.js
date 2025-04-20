@@ -416,6 +416,7 @@ async function search(queryOverride = null) {
     queryOverride ||
     document.getElementById("search-bar").value.toLowerCase().trim();
 
+  document.getElementById("search-bar").dataset.originalQuery = originalQuery; // 👈 this line
   // Try to find a base form in the dataset
   const variations = generateInexactMatches(originalQuery);
   const query =
@@ -654,7 +655,8 @@ async function search(queryOverride = null) {
       const flagButton = document.querySelector(".landing-card-btn");
       if (flagButton) {
         flagButton.addEventListener("click", function () {
-          const wordToFlag = document.getElementById("search-bar").value;
+          const searchBar = document.getElementById("search-bar");
+          const wordToFlag = searchBar.dataset.originalQuery || searchBar.value;
           flagMissingWordEntry(wordToFlag);
         });
       }
@@ -667,8 +669,9 @@ async function search(queryOverride = null) {
         const flagButton = document.querySelector(".landing-card-btn");
         if (flagButton) {
           flagButton.addEventListener("click", function () {
-            const wordToFlag = document.getElementById("search-bar").value;
-            console.log("Flagging word:", wordToFlag); // Debugging log
+            const searchBar = document.getElementById("search-bar");
+            const wordToFlag =
+              searchBar.dataset.originalQuery || searchBar.value;
             flagMissingWordEntry(wordToFlag);
           });
         }
@@ -686,7 +689,9 @@ async function search(queryOverride = null) {
         const flagButton = document.querySelector(".landing-card-btn");
         if (flagButton) {
           flagButton.addEventListener("click", function () {
-            const wordToFlag = document.getElementById("search-bar").value;
+            const searchBar = document.getElementById("search-bar");
+            const wordToFlag =
+              searchBar.dataset.originalQuery || searchBar.value;
             flagMissingWordEntry(wordToFlag);
           });
         }
