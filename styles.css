@@ -1189,7 +1189,6 @@ main {
 
 .sentence-pair p {
   flex: 1;
-  max-width: 50%;
   text-align: center;
   margin: 0;
   line-height: 1.5;
