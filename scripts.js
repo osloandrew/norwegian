@@ -964,6 +964,7 @@ function handleTypeChange(type) {
   const posSelect = document.getElementById("pos-select");
   const genreSelect = document.getElementById("genre-select");
   const cefrSelect = document.getElementById("cefr-select"); // Get the CEFR filter dropdown
+  const cefrLock = document.getElementById("lock-icon");
 
   removeStoryHeader();
   gameEnglishFilterContainer.style.display = "none";
@@ -980,6 +981,7 @@ function handleTypeChange(type) {
     searchBarWrapper.style.display = "inline-flex"; // Hide search-bar-wrapper
     posFilterContainer.style.display = "none";
     randomBtn.style.display = "none"; // Hide random button
+    cefrLock.style.display = "none";
 
     searchContainerInner.classList.remove("word-game-active");
 
@@ -1012,6 +1014,7 @@ function handleTypeChange(type) {
     // Disable the POS dropdown and gray it out
     posFilterContainer.style.display = "inline-flex"; // Show POS dropdown
     posSelect.disabled = true; // Disable POS dropdown
+    cefrLock.style.display = "none";
     posSelect.value = ""; // Reset to "Part of Speech" option
     posFilterContainer.classList.add("disabled"); // Add the 'disabled' class
 
@@ -1040,6 +1043,7 @@ function handleTypeChange(type) {
     searchBarWrapper.style.display = "inline-flex"; // Show search-bar-wrapper
     randomBtn.style.display = "block"; // Show random button
 
+    cefrLock.style.display = "none";
     gameActive = false;
     searchContainerInner.classList.remove("word-game-active");
 

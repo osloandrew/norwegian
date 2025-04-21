@@ -799,6 +799,27 @@ label {
   width: 18px;
 }
 
+#lock-icon {
+  color: white;
+  font-size: 16px;
+  margin-left: 10px;
+  cursor: pointer;
+  display: none;
+  order: 2;
+  transition: all 0.2s ease;
+  pointer-events: auto; /* ensure it responds to clicks */
+}
+
+#lock-icon.locked {
+  color: #c7e3b6; /* light green for locked */
+  transform: scale(1.1);
+}
+
+#lock-icon.unlocked {
+  color: white; /* default white */
+  transform: scale(1);
+}
+
 main {
   flex: 1;
 }

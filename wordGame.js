@@ -230,6 +230,7 @@ function renderStats() {
 }
 
 async function startWordGame() {
+  document.getElementById("lock-icon").style.display = "inline";
   const searchContainerInner = document.getElementById(
     "search-container-inner"
   ); // The container to update
@@ -982,8 +983,21 @@ function fallbackToPreviousLevel() {
   }
 }
 
+let levelLocked = false;
+
+function toggleLevelLock() {
+  levelLocked = !levelLocked;
+  const icon = document.getElementById("lock-icon");
+  if (icon) {
+    icon.className = levelLocked ? "fas fa-lock" : "fas fa-lock-open";
+    icon.title = levelLocked ? "Level is locked" : "Level is unlocked";
+  }
+}
+
 // Check if the user can level up or fall back
 function evaluateProgression() {
+  if (levelLocked) return;
+
   if (levelTotalQuestions >= 10) {
     const accuracy = levelCorrectAnswers / levelTotalQuestions;
     const { up, down } = levelThresholds[currentCEFR];
@@ -1061,3 +1075,5 @@ document.addEventListener("keydown", function (event) {
     }
   }
 });
+
+window.toggleLevelLock = toggleLevelLock;
