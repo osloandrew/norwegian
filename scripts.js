@@ -446,7 +446,7 @@ async function search(queryOverride = null) {
 
   // Build the "No Matches" message based on filters
   const filterMessage = [];
-  if (selectedPOS) filterMessage.push(`POS value of "${selectedPOS}"`);
+  if (selectedPOS) filterMessage.push(`word class of "${selectedPOS}"`);
   if (selectedCEFR) filterMessage.push(`CEFR level "${selectedCEFR}"`);
   const filtersText =
     filterMessage.length > 0 ? ` with the ${filterMessage.join(" and ")}` : "";
@@ -645,9 +645,14 @@ async function search(queryOverride = null) {
                         No Exact Matches Found
                     </h2>
                     <p>We couldn't find exact matches for "${originalQuery}"${filtersText}. Here are some inexact results:</p>
-                    <button class="landing-card-btn">
-                        <i class="fas fa-flag"></i> Flag Missing Word Entry
-                    </button>
+                      ${
+                        !selectedPOS && !selectedCEFR
+                          ? `
+                        <button class="landing-card-btn">
+                          <i class="fas fa-flag"></i> Flag Missing Word Entry
+                        </button>`
+                          : ""
+                      }
                 </div>
             `;
 
@@ -681,9 +686,14 @@ async function search(queryOverride = null) {
             <div class="definition error-message">
                 <h2 class="word-gender">No Matches Found</h2>
                 <p>We couldn't find any matches for "${query}"${filtersText}.</p>
-                <button class="landing-card-btn">
-                    <i class="fas fa-flag"></i> Flag Missing Word Entry
-                </button>
+                    ${
+                      !selectedPOS && !selectedCEFR
+                        ? `
+                      <button class="landing-card-btn">
+                        <i class="fas fa-flag"></i> Flag Missing Word Entry
+                      </button>`
+                        : ""
+                    }
             </div>`);
 
         const flagButton = document.querySelector(".landing-card-btn");
