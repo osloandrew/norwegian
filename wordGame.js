@@ -81,6 +81,11 @@ const fallbackMessages = [
   "💡 Reflect and rise! Level {X} is your step forward.",
 ];
 
+const lockToggleMessages = {
+  locked: ["🔒 Level lock enabled. You won’t advance or fall back."],
+  unlocked: ["🚀 Level lock disabled. Progression is active."],
+};
+
 const streakMessages = [
   "🔥 You're on fire with a {X}-word streak!",
   "💪 Power streak! That's {X} in a row!",
@@ -119,6 +124,14 @@ function showBanner(type, level) {
     );
     message = clearedPracticeMessages[randomIndex];
     bannerHTML = `<div class="game-cleared-practice-banner"><p>${message}</p></div>`;
+  } else if (type === "levelLock") {
+    const messages =
+      level === "locked"
+        ? lockToggleMessages.locked
+        : lockToggleMessages.unlocked;
+    const randomIndex = Math.floor(Math.random() * messages.length);
+    message = messages[randomIndex];
+    bannerHTML = `<div class="game-lock-banner"><p>${message}</p></div>`;
   }
 
   bannerPlaceholder.innerHTML = bannerHTML;
@@ -992,6 +1005,7 @@ function toggleLevelLock() {
     icon.className = levelLocked ? "fas fa-lock" : "fas fa-lock-open";
     icon.title = levelLocked ? "Level is locked" : "Level is unlocked";
   }
+  showBanner("levelLock", levelLocked ? "locked" : "unlocked");
 }
 
 // Check if the user can level up or fall back
