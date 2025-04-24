@@ -390,6 +390,9 @@ async function startWordGame() {
   currentWord = randomWordObj;
   correctTranslation = randomWordObj.engelsk;
 
+  const isClozeQuestion = Math.random() < 0.5; // 50% chance to show a cloze question
+  const bannedWordClasses = ["numeral", "pronoun", "possessive", "determiner"];
+
   // Fetch incorrect translations with the same gender
   const incorrectTranslations = fetchIncorrectTranslations(
     randomWordObj.gender,
@@ -407,13 +410,116 @@ async function startWordGame() {
   const uniqueDisplayedTranslations =
     ensureUniqueDisplayedValues(allTranslations);
 
-  // Render the word game UI and pass the entire word object
-  renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false); // 'false' flag for non-reintroduced word
+    console.log("Showing " + (isClozeQuestion ? "CLOZE" : "FLASHCARD") + " question for:", randomWordObj.ord);
 
+    if (isClozeQuestion) {
+      const baseWord = randomWordObj.ord.split(",")[0].trim().toLowerCase();
+      const exampleText = randomWordObj.eksempel || "";
+      const firstSentence = exampleText.split(/(?<=[.!?])\s+/)[0];
+      const tokens = firstSentence.split(/\b/);
+    
+      let clozedForm = null;
+      const baseWordRegex = new RegExp(`\\b${baseWord}[a-zæøå]*\\b`, "i");
+
+      for (const token of tokens) {
+        const clean = token.toLowerCase().replace(/[.,!?;:()"]/g, "");
+        if (clean && baseWordRegex.test(clean)) {
+          clozedForm = token.trim();
+          break;
+        }
+      }
+      
+    
+      if (!clozedForm) {
+        // fallback to flashcard if we can't detect form
+        renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
+        return;
+      }
+    
+        // Format the clozed word and get its final letter
+        const isUpperCase = /^[A-ZÆØÅ]/.test(clozedForm);
+        const formatCase = (word) =>
+          isUpperCase ? word.charAt(0).toUpperCase() + word.slice(1) : word.charAt(0).toLowerCase() + word.slice(1);
+
+        const formattedClozed = formatCase(clozedForm);
+        const targetEnding = formattedClozed.slice(-1);
+
+        // STEP A — Try strict match: same CEFR, same gender, same ending letter
+        let strictDistractors = fetchIncorrectNorwegianWords(clozedForm, currentCEFR, randomWordObj.gender)
+        .map(word => formatCase(word))
+        .filter(word =>
+          word !== formattedClozed &&
+          word.slice(-1) === targetEnding &&
+          !results.some(r =>
+            formatCase(r.ord.split(",")[0].trim()) === word &&
+            bannedWordClasses.some(b => r.gender?.toLowerCase().startsWith(b))
+          )
+        );      
+
+        // STEP B — If not enough, allow any CEFR but keep same gender and same ending letter
+        if (strictDistractors.length < 3) {
+          const distractorPool = results.filter((r) => {
+            const word = r.ord?.split(",")[0].trim();
+            return (
+              word &&
+              word.toLowerCase() !== clozedForm.toLowerCase() &&
+              !noRandom.includes(r.ord.toLowerCase()) &&
+              !bannedWordClasses.some(b => r.gender?.toLowerCase().startsWith(b))
+            );
+          });
+        
+          const relaxedDistractors = shuffleArray(
+            distractorPool
+              .map(r => r.ord.split(",")[0].trim())
+              .map(formatCase)
+              .filter(word =>
+                word.slice(-1) === targetEnding &&
+                word !== formattedClozed &&
+                !strictDistractors.includes(word)
+              )
+          );
+        
+          // Still not enough? Permit any word with same ending letter, even if gender or class doesn't match
+          if (strictDistractors.length + relaxedDistractors.length < 3) {
+            const finalFallbacks = shuffleArray(
+              results
+                .map(r => r.ord.split(",")[0].trim())
+                .map(formatCase)
+                .filter(word =>
+                  word !== formattedClozed &&
+                  word.slice(-1) === targetEnding &&
+                  !strictDistractors.includes(word) &&
+                  !relaxedDistractors.includes(word)
+                )
+            );
+        
+            strictDistractors = strictDistractors
+              .concat(relaxedDistractors)
+              .concat(finalFallbacks)
+              .slice(0, 3);
+          } else {
+            strictDistractors = strictDistractors.concat(relaxedDistractors).slice(0, 3);
+          }
+        }
+        
+
+        // Final options
+        const allWords = shuffleArray([formattedClozed, ...strictDistractors]);
+        const uniqueWords = ensureUniqueDisplayedValues(allWords);
+
+        renderClozeGameUI(randomWordObj, uniqueWords, formattedClozed);
+
+          } else {
+      renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
+    }
+    
+        
   // Render the updated stats box
   renderStats();
-  displayPronunciation(currentWord);
-}
+  if (!isClozeQuestion) {
+    displayPronunciation(currentWord);
+  }
+  }
 
 function ensureUniqueDisplayedValues(translations) {
   const uniqueTranslations = [];
@@ -523,6 +629,36 @@ function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
 
   return incorrectTranslations;
 }
+
+function fetchIncorrectNorwegianWords(correctWord, CEFR, gender) {
+  const baseWord = correctWord.split(",")[0].trim().toLowerCase();
+
+  let incorrectResults = results.filter((r) => {
+    const word = r.ord.split(",")[0].trim().toLowerCase();
+    return (
+      word !== baseWord &&
+      r.CEFR === CEFR &&
+      r.gender === gender &&
+      !noRandom.includes(r.ord.toLowerCase())
+    );
+  });
+
+  incorrectResults = shuffleArray(incorrectResults);
+
+  const seen = new Set();
+  const incorrectWords = [];
+
+  for (let i = 0; i < incorrectResults.length && incorrectWords.length < 3; i++) {
+    const word = incorrectResults[i].ord.split(",")[0].trim();
+    if (!seen.has(word)) {
+      seen.add(word);
+      incorrectWords.push(word);
+    }
+  }
+
+  return incorrectWords;
+}
+
 
 function displayPronunciation(word) {
   const pronunciationContainer = document.querySelector(
@@ -663,9 +799,120 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
       hideAllBanners(); // Hide all banners when Next Word is clicked
       await startWordGame(); // Move to the next word
     });
+
+    renderStats(); // Ensure stats are drawn once DOM is fully loaded
 }
 
-async function handleTranslationClick(selectedTranslation, wordObj) {
+function renderClozeGameUI(wordObj, translations, clozedWordForm) {
+  const blank = "___";
+  const wordId = wordDataStore.push(wordObj) - 1;
+  let cefrLabel = "";
+if (wordObj.CEFR === "A1") {
+  cefrLabel = '<div class="game-cefr-label easy">A1</div>';
+} else if (wordObj.CEFR === "A2") {
+  cefrLabel = '<div class="game-cefr-label easy">A2</div>';
+} else if (wordObj.CEFR === "B1") {
+  cefrLabel = '<div class="game-cefr-label medium">B1</div>';
+} else if (wordObj.CEFR === "B2") {
+  cefrLabel = '<div class="game-cefr-label medium">B2</div>';
+} else if (wordObj.CEFR === "C") {
+  cefrLabel = '<div class="game-cefr-label hard">C</div>';
+}
+  correctTranslation = clozedWordForm;
+  const baseWord = wordObj.ord.split(",")[0].trim().toLowerCase();
+  const exampleText = wordObj.eksempel || "";
+
+  // Use only the first sentence for simplicity
+  const firstSentence = exampleText.split(/(?<=[.!?])\s+/)[0];
+
+  // Try to find and blank the word
+  const tokens = firstSentence.split(/\b/);
+  let clozeTarget = null;
+
+  console.log("Looking for clozable match in sentence:", firstSentence);
+  console.log("Base word to match:", baseWord);
+
+  for (const token of tokens) {
+    const clean = token.toLowerCase().replace(/[.,!?;:()"]/g, "");
+    console.log("Testing token:", token, "→ clean:", clean);
+    if (clean && clean.includes(baseWord)) {
+      clozeTarget = token;
+      correctTranslation = token.trim(); // Store the actual inflected form
+      break;
+    }
+  }
+
+  const sentenceWithBlank = clozeTarget
+    ? firstSentence.replace(clozeTarget, blank)
+    : "[No match found to cloze.]";
+
+    gameContainer.innerHTML = `
+    <!-- Session Stats Section -->
+    <div class="game-stats-content" id="game-session-stats">
+      <!-- Stats will be updated dynamically in renderStats() -->
+    </div>
+  
+    <div class="game-word-card">
+      <div class="game-labels-container">
+        <div class="game-label-subgroup">
+          <div class="game-gender">Cloze</div>
+          ${cefrLabel}
+        </div>
+        <div id="game-banner-placeholder"></div>
+        <div class="game-label-subgroup">
+          <div class="game-tricky-word" style="visibility: hidden;"></div>
+          <div class="game-gender" style="visibility: hidden;"></div>
+        </div>
+      </div>
+  
+      <div class="game-word">
+        <h2 style="font-weight: normal; font-size: 1.2em;">${sentenceWithBlank}</h2>
+      </div>
+  
+      <div class="game-cefr-spacer"></div>
+    </div>
+  
+    <!-- Translations Grid Section -->
+    <div class="game-grid">
+      ${translations
+        .map(
+          (translation, index) => `
+          <div class="game-translation-card" data-id="${wordId}" data-index="${index}">
+            ${translation}
+          </div>
+        `
+        )
+        .join("")}
+    </div>
+  
+    <!-- Next Word Button -->
+    <div class="game-next-button-container">
+      <button id="game-next-word-button" disabled>Next Word</button>
+    </div>
+  `;
+  
+
+  document.querySelectorAll(".game-translation-card").forEach((card) => {
+    card.addEventListener("click", function () {
+      const wordId = this.getAttribute("data-id");
+      const selectedTranslation = this.innerText.trim();
+      const wordObj = wordDataStore[wordId];
+      handleTranslationClick(selectedTranslation, wordObj, true); // true = cloze mode
+    });
+  });
+  
+  
+  document.getElementById("game-next-word-button").addEventListener("click", async function () {
+    hideAllBanners();
+    await startWordGame();
+  });
+
+  renderStats(); // Ensure stats bar is present after cloze loads too
+
+}
+
+
+async function handleTranslationClick(selectedTranslation, wordObj, isCloze = false) {
   if (!gameActive) return; // Prevent further clicks if the game is not active
 
   gameActive = false; // Disable further clicks until the next word is generated
@@ -777,20 +1024,35 @@ async function handleTranslationClick(selectedTranslation, wordObj) {
   );
   console.log("Fetched example sentence:", exampleSentence);
 
-  if (exampleSentence) {
+  if (exampleSentence && !isCloze) {
+    const completedSentence = exampleSentence;
+  
     const translationHTML = `
       <p class="game-english-translation" style="display: ${
         document.getElementById("game-english-select").value === "show-english"
           ? "inline-block"
           : "none"
       };">${sentenceTranslation}</p>`;
-
+  
     document.querySelector(".game-cefr-spacer").innerHTML = `
-  <div class="sentence-pair">
-    <p>${exampleSentence}</p>
-    ${translationHTML}
-  </div>
-`;
+      <div class="sentence-pair">
+        <p>${completedSentence}</p>
+        ${translationHTML}
+      </div>
+    `;
+  } else if (exampleSentence && isCloze) {
+    const translationHTML = `
+      <p class="game-english-translation" style="display: ${
+        document.getElementById("game-english-select").value === "show-english"
+          ? "inline-block"
+          : "none"
+      };">${sentenceTranslation}</p>`;
+  
+    document.querySelector(".game-cefr-spacer").innerHTML = `
+      <div class="sentence-pair">
+        ${translationHTML}
+      </div>
+    `;
   } else {
     document.querySelector(".game-cefr-spacer").innerHTML = "";
   }
@@ -952,6 +1214,7 @@ async function fetchRandomWord() {
     gender: randomResult.gender, // Add gender
     CEFR: randomResult.CEFR, // Make sure CEFR is returned here
     uttale: randomResult.uttale, // Ensure uttale is included here
+    eksempel: randomResult.eksempel, // ⬅️ ADD THIS LINE
   };
 }
 
