@@ -1618,6 +1618,14 @@ main {
     margin: 0;
   }
 
+  .game-cleared-practice-banner,
+  .game-congratulations-banner,
+  .game-fallback-banner,
+  .game-lock-banner,
+  .game-streak-banner {
+    font-size: 0.9em !important; /* Slightly smaller font size for mobile */
+  }
+
   .game-translation-card {
     font-size: 1.1em !important; /* Slightly smaller font size for mobile */
   }
