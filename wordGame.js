@@ -461,6 +461,8 @@ async function startWordGame() {
         : word.charAt(0).toLowerCase() + word.slice(1);
 
     const formattedClozed = formatCase(clozedForm);
+    const wasCapitalizedFromLowercase =
+      !/^[A-ZÆØÅ]/.test(baseWord) && /^[A-ZÆØÅ]/.test(clozedForm);
     const isInflected = !isBaseForm(formattedClozed, baseWord);
     const endingPattern = getEndingPattern(formattedClozed);
     const targetGender = randomWordObj.gender;
@@ -499,12 +501,13 @@ async function startWordGame() {
         randomWordObj.gender
       );
 
+      const shuffledFallbackWords = shuffleArray([...fallbackWords]);
       for (
         let i = 0;
-        i < fallbackWords.length && strictDistractors.length < 3;
+        i < shuffledFallbackWords.length && strictDistractors.length < 3;
         i++
       ) {
-        const word = formatCase(fallbackWords[i]);
+        const word = formatCase(shuffledFallbackWords[i]);
         const entry = results.find(
           (r) => r.ord.split(",")[0].trim().toLowerCase() === word.toLowerCase()
         );
@@ -521,6 +524,7 @@ async function startWordGame() {
                 formatCase(entry.ord.split(",")[0].trim())
               ))) &&
           isCapitalized === matchCapitalization &&
+          (!wasCapitalizedFromLowercase || /^[a-zæøå]/.test(rawWord)) &&
           !seenStrict.has(word) &&
           !bannedWordClasses.some((b) =>
             entry?.gender?.toLowerCase().startsWith(b)
@@ -547,12 +551,13 @@ async function startWordGame() {
       const relaxedDistractors = [];
       const seenRelaxed = new Set();
 
+      const shuffledPool = shuffleArray([...distractorPool]);
       for (
         let i = 0;
-        i < distractorPool.length && relaxedDistractors.length < 3;
+        i < shuffledPool.length && relaxedDistractors.length < 3;
         i++
       ) {
-        const r = distractorPool[i];
+        const r = shuffledPool[i];
         const rawWord = r.ord.split(",")[0].trim();
         const word = formatCase(rawWord);
         const isCapitalized = /^[A-ZÆØÅ]/.test(rawWord);
@@ -562,6 +567,7 @@ async function startWordGame() {
           r.gender === targetGender &&
           word !== formattedClozed &&
           isCapitalized === matchCapitalization &&
+          (!wasCapitalizedFromLowercase || /^[a-zæøå]/.test(rawWord)) &&
           !strictDistractors.includes(word) &&
           !seenRelaxed.has(word)
         ) {
@@ -573,9 +579,13 @@ async function startWordGame() {
       if (strictDistractors.length + relaxedDistractors.length < 3) {
         const finalFallbacks = [];
         const seenFinal = new Set();
-
-        for (let i = 0; i < results.length && finalFallbacks.length < 3; i++) {
-          const r = results[i];
+        const shuffledResults = shuffleArray([...results]);
+        for (
+          let i = 0;
+          i < shuffledResults.length && finalFallbacks.length < 3;
+          i++
+        ) {
+          const r = shuffledResults[i];
           const rawWord = r.ord.split(",")[0].trim();
           const word = formatCase(rawWord);
 
