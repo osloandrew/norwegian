@@ -516,7 +516,12 @@ async function startWordGame() {
 
         if (
           word !== formattedClozed &&
-          (!isInflected || endingPattern.test(word)) &&
+          (!isInflected ||
+            (endingPattern.test(word) &&
+              entry?.ord &&
+              endingPattern.test(
+                formatCase(entry.ord.split(",")[0].trim())
+              ))) &&
           entry?.gender === targetGender &&
           (!isInflected ||
             (entry.ord &&
@@ -563,7 +568,10 @@ async function startWordGame() {
         const isCapitalized = /^[A-ZÆØÅ]/.test(rawWord);
 
         if (
-          (isInflected ? endingPattern.test(word) : true) &&
+          (!isInflected ||
+            (endingPattern.test(word) &&
+              r.ord &&
+              endingPattern.test(formatCase(r.ord.split(",")[0].trim())))) &&
           r.gender === targetGender &&
           word !== formattedClozed &&
           isCapitalized === matchCapitalization &&
@@ -591,7 +599,10 @@ async function startWordGame() {
 
           if (
             word !== formattedClozed &&
-            (isInflected ? endingPattern.test(word) : true) &&
+            (!isInflected ||
+              (endingPattern.test(word) &&
+                r.ord &&
+                endingPattern.test(formatCase(r.ord.split(",")[0].trim())))) &&
             r.gender === targetGender &&
             /^[A-ZÆØÅ]/.test(rawWord) === matchCapitalization &&
             !seenFinal.has(word) &&
@@ -1145,6 +1156,7 @@ async function handleTranslationClick(
           uttale: wordObj.uttale,
         },
         counter: 0, // Start counter for this word
+        wasCloze: isCloze,
       });
     }
   }
