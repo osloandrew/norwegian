@@ -453,14 +453,9 @@ async function startWordGame() {
     }
 
     // Format the clozed word and get its final letter
-    const isUpperCase = /^[A-ZÆØÅ]/.test(clozedForm);
-    const matchCapitalization = /^[A-ZÆØÅ]/.test(clozedForm);
-    const formatCase = (word) =>
-      isUpperCase
-        ? word.charAt(0).toUpperCase() + word.slice(1)
-        : word.charAt(0).toLowerCase() + word.slice(1);
+    const formatCase = (word) => word.charAt(0).toLowerCase() + word.slice(1);
 
-    const formattedClozed = formatCase(clozedForm);
+    let formattedClozed = formatCase(clozedForm);
     const wasCapitalizedFromLowercase =
       !/^[A-ZÆØÅ]/.test(baseWord) && /^[A-ZÆØÅ]/.test(clozedForm);
     const isInflected = !isBaseForm(formattedClozed, baseWord);
@@ -470,10 +465,15 @@ async function startWordGame() {
     let strictDistractors = [];
 
     if (
-      (randomWordObj.gender?.startsWith("en") ||
+      ((randomWordObj.gender?.startsWith("en") ||
         randomWordObj.gender?.startsWith("et") ||
         randomWordObj.gender?.startsWith("ei")) &&
-      isDefiniteNounForm(formattedClozed, randomWordObj.gender)
+        isDefiniteNounForm(formattedClozed, randomWordObj.gender)) ||
+      (randomWordObj.gender?.startsWith("adjective") &&
+        (formattedClozed.toLowerCase().endsWith("e") ||
+          formattedClozed.toLowerCase().endsWith("t"))) ||
+      (randomWordObj.gender?.startsWith("verb") &&
+        formattedClozed.toLowerCase().endsWith("t"))
     ) {
       const baseCandidates = results.filter(
         (r) =>
@@ -486,7 +486,25 @@ async function startWordGame() {
       const inflected = baseCandidates
         .map((r) => r.ord.split(",")[0].trim().toLowerCase())
         .filter((w) => w !== baseWord)
-        .map((w) => formatCase(applyNounDefiniteForm(w, randomWordObj.gender)))
+        .map((w) => {
+          if (randomWordObj.gender?.startsWith("adjective")) {
+            // Adjective inflection
+            if (formattedClozed.toLowerCase().endsWith("e")) {
+              // Force e-form
+              return w.endsWith("e") ? w : w + "e";
+            } else if (formattedClozed.toLowerCase().endsWith("t")) {
+              // Force t-form
+              return w.endsWith("t") ? w : w + "t";
+            }
+          } else if (randomWordObj.gender?.startsWith("verb")) {
+            // Verb participle inflection
+            if (!w.endsWith("t")) return w + "t";
+            else return w;
+          } else {
+            // Noun definite form
+            return formatCase(applyNounDefiniteForm(w, randomWordObj.gender));
+          }
+        })
         .filter((w) => w && w !== formattedClozed);
 
       strictDistractors = shuffleArray(inflected).slice(0, 3);
@@ -528,8 +546,7 @@ async function startWordGame() {
               endingPattern.test(
                 formatCase(entry.ord.split(",")[0].trim())
               ))) &&
-          isCapitalized === matchCapitalization &&
-          (!wasCapitalizedFromLowercase || /^[a-zæøå]/.test(rawWord)) &&
+          /^[a-zæøå]/.test(rawWord) &&
           !seenStrict.has(word) &&
           !bannedWordClasses.some((b) =>
             entry?.gender?.toLowerCase().startsWith(b)
@@ -565,7 +582,6 @@ async function startWordGame() {
         const r = shuffledPool[i];
         const rawWord = r.ord.split(",")[0].trim();
         const word = formatCase(rawWord);
-        const isCapitalized = /^[A-ZÆØÅ]/.test(rawWord);
 
         if (
           (!isInflected ||
@@ -574,8 +590,7 @@ async function startWordGame() {
               endingPattern.test(formatCase(r.ord.split(",")[0].trim())))) &&
           r.gender === targetGender &&
           word !== formattedClozed &&
-          isCapitalized === matchCapitalization &&
-          (!wasCapitalizedFromLowercase || /^[a-zæøå]/.test(rawWord)) &&
+          /^[a-zæøå]/.test(rawWord) &&
           !strictDistractors.includes(word) &&
           !seenRelaxed.has(word)
         ) {
@@ -626,7 +641,14 @@ async function startWordGame() {
 
     let allWords = shuffleArray([formattedClozed, ...strictDistractors]);
     let uniqueWords = ensureUniqueDisplayedValues(allWords);
-
+    if (wasCapitalizedFromLowercase) {
+      // Capitalize all options and the clozed word for display
+      uniqueWords = uniqueWords.map(
+        (word) => word.charAt(0).toUpperCase() + word.slice(1)
+      );
+      formattedClozed =
+        formattedClozed.charAt(0).toUpperCase() + formattedClozed.slice(1);
+    }
     // Add generic fallback distractors if there are fewer than 4
     if (uniqueWords.length < 4) {
       const extraFallbacks = [];
@@ -1452,22 +1474,25 @@ function shuffleArray(array) {
 }
 
 function getEndingPattern(form) {
+  if (form.match(/ene$/)) return /ene$/i; // plural definite
+  if (form.match(/en$/)) return /en$/i; // masculine singular definite
+  if (form.match(/a$/)) return /a$/i; // feminine singular definite
   if (form.match(/te$/)) return /te$/i;
   if (form.match(/et$/)) return /et$/i;
-  if (form.match(/ene$/)) return /ene$/i; // definite plural for nouns
-  if (form.match(/ene$/)) return /ene$/i; // adjectives like "gode"
-  if (form.match(/e$/)) return /e$/i; // flertall, bestemt, adjective common
-  if (form.match(/t$/)) return /t$/i; // neuter adjective
-  return new RegExp(form.slice(-1) + "$", "i"); // fallback: last character
+  if (form.match(/e$/)) return /e$/i; // adjectives plural/common
+  if (form.match(/t$/)) return /t$/i; // neuter adjectives
+  return new RegExp(form.slice(-1) + "$", "i"); // fallback
 }
 
 function isDefiniteNounForm(word, gender) {
   const lower = word.toLowerCase();
   if (gender.startsWith("en") || gender.startsWith("ei")) {
-    return lower.endsWith("en") || lower.endsWith("n") || lower.endsWith("a");
+    return lower.endsWith("en") || lower.endsWith("a");
+    // ❗ REMOVE lower.endsWith("n")
   }
   if (gender.startsWith("et")) {
-    return lower.endsWith("et") || lower.endsWith("t");
+    return lower.endsWith("et");
+    // ❗ REMOVE lower.endsWith("t")
   }
   return false;
 }
