@@ -688,9 +688,20 @@ async function startWordGame() {
       );
     }
 
-    renderClozeGameUI(randomWordObj, uniqueWords, formattedClozed);
+    renderClozeGameUI(
+      randomWordObj,
+      uniqueWords,
+      formattedClozed,
+      false,
+      firstTranslation
+    );
   } else {
-    renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
+    renderWordGameUI(
+      randomWordObj,
+      uniqueDisplayedTranslations,
+      false,
+      firstTranslation
+    );
   }
 
   // Render the updated stats box
@@ -1052,7 +1063,8 @@ function renderClozeGameUI(
   wordObj,
   translations,
   clozedWordForm,
-  isReintroduced = false
+  isReintroduced = false,
+  englishTranslation = ""
 ) {
   const blank = "___";
   const wordId = wordDataStore.push(wordObj) - 1;
