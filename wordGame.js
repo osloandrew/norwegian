@@ -321,35 +321,6 @@ async function startWordGame() {
       currentWord = firstWordInQueue.wordObj.ord;
       correctTranslation = firstWordInQueue.wordObj.engelsk;
 
-      // Fetch incorrect translations with the same gender and CEFR level
-      let incorrectTranslations = fetchIncorrectTranslations(
-        firstWordInQueue.wordObj.gender,
-        correctTranslation,
-        firstWordInQueue.wordObj.CEFR // Use the CEFR from the reintroduced word
-      );
-
-      // If there aren't enough translations, fetch from other CEFR levels with the same gender
-      if (incorrectTranslations.length < 3) {
-        const additionalTranslations =
-          fetchIncorrectTranslationsFromOtherCEFRLevels(
-            firstWordInQueue.wordObj.gender,
-            correctTranslation
-          );
-        incorrectTranslations = incorrectTranslations.concat(
-          additionalTranslations
-        );
-      }
-
-      // Shuffle correct and incorrect translations into an array
-      const allTranslations = shuffleArray([
-        correctTranslation,
-        ...incorrectTranslations,
-      ]);
-
-      // Ensure no duplicate displayed values
-      const uniqueDisplayedTranslations =
-        ensureUniqueDisplayedValues(allTranslations);
-
       // Log wordObj being passed to renderWordGameUI
       console.log(
         "Passing wordObj to renderWordGameUI:",
@@ -357,12 +328,43 @@ async function startWordGame() {
       );
 
       if (firstWordInQueue.wasCloze) {
+        const clozeChoices = buildClozeDistractors(
+          firstWordInQueue.clozedForm,
+          firstWordInQueue.wordObj
+        );
         renderClozeGameUI(
           firstWordInQueue.wordObj,
-          uniqueDisplayedTranslations,
-          firstWordInQueue.clozedForm
+          clozeChoices,
+          firstWordInQueue.clozedForm,
+          true
         );
       } else {
+        // Rebuild incorrect translations for non-cloze word
+        let incorrectTranslations = fetchIncorrectTranslations(
+          firstWordInQueue.wordObj.gender,
+          correctTranslation,
+          firstWordInQueue.wordObj.CEFR
+        );
+
+        if (incorrectTranslations.length < 3) {
+          const additionalTranslations =
+            fetchIncorrectTranslationsFromOtherCEFRLevels(
+              firstWordInQueue.wordObj.gender,
+              correctTranslation
+            );
+          incorrectTranslations = incorrectTranslations.concat(
+            additionalTranslations
+          );
+        }
+
+        const allTranslations = shuffleArray([
+          correctTranslation,
+          ...incorrectTranslations,
+        ]);
+
+        const uniqueDisplayedTranslations =
+          ensureUniqueDisplayedValues(allTranslations);
+
         renderWordGameUI(
           firstWordInQueue.wordObj,
           uniqueDisplayedTranslations,
@@ -983,7 +985,75 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
   renderStats(); // Ensure stats are drawn once DOM is fully loaded
 }
 
-function renderClozeGameUI(wordObj, translations, clozedWordForm) {
+function buildClozeDistractors(clozedForm, wordObj) {
+  const baseWord = wordObj.ord.split(",")[0].trim().toLowerCase();
+  const endingPattern = getEndingPattern(clozedForm.toLowerCase());
+  const targetGender = wordObj.gender;
+  const isInflected = clozedForm.toLowerCase() !== baseWord;
+
+  let strictDistractors = [];
+
+  const baseCandidates = results.filter(
+    (r) =>
+      r.gender === wordObj.gender &&
+      r.CEFR === wordObj.CEFR &&
+      !noRandom.includes(r.ord.toLowerCase())
+  );
+
+  const inflected = baseCandidates
+    .map((r) => r.ord.split(",")[0].trim().toLowerCase())
+    .filter((w) => w !== baseWord)
+    .map((w) => {
+      if (wordObj.gender?.startsWith("adjective")) {
+        if (clozedForm.endsWith("e")) return w.endsWith("e") ? w : w + "e";
+        if (clozedForm.endsWith("t")) return w.endsWith("t") ? w : w + "t";
+      } else if (wordObj.gender?.startsWith("verb")) {
+        return w.endsWith("t") ? w : w + "t";
+      } else {
+        return applyNounDefiniteForm(w, wordObj.gender);
+      }
+    })
+    .filter((w) => w && w.toLowerCase() !== clozedForm.toLowerCase());
+
+  strictDistractors = shuffleArray(inflected).slice(0, 3);
+
+  if (strictDistractors.length < 3) {
+    // Relaxed fallback
+    const relaxedCandidates = results.filter((r) => {
+      const w = r.ord.split(",")[0].trim().toLowerCase();
+      return (
+        w !== baseWord &&
+        w !== clozedForm.toLowerCase() &&
+        !noRandom.includes(r.ord.toLowerCase())
+      );
+    });
+
+    const relaxedInflected = relaxedCandidates
+      .map((r) => r.ord.split(",")[0].trim().toLowerCase())
+      .filter((w) => {
+        if (!isInflected) return true;
+        return endingPattern.test(w);
+      });
+
+    const additionalDistractors = shuffleArray(relaxedInflected).slice(
+      0,
+      3 - strictDistractors.length
+    );
+    strictDistractors = strictDistractors.concat(additionalDistractors);
+  }
+
+  return ensureUniqueDisplayedValues([clozedForm, ...strictDistractors]).slice(
+    0,
+    4
+  );
+}
+
+function renderClozeGameUI(
+  wordObj,
+  translations,
+  clozedWordForm,
+  isReintroduced = false
+) {
   const blank = "___";
   const wordId = wordDataStore.push(wordObj) - 1;
   let cefrLabel = "";
@@ -1040,7 +1110,11 @@ function renderClozeGameUI(wordObj, translations, clozedWordForm) {
         </div>
         <div id="game-banner-placeholder"></div>
         <div class="game-label-subgroup">
-          <div class="game-tricky-word" style="visibility: hidden;"></div>
+          <div class="game-tricky-word" style="${
+            isReintroduced ? "visibility: visible;" : "visibility: hidden;"
+          }">
+            <i class="fa fa-repeat" aria-hidden="true"></i>
+          </div>
           <div class="game-gender" style="visibility: hidden;"></div>
         </div>
       </div>
