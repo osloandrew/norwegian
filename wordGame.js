@@ -356,12 +356,19 @@ async function startWordGame() {
         firstWordInQueue.wordObj
       );
 
-      // Render the word game UI, mark this word as reintroduced
-      renderWordGameUI(
-        firstWordInQueue.wordObj,
-        uniqueDisplayedTranslations,
-        true
-      ); // 'true' flag for reintroduced word
+      if (firstWordInQueue.wasCloze) {
+        renderClozeGameUI(
+          firstWordInQueue.wordObj,
+          uniqueDisplayedTranslations,
+          firstWordInQueue.clozedForm
+        );
+      } else {
+        renderWordGameUI(
+          firstWordInQueue.wordObj,
+          uniqueDisplayedTranslations,
+          true
+        );
+      }
 
       // Do not remove the word from the queue yet. It will be removed when answered correctly.
       firstWordInQueue.shown = true; // Mark that this word has been shown again
@@ -1176,9 +1183,11 @@ async function handleTranslationClick(
           gender: wordObj.gender,
           CEFR: wordObj.CEFR,
           uttale: wordObj.uttale,
+          eksempel: wordObj.eksempel, // needed to rebuild sentence
         },
         counter: 0, // Start counter for this word
         wasCloze: isCloze,
+        clozedForm: correctTranslation, // << STORE the clozed form separately!
       });
     }
   }
@@ -1474,13 +1483,15 @@ function shuffleArray(array) {
 }
 
 function getEndingPattern(form) {
-  if (form.match(/ene$/)) return /ene$/i; // plural definite
-  if (form.match(/en$/)) return /en$/i; // masculine singular definite
-  if (form.match(/a$/)) return /a$/i; // feminine singular definite
+  if (form.match(/ene$/)) return /ene$/i;
+  if (form.match(/en$/)) return /en$/i;
+  if (form.match(/a$/)) return /a$/i;
   if (form.match(/te$/)) return /te$/i;
   if (form.match(/et$/)) return /et$/i;
-  if (form.match(/e$/)) return /e$/i; // adjectives plural/common
-  if (form.match(/t$/)) return /t$/i; // neuter adjectives
+  if (form.match(/er$/)) return /er$/i;
+  if (form.match(/e$/)) return /e$/i;
+  if (form.match(/t$/)) return /t$/i;
+  if (form.match(/r$/)) return /r$/i; // ⬅️ New line you add
   return new RegExp(form.slice(-1) + "$", "i"); // fallback
 }
 
