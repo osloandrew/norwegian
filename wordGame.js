@@ -356,11 +356,31 @@ async function startWordGame() {
         let strictDistractors = shuffleArray(
           baseCandidates.map((r) => {
             let inflected = r.ord.split(",")[0].trim().toLowerCase();
-            // Apply observed ending if needed
-            if (formattedClozed.endsWith("a") && inflected.endsWith("e")) {
-              inflected = inflected.slice(0, -1) + "a";
-            } else if (!inflected.endsWith(formattedClozed.slice(baseWord.length))) {
-              inflected = inflected + formattedClozed.slice(baseWord.length);
+            const isProperNoun = /^[A-ZÆØÅ]/.test(baseWord) && baseWord === baseWord.charAt(0).toUpperCase() + baseWord.slice(1);
+            
+            // New: Detect if base word is already 'dangerous' for pluralization
+            const alreadyPluralLike = inflected.endsWith("er") || inflected.endsWith("ene") || inflected.endsWith("r");
+            
+            if (!isProperNoun && !alreadyPluralLike) {
+              const observedEnding = formattedClozed.slice(baseWord.length);
+            
+              if (observedEnding === "a" && inflected.endsWith("e")) {
+                inflected = inflected.slice(0, -1) + "a";
+              } else if (observedEnding === "er") {
+                if (inflected.endsWith("e")) {
+                  inflected = inflected + "r"; // jente → jenter
+                } else {
+                  inflected = inflected + "er"; // hund → hunder
+                }
+              } else if (observedEnding === "ene") {
+                if (inflected.endsWith("e")) {
+                  inflected = inflected + "r" + "ne"; // jente → jenter → jentene
+                } else {
+                  inflected = inflected + "er" + "ne"; // hund → hunder → hundene
+                }
+              } else if (!inflected.endsWith(observedEnding)) {
+                inflected = inflected + observedEnding;
+              }
             }
             return inflected;
           })
