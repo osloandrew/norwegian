@@ -442,29 +442,45 @@ async function startWordGame() {
     const baseWord = randomWordObj.ord.split(",")[0].trim().toLowerCase();
     const exampleText = randomWordObj.eksempel || "";
     const firstSentence = exampleText.split(/(?<=[.!?])\s+/)[0];
-    const tokens = firstSentence.split(/\b/);
+    const tokens = firstSentence.match(/\p{L}+/gu) || [];
 
     let clozedForm = null;
     const baseWordRegex = new RegExp(`\\b${baseWord}[a-zæøå]*\\b`, "i");
 
-    for (const token of tokens) {
-      const clean = token.toLowerCase().replace(/[.,!?;:()"]/g, "");
-      if (clean && baseWordRegex.test(clean)) {
-        clozedForm = token.trim();
+    const baseWordTokens = baseWord.split(/\s+/);
+    const baseLength = baseWordTokens.length;
+    
+    for (let i = 0; i <= tokens.length - baseLength; i++) {
+      const sliceTokens = tokens.slice(i, i + baseLength);
+      const joinedSlice = sliceTokens.join(" ").toLowerCase();
+    
+      // Instead of only checking baseWord === joinedSlice
+      // Use matchesInflectedForm for slices too
+      if (matchesInflectedForm(baseWord, joinedSlice, randomWordObj.gender)) {
+        clozedForm = sliceTokens.join(" ");
         break;
       }
-    }
+    }    
+    
 
     if (!clozedForm) {
-      // fallback to flashcard if we can't detect form
+      console.warn("❌ CLOZE fallback triggered!");
+      console.warn("Word:", randomWordObj.ord);
+      console.warn("Sentence:", firstSentence);
+      console.warn("Base word for matching:", baseWord);
+      console.warn("Tokens analyzed:", tokens.map(t => t.toLowerCase().replace(/[.,!?;:()"]/g, "")));
+      console.warn("Gender/POS:", randomWordObj.gender);
+      console.warn("No matching token found after analyzing sentence for cloze insertion.");
       renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
       return;
     }
+    
 
     // Format the clozed word and get its final letter
     const formatCase = (word) => word.charAt(0).toLowerCase() + word.slice(1);
 
     let formattedClozed = formatCase(clozedForm);
+    const matchCapitalization = /^[A-ZÆØÅ]/.test(formattedClozed);
     const wasCapitalizedFromLowercase =
       !/^[A-ZÆØÅ]/.test(baseWord) && /^[A-ZÆØÅ]/.test(clozedForm);
     const isInflected = !isBaseForm(formattedClozed, baseWord);
@@ -497,23 +513,20 @@ async function startWordGame() {
         .filter((w) => w !== baseWord)
         .map((w) => {
           if (randomWordObj.gender?.startsWith("adjective")) {
-            // Adjective inflection
             if (formattedClozed.toLowerCase().endsWith("e")) {
-              // Force e-form
               return w.endsWith("e") ? w : w + "e";
             } else if (formattedClozed.toLowerCase().endsWith("t")) {
-              // Force t-form
               return w.endsWith("t") ? w : w + "t";
             }
           } else if (randomWordObj.gender?.startsWith("verb")) {
-            // Verb participle inflection
             if (!w.endsWith("t")) return w + "t";
             else return w;
           } else {
-            // Noun definite form
-            return formatCase(applyNounDefiniteForm(w, randomWordObj.gender));
+            // For nouns: apply the proper ending from the clozed form
+            return formatCase(applyInflection(w, formattedClozed, randomWordObj.gender));
           }
         })
+        
         .filter((w) => w && w !== formattedClozed);
 
       strictDistractors = shuffleArray(inflected).slice(0, 3);
@@ -692,15 +705,13 @@ async function startWordGame() {
       randomWordObj,
       uniqueWords,
       formattedClozed,
-      false,
-      firstTranslation
+      false
     );
   } else {
     renderWordGameUI(
       randomWordObj,
       uniqueDisplayedTranslations,
-      false,
-      firstTranslation
+      false
     );
   }
 
@@ -1012,19 +1023,10 @@ function buildClozeDistractors(clozedForm, wordObj) {
   );
 
   const inflected = baseCandidates
-    .map((r) => r.ord.split(",")[0].trim().toLowerCase())
-    .filter((w) => w !== baseWord)
-    .map((w) => {
-      if (wordObj.gender?.startsWith("adjective")) {
-        if (clozedForm.endsWith("e")) return w.endsWith("e") ? w : w + "e";
-        if (clozedForm.endsWith("t")) return w.endsWith("t") ? w : w + "t";
-      } else if (wordObj.gender?.startsWith("verb")) {
-        return w.endsWith("t") ? w : w + "t";
-      } else {
-        return applyNounDefiniteForm(w, wordObj.gender);
-      }
-    })
-    .filter((w) => w && w.toLowerCase() !== clozedForm.toLowerCase());
+  .map((r) => r.ord.split(",")[0].trim().toLowerCase())
+  .filter((w) => w !== baseWord)
+  .map((w) => applyInflection(w, clozedForm, wordObj.gender))
+  .filter((w) => w && w.toLowerCase() !== clozedForm.toLowerCase());
 
   strictDistractors = shuffleArray(inflected).slice(0, 3);
 
@@ -1088,7 +1090,8 @@ function renderClozeGameUI(
   const firstSentence = exampleText.split(/(?<=[.!?])\s+/)[0];
 
   // Try to find and blank the word
-  const tokens = firstSentence.split(/\b/);
+  const tokens = firstSentence.match(/\p{L}+/gu) || [];
+
   let clozeTarget = null;
 
   console.log("Looking for clozable match in sentence:", firstSentence);
@@ -1594,16 +1597,89 @@ function isDefiniteNounForm(word, gender) {
   return false;
 }
 
-function applyNounDefiniteForm(base, gender) {
-  if (!base || !gender) return null;
-  if (gender.startsWith("en") || gender.startsWith("ei")) {
-    return base.endsWith("e") ? base + "n" : base + "en";
+function matchesInflectedForm(base, token, gender) {
+  if (!base || !token) return false;
+
+  const lowerBase = base.toLowerCase();
+  const lowerToken = token.toLowerCase();
+
+  // ✅ Always allow exact match
+  if (lowerToken === lowerBase) return true;
+
+  // ✅ Adjective endings
+  if (gender?.startsWith("adjective")) {
+    if (lowerToken === lowerBase + "t") return true;   // neuter singular
+    if (lowerToken === lowerBase + "e") return true;   // plural/definite
+    if (lowerToken === lowerBase + "ere") return true; // comparative
   }
-  if (gender.startsWith("et")) {
-    return base.endsWith("e") ? base + "t" : base + "et";
+
+  // ✅ Verb endings
+  if (gender?.startsWith("verb")) {
+    if (lowerToken === lowerBase + "t") return true;   // past participle
   }
-  return null;
+
+  // ✅ Noun endings
+  if (gender?.startsWith("en") || gender?.startsWith("et") || gender?.startsWith("ei") || gender?.startsWith("noun") || gender?.startsWith("substantiv")) {
+    if (lowerToken === lowerBase + "n") return true;   // masculine definite
+    if (lowerToken === lowerBase + "en") return true;   // masculine definite
+    if (lowerToken === lowerBase + "t") return true;   // neuter definite
+    if (lowerToken === lowerBase + "et") return true;   // neuter definite
+    if (lowerToken === lowerBase + "a") return true;    // feminine definite
+    if (lowerToken === lowerBase + "r") return true;   // plural indefinite
+    if (lowerToken === lowerBase + "er") return true;   // plural indefinite
+    if (lowerToken === lowerBase + "ene") return true;  // plural definite
+  }
+
+  return false;
 }
+
+
+
+function applyInflection(base, clozedForm, gender) {
+  if (!base || !clozedForm || !gender) return base;
+
+  const lowerClozed = clozedForm.toLowerCase();
+  const lowerBase = base.toLowerCase();
+
+  // Handle definite singular masculine/feminine (-en / -n)
+  if (lowerClozed.endsWith("en")) {
+    return lowerBase.endsWith("e") ? base + "n" : base + "en";
+  }
+
+  // Handle definite singular feminine (-a)
+  if (lowerClozed.endsWith("a")) {
+    return base + "a";
+  }
+
+  // Handle definite singular neuter (-et / -t)
+  if (lowerClozed.endsWith("et")) {
+    return lowerBase.endsWith("e") ? base + "t" : base + "et";
+  }
+  if (lowerClozed.endsWith("t")) {
+    return base + "t";
+  }
+
+  // Handle plural indefinite (-er / -r)
+  if (lowerClozed.endsWith("er")) {
+    return base + "er";
+  }
+  if (lowerClozed.endsWith("r")) {
+    return base + "r";
+  }
+
+  if (lowerClozed.endsWith("ere")) {
+    return base + "ere";
+  }
+
+  // Handle plural definite (-ene)
+  if (lowerClozed.endsWith("ene")) {
+    return base + "ene";
+  }
+
+  // Default: return base form
+  return base;
+}
+
 
 function updateCEFRSelection() {
   const cefrSelect = document.getElementById("cefr-select");
