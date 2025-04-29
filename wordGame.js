@@ -328,13 +328,59 @@ async function startWordGame() {
       );
 
       if (firstWordInQueue.wasCloze) {
-        const clozeChoices = buildClozeDistractors(firstWordInQueue.clozedForm, firstWordInQueue.wordObj, observedEnding);
+        const randomWordObj = firstWordInQueue.wordObj;
+        const baseWord = randomWordObj.ord.split(",")[0].trim().toLowerCase();
+        const exampleText = randomWordObj.eksempel || "";
+        const firstSentence = exampleText.split(/(?<=[.!?])\s+/)[0];
+        const tokens = firstSentence.match(/\p{L}+/gu) || [];
+      
+        let clozedForm = firstWordInQueue.clozedForm;
+        const formattedClozed = clozedForm.charAt(0).toLowerCase() + clozedForm.slice(1);
+        const matchCapitalization = /^[A-ZÆØÅ]/.test(clozedForm);
+        const isInflected = !isBaseForm(formattedClozed, baseWord);
+        const endingPattern = getEndingPattern(formattedClozed);
+        const targetGender = randomWordObj.gender;
+      
+        // NEW BETTER DISTRACTOR LOGIC:
+        const baseCandidates = results.filter((r) => {
+          const ord = r.ord.split(",")[0].trim();
+          if (!ord) return false;
+          if (ord.includes(" ")) return false;
+          if (ord.length < 3 || ord.length > 12) return false;
+          if (r.gender && !r.gender.toLowerCase().startsWith(targetGender.slice(0, 2))) return false;
+          if (r.CEFR && r.CEFR !== randomWordObj.CEFR) return false;
+          if (ord.toLowerCase() === baseWord) return false;
+          return true;
+        });
+      
+        let strictDistractors = shuffleArray(
+          baseCandidates.map((r) => {
+            let inflected = r.ord.split(",")[0].trim().toLowerCase();
+            // Apply observed ending if needed
+            if (formattedClozed.endsWith("a") && inflected.endsWith("e")) {
+              inflected = inflected.slice(0, -1) + "a";
+            } else if (!inflected.endsWith(formattedClozed.slice(baseWord.length))) {
+              inflected = inflected + formattedClozed.slice(baseWord.length);
+            }
+            return inflected;
+          })
+          .filter(w => w !== formattedClozed)
+        ).slice(0, 3);
+      
+        let allWords = shuffleArray([formattedClozed, ...strictDistractors]);
+        let uniqueWords = ensureUniqueDisplayedValues(allWords);
+      
+        if (/^[A-ZÆØÅ]/.test(clozedForm)) {
+          uniqueWords = uniqueWords.map(word => word.charAt(0).toUpperCase() + word.slice(1));
+        }
+      
         renderClozeGameUI(
-          firstWordInQueue.wordObj,
-          clozeChoices,
-          firstWordInQueue.clozedForm,
+          randomWordObj,
+          uniqueWords,
+          clozedForm,
           true
         );
+      
       } else {
         // Rebuild incorrect translations for non-cloze word
         let incorrectTranslations = fetchIncorrectTranslations(
@@ -1013,52 +1059,6 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
 
   renderStats(); // Ensure stats are drawn once DOM is fully loaded
 }
-
-function buildClozeDistractors(clozedForm, wordObj, observedEnding, results) {
-  const baseWord = wordObj.ord.split(",")[0].trim().toLowerCase();
-  const targetGender = wordObj.gender?.toLowerCase() || "";
-  const targetCEFR = wordObj.CEFR || "";
-
-  // Filter base candidates
-  let baseCandidates = results.filter(r => {
-    const ord = r.ord.split(",")[0].trim();
-    if (!ord) return false;
-    if (ord.includes(" ")) return false; // no phrases
-    if (ord.length < 3 || ord.length > 12) return false; // reasonable word length
-    if (r.gender && !r.gender.toLowerCase().startsWith(targetGender.slice(0, 2))) return false; // gender/POS match
-    if (r.CEFR && r.CEFR !== targetCEFR) return false; // CEFR match
-    if (ord.toLowerCase() === baseWord) return false; // not the base word itself
-    return true;
-  });
-
-  // Fallback to random if needed
-  if (baseCandidates.length < 3) {
-    baseCandidates = results.filter(r => {
-      const ord = r.ord.split(",")[0].trim();
-      if (!ord) return false;
-      if (ord.includes(" ")) return false;
-      if (ord.length < 3 || ord.length > 12) return false;
-      return true;
-    });
-  }
-
-  // Select 3 random distractor bases
-  const shuffled = baseCandidates.sort(() => 0.5 - Math.random());
-  const chosenBases = shuffled.slice(0, 3).map(r => r.ord.split(",")[0].trim().toLowerCase());
-
-  // Apply observed ending
-  const distractors = chosenBases.map(base => {
-    // Handle feminine nouns where "e" becomes "a"
-    if (observedEnding === "a" && base.endsWith("e")) {
-      return base.slice(0, -1) + "a";
-    }
-    return base + observedEnding;
-  });
-
-  // Return distractors
-  return distractors;
-}
-
 
 function renderClozeGameUI(
   wordObj,
