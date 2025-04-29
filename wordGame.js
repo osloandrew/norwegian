@@ -450,19 +450,25 @@ async function startWordGame() {
     const baseWordTokens = baseWord.split(/\s+/);
     const baseLength = baseWordTokens.length;
     
-    for (let i = 0; i <= tokens.length - baseLength; i++) {
-      const sliceTokens = tokens.slice(i, i + baseLength);
-      const joinedSlice = sliceTokens.join(" ").toLowerCase();
+    for (let start = 0; start < tokens.length; start++) {
+      for (let end = start + 1; end <= tokens.length; end++) {
+        const group = tokens.slice(start, end);
+        const joinedWithSpace = group.join(' ').toLowerCase();
+        const joinedWithHyphen = group.join('-').toLowerCase();
     
-      // Instead of only checking baseWord === joinedSlice
-      // Use matchesInflectedForm for slices too
-      if (matchesInflectedForm(baseWord, joinedSlice, randomWordObj.gender)) {
-        clozedForm = sliceTokens.join(" ");
-        break;
+        if (matchesInflectedForm(baseWord, joinedWithSpace, randomWordObj.gender)) {
+          clozedForm = group.join(' ');
+          break;
+        }
+        if (matchesInflectedForm(baseWord, joinedWithHyphen, randomWordObj.gender)) {
+          clozedForm = group.join('-');
+          break;
+        }
       }
-    }    
+      if (clozedForm) break;
+    }
     
-
+    
     if (!clozedForm) {
       console.warn("❌ CLOZE fallback triggered!");
       console.warn("Word:", randomWordObj.ord);
@@ -1009,26 +1015,24 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
 
 function buildClozeDistractors(clozedForm, wordObj) {
   const baseWord = wordObj.ord.split(",")[0].trim().toLowerCase();
-  const endingPattern = getEndingPattern(clozedForm.toLowerCase());
   const targetGender = wordObj.gender;
   const isInflected = clozedForm.toLowerCase() !== baseWord;
-
-  let strictDistractors = [];
+  const endingPattern = getEndingPattern(clozedForm.toLowerCase());
 
   const baseCandidates = results.filter(
     (r) =>
-      r.gender === wordObj.gender &&
+      r.gender === targetGender &&
       r.CEFR === wordObj.CEFR &&
       !noRandom.includes(r.ord.toLowerCase())
   );
 
   const inflected = baseCandidates
-  .map((r) => r.ord.split(",")[0].trim().toLowerCase())
-  .filter((w) => w !== baseWord)
-  .map((w) => applyInflection(w, clozedForm, wordObj.gender))
-  .filter((w) => w && w.toLowerCase() !== clozedForm.toLowerCase());
+    .map((r) => r.ord.split(",")[0].trim().toLowerCase())
+    .filter((w) => w !== baseWord)
+    .map((w) => applyInflection(w, clozedForm, targetGender)) // 👈 use your applyInflection
+    .filter((w) => w && w.toLowerCase() !== clozedForm.toLowerCase()); // avoid duplicate correct answer
 
-  strictDistractors = shuffleArray(inflected).slice(0, 3);
+  let strictDistractors = shuffleArray(inflected).slice(0, 3);
 
   if (strictDistractors.length < 3) {
     // Relaxed fallback
@@ -1045,13 +1049,14 @@ function buildClozeDistractors(clozedForm, wordObj) {
       .map((r) => r.ord.split(",")[0].trim().toLowerCase())
       .filter((w) => {
         if (!isInflected) return true;
-        return endingPattern.test(w);
+        return endingPattern.test(w); // 👈 use getEndingPattern result
       });
 
     const additionalDistractors = shuffleArray(relaxedInflected).slice(
       0,
       3 - strictDistractors.length
     );
+
     strictDistractors = strictDistractors.concat(additionalDistractors);
   }
 
@@ -1060,6 +1065,7 @@ function buildClozeDistractors(clozedForm, wordObj) {
     4
   );
 }
+
 
 function renderClozeGameUI(
   wordObj,
@@ -1085,31 +1091,43 @@ function renderClozeGameUI(
   correctTranslation = clozedWordForm;
   const baseWord = wordObj.ord.split(",")[0].trim().toLowerCase();
   const exampleText = wordObj.eksempel || "";
+  const englishText = wordObj.sentenceTranslation || "";
+  
+  const norwegianSentences = exampleText.split(/(?<=[.!?])\s+/).filter(s => s.trim() !== "");
+  const englishSentences = englishText.split(/(?<=[.!?])\s+/).filter(s => s.trim() !== "");
+  
+  const firstNorwegian = norwegianSentences[0] || "[Mangler norsk setning]";
+  const matchingEnglish = englishSentences[0] || "";  // ⚡ first English matches first Norwegian
+  
 
-  // Use only the first sentence for simplicity
-  const firstSentence = exampleText.split(/(?<=[.!?])\s+/)[0];
+// Try to find and blank the cloze target
+let clozeTarget = null;
+const lowerSentence = firstNorwegian.toLowerCase();
+const lowerBaseWord = baseWord.toLowerCase();
 
-  // Try to find and blank the word
-  const tokens = firstSentence.match(/\p{L}+/gu) || [];
-
-  let clozeTarget = null;
-
-  console.log("Looking for clozable match in sentence:", firstSentence);
-  console.log("Base word to match:", baseWord);
-
+if (wordObj.gender === "expression") {
+  // Special handling for expressions: just look for the whole expression
+  if (lowerSentence.includes(lowerBaseWord)) {
+    clozeTarget = firstNorwegian.substring(
+      lowerSentence.indexOf(lowerBaseWord),
+      lowerSentence.indexOf(lowerBaseWord) + lowerBaseWord.length
+    );
+  }
+} else {
+  const tokens = firstNorwegian.match(/\p{L}+/gu) || [];
   for (const token of tokens) {
     const clean = token.toLowerCase().replace(/[.,!?;:()"]/g, "");
-    console.log("Testing token:", token, "→ clean:", clean);
-    if (clean && clean.includes(baseWord)) {
+    if (matchesInflectedForm(lowerBaseWord, clean, wordObj.gender)) {
       clozeTarget = token;
-      correctTranslation = token.trim(); // Store the actual inflected form
       break;
     }
   }
+}
 
-  const sentenceWithBlank = clozeTarget
-    ? firstSentence.replace(clozeTarget, blank)
-    : "[No match found to cloze.]";
+
+const sentenceWithBlank = clozeTarget
+  ? firstNorwegian.replace(clozeTarget, blank)
+  : "[No match found to cloze.]";
 
   gameContainer.innerHTML = `
     <!-- Session Stats Section -->
@@ -1136,6 +1154,7 @@ function renderClozeGameUI(
   
       <div class="game-word">
         <h2 style="font-weight: normal; font-size: 1.2em;">${sentenceWithBlank}</h2>
+        <p class="game-english-translation" style="display: inline;">${matchingEnglish}</p> 
       </div>
   
       <div class="game-cefr-spacer"></div>
@@ -1602,37 +1621,64 @@ function matchesInflectedForm(base, token, gender) {
 
   const lowerBase = base.toLowerCase();
   const lowerToken = token.toLowerCase();
+  const stripFinalE = (word) => word.endsWith("e") ? word.slice(0, -1) : word;
 
   // ✅ Always allow exact match
   if (lowerToken === lowerBase) return true;
 
   // ✅ Adjective endings
   if (gender?.startsWith("adjective")) {
-    if (lowerToken === lowerBase + "t") return true;   // neuter singular
-    if (lowerToken === lowerBase + "e") return true;   // plural/definite
-    if (lowerToken === lowerBase + "ere") return true; // comparative
+    if (lowerToken === lowerBase + "t") return true;       // neuter singular
+    if (lowerToken === lowerBase + "e") return true;       // plural/definite
+    if (lowerToken === lowerBase + "ere") return true;     // comparative
+    if (lowerToken === stripFinalE(lowerBase) + "ere") return true; // comparative (drop -e)
+    if (lowerToken === lowerBase + "est") return true;     // superlative
+    if (lowerToken === stripFinalE(lowerBase) + "est") return true; // superlative (drop -e)
   }
 
   // ✅ Verb endings
   if (gender?.startsWith("verb")) {
-    if (lowerToken === lowerBase + "t") return true;   // past participle
+    if (lowerToken === lowerBase + "er") return true;       // present tense
+    if (lowerToken === stripFinalE(lowerBase) + "er") return true; // present tense (drop -e)
+
+    if (lowerToken === lowerBase + "et") return true;       // past tense (common)
+    if (lowerToken === stripFinalE(lowerBase) + "et") return true; // past tense (drop -e)
+
+    if (lowerToken === lowerBase + "te") return true;       // past tense alt
+    if (lowerToken === stripFinalE(lowerBase) + "te") return true; // past tense alt (drop -e)
+
+    if (lowerToken === lowerBase + "t") return true;        // past participle
+    if (lowerToken === stripFinalE(lowerBase) + "t") return true; // past participle (drop -e)
+
+    if (lowerToken === lowerBase + "s") return true; // passive form (e.g., oppbevares)
+    if (lowerToken === stripFinalE(lowerBase) + "s") return true; // drop final -e, then add -s  
   }
 
-  // ✅ Noun endings
-  if (gender?.startsWith("en") || gender?.startsWith("et") || gender?.startsWith("ei") || gender?.startsWith("noun") || gender?.startsWith("substantiv")) {
-    if (lowerToken === lowerBase + "n") return true;   // masculine definite
-    if (lowerToken === lowerBase + "en") return true;   // masculine definite
-    if (lowerToken === lowerBase + "t") return true;   // neuter definite
-    if (lowerToken === lowerBase + "et") return true;   // neuter definite
-    if (lowerToken === lowerBase + "a") return true;    // feminine definite
-    if (lowerToken === lowerBase + "r") return true;   // plural indefinite
-    if (lowerToken === lowerBase + "er") return true;   // plural indefinite
-    if (lowerToken === lowerBase + "ene") return true;  // plural definite
+  // ✅ Feminine nouns ("ei-words") FIRST
+  if (gender?.startsWith("ei")) {
+    if (lowerBase.endsWith("e")) {
+      if (lowerToken === lowerBase.slice(0, -1) + "a") return true; // jente → jenta, pølse → pølsa
+      if (lowerToken === lowerBase.slice(0, -1) + "en") return true; // søster → søsteren
+    }
+    if (lowerToken === lowerBase + "a") return true; // ku → kua
+    if (lowerToken === lowerBase + "en") return true; // datter → datteren
+    if (lowerToken === lowerBase + "ene") return true; // plural definite (jentene)
+  }
+
+  // ✅ General noun endings
+  if (gender?.startsWith("en") || gender?.startsWith("et") || gender?.startsWith("noun") || gender?.startsWith("substantiv")) {
+    if (lowerToken === lowerBase + "n") return true;        // masculine definite (en katt → katten)
+    if (lowerToken === lowerBase + "en") return true;        // masculine definite (en gutt → gutten)
+    if (lowerToken === lowerBase + "t") return true;         // neuter definite (et hus → huset)
+    if (lowerToken === lowerBase + "et") return true;        // neuter definite (et tre → treet)
+
+    if (lowerToken === lowerBase + "r") return true;         // plural indefinite (katter)
+    if (lowerToken === lowerBase + "er") return true;        // plural indefinite (gutter)
+    if (lowerToken === lowerBase + "ene") return true;       // plural definite (kattene)
   }
 
   return false;
 }
-
 
 
 function applyInflection(base, clozedForm, gender) {
@@ -1660,12 +1706,13 @@ function applyInflection(base, clozedForm, gender) {
   }
 
   // Handle plural indefinite (-er / -r)
-  if (lowerClozed.endsWith("er")) {
-    return base + "er";
-  }
-  if (lowerClozed.endsWith("r")) {
-    return base + "r";
-  }
+  if (lowerClozed.endsWith("er") || lowerClozed.endsWith("r")) {
+    if (base.endsWith("e")) {
+        return base + "r";
+    } else {
+        return base + "er";
+    }
+}
 
   if (lowerClozed.endsWith("ere")) {
     return base + "ere";
