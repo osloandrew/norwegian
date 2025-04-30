@@ -330,7 +330,13 @@ async function startWordGame() {
       if (firstWordInQueue.wasCloze) {
         const randomWordObj = firstWordInQueue.wordObj;
         const baseWord = randomWordObj.ord.split(",")[0].trim().toLowerCase();
-        const exampleText = randomWordObj.eksempel || "";
+        const matchingEntry = results.find(
+          (r) =>
+            r.ord.toLowerCase() === randomWordObj.ord.toLowerCase() &&
+            r.gender === randomWordObj.gender &&
+            r.CEFR === randomWordObj.CEFR
+        );
+        const exampleText = matchingEntry?.eksempel || "";
         const firstSentence = exampleText.split(/(?<=[.!?])\s+/)[0];
         const tokens = firstSentence.match(/\p{L}+/gu) || [];
 
@@ -511,7 +517,13 @@ async function startWordGame() {
 
   if (isClozeQuestion) {
     const baseWord = randomWordObj.ord.split(",")[0].trim().toLowerCase();
-    const exampleText = randomWordObj.eksempel || "";
+    const matchingEntry = results.find(
+      (r) =>
+        r.ord.toLowerCase() === randomWordObj.ord.toLowerCase() &&
+        r.gender === randomWordObj.gender &&
+        r.CEFR === randomWordObj.CEFR
+    );
+    const exampleText = matchingEntry?.eksempel || "";
     const firstSentence = exampleText.split(/(?<=[.!?])\s+/)[0];
     const tokens = firstSentence.match(/\p{L}+/gu) || [];
 
@@ -1110,7 +1122,13 @@ function renderClozeGameUI(
   }
   correctTranslation = clozedWordForm;
   const baseWord = wordObj.ord.split(",")[0].trim().toLowerCase();
-  const exampleText = wordObj.eksempel || "";
+  const matchingEntry = results.find(
+    (r) =>
+      r.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
+      r.gender === wordObj.gender &&
+      r.CEFR === wordObj.CEFR
+  );
+  const exampleText = matchingEntry?.eksempel || "";
   const englishText = wordObj.sentenceTranslation || "";
 
   const norwegianSentences = exampleText
@@ -1125,16 +1143,28 @@ function renderClozeGameUI(
 
   for (let i = 0; i < norwegianSentences.length; i++) {
     const nSent = norwegianSentences[i];
-    const tokens = nSent.match(/[\p{L}-]+/gu) || [];
-    for (const token of tokens) {
-      const clean = token.toLowerCase().replace(/[.,!?;:()"]/g, "");
-      if (matchesInflectedForm(baseWord.toLowerCase(), clean, wordObj.gender)) {
+    const lower = nSent.toLowerCase().normalize("NFC");
+    const base = baseWord.toLowerCase().normalize("NFC");
+    const isExpression = wordObj.gender === "expression";
+
+    if (isExpression) {
+      if (lower.includes(base)) {
         firstNorwegian = nSent;
         matchingEnglish = englishText;
         break;
       }
+    } else {
+      const tokens = nSent.match(/[\p{L}-]+/gu) || [];
+      for (const token of tokens) {
+        const clean = token.toLowerCase().replace(/[.,!?;:()"]/g, "");
+        if (matchesInflectedForm(base, clean, wordObj.gender)) {
+          firstNorwegian = nSent;
+          matchingEnglish = englishText;
+          break;
+        }
+      }
+      if (firstNorwegian !== "[Mangler norsk setning]") break;
     }
-    if (firstNorwegian !== "[Mangler norsk setning]") break;
   }
 
   // Try to find and blank the cloze target
@@ -1143,12 +1173,29 @@ function renderClozeGameUI(
   const lowerBaseWord = baseWord.toLowerCase();
 
   if (wordObj.gender === "expression") {
-    // Special handling for expressions: just look for the whole expression
-    if (lowerSentence.includes(lowerBaseWord)) {
-      clozeTarget = firstNorwegian.substring(
-        lowerSentence.indexOf(lowerBaseWord),
-        lowerSentence.indexOf(lowerBaseWord) + lowerBaseWord.length
-      );
+    const normalizedBase = baseWord.normalize("NFC").toLowerCase();
+    const normalizedSentence = firstNorwegian.normalize("NFC");
+
+    console.log("🔍 Attempting cloze match for expression:");
+    console.log("  Base word (normalized):", normalizedBase);
+    console.log("  Sentence (normalized):", normalizedSentence);
+
+    try {
+      const escapedBase = normalizedBase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(escapedBase, "i");
+      const match = normalizedSentence.match(regex);
+
+      console.log("  Using regex:", regex);
+
+      if (match) {
+        clozeTarget = match[0];
+        console.log("✅ Match found:", clozeTarget);
+      } else {
+        console.warn("❌ No match found using regex:", regex);
+      }
+    } catch (err) {
+      console.error("🚨 Regex construction failed:", err.message);
+      console.error("  Problematic base word was:", normalizedBase);
     }
   } else {
     const tokens = firstNorwegian.match(/[\p{L}-]+/gu) || [];
