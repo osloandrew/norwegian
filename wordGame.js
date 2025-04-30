@@ -333,74 +333,82 @@ async function startWordGame() {
         const exampleText = randomWordObj.eksempel || "";
         const firstSentence = exampleText.split(/(?<=[.!?])\s+/)[0];
         const tokens = firstSentence.match(/\p{L}+/gu) || [];
-      
+
         let clozedForm = firstWordInQueue.clozedForm;
-        const formattedClozed = clozedForm.charAt(0).toLowerCase() + clozedForm.slice(1);
+        const formattedClozed =
+          clozedForm.charAt(0).toLowerCase() + clozedForm.slice(1);
         const matchCapitalization = /^[A-ZÆØÅ]/.test(clozedForm);
         const isInflected = !isBaseForm(formattedClozed, baseWord);
         const endingPattern = getEndingPattern(formattedClozed);
         const targetGender = randomWordObj.gender;
-      
+
         // NEW BETTER DISTRACTOR LOGIC:
         const baseCandidates = results.filter((r) => {
           const ord = r.ord.split(",")[0].trim();
           if (!ord) return false;
           if (ord.includes(" ")) return false;
           if (ord.length < 3 || ord.length > 12) return false;
-          if (r.gender && !r.gender.toLowerCase().startsWith(targetGender.slice(0, 2))) return false;
+          if (
+            r.gender &&
+            !r.gender.toLowerCase().startsWith(targetGender.slice(0, 2))
+          )
+            return false;
           if (r.CEFR && r.CEFR !== randomWordObj.CEFR) return false;
           if (ord.toLowerCase() === baseWord) return false;
           return true;
         });
-      
+
         let strictDistractors = shuffleArray(
-          baseCandidates.map((r) => {
-            let inflected = r.ord.split(",")[0].trim().toLowerCase();
-            const isProperNoun = /^[A-ZÆØÅ]/.test(baseWord) && baseWord === baseWord.charAt(0).toUpperCase() + baseWord.slice(1);
-            
-            // New: Detect if base word is already 'dangerous' for pluralization
-            const alreadyPluralLike = inflected.endsWith("er") || inflected.endsWith("ene") || inflected.endsWith("r");
-            
-            if (!isProperNoun && !alreadyPluralLike) {
-              const observedEnding = formattedClozed.slice(baseWord.length);
-            
-              if (observedEnding === "a" && inflected.endsWith("e")) {
-                inflected = inflected.slice(0, -1) + "a";
-              } else if (observedEnding === "er") {
-                if (inflected.endsWith("e")) {
-                  inflected = inflected + "r"; // jente → jenter
-                } else {
-                  inflected = inflected + "er"; // hund → hunder
+          baseCandidates
+            .map((r) => {
+              let inflected = r.ord.split(",")[0].trim().toLowerCase();
+              const isProperNoun =
+                /^[A-ZÆØÅ]/.test(baseWord) &&
+                baseWord ===
+                  baseWord.charAt(0).toUpperCase() + baseWord.slice(1);
+
+              // New: Detect if base word is already 'dangerous' for pluralization
+              const alreadyPluralLike =
+                inflected.endsWith("er") ||
+                inflected.endsWith("ene") ||
+                inflected.endsWith("r");
+
+              if (!isProperNoun && !alreadyPluralLike) {
+                const observedEnding = formattedClozed.slice(baseWord.length);
+
+                if (observedEnding === "a" && inflected.endsWith("e")) {
+                  inflected = inflected.slice(0, -1) + "a";
+                } else if (observedEnding === "er") {
+                  if (inflected.endsWith("e")) {
+                    inflected = inflected + "r"; // jente → jenter
+                  } else {
+                    inflected = inflected + "er"; // hund → hunder
+                  }
+                } else if (observedEnding === "ene") {
+                  if (inflected.endsWith("e")) {
+                    inflected = inflected + "r" + "ne"; // jente → jenter → jentene
+                  } else {
+                    inflected = inflected + "er" + "ne"; // hund → hunder → hundene
+                  }
+                } else if (!inflected.endsWith(observedEnding)) {
+                  inflected = inflected + observedEnding;
                 }
-              } else if (observedEnding === "ene") {
-                if (inflected.endsWith("e")) {
-                  inflected = inflected + "r" + "ne"; // jente → jenter → jentene
-                } else {
-                  inflected = inflected + "er" + "ne"; // hund → hunder → hundene
-                }
-              } else if (!inflected.endsWith(observedEnding)) {
-                inflected = inflected + observedEnding;
               }
-            }
-            return inflected;
-          })
-          .filter(w => w !== formattedClozed)
+              return inflected;
+            })
+            .filter((w) => w !== formattedClozed)
         ).slice(0, 3);
-      
+
         let allWords = shuffleArray([formattedClozed, ...strictDistractors]);
         let uniqueWords = ensureUniqueDisplayedValues(allWords);
-      
+
         if (/^[A-ZÆØÅ]/.test(clozedForm)) {
-          uniqueWords = uniqueWords.map(word => word.charAt(0).toUpperCase() + word.slice(1));
+          uniqueWords = uniqueWords.map(
+            (word) => word.charAt(0).toUpperCase() + word.slice(1)
+          );
         }
-      
-        renderClozeGameUI(
-          randomWordObj,
-          uniqueWords,
-          clozedForm,
-          true
-        );
-      
+
+        renderClozeGameUI(randomWordObj, uniqueWords, clozedForm, true);
       } else {
         // Rebuild incorrect translations for non-cloze word
         let incorrectTranslations = fetchIncorrectTranslations(
@@ -512,38 +520,45 @@ async function startWordGame() {
 
     const baseWordTokens = baseWord.split(/\s+/);
     const baseLength = baseWordTokens.length;
-    
+
     for (let start = 0; start < tokens.length; start++) {
       for (let end = start + 1; end <= tokens.length; end++) {
         const group = tokens.slice(start, end);
-        const joinedWithSpace = group.join(' ').toLowerCase();
-        const joinedWithHyphen = group.join('-').toLowerCase();
-    
-        if (matchesInflectedForm(baseWord, joinedWithSpace, randomWordObj.gender)) {
-          clozedForm = group.join(' ');
+        const joinedWithSpace = group.join(" ").toLowerCase();
+        const joinedWithHyphen = group.join("-").toLowerCase();
+
+        if (
+          matchesInflectedForm(baseWord, joinedWithSpace, randomWordObj.gender)
+        ) {
+          clozedForm = group.join(" ");
           break;
         }
-        if (matchesInflectedForm(baseWord, joinedWithHyphen, randomWordObj.gender)) {
-          clozedForm = group.join('-');
+        if (
+          matchesInflectedForm(baseWord, joinedWithHyphen, randomWordObj.gender)
+        ) {
+          clozedForm = group.join("-");
           break;
         }
       }
       if (clozedForm) break;
     }
-    
-    
+
     if (!clozedForm) {
       console.warn("❌ CLOZE fallback triggered!");
       console.warn("Word:", randomWordObj.ord);
       console.warn("Sentence:", firstSentence);
       console.warn("Base word for matching:", baseWord);
-      console.warn("Tokens analyzed:", tokens.map(t => t.toLowerCase().replace(/[.,!?;:()"]/g, "")));
+      console.warn(
+        "Tokens analyzed:",
+        tokens.map((t) => t.toLowerCase().replace(/[.,!?;:()"]/g, ""))
+      );
       console.warn("Gender/POS:", randomWordObj.gender);
-      console.warn("No matching token found after analyzing sentence for cloze insertion.");
+      console.warn(
+        "No matching token found after analyzing sentence for cloze insertion."
+      );
       renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
       return;
     }
-    
 
     // Format the clozed word and get its final letter
     const formatCase = (word) => word.charAt(0).toLowerCase() + word.slice(1);
@@ -573,13 +588,12 @@ async function startWordGame() {
       const clozedIsLowercase = /^[a-zæøå]/.test(clozedForm);
 
       const baseCandidates = results.filter(
-        (r) => 
+        (r) =>
           r.gender === targetGender &&
           r.CEFR === randomWordObj.CEFR &&
           !noRandom.includes(r.ord.toLowerCase()) &&
           (!clozedIsLowercase || /^[a-zæøå]/.test(r.ord.trim()))
       );
-      
 
       const inflected = baseCandidates
         .map((r) => r.ord.split(",")[0].trim().toLowerCase())
@@ -596,10 +610,12 @@ async function startWordGame() {
             else return w;
           } else {
             // For nouns: apply the proper ending from the clozed form
-            return formatCase(applyInflection(w, formattedClozed, randomWordObj.gender));
+            return formatCase(
+              applyInflection(w, formattedClozed, randomWordObj.gender)
+            );
           }
         })
-        
+
         .filter((w) => w && w !== formattedClozed);
 
       strictDistractors = shuffleArray(inflected).slice(0, 3);
@@ -774,18 +790,9 @@ async function startWordGame() {
       );
     }
 
-    renderClozeGameUI(
-      randomWordObj,
-      uniqueWords,
-      formattedClozed,
-      false
-    );
+    renderClozeGameUI(randomWordObj, uniqueWords, formattedClozed, false);
   } else {
-    renderWordGameUI(
-      randomWordObj,
-      uniqueDisplayedTranslations,
-      false
-    );
+    renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
   }
 
   // Render the updated stats box
@@ -1105,13 +1112,17 @@ function renderClozeGameUI(
   const baseWord = wordObj.ord.split(",")[0].trim().toLowerCase();
   const exampleText = wordObj.eksempel || "";
   const englishText = wordObj.sentenceTranslation || "";
-  
-  const norwegianSentences = exampleText.split(/(?<=[.!?])\s+/).filter(s => s.trim() !== "");
-  const englishSentences = englishText.split(/(?<=[.!?])\s+/).filter(s => s.trim() !== "");
-  
+
+  const norwegianSentences = exampleText
+    .split(/(?<=[.!?])\s+/)
+    .filter((s) => s.trim() !== "");
+  const englishSentences = englishText
+    .split(/(?<=[.!?])\s+/)
+    .filter((s) => s.trim() !== "");
+
   let firstNorwegian = "[Mangler norsk setning]";
   let matchingEnglish = "";
-  
+
   for (let i = 0; i < norwegianSentences.length; i++) {
     const nSent = norwegianSentences[i];
     const tokens = nSent.match(/[\p{L}-]+/gu) || [];
@@ -1124,36 +1135,35 @@ function renderClozeGameUI(
       }
     }
     if (firstNorwegian !== "[Mangler norsk setning]") break;
-  }  
-
-// Try to find and blank the cloze target
-let clozeTarget = null;
-const lowerSentence = firstNorwegian.toLowerCase();
-const lowerBaseWord = baseWord.toLowerCase();
-
-if (wordObj.gender === "expression") {
-  // Special handling for expressions: just look for the whole expression
-  if (lowerSentence.includes(lowerBaseWord)) {
-    clozeTarget = firstNorwegian.substring(
-      lowerSentence.indexOf(lowerBaseWord),
-      lowerSentence.indexOf(lowerBaseWord) + lowerBaseWord.length
-    );
   }
-} else {
-  const tokens = firstNorwegian.match(/[\p{L}-]+/gu) || [];
-  for (const token of tokens) {
-    const clean = token.toLowerCase().replace(/[.,!?;:()"]/g, "");
-    if (matchesInflectedForm(lowerBaseWord, clean, wordObj.gender)) {
-      clozeTarget = token;
-      break;
+
+  // Try to find and blank the cloze target
+  let clozeTarget = null;
+  const lowerSentence = firstNorwegian.toLowerCase();
+  const lowerBaseWord = baseWord.toLowerCase();
+
+  if (wordObj.gender === "expression") {
+    // Special handling for expressions: just look for the whole expression
+    if (lowerSentence.includes(lowerBaseWord)) {
+      clozeTarget = firstNorwegian.substring(
+        lowerSentence.indexOf(lowerBaseWord),
+        lowerSentence.indexOf(lowerBaseWord) + lowerBaseWord.length
+      );
+    }
+  } else {
+    const tokens = firstNorwegian.match(/[\p{L}-]+/gu) || [];
+    for (const token of tokens) {
+      const clean = token.toLowerCase().replace(/[.,!?;:()"]/g, "");
+      if (matchesInflectedForm(lowerBaseWord, clean, wordObj.gender)) {
+        clozeTarget = token;
+        break;
+      }
     }
   }
-}
 
-
-const sentenceWithBlank = clozeTarget
-  ? firstNorwegian.replace(clozeTarget, blank)
-  : "[No match found to cloze.]";
+  const sentenceWithBlank = clozeTarget
+    ? firstNorwegian.replace(clozeTarget, blank)
+    : "[No match found to cloze.]";
 
   gameContainer.innerHTML = `
     <!-- Session Stats Section -->
@@ -1663,20 +1673,21 @@ function matchesInflectedForm(base, token, gender) {
   return false;
 }
 
-
 function applyInflection(base, clozedForm, gender) {
   if (!base || !clozedForm || !gender) return base;
 
   const lowerBase = base.toLowerCase();
   const lowerClozed = clozedForm.toLowerCase();
-  const stripFinalE = (word) => word.endsWith("e") ? word.slice(0, -1) : word;
+  const stripFinalE = (word) => (word.endsWith("e") ? word.slice(0, -1) : word);
   const endsWith = (ending) => lowerBase.endsWith(ending);
 
   // ✅ Universal rule: Never add "t" to adjectives ending in "ig" or "sk"
-if (lowerClozed.endsWith("t") && (lowerBase.endsWith("ig") || lowerBase.endsWith("sk"))) {
-  return base;
-}
-
+  if (
+    lowerClozed.endsWith("t") &&
+    (lowerBase.endsWith("ig") || lowerBase.endsWith("sk"))
+  ) {
+    return base;
+  }
 
   // ✅ Adjective inflection
   if (gender.startsWith("adjective")) {
@@ -1693,7 +1704,6 @@ if (lowerClozed.endsWith("t") && (lowerBase.endsWith("ig") || lowerBase.endsWith
       return endsWith("e") ? base.slice(0, -1) + "est" : base + "est"; // rare → rarest, fin → finest
     }
   }
-  
 
   // ✅ Verb inflection
   if (gender.startsWith("verb")) {
@@ -1715,7 +1725,13 @@ if (lowerClozed.endsWith("t") && (lowerBase.endsWith("ig") || lowerBase.endsWith
   }
 
   // ✅ Noun inflection (en/et/ei nouns)
-  if (gender.startsWith("en") || gender.startsWith("et") || gender.startsWith("ei") || gender.startsWith("noun") || gender.startsWith("substantiv")) {
+  if (
+    gender.startsWith("en") ||
+    gender.startsWith("et") ||
+    gender.startsWith("ei") ||
+    gender.startsWith("noun") ||
+    gender.startsWith("substantiv")
+  ) {
     if (lowerClozed.endsWith("en")) {
       return endsWith("e") ? base + "n" : base + "en"; // bok → boken
     }
@@ -1745,7 +1761,6 @@ if (lowerClozed.endsWith("t") && (lowerBase.endsWith("ig") || lowerBase.endsWith
   // ✅ Default fallback
   return base;
 }
-
 
 function updateCEFRSelection() {
   const cefrSelect = document.getElementById("cefr-select");
