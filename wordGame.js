@@ -697,14 +697,9 @@ async function startWordGame() {
               "en", // definite masculine/feminine noun (katten)
               "ene", // definite plural (jentene)
               "er", // plural (jenter, bøker), or verb present (spiser)
-              "est", // superlative adjectives (finest)
               "et", // neuter definite noun (huset), verb past participle (snakket)
               "ne", // from -ene forms (kattene), useful for words like strikkepinnene
               "r", // adjective plural (store), or plural (bøker), or verb present (går)
-              "s", // passive verb (beskrives), reflexive pronoun marker (vaskes)
-              "t", // neuter adjective (stort), past participle (hørt)
-              "te", // verb past (bygget)
-              "ere", // comparative adjective (penere, finere)
             ];
             for (const ending of endingsToEnforce) {
               if (formattedClozed.endsWith(ending) && w.endsWith(ending)) {
@@ -1395,7 +1390,7 @@ function renderClozeGameUI(
       </div>
   
       <div class="game-word">
-      <h2 id="cloze-sentence" style="font-weight: normal; font-size: 1.2em;">${sentenceWithBlank}</h2>        <p class="game-english-translation" style="display: inline;">${matchingEnglish}</p> 
+      <h2 id="cloze-sentence">${sentenceWithBlank}</h2>        <p class="game-english-translation" style="display: inline;">${matchingEnglish}</p> 
       </div>
   
       <div class="game-cefr-spacer"></div>

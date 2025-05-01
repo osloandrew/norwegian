@@ -124,6 +124,13 @@ button:disabled i {
   text-decoration-color: transparent; /* fades underline out smoothly */
 }
 
+#cloze-sentence {
+  font-weight: normal;
+  font-size: 1.2em;
+  line-height: 1.35; /* Preferred */
+  overflow: visible; /* Let text overflow if necessary */
+}
+
 .coffee-btn {
   display: inline-flex;
   align-items: center;
