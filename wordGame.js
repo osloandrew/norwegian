@@ -691,7 +691,21 @@ async function startWordGame() {
               randomWordObj.gender?.startsWith("et") ||
               randomWordObj.gender?.startsWith("ei"))
           ) {
-            const endingsToEnforce = ["r", "er", "ene", "ne", "a"];
+            const endingsToEnforce = [
+              "a", // definite feminine or weak feminine nouns (jenta, flaska)
+              "e", // adjective plural (store), noun plural (bukse → bukser)
+              "en", // definite masculine/feminine noun (katten)
+              "ene", // definite plural (jentene)
+              "er", // plural (jenter, bøker), or verb present (spiser)
+              "est", // superlative adjectives (finest)
+              "et", // neuter definite noun (huset), verb past participle (snakket)
+              "ne", // from -ene forms (kattene), useful for words like strikkepinnene
+              "r", // adjective plural (store), or plural (bøker), or verb present (går)
+              "s", // passive verb (beskrives), reflexive pronoun marker (vaskes)
+              "t", // neuter adjective (stort), past participle (hørt)
+              "te", // verb past (bygget)
+              "ere", // comparative adjective (penere, finere)
+            ];
             for (const ending of endingsToEnforce) {
               if (formattedClozed.endsWith(ending) && w.endsWith(ending)) {
                 const baseGuess = w.slice(0, -ending.length);
@@ -1341,8 +1355,33 @@ function renderClozeGameUI(
     <div class="game-word-card">
       <div class="game-labels-container">
         <div class="game-label-subgroup">
-          <div class="game-gender">Cloze</div>
-          ${cefrLabel}
+      <div class="game-gender">${
+        wordObj.gender.startsWith("en") ||
+        wordObj.gender.startsWith("et") ||
+        wordObj.gender.startsWith("ei")
+          ? "N - " + wordObj.gender
+          : wordObj.gender.startsWith("adjective")
+          ? "Adj"
+          : wordObj.gender.startsWith("adverb")
+          ? "Adv"
+          : wordObj.gender.startsWith("conjunction")
+          ? "Conj"
+          : wordObj.gender.startsWith("determiner")
+          ? "Det"
+          : wordObj.gender.startsWith("expression")
+          ? "Exp"
+          : wordObj.gender.startsWith("interjection")
+          ? "Inter"
+          : wordObj.gender.startsWith("numeral")
+          ? "Num"
+          : wordObj.gender.startsWith("possessive")
+          ? "Poss"
+          : wordObj.gender.startsWith("preposition")
+          ? "Prep"
+          : wordObj.gender.startsWith("pronoun")
+          ? "Pron"
+          : wordObj.gender
+      }</div>          ${cefrLabel}
         </div>
         <div id="game-banner-placeholder"></div>
         <div class="game-label-subgroup">
@@ -1356,8 +1395,7 @@ function renderClozeGameUI(
       </div>
   
       <div class="game-word">
-        <h2 style="font-weight: normal; font-size: 1.2em;">${sentenceWithBlank}</h2>
-        <p class="game-english-translation" style="display: inline;">${matchingEnglish}</p> 
+      <h2 id="cloze-sentence" style="font-weight: normal; font-size: 1.2em;">${sentenceWithBlank}</h2>        <p class="game-english-translation" style="display: inline;">${matchingEnglish}</p> 
       </div>
   
       <div class="game-cefr-spacer"></div>
@@ -1447,6 +1485,22 @@ async function handleTranslationClick(
     // Add the word to the correctly answered words array to exclude it from future questions
     correctlyAnsweredWords.push(wordObj.ord);
 
+    if (isCloze) {
+      const fullSentence =
+        results.find(
+          (r) =>
+            r.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
+            r.gender === wordObj.gender &&
+            r.CEFR === wordObj.CEFR
+        )?.eksempel || "";
+
+      const firstSentence = fullSentence.split(/(?<=[.!?])\s+/)[0];
+      const sentenceElement = document.getElementById("cloze-sentence");
+      if (sentenceElement && firstSentence) {
+        sentenceElement.textContent = firstSentence;
+      }
+    }
+
     // If the word was in the review queue and the user answered it correctly, remove it
     const indexInQueue = incorrectWordQueue.findIndex(
       (incorrectWord) =>
@@ -1481,6 +1535,22 @@ async function handleTranslationClick(
     incorrectCount++; // Increment incorrect count
     correctStreak = 0; // Reset the streak
     updateRecentAnswers(false); // Track this correct answer
+
+    if (isCloze) {
+      const fullSentence =
+        results.find(
+          (r) =>
+            r.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
+            r.gender === wordObj.gender &&
+            r.CEFR === wordObj.CEFR
+        )?.eksempel || "";
+
+      const firstSentence = fullSentence.split(/(?<=[.!?])\s+/)[0];
+      const sentenceElement = document.getElementById("cloze-sentence");
+      if (sentenceElement && firstSentence) {
+        sentenceElement.textContent = firstSentence;
+      }
+    }
 
     // If the word isn't already in the review queue, add it
     const inQueueAlready = incorrectWordQueue.some(
