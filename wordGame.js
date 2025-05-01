@@ -382,7 +382,11 @@ async function startWordGame() {
               if (!isProperNoun && !alreadyPluralLike) {
                 const observedEnding = formattedClozed.slice(baseWord.length);
 
-                if (observedEnding === "a" && inflected.endsWith("e")) {
+                if (
+                  isInflected &&
+                  observedEnding === "a" &&
+                  inflected.endsWith("e")
+                ) {
                   inflected = inflected.slice(0, -1) + "a";
                 } else if (observedEnding === "er") {
                   if (inflected.endsWith("e")) {
@@ -677,8 +681,37 @@ async function startWordGame() {
             applyInflection(w, formattedClozed, randomWordObj.gender)
           );
         })
-        .filter((w) => w && w !== formattedClozed);
+        .filter((w) => {
+          if (!w || w === formattedClozed) return false;
 
+          // Only apply cleanup if this cloze was inflected from a noun
+          if (
+            isInflected &&
+            (randomWordObj.gender?.startsWith("en") ||
+              randomWordObj.gender?.startsWith("et") ||
+              randomWordObj.gender?.startsWith("ei"))
+          ) {
+            const endingsToEnforce = ["r", "er", "ene", "ne", "a"];
+            for (const ending of endingsToEnforce) {
+              if (formattedClozed.endsWith(ending) && w.endsWith(ending)) {
+                const baseGuess = w.slice(0, -ending.length);
+                const match = results.find(
+                  (r) =>
+                    r.ord.split(",")[0].trim().toLowerCase() === baseGuess &&
+                    r.gender === randomWordObj.gender &&
+                    r.CEFR === randomWordObj.CEFR
+                );
+
+                if (match) {
+                  const rawBase = match.ord.split(",")[0].trim().toLowerCase();
+                  if (rawBase.endsWith(ending)) return false; // 🛑 this was not a true inflection
+                }
+              }
+            }
+          }
+
+          return true;
+        });
       strictDistractors = shuffleArray(inflected).slice(0, 3);
     }
 
@@ -1197,10 +1230,22 @@ function renderClozeGameUI(
     const isExpression = wordObj.gender === "expression";
 
     if (isExpression) {
-      if (lower.includes(base)) {
-        firstNorwegian = nSent;
-        matchingEnglish = englishText;
-        break;
+      const parts = baseWord.split(/\s+/); // e.g., ['ende', 'opp']
+      const tokens = nSent.match(/[\p{L}-]+/gu) || [];
+
+      for (let i = 0; i < tokens.length - (parts.length - 1); i++) {
+        const slice = tokens.slice(i, i + parts.length);
+        const [first, ...rest] = slice;
+
+        if (
+          matchesInflectedForm(parts[0], first, "verb") &&
+          rest.map((r) => r.toLowerCase()).join(" ") ===
+            parts.slice(1).join(" ")
+        ) {
+          firstNorwegian = nSent;
+          matchingEnglish = englishText;
+          break;
+        }
       }
     } else {
       const tokens = nSent.match(/[\p{L}-]+/gu) || [];
@@ -1240,7 +1285,28 @@ function renderClozeGameUI(
         clozeTarget = match[0];
         console.log("✅ Match found:", clozeTarget);
       } else {
-        console.warn("❌ No match found using regex:", regex);
+        // NEW fallback logic for inflected multi-word expressions
+        const parts = baseWord.split(/\s+/); // e.g., ['bli', 'borte']
+        const tokens = firstNorwegian.match(/[\p{L}-]+/gu) || [];
+
+        for (let i = 0; i < tokens.length - (parts.length - 1); i++) {
+          const slice = tokens.slice(i, i + parts.length);
+          const [first, ...rest] = slice;
+
+          if (
+            matchesInflectedForm(parts[0], first, "verb") &&
+            rest.map((t) => t.toLowerCase()).join(" ") ===
+              parts.slice(1).join(" ")
+          ) {
+            clozeTarget = slice.join(" ");
+            console.log("✅ Fallback match found:", clozeTarget);
+            break;
+          }
+        }
+
+        if (!clozeTarget) {
+          console.warn("❌ No match found using regex:", regex);
+        }
       }
     } catch (err) {
       console.error("🚨 Regex construction failed:", err.message);
@@ -1257,9 +1323,14 @@ function renderClozeGameUI(
     }
   }
 
-  const sentenceWithBlank = clozeTarget
-    ? firstNorwegian.replace(clozeTarget, blank)
-    : "[No match found to cloze.]";
+  let sentenceWithBlank;
+  if (clozeTarget) {
+    sentenceWithBlank = firstNorwegian.replace(clozeTarget, blank);
+  } else {
+    console.warn("❌ No cloze target found — switching to flashcard fallback.");
+    renderWordGameUI(wordObj, translations, isReintroduced);
+    return;
+  }
 
   gameContainer.innerHTML = `
     <!-- Session Stats Section -->
