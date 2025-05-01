@@ -556,20 +556,44 @@ async function startWordGame() {
     }
 
     if (!clozedForm) {
-      console.warn("❌ CLOZE fallback triggered!");
-      console.warn("Word:", randomWordObj.ord);
-      console.warn("Sentence:", firstSentence);
-      console.warn("Base word for matching:", baseWord);
-      console.warn(
-        "Tokens analyzed:",
-        tokens.map((t) => t.toLowerCase().replace(/[.,!?;:()"]/g, ""))
+      const cleanedTokens = tokens.map((t) =>
+        t.toLowerCase().replace(/[.,!?;:()"]/g, "")
       );
-      console.warn("Gender/POS:", randomWordObj.gender);
-      console.warn(
-        "No matching token found after analyzing sentence for cloze insertion."
-      );
-      renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
-      return;
+
+      // Normalize for basic vowel equivalence: ø → o, æ → a, å → a
+      const normalizeVowels = (str) =>
+        str.replace(/ø/g, "o").replace(/æ/g, "a").replace(/å/g, "a");
+
+      const normalizedTokens = cleanedTokens.map(normalizeVowels);
+      const normalizedBase = normalizeVowels(baseWord);
+
+      let fallbackClozed = null;
+      for (let len = normalizedBase.length; len > 2; len--) {
+        const prefix = normalizedBase.slice(0, len);
+        const matchIndex = normalizedTokens.findIndex((t) =>
+          t.startsWith(prefix)
+        );
+        if (matchIndex !== -1) {
+          fallbackClozed = tokens[matchIndex]; // Use original token, not normalized
+          break;
+        }
+      }
+
+      if (fallbackClozed) {
+        clozedForm = fallbackClozed;
+      } else {
+        console.warn("❌ CLOZE fallback triggered!");
+        console.warn("Word:", randomWordObj.ord);
+        console.warn("Sentence:", firstSentence);
+        console.warn("Base word for matching:", baseWord);
+        console.warn("Tokens analyzed:", cleanedTokens);
+        console.warn("Gender/POS:", randomWordObj.gender);
+        console.warn(
+          "No matching token found after analyzing sentence for cloze insertion."
+        );
+        renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
+        return;
+      }
     }
 
     // Format the clozed word and get its final letter
@@ -595,7 +619,8 @@ async function startWordGame() {
         (formattedClozed.toLowerCase().endsWith("e") ||
           formattedClozed.toLowerCase().endsWith("t"))) ||
       (randomWordObj.gender?.startsWith("verb") &&
-        formattedClozed.toLowerCase().endsWith("t"))
+        (formattedClozed.toLowerCase().endsWith("t") ||
+          formattedClozed.toLowerCase().endsWith("r")))
     ) {
       const clozedIsLowercase = /^[a-zæøå]/.test(clozedForm);
 
@@ -606,28 +631,52 @@ async function startWordGame() {
           !noRandom.includes(r.ord.toLowerCase()) &&
           (!clozedIsLowercase || /^[a-zæøå]/.test(r.ord.trim()))
       );
-
       const inflected = baseCandidates
         .map((r) => r.ord.split(",")[0].trim().toLowerCase())
-        .filter((w) => w !== baseWord)
-        .map((w) => {
-          if (randomWordObj.gender?.startsWith("adjective")) {
-            if (formattedClozed.toLowerCase().endsWith("e")) {
-              return w.endsWith("e") ? w : w + "e";
-            } else if (formattedClozed.toLowerCase().endsWith("t")) {
-              return w.endsWith("t") ? w : w + "t";
-            }
-          } else if (randomWordObj.gender?.startsWith("verb")) {
-            if (!w.endsWith("t")) return w + "t";
-            else return w;
-          } else {
-            // For nouns: apply the proper ending from the clozed form
-            return formatCase(
-              applyInflection(w, formattedClozed, randomWordObj.gender)
-            );
-          }
-        })
+        .filter((w) => {
+          if (w === baseWord) return false;
 
+          // For nouns only: exclude words that already end in -r or -er
+          if (
+            randomWordObj.gender?.startsWith("en") ||
+            randomWordObj.gender?.startsWith("et") ||
+            randomWordObj.gender?.startsWith("ei")
+          ) {
+            return !w.endsWith("r") && !w.endsWith("er");
+          }
+
+          return true; // Allow all other cases (verbs, adjectives, etc.)
+        })
+        .map((w) => {
+          const lowerClozed = formattedClozed.toLowerCase();
+
+          if (randomWordObj.gender?.startsWith("adjective")) {
+            if (lowerClozed.endsWith("e")) {
+              return w.endsWith("e") ? w : w + "e";
+            } else if (lowerClozed.endsWith("t")) {
+              return w.endsWith("t") ? w : w + "t";
+            } else {
+              return applyInflection(w, formattedClozed, randomWordObj.gender);
+            }
+          }
+
+          if (randomWordObj.gender?.startsWith("verb")) {
+            if (lowerClozed.endsWith("r")) {
+              return w.endsWith("r") ? w : w + "r";
+            } else if (lowerClozed.endsWith("t")) {
+              return w.endsWith("t") ? w : w + "t";
+            } else if (lowerClozed.endsWith("s")) {
+              return w.endsWith("s") ? w : w + "s";
+            } else {
+              return applyInflection(w, formattedClozed, randomWordObj.gender);
+            }
+          }
+
+          // For nouns or anything else: use full inflection logic
+          return formatCase(
+            applyInflection(w, formattedClozed, randomWordObj.gender)
+          );
+        })
         .filter((w) => w && w !== formattedClozed);
 
       strictDistractors = shuffleArray(inflected).slice(0, 3);
@@ -1756,6 +1805,9 @@ function applyInflection(base, clozedForm, gender) {
   if (gender.startsWith("verb")) {
     if (lowerClozed.endsWith("er")) {
       return endsWith("e") ? base.slice(0, -1) + "er" : base + "er"; // spise → spiser
+    }
+    if (lowerClozed.endsWith("r")) {
+      return endsWith("e") ? base.slice(0, -1) + "r" : base + "r";
     }
     if (lowerClozed.endsWith("et")) {
       return endsWith("e") ? base.slice(0, -1) + "et" : base + "et"; // snakke → snakket
