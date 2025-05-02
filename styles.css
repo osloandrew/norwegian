@@ -1575,6 +1575,7 @@ main {
   align-items: flex;
   display: flex;
   justify-content: space-between;
+  line-height: 1.2;
   overflow-wrap: break-word;
   word-break: break-word;
 }
@@ -2044,7 +2045,6 @@ main {
     display: flex;
     flex-direction: column;
     hyphens: auto;
-    line-height: 1.4;
   }
 
   .word-gender .gender {
