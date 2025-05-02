@@ -1291,7 +1291,15 @@ function displaySearchResults(results, query = "") {
       .trim()}', '${result.engelsk.replace(/'/g, "\\'").trim()}')">
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-gender ${multipleResultsWordgender}">
-                    ${result.ord}
+                    ${
+                      result.ord.includes(",")
+                        ? (() => {
+                            const [first, ...rest] = result.ord.split(",");
+                            return `${first.trim()}<br><span class="alt-spelling">${rest.join(", ").trim()}</span>`;
+                          })()
+                        : result.ord
+                    }
+
                     ${
                       result.gender
                         ? `<div class="gender ${multipleResultsgenderClass}">${result.gender}</div>`
@@ -2468,7 +2476,7 @@ function handleCardClick(event, word, pos, engelsk) {
   displaySearchResults(clickedResult); // This ensures only the clicked card remains
 
   // Update the URL to reflect the clicked entry
-  updateURL("", "words", pos, null, word); // Set the unique URL for this entry
+  updateURL("", "words", pos, null, word.split(",")[0].trim());
 }
 
 // Initialization of the dictionary data and event listeners
