@@ -1291,6 +1291,7 @@ function displaySearchResults(results, query = "") {
       .trim()}', '${result.engelsk.replace(/'/g, "\\'").trim()}')">
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-gender ${multipleResultsWordgender}">
+                  <div class="word-text-block">
                     ${
                       result.ord.includes(",")
                         ? (() => {
@@ -1299,6 +1300,7 @@ function displaySearchResults(results, query = "") {
                           })()
                         : result.ord
                     }
+                  </div>
 
                     ${
                       result.gender

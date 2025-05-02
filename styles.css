@@ -1582,8 +1582,6 @@ main {
 .word-gender {
   align-items: flex;
   display: flex;
-  flex-direction: column;
-
   justify-content: space-between;
   line-height: 1.2;
   overflow-wrap: break-word;
@@ -1598,6 +1596,12 @@ main {
   overflow-wrap: break-word;
   white-space: normal;
 }
+
+.word-text-block {
+  display: flex;
+  flex-direction: column;
+}
+
 
 @keyframes spin {
   to {
