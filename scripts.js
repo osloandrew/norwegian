@@ -1286,12 +1286,22 @@ function displaySearchResults(results, query = "") {
   data-word="${escapedWord}" 
   data-pos="${result.pos}" 
   data-engelsk="${result.engelsk}" 
-  onclick="if (!window.getSelection().toString()) handleCardClick(event, '${escapedWord}', '${result.pos
+  onclick="if (!window.getSelection().toString()) handleCardClick(event, '${escapedWord}', '${result.gender
       .replace(/'/g, "\\'")
       .trim()}', '${result.engelsk.replace(/'/g, "\\'").trim()}')">
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-gender ${multipleResultsWordgender}">
-                    ${result.ord}
+                  <div class="word-text-block">
+                    ${
+                      result.ord.includes(",")
+                        ? (() => {
+                            const [first, ...rest] = result.ord.split(",");
+                            return `${first.trim()}<br><span class="alt-spelling">${rest.join(", ").trim()}</span>`;
+                          })()
+                        : result.ord
+                    }
+                  </div>
+
                     ${
                       result.gender
                         ? `<div class="gender ${multipleResultsgenderClass}">${result.gender}</div>`
@@ -2424,18 +2434,10 @@ function handleCardClick(event, word, pos, engelsk) {
 
   // Filter results by word, POS (part of speech), and the English translation
   const clickedResult = results.filter((r) => {
-    const resolvedPOS = ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
-      r.gender.toLowerCase().includes(gender)
-    )
-      ? "noun"
-      : r.gender.toLowerCase().trim();
-    // Check if each comparison is true and log it
     const wordMatch = r.ord.toLowerCase().trim() === word.toLowerCase().trim();
-    // Directly handle POS logic for nouns and other parts of speech
-    const posMatch = resolvedPOS === pos.toLowerCase().trim();
-    const engelskMatch =
-      r.engelsk.toLowerCase().trim() === engelsk.toLowerCase().trim();
-    return wordMatch && posMatch && engelskMatch;
+    const genderMatch = r.gender.toLowerCase().trim() === pos.toLowerCase().trim();
+    const engelskMatch = r.engelsk.toLowerCase().trim() === engelsk.toLowerCase().trim();
+    return wordMatch && genderMatch && engelskMatch;    
   });
 
   if (clickedResult.length === 0) {
@@ -2476,7 +2478,7 @@ function handleCardClick(event, word, pos, engelsk) {
   displaySearchResults(clickedResult); // This ensures only the clicked card remains
 
   // Update the URL to reflect the clicked entry
-  updateURL("", "words", pos, null, word); // Set the unique URL for this entry
+  updateURL("", "words", pos, null, word.split(",")[0].trim());
 }
 
 // Initialization of the dictionary data and event listeners

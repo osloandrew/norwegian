@@ -341,85 +341,26 @@ async function startWordGame() {
         const tokens = firstSentence.match(/\p{L}+/gu) || [];
 
         let clozedForm = firstWordInQueue.clozedForm;
-        const formattedClozed =
-          clozedForm.charAt(0).toLowerCase() + clozedForm.slice(1);
-        const matchCapitalization = /^[A-ZÆØÅ]/.test(clozedForm);
-        const isInflected = !isBaseForm(formattedClozed, baseWord);
-        const endingPattern = getEndingPattern(formattedClozed);
-        const targetGender = randomWordObj.gender;
+        const formattedClozed = clozedForm.toLowerCase();        
 
-        // NEW BETTER DISTRACTOR LOGIC:
-        const baseCandidates = results.filter((r) => {
-          const ord = r.ord.split(",")[0].trim();
-          if (!ord) return false;
-          if (ord.includes(" ")) return false;
-          if (ord.length < 3 || ord.length > 12) return false;
-          if (
-            r.gender &&
-            !r.gender.toLowerCase().startsWith(targetGender.slice(0, 2))
-          )
-            return false;
-          if (r.CEFR && r.CEFR !== randomWordObj.CEFR) return false;
-          if (ord.toLowerCase() === baseWord) return false;
-          return true;
-        });
-
-        let strictDistractors = shuffleArray(
-          baseCandidates
-            .map((r) => {
-              let inflected = r.ord.split(",")[0].trim().toLowerCase();
-              const isProperNoun =
-                /^[A-ZÆØÅ]/.test(baseWord) &&
-                baseWord ===
-                  baseWord.charAt(0).toUpperCase() + baseWord.slice(1);
-
-              // New: Detect if base word is already 'dangerous' for pluralization
-              const alreadyPluralLike =
-                inflected.endsWith("er") ||
-                inflected.endsWith("ene") ||
-                inflected.endsWith("r");
-
-              if (!isProperNoun && !alreadyPluralLike) {
-                const observedEnding = formattedClozed.slice(baseWord.length);
-
-                if (
-                  isInflected &&
-                  observedEnding === "a" &&
-                  inflected.endsWith("e")
-                ) {
-                  inflected = inflected.slice(0, -1) + "a";
-                } else if (observedEnding === "er") {
-                  if (inflected.endsWith("e")) {
-                    inflected = inflected + "r"; // jente → jenter
-                  } else {
-                    inflected = inflected + "er"; // hund → hunder
-                  }
-                } else if (observedEnding === "ene") {
-                  if (inflected.endsWith("e")) {
-                    inflected = inflected + "r" + "ne"; // jente → jenter → jentene
-                  } else {
-                    inflected = inflected + "er" + "ne"; // hund → hunder → hundene
-                  }
-                } else if (!inflected.endsWith(observedEnding)) {
-                  inflected = inflected + observedEnding;
-                }
-              }
-              return inflected;
-            })
-            .filter((w) => w !== formattedClozed)
-        ).slice(0, 3);
-
-        let allWords = shuffleArray([formattedClozed, ...strictDistractors]);
+        const distractors = generateClozeDistractors(
+          baseWord,
+          clozedForm,
+          randomWordObj.CEFR,
+          randomWordObj.gender
+        );
+        
+        let allWords = shuffleArray([formattedClozed, ...distractors]);
         let uniqueWords = ensureUniqueDisplayedValues(allWords);
-
+        
         if (/^[A-ZÆØÅ]/.test(clozedForm)) {
           uniqueWords = uniqueWords.map(
             (word) => word.charAt(0).toUpperCase() + word.slice(1)
           );
         }
-
+        
         renderClozeGameUI(randomWordObj, uniqueWords, clozedForm, true);
-      } else {
+              } else {
         // Rebuild incorrect translations for non-cloze word
         let incorrectTranslations = fetchIncorrectTranslations(
           firstWordInQueue.wordObj.gender,
@@ -578,9 +519,21 @@ async function startWordGame() {
           t.startsWith(prefix)
         );
         if (matchIndex !== -1) {
-          fallbackClozed = tokens[matchIndex]; // Use original token, not normalized
+          // Try to recover the full expression from the token window
+          const endIndex = matchIndex + baseWordTokens.length - 1;
+          const matchedTokens = tokens.slice(matchIndex, endIndex + 1);
+        
+          const restOfBase = baseWordTokens.slice(1).join(" ");
+          const restOfSentence = matchedTokens.slice(1).join(" ").toLowerCase();
+        
+          if (restOfSentence === restOfBase) {
+            fallbackClozed = matchedTokens.join(" "); // e.g., "ryddet ut"
+          } else {
+            fallbackClozed = tokens[matchIndex]; // fallback to just "ryddet"
+          }
+        
           break;
-        }
+        }        
       }
 
       if (fallbackClozed) {
@@ -592,9 +545,11 @@ async function startWordGame() {
         console.warn("Base word for matching:", baseWord);
         console.warn("Tokens analyzed:", cleanedTokens);
         console.warn("Gender/POS:", randomWordObj.gender);
-        console.warn(
-          "No matching token found after analyzing sentence for cloze insertion."
-        );
+        console.warn("No matching token found after analyzing sentence for cloze insertion.");
+        console.warn("⚠️ Falling back to flashcard due to cloze failure");
+        console.log("Fallback word object:", randomWordObj);
+        console.log("Fallback translations:", uniqueDisplayedTranslations);
+      
         renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
         return;
       }
@@ -604,297 +559,28 @@ async function startWordGame() {
     const formatCase = (word) => word.charAt(0).toLowerCase() + word.slice(1);
 
     let formattedClozed = formatCase(clozedForm);
-    const observedEnding = formattedClozed.toLowerCase().slice(baseWord.length);
-    const matchCapitalization = /^[A-ZÆØÅ]/.test(formattedClozed);
     const wasCapitalizedFromLowercase =
       !/^[A-ZÆØÅ]/.test(baseWord) && /^[A-ZÆØÅ]/.test(clozedForm);
-    const isInflected = !isBaseForm(formattedClozed, baseWord);
-    const endingPattern = getEndingPattern(formattedClozed);
-    const targetGender = randomWordObj.gender;
-    // STEP A — Try strict match: same CEFR, same gender, same ending letter
-    let strictDistractors = [];
-
-    if (
-      ((randomWordObj.gender?.startsWith("en") ||
-        randomWordObj.gender?.startsWith("et") ||
-        randomWordObj.gender?.startsWith("ei")) &&
-        isDefiniteNounForm(formattedClozed, randomWordObj.gender)) ||
-      (randomWordObj.gender?.startsWith("adjective") &&
-        (formattedClozed.toLowerCase().endsWith("e") ||
-          formattedClozed.toLowerCase().endsWith("t"))) ||
-      (randomWordObj.gender?.startsWith("verb") &&
-        (formattedClozed.toLowerCase().endsWith("t") ||
-          formattedClozed.toLowerCase().endsWith("r")))
-    ) {
-      const clozedIsLowercase = /^[a-zæøå]/.test(clozedForm);
-
-      const baseCandidates = results.filter(
-        (r) =>
-          r.gender === targetGender &&
-          r.CEFR === randomWordObj.CEFR &&
-          !noRandom.includes(r.ord.toLowerCase()) &&
-          (!clozedIsLowercase || /^[a-zæøå]/.test(r.ord.trim()))
-      );
-      const inflected = baseCandidates
-        .map((r) => r.ord.split(",")[0].trim().toLowerCase())
-        .filter((w) => {
-          if (w === baseWord) return false;
-
-          // For nouns only: exclude words that already end in -r or -er
-          if (
-            randomWordObj.gender?.startsWith("en") ||
-            randomWordObj.gender?.startsWith("et") ||
-            randomWordObj.gender?.startsWith("ei")
-          ) {
-            return !w.endsWith("r") && !w.endsWith("er");
-          }
-
-          return true; // Allow all other cases (verbs, adjectives, etc.)
-        })
-        .map((w) => {
-          const lowerClozed = formattedClozed.toLowerCase();
-
-          if (randomWordObj.gender?.startsWith("adjective")) {
-            if (lowerClozed.endsWith("e")) {
-              return w.endsWith("e") ? w : w + "e";
-            } else if (lowerClozed.endsWith("t")) {
-              return w.endsWith("t") ? w : w + "t";
-            } else {
-              return applyInflection(w, formattedClozed, randomWordObj.gender);
-            }
-          }
-
-          if (randomWordObj.gender?.startsWith("verb")) {
-            if (lowerClozed.endsWith("r")) {
-              return w.endsWith("r") ? w : w + "r";
-            } else if (lowerClozed.endsWith("t")) {
-              return w.endsWith("t") ? w : w + "t";
-            } else if (lowerClozed.endsWith("s")) {
-              return w.endsWith("s") ? w : w + "s";
-            } else {
-              return applyInflection(w, formattedClozed, randomWordObj.gender);
-            }
-          }
-
-          // For nouns or anything else: use full inflection logic
-          return formatCase(
-            applyInflection(w, formattedClozed, randomWordObj.gender)
-          );
-        })
-        .filter((w) => {
-          if (!w || w === formattedClozed) return false;
-
-          // Only apply cleanup if this cloze was inflected from a noun
-          if (
-            isInflected &&
-            (randomWordObj.gender?.startsWith("en") ||
-              randomWordObj.gender?.startsWith("et") ||
-              randomWordObj.gender?.startsWith("ei"))
-          ) {
-            const endingsToEnforce = [
-              "a", // definite feminine or weak feminine nouns (jenta, flaska)
-              "e", // adjective plural (store), noun plural (bukse → bukser)
-              "en", // definite masculine/feminine noun (katten)
-              "ene", // definite plural (jentene)
-              "er", // plural (jenter, bøker), or verb present (spiser)
-              "et", // neuter definite noun (huset), verb past participle (snakket)
-              "ne", // from -ene forms (kattene), useful for words like strikkepinnene
-              "r", // adjective plural (store), or plural (bøker), or verb present (går)
-            ];
-            for (const ending of endingsToEnforce) {
-              if (formattedClozed.endsWith(ending) && w.endsWith(ending)) {
-                const baseGuess = w.slice(0, -ending.length);
-                const match = results.find(
-                  (r) =>
-                    r.ord.split(",")[0].trim().toLowerCase() === baseGuess &&
-                    r.gender === randomWordObj.gender &&
-                    r.CEFR === randomWordObj.CEFR
-                );
-
-                if (match) {
-                  const rawBase = match.ord.split(",")[0].trim().toLowerCase();
-                  if (rawBase.endsWith(ending)) return false; // 🛑 this was not a true inflection
-                }
-              }
-            }
-          }
-
-          return true;
-        });
-      strictDistractors = shuffleArray(inflected).slice(0, 3);
-    }
-
-    if (strictDistractors.length < 3) {
-      strictDistractors = [];
-      const seenStrict = new Set();
-      const fallbackWords = fetchIncorrectNorwegianWords(
-        clozedForm,
-        currentCEFR,
-        randomWordObj.gender
-      );
-
-      const shuffledFallbackWords = shuffleArray([...fallbackWords]);
-      for (
-        let i = 0;
-        i < shuffledFallbackWords.length && strictDistractors.length < 3;
-        i++
-      ) {
-        const word = formatCase(shuffledFallbackWords[i]);
-        const entry = results.find(
-          (r) => r.ord.split(",")[0].trim().toLowerCase() === word.toLowerCase()
-        );
-        const rawWord = entry?.ord.split(",")[0].trim();
-        const isCapitalized = rawWord ? /^[A-ZÆØÅ]/.test(rawWord) : false;
-
-        if (
-          word !== formattedClozed &&
-          (!isInflected ||
-            (endingPattern.test(word) &&
-              entry?.ord &&
-              endingPattern.test(
-                formatCase(entry.ord.split(",")[0].trim())
-              ))) &&
-          entry?.gender === targetGender &&
-          (!isInflected ||
-            (entry.ord &&
-              endingPattern.test(
-                formatCase(entry.ord.split(",")[0].trim())
-              ))) &&
-          /^[a-zæøå]/.test(rawWord) &&
-          !seenStrict.has(word) &&
-          !bannedWordClasses.some((b) =>
-            entry?.gender?.toLowerCase().startsWith(b)
-          )
-        ) {
-          strictDistractors.push(word);
-          seenStrict.add(word);
-        }
-      }
-    }
-
-    // STEP B — If not enough, allow any CEFR but keep same gender and same ending letter
-    if (strictDistractors.length < 3) {
-      const distractorPool = results.filter((r) => {
-        const word = r.ord?.split(",")[0].trim();
-        return (
-          word &&
-          word.toLowerCase() !== clozedForm.toLowerCase() &&
-          !noRandom.includes(r.ord.toLowerCase()) &&
-          !bannedWordClasses.some((b) => r.gender?.toLowerCase().startsWith(b))
-        );
-      });
-
-      const relaxedDistractors = [];
-      const seenRelaxed = new Set();
-
-      const shuffledPool = shuffleArray([...distractorPool]);
-      for (
-        let i = 0;
-        i < shuffledPool.length && relaxedDistractors.length < 3;
-        i++
-      ) {
-        const r = shuffledPool[i];
-        const rawWord = r.ord.split(",")[0].trim();
-        const word = formatCase(rawWord);
-
-        if (
-          (!isInflected ||
-            (endingPattern.test(word) &&
-              r.ord &&
-              endingPattern.test(formatCase(r.ord.split(",")[0].trim())))) &&
-          r.gender === targetGender &&
-          word !== formattedClozed &&
-          /^[a-zæøå]/.test(rawWord) &&
-          !strictDistractors.includes(word) &&
-          !seenRelaxed.has(word)
-        ) {
-          relaxedDistractors.push(word);
-          seenRelaxed.add(word);
-        }
-      }
-      // Still not enough? Permit any word with same ending letter, even if gender or class doesn't match
-      if (strictDistractors.length + relaxedDistractors.length < 3) {
-        const finalFallbacks = [];
-        const seenFinal = new Set();
-        const shuffledResults = shuffleArray([...results]);
-        for (
-          let i = 0;
-          i < shuffledResults.length && finalFallbacks.length < 3;
-          i++
-        ) {
-          const r = shuffledResults[i];
-          const rawWord = r.ord.split(",")[0].trim();
-          const word = formatCase(rawWord);
-
-          if (
-            word !== formattedClozed &&
-            (!isInflected ||
-              (endingPattern.test(word) &&
-                r.ord &&
-                endingPattern.test(formatCase(r.ord.split(",")[0].trim())))) &&
-            r.gender === targetGender &&
-            /^[A-ZÆØÅ]/.test(rawWord) === matchCapitalization &&
-            !seenFinal.has(word) &&
-            !strictDistractors.includes(word) &&
-            !relaxedDistractors.includes(word)
-          ) {
-            finalFallbacks.push(word);
-            seenFinal.add(word);
-          }
-        }
-        strictDistractors = strictDistractors
-          .concat(relaxedDistractors)
-          .concat(finalFallbacks)
-          .slice(0, 3);
-      } else {
-        strictDistractors = strictDistractors
-          .concat(relaxedDistractors)
-          .slice(0, 3);
-      }
-    }
-
-    let allWords = shuffleArray([formattedClozed, ...strictDistractors]);
+    const distractors = generateClozeDistractors(
+      baseWord,
+      formattedClozed,
+      randomWordObj.CEFR,
+      randomWordObj.gender
+    );
+    
+    let allWords = shuffleArray([formattedClozed, ...distractors]);
     let uniqueWords = ensureUniqueDisplayedValues(allWords);
+    
     if (wasCapitalizedFromLowercase) {
-      // Capitalize all options and the clozed word for display
       uniqueWords = uniqueWords.map(
         (word) => word.charAt(0).toUpperCase() + word.slice(1)
       );
       formattedClozed =
         formattedClozed.charAt(0).toUpperCase() + formattedClozed.slice(1);
     }
-    // Add generic fallback distractors if there are fewer than 4
-    if (uniqueWords.length < 4) {
-      const extraFallbacks = [];
-      const seen = new Set(uniqueWords.map((w) => w.toLowerCase()));
-      const shuffledResults = shuffleArray([...results]);
-
-      for (
-        let i = 0;
-        i < shuffledResults.length &&
-        uniqueWords.length + extraFallbacks.length < 4;
-        i++
-      ) {
-        const r = shuffledResults[i];
-        const rawWord = r.ord.split(",")[0].trim();
-        const word = formatCase(rawWord);
-        if (
-          !seen.has(word.toLowerCase()) &&
-          /^[A-ZÆØÅ]/.test(rawWord) === matchCapitalization &&
-          word !== formattedClozed
-        ) {
-          extraFallbacks.push(word);
-          seen.add(word.toLowerCase());
-        }
-      }
-
-      uniqueWords = ensureUniqueDisplayedValues(
-        uniqueWords.concat(extraFallbacks)
-      );
-    }
-
+    
     renderClozeGameUI(randomWordObj, uniqueWords, formattedClozed, false);
-  } else {
+      } else {
     renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
   }
 
@@ -1252,7 +938,8 @@ function renderClozeGameUI(
             parts.slice(1).join(" ")
         ) {
           firstNorwegian = nSent;
-          matchingEnglish = englishText;
+          const matchingIndex = norwegianSentences.findIndex(s => s === firstNorwegian);
+matchingEnglish = matchingIndex >= 0 ? englishSentences[matchingIndex] || "" : "";
           break;
         }
       }
@@ -1262,7 +949,8 @@ function renderClozeGameUI(
         const clean = token.toLowerCase().replace(/[.,!?;:()"]/g, "");
         if (matchesInflectedForm(base, clean, wordObj.gender)) {
           firstNorwegian = nSent;
-          matchingEnglish = englishText;
+          const matchingIndex = norwegianSentences.findIndex(s => s === firstNorwegian);
+matchingEnglish = matchingIndex >= 0 ? englishSentences[matchingIndex] || "" : "";
           break;
         }
       }
@@ -1275,7 +963,7 @@ function renderClozeGameUI(
   const lowerSentence = firstNorwegian.toLowerCase();
   const lowerBaseWord = baseWord.toLowerCase();
 
-  if (wordObj.gender === "expression") {
+  if (wordObj.gender === "expression" || wordObj.gender === "interjection") {
     const normalizedBase = baseWord.normalize("NFC").toLowerCase();
     const normalizedSentence = firstNorwegian.normalize("NFC");
 
@@ -1323,22 +1011,43 @@ function renderClozeGameUI(
     }
   } else {
     const tokens = firstNorwegian.match(/[\p{L}-]+/gu) || [];
+  
+    // New vowel-stripping rule
+    const strippedBase = lowerBaseWord.replace(/[aeiouyæøå]+$/i, "");
+  
     for (const token of tokens) {
       const clean = token.toLowerCase().replace(/[.,!?;:()"]/g, "");
-      if (matchesInflectedForm(lowerBaseWord, clean, wordObj.gender)) {
+      if (clean.startsWith(strippedBase) && clean.length >= 3) {
         clozeTarget = token;
         break;
       }
     }
   }
-
+  
   let sentenceWithBlank;
   if (clozeTarget) {
     sentenceWithBlank = firstNorwegian.replace(clozeTarget, blank);
   } else {
     console.warn("❌ No cloze target found — switching to flashcard fallback.");
-    renderWordGameUI(wordObj, translations, isReintroduced);
+
+    correctTranslation = wordObj.engelsk; // ✅ Fix the root bug
+
+    // Regenerate English options
+    const incorrectTranslations = fetchIncorrectTranslations(
+      wordObj.gender,
+      wordObj.engelsk,
+      currentCEFR
+    );
+    
+    const allTranslations = shuffleArray([
+      wordObj.engelsk,
+      ...incorrectTranslations,
+    ]);
+    const uniqueDisplayedTranslations = ensureUniqueDisplayedValues(allTranslations);
+    
+    renderWordGameUI(wordObj, uniqueDisplayedTranslations, false);
     return;
+    
   }
 
   gameContainer.innerHTML = `
@@ -1995,6 +1704,99 @@ function applyInflection(base, clozedForm, gender) {
 
   // ✅ Default fallback
   return base;
+}
+
+function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
+  const formattedClozed = clozedForm.toLowerCase();
+  const formattedBase = baseWord.toLowerCase();
+
+  const isUninflected = clozedForm.trim() === baseWord.trim(); // key fix
+
+  const matchCapitalization = /^[A-ZÆØÅ]/.test(clozedForm);
+  const endingPattern = getEndingPattern(formattedClozed);
+
+  const bannedWordClasses = ["numeral", "pronoun", "possessive", "determiner"];
+
+  let strictDistractors = [];
+
+  const baseCandidates = results.filter((r) => {
+    const ord = r.ord.split(",")[0].trim().toLowerCase();
+    if (!ord || ord === formattedBase) return false;
+    if (ord.includes(" ")) return false;
+    if (ord.length < 3 || ord.length > 12) return false;
+    if (
+      r.gender &&
+      !r.gender.toLowerCase().startsWith(gender.slice(0, 2).toLowerCase())
+    )
+      return false;
+    if (r.CEFR !== CEFR) return false;
+    if (bannedWordClasses.some((b) => r.gender?.toLowerCase().startsWith(b)))
+      return false;
+    return true;
+  });
+
+  const inflected = baseCandidates
+  .map((r) => {
+    const raw = r.ord.split(",")[0].trim().toLowerCase();
+    return isUninflected ? raw : applyInflection(raw, formattedClozed, gender);
+  })
+  .filter(
+    (w) =>
+      w !== formattedClozed &&
+      /^[a-zæøå]/.test(w) &&
+      (isUninflected || endingPattern.test(w))
+  );
+
+  strictDistractors = shuffleArray(inflected).slice(0, 3);
+
+  if (strictDistractors.length < 3) {
+    const relaxed = results
+    .filter((r) => {
+      const raw = r.ord.split(",")[0].trim().toLowerCase();
+      return (
+        raw !== formattedBase &&
+        r.gender === gender &&
+        !bannedWordClasses.some((b) =>
+          r.gender?.toLowerCase().startsWith(b)
+        )
+      );
+    })
+    .map((r) => {
+      const raw = r.ord.split(",")[0].trim().toLowerCase();
+      return isUninflected ? raw : applyInflection(raw, formattedClozed, gender);
+    })
+    .filter(
+      (w) =>
+        w !== formattedClozed &&
+        /^[a-zæøå]/.test(w) &&
+        (isUninflected || endingPattern.test(w))
+    );  
+
+    strictDistractors = strictDistractors
+      .concat(shuffleArray(relaxed))
+      .slice(0, 3);
+  }
+
+  if (strictDistractors.length < 3) {
+    const extra = results
+    .map((r) => {
+      const raw = r.ord.split(",")[0].trim();
+      return isUninflected ? raw : applyInflection(raw.toLowerCase(), formattedClozed, gender);
+    })
+    .filter(
+      (w) =>
+        w &&
+        w.toLowerCase() !== formattedClozed &&
+        endingPattern.test(w.toLowerCase()) &&
+        /^[A-ZÆØÅ]/.test(w) === matchCapitalization
+    );
+  
+    strictDistractors = strictDistractors
+      .concat(shuffleArray(extra))
+      .slice(0, 3);
+  }
+
+  return strictDistractors;
 }
 
 function updateCEFRSelection() {
