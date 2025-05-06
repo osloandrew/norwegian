@@ -341,7 +341,7 @@ async function startWordGame() {
         const tokens = firstSentence.match(/\p{L}+/gu) || [];
 
         let clozedForm = firstWordInQueue.clozedForm;
-        const formattedClozed = clozedForm.toLowerCase();        
+        const formattedClozed = clozedForm.toLowerCase();
 
         const distractors = generateClozeDistractors(
           baseWord,
@@ -349,18 +349,18 @@ async function startWordGame() {
           randomWordObj.CEFR,
           randomWordObj.gender
         );
-        
+
         let allWords = shuffleArray([formattedClozed, ...distractors]);
         let uniqueWords = ensureUniqueDisplayedValues(allWords);
-        
+
         if (/^[A-ZÆØÅ]/.test(clozedForm)) {
           uniqueWords = uniqueWords.map(
             (word) => word.charAt(0).toUpperCase() + word.slice(1)
           );
         }
-        
+
         renderClozeGameUI(randomWordObj, uniqueWords, clozedForm, true);
-              } else {
+      } else {
         // Rebuild incorrect translations for non-cloze word
         let incorrectTranslations = fetchIncorrectTranslations(
           firstWordInQueue.wordObj.gender,
@@ -473,10 +473,7 @@ async function startWordGame() {
     const tokens = firstSentence.match(/\p{L}+/gu) || [];
 
     let clozedForm = null;
-    const baseWordRegex = new RegExp(`\\b${baseWord}[a-zæøå]*\\b`, "i");
-
     const baseWordTokens = baseWord.split(/\s+/);
-    const baseLength = baseWordTokens.length;
 
     for (let start = 0; start < tokens.length; start++) {
       for (let end = start + 1; end <= tokens.length; end++) {
@@ -505,12 +502,8 @@ async function startWordGame() {
         t.toLowerCase().replace(/[.,!?;:()"]/g, "")
       );
 
-      // Normalize for basic vowel equivalence: ø → o, æ → a, å → a
-      const normalizeVowels = (str) =>
-        str.replace(/ø/g, "o").replace(/æ/g, "a").replace(/å/g, "a");
-
-      const normalizedTokens = cleanedTokens.map(normalizeVowels);
-      const normalizedBase = normalizeVowels(baseWord);
+      const normalizedTokens = cleanedTokens;
+      const normalizedBase = baseWord;
 
       let fallbackClozed = null;
       for (let len = normalizedBase.length; len > 2; len--) {
@@ -522,18 +515,18 @@ async function startWordGame() {
           // Try to recover the full expression from the token window
           const endIndex = matchIndex + baseWordTokens.length - 1;
           const matchedTokens = tokens.slice(matchIndex, endIndex + 1);
-        
+
           const restOfBase = baseWordTokens.slice(1).join(" ");
           const restOfSentence = matchedTokens.slice(1).join(" ").toLowerCase();
-        
+
           if (restOfSentence === restOfBase) {
             fallbackClozed = matchedTokens.join(" "); // e.g., "ryddet ut"
           } else {
             fallbackClozed = tokens[matchIndex]; // fallback to just "ryddet"
           }
-        
+
           break;
-        }        
+        }
       }
 
       if (fallbackClozed) {
@@ -545,11 +538,13 @@ async function startWordGame() {
         console.warn("Base word for matching:", baseWord);
         console.warn("Tokens analyzed:", cleanedTokens);
         console.warn("Gender/POS:", randomWordObj.gender);
-        console.warn("No matching token found after analyzing sentence for cloze insertion.");
+        console.warn(
+          "No matching token found after analyzing sentence for cloze insertion."
+        );
         console.warn("⚠️ Falling back to flashcard due to cloze failure");
         console.log("Fallback word object:", randomWordObj);
         console.log("Fallback translations:", uniqueDisplayedTranslations);
-      
+
         renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
         return;
       }
@@ -567,10 +562,10 @@ async function startWordGame() {
       randomWordObj.CEFR,
       randomWordObj.gender
     );
-    
+
     let allWords = shuffleArray([formattedClozed, ...distractors]);
     let uniqueWords = ensureUniqueDisplayedValues(allWords);
-    
+
     if (wasCapitalizedFromLowercase) {
       uniqueWords = uniqueWords.map(
         (word) => word.charAt(0).toUpperCase() + word.slice(1)
@@ -578,9 +573,9 @@ async function startWordGame() {
       formattedClozed =
         formattedClozed.charAt(0).toUpperCase() + formattedClozed.slice(1);
     }
-    
+
     renderClozeGameUI(randomWordObj, uniqueWords, formattedClozed, false);
-      } else {
+  } else {
     renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
   }
 
@@ -938,8 +933,11 @@ function renderClozeGameUI(
             parts.slice(1).join(" ")
         ) {
           firstNorwegian = nSent;
-          const matchingIndex = norwegianSentences.findIndex(s => s === firstNorwegian);
-matchingEnglish = matchingIndex >= 0 ? englishSentences[matchingIndex] || "" : "";
+          const matchingIndex = norwegianSentences.findIndex(
+            (s) => s === firstNorwegian
+          );
+          matchingEnglish =
+            matchingIndex >= 0 ? englishSentences[matchingIndex] || "" : "";
           break;
         }
       }
@@ -949,8 +947,11 @@ matchingEnglish = matchingIndex >= 0 ? englishSentences[matchingIndex] || "" : "
         const clean = token.toLowerCase().replace(/[.,!?;:()"]/g, "");
         if (matchesInflectedForm(base, clean, wordObj.gender)) {
           firstNorwegian = nSent;
-          const matchingIndex = norwegianSentences.findIndex(s => s === firstNorwegian);
-matchingEnglish = matchingIndex >= 0 ? englishSentences[matchingIndex] || "" : "";
+          const matchingIndex = norwegianSentences.findIndex(
+            (s) => s === firstNorwegian
+          );
+          matchingEnglish =
+            matchingIndex >= 0 ? englishSentences[matchingIndex] || "" : "";
           break;
         }
       }
@@ -1011,10 +1012,10 @@ matchingEnglish = matchingIndex >= 0 ? englishSentences[matchingIndex] || "" : "
     }
   } else {
     const tokens = firstNorwegian.match(/[\p{L}-]+/gu) || [];
-  
+
     // New vowel-stripping rule
     const strippedBase = lowerBaseWord.replace(/[aeiouyæøå]+$/i, "");
-  
+
     for (const token of tokens) {
       const clean = token.toLowerCase().replace(/[.,!?;:()"]/g, "");
       if (clean.startsWith(strippedBase) && clean.length >= 3) {
@@ -1023,7 +1024,7 @@ matchingEnglish = matchingIndex >= 0 ? englishSentences[matchingIndex] || "" : "
       }
     }
   }
-  
+
   let sentenceWithBlank;
   if (clozeTarget) {
     sentenceWithBlank = firstNorwegian.replace(clozeTarget, blank);
@@ -1038,16 +1039,16 @@ matchingEnglish = matchingIndex >= 0 ? englishSentences[matchingIndex] || "" : "
       wordObj.engelsk,
       currentCEFR
     );
-    
+
     const allTranslations = shuffleArray([
       wordObj.engelsk,
       ...incorrectTranslations,
     ]);
-    const uniqueDisplayedTranslations = ensureUniqueDisplayedValues(allTranslations);
-    
+    const uniqueDisplayedTranslations =
+      ensureUniqueDisplayedValues(allTranslations);
+
     renderWordGameUI(wordObj, uniqueDisplayedTranslations, false);
     return;
-    
   }
 
   gameContainer.innerHTML = `
@@ -1736,41 +1737,43 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
   });
 
   const inflected = baseCandidates
-  .map((r) => {
-    const raw = r.ord.split(",")[0].trim().toLowerCase();
-    return isUninflected ? raw : applyInflection(raw, formattedClozed, gender);
-  })
-  .filter(
-    (w) =>
-      w !== formattedClozed &&
-      /^[a-zæøå]/.test(w) &&
-      (isUninflected || endingPattern.test(w))
-  );
+    .map((r) => {
+      const raw = r.ord.split(",")[0].trim().toLowerCase();
+      return isUninflected
+        ? raw
+        : applyInflection(raw, formattedClozed, gender);
+    })
+    .filter(
+      (w) =>
+        w !== formattedClozed &&
+        /^[a-zA-ZæøåÆØÅ]/.test(w) &&
+        (isUninflected || endingPattern.test(w))
+    );
 
   strictDistractors = shuffleArray(inflected).slice(0, 3);
 
   if (strictDistractors.length < 3) {
     const relaxed = results
-    .filter((r) => {
-      const raw = r.ord.split(",")[0].trim().toLowerCase();
-      return (
-        raw !== formattedBase &&
-        r.gender === gender &&
-        !bannedWordClasses.some((b) =>
-          r.gender?.toLowerCase().startsWith(b)
-        )
+      .filter((r) => {
+        const raw = r.ord.split(",")[0].trim().toLowerCase();
+        return (
+          raw !== formattedBase &&
+          r.gender === gender &&
+          !bannedWordClasses.some((b) => r.gender?.toLowerCase().startsWith(b))
+        );
+      })
+      .map((r) => {
+        const raw = r.ord.split(",")[0].trim().toLowerCase();
+        return isUninflected
+          ? raw
+          : applyInflection(raw, formattedClozed, gender);
+      })
+      .filter(
+        (w) =>
+          w !== formattedClozed &&
+          /^[a-zA-ZæøåÆØÅ]/.test(w) &&
+          (isUninflected || endingPattern.test(w))
       );
-    })
-    .map((r) => {
-      const raw = r.ord.split(",")[0].trim().toLowerCase();
-      return isUninflected ? raw : applyInflection(raw, formattedClozed, gender);
-    })
-    .filter(
-      (w) =>
-        w !== formattedClozed &&
-        /^[a-zæøå]/.test(w) &&
-        (isUninflected || endingPattern.test(w))
-    );  
 
     strictDistractors = strictDistractors
       .concat(shuffleArray(relaxed))
@@ -1779,18 +1782,20 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
 
   if (strictDistractors.length < 3) {
     const extra = results
-    .map((r) => {
-      const raw = r.ord.split(",")[0].trim();
-      return isUninflected ? raw : applyInflection(raw.toLowerCase(), formattedClozed, gender);
-    })
-    .filter(
-      (w) =>
-        w &&
-        w.toLowerCase() !== formattedClozed &&
-        endingPattern.test(w.toLowerCase()) &&
-        /^[A-ZÆØÅ]/.test(w) === matchCapitalization
-    );
-  
+      .map((r) => {
+        const raw = r.ord.split(",")[0].trim();
+        return isUninflected
+          ? raw
+          : applyInflection(raw.toLowerCase(), formattedClozed, gender);
+      })
+      .filter(
+        (w) =>
+          w &&
+          w.toLowerCase() !== formattedClozed &&
+          endingPattern.test(w.toLowerCase()) &&
+          /^[a-zA-ZæøåÆØÅ]/.test(w) === matchCapitalization
+      );
+
     strictDistractors = strictDistractors
       .concat(shuffleArray(extra))
       .slice(0, 3);
