@@ -1296,7 +1296,9 @@ function displaySearchResults(results, query = "") {
                       result.ord.includes(",")
                         ? (() => {
                             const [first, ...rest] = result.ord.split(",");
-                            return `${first.trim()}<br><span class="alt-spelling">${rest.join(", ").trim()}</span>`;
+                            return `${first.trim()}<br><span class="alt-spelling">${rest
+                              .join(", ")
+                              .trim()}</span>`;
                           })()
                         : result.ord
                     }
@@ -2435,9 +2437,11 @@ function handleCardClick(event, word, pos, engelsk) {
   // Filter results by word, POS (part of speech), and the English translation
   const clickedResult = results.filter((r) => {
     const wordMatch = r.ord.toLowerCase().trim() === word.toLowerCase().trim();
-    const genderMatch = r.gender.toLowerCase().trim() === pos.toLowerCase().trim();
-    const engelskMatch = r.engelsk.toLowerCase().trim() === engelsk.toLowerCase().trim();
-    return wordMatch && genderMatch && engelskMatch;    
+    const genderMatch =
+      r.gender.toLowerCase().trim() === pos.toLowerCase().trim();
+    const engelskMatch =
+      r.engelsk.toLowerCase().trim() === engelsk.toLowerCase().trim();
+    return wordMatch && genderMatch && engelskMatch;
   });
 
   if (clickedResult.length === 0) {
@@ -2588,13 +2592,41 @@ window.addEventListener("popstate", () => {
 document.addEventListener("click", (event) => {
   const target = event.target;
   if (target.classList.contains("clickable-definition-word")) {
-    let word = target.getAttribute("data-word");
-    word = word.toLowerCase(); // 🔧 Ensure lowercase for accurate matching
+    let word = target.getAttribute("data-word").toLowerCase();
     const searchInput = document.getElementById("search-bar");
+
     if (searchInput) {
-      searchInput.value = ""; // ✅ Clear the bar
-      clearInput(); // ✅ Also call your built-in clear function
-      search(word); // 🔍 Trigger search
+      searchInput.value = "";
+      clearInput();
+
+      // Find exact matches for the clicked word
+      const exactMatches = results.filter((r) =>
+        r.ord
+          .toLowerCase()
+          .split(",")
+          .map((s) => s.trim())
+          .includes(word)
+      );
+
+      if (exactMatches.length === 1) {
+        // Fully emulate the click-to-expand behavior for a single result
+        latestMultipleResults = null;
+        resultsContainer.innerHTML = ""; // Clear previous results
+
+        // Display only the matched entry
+        displaySearchResults(exactMatches);
+
+        // Update the URL and page title
+        updateURL(
+          null,
+          "words",
+          exactMatches[0].gender.toLowerCase(),
+          null,
+          word
+        );
+      } else {
+        search(word); // fallback to regular multi-result search
+      }
     }
   }
 });
