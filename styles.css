@@ -688,6 +688,7 @@ label {
   border-radius: 12px; /* Same border radius as definition cards */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Same box shadow */
   margin: 20px auto; /* Matches the margin of definition cards */
+  max-width: 1200px;
   padding: 25px; /* Matches the padding of definition cards */
   text-align: center;
   width: 45%; /* Same width as definition cards */
@@ -997,6 +998,7 @@ main {
 #results-container {
   background-color: rgb(244, 244, 244);
   margin: 20px auto;
+  max-width: 1200px;
   text-align: left;
   width: 50%;
 }
