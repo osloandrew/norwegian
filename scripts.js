@@ -1205,6 +1205,13 @@ function makeDefinitionClickable(defText) {
     return parts.join("") + punctuation;
   }
 
+    if (defText.includes(";")) {
+    const items = defText.split(";").map(item => item.trim()).filter(Boolean);
+    return `<ol class="definition-list">` +
+      items.map(item => `<li>${item.split(/\s+/).map(wrapToken).join(" ")}</li>`).join("") +
+      `</ol>`;
+  }
+
   return defText
     .split(/\s+/)
     .map((token) => {

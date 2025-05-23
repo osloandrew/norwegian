@@ -197,7 +197,7 @@ button:disabled i {
   text-transform: uppercase;
 }
 
-.definition p {
+.definition p, li {
   color: #333;
   font-size: 20px;
   line-height: 1.6;
@@ -904,6 +904,10 @@ main {
   line-height: 1.5 !important;
   width: 50%; /* The word and gender take up 40% of the container */
   justify-content: center; /* Vertically center the word and gender within their container */
+}
+
+ol {
+  padding-inline-start: 20px;
 }
 
 /* Basic styling for the table */
@@ -1617,17 +1621,8 @@ main {
     padding: 20px;
   }
 
-  .random-btn {
-    width: 20% !important;
-  }
-
-  /* Example Sentences */
-  .game-cefr-spacer p {
-    font-size: 0.7em !important;
-  }
-
-  .game-grid {
-    grid-gap: 10px; /* Slightly increase space between the cards */
+  .english, .etymology, .pronunciation {
+    line-height: 1.4 !important;
   }
 
   footer,
@@ -1641,6 +1636,21 @@ main {
     font-size: 11px !important;
     margin: 0;
   }
+
+  .random-btn {
+    width: 20% !important;
+  }
+
+  /* Example Sentences */
+  .game-cefr-spacer p {
+    font-size: 0.7em !important;
+  }
+
+  .game-grid {
+    grid-gap: 10px; /* Slightly increase space between the cards */
+  }
+
+
 
   .game-cleared-practice-banner,
   .game-congratulations-banner,
@@ -1884,7 +1894,7 @@ main {
   #search-container {
     box-sizing: border-box;
     overflow: hidden;
-    padding: 10px;
+    padding: 10px 5px 10px 5px;
   }
 
   #search-container-inner {
@@ -1900,6 +1910,9 @@ main {
 
   .selectors-wrapper {
     box-sizing: border-box !important;
+    display: flex;
+    gap: 5px;
+    justify-content: space-between;
     width: 100%;
   }
 
@@ -2037,7 +2050,6 @@ main {
   .cefr-filter i,
   .genre-filter i,
   .game-english-filter i {
-    padding-left: 6px;
     font-size: 12px; /* Make the arrow smaller */
     pointer-events: none; /* Ensure the icon doesn't block clicks */
   }
@@ -2050,10 +2062,12 @@ main {
     box-sizing: border-box !important;
     cursor: pointer;
     font-size: 11px; /* Further reduce the font size for very small screens */
+    font-weight: 500;
     text-transform: uppercase;
     padding-right: 0px;
-    text-overflow: ellipsis;
     min-width: 0px;
+    letter-spacing: 0;
+    text-overflow: unset;
   }
 
   .word-gender {
