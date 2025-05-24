@@ -197,7 +197,8 @@ button:disabled i {
   text-transform: uppercase;
 }
 
-.definition p, li {
+.definition p,
+li {
   color: #333;
   font-size: 20px;
   line-height: 1.4;
@@ -780,6 +781,10 @@ label {
   transition: width 0.3s ease;
 }
 
+li {
+  color: #1c68b5;
+}
+
 .links {
   display: flex;
   gap: 10px; /* Space between the buttons */
@@ -906,7 +911,9 @@ main {
   justify-content: center; /* Vertically center the word and gender within their container */
 }
 
-ol {
+ol,
+ul {
+  list-style-type: square;
   margin-block-start: 0px;
   margin-block-end: 0px;
   padding-inline-start: 20px;
@@ -1610,7 +1617,6 @@ ol {
   flex-direction: column;
 }
 
-
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -1623,7 +1629,9 @@ ol {
     padding: 20px;
   }
 
-  .english, .etymology, .pronunciation {
+  .english,
+  .etymology,
+  .pronunciation {
     line-height: 1.4 !important;
   }
 
@@ -1651,8 +1659,6 @@ ol {
   .game-grid {
     grid-gap: 10px; /* Slightly increase space between the cards */
   }
-
-
 
   .game-cleared-practice-banner,
   .game-congratulations-banner,
