@@ -1715,8 +1715,8 @@ ul {
 
   /* Adjust landing card width for mobile */
   #landing-card {
-    width: 82.5%; /* Ensure it takes up more space on mobile */
-    margin: 10px auto; /* Matches the margin of definition cards */
+    width: 85%; /* Ensure it takes up more space on mobile */
+    margin: 5px auto; /* Matches the margin of definition cards */
     padding: 20px; /* Add more padding for mobile readability */
   }
 
@@ -1855,8 +1855,8 @@ ul {
   }
 
   #results-container {
-    margin: 10px auto;
-    width: 95%;
+    margin: 5px auto;
+    width: 97.5%;
   }
 
   .search-and-random-wrapper {
