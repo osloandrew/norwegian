@@ -1864,7 +1864,7 @@ ul {
     box-sizing: border-box; /* Include padding and border within width */
     display: flex;
     justify-content: space-between;
-    gap: 10px;
+    gap: 5px;
     width: 100%;
   }
 
