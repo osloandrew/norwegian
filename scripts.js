@@ -1302,7 +1302,9 @@ function displaySearchResults(results, query = "") {
   data-engelsk="${result.engelsk}" 
   onclick="if (!window.getSelection().toString()) handleCardClick(event, '${escapedWord}', '${result.gender
       .replace(/'/g, "\\'")
-      .trim()}', '${result.engelsk.replace(/'/g, "\\'").trim()}')">
+      .trim()}', '${result.engelsk
+      .replace(/'/g, "\\'")
+      .trim()}', this.querySelector('.${multipleResultsDefinitionText}')?.textContent?.trim() || '')">
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-gender ${multipleResultsWordgender}">
                   <div class="word-text-block">
@@ -2427,7 +2429,7 @@ function loadStateFromURL() {
 }
 
 // Function to handle clicking on a search result card
-function handleCardClick(event, word, pos, engelsk) {
+function handleCardClick(event, word, pos, engelsk, definisjon) {
   console.log(`Word clicked: ${word}, POS: ${pos}`); // Log the clicked word and POS
 
   // Filter to count only visible elements with the specific card class
@@ -2455,7 +2457,10 @@ function handleCardClick(event, word, pos, engelsk) {
       r.gender.toLowerCase().trim() === pos.toLowerCase().trim();
     const engelskMatch =
       r.engelsk.toLowerCase().trim() === engelsk.toLowerCase().trim();
-    return wordMatch && genderMatch && engelskMatch;
+    const definisjonMatch =
+      r.definisjon.toLowerCase().trim() === definisjon.toLowerCase().trim();
+
+    return wordMatch && genderMatch && engelskMatch && definisjonMatch;
   });
 
   if (clickedResult.length === 0) {
