@@ -85,6 +85,7 @@ const noRandom = [
   "massemorder",
   "megge",
   "morrabrød",
+  "munnsex",
   "neger",
   "o",
   "omskjære",
