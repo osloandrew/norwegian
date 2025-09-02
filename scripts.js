@@ -129,7 +129,20 @@ function formatGender(gender) {
 
 // Clear the search input field
 function clearInput() {
-  document.getElementById("search-bar").value = "";
+  const searchEl = document.getElementById("search-bar");
+  if (searchEl) searchEl.value = "";
+
+  const typeSelect = document.getElementById("type-select");
+  if (typeSelect && typeSelect.value === "stories") {
+    // Reset CEFR and Genre filters too
+    const cefrEl = document.getElementById("cefr-select");
+    const genreEl = document.getElementById("genre-select");
+    if (cefrEl) cefrEl.value = "";
+    if (genreEl) genreEl.value = "";
+
+    // Now re-render the full list (empty search, no filters)
+    displayStoryList();
+  }
 }
 
 // Fetch the dictionary data from the file or server

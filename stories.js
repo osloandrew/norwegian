@@ -4,7 +4,6 @@ let storyResults = []; // Global variable to store the stories
 const genreIcons = {
   action: '<i class="fas fa-bolt"></i>', // Action genre icon
   adventure: '<i class="fas fa-compass"></i>', // Adventure genre icon
-  art: '<i class="fas fa-paint-brush"></i>', // Art genre icon
   biography: '<i class="fas fa-user"></i>', // Biography genre icon
   business: '<i class="fas fa-briefcase"></i>', // Business genre icon
   children: '<i class="fas fa-child"></i>', // Children’s genre icon
@@ -20,6 +19,7 @@ const genreIcons = {
   health: '<i class="fas fa-heartbeat"></i>', // Health genre icon
   history: '<i class="fas fa-landmark"></i>', // History genre icon
   horror: '<i class="fas fa-ghost"></i>', // Horror genre icon
+  language: '<i class="fas fa-language"></i>', // Language genre icon
   monologue: '<i class="fas fa-microphone-alt"></i>', // Monologue genre icon
   music: '<i class="fas fa-music"></i>', // Music genre icon
   mystery: '<i class="fas fa-search"></i>', // Mystery genre icon
@@ -27,7 +27,7 @@ const genreIcons = {
   philosophy: '<i class="fas fa-brain"></i>', // Philosophy genre icon
   poetry: '<i class="fas fa-feather-alt"></i>', // Poetry genre icon
   politics: '<i class="fas fa-balance-scale"></i>', // Politics genre icon
-  psychology: '<i class="fas fa-brain"></i>', // Psychology genre icon
+  psychology: '<i class="fas fa-user-md"></i>', // Psychology genre icon
   religion: '<i class="fas fa-praying-hands"></i>', // Religion genre icon
   romance: '<i class="fas fa-heart"></i>', // Romance genre icon
   science: '<i class="fas fa-flask"></i>', // Science genre icon
@@ -39,67 +39,84 @@ const genreIcons = {
   travel: '<i class="fas fa-plane"></i>', // Travel genre icon
 };
 
-const STORY_CACHE_KEY = "storyData";
-const STORY_CACHE_TIME_KEY = "storyDataTimestamp";
-const CACHE_EXPIRY_HOURS = 1; // Set cache expiry time
+const CSV_URL = "norwegianStories.csv";
+const STORY_CACHE_KEY = "storyDataEs";
+const STORY_CACHE_TIME_KEY = "storyDataTimestampEs";
 
 async function fetchAndLoadStoryData() {
-  showSpinner(); // Show spinner before loading starts
+  showSpinner();
   try {
-    const cachedData = localStorage.getItem(STORY_CACHE_KEY);
-    const cachedTimestamp = localStorage.getItem(STORY_CACHE_TIME_KEY);
+    // 1) Always bypass caches: unique param + no-store
+    const bust = Date.now(); // guarantees a new URL each request
+    const response = await fetch(`${CSV_URL}?bust=${bust}`, {
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const csvText = await response.text();
 
-    // Check if cache is expired
-    const now = new Date().getTime();
-    const cacheAgeHours = cachedTimestamp
-      ? (now - cachedTimestamp) / (1000 * 60 * 60)
-      : Infinity;
+    // 2) Parse fresh CSV
+    const parsed = Papa.parse(csvText, {
+      header: true,
+      skipEmptyLines: true,
+    }).data;
+    storyResults = parsed.map((entry) => ({
+      ...entry,
+      titleNorwegian: (entry.titleNorwegian || "").trim(),
+    }));
 
-    if (cachedData && cacheAgeHours < CACHE_EXPIRY_HOURS) {
-      console.log("Loading stories from cache.");
-      parseStoryCSVData(cachedData);
-      hideSpinner(); // End early since we don't need to fetch new data
-      return;
+    // 3) Optional: store for offline fallback (not used on next run)
+    localStorage.setItem(STORY_CACHE_KEY, JSON.stringify(storyResults));
+    localStorage.setItem(STORY_CACHE_TIME_KEY, String(Date.now()));
+  } catch (err) {
+    console.error("Live fetch failed, falling back to cache:", err);
+    const cached = localStorage.getItem(STORY_CACHE_KEY);
+    if (cached) {
+      storyResults = JSON.parse(cached);
+    } else {
+      storyResults = [];
     }
-
-    // Fetch the latest data from the network
-    const response = await fetch("norwegianStories.csv");
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
-    const data = await response.text();
-
-    // Store CSV text and timestamp in cache
-    localStorage.setItem(STORY_CACHE_KEY, data);
-    localStorage.setItem(STORY_CACHE_TIME_KEY, now);
-    parseStoryCSVData(data);
-  } catch (error) {
-    console.error("Error fetching or parsing stories CSV file:", error);
   } finally {
-    hideSpinner(); // Hide spinner after data loading completes
+    hideSpinner();
   }
 }
-
 // Parse the CSV data for stories
 function parseStoryCSVData(data) {
-  Papa.parse(data, {
-    header: true,
-    skipEmptyLines: true,
-    chunkSize: 1024, // Parse in chunks to improve performance
-    chunk: function (results, parser) {
-      storyResults.push(
-        ...results.data.map((entry) => {
-          entry.titleNorwegian = entry.titleNorwegian.trim();
-          return entry;
-        })
-      );
-    },
-    complete: function () {
-      console.log("Parsed and cleaned story data:", storyResults);
-    },
-    error: function (error) {
-      console.error("Error parsing story CSV:", error);
-    },
-  });
+  const parsed = Papa.parse(data, { header: true, skipEmptyLines: true }).data;
+  storyResults = parsed.map((entry) => ({
+    ...entry,
+    titleNorwegian: (entry.titleNorwegian || "").trim(),
+  }));
+}
+
+// Helper function to determine CEFR class
+function getCefrClass(cefrLevel) {
+  if (!cefrLevel) return "cefr-unknown"; // Fallback for missing CEFR levels
+  const level = cefrLevel.toUpperCase();
+  if (["A1"].includes(level)) return "a1";
+  if (["A2"].includes(level)) return "a2";
+  if (["B1"].includes(level)) return "b1";
+  if (["B2"].includes(level)) return "b2";
+  if (["C"].includes(level)) return "c1";
+  if (["C1"].includes(level)) return "c1";
+  if (["C2"].includes(level)) return "c2";
+
+  return "cefr-unknown"; // Default
+}
+
+function updateEnglishVisibility() {
+  const englishSentences = document.querySelectorAll(".english-sentence");
+  const toggleEnglishBtn = document.getElementById("toggle-english-btn"); // Dynamically find the button
+  if (isEnglishVisible) {
+    englishSentences.forEach((sentence) => {
+      sentence.style.display = "block";
+    });
+    if (toggleEnglishBtn) toggleEnglishBtn.textContent = "Hide English";
+  } else {
+    englishSentences.forEach((sentence) => {
+      sentence.style.display = "none";
+    });
+    if (toggleEnglishBtn) toggleEnglishBtn.textContent = "Show English";
+  }
 }
 
 async function displayStoryList(filteredStories = storyResults) {
@@ -127,6 +144,13 @@ async function displayStoryList(filteredStories = storyResults) {
     .value.toLowerCase()
     .trim();
 
+  // NEW: read search text (support either id if your HTML differs)
+  const searchInput =
+    document.getElementById("search-bar") ||
+    document.getElementById("stories-search") ||
+    document.getElementById("global-search");
+  const searchText = (searchInput?.value || "").toLowerCase().trim();
+
   // Filter stories based on selected CEFR and genre
   let filtered = filteredStories.filter((story) => {
     const genreMatch = selectedGenre
@@ -135,7 +159,16 @@ async function displayStoryList(filteredStories = storyResults) {
     const cefrMatch = selectedCEFR
       ? story.CEFR && story.CEFR.trim().toUpperCase() === selectedCEFR
       : true;
-    return genreMatch && cefrMatch;
+    const hasNorwegian = story.norwegian && story.norwegian.trim() !== "";
+    // NEW: title search across ES + EN titles, like JP
+    const matchesSearch =
+      !searchText ||
+      (story.titleNorwegian &&
+        story.titleNorwegian.toLowerCase().includes(searchText)) ||
+      (story.titleEnglish &&
+        story.titleEnglish.toLowerCase().includes(searchText));
+
+    return genreMatch && cefrMatch && hasNorwegian && matchesSearch;
   });
 
   // Shuffle the filtered stories using Fisher-Yates algorithm
@@ -144,44 +177,81 @@ async function displayStoryList(filteredStories = storyResults) {
     [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
   }
 
-  // Generate HTML for the filtered, shuffled stories
-  let htmlString = ""; // Start with an empty string, as we don't need the header anymore.
-
-  for (const story of filtered) {
-    const cefrClass = getCefrClass(story.CEFR); // Determine the CEFR class for styling
-    const genreIcon = genreIcons[story.genre.toLowerCase()] || ""; // Get the appropriate genre icon
-
-    htmlString += `
-                <div class="stories-list-item" data-title="${
-                  story.titleNorwegian
-                }" onclick="displayStory('${story.titleNorwegian.replace(
-      /'/g,
-      "\\'"
-    )}')">
-                    <div class="stories-content">
-                        <h2>${story.titleNorwegian}</h2>
-                        ${
-                          story.titleNorwegian !== story.titleEnglish
-                            ? `<p class="stories-subtitle">${story.titleEnglish}</p>`
-                            : ""
-                        }
-                    </div>
-                    <div class="stories-detail-container">
-                        <div class="stories-genre">${genreIcon}</div>  <!-- Genre icon -->
-                        <div class="game-cefr-label ${cefrClass}">${
-      story.CEFR
-    }</div>  <!-- CEFR label -->
-                    </div>
-                </div>
-            `;
+  // ▶ NEW: populate <ul id="stories"> with <li> items (JP mirror)
+  const container = document.getElementById("results-container");
+  let storyList = document.getElementById("stories");
+  if (!storyList) {
+    storyList = document.createElement("ul");
+    storyList.id = "stories";
+    storyList.className = "stories-list";
+    container.appendChild(storyList);
   }
+  storyList.innerHTML = ""; // clear old list items
 
-  // Join the generated HTML for each story and insert into results container
-  document.getElementById("results-container").innerHTML = htmlString;
-  hideSpinner(); // Hide spinner after story list is rendered
+  filtered.forEach((story) => {
+    const li = document.createElement("li");
+    li.className = "stories-list-item"; // reuse your existing styling class
+    li.style.display = "flex";
+    li.style.justifyContent = "space-between";
+    li.style.alignItems = "center";
+
+    // left: titles (ES over EN if different)
+    const titleContainer = document.createElement("div");
+    titleContainer.classList.add("title-container");
+
+    const es = document.createElement("div");
+    es.classList.add("japanese-title"); // reuse existing class name to avoid CSS churn
+    es.textContent = story.titleNorwegian;
+
+    titleContainer.appendChild(es);
+
+    if (story.titleNorwegian !== story.titleEnglish) {
+      const en = document.createElement("div");
+      en.classList.add("english-title", "stories-subtitle");
+      en.textContent = story.titleEnglish || "";
+      titleContainer.appendChild(en);
+    }
+
+    // right: genre icon + CEFR
+    const detail = document.createElement("div");
+    detail.classList.add("stories-detail-container");
+
+    const genreDiv = document.createElement("div");
+    genreDiv.classList.add("stories-genre");
+    genreDiv.innerHTML =
+      (story.genre && genreIcons[story.genre.toLowerCase()]) || "";
+
+    const cefrDiv = document.createElement("div");
+    cefrDiv.classList.add("cefr-value", getCefrClass(story.CEFR));
+    cefrDiv.textContent = story.CEFR || "N/A";
+
+    detail.appendChild(genreDiv);
+    detail.appendChild(cefrDiv);
+
+    li.appendChild(titleContainer);
+    li.appendChild(detail);
+
+    // click → open reader (unchanged behavior)
+    li.addEventListener("click", () => displayStory(story.titleNorwegian));
+
+    storyList.appendChild(li);
+  });
+
+  // show list / hide reader (unchanged behavior)
+  const storyViewer = document.getElementById("story-viewer");
+  const storyContent = document.getElementById("story-content");
+  const stickyHeader = document.getElementById("sticky-header");
+
+  container.style.display = "block";
+  if (storyViewer) storyViewer.style.display = "none";
+  if (storyContent) storyContent.innerHTML = "";
+  if (stickyHeader) stickyHeader.classList.add("hidden");
+
+  hideSpinner();
 }
 
 async function displayStory(titleNorwegian) {
+  document.documentElement.classList.add("reading");
   showSpinner(); // Show spinner at the start of story loading
   const searchContainer = document.getElementById("search-container");
   const searchContainerInner = document.getElementById(
@@ -197,49 +267,42 @@ async function displayStory(titleNorwegian) {
   }
 
   document.title = selectedStory.titleNorwegian + " - Norwegian Dictionary";
+
   updateURL(null, "story", null, titleNorwegian); // Update URL with story parameter
 
   clearContainer();
 
-  if (!document.querySelector(".stories-story-header")) {
-    // Get genre icon and CEFR label
-    const genreIcon = genreIcons[selectedStory.genre.toLowerCase()] || "";
-    const cefrClass = getCefrClass(selectedStory.CEFR);
-    const headerHTML = `
-            <div class="stories-story-header">
-                <div class="stories-back-btn">
-                    <i class="fas fa-chevron-left" onclick="storiesBackBtn()"></i>
-                </div>
-                <div class="stories-title-container">
-                    <h2>${selectedStory.titleNorwegian}</h2>
-                    ${
-                      selectedStory.titleNorwegian !==
-                      selectedStory.titleEnglish
-                        ? `<p class="stories-subtitle">${selectedStory.titleEnglish}</p>`
-                        : ""
-                    }
-                </div>
-                <div class="stories-rightward-div">
-                    <div class="stories-detail-container" style="margin-left: 0px; margin-top: 5px;">
-                            <div class="stories-genre">${genreIcon}</div>  <!-- Genre icon -->
-                            <div class="game-cefr-label ${cefrClass}">${
-      selectedStory.CEFR
-    }</div>  <!-- CEFR label -->
-                    </div>
-                    <div class="stories-english-btn" onclick="toggleEnglishSentences()">
-                        <span class="desktop-text">Hide English</span>
-                        <span class="mobile-text">ENG</span>
-                    </div>
-                </div>
-            </div>
-        `;
+  // Get genre icon and CEFR label (mirror JP)
+  const genreIcon = genreIcons[selectedStory.genre.toLowerCase()] || "";
+  const cefrClass = getCefrClass(selectedStory.CEFR);
 
-    searchContainer.style.display = "block";
-    searchContainerInner.style.display = "none";
-    document
-      .getElementById("search-container")
-      .insertAdjacentHTML("beforeend", headerHTML);
-  }
+  const sticky = document.getElementById("sticky-header");
+  sticky.classList.remove("hidden");
+  sticky.innerHTML = `
+  <div class="sticky-detail-container">
+    <div class="sticky-row">
+      <div class="sticky-genre">
+        ${genreIcon}
+      </div>
+      <div class="sticky-cefr-label ${cefrClass}">
+        ${selectedStory.CEFR || "N/A"}
+      </div>
+    </div>
+    <button id="back-button" class="back-button">
+      <i class="fas fa-chevron-left"></i> Back
+    </button>
+  </div>
+`;
+
+  // Hide search UI while reading (mirrors JP’s “filters hidden while reading”)
+  if (searchContainer) searchContainer.style.display = "none";
+
+  // Wire the back button like JP (no inline attribute)
+  document
+    .getElementById("back-button")
+    ?.addEventListener("click", storiesBackBtn);
+  // Check for the image (mirror JP: EN title only)
+  const imageFileURL = await hasImageByEnglishTitle(selectedStory.titleEnglish);
 
   // Check for the audio file
   const audioFileURL = await hasAudio(selectedStory.titleEnglish);
@@ -247,17 +310,16 @@ async function displayStory(titleNorwegian) {
     ? `<audio controls src="${audioFileURL}" class="stories-audio-player"></audio>`
     : "";
   const audio = new Audio(audioFileURL);
-
-  // Generate content with sentences and optionally include the audio player
-  let contentHTML = `<div class="stories-sentences-container">`;
-
+  const imageHTML = imageFileURL
+    ? `<img src="${imageFileURL}" alt="${selectedStory.titleEnglish}" class="story-image">`
+    : "";
+  let contentHTML = imageHTML;
   // Function to finalize and display the story content, with or without audio
   const finalizeContent = (includeAudio = false) => {
     if (includeAudio) {
       contentHTML = audioHTML + contentHTML;
     }
 
-    // Loop to create sentence display
     for (let i = 0; i < norwegianSentences.length; i++) {
       const norwegianSentence = norwegianSentences[i].trim();
       const englishSentence = englishSentences[i]
@@ -265,27 +327,42 @@ async function displayStory(titleNorwegian) {
         : "";
 
       contentHTML += `
-                <div class="sentence-container">
-                    <div class="stories-sentence-box-norwegian">
-                        <div class="sentence-content">
-                            <p class="sentence">${norwegianSentence}</p>
-                        </div>
-                    </div>
-                    <div class="stories-sentence-box-english">
-                        <div class="sentence-content">
-                            <p class="sentence">${englishSentence}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
+    <div class="couplet">
+      <div class="japanese-sentence">${norwegianSentence}</div>
+      <div class="english-sentence">${englishSentence}</div>
+    </div>
+  `;
     }
 
     contentHTML += `</div>`;
 
-    // Append the rating div for this story
-    contentHTML += createRatingDiv(selectedStory.titleNorwegian);
+    const storyViewer = document.getElementById("story-viewer");
+    const storyContent = document.getElementById("story-content");
+    const listEl = document.getElementById("results-container");
 
-    document.getElementById("results-container").innerHTML = contentHTML;
+    if (storyContent) {
+      storyContent.innerHTML = contentHTML; // render story body into the reader pane
+      // Insert the sticky title above the first child (mirror JP order)
+      const titleNode = document.createElement("div");
+      titleNode.className = "sticky-title-container";
+      titleNode.innerHTML = `
+  <h2 class="sticky-title-japanese">${selectedStory.titleNorwegian}</h2>
+  ${
+    selectedStory.titleNorwegian !== selectedStory.titleEnglish
+      ? `<p class="sticky-title-english">${selectedStory.titleEnglish}</p>`
+      : ""
+  }
+`;
+      storyContent.insertBefore(titleNode, storyContent.firstChild);
+    }
+    // JP mirror: enforce current visibility state on first render
+    updateEnglishVisibility();
+    if (storyViewer) {
+      storyViewer.style.display = "block"; // show the reader pane
+    }
+    if (listEl) {
+      listEl.style.display = "none"; // hide the list while reading
+    }
     hideSpinner(); // Hide spinner after story content is displayed
   };
 
@@ -295,15 +372,40 @@ async function displayStory(titleNorwegian) {
     finalizeContent(false); // Display without audio
   };
   audio.onloadedmetadata = () => {
-    console.log(`Audio file found: ${audioFileURL}`);
-    finalizeContent(true); // Display with audio
+    // Mirror JP: append audio to #sticky-header
+    const stickyHeaderEl = document.getElementById("sticky-header");
+    if (stickyHeaderEl && audioHTML) {
+      const existing = stickyHeaderEl.querySelector(".stories-audio-player");
+      if (existing) existing.remove();
+      stickyHeaderEl.insertAdjacentHTML("beforeend", audioHTML);
+      // JP mirror: add the English toggle button into the sticky header
+      const toggleButtonsContainer = document.createElement("div");
+      toggleButtonsContainer.classList.add("toggle-buttons-container");
+      toggleButtonsContainer.innerHTML = `
+  <button id="toggle-english-btn" class="toggle-english-btn">
+    ${isEnglishVisible ? "Hide English" : "Show English"}
+  </button>
+`;
+      stickyHeaderEl.appendChild(toggleButtonsContainer);
+
+      // JP mirror: attach the click handler that flips state and refreshes visibility
+      document
+        .getElementById("toggle-english-btn")
+        ?.addEventListener("click", () => {
+          isEnglishVisible = !isEnglishVisible;
+          updateEnglishVisibility();
+        });
+    }
+
+    // Render content WITHOUT duplicating the audio at the top of the body
+    finalizeContent(false);
   };
 
   // Process story text into sentences
   const standardizedNorwegian = selectedStory.norwegian.replace(/[“”«»]/g, '"');
   const standardizedEnglish = selectedStory.english.replace(/[“”«»]/g, '"');
-  const sentenceRegex = /(?:(["]?.+?[.!?…]["]?)(?=\s|$)|(?:\.\.\."))/g;
-
+  const sentenceRegex =
+    /(?:(["]?.+?(?<!\bMr)(?<!\bMrs)(?<!\bMs)(?<!\bDr)(?<!\bProf)(?<!\bJr)(?<!\bSr)(?<!\bSt)(?<!\bMt)[.!?…]["]?)(?=\s|$)|(?:\.\.\."))/g;
   let norwegianSentences = standardizedNorwegian.match(sentenceRegex) || [
     standardizedNorwegian,
   ];
@@ -339,38 +441,24 @@ async function displayStory(titleNorwegian) {
 
 // Function to toggle the visibility of English sentences and update Norwegian box styles
 function toggleEnglishSentences() {
-  const englishSentenceDivs = document.querySelectorAll(
-    ".stories-sentence-box-english"
-  );
-  const norwegianSentenceDivs = document.querySelectorAll(
-    ".stories-sentence-box-norwegian"
-  );
+  const englishEls = document.querySelectorAll(".english-sentence");
   const englishBtn = document.querySelector(".stories-english-btn");
+  if (!englishBtn) return;
+
   const desktopText = englishBtn.querySelector(".desktop-text");
   const mobileText = englishBtn.querySelector(".mobile-text");
-  const isCurrentlyHidden = desktopText.textContent === "Show English";
+  const isCurrentlyHidden =
+    desktopText && desktopText.textContent === "Show English";
 
-  englishSentenceDivs.forEach((div, index) => {
-    if (isCurrentlyHidden) {
-      div.style.display = "block"; // Show the English div
-      norwegianSentenceDivs[index].style.borderRadius = ""; // Revert to default border-radius from CSS
-      norwegianSentenceDivs[index].style.boxShadow = ""; // Revert box-shadow to default
-    } else {
-      div.style.display = "none"; // Hide the English div
-      norwegianSentenceDivs[index].style.borderRadius = "12px"; // Add border-radius to Norwegian div
-      norwegianSentenceDivs[index].style.boxShadow =
-        "0 4px 10px rgba(0, 0, 0, 0.1)"; // Add shadow to Norwegian div
-    }
+  englishEls.forEach((el) => {
+    el.style.display = isCurrentlyHidden ? "" : "none";
   });
 
-  // Toggle the button text for both mobile and desktop
-  if (isCurrentlyHidden) {
-    desktopText.textContent = "Hide English";
-    mobileText.textContent = "ENG";
-  } else {
-    desktopText.textContent = "Show English";
-    mobileText.textContent = "ENG";
-  }
+  if (desktopText)
+    desktopText.textContent = isCurrentlyHidden
+      ? "Hide English"
+      : "Show English";
+  if (mobileText) mobileText.textContent = "ENG";
 }
 
 function handleGenreChange() {
@@ -399,9 +487,52 @@ function handleGenreChange() {
 }
 
 function storiesBackBtn() {
-  document.getElementById("type-select").value = "stories";
-  handleTypeChange("stories");
+  // JP parity: stop and remove any playing audio from the sticky header
+  const stickyHeader = document.getElementById("sticky-header");
+  if (stickyHeader) {
+    const players = stickyHeader.querySelectorAll(
+      "audio, .stories-audio-player"
+    );
+    players.forEach((p) => {
+      if (typeof p.pause === "function") p.pause();
+      try {
+        p.currentTime = 0;
+      } catch (_) {}
+      p.remove();
+    });
+    const toggles = stickyHeader.querySelector(".toggle-buttons-container");
+    if (toggles) toggles.remove();
+  }
+
+  // 1) Capture current CEFR/Genre BEFORE changing the UI
+  const cefrElBefore = document.getElementById("cefr-select");
+  const genreElBefore = document.getElementById("genre-select");
+  const savedCEFR = cefrElBefore ? cefrElBefore.value : "";
+  const savedGenre = genreElBefore ? genreElBefore.value : "";
+
+  // 2) Clear ONLY the search box (mirror JP)
+  const searchEl =
+    document.getElementById("search-bar") ||
+    document.getElementById("stories-search") ||
+    document.getElementById("global-search");
+  if (searchEl) searchEl.value = "";
+
+  // 3) If you must switch the type tab, do it now (this may rebuild the filters)
+  const typeSel = document.getElementById("type-select");
+  if (typeSel) typeSel.value = "stories";
+  if (typeof handleTypeChange === "function") handleTypeChange("stories");
+
+  // 4) Re-grab the (possibly re-rendered) selects and restore values
+  const cefrElAfter = document.getElementById("cefr-select");
+  const genreElAfter = document.getElementById("genre-select");
+  if (cefrElAfter) cefrElAfter.value = savedCEFR;
+  if (genreElAfter) genreElAfter.value = savedGenre;
+
+  // 5) Render the list using the restored dropdowns
   displayStoryList();
+
+  // 6) Exit reading mode
+  document.documentElement.classList.remove("reading");
 }
 
 // Helper function to remove the story header
@@ -450,68 +581,36 @@ async function hasAudio(titleEnglish) {
   return null; // Return null if no audio file is found
 }
 
-// Generate a rating div for each story
-function createRatingDiv(storyTitle) {
-  const formBaseUrl =
-    "https://docs.google.com/forms/d/e/1FAIpQLSeqBt_8Lli1uab2OrhCd7Lz5bYaSwzLO8CB28wKOxa_e45FmQ/formResponse";
-  const storyNameEntry = "entry.1887828067";
-  const ratingEntry = "entry.1582677227";
+// Check if an image exists based on the EN title (mirror JP logic)
+async function hasImageByEnglishTitle(titleEnglish) {
+  const sanitized = titleEnglish.endsWith("?")
+    ? titleEnglish.slice(0, -1)
+    : titleEnglish;
 
-  window.submitRating = function (rating, storyTitle) {
-    const formData = new FormData();
-    formData.append(storyNameEntry, storyTitle);
-    formData.append(ratingEntry, rating);
+  const encodedTitles = [
+    encodeURIComponent(titleEnglish),
+    encodeURIComponent(sanitized),
+  ];
 
-    fetch(formBaseUrl, {
-      method: "POST",
-      mode: "no-cors",
-      body: formData,
-    })
-      .then(() => {
-        alert("Thank you for rating this story!");
-      })
-      .catch((error) => {
-        console.error("Error submitting rating:", error);
-        alert("There was an issue submitting your rating. Please try again.");
-      });
-  };
+  const imageExtensions = ["webp", "jpg", "jpeg", "avif", "png", "gif"];
+  const imagePaths = encodedTitles.flatMap((encoded) =>
+    imageExtensions.map((ext) => `Resources/Images/${encoded}.${ext}`)
+  );
 
-  const ratingDiv = document.createElement("div");
-  ratingDiv.classList.add("stories-rating");
-  ratingDiv.innerHTML = `
-        <p>Rate this story:</p>
-        <div class="stories-star-rating">
-            ${[1, 2, 3, 4, 5]
-              .map(
-                (rating) => `
-                <span class="star" data-rating="${rating}" onclick="submitRating(${rating}, '${storyTitle}')">&#9733;</span>
-            `
-              )
-              .join("")}
-        </div>
-    `;
+  for (const path of imagePaths) {
+    try {
+      const res = await fetch(path, { method: "HEAD", cache: "no-cache" });
+      if (res.ok) return path;
+    } catch (e) {
+      console.warn("Error checking image for", path, e);
+    }
+  }
+  return null;
+}
 
-  const stars = ratingDiv.querySelectorAll(".star");
-  stars.forEach((star) => {
-    // Hover event to change the color up to the hovered star
-    star.addEventListener("mouseenter", () => {
-      const rating = star.getAttribute("data-rating");
-      stars.forEach((s) => {
-        if (s.getAttribute("data-rating") <= rating) {
-          s.style.color = "gold";
-        } else {
-          s.style.color = "gray";
-        }
-      });
-    });
-
-    // Mouseleave event to reset the color
-    star.addEventListener("mouseleave", () => {
-      stars.forEach((s) => (s.style.color = "gray"));
-    });
-  });
-
-  return ratingDiv.outerHTML;
+function isStoriesTabActive() {
+  const typeSelect = document.getElementById("type-select");
+  return typeSelect && typeSelect.value === "stories";
 }
 
 // Initialization on page load
@@ -520,4 +619,32 @@ window.addEventListener("DOMContentLoaded", async () => {
   await fetchAndLoadStoryData();
   // Now that the data is loaded, check the URL and display based on the URL parameters
   loadStateFromURL();
+
+  // After data is loaded, wire up live filtering like JP:
+  const searchEl =
+    document.getElementById("search-bar") ||
+    document.getElementById("stories-search") ||
+    document.getElementById("global-search");
+  if (searchEl) {
+    searchEl.addEventListener("input", () => {
+      if (isStoriesTabActive()) {
+        displayStoryList();
+      }
+    });
+  }
+  if (cefrEl) {
+    cefrEl.addEventListener("change", () => {
+      if (isStoriesTabActive()) {
+        displayStoryList();
+      }
+    });
+  }
+
+  if (genreEl) {
+    genreEl.addEventListener("change", () => {
+      if (isStoriesTabActive()) {
+        displayStoryList();
+      }
+    });
+  }
 });
