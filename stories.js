@@ -300,11 +300,30 @@ async function displayStory(titleNorwegian) {
     <button id="back-button" class="back-button">
       <i class="fas fa-chevron-left"></i> Back
     </button>
-    <div id="sticky-audio-slot"></div>
-    <div id="right-controls" class="right-controls"></div>
   </div>
+  <div id="sticky-audio-slot"></div>
+  <div id="right-controls" class="right-controls"></div>
 `;
 
+  const stickyHeaderEl = document.getElementById("sticky-header");
+  const audioSlot = document.getElementById("sticky-audio-slot");
+
+  stickyHeaderEl.style.display = "flex";
+  stickyHeaderEl.style.alignItems = "center";
+
+  // Let left and right stay their natural size, middle (audioSlot) expand
+  const left = stickyHeaderEl.querySelector(".sticky-detail-container");
+  const right = document.getElementById("right-controls");
+  if (left) left.style.flex = "0 0 auto";
+  if (right) right.style.flex = "0 0 auto";
+  if (audioSlot) {
+    audioSlot.style.flex = "1 1 auto"; // flex-grow so it fills available width
+    audioSlot.style.maxWidth = "100%"; // never overflow
+    const audioEl = audioSlot.querySelector("audio");
+    if (audioEl) {
+      audioEl.style.width = "100%"; // make the <audio> itself fill its slot
+    }
+  }
   // 2) Fill the left-side genre slot immediately
   const genreSlot = document.getElementById("sticky-genre-slot");
   if (genreSlot) genreSlot.innerHTML = genreIcon;
@@ -328,36 +347,42 @@ async function displayStory(titleNorwegian) {
       if (b) b.textContent = isEnglishVisible ? "Hide English" : "Show English";
     });
 
+  // DIAG 2: force a visible audio control even if the real file is missing
+  // REAL AUDIO: sanitize title and set src; fallback mp3 if m4a fails
+  {
+    const slot = document.getElementById("sticky-audio-slot");
+    if (slot) {
+      // Build a sanitized filename: strip trailing '?', trim, collapse spaces
+      const rawTitle = (selectedStory.titleEnglish || "")
+        .replace(/\?+$/, "")
+        .trim()
+        .replace(/\s+/g, " ");
+      const enc = encodeURIComponent(rawTitle);
+      const player = document.createElement("audio");
+      player.controls = true;
+      player.className = "stories-audio-player";
+      player.preload = "metadata";
+      player.src = `Resources/Audio/${enc}.m4a`;
+      player.onerror = () => {
+        // try mp3, then give up quietly
+        if (player.src.endsWith(".m4a")) {
+          player.onerror = () =>
+            console.warn("[AUDIO]", "mp3 also missing for:", rawTitle);
+          player.src = `Resources/Audio/${enc}.mp3`;
+        }
+      };
+      slot.innerHTML = "";
+      slot.appendChild(player);
+      console.log("[AUDIO] trying:", player.src);
+    }
+  }
+
   if (searchContainer) searchContainer.style.display = "none";
 
   document
     .getElementById("back-button")
     ?.addEventListener("click", storiesBackBtn);
 
-  // Now construct the Audio object
-
-  let audio;
-  if (audioFileURL) {
-    audio = new Audio(audioFileURL);
-    audio.onerror = () => {
-      console.log(`No audio file found for: ${audioFileURL}`);
-      finalizeContent(false);
-    };
-    audio.onloadedmetadata = () => {
-      const stickyHeaderEl = document.getElementById("sticky-header");
-      if (stickyHeaderEl && audioHTML) {
-        const existing = stickyHeaderEl.querySelector(".stories-audio-player");
-        if (existing) existing.remove();
-        stickyHeaderEl.insertAdjacentHTML("beforeend", audioHTML);
-      }
-
-      // MOVE the right controls to the end so they sit to the right of audio
-      const rc = document.getElementById("right-controls");
-      if (stickyHeaderEl && rc) stickyHeaderEl.appendChild(rc);
-
-      finalizeContent(false); // content renders; audio is in header already
-    };
-  }
   const imageHTML = imageFileURL
     ? `<img src="${imageFileURL}" alt="${selectedStory.titleEnglish}" class="story-image">`
     : "";
@@ -381,8 +406,6 @@ async function displayStory(titleNorwegian) {
     </div>
   `;
     }
-
-    contentHTML += `</div>`;
 
     const storyViewer = document.getElementById("story-viewer");
     const storyContent = document.getElementById("story-content");
@@ -451,10 +474,7 @@ async function displayStory(titleNorwegian) {
   norwegianSentences = combineSentences(norwegianSentences);
   englishSentences = combineSentences(englishSentences, /\basked\b/i);
 
-  // After you finish building norwegianSentences and englishSentences:
-  if (!audioFileURL) {
-    finalizeContent(false);
-  }
+  finalizeContent(false);
 }
 
 // Function to toggle the visibility of English sentences and update Norwegian box styles
