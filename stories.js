@@ -302,6 +302,27 @@ async function displayStory(titleNorwegian) {
   </div>
 `;
 
+  // after: sticky.innerHTML = `...header markup...`;
+  const rightControls = document.createElement("div");
+  rightControls.id = "right-controls";
+  rightControls.className = "right-controls";
+  rightControls.innerHTML = `
+  <button id="toggle-english-btn" class="toggle-english-btn">
+    ${isEnglishVisible ? "Hide English" : "Show English"}
+  </button>
+`;
+  sticky.appendChild(rightControls);
+
+  document
+    .getElementById("toggle-english-btn")
+    ?.addEventListener("click", () => {
+      isEnglishVisible = !isEnglishVisible;
+      updateEnglishVisibility();
+      // keep label accurate:
+      const b = document.getElementById("toggle-english-btn");
+      if (b) b.textContent = isEnglishVisible ? "Hide English" : "Show English";
+    });
+
   if (searchContainer) searchContainer.style.display = "none";
 
   document
@@ -310,7 +331,28 @@ async function displayStory(titleNorwegian) {
 
   // Now construct the Audio object
 
-  const audio = new Audio(audioFileURL);
+  let audio;
+  if (audioFileURL) {
+    audio = new Audio(audioFileURL);
+    audio.onerror = () => {
+      console.log(`No audio file found for: ${audioFileURL}`);
+      finalizeContent(false);
+    };
+    audio.onloadedmetadata = () => {
+      const stickyHeaderEl = document.getElementById("sticky-header");
+      if (stickyHeaderEl && audioHTML) {
+        const existing = stickyHeaderEl.querySelector(".stories-audio-player");
+        if (existing) existing.remove();
+        stickyHeaderEl.insertAdjacentHTML("beforeend", audioHTML);
+      }
+
+      // MOVE the right controls to the end so they sit to the right of audio
+      const rc = document.getElementById("right-controls");
+      if (stickyHeaderEl && rc) stickyHeaderEl.appendChild(rc);
+
+      finalizeContent(false); // content renders; audio is in header already
+    };
+  }
   const imageHTML = imageFileURL
     ? `<img src="${imageFileURL}" alt="${selectedStory.titleEnglish}" class="story-image">`
     : "";
@@ -367,41 +409,6 @@ async function displayStory(titleNorwegian) {
     hideSpinner(); // Hide spinner after story content is displayed
   };
 
-  // Check if the audio file exists before finalizing content
-  audio.onerror = () => {
-    console.log(`No audio file found for: ${audioFileURL}`);
-    finalizeContent(false); // Display without audio
-  };
-  audio.onloadedmetadata = () => {
-    // Mirror JP: append audio to #sticky-header
-    const stickyHeaderEl = document.getElementById("sticky-header");
-    if (stickyHeaderEl && audioHTML) {
-      const existing = stickyHeaderEl.querySelector(".stories-audio-player");
-      if (existing) existing.remove();
-      stickyHeaderEl.insertAdjacentHTML("beforeend", audioHTML);
-      // JP mirror: add the English toggle button into the sticky header
-      const toggleButtonsContainer = document.createElement("div");
-      toggleButtonsContainer.classList.add("toggle-buttons-container");
-      toggleButtonsContainer.innerHTML = `
-  <button id="toggle-english-btn" class="toggle-english-btn">
-    ${isEnglishVisible ? "Hide English" : "Show English"}
-  </button>
-`;
-      stickyHeaderEl.appendChild(toggleButtonsContainer);
-
-      // JP mirror: attach the click handler that flips state and refreshes visibility
-      document
-        .getElementById("toggle-english-btn")
-        ?.addEventListener("click", () => {
-          isEnglishVisible = !isEnglishVisible;
-          updateEnglishVisibility();
-        });
-    }
-
-    // Render content WITHOUT duplicating the audio at the top of the body
-    finalizeContent(false);
-  };
-
   // Process story text into sentences
   const standardizedNorwegian = selectedStory.norwegian.replace(/[“”«»]/g, '"');
   const standardizedEnglish = selectedStory.english.replace(/[“”«»]/g, '"');
@@ -438,6 +445,11 @@ async function displayStory(titleNorwegian) {
 
   norwegianSentences = combineSentences(norwegianSentences);
   englishSentences = combineSentences(englishSentences, /\basked\b/i);
+
+  // After you finish building norwegianSentences and englishSentences:
+  if (!audioFileURL) {
+    finalizeContent(false);
+  }
 }
 
 // Function to toggle the visibility of English sentences and update Norwegian box styles
