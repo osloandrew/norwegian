@@ -281,7 +281,6 @@ async function displayStory(titleNorwegian) {
     ? `<audio controls src="${audioFileURL}" class="stories-audio-player"></audio>`
     : "";
   // Build sticky header here, just before audio is constructed
-  // Build sticky header here, just before audio is constructed
   const genreIcon = genreIcons[selectedStory.genre.toLowerCase()] || "";
   const cefrClass = getCefrClass(selectedStory.CEFR);
 
