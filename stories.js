@@ -272,7 +272,15 @@ async function displayStory(titleNorwegian) {
 
   clearContainer();
 
-  // Get genre icon and CEFR label (mirror JP)
+  // Check for the image (mirror JP: EN title only)
+  const imageFileURL = await hasImageByEnglishTitle(selectedStory.titleEnglish);
+
+  // Check for the audio file
+  const audioFileURL = await hasAudio(selectedStory.titleEnglish);
+  const audioHTML = audioFileURL
+    ? `<audio controls src="${audioFileURL}" class="stories-audio-player"></audio>`
+    : "";
+  // Build sticky header here, just before audio is constructed
   const genreIcon = genreIcons[selectedStory.genre.toLowerCase()] || "";
   const cefrClass = getCefrClass(selectedStory.CEFR);
 
@@ -294,21 +302,14 @@ async function displayStory(titleNorwegian) {
   </div>
 `;
 
-  // Hide search UI while reading (mirrors JP’s “filters hidden while reading”)
   if (searchContainer) searchContainer.style.display = "none";
 
-  // Wire the back button like JP (no inline attribute)
   document
     .getElementById("back-button")
     ?.addEventListener("click", storiesBackBtn);
-  // Check for the image (mirror JP: EN title only)
-  const imageFileURL = await hasImageByEnglishTitle(selectedStory.titleEnglish);
 
-  // Check for the audio file
-  const audioFileURL = await hasAudio(selectedStory.titleEnglish);
-  const audioHTML = audioFileURL
-    ? `<audio controls src="${audioFileURL}" class="stories-audio-player"></audio>`
-    : "";
+  // Now construct the Audio object
+
   const audio = new Audio(audioFileURL);
   const imageHTML = imageFileURL
     ? `<img src="${imageFileURL}" alt="${selectedStory.titleEnglish}" class="story-image">`
