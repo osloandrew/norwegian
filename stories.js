@@ -281,44 +281,49 @@ async function displayStory(titleNorwegian) {
     ? `<audio controls src="${audioFileURL}" class="stories-audio-player"></audio>`
     : "";
   // Build sticky header here, just before audio is constructed
+  // Build sticky header here, just before audio is constructed
   const genreIcon = genreIcons[selectedStory.genre.toLowerCase()] || "";
   const cefrClass = getCefrClass(selectedStory.CEFR);
 
   const sticky = document.getElementById("sticky-header");
   sticky.classList.remove("hidden");
+
+  // 1) Render a stable skeleton with fixed slots so layout never reflows
   sticky.innerHTML = `
   <div class="sticky-detail-container">
     <div class="sticky-row">
-      <div class="sticky-genre">
-        ${genreIcon}
-      </div>
-      <div class="sticky-cefr-label ${cefrClass}">
+      <div class="sticky-genre" id="sticky-genre-slot"></div>
+      <div class="sticky-cefr-label ${cefrClass}" id="sticky-cefr-slot">
         ${selectedStory.CEFR || "N/A"}
       </div>
     </div>
     <button id="back-button" class="back-button">
       <i class="fas fa-chevron-left"></i> Back
     </button>
+    <div id="sticky-audio-slot"></div>
+    <div id="right-controls" class="right-controls"></div>
   </div>
 `;
 
-  // after: sticky.innerHTML = `...header markup...`;
-  const rightControls = document.createElement("div");
-  rightControls.id = "right-controls";
-  rightControls.className = "right-controls";
-  rightControls.innerHTML = `
-  <button id="toggle-english-btn" class="toggle-english-btn">
-    ${isEnglishVisible ? "Hide English" : "Show English"}
-  </button>
-`;
-  sticky.appendChild(rightControls);
+  // 2) Fill the left-side genre slot immediately
+  const genreSlot = document.getElementById("sticky-genre-slot");
+  if (genreSlot) genreSlot.innerHTML = genreIcon;
+
+  // 3) Create the English toggle once, in its fixed slot (no later moves)
+  const rc = document.getElementById("right-controls");
+  if (rc) {
+    rc.innerHTML = `
+    <button id="toggle-english-btn" class="toggle-english-btn">
+      ${isEnglishVisible ? "Hide English" : "Show English"}
+    </button>
+  `;
+  }
 
   document
     .getElementById("toggle-english-btn")
     ?.addEventListener("click", () => {
       isEnglishVisible = !isEnglishVisible;
       updateEnglishVisibility();
-      // keep label accurate:
       const b = document.getElementById("toggle-english-btn");
       if (b) b.textContent = isEnglishVisible ? "Hide English" : "Show English";
     });
