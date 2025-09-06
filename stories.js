@@ -440,7 +440,7 @@ async function displayStory(titleNorwegian) {
   const standardizedNorwegian = selectedStory.norwegian.replace(/[“”«»]/g, '"');
   const standardizedEnglish = selectedStory.english.replace(/[“”«»]/g, '"');
   const sentenceRegex =
-    /(?:(["]?.+?(?<!\bMr)(?<!\bMrs)(?<!\bMs)(?<!\bDr)(?<!\bProf)(?<!\bJr)(?<!\bSr)(?<!\bSt)(?<!\bMt)[.!?…]["]?)(?=\s|$)|(?:\.\.\."))/g;
+    /(?:(["]?.+?(?<!\bMr)(?<!\bMrs)(?<!\bMs)(?<!\bDr)(?<!\bProf)(?<!\bJr)(?<!\bSr)(?<!\bSt)(?<!\bMt)[.!?]["]?)(?=\s|$)|(?:\.\.\."))/g;
   let norwegianSentences = standardizedNorwegian.match(sentenceRegex) || [
     standardizedNorwegian,
   ];
