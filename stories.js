@@ -351,7 +351,7 @@ async function displayStory(titleNorwegian) {
     speedBtn.className = engBtn.className;
     speedBtn.textContent = "1.0×";
     // Small vertical spacing without touching your CSS
-    speedBtn.style.marginBottom = "8px";
+    speedBtn.style.marginBottom = "5px";
 
     // Insert above the English button
     rc.insertBefore(speedBtn, engBtn);
