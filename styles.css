@@ -17,6 +17,7 @@ audio {
 }
 
 #back-button,
+#speed-btn,
 #toggle-english-btn,
 .toggle-kanji-btn {
   background-color: #f4f4f4; /* Neutral light gray */
@@ -35,6 +36,7 @@ audio {
 }
 
 #back-button:hover,
+#speed-btn:hover,
 #toggle-english-btn:hover,
 .toggle-kanji-btn:hover {
   background-color: gainsboro; /* Slightly darker purple on hover */
@@ -1150,6 +1152,11 @@ ul {
   text-align: left;
   width: 50%;
 }
+
+#right-controls {
+  display: flex;
+  flex-direction: column;
+}
 .search-bar-wrapper,
 .type-filter,
 .pos-filter,
@@ -1921,6 +1928,7 @@ ul {
 
 @media (max-width: 1024px) {
   #back-button,
+  #speed-btn,
   #toggle-english-btn,
   .toggle-kanji-btn {
     font-size: 10px;
