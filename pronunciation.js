@@ -2,7 +2,15 @@
 let pronunciationResults = [];
 
 function buildPronAudioUrl(sentenceText) {
-  return `/Resources/Sentences/${sentenceText.trim().replace(/\?$/, "")}.m4a`;
+  const base =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+      ? "" // local dev server
+      : "/norwegian"; // GitHub Pages repo name
+
+  return `${base}/Resources/Sentences/${sentenceText
+    .trim()
+    .replace(/\?$/, "")}.m4a`;
 }
 
 async function computeSimilarity(nativeUrl, userUrl) {
