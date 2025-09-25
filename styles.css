@@ -2186,6 +2186,10 @@ ul {
     justify-content: center; /* Vertically center the word and gender within their container */
   }
 
+  .practice-row {
+    display: block;
+  }
+
   /* Adjust pronunciation table for mobile */
   .pronunciation-table,
   .pronunciation-table tbody,
