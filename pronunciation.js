@@ -25,51 +25,39 @@ async function computeSimilarity(nativeUrl, userUrl) {
     ctx.decodeAudioData(userBuf),
   ]);
 
-  // First channel
-  const nativeData = nativeAudio.getChannelData(0);
-  const userData = userAudio.getChannelData(0);
-
-  // --- Feature extraction: short-time energy + zero-crossing rate ---
-  function extractFeatures(data, targetLength = 200) {
-    const blockSize = Math.floor(data.length / targetLength);
-    const features = [];
-    for (let i = 0; i < targetLength; i++) {
-      const start = i * blockSize;
-      const end = start + blockSize;
-      let sumEnergy = 0,
-        zeroCrossings = 0;
-      for (let j = start; j < end && j < data.length; j++) {
-        const val = data[j];
-        sumEnergy += val * val; // energy
-        if (j > start && data[j - 1] > 0 !== val > 0) {
-          zeroCrossings++;
-        }
+  function extractMFCCSequence(audioBuffer, hopSize = 1024) {
+    const channel = audioBuffer.getChannelData(0);
+    const seq = [];
+    for (let i = 0; i < channel.length - hopSize; i += hopSize) {
+      const frame = channel.slice(i, i + hopSize);
+      const features = Meyda.extract("mfcc", frame);
+      if (features) {
+        const energy = frame.reduce((s, v) => s + v * v, 0) / hopSize;
+        if (energy > 1e-6) seq.push(features);
       }
-      const avgEnergy = Math.sqrt(sumEnergy / blockSize);
-      const zcr = zeroCrossings / blockSize;
-      features.push([avgEnergy, zcr]);
     }
-    // Normalize each dimension
-    const maxE = Math.max(...features.map((f) => f[0])) || 1;
-    const maxZ = Math.max(...features.map((f) => f[1])) || 1;
-    return features.map((f) => [f[0] / maxE, f[1] / maxZ]);
+    return seq;
   }
 
-  const n = extractFeatures(nativeData);
-  const u = extractFeatures(userData, n.length);
-
-  // --- DTW distance over feature vectors ---
-  function dtwDistance(a, b) {
+  function dtwMFCC(a, b) {
     const n = a.length,
       m = b.length;
     const dp = Array.from({ length: n + 1 }, () => Array(m + 1).fill(Infinity));
     dp[0][0] = 0;
     for (let i = 1; i <= n; i++) {
       for (let j = 1; j <= m; j++) {
-        const cost = Math.hypot(
-          a[i - 1][0] - b[j - 1][0],
-          a[i - 1][1] - b[j - 1][1]
-        );
+        const vecA = a[i - 1],
+          vecB = b[j - 1];
+        let dot = 0,
+          na = 0,
+          nb = 0;
+        for (let k = 0; k < vecA.length; k++) {
+          dot += vecA[k] * vecB[k];
+          na += vecA[k] * vecA[k];
+          nb += vecB[k] * vecB[k];
+        }
+        const sim = dot / (Math.sqrt(na) * Math.sqrt(nb) || 1); // -1..1
+        const cost = 1 - (sim + 1) / 2; // 0 = identical, 1 = opposite
         dp[i][j] =
           cost + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
       }
@@ -77,47 +65,30 @@ async function computeSimilarity(nativeUrl, userUrl) {
     return dp[n][m] / (n + m);
   }
 
-  const dist = dtwDistance(n, u);
+  const mfccN = extractMFCCSequence(nativeAudio);
+  const mfccU = extractMFCCSequence(userAudio);
 
-  // --- Correlation check ---
-  function correlation(a, b) {
-    const len = Math.min(a.length, b.length);
-    let meanA = 0,
-      meanB = 0;
-    for (let i = 0; i < len; i++) {
-      meanA += a[i][0]; // energy only
-      meanB += b[i][0];
-    }
-    meanA /= len;
-    meanB /= len;
-    let num = 0,
-      denA = 0,
-      denB = 0;
-    for (let i = 0; i < len; i++) {
-      const da = a[i][0] - meanA;
-      const db = b[i][0] - meanB;
-      num += da * db;
-      denA += da * da;
-      denB += db * db;
-    }
-    return num / (Math.sqrt(denA * denB) || 1);
+  if (!mfccN.length || !mfccU.length) {
+    console.log("No voiced frames — returning 0");
+    return 0;
   }
 
-  const corr = correlation(n, u);
+  const dist = dtwMFCC(mfccN, mfccU);
 
-  // --- Convert distance + correlation → similarity score ---
-  const scale = 250;
-  const dtwScore = Math.max(0, 100 - dist * scale);
+  // Make DTW distance count much more
+  let raw = Math.exp(-dist * 20);
 
-  // Blend DTW score with correlation (instead of multiplying)
-  const corrScore = Math.max(0, Math.min(100, (corr + 1) * 50)); // map [-1,1] → [0,100]
-  let score = 0.8 * dtwScore + 0.2 * corrScore;
+  // Non-linear penalty: exaggerates mid/low scores
+  raw = Math.pow(raw, 2);
 
-  // Silence guard
-  const meanEnergy = userData.reduce((a, v) => a + v * v, 0) / userData.length;
-  if (meanEnergy < 1e-5) score = 0;
+  // Map into [0,1]
+  const normalized = Math.min(Math.max(raw, 0), 1);
 
-  return Math.round(score);
+  // Convert to percentage
+  const score = Math.round(normalized * 100);
+
+  console.log("DTW-MFCC similarity:", { dist, raw, score });
+  return score;
 }
 
 // Entry point: called when Pronunciation tab is activated
