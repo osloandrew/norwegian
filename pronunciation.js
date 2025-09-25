@@ -57,7 +57,7 @@ async function computeSimilarity(nativeUrl, userUrl) {
           nb += vecB[k] * vecB[k];
         }
         const sim = dot / (Math.sqrt(na) * Math.sqrt(nb) || 1); // -1..1
-        const cost = 1 - (sim + 1) / 2; // 0 = identical, 1 = opposite
+        const cost = 1 - (sim + 1) / 2; // 0=identical, 1=opposite
         dp[i][j] =
           cost + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
       }
@@ -75,16 +75,13 @@ async function computeSimilarity(nativeUrl, userUrl) {
 
   const dist = dtwMFCC(mfccN, mfccU);
 
-  // Make DTW distance count much more
-  let raw = Math.exp(-dist * 20);
+  // Softer slope than before: 12 instead of 20
+  let raw = Math.exp(-dist * 12);
 
-  // Non-linear penalty: exaggerates mid/low scores
-  raw = Math.pow(raw, 2);
+  // Softer nonlinearity: sqrt instead of square
+  raw = Math.sqrt(raw);
 
-  // Map into [0,1]
   const normalized = Math.min(Math.max(raw, 0), 1);
-
-  // Convert to percentage
   const score = Math.round(normalized * 100);
 
   console.log("DTW-MFCC similarity:", { dist, raw, score });
