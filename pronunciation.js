@@ -224,12 +224,10 @@ function showRandomPronunciation() {
         <div id="user-waveform"></div>
 <div class="user-controls">
   <button id="start-recording">🎙️ Start Recording</button>
-  <div id="recording-actions" style="display:none;">
     <button id="stop-recording">⏹️ Stop Recording</button>
     <button id="reset-recording">🔄 Reset</button>
     <button id="user-play">▶️ Play</button>
     <button id="user-pause">⏸️ Pause</button>
-  </div>
 </div>
       </div>
     </div>
@@ -240,12 +238,21 @@ function showRandomPronunciation() {
 
   resultsContainer.innerHTML = sentenceHTML;
 
+  let mediaRec; // inside showRandomPronunciation after HTML is injected
   let mediaRecorder;
   let recordedChunks = [];
 
   const startBtn = document.getElementById("start-recording");
   const stopBtn = document.getElementById("stop-recording");
   const resetBtn = document.getElementById("reset-recording");
+  const playBtn = document.getElementById("user-play");
+  const pauseBtn = document.getElementById("user-pause");
+
+  // initial state
+  stopBtn.style.display = "none";
+  resetBtn.style.display = "none";
+  playBtn.style.display = "none";
+  pauseBtn.style.display = "none";
 
   startBtn.addEventListener("click", async () => {
     recordedChunks = [];
@@ -279,24 +286,59 @@ function showRandomPronunciation() {
         ).textContent = `🎯 Similarity Score: ${score}%`;
       });
 
-      // Enable playback + reset after recording finishes
-      const playBtn = document.getElementById("user-play");
-      const pauseBtn = document.getElementById("user-pause");
+      // after recording finishes
+      resetBtn.style.display = "inline-block";
+      playBtn.style.display = "inline-block";
+      pauseBtn.style.display = "inline-block";
 
-      playBtn.disabled = false;
-      pauseBtn.disabled = false;
-      document.getElementById("reset-recording").disabled = false;
-
-      // 🔹 Attach handlers
       playBtn.onclick = () => window.wavesurferUser.play();
       pauseBtn.onclick = () => window.wavesurferUser.pause();
     };
 
     mediaRecorder.start();
 
-    // Toggle visibility
+    // button states while recording
     startBtn.style.display = "none";
-    document.getElementById("recording-actions").style.display = "block";
+    stopBtn.style.display = "inline-block";
+    resetBtn.style.display = "none";
+    playBtn.style.display = "none";
+    pauseBtn.style.display = "none";
+  });
+
+  stopBtn.addEventListener("click", () => {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+    }
+    stopBtn.style.display = "none";
+  });
+
+  resetBtn.addEventListener("click", () => {
+    if (window.wavesurferUser && window.wavesurferUser.destroy) {
+      window.wavesurferUser.destroy();
+    }
+    document.getElementById("user-waveform").innerHTML = "";
+
+    // dummy waveform
+    const silenceBlob = new Blob([new Uint8Array([0])], { type: "audio/webm" });
+    const silenceUrl = URL.createObjectURL(silenceBlob);
+    window.wavesurferUser = WaveSurfer.create({
+      container: "#user-waveform",
+      waveColor: "#ccc",
+      progressColor: "#28a745",
+      height: 80,
+      cursorColor: "#28a745",
+    });
+    window.wavesurferUser.load(silenceUrl);
+
+    // reset buttons
+    startBtn.style.display = "inline-block";
+    stopBtn.style.display = "none";
+    resetBtn.style.display = "none";
+    playBtn.style.display = "none";
+    pauseBtn.style.display = "none";
+
+    const scoreEl = document.getElementById("comparison-score");
+    if (scoreEl) scoreEl.textContent = "";
   });
 
   stopBtn.addEventListener("click", () => {
