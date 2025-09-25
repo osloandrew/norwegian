@@ -1269,6 +1269,17 @@ ul {
   gap: 10px;
 }
 
+.sentence-box-practice {
+  align-content: center;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  justify-content: center; /* Center the title */
+  align-items: center;
+  position: relative; /* Set relative position for positioning the icon */
+}
+
 .sentence-btn {
   background-color: #ffffff; /* Subtle, lighter background */
   border: none !important; /* Thin maroon border */

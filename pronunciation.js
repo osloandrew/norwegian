@@ -69,38 +69,137 @@ function showRandomPronunciation() {
 
   // Build sentence HTML
   let sentenceHTML = `
-    <div class="result-header">
-      <h2>Random Pronunciation Sentence</h2>
-    </div>
-    <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations(this)">
-      ${pronunciationEnglishVisible ? "Hide English" : "Show English"}
-    </button>
-    <div class="sentence-container">
-      <div class="sentence-box-norwegian ${
-        !pronunciationEnglishVisible ? "sentence-box-norwegian-hidden" : ""
-      }">
-        <div class="sentence-content">
-          ${cefrLabel}
-          <p class="sentence">${selectedNorwegian}</p>
-          <audio controls autoplay onerror="showRandomPronunciation()">
-            <source src="${audioFile}" type="audio/mp4">
-            <source src="${audioFile}">
-          </audio>
-        </div>
+  <div class="result-header">
+    <h2>Random Pronunciation Sentence</h2>
+  </div>
+  <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations(this)">
+    ${pronunciationEnglishVisible ? "Hide English" : "Show English"}
+  </button>
+  <div class="sentence-container">
+    <div class="sentence-box-norwegian ${
+      !pronunciationEnglishVisible ? "sentence-box-norwegian-hidden" : ""
+    }">
+      <div class="sentence-content">
+        ${cefrLabel}
+        <p class="sentence">${selectedNorwegian}</p>
+        <audio controls autoplay onerror="showRandomPronunciation()">
+          <source src="${audioFile}" type="audio/mp4">
+          <source src="${audioFile}">
+        </audio>
       </div>
-  `;
+    </div>
+`;
 
+  // English translation box if available
   if (selectedTranslation) {
     sentenceHTML += `
-      <div class="sentence-box-english" style="display: ${
-        pronunciationEnglishVisible ? "block" : "none"
-      };">
-        <p class="sentence">${selectedTranslation}</p>
-      </div>
-    `;
+    <div class="sentence-box-english" style="display: ${
+      pronunciationEnglishVisible ? "block" : "none"
+    };">
+      <p class="sentence">${selectedTranslation}</p>
+    </div>
+  `;
   }
 
   sentenceHTML += "</div>"; // close .sentence-container
 
+  // 🔹 New dedicated practice box
+  sentenceHTML += `
+  <div class="sentence-box-practice">
+    <div class="sentence-content">
+      <h3>Practice</h3>
+      <div class="practice-row">
+        <div class="native-col">
+          <p><strong>Native</strong></p>
+          <div id="waveform"></div>
+        </div>
+        <div class="user-col">
+          <p><strong>You</strong></p>
+          <div id="user-waveform"></div>
+          <div id="user-playback"></div>
+        </div>
+      </div>
+      <div id="recording-controls">
+        <button id="start-recording">🎙️ Start Recording</button>
+        <button id="stop-recording" disabled>⏹️ Stop Recording</button>
+        <button id="reset-recording" disabled>🔄 Reset</button>
+      </div>
+    </div>
+  </div>
+</div> <!-- close .sentence-container -->
+`;
+
   resultsContainer.innerHTML = sentenceHTML;
+  // Visualize native audio
+  const wavesurfer = WaveSurfer.create({
+    container: "#waveform",
+    waveColor: "#ccc",
+    progressColor: "#007bff",
+    height: 80,
+  });
+  wavesurfer.load(audioFile);
+  let mediaRecorder;
+  let recordedChunks = [];
+
+  const startBtn = document.getElementById("start-recording");
+  const stopBtn = document.getElementById("stop-recording");
+  const resetBtn = document.getElementById("reset-recording");
+
+  startBtn.addEventListener("click", async () => {
+    recordedChunks = [];
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) recordedChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: "audio/webm" });
+      const url = URL.createObjectURL(blob);
+
+      // Destroy any previous waveform if it exists
+      if (window.userWave && window.userWave.destroy) {
+        window.userWave.destroy();
+      }
+
+      // Create user waveform
+      window.userWave = WaveSurfer.create({
+        container: "#user-waveform",
+        waveColor: "#ccc",
+        progressColor: "#28a745",
+        height: 80,
+      });
+      window.userWave.load(url);
+
+      // Playback button below waveform
+      document.getElementById(
+        "user-playback"
+      ).innerHTML = `<audio controls src="${url}"></audio>`;
+
+      resetBtn.disabled = false;
+    };
+
+    mediaRecorder.start();
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+    resetBtn.disabled = true;
+  });
+
+  stopBtn.addEventListener("click", () => {
+    mediaRecorder.stop();
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+  });
+
+  resetBtn.addEventListener("click", () => {
+    // Clear user waveform + playback
+    document.getElementById("user-waveform").innerHTML = "";
+    document.getElementById("user-playback").innerHTML = "";
+
+    // Reset button states
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+    resetBtn.disabled = true;
+  });
 }
