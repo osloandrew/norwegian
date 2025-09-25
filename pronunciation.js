@@ -118,13 +118,11 @@ function showRandomPronunciation() {
         <div class="user-controls">
           <button id="user-play" disabled>▶️ Play</button>
           <button id="user-pause" disabled>⏸️ Pause</button>
+          <button id="start-recording">🎙️ Start Recording</button>
+          <button id="stop-recording" disabled>⏹️ Stop Recording</button>
+          <button id="reset-recording" disabled>🔄 Reset</button>
         </div>
       </div>
-    </div>
-    <div id="recording-controls">
-      <button id="start-recording">🎙️ Start Recording</button>
-      <button id="stop-recording" disabled>⏹️ Stop Recording</button>
-      <button id="reset-recording" disabled>🔄 Reset</button>
     </div>
 </div>
 `;
@@ -150,12 +148,10 @@ function showRandomPronunciation() {
       const blob = new Blob(recordedChunks, { type: "audio/webm" });
       const url = URL.createObjectURL(blob);
 
-      // Destroy old user waveform if any
       if (window.wavesurferUser && window.wavesurferUser.destroy) {
         window.wavesurferUser.destroy();
       }
 
-      // Create new user waveform
       window.wavesurferUser = WaveSurfer.create({
         container: "#user-waveform",
         waveColor: "#ccc",
@@ -165,39 +161,61 @@ function showRandomPronunciation() {
       });
       window.wavesurferUser.load(url);
 
-      // Enable play/pause buttons
-      document.getElementById("user-play").disabled = false;
-      document.getElementById("user-pause").disabled = false;
-      document.getElementById("user-play").onclick = () =>
-        window.wavesurferUser.play();
-      document.getElementById("user-pause").onclick = () =>
-        window.wavesurferUser.pause();
+      // Enable playback + reset
+      const playBtn = document.getElementById("user-play");
+      const pauseBtn = document.getElementById("user-pause");
 
+      playBtn.disabled = false;
+      pauseBtn.disabled = false;
       resetBtn.disabled = false;
+
+      // 🔹 Hook up handlers
+      playBtn.onclick = () => window.wavesurferUser.play();
+      pauseBtn.onclick = () => window.wavesurferUser.pause();
     };
 
     mediaRecorder.start();
+
+    // toggle button states
     startBtn.disabled = true;
     stopBtn.disabled = false;
     resetBtn.disabled = true;
+    document.getElementById("user-play").disabled = true;
+    document.getElementById("user-pause").disabled = true;
   });
 
   stopBtn.addEventListener("click", () => {
-    mediaRecorder.stop();
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+      stopBtn.disabled = true; // disable stop after use
+      // leave Start disabled until Reset
+    }
   });
 
-  // Reset button
   resetBtn.addEventListener("click", () => {
     if (window.wavesurferUser && window.wavesurferUser.destroy) {
       window.wavesurferUser.destroy();
     }
     document.getElementById("user-waveform").innerHTML = "";
 
+    // reload dummy waveform
+    const silenceBlob = new Blob([new Uint8Array([0])], { type: "audio/webm" });
+    const silenceUrl = URL.createObjectURL(silenceBlob);
+    window.wavesurferUser = WaveSurfer.create({
+      container: "#user-waveform",
+      waveColor: "#ccc",
+      progressColor: "#28a745",
+      height: 80,
+      cursorColor: "#28a745",
+    });
+    window.wavesurferUser.load(silenceUrl);
+
+    // reset buttons
     startBtn.disabled = false;
     stopBtn.disabled = true;
     resetBtn.disabled = true;
+    document.getElementById("user-play").disabled = true;
+    document.getElementById("user-pause").disabled = true;
   });
 
   // Native waveform
@@ -223,4 +241,21 @@ function showRandomPronunciation() {
     window.wavesurferNative.play();
   document.getElementById("native-pause").onclick = () =>
     window.wavesurferNative.pause();
+
+  // Dummy "You" waveform so layout always matches
+  if (window.wavesurferUser && window.wavesurferUser.destroy) {
+    window.wavesurferUser.destroy();
+  }
+
+  const silenceBlob = new Blob([new Uint8Array([0])], { type: "audio/webm" });
+  const silenceUrl = URL.createObjectURL(silenceBlob);
+
+  window.wavesurferUser = WaveSurfer.create({
+    container: "#user-waveform",
+    waveColor: "#ccc",
+    progressColor: "#28a745",
+    height: 80,
+    cursorColor: "#28a745",
+  });
+  window.wavesurferUser.load(silenceUrl);
 }
