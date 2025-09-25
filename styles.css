@@ -86,6 +86,23 @@ body {
   padding: 0;
 }
 
+button {
+  background-color: #f4f4f4; /* Neutral light gray */
+  border: #bbb 1px solid;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: #2a3a2f;
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-weight: 500;
+  margin: 5px;
+  min-width: 115px;
+  padding: 0.5em 1em;
+  position: relative;
+  transition: background-color 0.3s ease;
+  z-index: 1;
+}
+
 button:disabled {
   color: #ccc;
   cursor: not-allowed;
@@ -99,6 +116,10 @@ button:disabled:hover {
 button:disabled i {
   color: #ccc;
   cursor: not-allowed;
+}
+
+button:hover {
+  background-color: gainsboro; /* Slightly darker purple on hover */
 }
 
 .button-container i {

@@ -17,34 +17,99 @@ async function computeSimilarity(nativeUrl, userUrl) {
     ctx.decodeAudioData(userBuf),
   ]);
 
-  // Grab first channel data
+  // First channel
   const nativeData = nativeAudio.getChannelData(0);
   const userData = userAudio.getChannelData(0);
 
-  // Normalize length by resampling (downsample to ~1000 points)
-  function downsample(data, targetLength = 1000) {
+  // --- Feature extraction: short-time energy + zero-crossing rate ---
+  function extractFeatures(data, targetLength = 200) {
     const blockSize = Math.floor(data.length / targetLength);
-    const arr = [];
+    const features = [];
     for (let i = 0; i < targetLength; i++) {
-      arr.push(Math.abs(data[i * blockSize] || 0));
+      const start = i * blockSize;
+      const end = start + blockSize;
+      let sumEnergy = 0,
+        zeroCrossings = 0;
+      for (let j = start; j < end && j < data.length; j++) {
+        const val = data[j];
+        sumEnergy += val * val; // energy
+        if (j > start && data[j - 1] > 0 !== val > 0) {
+          zeroCrossings++;
+        }
+      }
+      const avgEnergy = Math.sqrt(sumEnergy / blockSize);
+      const zcr = zeroCrossings / blockSize;
+      features.push([avgEnergy, zcr]);
     }
-    return arr;
+    // Normalize each dimension
+    const maxE = Math.max(...features.map((f) => f[0])) || 1;
+    const maxZ = Math.max(...features.map((f) => f[1])) || 1;
+    return features.map((f) => [f[0] / maxE, f[1] / maxZ]);
   }
 
-  const n = downsample(nativeData);
-  const u = downsample(userData, n.length);
+  const n = extractFeatures(nativeData);
+  const u = extractFeatures(userData, n.length);
 
-  // Compute cosine similarity
-  let dot = 0,
-    normN = 0,
-    normU = 0;
-  for (let i = 0; i < n.length; i++) {
-    dot += n[i] * u[i];
-    normN += n[i] * n[i];
-    normU += u[i] * u[i];
+  // --- DTW distance over feature vectors ---
+  function dtwDistance(a, b) {
+    const n = a.length,
+      m = b.length;
+    const dp = Array.from({ length: n + 1 }, () => Array(m + 1).fill(Infinity));
+    dp[0][0] = 0;
+    for (let i = 1; i <= n; i++) {
+      for (let j = 1; j <= m; j++) {
+        const cost = Math.hypot(
+          a[i - 1][0] - b[j - 1][0],
+          a[i - 1][1] - b[j - 1][1]
+        );
+        dp[i][j] =
+          cost + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+      }
+    }
+    return dp[n][m] / (n + m);
   }
-  const score = dot / (Math.sqrt(normN) * Math.sqrt(normU));
-  return Math.round(score * 100); // %
+
+  const dist = dtwDistance(n, u);
+
+  // --- Correlation check ---
+  function correlation(a, b) {
+    const len = Math.min(a.length, b.length);
+    let meanA = 0,
+      meanB = 0;
+    for (let i = 0; i < len; i++) {
+      meanA += a[i][0]; // energy only
+      meanB += b[i][0];
+    }
+    meanA /= len;
+    meanB /= len;
+    let num = 0,
+      denA = 0,
+      denB = 0;
+    for (let i = 0; i < len; i++) {
+      const da = a[i][0] - meanA;
+      const db = b[i][0] - meanB;
+      num += da * db;
+      denA += da * da;
+      denB += db * db;
+    }
+    return num / (Math.sqrt(denA * denB) || 1);
+  }
+
+  const corr = correlation(n, u);
+
+  // --- Convert distance + correlation → similarity score ---
+  const scale = 250;
+  const dtwScore = Math.max(0, 100 - dist * scale);
+
+  // Blend DTW score with correlation (instead of multiplying)
+  const corrScore = Math.max(0, Math.min(100, (corr + 1) * 50)); // map [-1,1] → [0,100]
+  let score = 0.8 * dtwScore + 0.2 * corrScore;
+
+  // Silence guard
+  const meanEnergy = userData.reduce((a, v) => a + v * v, 0) / userData.length;
+  if (meanEnergy < 1e-5) score = 0;
+
+  return Math.round(score);
 }
 
 // Entry point: called when Pronunciation tab is activated
@@ -157,17 +222,18 @@ function showRandomPronunciation() {
       <div class="user-col">
         <p class="practice-row-header">You</p>
         <div id="user-waveform"></div>
-        <div class="user-controls">
-          <button id="user-play" disabled>▶️ Play</button>
-          <button id="user-pause" disabled>⏸️ Pause</button>
-          <button id="start-recording">🎙️ Start Recording</button>
-          <button id="stop-recording" disabled>⏹️ Stop Recording</button>
-          <button id="reset-recording" disabled>🔄 Reset</button>
-        </div>
+<div class="user-controls">
+  <button id="start-recording">🎙️ Start Recording</button>
+  <div id="recording-actions" style="display:none;">
+    <button id="stop-recording">⏹️ Stop Recording</button>
+    <button id="reset-recording">🔄 Reset</button>
+    <button id="user-play">▶️ Play</button>
+    <button id="user-pause">⏸️ Pause</button>
+  </div>
+</div>
       </div>
     </div>
       <div id="comparison-score" style="text-align:center; margin-top:10px;">
-    🎯 Similarity Score: –
   </div>
 </div>
 `;
@@ -213,34 +279,31 @@ function showRandomPronunciation() {
         ).textContent = `🎯 Similarity Score: ${score}%`;
       });
 
-      // Enable playback + reset
+      // Enable playback + reset after recording finishes
       const playBtn = document.getElementById("user-play");
       const pauseBtn = document.getElementById("user-pause");
 
       playBtn.disabled = false;
       pauseBtn.disabled = false;
-      resetBtn.disabled = false;
+      document.getElementById("reset-recording").disabled = false;
 
-      // 🔹 Hook up handlers
+      // 🔹 Attach handlers
       playBtn.onclick = () => window.wavesurferUser.play();
       pauseBtn.onclick = () => window.wavesurferUser.pause();
     };
 
     mediaRecorder.start();
 
-    // toggle button states
-    startBtn.disabled = true;
-    stopBtn.disabled = false;
-    resetBtn.disabled = true;
-    document.getElementById("user-play").disabled = true;
-    document.getElementById("user-pause").disabled = true;
+    // Toggle visibility
+    startBtn.style.display = "none";
+    document.getElementById("recording-actions").style.display = "block";
   });
 
   stopBtn.addEventListener("click", () => {
     if (mediaRecorder && mediaRecorder.state === "recording") {
       mediaRecorder.stop();
-      stopBtn.disabled = true; // disable stop after use
-      // leave Start disabled until Reset
+      // Instead of disabling, hide Stop after use
+      stopBtn.style.display = "none";
     }
   });
 
@@ -262,12 +325,14 @@ function showRandomPronunciation() {
     });
     window.wavesurferUser.load(silenceUrl);
 
-    // reset buttons
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
-    resetBtn.disabled = true;
-    document.getElementById("user-play").disabled = true;
-    document.getElementById("user-pause").disabled = true;
+    // Reset visibility
+    document.getElementById("recording-actions").style.display = "none";
+    document.getElementById("start-recording").style.display = "inline-block";
+    document.getElementById("stop-recording").style.display = "inline-block"; // 👈 show Stop again
+
+    // Reset score display
+    const scoreEl = document.getElementById("comparison-score");
+    if (scoreEl) scoreEl.textContent = "";
   });
 
   // Native waveform
