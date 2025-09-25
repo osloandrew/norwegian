@@ -5,6 +5,48 @@ function buildPronAudioUrl(sentenceText) {
   return `/Resources/Sentences/${sentenceText.trim().replace(/\?$/, "")}.m4a`;
 }
 
+async function computeSimilarity(nativeUrl, userUrl) {
+  const [nativeBuf, userBuf] = await Promise.all([
+    fetch(nativeUrl).then((r) => r.arrayBuffer()),
+    fetch(userUrl).then((r) => r.arrayBuffer()),
+  ]);
+
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const [nativeAudio, userAudio] = await Promise.all([
+    ctx.decodeAudioData(nativeBuf),
+    ctx.decodeAudioData(userBuf),
+  ]);
+
+  // Grab first channel data
+  const nativeData = nativeAudio.getChannelData(0);
+  const userData = userAudio.getChannelData(0);
+
+  // Normalize length by resampling (downsample to ~1000 points)
+  function downsample(data, targetLength = 1000) {
+    const blockSize = Math.floor(data.length / targetLength);
+    const arr = [];
+    for (let i = 0; i < targetLength; i++) {
+      arr.push(Math.abs(data[i * blockSize] || 0));
+    }
+    return arr;
+  }
+
+  const n = downsample(nativeData);
+  const u = downsample(userData, n.length);
+
+  // Compute cosine similarity
+  let dot = 0,
+    normN = 0,
+    normU = 0;
+  for (let i = 0; i < n.length; i++) {
+    dot += n[i] * u[i];
+    normN += n[i] * n[i];
+    normU += u[i] * u[i];
+  }
+  const score = dot / (Math.sqrt(normN) * Math.sqrt(normU));
+  return Math.round(score * 100); // %
+}
+
 // Entry point: called when Pronunciation tab is activated
 function initPronunciation() {
   showLandingCard(false);
@@ -124,8 +166,12 @@ function showRandomPronunciation() {
         </div>
       </div>
     </div>
+      <div id="comparison-score" style="text-align:center; margin-top:10px;">
+    🎯 Similarity Score: –
+  </div>
 </div>
 `;
+
   resultsContainer.innerHTML = sentenceHTML;
 
   let mediaRecorder;
@@ -160,6 +206,12 @@ function showRandomPronunciation() {
         cursorColor: "#28a745",
       });
       window.wavesurferUser.load(url);
+
+      computeSimilarity(audioFile, url).then((score) => {
+        document.getElementById(
+          "comparison-score"
+        ).textContent = `🎯 Similarity Score: ${score}%`;
+      });
 
       // Enable playback + reset
       const playBtn = document.getElementById("user-play");
