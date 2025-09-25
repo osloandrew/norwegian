@@ -86,21 +86,6 @@ body {
   padding: 0;
 }
 
-button {
-  background-color: #f4f4f4; /* Neutral light gray */
-  border: #bbb 1px solid;
-  border-radius: 5px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  color: #2a3a2f;
-  cursor: pointer;
-  font-family: "Noto Sans", sans-serif;
-  font-weight: 500;
-  padding: 0.5em 1em;
-  position: relative;
-  transition: background-color 0.3s ease;
-  z-index: 1;
-}
-
 button:disabled {
   color: #ccc;
   cursor: not-allowed;
@@ -116,10 +101,6 @@ button:disabled i {
   cursor: not-allowed;
 }
 
-button:hover {
-  background-color: gainsboro; /* Slightly darker purple on hover */
-}
-
 .button-container i {
   color: #0d3a69;
   margin-bottom: 10px;
@@ -128,6 +109,25 @@ button:hover {
 .button-container p {
   font-size: 5px !important;
   text-align: center !important;
+}
+
+.button-pron {
+  background-color: #f4f4f4; /* Neutral light gray */
+  border: #bbb 1px solid;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: #2a3a2f;
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-weight: 500;
+  padding: 0.5em 1em;
+  position: relative;
+  transition: background-color 0.3s ease;
+  z-index: 1;
+}
+
+.button-pron:hover {
+  background-color: gainsboro; /* Slightly darker purple on hover */
 }
 
 .cefr-badge {

@@ -223,19 +223,19 @@ function showRandomPronunciation() {
         <p class="practice-row-header">Native</p>
         <div id="waveform"></div>
         <div class="native-controls">
-          <button id="native-play">▶️ Play</button>
-          <button id="native-pause">⏸️ Pause</button>
+          <button class="button-pron" id="native-play">▶️ Play</button>
+          <button class="button-pron" id="native-pause">⏸️ Pause</button>
         </div>
       </div>
       <div class="user-col">
         <p class="practice-row-header">You</p>
         <div id="user-waveform"></div>
 <div class="user-controls">
-  <button id="start-recording">🎙️ Start Recording</button>
-    <button id="stop-recording">⏹️ Stop Recording</button>
-    <button id="reset-recording">🔄 Reset</button>
-    <button id="user-play">▶️ Play</button>
-    <button id="user-pause">⏸️ Pause</button>
+  <button class="button-pron" id="start-recording">🎙️ Start Recording</button>
+    <button class="button-pron" id="stop-recording">⏹️ Stop Recording</button>
+    <button class="button-pron" id="reset-recording">🔄 Reset</button>
+    <button class="button-pron" id="user-play">▶️ Play</button>
+    <button class="button-pron" id="user-pause">⏸️ Pause</button>
 </div>
       </div>
     </div>
