@@ -2,7 +2,7 @@
 
 // State for this module
 let pronunciationResults = [];
-let pronunciationEnglishVisible = true;
+let pronunciationEnglishVisible = false;
 
 function buildPronAudioUrl(sentenceText) {
   return `/Resources/Sentences/${sentenceText.trim().replace(/\?$/, "")}.m4a`;
@@ -11,11 +11,16 @@ function buildPronAudioUrl(sentenceText) {
 // Entry point: called when Pronunciation tab is activated
 function initPronunciation() {
   console.log("Pronunciation module loaded");
-  randomWord(); // 👈 use the same engine as the rest of the app
 
   if (!results.length) {
     console.warn("No dictionary data loaded yet");
     return;
+  }
+
+  // 🔹 Make sure the Random button points to this module
+  const randomBtn = document.getElementById("random-btn");
+  if (randomBtn) {
+    randomBtn.onclick = showRandomPronunciation;
   }
 
   // Show a random sentence on entry
@@ -23,8 +28,15 @@ function initPronunciation() {
 }
 
 function showRandomPronunciation() {
+  const selectedCEFR = document.getElementById("cefr-select")
+    ? document.getElementById("cefr-select").value.toUpperCase()
+    : "";
+  // Filter by audio + CEFR
   const sentenceEntries = results.filter(
-    (r) => r.eksempel && r.hasAudio === "X"
+    (r) =>
+      r.eksempel &&
+      r.hasAudio === "X" &&
+      (!selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR))
   );
   if (!sentenceEntries.length) {
     resultsContainer.innerHTML = "<p>No sentences available.</p>";
@@ -69,9 +81,6 @@ function showRandomPronunciation() {
 
   // Build sentence HTML
   let sentenceHTML = `
-  <div class="result-header">
-    <h2>Random Pronunciation Sentence</h2>
-  </div>
   <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations(this)">
     ${pronunciationEnglishVisible ? "Hide English" : "Show English"}
   </button>
@@ -82,10 +91,6 @@ function showRandomPronunciation() {
       <div class="sentence-content">
         ${cefrLabel}
         <p class="sentence">${selectedNorwegian}</p>
-        <audio controls autoplay onerror="showRandomPronunciation()">
-          <source src="${audioFile}" type="audio/mp4">
-          <source src="${audioFile}">
-        </audio>
       </div>
     </div>
 `;
@@ -105,39 +110,36 @@ function showRandomPronunciation() {
 
   // 🔹 New dedicated practice box
   sentenceHTML += `
-  <div class="sentence-box-practice">
-    <div class="sentence-content">
-      <h3>Practice</h3>
-      <div class="practice-row">
-        <div class="native-col">
-          <p><strong>Native</strong></p>
-          <div id="waveform"></div>
-        </div>
-        <div class="user-col">
-          <p><strong>You</strong></p>
-          <div id="user-waveform"></div>
-          <div id="user-playback"></div>
+<div class="sentence-box-practice">
+  <div class="sentence-content">
+    <div class="practice-row">
+      <div class="native-col">
+        <p><strong>Native</strong></p>
+        <div id="waveform"></div>
+        <div class="native-controls">
+          <button id="native-play">▶️ Play</button>
+          <button id="native-pause">⏸️ Pause</button>
         </div>
       </div>
-      <div id="recording-controls">
-        <button id="start-recording">🎙️ Start Recording</button>
-        <button id="stop-recording" disabled>⏹️ Stop Recording</button>
-        <button id="reset-recording" disabled>🔄 Reset</button>
+      <div class="user-col">
+        <p><strong>You</strong></p>
+        <div id="user-waveform"></div>
+        <div class="user-controls">
+          <button id="user-play" disabled>▶️ Play</button>
+          <button id="user-pause" disabled>⏸️ Pause</button>
+        </div>
       </div>
     </div>
+    <div id="recording-controls">
+      <button id="start-recording">🎙️ Start Recording</button>
+      <button id="stop-recording" disabled>⏹️ Stop Recording</button>
+      <button id="reset-recording" disabled>🔄 Reset</button>
+    </div>
   </div>
-</div> <!-- close .sentence-container -->
+</div>
 `;
-
   resultsContainer.innerHTML = sentenceHTML;
-  // Visualize native audio
-  const wavesurfer = WaveSurfer.create({
-    container: "#waveform",
-    waveColor: "#ccc",
-    progressColor: "#007bff",
-    height: 80,
-  });
-  wavesurfer.load(audioFile);
+
   let mediaRecorder;
   let recordedChunks = [];
 
@@ -158,24 +160,28 @@ function showRandomPronunciation() {
       const blob = new Blob(recordedChunks, { type: "audio/webm" });
       const url = URL.createObjectURL(blob);
 
-      // Destroy any previous waveform if it exists
-      if (window.userWave && window.userWave.destroy) {
-        window.userWave.destroy();
+      // Destroy old user waveform if any
+      if (window.wavesurferUser && window.wavesurferUser.destroy) {
+        window.wavesurferUser.destroy();
       }
 
-      // Create user waveform
-      window.userWave = WaveSurfer.create({
+      // Create new user waveform
+      window.wavesurferUser = WaveSurfer.create({
         container: "#user-waveform",
         waveColor: "#ccc",
         progressColor: "#28a745",
         height: 80,
+        cursorColor: "#28a745",
       });
-      window.userWave.load(url);
+      window.wavesurferUser.load(url);
 
-      // Playback button below waveform
-      document.getElementById(
-        "user-playback"
-      ).innerHTML = `<audio controls src="${url}"></audio>`;
+      // Enable play/pause buttons
+      document.getElementById("user-play").disabled = false;
+      document.getElementById("user-pause").disabled = false;
+      document.getElementById("user-play").onclick = () =>
+        window.wavesurferUser.play();
+      document.getElementById("user-pause").onclick = () =>
+        window.wavesurferUser.pause();
 
       resetBtn.disabled = false;
     };
@@ -192,14 +198,39 @@ function showRandomPronunciation() {
     stopBtn.disabled = true;
   });
 
+  // Reset button
   resetBtn.addEventListener("click", () => {
-    // Clear user waveform + playback
+    if (window.wavesurferUser && window.wavesurferUser.destroy) {
+      window.wavesurferUser.destroy();
+    }
     document.getElementById("user-waveform").innerHTML = "";
-    document.getElementById("user-playback").innerHTML = "";
 
-    // Reset button states
     startBtn.disabled = false;
     stopBtn.disabled = true;
     resetBtn.disabled = true;
   });
+
+  // Native waveform
+  if (window.wavesurferNative && window.wavesurferNative.destroy) {
+    window.wavesurferNative.destroy();
+  }
+  window.wavesurferNative = WaveSurfer.create({
+    container: "#waveform",
+    waveColor: "#ccc",
+    progressColor: "#007bff",
+    height: 80,
+    cursorColor: "#007bff",
+  });
+  window.wavesurferNative.load(audioFile);
+
+  // Auto-play as soon as the audio is ready
+  window.wavesurferNative.on("ready", () => {
+    window.wavesurferNative.play();
+  });
+
+  // Hook up buttons
+  document.getElementById("native-play").onclick = () =>
+    window.wavesurferNative.play();
+  document.getElementById("native-pause").onclick = () =>
+    window.wavesurferNative.pause();
 }

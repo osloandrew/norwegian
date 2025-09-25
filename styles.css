@@ -1280,6 +1280,28 @@ ul {
   position: relative; /* Set relative position for positioning the icon */
 }
 
+.practice-row {
+  display: flex;
+  gap: 2rem; /* more space between Native and You */
+  align-items: flex-start;
+}
+
+.native-col,
+.user-col {
+  flex: 1;
+  min-width: 200px;
+}
+
+#waveform,
+#user-waveform {
+  margin-bottom: 0.5rem;
+}
+
+.recording-controls {
+  margin-top: 15px;
+  text-align: center; /* center under the row */
+}
+
 .sentence-btn {
   background-color: #ffffff; /* Subtle, lighter background */
   border: none !important; /* Thin maroon border */

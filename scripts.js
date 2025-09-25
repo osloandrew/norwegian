@@ -387,55 +387,8 @@ async function randomWord() {
     sentenceHTML += "</div>"; // Close the sentence-container div
     document.getElementById("results-container").innerHTML = sentenceHTML;
   } else if (type === "pronunciation") {
-    // Split the Norwegian and English sentences
-    const sentences = randomResult.eksempel.split(/(?<=[.!?])\s+/); // Split by sentence delimiters
-    const translations = randomResult.sentenceTranslation
-      ? randomResult.sentenceTranslation.split(/(?<=[.!?])\s+/)
-      : [];
-
-    // Randomly select one sentence and its translation
-    const randomIndex = Math.floor(Math.random() * sentences.length);
-    const selectedSentence = sentences[randomIndex];
-    const selectedTranslation = translations[randomIndex] || "";
-
-    // Clear any existing highlights in the sentence
-    const cleanedSentence = selectedSentence.replace(
-      /<span style="color: #3c88d4;">(.*?)<\/span>/gi,
-      "$1"
-    );
-    // Build the sentence HTML (with audio)
-    let sentenceHTML = `
-            <div class="result-header">
-                <h2>Random Pronunciation Sentence</h2>
-            </div>
-            <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations(this)">
-                ${isEnglishVisible ? "Hide English" : "Show English"}
-            </button>
-            <div class="sentence-container">
-                <div class="sentence-box-norwegian ${
-                  !isEnglishVisible ? "sentence-box-norwegian-hidden" : ""
-                }">
-                    <div class="sentence-content">
-                        ${cefrLabel}
-                        <p class="sentence">${cleanedSentence}</p>
-                        <audio controls autoplay>
-                          <source src="/Resources/Sentences/${cleanedSentence.trim()}.m4a" type="audio/mp4">
-                        </audio>
-                    </div>
-                </div>
-        `;
-
-    if (selectedTranslation) {
-      sentenceHTML += `
-                <div class="sentence-box-english" style="display: ${
-                  isEnglishVisible ? "block" : "none"
-                };">
-                    <p class="sentence">${selectedTranslation}</p>
-                </div>
-            `;
-    }
-    sentenceHTML += "</div>"; // Close the sentence-container div
-    document.getElementById("results-container").innerHTML = sentenceHTML;
+    // Hand off to the pronunciation module
+    initPronunciation();
   } else {
     // Update the URL to include the random word's info
     updateURL("", type, randomResult.gender, null, randomResult.ord);
@@ -1250,7 +1203,11 @@ function handleCEFRChange() {
 
     // Display the filtered list of stories
     displayStoryList(filteredStories);
+  } else if (type === "pronunciation") {
+    // Pronunciation: regenerate a sentence with the selected CEFR
+    initPronunciation();
   }
+
   // Handle the word game logic or dictionary search when 'word-game' or 'words' are selected
   else if (gameActive && type === "word-game") {
     startWordGame(); // Adjust the word game based on the new CEFR filter
