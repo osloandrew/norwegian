@@ -1,8 +1,5 @@
-// pronunciation.js
-
 // State for this module
 let pronunciationResults = [];
-let pronunciationEnglishVisible = false;
 
 function buildPronAudioUrl(sentenceText) {
   return `/Resources/Sentences/${sentenceText.trim().replace(/\?$/, "")}.m4a`;
@@ -10,17 +7,12 @@ function buildPronAudioUrl(sentenceText) {
 
 // Entry point: called when Pronunciation tab is activated
 function initPronunciation() {
+  showLandingCard(false);
   console.log("Pronunciation module loaded");
 
   if (!results.length) {
     console.warn("No dictionary data loaded yet");
     return;
-  }
-
-  // 🔹 Make sure the Random button points to this module
-  const randomBtn = document.getElementById("random-btn");
-  if (randomBtn) {
-    randomBtn.onclick = showRandomPronunciation;
   }
 
   // Show a random sentence on entry
@@ -82,11 +74,11 @@ function showRandomPronunciation() {
   // Build sentence HTML
   let sentenceHTML = `
   <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations(this)">
-    ${pronunciationEnglishVisible ? "Hide English" : "Show English"}
+    ${isEnglishVisible ? "Hide English" : "Show English"}
   </button>
   <div class="sentence-container">
     <div class="sentence-box-norwegian ${
-      !pronunciationEnglishVisible ? "sentence-box-norwegian-hidden" : ""
+      !isEnglishVisible ? "sentence-box-norwegian-hidden" : ""
     }">
       <div class="sentence-content">
         ${cefrLabel}
@@ -99,7 +91,7 @@ function showRandomPronunciation() {
   if (selectedTranslation) {
     sentenceHTML += `
     <div class="sentence-box-english" style="display: ${
-      pronunciationEnglishVisible ? "block" : "none"
+      isEnglishVisible ? "block" : "none"
     };">
       <p class="sentence">${selectedTranslation}</p>
     </div>
@@ -111,10 +103,9 @@ function showRandomPronunciation() {
   // 🔹 New dedicated practice box
   sentenceHTML += `
 <div class="sentence-box-practice">
-  <div class="sentence-content">
     <div class="practice-row">
       <div class="native-col">
-        <p><strong>Native</strong></p>
+        <p class="practice-row-header">Native</p>
         <div id="waveform"></div>
         <div class="native-controls">
           <button id="native-play">▶️ Play</button>
@@ -122,7 +113,7 @@ function showRandomPronunciation() {
         </div>
       </div>
       <div class="user-col">
-        <p><strong>You</strong></p>
+        <p class="practice-row-header">You</p>
         <div id="user-waveform"></div>
         <div class="user-controls">
           <button id="user-play" disabled>▶️ Play</button>
@@ -135,7 +126,6 @@ function showRandomPronunciation() {
       <button id="stop-recording" disabled>⏹️ Stop Recording</button>
       <button id="reset-recording" disabled>🔄 Reset</button>
     </div>
-  </div>
 </div>
 `;
   resultsContainer.innerHTML = sentenceHTML;

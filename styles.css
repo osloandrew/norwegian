@@ -1286,6 +1286,13 @@ ul {
   align-items: flex-start;
 }
 
+.practice-row-header {
+  letter-spacing: 0.75px;
+  margin: 0px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 .native-col,
 .user-col {
   flex: 1;
@@ -1362,7 +1369,7 @@ ul {
   background-color: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  margin-bottom: 12.5px;
   padding: 10px 15px 10px 15px;
   width: 100%;
   display: flex;

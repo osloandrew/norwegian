@@ -279,12 +279,9 @@ async function randomWord() {
       (r) => !selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR)
     );
   } else if (type === "pronunciation") {
-    // Pronunciation: only entries with an example + audio
-    filteredResults = results.filter((r) => r.eksempel && r.hasAudio === "X");
-
-    filteredResults = filteredResults.filter(
-      (r) => !selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR)
-    );
+    initPronunciation();
+    hideSpinner();
+    return; // ✅ stop here, pronunciation handles itself
   } else {
     // Filter results by the selected part of speech (for 'words' type)
     filteredResults = filterResultsByPOS(results, selectedPOS);
@@ -387,8 +384,9 @@ async function randomWord() {
     sentenceHTML += "</div>"; // Close the sentence-container div
     document.getElementById("results-container").innerHTML = sentenceHTML;
   } else if (type === "pronunciation") {
-    // Hand off to the pronunciation module
     initPronunciation();
+    hideSpinner();
+    return; // ✅ stop here, pronunciation handles itself
   } else {
     // Update the URL to include the random word's info
     updateURL("", type, randomResult.gender, null, randomResult.ord);
