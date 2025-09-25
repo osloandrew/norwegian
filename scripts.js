@@ -278,6 +278,13 @@ async function randomWord() {
     filteredResults = filteredResults.filter(
       (r) => !selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR)
     );
+  } else if (type === "pronunciation") {
+    // Pronunciation: only entries with an example + audio
+    filteredResults = results.filter((r) => r.eksempel && r.hasAudio === "X");
+
+    filteredResults = filteredResults.filter(
+      (r) => !selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR)
+    );
   } else {
     // Filter results by the selected part of speech (for 'words' type)
     filteredResults = filterResultsByPOS(results, selectedPOS);
@@ -364,6 +371,56 @@ async function randomWord() {
                     <div class="sentence-content">
                         ${cefrLabel}  <!-- Add the CEFR label in the upper-left corner -->
                         <p class="sentence">${cleanedSentence}</p>
+                    </div>
+                </div>
+        `;
+
+    if (selectedTranslation) {
+      sentenceHTML += `
+                <div class="sentence-box-english" style="display: ${
+                  isEnglishVisible ? "block" : "none"
+                };">
+                    <p class="sentence">${selectedTranslation}</p>
+                </div>
+            `;
+    }
+    sentenceHTML += "</div>"; // Close the sentence-container div
+    document.getElementById("results-container").innerHTML = sentenceHTML;
+  } else if (type === "pronunciation") {
+    // Split the Norwegian and English sentences
+    const sentences = randomResult.eksempel.split(/(?<=[.!?])\s+/); // Split by sentence delimiters
+    const translations = randomResult.sentenceTranslation
+      ? randomResult.sentenceTranslation.split(/(?<=[.!?])\s+/)
+      : [];
+
+    // Randomly select one sentence and its translation
+    const randomIndex = Math.floor(Math.random() * sentences.length);
+    const selectedSentence = sentences[randomIndex];
+    const selectedTranslation = translations[randomIndex] || "";
+
+    // Clear any existing highlights in the sentence
+    const cleanedSentence = selectedSentence.replace(
+      /<span style="color: #3c88d4;">(.*?)<\/span>/gi,
+      "$1"
+    );
+    // Build the sentence HTML (with audio)
+    let sentenceHTML = `
+            <div class="result-header">
+                <h2>Random Pronunciation Sentence</h2>
+            </div>
+            <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations(this)">
+                ${isEnglishVisible ? "Hide English" : "Show English"}
+            </button>
+            <div class="sentence-container">
+                <div class="sentence-box-norwegian ${
+                  !isEnglishVisible ? "sentence-box-norwegian-hidden" : ""
+                }">
+                    <div class="sentence-content">
+                        ${cefrLabel}
+                        <p class="sentence">${cleanedSentence}</p>
+                        <audio controls autoplay>
+                          <source src="/Resources/Sentences/${cleanedSentence.trim()}.m4a" type="audio/mp4">
+                        </audio>
                     </div>
                 </div>
         `;
@@ -950,6 +1007,44 @@ function selectType(type) {
   handleTypeChange(type);
 }
 
+function enableSearchControls() {
+  const searchBar = document.getElementById("search-bar");
+  const searchBtn = document.getElementById("search-btn");
+  const clearBtn = document.getElementById("clear-btn");
+
+  if (!searchBar || !searchBtn || !clearBtn) return;
+
+  searchBar.disabled = false;
+  searchBtn.disabled = false;
+  clearBtn.disabled = false;
+
+  searchBar.style.color = "";
+  searchBar.style.cursor = "text";
+  searchBtn.style.color = "";
+  searchBtn.style.cursor = "pointer";
+  clearBtn.style.color = "";
+  clearBtn.style.cursor = "pointer";
+}
+
+function disableSearchControls() {
+  const searchBar = document.getElementById("search-bar");
+  const searchBtn = document.getElementById("search-btn");
+  const clearBtn = document.getElementById("clear-btn");
+
+  if (!searchBar || !searchBtn || !clearBtn) return;
+
+  searchBar.disabled = true;
+  searchBtn.disabled = true;
+  clearBtn.disabled = true;
+
+  searchBar.style.color = "#ccc";
+  searchBar.style.cursor = "not-allowed";
+  searchBtn.style.color = "#ccc";
+  searchBtn.style.cursor = "not-allowed";
+  clearBtn.style.color = "#ccc";
+  clearBtn.style.cursor = "not-allowed";
+}
+
 // Handle change in search type (words/sentences)
 function handleTypeChange(type) {
   // If type is not passed in (e.g., called from dropdown), get it from the dropdown
@@ -1015,6 +1110,8 @@ function handleTypeChange(type) {
     cefrFilterContainer.classList.remove("disabled"); // Visually enable the CEFR filter
     cefrSelect.value = ""; // Reset to default "CEFR Level"
 
+    enableSearchControls();
+
     // Load stories data if not already loaded
     if (!storyResults.length) {
       fetchAndLoadStoryData().then(() => {
@@ -1046,6 +1143,8 @@ function handleTypeChange(type) {
     cefrSelect.value = ""; // Reset to "CEFR Level" option
     cefrFilterContainer.classList.remove("disabled"); // Visually enable the CEFR filter
 
+    enableSearchControls();
+
     // If the search bar is not empty, perform a sentence search
     if (query) {
       console.log("Searching for sentences with query:", query);
@@ -1059,6 +1158,21 @@ function handleTypeChange(type) {
 
     resetGame();
     startWordGame(); // Call the word game function
+  } else if (type === "pronunciation") {
+    // Same UI adjustments you already had…
+    isEnglishVisible = true;
+    genreFilterContainer.style.display = "none";
+    searchBarWrapper.style.display = "inline-flex";
+    randomBtn.style.display = "block";
+    posFilterContainer.style.display = "inline-flex";
+    posSelect.disabled = true;
+    cefrLock.style.display = "none";
+    cefrSelect.disabled = false;
+    cefrFilterContainer.classList.remove("disabled");
+
+    disableSearchControls();
+    // Now call the pronunciation module
+    initPronunciation();
   } else {
     // Handle default case (e.g., "Words" type)
     genreFilterContainer.style.display = "none"; // Hide genre dropdown
@@ -1080,6 +1194,8 @@ function handleTypeChange(type) {
     cefrSelect.disabled = false;
     cefrSelect.value = ""; // Reset to "CEFR Level" option
     cefrFilterContainer.classList.remove("disabled");
+
+    enableSearchControls();
 
     // Optionally, generate a random word if needed when switching back to words
     if (query) {
@@ -2373,6 +2489,9 @@ function capitalizeType(type) {
       return "Sentences";
     case "stories":
       return "Stories";
+    case "pronunciation":
+      return "Pronunciation";
+
     default:
       return type.charAt(0).toUpperCase() + type.slice(1);
   }
@@ -2420,6 +2539,8 @@ function loadStateFromURL() {
 
       if (type === "word-game") {
         startWordGame();
+      } else if (type === "pronunciation") {
+        handleTypeChange("pronunciation"); // 👈 ensure pronunciation tab is restored
       } else if (type !== "words") {
         handleTypeChange(type);
       }
