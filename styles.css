@@ -95,8 +95,6 @@ button {
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
   font-weight: 500;
-  margin: 5px;
-  min-width: 115px;
   padding: 0.5em 1em;
   position: relative;
   transition: background-color 0.3s ease;
@@ -1318,6 +1316,12 @@ ul {
 .user-col {
   flex: 1;
   min-width: 200px;
+}
+
+.native-controls,
+.user-controls {
+  display: flex;
+  gap: 10px;
 }
 
 #waveform,
