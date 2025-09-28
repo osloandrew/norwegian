@@ -210,7 +210,6 @@ function showRandomPronunciation() {
             border-color: #4f4f4f;
             color: #4f4f4f"
         >⏹️ Stop Recording</button> 
-        <button class="button-pron" id="reset-recording">🔄 Reset</button>
   </div>
       </div>
     </div>
@@ -227,13 +226,11 @@ function showRandomPronunciation() {
 
   const startBtn = document.getElementById("start-recording");
   const stopBtn = document.getElementById("stop-recording");
-  const resetBtn = document.getElementById("reset-recording");
   const playBtn = document.getElementById("user-play");
   const pauseBtn = document.getElementById("user-pause");
 
   // initial state
   stopBtn.style.display = "none";
-  resetBtn.style.display = "none";
   playBtn.style.display = "none";
   pauseBtn.style.display = "none";
 
@@ -287,7 +284,6 @@ function showRandomPronunciation() {
     // button states while recording
     startBtn.style.display = "none";
     stopBtn.style.display = "inline-block";
-    resetBtn.style.display = "none";
     playBtn.style.display = "none";
     pauseBtn.style.display = "none";
   });
@@ -297,35 +293,6 @@ function showRandomPronunciation() {
       mediaRecorder.stop();
     }
     stopBtn.style.display = "none";
-  });
-
-  resetBtn.addEventListener("click", () => {
-    if (window.wavesurferUser && window.wavesurferUser.destroy) {
-      window.wavesurferUser.destroy();
-    }
-    document.getElementById("user-waveform").innerHTML = "";
-
-    // dummy waveform
-    const silenceBlob = new Blob([new Uint8Array([0])], { type: "audio/webm" });
-    const silenceUrl = URL.createObjectURL(silenceBlob);
-    window.wavesurferUser = WaveSurfer.create({
-      container: "#user-waveform",
-      waveColor: "#ccc",
-      progressColor: "#28a745",
-      height: 80,
-      cursorColor: "#28a745",
-    });
-    window.wavesurferUser.load(silenceUrl);
-
-    // reset buttons
-    startBtn.style.display = "inline-block";
-    stopBtn.style.display = "none";
-    resetBtn.style.display = "none";
-    playBtn.style.display = "none";
-    pauseBtn.style.display = "none";
-
-    const scoreEl = document.getElementById("comparison-score");
-    if (scoreEl) scoreEl.textContent = "";
   });
 
   stopBtn.addEventListener("click", () => {
@@ -334,34 +301,6 @@ function showRandomPronunciation() {
       // Instead of disabling, hide Stop after use
       stopBtn.style.display = "none";
     }
-  });
-
-  resetBtn.addEventListener("click", () => {
-    if (window.wavesurferUser && window.wavesurferUser.destroy) {
-      window.wavesurferUser.destroy();
-    }
-    document.getElementById("user-waveform").innerHTML = "";
-
-    // reload dummy waveform
-    const silenceBlob = new Blob([new Uint8Array([0])], { type: "audio/webm" });
-    const silenceUrl = URL.createObjectURL(silenceBlob);
-    window.wavesurferUser = WaveSurfer.create({
-      container: "#user-waveform",
-      waveColor: "#ccc",
-      progressColor: "#28a745",
-      height: 80,
-      cursorColor: "#28a745",
-    });
-    window.wavesurferUser.load(silenceUrl);
-
-    // Reset visibility
-    document.getElementById("recording-actions").style.display = "none";
-    document.getElementById("start-recording").style.display = "inline-block";
-    document.getElementById("stop-recording").style.display = "inline-block";
-
-    // Reset score display
-    const scoreEl = document.getElementById("comparison-score");
-    if (scoreEl) scoreEl.textContent = "";
   });
 
   // Native waveform
