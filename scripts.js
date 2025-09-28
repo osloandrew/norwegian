@@ -1787,6 +1787,7 @@ function renderSentences(sentenceResults, word) {
             cefrLabel,
             sentence: highlightQuery(sentence, query),
             translation: highlightQuery(translation, query),
+            hasAudio: result.hasAudio,
           });
         }
       }
