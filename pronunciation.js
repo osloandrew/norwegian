@@ -233,15 +233,19 @@ function showRandomPronunciation() {
   startBtn.addEventListener("click", async () => {
     recordedChunks = [];
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
-
+    let options = { mimeType: "audio/mp4" };
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      options = { mimeType: "audio/webm" }; // desktop fallback
+    }
+    mediaRecorder = new MediaRecorder(stream, options);
     mediaRecorder.ondataavailable = (e) => {
       if (e.data.size > 0) recordedChunks.push(e.data);
     };
 
     mediaRecorder.onstop = () => {
-      const blob = new Blob(recordedChunks, { type: "audio/webm" });
-      const url = URL.createObjectURL(blob);
+    const mimeType = mediaRecorder.mimeType || "audio/webm";
+    const blob = new Blob(recordedChunks, { type: mimeType });      
+    const url = URL.createObjectURL(blob);
 
       if (window.wavesurferUser && window.wavesurferUser.destroy) {
         window.wavesurferUser.destroy();
