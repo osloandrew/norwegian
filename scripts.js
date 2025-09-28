@@ -365,10 +365,19 @@ async function randomWord() {
                 <div class="sentence-box-norwegian ${
                   !isEnglishVisible ? "sentence-box-norwegian-hidden" : ""
                 }">
-                    <div class="sentence-content">
-                        ${cefrLabel}  <!-- Add the CEFR label in the upper-left corner -->
-                        <p class="sentence">${cleanedSentence}</p>
-                    </div>
+            <div class="sentence-content">
+              ${cefrLabel}
+              ${
+                randomResult.hasAudio === "X"
+                  ? `<i class="fas fa-volume-up sentence-audio-icon"
+                        style="cursor:pointer; color: #951b1b;"
+                        data-sentence="${cleanedSentence
+                          .replace(/<[^>]*>/g, "")
+                          .trim()}"></i>`
+                  : ""
+              }
+              <p class="sentence">${cleanedSentence}</p>
+            </div>
                 </div>
         `;
 
@@ -1766,6 +1775,7 @@ function renderSentences(sentenceResults, word) {
             cefrLabel,
             sentence: highlightQuery(sentence, query),
             translation: highlightQuery(translation, query),
+            hasAudio: result.hasAudio,
           });
         }
         // Check for partial match in both Norwegian sentence and English translation
@@ -1825,10 +1835,19 @@ function renderSentences(sentenceResults, word) {
                 <div class="sentence-box-norwegian ${
                   !isEnglishVisible ? "sentence-box-norwegian-hidden" : ""
                 }">
-                    <div class="sentence-content">
-                        ${match.cefrLabel}
-                        <p class="sentence">${match.sentence}</p>
-                    </div>
+                  <div class="sentence-content">
+                    ${match.cefrLabel}
+                    ${
+                      match.hasAudio === "X"
+                        ? `<i class="fas fa-volume-up sentence-audio-icon"
+                              style="cursor:pointer; color: #951b1b;"
+                              data-sentence="${match.sentence
+                                .replace(/<[^>]*>/g, "")
+                                .trim()}"></i>`
+                        : ""
+                    }
+                    <p class="sentence">${match.sentence}</p>
+                  </div>
                 </div>
         `;
 
@@ -2256,10 +2275,19 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
                 <div class="sentence-box-norwegian ${
                   !showEnglish ? "sentence-box-norwegian-hidden" : ""
                 }">
-                    <div class="sentence-content">
-                        ${cefrLabel}
-                        <p class="sentence">${sentence}</p>
-                    </div>
+                  <div class="sentence-content">
+                    ${cefrLabel}
+                ${
+                  result.hasAudio === "X"
+                    ? `<i class="fas fa-volume-up sentence-audio-icon"
+                          style="cursor:pointer; color: #951b1b;"
+                          data-sentence="${sentence
+                            .replace(/<[^>]*>/g, "")
+                            .trim()}"></i>`
+                    : ""
+                }                    
+                <p class="sentence">${sentence}</p>
+                  </div>
                 </div>
                 ${
                   translations[index]
@@ -2736,5 +2764,17 @@ document.addEventListener("click", (event) => {
         search(word); // fallback to regular multi-result search
       }
     }
+  }
+});
+
+document.addEventListener("click", (event) => {
+  if (event.target.classList.contains("sentence-audio-icon")) {
+    const sentenceText = event.target.dataset.sentence;
+    const audioUrl = buildPronAudioUrl(sentenceText);
+
+    const audio = new Audio(audioUrl);
+    audio.play().catch((err) => {
+      console.error("Audio playback failed:", err);
+    });
   }
 });
