@@ -198,13 +198,20 @@ function showRandomPronunciation() {
       <div class="user-col">
         <p class="practice-row-header">You</p>
         <div id="user-waveform"></div>
-<div class="user-controls">
-  <button class="button-pron" id="start-recording">🎙️ Start Recording</button>
-    <button class="button-pron" id="stop-recording">⏹️ Stop Recording</button>
-    <button class="button-pron" id="reset-recording">🔄 Reset</button>
-    <button class="button-pron" id="user-play">▶️ Play</button>
-    <button class="button-pron" id="user-pause">⏸️ Pause</button>
-</div>
+        <div class="user-controls">
+        <button class="button-pron" id="user-play">▶️ Play</button>
+        <button class="button-pron" id="user-pause">⏸️ Pause</button>
+        <button class="button-pron" id="start-recording">🎙️ Record</button>
+        <button 
+          class="button-pron" 
+          id="stop-recording"
+          style="
+            background-color: #e9a895;
+            border-color: #4f4f4f;
+            color: #4f4f4f"
+        >⏹️ Stop Recording</button> 
+        <button class="button-pron" id="reset-recording">🔄 Reset</button>
+  </div>
       </div>
     </div>
       <div id="comparison-score" style="text-align:center; margin-top:10px;">
@@ -243,9 +250,9 @@ function showRandomPronunciation() {
     };
 
     mediaRecorder.onstop = () => {
-    const mimeType = mediaRecorder.mimeType || "audio/webm";
-    const blob = new Blob(recordedChunks, { type: mimeType });      
-    const url = URL.createObjectURL(blob);
+      const mimeType = mediaRecorder.mimeType || "audio/webm";
+      const blob = new Blob(recordedChunks, { type: mimeType });
+      const url = URL.createObjectURL(blob);
 
       if (window.wavesurferUser && window.wavesurferUser.destroy) {
         window.wavesurferUser.destroy();
@@ -267,9 +274,9 @@ function showRandomPronunciation() {
       });
 
       // after recording finishes
-      resetBtn.style.display = "inline-block";
       playBtn.style.display = "inline-block";
       pauseBtn.style.display = "inline-block";
+      startBtn.style.display = "inline-block"; // 👈 bring back Start
 
       playBtn.onclick = () => window.wavesurferUser.play();
       pauseBtn.onclick = () => window.wavesurferUser.pause();
@@ -350,7 +357,7 @@ function showRandomPronunciation() {
     // Reset visibility
     document.getElementById("recording-actions").style.display = "none";
     document.getElementById("start-recording").style.display = "inline-block";
-    document.getElementById("stop-recording").style.display = "inline-block"; // 👈 show Stop again
+    document.getElementById("stop-recording").style.display = "inline-block";
 
     // Reset score display
     const scoreEl = document.getElementById("comparison-score");
