@@ -173,6 +173,14 @@ function toggleGameEnglish() {
   }
 }
 
+function playSentenceAudio(exampleSentence) {
+  if (!exampleSentence) return;
+  const cleanSentence = exampleSentence.replace(/<[^>]*>/g, "").trim();
+  const audioUrl = buildPronAudioUrl(cleanSentence);
+  const audio = new Audio(audioUrl);
+  audio.play().catch((err) => console.warn("Sentence audio failed:", err));
+}
+
 function renderStats() {
   const statsContainer = document.getElementById("game-session-stats");
   if (!statsContainer) return;
@@ -1170,8 +1178,13 @@ async function handleTranslationClick(
 
   totalQuestions++; // Increment total questions for this level
   questionsAtCurrentLevel++; // Increment questions at this level
+  const { exampleSentence, sentenceTranslation } = await fetchExampleSentence(
+      wordObj
+    );
+  console.log("Fetched example sentence:", exampleSentence);
 
   if (selectedTranslationPart === correctTranslationPart) {
+    playSentenceAudio(exampleSentence);
     goodChime.currentTime = 0; // Reset audio to the beginning
     goodChime.play(); // Play the chime sound when correct
     // Mark the selected card as green (correct)
@@ -1223,6 +1236,7 @@ async function handleTranslationClick(
       showBanner("clearedPracticeWords"); // Show the cleared practice words banner
     }
   } else {
+    playSentenceAudio(exampleSentence);
     badChime.currentTime = 0; // Reset audio to the beginning
     badChime.play(); // Play the chime sound when incorrect
     // Mark the incorrect card as red
@@ -1289,12 +1303,6 @@ async function handleTranslationClick(
     evaluateProgression();
     questionsAtCurrentLevel = 0; // Reset the counter after progression evaluation
   }
-
-  const { exampleSentence, sentenceTranslation } = await fetchExampleSentence(
-    wordObj
-  );
-  console.log("Fetched example sentence:", exampleSentence);
-
   if (exampleSentence && !isCloze) {
     const completedSentence = exampleSentence;
 
