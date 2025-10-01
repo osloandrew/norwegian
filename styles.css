@@ -1342,10 +1342,18 @@ ul {
   user-select: none;                 /* Same no-selection behavior */
   cursor: pointer;                   /* Clickable */
   box-sizing: border-box;
+    /* new additions for clickability */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15); /* soft shadow gives depth */
+  transition: background-color 0.2s ease,
+              box-shadow 0.2s ease,
+              transform 0.1s ease;
+
 }
 
 .sentence-audio-icon:hover {
-  background-color: #e0e0e0;         /* Same hover effect idea as CEFR badges/buttons */
+  background-color: #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);   /* stronger shadow on hover */
+  transform: translateY(-1px);             /* tiny lift */
 }
 
 .sentence-box-practice {
