@@ -1331,9 +1331,21 @@ ul {
 }
 
 .sentence-audio-icon {
-  align-self: center;
-  color: #951b1b;
-  cursor:pointer;
+  display: inline-flex;              /* Flexbox to center the icon */
+  align-items: center;               /* Vertical centering */
+  justify-content: center;           /* Horizontal centering */
+  padding: 6px;                  /* Same padding as .sentence-cefr-label */
+  font-size: 14px;                   /* Icon size inside */
+  border-radius: 4px;                /* Same rounded corners */
+  background-color: #f0f0f0;         /* Matches the default CEFR look */
+  color: #4f4f4f;                    /* Icon color */
+  user-select: none;                 /* Same no-selection behavior */
+  cursor: pointer;                   /* Clickable */
+  box-sizing: border-box;
+}
+
+.sentence-audio-icon:hover {
+  background-color: #e0e0e0;         /* Same hover effect idea as CEFR badges/buttons */
 }
 
 .sentence-box-practice {
@@ -2014,6 +2026,10 @@ ul {
     padding: 0.5em;
   }
 
+  .cefr-audio-block {
+  gap: 5px;                   /* small vertical gap between CEFR and icon */
+}
+
   .definition {
     margin-bottom: 10px;
     padding: 20px;
@@ -2319,7 +2335,8 @@ ul {
   }
 
   .sentence-audio-icon {
-    font-size: 12px;
+    padding: 4px;                  /* Same padding as .sentence-cefr-label */
+    font-size: 9px;                   /* Icon size inside */
   }
 
   .sentence-box-english,
