@@ -366,16 +366,17 @@ async function randomWord() {
                   !isEnglishVisible ? "sentence-box-norwegian-hidden" : ""
                 }">
             <div class="sentence-content">
+            <div class="cefr-audio-block">
               ${cefrLabel}
               ${
                 randomResult.hasAudio === "X"
                   ? `<i class="fas fa-volume-up sentence-audio-icon"
-                        style="cursor:pointer; color: #951b1b;"
                         data-sentence="${cleanedSentence
                           .replace(/<[^>]*>/g, "")
                           .trim()}"></i>`
                   : ""
               }
+            </div>
               <p class="sentence">${cleanedSentence}</p>
             </div>
                 </div>
@@ -1837,16 +1838,19 @@ function renderSentences(sentenceResults, word) {
                   !isEnglishVisible ? "sentence-box-norwegian-hidden" : ""
                 }">
                   <div class="sentence-content">
+                  <div class="cefr-audio-block">
+
                     ${match.cefrLabel}
                     ${
                       match.hasAudio === "X"
                         ? `<i class="fas fa-volume-up sentence-audio-icon"
-                              style="cursor:pointer; color: #951b1b;"
                               data-sentence="${match.sentence
                                 .replace(/<[^>]*>/g, "")
                                 .trim()}"></i>`
                         : ""
                     }
+                    </div>
+
                     <p class="sentence">${match.sentence}</p>
                   </div>
                 </div>
@@ -2277,16 +2281,18 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
                   !showEnglish ? "sentence-box-norwegian-hidden" : ""
                 }">
                   <div class="sentence-content">
+                  <div class="cefr-audio-block">
+
                     ${cefrLabel}
                 ${
                   result.hasAudio === "X"
                     ? `<i class="fas fa-volume-up sentence-audio-icon"
-                          style="cursor:pointer; color: #951b1b;"
                           data-sentence="${sentence
                             .replace(/<[^>]*>/g, "")
                             .trim()}"></i>`
                     : ""
-                }                    
+                }        
+                </div>            
                 <p class="sentence">${sentence}</p>
                   </div>
                 </div>

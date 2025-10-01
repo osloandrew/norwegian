@@ -130,6 +130,13 @@ button:disabled i {
   background-color: gainsboro; /* Slightly darker purple on hover */
 }
 
+.cefr-audio-block {
+  display: flex;
+  flex-direction: column;     /* stack vertically */
+  align-items: flex-start;    /* left-align both items */
+  gap: 10px;                   /* small vertical gap between CEFR and icon */
+}
+
 .cefr-badge {
   text-align: center !important;
   display: inline-block;
@@ -1288,17 +1295,6 @@ ul {
   gap: 10px;
 }
 
-.sentence-box-practice {
-  align-content: center;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  padding: 25px;
-  justify-content: center; /* Center the title */
-  align-items: center;
-  position: relative; /* Set relative position for positioning the icon */
-}
-
 .practice-row {
   display: flex;
   gap: 2rem; /* more space between Native and You */
@@ -1332,6 +1328,23 @@ ul {
 .recording-controls {
   margin-top: 15px;
   text-align: center; /* center under the row */
+}
+
+.sentence-audio-icon {
+  align-self: center;
+  color: #951b1b;
+  cursor:pointer;
+}
+
+.sentence-box-practice {
+  align-content: center;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  justify-content: center; /* Center the title */
+  align-items: center;
+  position: relative; /* Set relative position for positioning the icon */
 }
 
 .sentence-btn {
@@ -2303,6 +2316,10 @@ ul {
     gap: 5px;
     justify-content: space-between;
     width: 100%;
+  }
+
+  .sentence-audio-icon {
+    font-size: 12px;
   }
 
   .sentence-box-english,
