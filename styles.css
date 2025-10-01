@@ -2311,12 +2311,6 @@ ul {
     font-size: 16px;
   }
 
-  .sentence-cefr-label {
-    padding: 2px 4px; /* Smaller padding */
-    font-size: 8px; /* Smaller font size */
-    min-width: 10px;
-  }
-
   #search-container {
     box-sizing: border-box;
     overflow: hidden;
@@ -2342,11 +2336,6 @@ ul {
     width: 100%;
   }
 
-  .sentence-audio-icon {
-    padding: 4px;                  /* Same padding as .sentence-cefr-label */
-    font-size: 9px;                   /* Icon size inside */
-  }
-
   .sentence-box-english,
   .sentence-box-norwegian {
     font-size: 15px;
@@ -2356,7 +2345,7 @@ ul {
 
   .sentence-box-english {
     border-radius: 0 0 12px 12px; /* Rounded corners on bottom */
-    padding: 5px 10px 5px 38px;
+    padding: 5px 10px 5px 50px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   }
 
