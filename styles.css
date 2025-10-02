@@ -1443,6 +1443,11 @@ ul {
   border-radius: 0 12px 12px 0; /* Rounded corners on bottom */
   box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
   color: gray;
+  display: flex !important;
+}
+
+.sentence-box-english.hidden {
+  display: none !important;  /* hide when toggled */
 }
 
 .sentence-box-norwegian {

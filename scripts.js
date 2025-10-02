@@ -1549,7 +1549,7 @@ function toggleEnglishTranslations(wordId = null) {
   isEnglishVisible = !isEnglishVisible;
 
   englishSentenceDivs.forEach((div) => {
-    div.style.display = isEnglishVisible ? "block" : "none";
+    div.classList.toggle("hidden", !isEnglishVisible);
   });
 
   norwegianSentenceDivs.forEach((div) => {
