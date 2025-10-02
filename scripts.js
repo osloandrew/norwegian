@@ -1449,7 +1449,13 @@ function displaySearchResults(results, query = "") {
                         : ""
                     }
                     ${
-                      result.uttale
+                      result.wordAudio === "X"
+                        ? `<p class="pronunciation">
+                            <i class="fas fa-volume-up sentence-audio-icon"
+                                data-sentence="${result.ord.trim()}"></i>
+                            ${result.uttale || ""}
+                          </p>`
+                        : result.uttale
                         ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>`
                         : ""
                     }
@@ -2776,8 +2782,17 @@ document.addEventListener("click", (event) => {
 
 document.addEventListener("click", (event) => {
   if (event.target.classList.contains("sentence-audio-icon")) {
-    const sentenceText = event.target.dataset.sentence;
-    const audioUrl = buildPronAudioUrl(sentenceText);
+    const text = event.target.dataset.sentence;
+    let audioUrl;
+
+    // Decide if this is a word or a sentence based on where the icon lives
+    if (event.target.closest(".pronunciation")) {
+      // Word-level audio
+      audioUrl = buildWordAudioUrl(text);
+    } else {
+      // Sentence-level audio
+      audioUrl = buildPronAudioUrl(text);
+    }
 
     const audio = new Audio(audioUrl);
     audio.play().catch((err) => {

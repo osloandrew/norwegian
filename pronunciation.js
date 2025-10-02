@@ -13,6 +13,16 @@ function buildPronAudioUrl(sentenceText) {
     .replace(/\?$/, "")}.m4a`;
 }
 
+function buildWordAudioUrl(wordText) {
+  const base =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+      ? "" // local dev server
+      : "/norwegian"; // GitHub Pages repo name
+
+  return `${base}/Resources/Words/${wordText.trim()}.m4a`;
+}
+
 async function computeSimilarity(nativeUrl, userUrl) {
   const [nativeBuf, userBuf] = await Promise.all([
     fetch(nativeUrl).then((r) => r.arrayBuffer()),
