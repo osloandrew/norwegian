@@ -1452,8 +1452,9 @@ function displaySearchResults(results, query = "") {
                       result.wordAudio === "X"
                         ? `<p class="pronunciation">
                             <i class="fas fa-volume-up sentence-audio-icon"
-                                data-sentence="${result.ord.trim()}"></i>
-                            ${result.uttale || ""}
+                        data-sentence="${result.ord
+                          .split(",")[0]
+                          .trim()}"></i>                            ${result.uttale || ""}
                           </p>`
                         : result.uttale
                         ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>`
