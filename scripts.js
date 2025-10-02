@@ -384,9 +384,7 @@ async function randomWord() {
 
     if (selectedTranslation) {
       sentenceHTML += `
-                <div class="sentence-box-english" style="display: ${
-                  isEnglishVisible ? "block" : "none"
-                };">
+        <div class="sentence-box-english ${isEnglishVisible ? "" : "hidden"}">
                     <p class="sentence">${selectedTranslation}</p>
                 </div>
             `;
@@ -1866,9 +1864,7 @@ function renderSentences(sentenceResults, word) {
     // Only add the English translation box if it exists
     if (match.translation) {
       htmlString += `
-            <div class="sentence-box-english" style="display: ${
-              isEnglishVisible ? "block" : "none"
-            };">
+                <div class="sentence-box-english ${isEnglishVisible ? "" : "hidden"}">
                     <p class="sentence">${match.translation}</p>
                 </div>
             `;
@@ -2306,9 +2302,7 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
                 ${
                   translations[index]
                     ? `
-                <div class="sentence-box-english" style="display: ${
-                  showEnglish ? "block" : "none"
-                };">
+                <div class="sentence-box-english ${showEnglish ? "" : "hidden"}">
                     <p class="sentence-translation">${translations[index]}</p>
                 </div>`
                     : ""

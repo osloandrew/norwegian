@@ -183,9 +183,7 @@ function showRandomPronunciation() {
   // English translation box if available
   if (selectedTranslation) {
     sentenceHTML += `
-    <div class="sentence-box-english" style="display: ${
-      isEnglishVisible ? "block" : "none"
-    };">
+    <div class="sentence-box-english ${isEnglishVisible ? "" : "hidden"}">
       <p class="sentence">${selectedTranslation}</p>
     </div>
   `;
