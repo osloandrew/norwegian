@@ -173,6 +173,14 @@ function toggleGameEnglish() {
   }
 }
 
+function playWordAudio(wordObj) {
+  if (!wordObj || !wordObj.ord) return;
+  const cleanWord = wordObj.ord.split(",")[0].trim();
+  const url = buildWordAudioUrl(cleanWord);
+  const audio = new Audio(url);
+  audio.play().catch((err) => console.warn("Word audio failed:", err));
+}
+
 function playSentenceAudio(exampleSentence) {
   if (!exampleSentence) return;
   const cleanSentence = exampleSentence.replace(/<[^>]*>/g, "").trim();
@@ -877,6 +885,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
     });
 
   renderStats(); // Ensure stats are drawn once DOM is fully loaded
+  playWordAudio(wordObj);
 }
 
 function renderClozeGameUI(
