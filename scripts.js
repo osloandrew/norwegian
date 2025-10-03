@@ -2777,6 +2777,7 @@ document.addEventListener("click", (event) => {
 
 document.addEventListener("click", (event) => {
   if (event.target.classList.contains("sentence-audio-icon")) {
+    stopAllAudio();
     const text = event.target.dataset.sentence;
     let audioUrl;
 
@@ -2790,6 +2791,7 @@ document.addEventListener("click", (event) => {
     }
 
     const audio = new Audio(audioUrl);
+    activeAudio.push(audio);
     audio.play().catch((err) => {
       console.error("Audio playback failed:", err);
     });

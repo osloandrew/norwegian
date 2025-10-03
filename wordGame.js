@@ -1,3 +1,4 @@
+let activeAudio = [];
 let currentWord;
 let correctTranslation;
 let correctlyAnsweredWords = []; // Array to store correctly answered words
@@ -178,6 +179,7 @@ function playWordAudio(wordObj) {
   const cleanWord = wordObj.ord.split(",")[0].trim();
   const url = buildWordAudioUrl(cleanWord);
   const audio = new Audio(url);
+  activeAudio.push(audio); // track it
   audio.play().catch((err) => console.warn("Word audio failed:", err));
 }
 
@@ -186,7 +188,16 @@ function playSentenceAudio(exampleSentence) {
   const cleanSentence = exampleSentence.replace(/<[^>]*>/g, "").trim();
   const audioUrl = buildPronAudioUrl(cleanSentence);
   const audio = new Audio(audioUrl);
+  activeAudio.push(audio); // track it
   audio.play().catch((err) => console.warn("Sentence audio failed:", err));
+}
+
+function stopAllAudio() {
+  activeAudio.forEach((a) => {
+    a.pause();
+    a.currentTime = 0;
+  });
+  activeAudio = [];
 }
 
 function renderStats() {
@@ -880,6 +891,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
   document
     .getElementById("game-next-word-button")
     .addEventListener("click", async function () {
+      stopAllAudio();
       hideAllBanners(); // Hide all banners when Next Word is clicked
       await startWordGame(); // Move to the next word
     });
@@ -1154,6 +1166,7 @@ function renderClozeGameUI(
   document
     .getElementById("game-next-word-button")
     .addEventListener("click", async function () {
+      stopAllAudio();
       hideAllBanners();
       await startWordGame();
     });
@@ -1188,8 +1201,8 @@ async function handleTranslationClick(
   totalQuestions++; // Increment total questions for this level
   questionsAtCurrentLevel++; // Increment questions at this level
   const { exampleSentence, sentenceTranslation } = await fetchExampleSentence(
-      wordObj
-    );
+    wordObj
+  );
   console.log("Fetched example sentence:", exampleSentence);
 
   if (selectedTranslationPart === correctTranslationPart) {
