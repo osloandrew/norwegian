@@ -2043,6 +2043,7 @@ ul {
   display: flex;
   flex-direction: row;
   min-width: 68.5px;
+  justify-content:center;
 }
 
   .definition {
@@ -2352,7 +2353,7 @@ ul {
 
   .sentence-box-english {
     border-radius: 0 0 12px 12px; /* Rounded corners on bottom */
-    padding: 10px 15px 10px 105px;
+    padding: 10px 15px 10px 95px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   }
 
@@ -2377,6 +2378,10 @@ ul {
     gap: 10px; /* Adds space between the boxes */
     margin-bottom: 10px;
   }
+
+  .sentence-content {
+  gap: 10px; /* Adds space between the Norwegian and English sentences */
+}
 
   .sticky-cefr-label {
     height: 25px !important;
