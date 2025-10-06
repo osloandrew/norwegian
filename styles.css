@@ -2039,10 +2039,6 @@ ul {
     padding: 0.5em;
   }
 
-  .cefr-audio-block {
-  gap: 5px;                   /* small vertical gap between CEFR and icon */
-}
-
   .definition {
     margin-bottom: 10px;
     padding: 20px;
@@ -2350,13 +2346,12 @@ ul {
 
   .sentence-box-english {
     border-radius: 0 0 12px 12px; /* Rounded corners on bottom */
-    padding: 5px 10px 5px 50px;
+    padding: 10px 15px 10px 65px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   }
 
   .sentence-box-norwegian {
     border-radius: 12px 12px 0 0; /* Rounded corners on top */
-    padding: 5px 10px 5px 10px;
     box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
   }
 
@@ -2375,10 +2370,6 @@ ul {
     display: block; /* Stack sentence boxes on top of each other */
     gap: 10px; /* Adds space between the boxes */
     margin-bottom: 10px;
-  }
-
-  .sentence-content {
-    gap: 10px !important; /* Adds space between the Norwegian and English sentences */
   }
 
   .sticky-cefr-label {
