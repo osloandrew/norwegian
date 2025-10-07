@@ -132,9 +132,9 @@ button:disabled i {
 
 .cefr-audio-block {
   display: flex;
-  flex-direction: column;     /* stack vertically */
-  align-items: flex-start;    /* left-align both items */
-  gap: 10px;                   /* small vertical gap between CEFR and icon */
+  flex-direction: column; /* stack vertically */
+  align-items: flex-start; /* left-align both items */
+  gap: 10px; /* small vertical gap between CEFR and icon */
 }
 
 .cefr-badge {
@@ -1331,29 +1331,27 @@ ul {
 }
 
 .sentence-audio-icon {
-  display: inline-flex !important;              /* Flexbox to center the icon */
-  align-items: center !important;               /* Vertical centering */
-  justify-content: center !important;           /* Horizontal centering */
-  padding: 6px !important;                  /* Same padding as .sentence-cefr-label */
-  font-size: 14px !important;                   /* Icon size inside */
-  border-radius: 4px !important;                /* Same rounded corners */
-  background-color: #f0f0f0 !important;         /* Matches the default CEFR look */
-  color: #4f4f4f !important;                    /* Icon color */
-  user-select: none !important;                 /* Same no-selection behavior */
-  cursor: pointer !important; 
-  width: auto !important;                  /* Clickable */
+  display: inline-flex !important; /* Flexbox to center the icon */
+  align-items: center !important; /* Vertical centering */
+  justify-content: center !important; /* Horizontal centering */
+  padding: 6px !important; /* Same padding as .sentence-cefr-label */
+  font-size: 14px !important; /* Icon size inside */
+  border-radius: 4px !important; /* Same rounded corners */
+  background-color: #f0f0f0 !important; /* Matches the default CEFR look */
+  color: #4f4f4f !important; /* Icon color */
+  user-select: none !important; /* Same no-selection behavior */
+  cursor: pointer !important;
+  width: auto !important; /* Clickable */
   box-sizing: border-box !important;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.15); /* soft shadow gives depth */
-  transition: background-color 0.2s ease,
-              box-shadow 0.2s ease,
-              transform 0.1s ease;
-
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); /* soft shadow gives depth */
+  transition: background-color 0.2s ease, box-shadow 0.2s ease,
+    transform 0.1s ease;
 }
 
 .sentence-audio-icon:hover {
   background-color: #e0e0e0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);   /* stronger shadow on hover */
-  transform: translateY(-1px);             /* tiny lift */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* stronger shadow on hover */
+  transform: translateY(-1px); /* tiny lift */
 }
 
 .sentence-box-practice {
@@ -1447,7 +1445,7 @@ ul {
 }
 
 .sentence-box-english.hidden {
-  display: none !important;  /* hide when toggled */
+  display: none !important; /* hide when toggled */
 }
 
 .sentence-box-norwegian {
@@ -2040,11 +2038,8 @@ ul {
   }
 
   .cefr-audio-block {
-  display: flex;
-  flex-direction: row;
-  min-width: 68.5px;
-  justify-content:center;
-}
+    flex-direction: row;
+  }
 
   .definition {
     margin-bottom: 10px;
@@ -2353,13 +2348,14 @@ ul {
 
   .sentence-box-english {
     border-radius: 0 0 12px 12px; /* Rounded corners on bottom */
-    padding: 10px 15px 10px 95px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 6px 9px 6px 49px;
   }
 
   .sentence-box-norwegian {
     border-radius: 12px 12px 0 0; /* Rounded corners on top */
     box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+    padding: 6px 9px;
   }
 
   /* Norwegian box styling when English is hidden */
@@ -2380,8 +2376,8 @@ ul {
   }
 
   .sentence-content {
-  gap: 10px; /* Adds space between the Norwegian and English sentences */
-}
+    gap: 10px; /* Adds space between the Norwegian and English sentences */
+  }
 
   .sticky-cefr-label {
     height: 25px !important;
