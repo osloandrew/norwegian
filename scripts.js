@@ -1452,7 +1452,9 @@ function displaySearchResults(results, query = "") {
                             <i class="fas fa-volume-up sentence-audio-icon"
                         data-sentence="${result.ord
                           .split(",")[0]
-                          .trim()}"></i>                            ${result.uttale || ""}
+                          .trim()}"></i>                            ${
+                            result.uttale || ""
+                          }
                           </p>`
                         : result.uttale
                         ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>`
@@ -1864,7 +1866,9 @@ function renderSentences(sentenceResults, word) {
     // Only add the English translation box if it exists
     if (match.translation) {
       htmlString += `
-                <div class="sentence-box-english ${isEnglishVisible ? "" : "hidden"}">
+                <div class="sentence-box-english ${
+                  isEnglishVisible ? "" : "hidden"
+                }">
                     <p class="sentence">${match.translation}</p>
                 </div>
             `;
@@ -2114,9 +2118,11 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
 
   // Find the part of speech (POS) of the word
   const matchingWordEntry = results.find(
-    (result) => result.ord.toLowerCase() === trimmedWord
-  ); // Updated to use exact match
-
+    (result) =>
+      result.ord.toLowerCase() === trimmedWord &&
+      pos &&
+      result.gender.toLowerCase().includes(pos.toLowerCase())
+  );
   if (!matchingWordEntry) {
     console.error(`No matching word found for "${trimmedWord}".`);
     return; // Stop if the word isn't found
@@ -2302,7 +2308,9 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
                 ${
                   translations[index]
                     ? `
-                <div class="sentence-box-english ${showEnglish ? "" : "hidden"}">
+                <div class="sentence-box-english ${
+                  showEnglish ? "" : "hidden"
+                }">
                     <p class="sentence-translation">${translations[index]}</p>
                 </div>`
                     : ""
