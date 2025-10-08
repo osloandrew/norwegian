@@ -120,7 +120,7 @@ function showRandomPronunciation() {
   const sentenceEntries = results.filter(
     (r) =>
       r.eksempel &&
-      r.hasAudio === "X" &&
+      r.sentenceAudio === "X" &&
       (!selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR))
   );
   if (!sentenceEntries.length) {

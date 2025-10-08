@@ -369,7 +369,7 @@ async function randomWord() {
             <div class="cefr-audio-block">
               ${cefrLabel}
               ${
-                randomResult.hasAudio === "X"
+                randomResult.sentenceAudio === "X"
                   ? `<i class="fas fa-volume-up sentence-audio-icon"
                         data-sentence="${cleanedSentence
                           .replace(/<[^>]*>/g, "")
@@ -1783,7 +1783,7 @@ function renderSentences(sentenceResults, word) {
             cefrLabel,
             sentence: highlightQuery(sentence, query),
             translation: highlightQuery(translation, query),
-            hasAudio: result.hasAudio,
+            sentenceAudio: result.sentenceAudio,
           });
         }
         // Check for partial match in both Norwegian sentence and English translation
@@ -1795,7 +1795,7 @@ function renderSentences(sentenceResults, word) {
             cefrLabel,
             sentence: highlightQuery(sentence, query),
             translation: highlightQuery(translation, query),
-            hasAudio: result.hasAudio,
+            sentenceAudio: result.sentenceAudio,
           });
         }
       }
@@ -1849,7 +1849,7 @@ function renderSentences(sentenceResults, word) {
 
                     ${match.cefrLabel}
                     ${
-                      match.hasAudio === "X"
+                      match.sentenceAudio === "X"
                         ? `<i class="fas fa-volume-up sentence-audio-icon"
                               data-sentence="${match.sentence
                                 .replace(/<[^>]*>/g, "")
@@ -2294,7 +2294,7 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
 
                     ${cefrLabel}
                 ${
-                  result.hasAudio === "X"
+                  result.sentenceAudio === "X"
                     ? `<i class="fas fa-volume-up sentence-audio-icon"
                           data-sentence="${sentence
                             .replace(/<[^>]*>/g, "")
