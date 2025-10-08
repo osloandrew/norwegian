@@ -448,21 +448,25 @@ async function search(queryOverride = null) {
   document.getElementById("search-bar").dataset.originalQuery = originalQuery; // 👈 this line
   // Try to find a base form in the dataset
   const variations = generateInexactMatches(originalQuery);
+  const selector = document.getElementById("type-select").value;
   const query =
-    variations.find((base) =>
-      results.some((r) => {
-        const ordList = r.ord
-          .toLowerCase()
-          .split(",")
-          .map((s) => s.trim());
-        const engelskList = r.engelsk
-          .toLowerCase()
-          .split(",")
-          .map((s) => s.trim());
-        return ordList.includes(base) || engelskList.includes(base);
-      })
-    ) || originalQuery;
+    selector === "sentences"
+      ? originalQuery
+      : variations.find((base) =>
+          results.some((r) => {
+            const ordList = r.ord
+              .toLowerCase()
+              .split(",")
+              .map((s) => s.trim());
+            const engelskList = r.engelsk
+              .toLowerCase()
+              .split(",")
+              .map((s) => s.trim());
+            return ordList.includes(base) || engelskList.includes(base);
+          })
+        ) || originalQuery;
   const isInexactMatch = originalQuery !== query;
+
   console.log("Search triggered with query:", query);
   const selectedPOS = document.getElementById("pos-select")
     ? document.getElementById("pos-select").value.toLowerCase()
