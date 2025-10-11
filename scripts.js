@@ -633,17 +633,25 @@ async function search(queryOverride = null) {
       ? rowsAll.filter((r) => r.cefr === selectedCEFR)
       : rowsAll;
 
-    // Prefer exact matches first, then partials
-    const qWords = terms.map((t) => new RegExp(`\\b${t}\\b`, "i"));
+    // Prefer exact phrase matches first, then multi-word partials
     const exact = [];
     const partial = [];
     for (const r of rowsFiltered) {
-      const matchesAll = qWords.every(
-        (rx) => rx.test(r.noNorm) || rx.test(r.enNorm)
-      );
-      (matchesAll ? exact : partial).push(r);
-    }
-    // CEFR order for sorting
+      const inOrder =
+        r.noNorm.includes(normalize(query)) ||
+        r.enNorm.includes(normalize(query));
+      if (inOrder) {
+        exact.push(r);
+      } else {
+        // fallback: all words must still appear somewhere
+        const matchesAll = terms.every(
+          (t) => r.noNorm.includes(t) || r.enNorm.includes(t)
+        );
+        if (matchesAll) {
+          partial.push(r);
+        }
+      }
+    } // CEFR order for sorting
     const cefrOrder = { A1: 1, A2: 2, B1: 3, B2: 4, C: 5 };
 
     // Sort helper: lower CEFR first, then leave relative order intact
