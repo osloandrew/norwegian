@@ -1,6 +1,3 @@
-// State for this module
-let pronunciationResults = [];
-
 function buildPronAudioUrl(sentenceText) {
   const base =
     window.location.hostname === "localhost" ||
@@ -228,7 +225,6 @@ function showRandomPronunciation() {
 
   resultsContainer.innerHTML = sentenceHTML;
 
-  let mediaRec; // inside showRandomPronunciation after HTML is injected
   let mediaRecorder;
   let recordedChunks = [];
 
@@ -300,15 +296,8 @@ function showRandomPronunciation() {
     if (mediaRecorder && mediaRecorder.state === "recording") {
       mediaRecorder.stop();
     }
+    // Instead of disabling, hide Stop after use
     stopBtn.style.display = "none";
-  });
-
-  stopBtn.addEventListener("click", () => {
-    if (mediaRecorder && mediaRecorder.state === "recording") {
-      mediaRecorder.stop();
-      // Instead of disabling, hide Stop after use
-      stopBtn.style.display = "none";
-    }
   });
 
   // Native waveform
