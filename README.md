@@ -37,3 +37,7 @@ Usage
 Search: Enter Norwegian words to view definitions, part of speech, and example sentences.
 
 Word Game: Select the 'Word Game' mode to begin vocabulary exercises filtered by CEFR and part of speech.
+
+## Maintenance Notes
+
+For a detailed list of architecture, performance, and accessibility recommendations, see [`docs/deep-dive-recommendations.md`](docs/deep-dive-recommendations.md).
