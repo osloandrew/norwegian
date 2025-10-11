@@ -604,20 +604,26 @@ async function search(queryOverride = null) {
     }
 
     console.time("[Sentences] query");
-    const term = normalize(query);
-    let ids = sentenceIndex.get(term);
+    const terms = normalize(query).split(/\s+/).filter(Boolean);
 
-    // If no exact token match, try partial fallback on very short queries (optional)
-    if (!ids || (ids.length || ids.byteLength || 0) === 0) {
-      // Fallback: nothing found, show the original message path
-      // (You can remove this fallback later if you prefer strict token matches.)
+    let ids = null;
+    for (const t of terms) {
+      const match = sentenceIndex.get(t) || [];
+      const asArray = ArrayBuffer.isView(match) ? Array.from(match) : match;
+      ids =
+        ids === null
+          ? new Set(asArray)
+          : new Set(asArray.filter((x) => ids.has(x)));
+    }
+
+    // If nothing matched, default to empty
+    if (!ids || ids.size === 0) {
       ids = [];
     }
 
-    // Materialize rows (cap to 200 to avoid huge DOM; we’ll trim later)
+    // Materialize rows
     const rowsAll = [];
-    const asArray = ArrayBuffer.isView(ids) ? Array.from(ids) : ids;
-    for (const sid of asArray) rowsAll.push(sentenceCorpus[sid]);
+    for (const sid of ids) rowsAll.push(sentenceCorpus[sid]);
 
     // Apply CEFR filter if set
     const selectedCEFR = document.getElementById("cefr-select")
@@ -627,18 +633,39 @@ async function search(queryOverride = null) {
       ? rowsAll.filter((r) => r.cefr === selectedCEFR)
       : rowsAll;
 
-    // Prefer exact word matches first, then partials (like your current logic)
-    const qWord = new RegExp(`\\b${term}\\b`, "i");
+    // Prefer exact matches first, then partials
+    const qWords = terms.map((t) => new RegExp(`\\b${t}\\b`, "i"));
     const exact = [];
     const partial = [];
     for (const r of rowsFiltered) {
-      (qWord.test(r.noNorm) || qWord.test(r.enNorm) ? exact : partial).push(r);
+      const matchesAll = qWords.every(
+        (rx) => rx.test(r.noNorm) || rx.test(r.enNorm)
+      );
+      (matchesAll ? exact : partial).push(r);
+    }
+    // CEFR order for sorting
+    const cefrOrder = { A1: 1, A2: 2, B1: 3, B2: 4, C: 5 };
+
+    // Sort helper: lower CEFR first, then leave relative order intact
+    function sortByCEFR(arr) {
+      return arr.sort((a, b) => {
+        const aVal = cefrOrder[a.cefr] || 99;
+        const bVal = cefrOrder[b.cefr] || 99;
+        return aVal - bVal;
+      });
     }
 
-    // Top-N cap (10 like your current UI)
-    const combined = exact.concat(partial).slice(0, 10);
+    // Top-N cap (10 like your current UI), exact matches first, within each CEFR-ordered
+    let combined = [];
+    if (exact.length) {
+      combined = sortByCEFR(exact).concat(sortByCEFR(partial));
+    } else {
+      combined = sortByCEFR(partial);
+    }
+    combined = combined.slice(0, 10);
 
     renderSentenceMatchesFromCorpus(combined, query);
+
     console.timeEnd("[Sentences] query");
     hideSpinner();
     return;
