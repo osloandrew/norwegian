@@ -25,7 +25,9 @@ This document captures the architecture, performance, and accessibility improvem
 - Use descriptive headings and landmark roles to improve screen-reader navigation.
 
 ## Next Steps
-- Prioritize caching and indexing changes first for the largest performance gain.
-- Track load and response timings before/after each change to validate improvements.
-- Create regression tests for search accuracy and pronunciation latency to guard against future changes.
+- Validate the new sentence search retriever with real user flows and capture before/after metrics to quantify the win.
+- Extend the faster lookup approach to pronunciation and definition queries so all fetch paths benefit from consistent caching.
+- Break the monolithic scripts into feature modules (search, sentences, pronunciation, games) that share a single data service.
+- Harden accessibility by adding semantic forms, labels, and keyboard focus states while you refactor the UI.
+- Add automated regression tests covering search accuracy, pronunciation latency, and word-game scoring to protect future changes.
 
