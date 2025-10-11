@@ -80,15 +80,6 @@ async function fetchAndLoadStoryData() {
     hideSpinner();
   }
 }
-// Parse the CSV data for stories
-function parseStoryCSVData(data) {
-  const parsed = Papa.parse(data, { header: true, skipEmptyLines: true }).data;
-  storyResults = parsed.map((entry) => ({
-    ...entry,
-    titleNorwegian: (entry.titleNorwegian || "").trim(),
-  }));
-}
-
 // Helper function to determine CEFR class
 function getCefrClass(cefrLevel) {
   if (!cefrLevel) return "cefr-unknown"; // Fallback for missing CEFR levels

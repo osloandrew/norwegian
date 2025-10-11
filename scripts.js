@@ -7,8 +7,6 @@ const resultsContainer = document.getElementById("results-container");
 // --- Sentences index globals ---
 let sentenceCorpus = []; // Flat array of { id, no, en, noNorm, enNorm, cefr, audio }
 let sentenceIndex = null; // Map<string, Uint32Array | number[]>
-let sentenceIndexVersion = 1; // bump if corpus format changes
-let sentencesQueryCache = null; // LRU cache (added in Step 4)
 
 // Function to show or hide the landing card
 function showLandingCard(show) {
@@ -76,13 +74,6 @@ function appendToContainer(content) {
   resultsContainer.innerHTML += content;
 }
 
-function shouldNotDecline(adjective) {
-  // Pattern for adjectives that do not decline (same form in all genders)
-  const noDeclinePattern = /(ende|bra|ing|y|ekte)$/i;
-
-  return noDeclinePattern.test(adjective);
-}
-
 function formatDefinitionWithMultipleSentences(definition) {
   return definition
     .split(/(?<=[.!?])\s+/) // Split by sentence delimiters
@@ -124,14 +115,6 @@ function filterResultsByPOS(results, selectedPOS) {
       r.gender && r.gender.toLowerCase().startsWith(selectedPOS.toLowerCase())
     );
   });
-}
-
-// Filter results based on selected CEFR level
-function filterResultsByCEFR(results, selectedCEFR) {
-  if (!selectedCEFR) return results;
-  return results.filter(
-    (r) => r.CEFR && r.CEFR.toUpperCase() === selectedCEFR.toUpperCase()
-  );
 }
 
 // Helper function to format 'gender' (grammatical gender) based on its value
