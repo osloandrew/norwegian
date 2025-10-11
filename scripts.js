@@ -4,6 +4,12 @@ let isEnglishVisible = true;
 let latestMultipleResults = null;
 const resultsContainer = document.getElementById("results-container");
 
+// --- Sentences index globals ---
+let sentenceCorpus = []; // Flat array of { id, no, en, noNorm, enNorm, cefr, audio }
+let sentenceIndex = null; // Map<string, Uint32Array | number[]>
+let sentenceIndexVersion = 1; // bump if corpus format changes
+let sentencesQueryCache = null; // LRU cache (added in Step 4)
+
 // Function to show or hide the landing card
 function showLandingCard(show) {
   const landingCard = document.getElementById("landing-card");
@@ -82,6 +88,15 @@ function formatDefinitionWithMultipleSentences(definition) {
     .split(/(?<=[.!?])\s+/) // Split by sentence delimiters
     .map((sentence) => `<p class="example">${sentence}</p>`) // Wrap each sentence in a <p> tag
     .join(""); // Join them together into a string
+}
+
+function splitIntoSentences(text) {
+  if (!text) return [];
+  const arr = text.match(/[^.!?]+[.!?]*/g);
+  return arr ? arr.map((s) => s.trim()) : [text.trim()];
+}
+function normalize(str) {
+  return (str || "").toLowerCase().trim();
 }
 
 function togglePronunciationGuide() {
@@ -190,12 +205,73 @@ function parseCSVData(data) {
         entry.ord = entry.ord.trim(); // Ensure the word is trimmed
         return entry;
       });
+      buildSentenceCorpus();
+      buildSentenceIndex();
       console.log("Parsed and cleaned data:", results);
     },
     error: function (error) {
       console.error("Error parsing CSV:", error);
     },
   });
+}
+
+function buildSentenceCorpus() {
+  sentenceCorpus = [];
+  let id = 0;
+  for (const r of results) {
+    const noList = splitIntoSentences(r.eksempel);
+    const enList = splitIntoSentences(r.sentenceTranslation || "");
+    const n = Math.max(noList.length, enList.length);
+    for (let i = 0; i < n; i++) {
+      const no = noList[i] || "";
+      const en = enList[i] || "";
+      if (!no && !en) continue;
+      sentenceCorpus.push({
+        id: id++,
+        no,
+        en,
+        noNorm: normalize(no),
+        enNorm: normalize(en),
+        cefr: (r.CEFR || "").toUpperCase(),
+        audio: r.sentenceAudio === "X",
+      });
+    }
+  }
+  console.log(
+    `[Sentences] Corpus built: ${sentenceCorpus.length} sentence rows`
+  );
+}
+
+function tokenize(text) {
+  // Unicode letters (incl. å, æ, ø). Grabs words like "være", "språk".
+  const m = text.match(/\p{L}+/gu);
+  return m ? m.map((w) => w.toLowerCase()) : [];
+}
+
+function buildSentenceIndex() {
+  console.time("[Sentences] build index");
+  const idx = new Map();
+  for (const row of sentenceCorpus) {
+    const seen = new Set();
+    for (const tok of [...tokenize(row.noNorm), ...tokenize(row.enNorm)]) {
+      if (tok.length === 0) continue;
+      if (seen.has(tok)) continue; // avoid dup adds for same row
+      seen.add(tok);
+      let postings = idx.get(tok);
+      if (!postings) {
+        postings = [];
+        idx.set(tok, postings);
+      }
+      postings.push(row.id);
+    }
+  }
+  // Optionally compact to typed arrays if large
+  for (const [k, list] of idx) {
+    if (list.length > 1024) idx.set(k, Uint32Array.from(list));
+  }
+  sentenceIndex = idx;
+  console.timeEnd("[Sentences] build index");
+  console.log(`[Sentences] index terms: ${idx.size}`);
 }
 
 function flagMissingWordEntry(word) {
@@ -528,49 +604,61 @@ async function search(queryOverride = null) {
     // Render the matching stories
     displayStoryList(matchingResults);
   } else if (type === "sentences") {
-    // Handle empty search query
     if (!query) {
       resultsContainer.innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-gender">
-                    Error <div class="gender">Empty Search</div>
-                </h2>
-                <p>Please enter a word in the search field before searching.</p>
-            </div>
-        `;
+      <div class="definition error-message">
+        <h2 class="word-gender">Error <div class="gender">Empty Search</div></h2>
+        <p>Please enter a word in the search field before searching.</p>
+      </div>`;
       hideSpinner();
       return;
     }
 
-    // If searching sentences, look for matches in both 'eksempel' and 'sentenceTranslation' fields
-    matchingResults = cleanResults.filter((r) => {
-      return normalizedQueries.some((normQuery) => {
-        const norwegianSentenceMatch =
-          r.eksempel && r.eksempel.toLowerCase().includes(normQuery); // Match in 'eksempel'
-        const englishTranslationMatch =
-          r.sentenceTranslation &&
-          r.sentenceTranslation.toLowerCase().includes(normQuery); // Match in 'sentenceTranslation'
-        return norwegianSentenceMatch || englishTranslationMatch;
-      });
-    });
+    // Safety: ensure index exists
+    if (!sentenceIndex || !sentenceCorpus.length) {
+      buildSentenceCorpus();
+      buildSentenceIndex();
+    }
 
-    // Additionally, filter by the selected CEFR level
-    matchingResults = filterResultsByCEFR(matchingResults, selectedCEFR);
+    console.time("[Sentences] query");
+    const term = normalize(query);
+    let ids = sentenceIndex.get(term);
 
-    // Prioritize the matching results using the prioritizeResults function
-    matchingResults = prioritizeResults(matchingResults, query, "eksempel");
+    // If no exact token match, try partial fallback on very short queries (optional)
+    if (!ids || (ids.length || ids.byteLength || 0) === 0) {
+      // Fallback: nothing found, show the original message path
+      // (You can remove this fallback later if you prefer strict token matches.)
+      ids = [];
+    }
 
-    // Highlight the query in both 'eksempel' and 'sentenceTranslation'
-    matchingResults.forEach((result) => {
-      result.eksempel = highlightQuery(result.eksempel, query);
-      if (result.sentenceTranslation) {
-        result.sentenceTranslation = highlightQuery(
-          result.sentenceTranslation,
-          query
-        );
-      }
-    });
-    renderSentences(matchingResults, query); // Pass the query for highlighting
+    // Materialize rows (cap to 200 to avoid huge DOM; we’ll trim later)
+    const rowsAll = [];
+    const asArray = ArrayBuffer.isView(ids) ? Array.from(ids) : ids;
+    for (const sid of asArray) rowsAll.push(sentenceCorpus[sid]);
+
+    // Apply CEFR filter if set
+    const selectedCEFR = document.getElementById("cefr-select")
+      ? document.getElementById("cefr-select").value.toUpperCase()
+      : "";
+    const rowsFiltered = selectedCEFR
+      ? rowsAll.filter((r) => r.cefr === selectedCEFR)
+      : rowsAll;
+
+    // Prefer exact word matches first, then partials (like your current logic)
+    const qWord = new RegExp(`\\b${term}\\b`, "i");
+    const exact = [];
+    const partial = [];
+    for (const r of rowsFiltered) {
+      (qWord.test(r.noNorm) || qWord.test(r.enNorm) ? exact : partial).push(r);
+    }
+
+    // Top-N cap (10 like your current UI)
+    const combined = exact.concat(partial).slice(0, 10);
+
+    renderSentenceMatchesFromCorpus(combined, query);
+    console.timeEnd("[Sentences] query");
+    hideSpinner();
+    return;
   } else {
     // Handle empty search query
     if (!query) {
@@ -1736,153 +1824,77 @@ function renderSentence(sentenceResult) {
   document.getElementById("results-container").innerHTML = sentenceHTML;
 }
 
-function renderSentences(sentenceResults, word) {
-  clearContainer(); // Clear previous results
+function renderSentenceMatchesFromCorpus(rows, query) {
+  clearContainer();
 
-  const query = word.trim().toLowerCase(); // Trim and lower-case the search term for consistency
-  let exactMatches = [];
-  let partialMatches = [];
-  let uniqueSentences = new Set(); // Track unique sentences
-
-  const regexExactMatch = new RegExp(`\\b${query}\\b`, "i");
-
-  sentenceResults.forEach((result) => {
-    // Split example sentences by common sentence delimiters (period, question mark, exclamation mark)
-    const sentences = result.eksempel.match(/[^.!?]+[.!?]*/g) || [
-      result.eksempel,
-    ];
-    const translations = result.sentenceTranslation
-      ? result.sentenceTranslation.match(/[^.!?]+[.!?]*/g)
-      : [];
-
-    // Generate the CEFR label based on the result's CEFR value
-    let cefrLabel = "";
-    if (result.CEFR === "A1") {
-      cefrLabel = '<div class="sentence-cefr-label easy">A1</div>';
-    } else if (result.CEFR === "A2") {
-      cefrLabel = '<div class="sentence-cefr-label easy">A2</div>';
-    } else if (result.CEFR === "B1") {
-      cefrLabel = '<div class="sentence-cefr-label medium">B1</div>';
-    } else if (result.CEFR === "B2") {
-      cefrLabel = '<div class="sentence-cefr-label medium">B2</div>';
-    } else if (result.CEFR === "C") {
-      cefrLabel = '<div class="sentence-cefr-label hard">C</div>';
-    }
-
-    // Iterate through each sentence and match it with its translation
-    sentences.forEach((sentence, index) => {
-      const trimmedSentence = sentence.trim();
-      const translation = translations[index] || "";
-
-      if (!uniqueSentences.has(trimmedSentence)) {
-        // Only add unique sentences
-        uniqueSentences.add(trimmedSentence);
-
-        // Check for exact match (whole word match) in both the Norwegian sentence and English translation
-        if (
-          regexExactMatch.test(sentence.toLowerCase()) ||
-          regexExactMatch.test(translation.toLowerCase())
-        ) {
-          exactMatches.push({
-            cefrLabel,
-            sentence: highlightQuery(sentence, query),
-            translation: highlightQuery(translation, query),
-            sentenceAudio: result.sentenceAudio,
-          });
-        }
-        // Check for partial match in both Norwegian sentence and English translation
-        else if (
-          sentence.toLowerCase().includes(query) ||
-          translation.toLowerCase().includes(query)
-        ) {
-          partialMatches.push({
-            cefrLabel,
-            sentence: highlightQuery(sentence, query),
-            translation: highlightQuery(translation, query),
-            sentenceAudio: result.sentenceAudio,
-          });
-        }
-      }
-    });
-  });
-
-  // Combine exact matches first, then partial matches
-  const combinedMatches = [...exactMatches, ...partialMatches].slice(0, 10);
-
-  // Debugging log
-  console.log("Exact Matches:", exactMatches);
-  console.log("Partial Matches:", partialMatches);
-  console.log("Combined Matches:", combinedMatches);
-
-  // Check if no results found
-  if (combinedMatches.length === 0) {
+  if (!rows.length) {
     document.getElementById("results-container").innerHTML = `
-            <div class="definition error-message">
-                <h2 class="word-gender">
-                    Error <span class="gender">No Matching Sentences</span>
-                </h2>
-                <p>No sentences found containing "${query}".</p>
-            </div>
-        `;
-    return; // Exit early since there's nothing to render
+      <div class="definition error-message">
+        <h2 class="word-gender">Error <span class="gender">No Matching Sentences</span></h2>
+        <p>No sentences found containing "${query}".</p>
+      </div>`;
+    return;
   }
 
-  // Generate HTML for the combined matches
-  let htmlString = "";
+  let html = `
+    <div class="result-header">
+      <h2>Sentence Results for "${query}"</h2>
+    </div>
+    <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations()">
+      ${isEnglishVisible ? "Hide English" : "Show English"}
+    </button>
+  `;
 
-  if (combinedMatches.length > 0) {
-    // Generate the header card
-    htmlString += `
-            <div class="result-header">
-                <h2>Sentence Results for "${word}"</h2>
+  for (const row of rows) {
+    const cefr = row.cefr;
+    const cefrLabel =
+      cefr === "A1"
+        ? '<div class="sentence-cefr-label easy">A1</div>'
+        : cefr === "A2"
+        ? '<div class="sentence-cefr-label easy">A2</div>'
+        : cefr === "B1"
+        ? '<div class="sentence-cefr-label medium">B1</div>'
+        : cefr === "B2"
+        ? '<div class="sentence-cefr-label medium">B2</div>'
+        : cefr === "C"
+        ? '<div class="sentence-cefr-label hard">C</div>'
+        : "";
+
+    const noHTML = highlightQuery(row.no, query);
+    const enHTML = row.en ? highlightQuery(row.en, query) : "";
+
+    html += `
+      <div class="sentence-container">
+        <div class="sentence-box-norwegian ${
+          !isEnglishVisible ? "sentence-box-norwegian-hidden" : ""
+        }">
+          <div class="sentence-content">
+            <div class="cefr-audio-block">
+              ${cefrLabel}
+              ${
+                row.audio
+                  ? `<i class="fas fa-volume-up sentence-audio-icon" data-sentence="${row.no
+                      .replace(/<[^>]*>/g, "")
+                      .trim()}"></i>`
+                  : ""
+              }
             </div>
-            <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations()">
-                ${isEnglishVisible ? "Hide English" : "Show English"}
-            </button>    
-        `;
+            <p class="sentence">${noHTML}</p>
+          </div>
+        </div>
+        ${
+          row.en
+            ? `
+          <div class="sentence-box-english ${isEnglishVisible ? "" : "hidden"}">
+            <p class="sentence">${enHTML}</p>
+          </div>`
+            : ""
+        }
+      </div>
+    `;
   }
 
-  combinedMatches.forEach((match) => {
-    htmlString += `
-            <div class="sentence-container">
-                <div class="sentence-box-norwegian ${
-                  !isEnglishVisible ? "sentence-box-norwegian-hidden" : ""
-                }">
-                  <div class="sentence-content">
-                  <div class="cefr-audio-block">
-
-                    ${match.cefrLabel}
-                    ${
-                      match.sentenceAudio === "X"
-                        ? `<i class="fas fa-volume-up sentence-audio-icon"
-                              data-sentence="${match.sentence
-                                .replace(/<[^>]*>/g, "")
-                                .trim()}"></i>`
-                        : ""
-                    }
-                    </div>
-
-                    <p class="sentence">${match.sentence}</p>
-                  </div>
-                </div>
-        `;
-
-    // Only add the English translation box if it exists
-    if (match.translation) {
-      htmlString += `
-                <div class="sentence-box-english ${
-                  isEnglishVisible ? "" : "hidden"
-                }">
-                    <p class="sentence">${match.translation}</p>
-                </div>
-            `;
-    }
-
-    htmlString += "</div>"; // Close the sentence-container div
-  });
-
-  // Insert the generated HTML into the results container
-  document.getElementById("results-container").innerHTML = htmlString;
+  document.getElementById("results-container").innerHTML = html;
 }
 
 // Highlight search query in text, accounting for Norwegian characters (å, æ, ø) and verb variations
