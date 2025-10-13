@@ -1,7 +1,7 @@
 import csv
+import urllib.parse
 
 SITE = "https://osloandrew.github.io/norwegian"
-
 urls = []
 
 # --- Words ---
@@ -9,16 +9,20 @@ with open("norwegianWords.csv", newline="", encoding="utf-8") as f:
     reader = csv.DictReader(f)
     for row in reader:
         word = row.get("ord", "").split(",")[0].strip()
+        pos = (row.get("gender") or "").strip()  # 'verb', 'en', 'expression', etc.
         if word:
-            urls.append(f"{SITE}/?type=words&word={word}")
+            if pos:
+                urls.append(f"{SITE}/?type=words&pos={urllib.parse.quote(pos)}&word={urllib.parse.quote(word)}")
+            else:
+                urls.append(f"{SITE}/?type=words&word={urllib.parse.quote(word)}")
 
 # --- Stories ---
 with open("norwegianStories.csv", newline="", encoding="utf-8") as f:
     reader = csv.DictReader(f)
     for row in reader:
-        slug = (row.get("id") or row.get("title") or "").strip().lower().replace(" ", "-")
-        if slug:
-            urls.append(f"{SITE}/?type=stories&story={slug}")
+        title = (row.get("titleNorwegian") or "").strip()
+        if title:
+            urls.append(f"{SITE}/?type=story&story={urllib.parse.quote(title)}")
 
 # --- Write sitemap.xml ---
 with open("sitemap.xml", "w", encoding="utf-8") as f:
