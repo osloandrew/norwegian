@@ -16,6 +16,73 @@ audio {
   width: 100%;
 }
 
+/* --- Pronunciation Button (blue theme) --- */
+.audio-button {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 88px;
+  height: 88px;
+  background: radial-gradient(circle at 30% 30%, #4ea3f7, #1c68b5);
+  border-radius: 50%;
+  box-shadow: 0 6px 20px rgba(28, 104, 181, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.audio-button:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 28px rgba(28, 104, 181, 0.45);
+  background: radial-gradient(circle at 30% 30%, #5ab0ff, #1c68b5);
+}
+
+.audio-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 4px 12px rgba(28, 104, 181, 0.3);
+}
+
+/* Soft pulsing ring */
+.audio-button::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid rgba(76, 148, 228, 0.35);
+  animation: pulse-ring-blue 2s infinite ease-out;
+}
+
+@keyframes pulse-ring-blue {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+/* Icon styling */
+.audio-button img {
+  width: 48px;
+  height: 48px;
+  filter: invert(1) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
+  z-index: 2;
+  transition: transform 0.2s ease;
+}
+
+.audio-button:hover img {
+  transform: scale(1.15);
+}
+
+/* Optional click feedback */
+.audio-button.clicked {
+  transform: scale(0.9);
+  box-shadow: 0 0 0 10px rgba(76, 148, 228, 0.25);
+}
+
 #back-button,
 #speed-btn,
 #toggle-english-btn,
@@ -506,6 +573,17 @@ footer .copyright {
 
 .game-english-translation {
   color: gray !important;
+}
+
+.game-fade {
+  opacity: 1;
+  transition: opacity 0.35s ease-in-out;
+}
+.game-fade.fade-out {
+  opacity: 0;
+}
+.game-fade.fade-in {
+  opacity: 1;
 }
 
 .game-gender {
