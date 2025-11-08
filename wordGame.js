@@ -999,9 +999,11 @@ function escapeRegExp(str) {
 function shortGenderLabel(gender = "") {
   const map = {
     noun: "Noun",
-    masculine: "N - Masc",
-    feminine: "N - Fem",
-    neuter: "N - Neut",
+    en: "N - En",
+    ei: "N - Ei",
+    et: "N - Et",
+    "en-et": "N - En-Et",
+    "en-ei-et": "N - En-Ei-Et",
     adjective: "Adj",
     adverb: "Adv",
     conjunction: "Conj",
@@ -1681,9 +1683,9 @@ async function fetchRandomWord() {
       if (selectedPOS === "noun") {
         return (
           (gender.startsWith("noun") ||
-            gender.startsWith("masculine") ||
-            gender.startsWith("feminine") ||
-            gender.startsWith("neuter")) &&
+            gender.startsWith("en") ||
+            gender.startsWith("ei") ||
+            gender.startsWith("et")) &&
           gender !== "pronoun"
         );
       }
@@ -1908,9 +1910,10 @@ function matchesInflectedForm(base, token, gender) {
 
   // --- 3. Nouns (comprehensive Croatian declension logic) ---
   if (
-    gender.startsWith("masculine") ||
-    gender.startsWith("feminine") ||
-    gender.startsWith("neuter")
+    gender.startsWith("noun") ||
+    gender.startsWith("en") ||
+    gender.startsWith("ei") ||
+    gender.startsWith("et")
   ) {
     const lemma = lowerBase;
     const token = lowerToken;
@@ -1951,10 +1954,7 @@ function matchesInflectedForm(base, token, gender) {
     }
 
     // masculine consonant nouns (stol, student)
-    if (
-      gender.startsWith("masculine") ||
-      /[bcčćdđfghjklmnprsštvzž]$/.test(lemma)
-    ) {
+    if (gender.startsWith("en") || /[bcčćdđfghjklmnprsštvzž]$/.test(lemma)) {
       const stem = lemma;
       const mascEndings = [
         "", // N sg
@@ -2616,7 +2616,7 @@ function applyInflection(base, gender, targetTokenInSentence) {
       forms.pl.inst = lem + "ima";
       return forms;
     }
-    if (g.startsWith("masculine")) {
+    if (g.startsWith("en")) {
       // consonant-ending default, animate/inanimate ambiguity: use -a gen, acc=gen for animate is not inferable here
       forms.sg.nom = lem; // stol
       forms.sg.gen = lem + "a"; // stola
@@ -2748,9 +2748,10 @@ function applyInflection(base, gender, targetTokenInSentence) {
   }
 
   if (
-    gender.startsWith("masculine") ||
-    gender.startsWith("feminine") ||
-    gender.startsWith("neuter")
+    gender.startsWith("noun") ||
+    gender.startsWith("en") ||
+    gender.startsWith("ei") ||
+    gender.startsWith("et")
   ) {
     const grid = nounForms(lemma, gender);
     // choose by guessed case/number if token present
@@ -2784,10 +2785,9 @@ function applyInflection(base, gender, targetTokenInSentence) {
       }
     }
     // defaults by gender
-    if (gender.startsWith("feminine") && lemma.endsWith("a"))
-      return grid.sg.acc;
-    if (gender.startsWith("masculine")) return grid.sg.gen;
-    if (gender.startsWith("neuter")) return grid.sg.nom;
+    if (gender.startsWith("ei") && lemma.endsWith("a")) return grid.sg.acc;
+    if (gender.startsWith("en")) return grid.sg.gen;
+    if (gender.startsWith("et")) return grid.sg.nom;
     return grid.sg.nom || lemma;
   }
 
