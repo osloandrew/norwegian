@@ -1668,6 +1668,14 @@ function displaySearchResults(results, query = "") {
   });
   appendToContainer(htmlString);
 
+  if (
+    defaultResult &&
+    results[0] &&
+    typeof window.attachSingleResultMyWordsControls === "function"
+  ) {
+    window.attachSingleResultMyWordsControls(results[0]);
+  }
+
   // Automatically load sentences for a single result, regardless of whether sentences exist in `eksempel`
   if (defaultResult && results[0]) {
     console.log("Auto-loading sentences for:", results[0].ord);

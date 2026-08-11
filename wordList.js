@@ -147,6 +147,20 @@
     }
   }
 
+  function toggleMyWordsEntry(entry) {
+    const entryId = getMyWordsEntryId(entry);
+
+    if (myWordsEntryIds.has(entryId)) {
+      myWordsEntryIds.delete(entryId);
+    } else {
+      myWordsEntryIds.add(entryId);
+    }
+
+    saveMyWordsEntryIds();
+
+    return entryId;
+  }
+
   function updateMyWordsButton(button, entryId, word) {
     const isSaved = myWordsEntryIds.has(entryId);
     const icon = button.querySelector("i");
@@ -184,13 +198,7 @@
       // Do not open the definition when clicking the star.
       event.stopPropagation();
 
-      if (myWordsEntryIds.has(entryId)) {
-        myWordsEntryIds.delete(entryId);
-      } else {
-        myWordsEntryIds.add(entryId);
-      }
-
-      saveMyWordsEntryIds();
+      toggleMyWordsEntry(entry);
       updateMyWordsButton(button, entryId, word);
       if (activeWordListView === "my") {
         renderWordList();
@@ -205,6 +213,109 @@
     cell.appendChild(button);
 
     return cell;
+  }
+
+  function goToMyWords() {
+    const typeSelect = document.getElementById("type-select");
+    const searchInput = document.getElementById("search-bar");
+    const posSelect = document.getElementById("pos-select");
+    const cefrSelect = document.getElementById("cefr-select");
+
+    if (!typeSelect) {
+      return;
+    }
+
+    activeWordListView = "my";
+
+    if (searchInput) {
+      searchInput.value = "";
+    }
+
+    if (posSelect) {
+      posSelect.value = "";
+    }
+
+    if (cefrSelect) {
+      cefrSelect.value = "";
+    }
+
+    typeSelect.value = "word-list";
+    handleTypeChange("word-list");
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
+  function attachSingleResultMyWordsControls(entry) {
+    const card = resultsContainer.querySelector(
+      ".definition.single-result-definition",
+    );
+
+    if (!card || !entry) {
+      return;
+    }
+
+    // Prevent duplicate controls if the definition is rendered again.
+    card.querySelector(".single-result-my-words-controls")?.remove();
+
+    const controls = document.createElement("div");
+    controls.className = "single-result-my-words-controls";
+
+    const starButton = document.createElement("button");
+    const starIcon = document.createElement("i");
+    const entryId = getMyWordsEntryId(entry);
+    const word = String(entry.ord ?? "").trim();
+
+    starButton.type = "button";
+    starButton.className =
+      "word-list-favorite-button single-result-my-words-star";
+
+    starIcon.setAttribute("aria-hidden", "true");
+    starButton.appendChild(starIcon);
+
+    updateMyWordsButton(starButton, entryId, word);
+
+    starButton.addEventListener("click", (event) => {
+      // The definition card itself has a click handler.
+      event.stopPropagation();
+
+      toggleMyWordsEntry(entry);
+      updateMyWordsButton(starButton, entryId, word);
+    });
+
+    starButton.addEventListener("keydown", (event) => {
+      event.stopPropagation();
+    });
+
+    const goToMyWordsButton = document.createElement("button");
+
+    goToMyWordsButton.type = "button";
+    goToMyWordsButton.className =
+      "word-list-export-button single-result-my-words-link";
+    goToMyWordsButton.textContent = "Go to My Words";
+
+    goToMyWordsButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      goToMyWords();
+    });
+
+    goToMyWordsButton.addEventListener("keydown", (event) => {
+      event.stopPropagation();
+    });
+
+    controls.append(starButton, goToMyWordsButton);
+
+    // Move the word-type badge into the same right-hand column
+    // so it cannot collide with the new controls.
+    const genderBadge = card.querySelector(".word-gender > .gender");
+
+    if (genderBadge) {
+      controls.appendChild(genderBadge);
+    }
+
+    card.prepend(controls);
   }
 
   function returnToWordList() {
@@ -1192,4 +1303,7 @@
   // Make these functions available to scripts.js.
   window.initWordList = initWordList;
   window.renderWordList = renderWordList;
+  window.attachSingleResultMyWordsControls = attachSingleResultMyWordsControls;
+
+  window.goToMyWords = goToMyWords;
 })();

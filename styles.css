@@ -1601,7 +1601,39 @@ ul {
 }
 
 .single-result-definition {
-  margin-bottom: 0px;
+  margin-bottom: 0;
+  position: relative;
+}
+
+.single-result-my-words-controls {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto auto;
+  margin: 0;
+  position: absolute;
+  right: 25px;
+  top: 25px;
+  z-index: 2;
+}
+
+.single-result-my-words-link {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.single-result-my-words-star {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.single-result-my-words-controls .gender {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  justify-self: end;
+  margin: 0 !important;
 }
 
 #site-title {
