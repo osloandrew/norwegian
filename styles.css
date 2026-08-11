@@ -1189,6 +1189,140 @@ main {
 
 /* My Words study mode */
 
+.my-words-study-prompt {
+  box-sizing: border-box;
+  min-height: 110px;
+  padding: 10px 20px;
+  width: 100%;
+}
+
+.my-words-study-prompt > div {
+  width: 100%;
+}
+
+.my-words-study-prompt h2 {
+  hyphens: auto;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.my-words-study-kicker {
+  color: #777 !important;
+  font-family: "Noto Sans", sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin: 0 0 8px !important;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.my-words-study-answer-panel {
+  align-items: stretch;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  width: 100%;
+}
+
+.my-words-study-answer-panel label {
+  color: #555555;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.my-words-study-answer-row {
+  align-items: stretch;
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+
+#my-words-study-answer {
+  background-color: #ffffff;
+  border: 2px solid #b9c5d1;
+  border-radius: 6px;
+  box-sizing: border-box;
+  color: #333333;
+  flex: 1 1 auto;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 18px;
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+#my-words-study-answer:focus {
+  border-color: #3c88d4;
+  box-shadow: 0 0 0 3px rgba(60, 136, 212, 0.16);
+  outline: none;
+}
+
+#my-words-study-answer.my-words-study-answer-correct {
+  background-color: #edf7e8;
+  border-color: #6b9461;
+}
+
+#my-words-study-answer.my-words-study-answer-incorrect {
+  background-color: #fff1ed;
+  border-color: #b5634d;
+}
+
+#my-words-study-answer-form > label {
+  align-self: stretch;
+  display: block;
+  left: auto;
+  margin: 0;
+  padding: 0 0 0 3px;
+  pointer-events: auto;
+  position: static;
+  text-align: left;
+  top: auto;
+  transform: none;
+  width: 100%;
+}
+
+.my-words-study-dont-know {
+  align-self: center;
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: #777777;
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
+  padding: 5px 10px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.my-words-study-dont-know:hover {
+  color: #5a1a1a;
+}
+
+.my-words-study-feedback-content {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.my-words-study-context {
+  border-top: 1px solid #eeeeee;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.my-words-study-context p {
+  margin: 3px 0 !important;
+}
+
 .my-words-study-toolbar {
   align-items: center;
   display: flex;
@@ -2864,6 +2998,19 @@ ul {
   .my-words-study-pass-label {
     max-width: 90px;
     text-align: center;
+  }
+
+  .my-words-study-answer-row {
+    flex-direction: column;
+  }
+
+  #my-words-study-check {
+    width: 100%;
+  }
+
+  .my-words-study-prompt {
+    min-height: 90px;
+    padding: 8px 10px;
   }
 
   .practice-row {
