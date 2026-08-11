@@ -2589,7 +2589,6 @@ ul {
 }
 
 .word-list-table {
-  table-layout: fixed;
   width: 100%;
 }
 
@@ -2621,6 +2620,22 @@ ul {
   max-width: 100%;
   overflow-wrap: anywhere;
   white-space: normal;
+}
+
+.word-list-table {
+  table-layout: auto;
+}
+
+/* Shrink these columns to their contents */
+.word-list-row .word-list-level,
+.word-list-row {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.word-list-row .word-list-favorite {
+  padding: 6px !important;
+  text-align: center;
 }
 
 .word-text-block {
