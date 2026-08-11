@@ -215,7 +215,7 @@
     return cell;
   }
 
-  function goToMyWords() {
+  function openWordList(view) {
     const typeSelect = document.getElementById("type-select");
     const searchInput = document.getElementById("search-bar");
     const posSelect = document.getElementById("pos-select");
@@ -225,7 +225,7 @@
       return;
     }
 
-    activeWordListView = "my";
+    activeWordListView = view === "my" ? "my" : "all";
 
     if (searchInput) {
       searchInput.value = "";
@@ -246,6 +246,14 @@
       top: 0,
       behavior: "smooth",
     });
+  }
+
+  function goToAllWords() {
+    openWordList("all");
+  }
+
+  function goToMyWords() {
+    openWordList("my");
   }
 
   function attachSingleResultMyWordsControls(entry) {
@@ -1343,5 +1351,6 @@
   window.renderWordList = renderWordList;
   window.attachSingleResultMyWordsControls = attachSingleResultMyWordsControls;
   window.attachMultipleResultMyWordsStars = attachMultipleResultMyWordsStars;
+  window.goToAllWords = goToAllWords;
   window.goToMyWords = goToMyWords;
 })();

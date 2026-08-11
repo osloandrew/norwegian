@@ -1024,6 +1024,21 @@ label {
   height: 80px;
 }
 
+.landing-card-feature-icon {
+  align-items: center;
+  color: #0d3a69;
+  display: flex;
+  font-size: 48px;
+  height: 80px;
+  justify-content: center;
+  margin: 0 auto;
+  width: 80px;
+}
+
+.landing-card-my-words-icon {
+  color: #a66c00;
+}
+
 /* Progress bar container and fill */
 .level-progress-bar-bg {
   background-color: #eee;
