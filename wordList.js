@@ -527,6 +527,357 @@
     }
   }
 
+  function downloadWordListFile(filename, content, mimeType) {
+    /*
+     * The UTF-8 marker helps spreadsheet programs display
+     * æ, ø, and å correctly.
+     */
+    const utf8Content = "\uFEFF" + content;
+
+    const blob = new Blob([utf8Content], {
+      type: `${mimeType};charset=utf-8`,
+    });
+
+    const downloadURL = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = downloadURL;
+    link.download = filename;
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(downloadURL);
+  }
+
+  function createWordListExportFilename(extension) {
+    const searchInput = document.getElementById("search-bar");
+    const posSelect = document.getElementById("pos-select");
+    const cefrSelect = document.getElementById("cefr-select");
+
+    const search = String(searchInput?.value ?? "").trim();
+    const wordClass = String(posSelect?.value ?? "").trim();
+    const level = String(cefrSelect?.value ?? "").trim();
+
+    const filenameParts = ["norwegian-word-list"];
+
+    if (wordClass) {
+      filenameParts.push(wordClass);
+    }
+
+    if (level) {
+      filenameParts.push(level.toLowerCase());
+    }
+
+    if (search) {
+      const safeSearch = search
+        .toLocaleLowerCase("nb-NO")
+        .replace(/[^a-z0-9æøå]+/gi, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 40);
+
+      if (safeSearch) {
+        filenameParts.push(`search-${safeSearch}`);
+      }
+    }
+
+    return `${filenameParts.join("-")}.${extension}`;
+  }
+
+  function escapeWordListCSVValue(value) {
+    const cleanedValue = String(value ?? "")
+      .replace(/\r?\n/g, " ")
+      .trim();
+
+    return `"${cleanedValue.replace(/"/g, '""')}"`;
+  }
+
+  function exportWordListCSV() {
+    const entries = getFilteredWordListEntries();
+
+    if (entries.length === 0) {
+      return;
+    }
+
+    const rows = [["Norwegian", "English", "Word Class", "Level"]];
+
+    entries.forEach((entry) => {
+      rows.push([
+        entry.ord,
+        entry.engelsk,
+        getWordListClassLabel(entry),
+        entry.CEFR,
+      ]);
+    });
+
+    const csvContent = rows
+      .map((row) => row.map(escapeWordListCSVValue).join(","))
+      .join("\r\n");
+
+    downloadWordListFile(
+      createWordListExportFilename("csv"),
+      csvContent,
+      "text/csv",
+    );
+  }
+
+  function escapeWordListTSVValue(value) {
+    return String(value ?? "")
+      .replace(/\t/g, " ")
+      .replace(/\r?\n/g, " ")
+      .trim();
+  }
+
+  function createWordListTag(value) {
+    return String(value ?? "")
+      .trim()
+      .toLocaleLowerCase("nb-NO")
+      .replace(/[^a-z0-9æøå]+/gi, "-")
+      .replace(/^-|-$/g, "");
+  }
+
+  function exportWordListTSV() {
+    const entries = getFilteredWordListEntries();
+
+    if (entries.length === 0) {
+      return;
+    }
+
+    const rows = [["Norwegian", "English", "Word Class", "Level"]];
+
+    entries.forEach((entry) => {
+      rows.push([
+        entry.ord,
+        entry.engelsk,
+        getWordListClassLabel(entry),
+        entry.CEFR,
+      ]);
+    });
+
+    const tsvContent = rows
+      .map((row) => row.map(escapeWordListTSVValue).join("\t"))
+      .join("\r\n");
+
+    downloadWordListFile(
+      createWordListExportFilename("tsv"),
+      tsvContent,
+      "text/tab-separated-values",
+    );
+  }
+
+  function createWordListExportControls() {
+    const controls = document.createElement("div");
+    controls.className = "word-list-export-controls";
+
+    const csvButton = document.createElement("button");
+    csvButton.type = "button";
+    csvButton.className = "word-list-export-button";
+    csvButton.textContent = "Export CSV";
+
+    csvButton.addEventListener("click", () => {
+      exportWordListCSV();
+    });
+
+    const tsvButton = document.createElement("button");
+    tsvButton.type = "button";
+    tsvButton.className = "word-list-export-button";
+    tsvButton.textContent = "Export TSV";
+
+    tsvButton.addEventListener("click", () => {
+      exportWordListTSV();
+    });
+
+    const pdfButton = document.createElement("button");
+    pdfButton.type = "button";
+    pdfButton.className = "word-list-export-button";
+    pdfButton.textContent = "Export PDF";
+
+    pdfButton.addEventListener("click", () => {
+      exportWordListPDF();
+    });
+
+    controls.append(csvButton, tsvButton, pdfButton);
+
+    return controls;
+  }
+
+  function escapeWordListHTML(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function exportWordListPDF() {
+    const entries = getFilteredWordListEntries();
+
+    if (entries.length === 0) {
+      return;
+    }
+
+    /*
+     * Very large PDFs can take a long time to prepare.
+     * Give the user a choice before continuing.
+     */
+    if (entries.length > 2000) {
+      const shouldContinue = window.confirm(
+        `This PDF will contain ${entries.length} vocabulary entries ` +
+          "and may take a while to prepare. Continue?",
+      );
+
+      if (!shouldContinue) {
+        return;
+      }
+    }
+
+    const printWindow = window.open("", "_blank");
+
+    if (!printWindow) {
+      window.alert(
+        "The PDF window was blocked. Please allow pop-ups and try again.",
+      );
+
+      return;
+    }
+
+    /*
+     * Prevent the new window from controlling the original page.
+     */
+    printWindow.opener = null;
+
+    const filename = createWordListExportFilename("pdf");
+    const documentTitle = filename.replace(/\.pdf$/i, "");
+
+    const tableRows = entries
+      .map(
+        (entry) => `
+        <tr>
+          <td>${escapeWordListHTML(entry.ord)}</td>
+          <td>${escapeWordListHTML(entry.engelsk)}</td>
+          <td>${escapeWordListHTML(getWordListClassLabel(entry))}</td>
+          <td>${escapeWordListHTML(entry.CEFR)}</td>
+        </tr>
+      `,
+      )
+      .join("");
+
+    const printableDocument = `
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>${escapeWordListHTML(documentTitle)}</title>
+
+        <style>
+          @page {
+            size: A4;
+            margin: 12mm;
+          }
+
+          * {
+            box-sizing: border-box;
+          }
+
+          body {
+            margin: 0;
+            color: #222222;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+          }
+
+          thead {
+            display: table-header-group;
+          }
+
+          tr {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+
+          th,
+          td {
+            padding: 7px 8px;
+            border: 1px solid #cccccc;
+            overflow-wrap: anywhere;
+            text-align: left;
+            vertical-align: top;
+          }
+
+          th {
+            background-color: #eeeeee;
+            font-size: 9pt;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+          }
+
+          th:nth-child(1),
+          td:nth-child(1) {
+            width: 30%;
+          }
+
+          th:nth-child(2),
+          td:nth-child(2) {
+            width: 35%;
+          }
+
+          th:nth-child(3),
+          td:nth-child(3) {
+            width: 25%;
+          }
+
+          th:nth-child(4),
+          td:nth-child(4) {
+            width: 10%;
+          }
+
+          tbody tr:nth-child(even) {
+            background-color: #f7f7f7;
+          }
+        </style>
+      </head>
+
+      <body>
+        <table>
+          <thead>
+            <tr>
+              <th>Norwegian</th>
+              <th>English</th>
+              <th>Word Class</th>
+              <th>Level</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+      </body>
+    </html>
+  `;
+
+    printWindow.document.open();
+    printWindow.document.write(printableDocument);
+    printWindow.document.close();
+
+    /*
+     * The document contains no external resources, so a short delay
+     * is sufficient before opening the print dialog.
+     */
+    window.setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+    }, 250);
+  }
+
   /**
    * Render the complete Word List using the current search and Word Class.
    *
@@ -585,6 +936,7 @@
     if (filteredEntries.length === 0) {
       panel.appendChild(createWordListEmptyMessage());
     } else {
+      panel.appendChild(createWordListExportControls());
       panel.appendChild(createWordListTable());
     }
 

@@ -2236,6 +2236,47 @@ ul {
   text-transform: uppercase;
 }
 
+.word-list-export-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.word-list-export-button {
+  appearance: none;
+  background-color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  box-shadow:
+    0 4px 8px rgba(135, 135, 135, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #5a1a1a;
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  padding: 10px 16px;
+  text-transform: uppercase;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.word-list-export-button:hover {
+  background-color: #f2f9fd;
+  box-shadow:
+    0 6px 12px rgba(135, 135, 135, 0.3),
+    0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.word-list-export-button:focus-visible {
+  outline: 2px solid #3c88d4;
+  outline-offset: 2px;
+}
+
 .word-list-level {
   color: #951b1b;
   font-size: 14px;
