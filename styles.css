@@ -2837,4 +2837,72 @@ ul {
   .word-gender .gender {
     margin-top: 10px;
   }
+
+  /* Responsive Word List cards */
+  .word-list-table-container {
+    overflow-x: hidden;
+  }
+
+  .word-list-table,
+  .word-list-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .word-list-table {
+    border-spacing: 0;
+  }
+
+  .word-list-row {
+    box-sizing: border-box;
+    display: grid;
+    grid-template-areas:
+      "norwegian english"
+      "word-class level";
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px 20px;
+    margin-bottom: 12px;
+    padding: 15px 20px;
+    width: 100%;
+
+    /* Same card treatment as .definition */
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .word-list-row td {
+    background-color: transparent;
+    border-radius: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    padding: 0;
+  }
+
+  .word-list-norwegian {
+    grid-area: norwegian;
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .word-list-english {
+    grid-area: english;
+    font-size: 14px;
+  }
+
+  .word-list-class {
+    grid-area: word-class;
+  }
+
+  .word-list-level {
+    grid-area: level;
+  }
+
+  .word-list-row:hover {
+    background-color: #f2f9fd;
+  }
+
+  .word-list-row:hover td {
+    background-color: transparent;
+  }
 }
