@@ -256,6 +256,20 @@
     openWordList("my");
   }
 
+  function getSavedWordStudyEntries() {
+    const entriesById = new Map(
+      results.map((entry) => [getMyWordsEntryId(entry), entry]),
+    );
+
+    return Array.from(myWordsEntryIds)
+      .map((entryId) => {
+        const entry = entriesById.get(entryId);
+
+        return entry ? { entryId, entry } : null;
+      })
+      .filter(Boolean);
+  }
+
   function attachSingleResultMyWordsControls(entry) {
     const card = resultsContainer.querySelector(
       ".definition.single-result-definition",
@@ -1101,11 +1115,19 @@
         "My Words actions",
       );
 
-      const learnWordsButton = createControlButton("Learn Words");
+      const learnWordsButton = createControlButton("Learn Words", () => {
+        if (typeof window.startMyWordsStudy === "function") {
+          window.startMyWordsStudy();
+        } else {
+          console.warn("My Words study mode has not loaded.");
+        }
+      });
 
-      // Placeholder until the learning feature is implemented.
-      learnWordsButton.disabled = true;
-      learnWordsButton.title = "Coming soon";
+      learnWordsButton.disabled = myWordsEntryIds.size === 0;
+      learnWordsButton.title =
+        myWordsEntryIds.size === 0
+          ? "Save at least one word first"
+          : "Study your saved words";
 
       const removeAllButton = createControlButton("Remove All Words", () => {
         const savedWordCount = myWordsEntryIds.size;
@@ -1425,4 +1447,8 @@
   window.attachMultipleResultMyWordsStars = attachMultipleResultMyWordsStars;
   window.goToAllWords = goToAllWords;
   window.goToMyWords = goToMyWords;
+  window.MyWordsAPI = Object.freeze({
+    getSavedEntries: getSavedWordStudyEntries,
+    returnToMyWords: goToMyWords,
+  });
 })();

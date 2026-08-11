@@ -107,7 +107,7 @@ function showBanner(type, level) {
 
   if (type === "congratulations") {
     const randomIndex = Math.floor(
-      Math.random() * congratulationsMessages.length
+      Math.random() * congratulationsMessages.length,
     );
     message = congratulationsMessages[randomIndex].replace("{X}", level);
     bannerHTML = `<div class="game-congratulations-banner"><p>${message}</p></div>`;
@@ -121,7 +121,7 @@ function showBanner(type, level) {
     bannerHTML = `<div class="game-streak-banner"><p>${message}</p></div>`;
   } else if (type === "clearedPracticeWords") {
     const randomIndex = Math.floor(
-      Math.random() * clearedPracticeMessages.length
+      Math.random() * clearedPracticeMessages.length,
     );
     message = clearedPracticeMessages[randomIndex];
     bannerHTML = `<div class="game-cleared-practice-banner"><p>${message}</p></div>`;
@@ -165,7 +165,7 @@ function isBaseForm(word, baseWord) {
 function toggleGameEnglish() {
   const englishSelect = document.getElementById("game-english-select");
   const translationElement = document.querySelector(
-    ".game-cefr-spacer .game-english-translation"
+    ".game-cefr-spacer .game-english-translation",
   );
 
   if (translationElement) {
@@ -276,7 +276,7 @@ function renderStats() {
 async function startWordGame() {
   document.getElementById("lock-icon").style.display = "inline";
   const searchContainerInner = document.getElementById(
-    "search-container-inner"
+    "search-container-inner",
   ); // The container to update
   const searchBarWrapper = document.getElementById("search-bar-wrapper");
   const randomBtn = document.getElementById("random-btn");
@@ -286,7 +286,7 @@ async function startWordGame() {
   const genreFilterContainer = document.getElementById("genre-filter"); // Get the Genre filter container
   const cefrFilterContainer = document.querySelector(".cefr-filter"); // Get the CEFR filter container
   const gameEnglishFilterContainer = document.querySelector(
-    ".game-english-filter"
+    ".game-english-filter",
   );
 
   // Filter dropdowns for POS, Genre, and CEFR
@@ -319,11 +319,11 @@ async function startWordGame() {
 
   // Check if all available words have been answered correctly
   const totalWords = results.filter(
-    (r) => r.CEFR === currentCEFR && !noRandom.includes(r.ord.toLowerCase())
+    (r) => r.CEFR === currentCEFR && !noRandom.includes(r.ord.toLowerCase()),
   );
   if (correctlyAnsweredWords.length >= totalWords.length) {
     console.log(
-      "All words answered correctly, resetting correctlyAnsweredWords array."
+      "All words answered correctly, resetting correctlyAnsweredWords array.",
     );
     correctlyAnsweredWords = []; // Reset the array
   }
@@ -341,7 +341,7 @@ async function startWordGame() {
 
       console.log(
         "Reintroducing word from incorrectWordQueue:",
-        firstWordInQueue.wordObj
+        firstWordInQueue.wordObj,
       );
 
       // Reintroduce the word
@@ -351,7 +351,7 @@ async function startWordGame() {
       // Log wordObj being passed to renderWordGameUI
       console.log(
         "Passing wordObj to renderWordGameUI:",
-        firstWordInQueue.wordObj
+        firstWordInQueue.wordObj,
       );
 
       if (firstWordInQueue.wasCloze) {
@@ -361,7 +361,7 @@ async function startWordGame() {
           (r) =>
             r.ord.toLowerCase() === randomWordObj.ord.toLowerCase() &&
             r.gender === randomWordObj.gender &&
-            r.CEFR === randomWordObj.CEFR
+            r.CEFR === randomWordObj.CEFR,
         );
         const exampleText = matchingEntry?.eksempel || "";
         const firstSentence = exampleText.split(/(?<=[.!?])\s+/)[0];
@@ -374,7 +374,7 @@ async function startWordGame() {
           baseWord,
           clozedForm,
           randomWordObj.CEFR,
-          randomWordObj.gender
+          randomWordObj.gender,
         );
 
         let allWords = shuffleArray([formattedClozed, ...distractors]);
@@ -382,7 +382,7 @@ async function startWordGame() {
 
         if (/^[A-ZÆØÅ]/.test(clozedForm)) {
           uniqueWords = uniqueWords.map(
-            (word) => word.charAt(0).toUpperCase() + word.slice(1)
+            (word) => word.charAt(0).toUpperCase() + word.slice(1),
           );
         }
 
@@ -392,17 +392,17 @@ async function startWordGame() {
         let incorrectTranslations = fetchIncorrectTranslations(
           firstWordInQueue.wordObj.gender,
           correctTranslation,
-          firstWordInQueue.wordObj.CEFR
+          firstWordInQueue.wordObj.CEFR,
         );
 
         if (incorrectTranslations.length < 3) {
           const additionalTranslations =
             fetchIncorrectTranslationsFromOtherCEFRLevels(
               firstWordInQueue.wordObj.gender,
-              correctTranslation
+              correctTranslation,
             );
           incorrectTranslations = incorrectTranslations.concat(
-            additionalTranslations
+            additionalTranslations,
           );
         }
 
@@ -417,7 +417,7 @@ async function startWordGame() {
         renderWordGameUI(
           firstWordInQueue.wordObj,
           uniqueDisplayedTranslations,
-          true
+          true,
         );
       }
 
@@ -459,7 +459,7 @@ async function startWordGame() {
   const incorrectTranslations = fetchIncorrectTranslations(
     randomWordObj.gender,
     correctTranslation,
-    currentCEFR
+    currentCEFR,
   );
 
   // Shuffle correct and incorrect translations into an array
@@ -475,7 +475,7 @@ async function startWordGame() {
   if (
     isClozeQuestion &&
     bannedWordClasses.some((b) =>
-      randomWordObj.gender?.toLowerCase().startsWith(b)
+      randomWordObj.gender?.toLowerCase().startsWith(b),
     )
   ) {
     renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
@@ -484,7 +484,7 @@ async function startWordGame() {
 
   console.log(
     "Showing " + (isClozeQuestion ? "CLOZE" : "FLASHCARD") + " question for:",
-    randomWordObj.ord
+    randomWordObj.ord,
   );
 
   if (isClozeQuestion) {
@@ -493,7 +493,7 @@ async function startWordGame() {
       (r) =>
         r.ord.toLowerCase() === randomWordObj.ord.toLowerCase() &&
         r.gender === randomWordObj.gender &&
-        r.CEFR === randomWordObj.CEFR
+        r.CEFR === randomWordObj.CEFR,
     );
     const exampleText = matchingEntry?.eksempel || "";
     const firstSentence = exampleText.split(/(?<=[.!?])\s+/)[0];
@@ -526,7 +526,7 @@ async function startWordGame() {
 
     if (!clozedForm) {
       const cleanedTokens = tokens.map((t) =>
-        t.toLowerCase().replace(/[.,!?;:()"]/g, "")
+        t.toLowerCase().replace(/[.,!?;:()"]/g, ""),
       );
 
       const normalizedTokens = cleanedTokens;
@@ -536,7 +536,7 @@ async function startWordGame() {
       for (let len = normalizedBase.length; len > 2; len--) {
         const prefix = normalizedBase.slice(0, len);
         const matchIndex = normalizedTokens.findIndex((t) =>
-          t.startsWith(prefix)
+          t.startsWith(prefix),
         );
         if (matchIndex !== -1) {
           // Try to recover the full expression from the token window
@@ -566,7 +566,7 @@ async function startWordGame() {
         console.warn("Tokens analyzed:", cleanedTokens);
         console.warn("Gender/POS:", randomWordObj.gender);
         console.warn(
-          "No matching token found after analyzing sentence for cloze insertion."
+          "No matching token found after analyzing sentence for cloze insertion.",
         );
         console.warn("⚠️ Falling back to flashcard due to cloze failure");
         console.log("Fallback word object:", randomWordObj);
@@ -587,7 +587,7 @@ async function startWordGame() {
       baseWord,
       formattedClozed,
       randomWordObj.CEFR,
-      randomWordObj.gender
+      randomWordObj.gender,
     );
 
     let allWords = shuffleArray([formattedClozed, ...distractors]);
@@ -595,7 +595,7 @@ async function startWordGame() {
 
     if (wasCapitalizedFromLowercase) {
       uniqueWords = uniqueWords.map(
-        (word) => word.charAt(0).toUpperCase() + word.slice(1)
+        (word) => word.charAt(0).toUpperCase() + word.slice(1),
       );
       formattedClozed =
         formattedClozed.charAt(0).toUpperCase() + formattedClozed.slice(1);
@@ -757,7 +757,7 @@ function fetchIncorrectNorwegianWords(correctWord, CEFR, gender) {
 
 function displayPronunciation(word) {
   const pronunciationContainer = document.querySelector(
-    "#game-banner-placeholder"
+    "#game-banner-placeholder",
   );
   if (pronunciationContainer && word.uttale) {
     const uttaleText = word.uttale.split(",")[0].trim(); // Get the part before the first comma
@@ -865,7 +865,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
                 <div class="game-translation-card" data-id="${wordId}" data-index="${index}">
                     ${translation.split(",")[0].trim()}
                 </div>
-            `
+            `,
               )
               .join("")}
         </div>
@@ -905,7 +905,7 @@ function renderClozeGameUI(
   translations,
   clozedWordForm,
   isReintroduced = false,
-  englishTranslation = ""
+  englishTranslation = "",
 ) {
   const blank = "___";
   const wordId = wordDataStore.push(wordObj) - 1;
@@ -927,7 +927,7 @@ function renderClozeGameUI(
     (r) =>
       r.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
       r.gender === wordObj.gender &&
-      r.CEFR === wordObj.CEFR
+      r.CEFR === wordObj.CEFR,
   );
   const exampleText = matchingEntry?.eksempel || "";
   const englishText = wordObj.sentenceTranslation || "";
@@ -963,7 +963,7 @@ function renderClozeGameUI(
         ) {
           firstNorwegian = nSent;
           const matchingIndex = norwegianSentences.findIndex(
-            (s) => s === firstNorwegian
+            (s) => s === firstNorwegian,
           );
           matchingEnglish =
             matchingIndex >= 0 ? englishSentences[matchingIndex] || "" : "";
@@ -977,7 +977,7 @@ function renderClozeGameUI(
         if (matchesInflectedForm(base, clean, wordObj.gender)) {
           firstNorwegian = nSent;
           const matchingIndex = norwegianSentences.findIndex(
-            (s) => s === firstNorwegian
+            (s) => s === firstNorwegian,
           );
           matchingEnglish =
             matchingIndex >= 0 ? englishSentences[matchingIndex] || "" : "";
@@ -1066,7 +1066,7 @@ function renderClozeGameUI(
     const incorrectTranslations = fetchIncorrectTranslations(
       wordObj.gender,
       wordObj.engelsk,
-      currentCEFR
+      currentCEFR,
     );
 
     const allTranslations = shuffleArray([
@@ -1095,26 +1095,26 @@ function renderClozeGameUI(
         wordObj.gender.startsWith("ei")
           ? "N - " + wordObj.gender
           : wordObj.gender.startsWith("adjective")
-          ? "Adj"
-          : wordObj.gender.startsWith("adverb")
-          ? "Adv"
-          : wordObj.gender.startsWith("conjunction")
-          ? "Conj"
-          : wordObj.gender.startsWith("determiner")
-          ? "Det"
-          : wordObj.gender.startsWith("expression")
-          ? "Exp"
-          : wordObj.gender.startsWith("interjection")
-          ? "Inter"
-          : wordObj.gender.startsWith("numeral")
-          ? "Num"
-          : wordObj.gender.startsWith("possessive")
-          ? "Poss"
-          : wordObj.gender.startsWith("preposition")
-          ? "Prep"
-          : wordObj.gender.startsWith("pronoun")
-          ? "Pron"
-          : wordObj.gender
+            ? "Adj"
+            : wordObj.gender.startsWith("adverb")
+              ? "Adv"
+              : wordObj.gender.startsWith("conjunction")
+                ? "Conj"
+                : wordObj.gender.startsWith("determiner")
+                  ? "Det"
+                  : wordObj.gender.startsWith("expression")
+                    ? "Exp"
+                    : wordObj.gender.startsWith("interjection")
+                      ? "Inter"
+                      : wordObj.gender.startsWith("numeral")
+                        ? "Num"
+                        : wordObj.gender.startsWith("possessive")
+                          ? "Poss"
+                          : wordObj.gender.startsWith("preposition")
+                            ? "Prep"
+                            : wordObj.gender.startsWith("pronoun")
+                              ? "Pron"
+                              : wordObj.gender
       }</div>          ${cefrLabel}
         </div>
         <div id="game-banner-placeholder"></div>
@@ -1143,7 +1143,7 @@ function renderClozeGameUI(
           <div class="game-translation-card" data-id="${wordId}" data-index="${index}">
             ${translation}
           </div>
-        `
+        `,
         )
         .join("")}
     </div>
@@ -1177,7 +1177,7 @@ function renderClozeGameUI(
 async function handleTranslationClick(
   selectedTranslation,
   wordObj,
-  isCloze = false
+  isCloze = false,
 ) {
   if (!gameActive) return; // Prevent further clicks if the game is not active
 
@@ -1190,7 +1190,7 @@ async function handleTranslationClick(
     card.classList.remove(
       "game-correct-card",
       "game-incorrect-card",
-      "distractor-muted"
+      "distractor-muted",
     );
   });
 
@@ -1200,9 +1200,8 @@ async function handleTranslationClick(
 
   totalQuestions++; // Increment total questions for this level
   questionsAtCurrentLevel++; // Increment questions at this level
-  const { exampleSentence, sentenceTranslation } = await fetchExampleSentence(
-    wordObj
-  );
+  const { exampleSentence, sentenceTranslation } =
+    await fetchExampleSentence(wordObj);
   console.log("Fetched example sentence:", exampleSentence);
 
   if (selectedTranslationPart === correctTranslationPart) {
@@ -1231,7 +1230,7 @@ async function handleTranslationClick(
           (r) =>
             r.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
             r.gender === wordObj.gender &&
-            r.CEFR === wordObj.CEFR
+            r.CEFR === wordObj.CEFR,
         )?.eksempel || "";
 
       const firstSentence = fullSentence.split(/(?<=[.!?])\s+/)[0];
@@ -1244,7 +1243,7 @@ async function handleTranslationClick(
     // If the word was in the review queue and the user answered it correctly, remove it
     const indexInQueue = incorrectWordQueue.findIndex(
       (incorrectWord) =>
-        incorrectWord.wordObj.ord === wordObj.ord && incorrectWord.shown
+        incorrectWord.wordObj.ord === wordObj.ord && incorrectWord.shown,
     );
     if (indexInQueue !== -1) {
       incorrectWordQueue.splice(indexInQueue, 1); // Remove from review queue once answered correctly
@@ -1283,7 +1282,7 @@ async function handleTranslationClick(
           (r) =>
             r.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
             r.gender === wordObj.gender &&
-            r.CEFR === wordObj.CEFR
+            r.CEFR === wordObj.CEFR,
         )?.eksempel || "";
 
       const firstSentence = fullSentence.split(/(?<=[.!?])\s+/)[0];
@@ -1295,7 +1294,7 @@ async function handleTranslationClick(
 
     // If the word isn't already in the review queue, add it
     const inQueueAlready = incorrectWordQueue.some(
-      (incorrectWord) => incorrectWord.wordObj.ord === wordObj.ord
+      (incorrectWord) => incorrectWord.wordObj.ord === wordObj.ord,
     );
     if (!inQueueAlready) {
       incorrectWordQueue.push({
@@ -1375,7 +1374,7 @@ async function fetchExampleSentence(wordObj) {
     (result) =>
       result.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
       result.gender === wordObj.gender &&
-      result.CEFR === wordObj.CEFR
+      result.CEFR === wordObj.CEFR,
   );
 
   // Log the matching entry or lack thereof
@@ -1393,23 +1392,23 @@ async function fetchExampleSentence(wordObj) {
     matchingEntry.eksempel.trim() === ""
   ) {
     console.log(
-      `No example sentence available for word: ${wordObj.ord} with specified gender and CEFR.`
+      `No example sentence available for word: ${wordObj.ord} with specified gender and CEFR.`,
     );
 
     // Step 3: Search for another entry with the same 'ord' but without considering 'gender' or 'CEFR'
     matchingEntry = results.find(
       (result) =>
         result.eksempel &&
-        result.eksempel.toLowerCase().startsWith(wordObj.ord.toLowerCase())
+        result.eksempel.toLowerCase().startsWith(wordObj.ord.toLowerCase()),
     );
     if (matchingEntry) {
       console.log(
         "Found example sentence from another word entry:",
-        matchingEntry.eksempel
+        matchingEntry.eksempel,
       );
     } else {
       console.warn(
-        `No example sentence found in the entire dataset containing the word: ${wordObj.ord}`
+        `No example sentence found in the entire dataset containing the word: ${wordObj.ord}`,
       );
       return null; // No example sentence found at all
     }
@@ -1456,7 +1455,7 @@ async function fetchRandomWord() {
       !noRandom.includes(r.ord.toLowerCase()) &&
       r.ord !== previousWord &&
       r.CEFR === cefrLevel && // Ensure the word belongs to the same CEFR level
-      !correctlyAnsweredWords.includes(r.ord) // Exclude words already answered correctly
+      !correctlyAnsweredWords.includes(r.ord), // Exclude words already answered correctly
   );
 
   if (selectedPOS) {
@@ -1481,7 +1480,7 @@ async function fetchRandomWord() {
   if (cefrLevel) {
     // Filter by CEFR level if selected
     filteredResults = filteredResults.filter(
-      (r) => r.CEFR && r.CEFR.toUpperCase() === cefrLevel
+      (r) => r.CEFR && r.CEFR.toUpperCase() === cefrLevel,
     );
   }
 
@@ -1523,7 +1522,7 @@ function advanceToNextLevel() {
   if (incorrectWordQueue.length > 0) {
     // Block level advancement if there are still incorrect words
     console.log(
-      "The user must review all incorrect words before advancing to the next level."
+      "The user must review all incorrect words before advancing to the next level.",
     );
     return;
   }
@@ -1777,7 +1776,7 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
       (w) =>
         w !== formattedClozed &&
         /^[a-zA-ZæøåÆØÅ]/.test(w) &&
-        (isUninflected || endingPattern.test(w))
+        (isUninflected || endingPattern.test(w)),
     );
 
   strictDistractors = shuffleArray(inflected).slice(0, 3);
@@ -1802,7 +1801,7 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
         (w) =>
           w !== formattedClozed &&
           /^[a-zA-ZæøåÆØÅ]/.test(w) &&
-          (isUninflected || endingPattern.test(w))
+          (isUninflected || endingPattern.test(w)),
       );
 
     strictDistractors = strictDistractors
@@ -1823,7 +1822,7 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
           w &&
           w.toLowerCase() !== formattedClozed &&
           endingPattern.test(w.toLowerCase()) &&
-          /^[a-zA-ZæøåÆØÅ]/.test(w) === matchCapitalization
+          /^[a-zA-ZæøåÆØÅ]/.test(w) === matchCapitalization,
       );
 
     strictDistractors = strictDistractors
@@ -1891,3 +1890,9 @@ document.addEventListener("keydown", function (event) {
 });
 
 window.toggleLevelLock = toggleLevelLock;
+window.WordGameHelpers = Object.freeze({
+  playWordAudio,
+  stopAllAudio,
+  fetchIncorrectTranslations,
+  shuffleArray,
+});
