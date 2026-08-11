@@ -8,11 +8,14 @@
   });
 
   const WORD_LIST_BATCH_SIZE = 100;
+  const MY_WORDS_STORAGE_KEY = "norwegian-dictionary-my-words-v1";
 
   let activeWordListEntries = [];
   let renderedWordListCount = 0;
   let wordListBatchIsLoading = false;
   let wordListReturnState = null;
+  let myWordsEntryIds = loadMyWordsEntryIds();
+  let activeWordListView = "all";
 
   /**
    * Convert a value into normalized searchable text.
@@ -91,6 +94,115 @@
     cell.textContent = value || "—";
     cell.className = className;
     cell.dataset.label = mobileLabel;
+
+    return cell;
+  }
+
+  function getMyWordsEntryId(entry) {
+    return [
+      entry.ord,
+      entry.engelsk,
+      getWordListClassLabel(entry),
+      entry.definisjon,
+    ]
+      .map((value) =>
+        String(value ?? "")
+          .trim()
+          .normalize("NFC"),
+      )
+      .join("\u001f");
+  }
+
+  function loadMyWordsEntryIds() {
+    try {
+      const storedValue = window.localStorage.getItem(MY_WORDS_STORAGE_KEY);
+
+      if (!storedValue) {
+        return new Set();
+      }
+
+      const parsedValue = JSON.parse(storedValue);
+      const entryIds = Array.isArray(parsedValue.entryIds)
+        ? parsedValue.entryIds
+        : [];
+
+      return new Set(entryIds);
+    } catch (error) {
+      console.warn("My Words could not be loaded.", error);
+      return new Set();
+    }
+  }
+
+  function saveMyWordsEntryIds() {
+    try {
+      window.localStorage.setItem(
+        MY_WORDS_STORAGE_KEY,
+        JSON.stringify({
+          version: 1,
+          entryIds: Array.from(myWordsEntryIds),
+        }),
+      );
+    } catch (error) {
+      console.warn("My Words could not be saved.", error);
+    }
+  }
+
+  function updateMyWordsButton(button, entryId, word) {
+    const isSaved = myWordsEntryIds.has(entryId);
+    const icon = button.querySelector("i");
+    const action = isSaved ? "Remove" : "Add";
+    const destination = isSaved ? "from My Words" : "to My Words";
+
+    button.classList.toggle("is-saved", isSaved);
+    button.setAttribute("aria-pressed", String(isSaved));
+    button.setAttribute("aria-label", `${action} ${word} ${destination}`);
+    button.title = `${action} ${word} ${destination}`;
+
+    icon.className = `${isSaved ? "fas" : "far"} fa-star`;
+  }
+
+  function createMyWordsCell(entry) {
+    const cell = createWordListCell("", "word-list-favorite", "My Words");
+
+    const button = document.createElement("button");
+    const icon = document.createElement("i");
+    const entryId = getMyWordsEntryId(entry);
+    const word = String(entry.ord ?? "").trim();
+
+    cell.textContent = "";
+
+    button.type = "button";
+    button.className = "word-list-favorite-button";
+    button.setAttribute("aria-pressed", "false");
+
+    icon.setAttribute("aria-hidden", "true");
+    button.appendChild(icon);
+
+    updateMyWordsButton(button, entryId, word);
+
+    button.addEventListener("click", (event) => {
+      // Do not open the definition when clicking the star.
+      event.stopPropagation();
+
+      if (myWordsEntryIds.has(entryId)) {
+        myWordsEntryIds.delete(entryId);
+      } else {
+        myWordsEntryIds.add(entryId);
+      }
+
+      saveMyWordsEntryIds();
+      updateMyWordsButton(button, entryId, word);
+      if (activeWordListView === "my") {
+        renderWordList();
+      }
+    });
+
+    button.addEventListener("keydown", (event) => {
+      // Prevent the event from reaching the row's keyboard handler.
+      event.stopPropagation();
+    });
+
+    cell.appendChild(button);
 
     return cell;
   }
@@ -367,7 +479,15 @@
       levelCell.textContent = "—";
     }
 
-    row.append(norwegianCell, englishCell, wordClassCell, levelCell);
+    const myWordsCell = createMyWordsCell(entry);
+
+    row.append(
+      norwegianCell,
+      englishCell,
+      wordClassCell,
+      levelCell,
+      myWordsCell,
+    );
 
     // Mouse and touchscreen activation.
     row.addEventListener("click", () => {
@@ -412,6 +532,13 @@
       .filter((entry) => {
         // Do not display an entry without a Norwegian word.
         if (!normalizeWordListText(entry.ord)) {
+          return false;
+        }
+
+        if (
+          activeWordListView === "my" &&
+          !myWordsEntryIds.has(getMyWordsEntryId(entry))
+        ) {
           return false;
         }
 
@@ -464,20 +591,24 @@
       "definition multiple-results-definition word-list-header";
 
     const count = document.createElement("p");
+
     count.id = "word-list-count";
     count.className = "word-list-count";
     count.setAttribute("aria-live", "polite");
 
+    const description =
+      activeWordListView === "my" ? "saved vocabulary" : "vocabulary";
+
     if (visibleCount === totalCount) {
       count.textContent =
         totalCount === 1
-          ? "1 vocabulary entry"
-          : `${totalCount} vocabulary entries`;
+          ? `1 ${description} entry`
+          : `${totalCount} ${description} entries`;
     } else {
-      count.textContent = `${visibleCount} of ${totalCount} vocabulary entries`;
+      count.textContent = `${visibleCount} of ${totalCount} ${description} entries`;
     }
 
-    header.appendChild(count);
+    header.append(count, createWordListExportControls(visibleCount));
 
     return header;
   }
@@ -491,11 +622,18 @@
 
     const heading = document.createElement("h2");
     heading.className = "word-gender";
-    heading.textContent = "No matching words";
 
     const explanation = document.createElement("p");
-    explanation.textContent =
-      "Try a different search or choose another Word Class.";
+
+    if (activeWordListView === "my" && myWordsEntryIds.size === 0) {
+      heading.textContent = "No saved words yet";
+      explanation.textContent =
+        "Select All Words and click a star to add a word to My Words.";
+    } else {
+      heading.textContent = "No matching words";
+      explanation.textContent =
+        "Try a different search, filter, or word-list view.";
+    }
 
     message.append(heading, explanation);
 
@@ -711,42 +849,82 @@
     );
   }
 
-  function createWordListExportControls() {
+  function createWordListExportControls(visibleCount) {
     const controls = document.createElement("div");
+
     controls.className = "word-list-export-controls";
 
-    const csvButton = document.createElement("button");
-    csvButton.type = "button";
-    csvButton.className = "word-list-export-button";
-    csvButton.textContent = "Export CSV";
+    function createControlButton(label, onClick) {
+      const button = document.createElement("button");
 
-    csvButton.addEventListener("click", () => {
+      button.type = "button";
+      button.className = "word-list-export-button";
+      button.textContent = label;
+      button.addEventListener("click", onClick);
+
+      return button;
+    }
+
+    const allWordsButton = createControlButton("All Words", () => {
+      if (activeWordListView === "all") {
+        return;
+      }
+
+      activeWordListView = "all";
+      renderWordList();
+    });
+
+    allWordsButton.classList.toggle("is-active", activeWordListView === "all");
+
+    allWordsButton.setAttribute(
+      "aria-pressed",
+      String(activeWordListView === "all"),
+    );
+
+    const myWordsButton = createControlButton("My Words", () => {
+      if (activeWordListView === "my") {
+        return;
+      }
+
+      activeWordListView = "my";
+      renderWordList();
+    });
+
+    myWordsButton.classList.toggle("is-active", activeWordListView === "my");
+
+    myWordsButton.setAttribute(
+      "aria-pressed",
+      String(activeWordListView === "my"),
+    );
+
+    const csvButton = createControlButton("Export CSV", () => {
       exportWordListCSV();
     });
 
-    const tsvButton = document.createElement("button");
-    tsvButton.type = "button";
-    tsvButton.className = "word-list-export-button";
-    tsvButton.textContent = "Export TSV";
-
-    tsvButton.addEventListener("click", () => {
+    const tsvButton = createControlButton("Export TSV", () => {
       exportWordListTSV();
     });
 
-    const pdfButton = document.createElement("button");
-    pdfButton.type = "button";
-    pdfButton.className = "word-list-export-button";
-    pdfButton.textContent = "Export PDF";
-
-    pdfButton.addEventListener("click", () => {
+    const pdfButton = createControlButton("Export PDF", () => {
       exportWordListPDF();
     });
 
-    controls.append(csvButton, tsvButton, pdfButton);
+    const exportsDisabled = visibleCount === 0;
+
+    csvButton.disabled = exportsDisabled;
+    tsvButton.disabled = exportsDisabled;
+    pdfButton.disabled = exportsDisabled;
+
+    controls.append(
+      allWordsButton,
+      myWordsButton,
+      csvButton,
+      tsvButton,
+      pdfButton,
+    );
 
     return controls;
   }
-
   function escapeWordListHTML(value) {
     return String(value ?? "")
       .replace(/&/g, "&amp;")
@@ -967,6 +1145,12 @@
     const allEntries = results.filter((entry) =>
       Boolean(normalizeWordListText(entry.ord)),
     );
+    const currentViewEntries =
+      activeWordListView === "my"
+        ? allEntries.filter((entry) =>
+            myWordsEntryIds.has(getMyWordsEntryId(entry)),
+          )
+        : allEntries;
     const filteredEntries = getFilteredWordListEntries();
 
     // Reset batching whenever the search or filters change.
@@ -975,13 +1159,12 @@
     wordListBatchIsLoading = false;
 
     panel.appendChild(
-      createWordListHeader(filteredEntries.length, allEntries.length),
+      createWordListHeader(filteredEntries.length, currentViewEntries.length),
     );
 
     if (filteredEntries.length === 0) {
       panel.appendChild(createWordListEmptyMessage());
     } else {
-      panel.appendChild(createWordListExportControls());
       panel.appendChild(createWordListTable());
     }
 

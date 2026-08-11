@@ -2149,7 +2149,11 @@ ul {
 }
 
 .word-list-header {
+  align-items: center;
   cursor: default;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -2222,9 +2226,9 @@ ul {
 .word-list-export-controls {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
   gap: 10px;
-  margin-bottom: 20px;
+  justify-content: center;
+  margin: 0;
 }
 
 .word-list-export-button {
@@ -2258,6 +2262,66 @@ ul {
 .word-list-export-button:focus-visible {
   outline: 2px solid #3c88d4;
   outline-offset: 2px;
+}
+
+.word-list-export-button.is-active {
+  background-color: #0d3a69;
+  color: #ffffff;
+  box-shadow:
+    0 4px 8px rgba(13, 58, 105, 0.25),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.word-list-export-button.is-active:hover {
+  background-color: #1c68b5;
+}
+
+.word-list-favorite {
+  padding: 6px 18px 6px 8px !important;
+  text-align: right;
+  width: 48px;
+}
+
+.word-list-favorite-button {
+  align-items: center;
+  appearance: none;
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
+  color: #6a6a6a;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 20px;
+  height: 40px;
+  justify-content: center;
+  padding: 0;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+  width: 40px;
+}
+
+.word-list-favorite-button:hover {
+  background-color: rgba(28, 104, 181, 0.1);
+  transform: scale(1.05);
+}
+
+.word-list-favorite-button:active {
+  transform: scale(0.95);
+}
+
+.word-list-favorite-button:focus-visible {
+  outline: 2px solid #3c88d4;
+  outline-offset: 2px;
+}
+
+.word-list-favorite-button.is-saved {
+  color: #a66c00;
+}
+
+.word-list-favorite-button i {
+  pointer-events: none;
 }
 
 /*
@@ -2838,6 +2902,15 @@ ul {
     margin-top: 10px;
   }
 
+  .word-list-favorite {
+    align-items: center;
+    display: flex;
+    grid-area: favorite;
+    justify-content: flex-end;
+    padding: 0 !important;
+    width: auto;
+  }
+
   /* Responsive Word List cards */
   .word-list-table-container {
     overflow-x: hidden;
@@ -2857,9 +2930,9 @@ ul {
     box-sizing: border-box;
     display: grid;
     grid-template-areas:
-      "norwegian english"
-      "word-class level";
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      "norwegian english favorite"
+      "word-class level favorite";
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
     gap: 8px 20px;
     margin-bottom: 12px;
     padding: 15px 20px;
