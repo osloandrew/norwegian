@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -116,6 +116,7 @@
                 <option value="stories">Stories</option>
                 <option value="word-game">Word Game</option>
                 <option value="pronunciation">Pronunciation</option>
+                <option value="word-list">Word List</option>
               </select>
               <i class="fas fa-chevron-down"></i>
             </div>
@@ -245,7 +246,12 @@
               id="random-btn"
               class="random-btn"
               aria-label="Generate a random word"
-              onclick="stopAllAudio(),randomWord(),popChime.currentTime = 0, popChime.play()"
+              onclick="
+                (stopAllAudio(),
+                  randomWord(),
+                  (popChime.currentTime = 0),
+                  popChime.play())
+              "
               title="Generate a random word"
             >
               <i class="fas fa-dice"></i>
@@ -607,6 +613,7 @@
     <script src="wordGame.js" defer></script>
     <script src="stories.js" defer></script>
     <script src="pronunciation.js"></script>
+    <script src="wordList.js"></script>
     <script src="https://unpkg.com/wavesurfer.js"></script>
     <script src="https://unpkg.com/meyda/dist/web/meyda.min.js"></script>
   </body>

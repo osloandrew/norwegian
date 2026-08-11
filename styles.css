@@ -28,7 +28,10 @@ audio {
   border-radius: 50%;
   box-shadow: 0 6px 20px rgba(28, 104, 181, 0.35);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.25s ease, background 0.25s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
 }
 
 .audio-button:hover {
@@ -128,17 +131,23 @@ audio {
   text-transform: uppercase; /* Uppercase for consistency */
   letter-spacing: 0.03em; /* Slight letter spacing */
   cursor: pointer; /* Pointer on hover */
-  transition: background-color 0.2s ease, border-color 0.2s ease,
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
     transform 0.2s ease; /* Subtle transitions */
   touch-action: manipulation; /* Helps reduce delay on mobile */
-  box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 4px 8px rgba(135, 135, 135, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1);
   width: fit-content;
   height: 30px;
 }
 
 .back-navigation:hover {
   background-color: #f7f7f7; /* Slightly darker background on hover */
-  box-shadow: 0 6px 12px rgba(135, 135, 135, 0.3), 0 3px 6px rgba(0, 0, 0, 0.15); /* Slightly larger shadow */
+  box-shadow:
+    0 6px 12px rgba(135, 135, 135, 0.3),
+    0 3px 6px rgba(0, 0, 0, 0.15); /* Slightly larger shadow */
 }
 
 body {
@@ -291,7 +300,9 @@ button:disabled i {
 .clear-btn i {
   color: #999;
   font-size: 18px;
-  transition: color 0.3s ease, text-shadow 0.3s ease;
+  transition:
+    color 0.3s ease,
+    text-shadow 0.3s ease;
 }
 
 .clear-btn:hover i {
@@ -305,7 +316,9 @@ button:disabled i {
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
   text-decoration-color: rgba(60, 136, 212, 0.4);
-  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+  transition:
+    color 0.2s ease,
+    text-decoration-color 0.2s ease;
 }
 
 .clickable-definition-word:hover {
@@ -326,7 +339,9 @@ button:disabled i {
   justify-content: center;
   border: 1px solid transparent; /* No visible border but ensures alignment */
   border-radius: 4px;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .coffee-img {
@@ -643,7 +658,9 @@ footer .copyright {
   letter-spacing: 0.04em; /* Slight letter spacing */
   cursor: pointer; /* Pointer on hover */
   user-select: none; /* Prevent text selection */
-  transition: background-color 0.2s ease, border-color 0.2s ease,
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
     transform 0.2s ease; /* Subtle transitions */
 }
 
@@ -973,10 +990,14 @@ label {
   text-transform: uppercase; /* Uppercase for consistency */
   letter-spacing: 0.03em; /* Slight letter spacing */
   cursor: pointer; /* Pointer on hover */
-  transition: background-color 0.2s ease, border-color 0.2s ease,
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
     transform 0.2s ease; /* Subtle transitions */
   touch-action: manipulation; /* Helps reduce delay on mobile */
-  box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 4px 8px rgba(135, 135, 135, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1);
   min-width: 140px;
 }
 
@@ -1047,7 +1068,9 @@ li {
   padding: 2px 15px;
   text-decoration: none;
   height: 30px; /* Match height to the BuyMeACoffee image */
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .linkedin-btn:hover {
@@ -1091,7 +1114,9 @@ main {
   min-height: 0 !important;
   padding: 15px 25px 15px 25px;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease,
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
     transform 0.2s ease; /* Subtle transitions */
 }
 
@@ -1422,7 +1447,9 @@ ul {
   width: auto !important; /* Clickable */
   box-sizing: border-box !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); /* soft shadow gives depth */
-  transition: background-color 0.2s ease, box-shadow 0.2s ease,
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
     transform 0.1s ease;
 }
 
@@ -1447,7 +1474,9 @@ ul {
   background-color: #ffffff; /* Subtle, lighter background */
   border: none !important; /* Thin maroon border */
   border-radius: 9px; /* Slightly rounded corners */
-  box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 4px 8px rgba(135, 135, 135, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1);
   color: #5a1a1a; /* Subtle maroon text */
   cursor: pointer; /* Pointer on hover */
   display: block; /* Block-level element to allow centering */
@@ -1462,13 +1491,17 @@ ul {
   text-transform: uppercase; /* Uppercase for consistency */
   letter-spacing: 0.03em; /* Slight letter spacing */
   width: 100%;
-  transition: background-color 0.2s ease, border-color 0.2s ease,
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
     transform 0.2s ease; /* Subtle transitions */
 }
 
 .sentence-btn:hover {
   background-color: #f7f7f7; /* Slightly darker background on hover */
-  box-shadow: 0 6px 12px rgba(135, 135, 135, 0.3), 0 3px 6px rgba(0, 0, 0, 0.15); /* Slightly larger shadow */
+  box-shadow:
+    0 6px 12px rgba(135, 135, 135, 0.3),
+    0 3px 6px rgba(0, 0, 0, 0.15); /* Slightly larger shadow */
 }
 
 .sentence-cefr-label {
@@ -1575,7 +1608,9 @@ ul {
   color: #293a78;
   cursor: pointer;
   margin: -5px 0px 10px 0px;
-  transition: color 0.2s ease, text-shadow 0.2s ease;
+  transition:
+    color 0.2s ease,
+    text-shadow 0.2s ease;
 }
 
 #site-title:hover {
@@ -1723,7 +1758,9 @@ ul {
   margin-right: 190px;
   font-size: 1.5em;
   cursor: pointer;
-  transition: color 0.3s ease, text-shadow 0.3s ease;
+  transition:
+    color 0.3s ease,
+    text-shadow 0.3s ease;
 }
 
 .stories-back-btn:hover {
@@ -1745,10 +1782,14 @@ ul {
   letter-spacing: 0.03em; /* Slight letter spacing */
   margin: 0 auto; /* Centering with smaller vertical margins */
   min-width: 100px;
-  transition: background-color 0.2s ease, border-color 0.2s ease,
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
     transform 0.2s ease; /* Subtle transitions */
   touch-action: manipulation; /* Helps reduce delay on mobile */
-  box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 4px 8px rgba(135, 135, 135, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .stories-english-btn:hover {
@@ -1817,7 +1858,9 @@ ul {
   cursor: pointer;
   padding: 7.5px 12.5px;
   min-height: 60px;
-  transition: background-color 0.2s ease, border-color 0.2s ease,
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
     transform 0.2s ease; /* Subtle transitions */
 }
 
@@ -1846,7 +1889,9 @@ ul {
   margin: 0 auto;
   text-align: center;
   border-radius: 6px; /* Slightly rounded corners */
-  box-shadow: 0 4px 8px rgba(135, 135, 135, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 4px 8px rgba(135, 135, 135, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 8px 14px; /* Larger padding for a more clickable feel */
   font-family: "Noto Sans", sans-serif; /* Clean, modern font */
   font-size: 12px; /* Smaller font size for subtlety */
@@ -1865,7 +1910,9 @@ ul {
   cursor: pointer; /* Show pointer cursor */
   color: gray; /* Default color for stars */
   padding: 0 5px; /* Space between stars */
-  transition: transform 0.2s, color 0.2s; /* Animation for hover effect */
+  transition:
+    transform 0.2s,
+    color 0.2s; /* Animation for hover effect */
 }
 
 .stories-rating .stories-star-rating .star:hover,
@@ -2001,7 +2048,9 @@ ul {
 
 .story-image {
   border-radius: 10px; /* Rounds the corners for a soft photograph effect */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.15); /* Adjusted vertical spread and blur */
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.15); /* Adjusted vertical spread and blur */
   display: block; /* Makes the image behave like a block element */
   margin: 0 auto; /* Centers the image horizontally */
   margin-bottom: 2em;
@@ -2092,6 +2141,114 @@ ul {
   text-transform: uppercase;
   overflow-wrap: break-word;
   white-space: normal;
+}
+
+.word-list-back-navigation {
+  border: none;
+  box-sizing: content-box;
+}
+
+.word-list-header {
+  cursor: default;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.word-list-header:hover {
+  background-color: #ffffff;
+}
+
+.word-list-count {
+  margin: 0 !important;
+  text-align: center;
+}
+
+.word-list-table-container {
+  width: 100%;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.word-list-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+  text-align: left;
+}
+
+/*
+ * Each Word List row resembles:
+ * .definition.multiple-results-definition
+ */
+.word-list-row {
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.word-list-row:focus {
+  outline: none;
+}
+
+.word-list-row:focus-visible {
+  box-shadow:
+    0 0 0 3px #3c88d4,
+    0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.word-list-row td {
+  background-color: #ffffff;
+  padding: 15px 25px;
+  transition: background-color 0.2s ease;
+}
+
+.word-list-row td:first-child {
+  border-radius: 12px 0 0 12px;
+}
+
+.word-list-row td:last-child {
+  border-radius: 0 12px 12px 0;
+}
+
+.word-list-row:hover td {
+  background-color: #f2f9fd;
+}
+
+.word-list-norwegian {
+  color: #0d3a69;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.word-list-english {
+  color: #333333;
+  font-size: 18px;
+}
+
+.word-list-class {
+  color: #951b1b;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.word-list-level {
+  color: #951b1b;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.word-list-load-status {
+  margin: 0;
+  padding: 1rem;
+  color: #555555;
+  font-size: 14px;
+  text-align: center;
 }
 
 .word-text-block {
