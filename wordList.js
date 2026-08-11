@@ -775,31 +775,13 @@
   /**
    * Add the Word List heading and result count.
    */
-  function createWordListHeader(visibleCount, totalCount) {
+  function createWordListHeader(visibleCount) {
     const header = document.createElement("div");
 
     header.className =
       "definition multiple-results-definition word-list-header";
 
-    const count = document.createElement("p");
-
-    count.id = "word-list-count";
-    count.className = "word-list-count";
-    count.setAttribute("aria-live", "polite");
-
-    const description =
-      activeWordListView === "my" ? "saved vocabulary" : "vocabulary";
-
-    if (visibleCount === totalCount) {
-      count.textContent =
-        totalCount === 1
-          ? `1 ${description} entry`
-          : `${totalCount} ${description} entries`;
-    } else {
-      count.textContent = `${visibleCount} of ${totalCount} ${description} entries`;
-    }
-
-    header.append(count, createWordListExportControls(visibleCount));
+    header.appendChild(createWordListControls(visibleCount));
 
     return header;
   }
@@ -1039,11 +1021,19 @@
       "text/tab-separated-values",
     );
   }
-
-  function createWordListExportControls(visibleCount) {
+  function createWordListControls(visibleCount) {
     const controls = document.createElement("div");
+    controls.className = "word-list-controls";
 
-    controls.className = "word-list-export-controls";
+    function createControlGroup(className, ariaLabel) {
+      const group = document.createElement("div");
+
+      group.className = `word-list-control-group ${className}`;
+      group.setAttribute("role", "group");
+      group.setAttribute("aria-label", ariaLabel);
+
+      return group;
+    }
 
     function createControlButton(label, onClick) {
       const button = document.createElement("button");
@@ -1051,10 +1041,21 @@
       button.type = "button";
       button.className = "word-list-export-button";
       button.textContent = label;
-      button.addEventListener("click", onClick);
+
+      if (typeof onClick === "function") {
+        button.addEventListener("click", onClick);
+      }
 
       return button;
     }
+
+    /*
+     * View selection
+     */
+    const viewControls = createControlGroup(
+      "word-list-view-controls",
+      "Choose word-list view",
+    );
 
     const allWordsButton = createControlButton("All Words", () => {
       if (activeWordListView === "all") {
@@ -1088,17 +1089,68 @@
       String(activeWordListView === "my"),
     );
 
-    const csvButton = createControlButton("Export CSV", () => {
-      exportWordListCSV();
-    });
+    viewControls.append(allWordsButton, myWordsButton);
+    controls.appendChild(viewControls);
 
-    const tsvButton = createControlButton("Export TSV", () => {
-      exportWordListTSV();
-    });
+    /*
+     * My Words actions
+     */
+    if (activeWordListView === "my") {
+      const myWordsActions = createControlGroup(
+        "word-list-my-words-actions",
+        "My Words actions",
+      );
 
-    const pdfButton = createControlButton("Export PDF", () => {
-      exportWordListPDF();
-    });
+      const learnWordsButton = createControlButton("Learn Words");
+
+      // Placeholder until the learning feature is implemented.
+      learnWordsButton.disabled = true;
+      learnWordsButton.title = "Coming soon";
+
+      const removeAllButton = createControlButton("Remove All Words", () => {
+        const savedWordCount = myWordsEntryIds.size;
+
+        if (savedWordCount === 0) {
+          return;
+        }
+
+        const wordLabel = savedWordCount === 1 ? "saved word" : "saved words";
+
+        const shouldRemoveAll = window.confirm(
+          `Remove all ${savedWordCount} ${wordLabel} from My Words? ` +
+            "This cannot be undone.",
+        );
+
+        if (!shouldRemoveAll) {
+          return;
+        }
+
+        myWordsEntryIds.clear();
+        saveMyWordsEntryIds();
+        renderWordList();
+      });
+
+      removeAllButton.classList.add("is-danger");
+      removeAllButton.disabled = myWordsEntryIds.size === 0;
+
+      myWordsActions.append(learnWordsButton, removeAllButton);
+
+      controls.appendChild(myWordsActions);
+    }
+
+    /*
+     * Export actions
+     */
+    const exportControls = createControlGroup(
+      "word-list-export-controls",
+      "Export words",
+    );
+
+    const csvButton = createControlButton("Export CSV", exportWordListCSV);
+
+    const tsvButton = createControlButton("Export TSV", exportWordListTSV);
+
+    const pdfButton = createControlButton("Export PDF", exportWordListPDF);
 
     const exportsDisabled = visibleCount === 0;
 
@@ -1106,16 +1158,13 @@
     tsvButton.disabled = exportsDisabled;
     pdfButton.disabled = exportsDisabled;
 
-    controls.append(
-      allWordsButton,
-      myWordsButton,
-      csvButton,
-      tsvButton,
-      pdfButton,
-    );
+    exportControls.append(csvButton, tsvButton, pdfButton);
+
+    controls.appendChild(exportControls);
 
     return controls;
   }
+
   function escapeWordListHTML(value) {
     return String(value ?? "")
       .replace(/&/g, "&amp;")
@@ -1333,15 +1382,6 @@
       return;
     }
 
-    const allEntries = results.filter((entry) =>
-      Boolean(normalizeWordListText(entry.ord)),
-    );
-    const currentViewEntries =
-      activeWordListView === "my"
-        ? allEntries.filter((entry) =>
-            myWordsEntryIds.has(getMyWordsEntryId(entry)),
-          )
-        : allEntries;
     const filteredEntries = getFilteredWordListEntries();
 
     // Reset batching whenever the search or filters change.
@@ -1349,9 +1389,7 @@
     renderedWordListCount = 0;
     wordListBatchIsLoading = false;
 
-    panel.appendChild(
-      createWordListHeader(filteredEntries.length, currentViewEntries.length),
-    );
+    panel.appendChild(createWordListHeader(filteredEntries.length));
 
     if (filteredEntries.length === 0) {
       panel.appendChild(createWordListEmptyMessage());
