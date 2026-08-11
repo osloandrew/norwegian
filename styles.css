@@ -644,7 +644,8 @@ footer .copyright {
   width: 100%;
 }
 
-#game-next-word-button {
+#game-next-word-button,
+#game-add-my-word-button {
   margin-top: 15px;
   width: 100%;
   background-color: #f8d9b0; /* Subtle, lighter background */
@@ -654,8 +655,8 @@ footer .copyright {
   border-radius: 6px; /* Slightly rounded corners */
   padding: 20px 15px;
   font-family: "Noto Sans", sans-serif; /* Clean, modern font */
-  font-size: 18px; /* Smaller font size for subtlety */
-  font-weight: 500; /* Normal font weight for less boldness */
+  font-size: 14px; /* Smaller font size for subtlety */
+  font-weight: 400; /* Normal font weight for less boldness */
   text-transform: uppercase; /* Uppercase for consistency */
   letter-spacing: 0.04em; /* Slight letter spacing */
   cursor: pointer; /* Pointer on hover */
@@ -666,12 +667,14 @@ footer .copyright {
     transform 0.2s ease; /* Subtle transitions */
 }
 
-#game-next-word-button:active {
+#game-next-word-button:active,
+#game-add-my-word-button:active {
   background-color: #f2c18c; /* Darker background on click */
   border-color: #8a7063; /* Border matches text color on click */
 }
 
-#game-next-word-button:disabled {
+#game-next-word-button:disabled,
+#game-add-my-word-button:disabled {
   background-color: #f0e5d2; /* Lighter background when disabled */
   color: #c5b3a6; /* More muted text color when disabled */
   border-color: #d1c4b5; /* Muted border when disabled */
@@ -2431,6 +2434,29 @@ ul {
   text-overflow: ellipsis; /* Add ellipsis for long words */
 }
 
+.word-game-action-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+  width: 100%;
+}
+
+.word-game-action-row #game-add-my-word-button {
+  justify-self: left;
+  width: 50%;
+}
+.word-game-action-row #game-next-word-button {
+  justify-self: right;
+  width: 50%;
+}
+/* Confirmation that the word is already saved */
+.word-game-action-row #game-add-my-word-button[data-saved="true"]:disabled {
+  background-color: #edf5e8;
+  border-color: #c4d6b8;
+  color: #66795b;
+  opacity: 1;
+}
+
 .word-gender {
   align-items: flex;
   display: flex;
@@ -3324,6 +3350,10 @@ ul {
     text-overflow: unset;
   }
 
+  .word-game-action-row #game-add-my-word-button,
+  .word-game-action-row #game-next-word-button {
+    width: 90%;
+  }
   .word-gender {
     align-items: flex-start;
     display: flex;

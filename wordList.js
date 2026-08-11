@@ -1440,6 +1440,77 @@
     renderWordList();
   }
 
+  function resolveMyWordsEntry(entry) {
+    if (!entry) {
+      return null;
+    }
+
+    const sameValue = (first, second) =>
+      String(first ?? "")
+        .trim()
+        .normalize("NFC") ===
+      String(second ?? "")
+        .trim()
+        .normalize("NFC");
+
+    /*
+     * Most Word Game objects are the original result objects.
+     */
+    const identicalEntry = results.find((candidate) => candidate === entry);
+
+    if (identicalEntry) {
+      return identicalEntry;
+    }
+
+    /*
+     * Reintroduced Word Game objects may contain only a subset
+     * of the original entry's properties.
+     */
+    return (
+      results.find(
+        (candidate) =>
+          sameValue(candidate.ord, entry.ord) &&
+          sameValue(candidate.engelsk, entry.engelsk) &&
+          sameValue(candidate.gender, entry.gender) &&
+          sameValue(candidate.CEFR, entry.CEFR),
+      ) ||
+      results.find(
+        (candidate) =>
+          sameValue(candidate.ord, entry.ord) &&
+          sameValue(candidate.gender, entry.gender) &&
+          sameValue(candidate.CEFR, entry.CEFR),
+      ) ||
+      entry
+    );
+  }
+
+  function isMyWordsEntrySaved(entry) {
+    const resolvedEntry = resolveMyWordsEntry(entry);
+
+    if (!resolvedEntry) {
+      return false;
+    }
+
+    return myWordsEntryIds.has(getMyWordsEntryId(resolvedEntry));
+  }
+
+  function addMyWordsEntry(entry) {
+    const resolvedEntry = resolveMyWordsEntry(entry);
+
+    if (!resolvedEntry) {
+      return false;
+    }
+
+    const entryId = getMyWordsEntryId(resolvedEntry);
+
+    if (!myWordsEntryIds.has(entryId)) {
+      myWordsEntryIds.add(entryId);
+      saveMyWordsEntryIds();
+    }
+
+    return true;
+  }
+
   // Make these functions available to scripts.js.
   window.initWordList = initWordList;
   window.renderWordList = renderWordList;
@@ -1450,5 +1521,7 @@
   window.MyWordsAPI = Object.freeze({
     getSavedEntries: getSavedWordStudyEntries,
     returnToMyWords: goToMyWords,
+    isSaved: isMyWordsEntrySaved,
+    add: addMyWordsEntry,
   });
 })();

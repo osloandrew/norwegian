@@ -771,6 +771,98 @@ function displayPronunciation(word) {
   }
 }
 
+function getGameActionButtonsMarkup(wordObj) {
+  const isSaved = window.MyWordsAPI?.isSaved?.(wordObj) === true;
+
+  const myWordsLabel = isSaved ? "Added to My Words" : "Add to My Words";
+
+  return `
+    <div
+      class="
+        game-next-button-container
+        word-game-action-row
+      "
+    >
+      <button
+        type="button"
+        id="game-add-my-word-button"
+        data-saved="${String(isSaved)}"
+        aria-pressed="${String(isSaved)}"
+        disabled
+      >
+        ${myWordsLabel}
+      </button>
+
+      <button
+        type="button"
+        id="game-next-word-button"
+        disabled
+      >
+        Next Word
+      </button>
+    </div>
+  `;
+}
+
+function attachGameActionButtonListeners(wordObj) {
+  const addButton = document.getElementById("game-add-my-word-button");
+
+  const nextButton = document.getElementById("game-next-word-button");
+
+  addButton?.addEventListener("click", () => {
+    /*
+     * A saved word must never become clickable again.
+     */
+    if (addButton.dataset.saved === "true") {
+      return;
+    }
+
+    const wasSaved = window.MyWordsAPI?.add?.(wordObj) === true;
+
+    if (!wasSaved) {
+      console.warn("The word could not be added to My Words.");
+
+      return;
+    }
+
+    addButton.dataset.saved = "true";
+    addButton.setAttribute("aria-pressed", "true");
+    addButton.textContent = "Added to My Words";
+    addButton.disabled = true;
+  });
+
+  nextButton?.addEventListener("click", async () => {
+    stopAllAudio();
+    hideAllBanners();
+    await startWordGame();
+  });
+}
+
+function enableGameActionButtons() {
+  const addButton = document.getElementById("game-add-my-word-button");
+
+  const nextButton = document.getElementById("game-next-word-button");
+
+  /*
+   * Next Word always unlocks after an answer.
+   */
+  if (nextButton) {
+    nextButton.disabled = false;
+  }
+
+  /*
+   * Add to My Words unlocks only when the word is not
+   * already saved and the My Words API is available.
+   */
+  if (
+    addButton &&
+    addButton.dataset.saved !== "true" &&
+    typeof window.MyWordsAPI?.add === "function"
+  ) {
+    addButton.disabled = false;
+  }
+}
+
 function renderWordGameUI(wordObj, translations, isReintroduced = false) {
   // Add the word object to the data store and get its index
   const wordId = wordDataStore.push(wordObj) - 1;
@@ -870,10 +962,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
               .join("")}
         </div>
 
-        <!-- Next Word Button -->
-        <div class="game-next-button-container">
-            <button id="game-next-word-button" disabled>Next Word</button>
-        </div>
+ ${getGameActionButtonsMarkup(wordObj)}
     `;
 
   // Add event listeners for translation cards
@@ -887,14 +976,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
     });
   });
 
-  // Add event listener for the next word button
-  document
-    .getElementById("game-next-word-button")
-    .addEventListener("click", async function () {
-      stopAllAudio();
-      hideAllBanners(); // Hide all banners when Next Word is clicked
-      await startWordGame(); // Move to the next word
-    });
+  attachGameActionButtonListeners(wordObj);
 
   renderStats(); // Ensure stats are drawn once DOM is fully loaded
   playWordAudio(wordObj);
@@ -1148,10 +1230,7 @@ function renderClozeGameUI(
         .join("")}
     </div>
   
-    <!-- Next Word Button -->
-    <div class="game-next-button-container">
-      <button id="game-next-word-button" disabled>Next Word</button>
-    </div>
+${getGameActionButtonsMarkup(wordObj)}
   `;
 
   document.querySelectorAll(".game-translation-card").forEach((card) => {
@@ -1163,13 +1242,7 @@ function renderClozeGameUI(
     });
   });
 
-  document
-    .getElementById("game-next-word-button")
-    .addEventListener("click", async function () {
-      stopAllAudio();
-      hideAllBanners();
-      await startWordGame();
-    });
+  attachGameActionButtonListeners(wordObj);
 
   renderStats(); // Ensure stats bar is present after cloze loads too
 }
@@ -1313,8 +1386,7 @@ async function handleTranslationClick(
     }
   }
 
-  // Enable the "Next Word" button
-  document.getElementById("game-next-word-button").disabled = false;
+  enableGameActionButtons();
 
   // Update the stats after the answer
   renderStats();
@@ -1356,8 +1428,6 @@ async function handleTranslationClick(
   } else {
     document.querySelector(".game-cefr-spacer").innerHTML = "";
   }
-
-  document.getElementById("game-next-word-button").style.display = "block";
 }
 
 async function fetchExampleSentence(wordObj) {
