@@ -68,10 +68,18 @@
     }
 
     if (isWordListNoun(originalGender)) {
-      return `Noun (${originalGender})`;
+      /*
+       * Remove an existing "noun -" prefix so it is not duplicated
+       * after the Words renderer has previously handled this entry.
+       */
+      const nounGender = originalGender
+        .toLocaleLowerCase("nb-NO")
+        .replace(/^noun\s*-\s*/, "");
+
+      return `noun - ${nounGender}`;
     }
 
-    return originalGender.charAt(0).toUpperCase() + originalGender.slice(1);
+    return originalGender;
   }
 
   /**
@@ -311,16 +319,53 @@
     );
 
     const wordClassCell = createWordListCell(
-      getWordListClassLabel(entry),
+      "",
       "word-list-class",
       "Word Class",
     );
 
-    const levelCell = createWordListCell(
-      String(entry.CEFR ?? "").trim(),
-      "word-list-level",
-      "Level",
-    );
+    // Remove the placeholder inserted by createWordListCell().
+    wordClassCell.textContent = "";
+
+    const wordClassBadge = document.createElement("span");
+
+    /*
+     * Reuse the exact classes from Words multiple results.
+     */
+    wordClassBadge.className =
+      "gender multiple-results-gender-class word-list-class-badge";
+
+    wordClassBadge.textContent = getWordListClassLabel(entry);
+
+    wordClassCell.appendChild(wordClassBadge);
+
+    const level = String(entry.CEFR ?? "")
+      .trim()
+      .toUpperCase();
+
+    const levelCell = createWordListCell("", "word-list-level", "Level");
+
+    // Remove the placeholder added by createWordListCell().
+    levelCell.textContent = "";
+
+    if (level) {
+      const levelBadge = document.createElement("span");
+
+      /*
+       * Reuse the exact CEFR classes already used by Words results:
+       *
+       * A1/A2 → easy
+       * B1/B2 → medium
+       * C     → hard
+       */
+      levelBadge.className = `game-cefr-label ${getCefrClass(level)}`;
+
+      levelBadge.textContent = level;
+
+      levelCell.appendChild(levelBadge);
+    } else {
+      levelCell.textContent = "—";
+    }
 
     row.append(norwegianCell, englishCell, wordClassCell, levelCell);
 

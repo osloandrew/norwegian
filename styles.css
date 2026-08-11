@@ -2218,24 +2218,6 @@ ul {
   background-color: #f2f9fd;
 }
 
-.word-list-norwegian {
-  color: #0d3a69;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.word-list-english {
-  color: #333333;
-  font-size: 18px;
-}
-
-.word-list-class {
-  color: #951b1b;
-  font-size: 14px;
-  font-weight: 500;
-  text-transform: uppercase;
-}
-
 .word-list-export-controls {
   display: flex;
   flex-wrap: wrap;
@@ -2277,11 +2259,50 @@ ul {
   outline-offset: 2px;
 }
 
+/*
+ * Match the Norwegian heading in a Words multiple-result card.
+ */
+.word-list-norwegian {
+  color: #1c68b5;
+  font-family: "Noto Serif", serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/*
+ * Match .english and .multiple-results-english.
+ */
+.word-list-english {
+  color: #555555;
+  font-family: "Noto Serif", serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/*
+ * Match .gender.multiple-results-gender-class.
+ */
+.word-list-class-badge {
+  display: inline-block;
+  margin: 0 !important;
+}
+
+/*
+ * The table cell itself should remain an ordinary white cell.
+ * The colored CEFR badge will be placed inside it.
+ */
 .word-list-level {
-  color: #951b1b;
-  font-size: 14px;
+  color: #4f4f4f;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.word-list-level .game-cefr-label {
+  display: inline-block;
 }
 
 .word-text-block {
