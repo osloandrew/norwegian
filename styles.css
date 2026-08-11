@@ -1605,6 +1605,18 @@ ul {
   position: relative;
 }
 
+/* Single-definition cards only */
+.single-result-definition .word-gender {
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.single-result-definition .word-gender > .gender {
+  align-self: flex-start;
+  margin: 8px 0 0;
+}
+
 .single-result-my-words-controls {
   align-items: center;
   display: grid;
@@ -1627,13 +1639,6 @@ ul {
 .single-result-my-words-star {
   grid-column: 2;
   grid-row: 1;
-}
-
-.single-result-my-words-controls .gender {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  justify-self: end;
-  margin: 0 !important;
 }
 
 #site-title {

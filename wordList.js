@@ -306,15 +306,6 @@
     });
 
     controls.append(starButton, goToMyWordsButton);
-
-    // Move the word-type badge into the same right-hand column
-    // so it cannot collide with the new controls.
-    const genderBadge = card.querySelector(".word-gender > .gender");
-
-    if (genderBadge) {
-      controls.appendChild(genderBadge);
-    }
-
     card.prepend(controls);
   }
 
