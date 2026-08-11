@@ -2570,6 +2570,59 @@ ul {
   display: inline-block;
 }
 
+/* Prevent horizontal scrolling in All Words and My Words */
+
+.word-list-header,
+.word-list-controls,
+.word-list-control-group,
+.word-list-table-container,
+.word-list-table {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.word-list-table-container {
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.word-list-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.word-list-row td,
+.word-list-norwegian,
+.word-list-english,
+.word-list-class,
+.word-list-level {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  word-break: normal;
+}
+
+.word-list-class-badge {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.word-list-control-group {
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.word-list-export-button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
 .word-text-block {
   display: flex;
   flex-direction: column;
