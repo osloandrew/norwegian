@@ -309,6 +309,53 @@
     card.prepend(controls);
   }
 
+  function attachMultipleResultMyWordsStars(entries) {
+    const cards = Array.from(
+      resultsContainer.querySelectorAll(
+        ".definition.multiple-results-definition:not(.word-list-header)",
+      ),
+    );
+
+    cards.forEach((card, index) => {
+      const entry = entries[index];
+
+      if (!entry) {
+        return;
+      }
+
+      // Prevent duplicate stars if results are rendered again.
+      card.querySelector(".multiple-results-my-words-star")?.remove();
+
+      const starButton = document.createElement("button");
+      const starIcon = document.createElement("i");
+      const entryId = getMyWordsEntryId(entry);
+      const word = String(entry.ord ?? "").trim();
+
+      starButton.type = "button";
+      starButton.className =
+        "word-list-favorite-button multiple-results-my-words-star";
+
+      starIcon.setAttribute("aria-hidden", "true");
+      starButton.appendChild(starIcon);
+
+      updateMyWordsButton(starButton, entryId, word);
+
+      starButton.addEventListener("click", (event) => {
+        // Do not open the definition when clicking the star.
+        event.stopPropagation();
+
+        toggleMyWordsEntry(entry);
+        updateMyWordsButton(starButton, entryId, word);
+      });
+
+      starButton.addEventListener("keydown", (event) => {
+        event.stopPropagation();
+      });
+
+      card.appendChild(starButton);
+    });
+  }
+
   function returnToWordList() {
     const typeSelect = document.getElementById("type-select");
     const searchInput = document.getElementById("search-bar");
@@ -1295,6 +1342,6 @@
   window.initWordList = initWordList;
   window.renderWordList = renderWordList;
   window.attachSingleResultMyWordsControls = attachSingleResultMyWordsControls;
-
+  window.attachMultipleResultMyWordsStars = attachMultipleResultMyWordsStars;
   window.goToMyWords = goToMyWords;
 })();

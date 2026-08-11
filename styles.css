@@ -1112,7 +1112,8 @@ main {
 /* The whole box */
 .multiple-results-definition {
   min-height: 0 !important;
-  padding: 15px 25px 15px 25px;
+  padding: 15px 70px 15px 25px;
+  position: relative;
   cursor: pointer;
   transition:
     background-color 0.2s ease,
@@ -1164,6 +1165,13 @@ main {
 .multiple-results-gender-class {
   font-size: 12px !important;
   margin: 10px 0px 0px 0px !important;
+}
+
+.multiple-results-my-words-star {
+  position: absolute;
+  right: 20px;
+  top: 15px;
+  z-index: 2;
 }
 
 /* The word and gender */
@@ -2585,7 +2593,7 @@ ul {
 
   /* The whole box */
   .multiple-results-definition {
-    padding: 15px 20px 15px 20px;
+    padding: 15px 60px 15px 20px;
   }
 
   /* The word, gender and definition */
@@ -2605,6 +2613,11 @@ ul {
     overflow-wrap: break-word;
     white-space: normal;
     word-break: break-word;
+  }
+
+  .multiple-results-my-words-star {
+    right: 15px;
+    top: 10px;
   }
 
   /* The word and gender */
