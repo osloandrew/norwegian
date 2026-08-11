@@ -474,34 +474,11 @@
 
     table.appendChild(tableBody);
 
-    const loadStatus = document.createElement("p");
-    loadStatus.id = "word-list-load-status";
-    loadStatus.className = "word-list-load-status";
-    loadStatus.setAttribute("aria-live", "polite");
-
-    tableContainer.append(table, loadStatus);
+    tableContainer.appendChild(table);
 
     tableContainer.addEventListener("scroll", handleWordListScroll);
 
     return tableContainer;
-  }
-
-  function updateWordListLoadStatus() {
-    const status = document.getElementById("word-list-load-status");
-
-    if (!status) {
-      return;
-    }
-
-    if (renderedWordListCount < activeWordListEntries.length) {
-      status.textContent =
-        `Showing ${renderedWordListCount} of ` +
-        `${activeWordListEntries.length} matching entries. ` +
-        "Scroll down to load more.";
-    } else {
-      status.textContent =
-        `Showing all ${activeWordListEntries.length} ` + "matching entries.";
-    }
   }
 
   function appendNextWordListBatch() {
@@ -510,7 +487,6 @@
     }
 
     if (renderedWordListCount >= activeWordListEntries.length) {
-      updateWordListLoadStatus();
       return;
     }
 
@@ -537,8 +513,6 @@
 
     renderedWordListCount += nextBatch.length;
     wordListBatchIsLoading = false;
-
-    updateWordListLoadStatus();
   }
 
   function handleWordListScroll(event) {

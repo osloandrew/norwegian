@@ -2243,14 +2243,6 @@ ul {
   text-transform: uppercase;
 }
 
-.word-list-load-status {
-  margin: 0;
-  padding: 1rem;
-  color: #555555;
-  font-size: 14px;
-  text-align: center;
-}
-
 .word-text-block {
   display: flex;
   flex-direction: column;
