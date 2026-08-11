@@ -116,7 +116,8 @@ audio {
   display: none !important; /* Always hidden */
 }
 
-.back-navigation {
+.back-navigation,
+.single-result-my-words-link {
   display: block; /* Block-level element to allow centering */
   line-height: 30px; /* Matches height for vertical centering */
   margin: 0 0 10px 0; /* Remove auto margin and set bottom margin only */
@@ -143,7 +144,8 @@ audio {
   height: 30px;
 }
 
-.back-navigation:hover {
+.back-navigation:hover,
+.single-result-my-words-link:hover {
   background-color: #f7f7f7; /* Slightly darker background on hover */
   box-shadow:
     0 6px 12px rgba(135, 135, 135, 0.3),
@@ -1625,28 +1627,36 @@ ul {
   margin: 8px 0 0;
 }
 
-.single-result-my-words-controls {
+.single-result-my-words-link {
+  appearance: none;
+  border: none;
+  box-sizing: content-box;
+}
+
+.single-result-navigation {
   align-items: center;
-  display: grid;
-  gap: 8px;
-  grid-template-columns: auto auto;
+  box-sizing: border-box;
+  display: flex;
+  gap: 10px;
+  margin: 0 0 10px;
+  width: 100%;
+}
+
+.single-result-navigation .back-navigation {
+  margin: 0;
+}
+
+.single-result-navigation .single-result-my-words-link {
+  margin: 0 0 0 auto;
+  white-space: nowrap;
+}
+
+.single-result-my-words-controls {
   margin: 0;
   position: absolute;
   right: 25px;
   top: 25px;
   z-index: 2;
-}
-
-.single-result-my-words-link {
-  grid-column: 1;
-  grid-row: 1;
-  margin: 0;
-  white-space: nowrap;
-}
-
-.single-result-my-words-star {
-  grid-column: 2;
-  grid-row: 1;
 }
 
 #site-title {

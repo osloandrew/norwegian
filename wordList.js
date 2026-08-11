@@ -268,6 +268,8 @@
     // Prevent duplicate controls if the definition is rendered again.
     card.querySelector(".single-result-my-words-controls")?.remove();
 
+    resultsContainer.querySelector(".single-result-my-words-link")?.remove();
+
     const controls = document.createElement("div");
     controls.className = "single-result-my-words-controls";
 
@@ -300,8 +302,7 @@
     const goToMyWordsButton = document.createElement("button");
 
     goToMyWordsButton.type = "button";
-    goToMyWordsButton.className =
-      "word-list-export-button single-result-my-words-link";
+    goToMyWordsButton.className = "single-result-my-words-link";
     goToMyWordsButton.textContent = "Go to My Words";
 
     goToMyWordsButton.addEventListener("click", (event) => {
@@ -313,8 +314,34 @@
       event.stopPropagation();
     });
 
-    controls.append(starButton, goToMyWordsButton);
+    // Only the star remains inside the definition card.
+    controls.appendChild(starButton);
     card.prepend(controls);
+
+    // Create or reuse the navigation row above the card.
+    let navigation = resultsContainer.querySelector(
+      ".single-result-navigation",
+    );
+
+    if (!navigation) {
+      navigation = document.createElement("div");
+      navigation.className = "single-result-navigation";
+      navigation.setAttribute("aria-label", "Definition navigation");
+
+      resultsContainer.insertBefore(navigation, card);
+    }
+
+    // Move the existing Back to Results button into the left side.
+    const backNavigation = Array.from(resultsContainer.children).find(
+      (element) => element.classList?.contains("back-navigation"),
+    );
+
+    if (backNavigation) {
+      navigation.prepend(backNavigation);
+    }
+
+    // The My Words button goes on the right.
+    navigation.appendChild(goToMyWordsButton);
   }
 
   function attachMultipleResultMyWordsStars(entries) {
@@ -550,8 +577,15 @@
      */
     const backButton = createWordListBackButton();
 
-    resultsContainer.insertBefore(backButton, resultsContainer.firstChild);
+    const navigation = resultsContainer.querySelector(
+      ".single-result-navigation",
+    );
 
+    if (navigation) {
+      navigation.prepend(backButton);
+    } else {
+      resultsContainer.insertBefore(backButton, resultsContainer.firstChild);
+    }
     updateURL("", "words", "", null, word);
 
     window.scrollTo({
