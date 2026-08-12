@@ -2897,8 +2897,10 @@ ul {
   .game-congratulations-banner,
   .game-fallback-banner,
   .game-lock-banner,
+  .game-removed-word-banner,
+  .game-saved-word-banner,
   .game-streak-banner {
-    font-size: 0.9em !important; /* Slightly smaller font size for mobile */
+    font-size: 0.9em !important;
   }
 
   .game-translation-card {

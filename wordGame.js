@@ -100,6 +100,22 @@ const streakMessages = [
   "🧠 Brainpower unleashed! {X} correct answers consecutively!",
 ];
 
+const savedWordMessages = [
+  "⭐ “{word}” was added to My Words.",
+  "📚 “{word}” joined your study list.",
+  "🧠 Saved “{word}” for future practice.",
+  "🌱 You can practise “{word}” again in My Words.",
+  "📌 “{word}” is ready for another round.",
+];
+
+const removedWordMessages = [
+  "☆ “{word}” was removed from My Words.",
+  "📖 “{word}” left your study list.",
+  "🧹 “{word}” is no longer saved.",
+  "✅ Removed “{word}” from future My Words practice.",
+  "↩️ You can always save “{word}” again later.",
+];
+
 function showBanner(type, level) {
   const bannerPlaceholder = document.getElementById("game-banner-placeholder");
   let bannerHTML = "";
@@ -125,6 +141,26 @@ function showBanner(type, level) {
     );
     message = clearedPracticeMessages[randomIndex];
     bannerHTML = `<div class="game-cleared-practice-banner"><p>${message}</p></div>`;
+  } else if (type === "savedWord") {
+    const randomIndex = Math.floor(Math.random() * savedWordMessages.length);
+
+    message = savedWordMessages[randomIndex].replace("{word}", level);
+
+    bannerHTML = `
+      <div class="game-saved-word-banner">
+        <p>${message}</p>
+      </div>
+    `;
+  } else if (type === "removedWord") {
+    const randomIndex = Math.floor(Math.random() * removedWordMessages.length);
+
+    message = removedWordMessages[randomIndex].replace("{word}", level);
+
+    bannerHTML = `
+      <div class="game-removed-word-banner">
+        <p>${message}</p>
+      </div>
+    `;
   } else if (type === "levelLock") {
     const messages =
       level === "locked"
@@ -833,6 +869,11 @@ function attachGameControls(wordObj) {
     }
 
     updateGameMyWordsStar(starButton, wordObj);
+    const displayedWord = String(wordObj?.ord ?? "")
+      .split(",")[0]
+      .trim();
+
+    showBanner(savedState ? "savedWord" : "removedWord", displayedWord);
   });
 
   nextButton?.addEventListener("click", async () => {
