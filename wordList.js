@@ -665,14 +665,31 @@
     norwegianCell.textContent = "";
 
     const norwegianLink = document.createElement("a");
+    const wordTextBlock = document.createElement("span");
+    const spellings = norwegianWord
+      .split(",")
+      .map((spelling) => spelling.trim())
+      .filter(Boolean);
 
     norwegianLink.className = "word-list-word-link";
     norwegianLink.href = createWordListDefinitionURL(entry);
-    norwegianLink.textContent = norwegianWord;
     norwegianLink.setAttribute(
       "aria-label",
       `Open the definition for ${norwegianWord}`,
     );
+
+    wordTextBlock.className = "word-text-block";
+    wordTextBlock.append(spellings[0] || norwegianWord);
+
+    if (spellings.length > 1) {
+      const alternateSpellings = document.createElement("span");
+
+      alternateSpellings.className = "alt-spelling";
+      alternateSpellings.textContent = spellings.slice(1).join(", ");
+      wordTextBlock.appendChild(alternateSpellings);
+    }
+
+    norwegianLink.appendChild(wordTextBlock);
 
     /*
      * Preserve the existing single-page navigation for human users.
@@ -691,6 +708,9 @@
       "word-list-english",
       "English",
     );
+
+    norwegianCell.lang = "nb";
+    englishCell.lang = "en";
 
     const wordClassCell = createWordListCell(
       "",

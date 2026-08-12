@@ -2383,6 +2383,12 @@ ul {
   transition: background-color 0.2s ease;
 }
 
+.word-list-row .word-list-class,
+.word-list-row .word-list-level {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 .word-list-row td:first-child {
   border-radius: 12px 0 0 12px;
 }
@@ -2572,7 +2578,10 @@ ul {
  * Match .gender.multiple-results-gender-class.
  */
 .word-list-class-badge {
-  display: inline-block;
+  align-items: center;
+  display: inline-flex;
+  font-size: 10px !important;
+  line-height: 1.2;
   margin: 0 !important;
 }
 
@@ -2655,11 +2664,21 @@ ul {
   word-break: normal;
 }
 
-.word-list-class-badge {
-  max-width: 100%;
-  min-width: 0;
-  overflow-wrap: anywhere;
+.word-list-norwegian,
+.word-list-english {
+  hyphens: auto;
+  overflow-wrap: break-word;
   white-space: normal;
+  word-break: normal;
+  width: 50%;
+}
+
+.word-list-class-badge {
+  max-width: none;
+  min-width: max-content;
+  overflow-wrap: normal;
+  white-space: nowrap;
+  word-break: normal;
 }
 
 .word-list-control-group {
@@ -2678,8 +2697,9 @@ ul {
 }
 
 /* Shrink these columns to their contents */
+.word-list-row .word-list-class,
 .word-list-row .word-list-level,
-.word-list-row {
+.word-list-row .word-list-favorite {
   width: 1%;
   white-space: nowrap;
 }
@@ -3280,6 +3300,7 @@ ul {
     min-width: 0;
     overflow-wrap: anywhere;
     padding: 0;
+    width: auto;
   }
 
   .word-list-norwegian {
