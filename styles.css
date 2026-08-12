@@ -1607,6 +1607,7 @@ ul {
   display: flex;
   flex-direction: column;
 }
+
 .search-bar-wrapper,
 .type-filter,
 .pos-filter,
@@ -1631,8 +1632,10 @@ ul {
   display: flex;
   height: 42px;
   flex: 1;
-  padding: 10px 15px;
+  padding: 0;
+  position: relative;
   min-width: 180px;
+  transition: all 0.3s ease;
 }
 
 .type-filter i,
@@ -1645,6 +1648,23 @@ ul {
   pointer-events: none;
   right: 15px;
   z-index: 0; /* Ensures the icon is underneath the select element */
+}
+
+.type-filter:not(.disabled):hover,
+.pos-filter:not(.disabled):hover,
+.cefr-filter:not(.disabled):hover,
+.genre-filter:not(.disabled):hover,
+.game-english-filter:not(.disabled):hover {
+  background-color: #3c88d4;
+  box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.type-filter select:focus,
+.pos-filter select:focus,
+.cefr-filter select:focus,
+.genre-filter select:focus,
+.game-english-filter select:focus {
+  outline: none;
 }
 
 .search-btn {
@@ -1711,6 +1731,14 @@ ul {
   align-items: center;
   gap: 10px;
   margin: 0 auto;
+}
+
+#search-container-inner.word-game-active .cefr-filter > .fa-chevron-down {
+  right: 44px;
+}
+
+#search-container-inner.word-game-active .cefr-filter select {
+  padding-right: 72px;
 }
 
 .selectors-wrapper {
@@ -2479,16 +2507,32 @@ ul {
   appearance: none;
   background-color: inherit;
   border: none;
+  border-radius: inherit;
+  box-sizing: border-box;
   color: white;
   cursor: pointer;
+  flex: 1 1 auto;
   font-family: "Noto Sans", sans-serif;
-  padding-right: 15px; /* Reduce padding to show more text */
+  height: 100%;
   letter-spacing: 0.05em;
+  min-width: 0;
+  padding: 0 42px 0 15px;
+  text-overflow: ellipsis;
   text-transform: uppercase;
-  height: 100%; /* Extend the clickable area vertically */
-  min-width: fit-content;
   width: 100%;
-  text-overflow: ellipsis; /* Add ellipsis for long words */
+}
+
+.type-filter > .fa-chevron-down,
+.pos-filter > .fa-chevron-down,
+.cefr-filter > .fa-chevron-down,
+.genre-filter > .fa-chevron-down,
+.game-english-filter > .fa-chevron-down {
+  pointer-events: none;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
 }
 
 .word-gender {
@@ -3383,7 +3427,7 @@ ul {
     box-sizing: border-box !important;
     background-color: #0d3a69; /* Consistent background for all filters */
     border-radius: 15px;
-    padding: 5px 5px 5px 5px;
+    padding: 0;
     min-width: 0px;
   }
 
@@ -3416,7 +3460,7 @@ ul {
     font-size: 11px; /* Further reduce the font size for very small screens */
     font-weight: 500;
     text-transform: uppercase;
-    padding-right: 0px;
+    padding: 0 30px 0 8px;
     min-width: 0px;
     letter-spacing: 0;
     text-overflow: unset;
