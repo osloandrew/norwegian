@@ -547,7 +547,7 @@ footer .copyright {
 
 .game-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-gap: 15px; /* Slightly increase space between the cards */
 }
 
@@ -818,7 +818,8 @@ footer .copyright {
   background-color: white; /* Same as the word card */
   border: 1px solid #ccc; /* Same border */
   border-radius: 10px; /* Same rounded corners */
-  padding: 15px; /* Reduced padding to make the cards less bulky */
+  box-sizing: border-box;
+  padding: 10px;
   text-align: center; /* Centered text */
   font-family: "Noto Sans", sans-serif;
   font-size: 1.2em !important; /* Consistent font size */
@@ -829,9 +830,11 @@ footer .copyright {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 60px; /* Slightly reduce height */
+  height: auto;
   min-height: 60px; /* Ensure the cards remain the same height */
+  min-width: 0;
   line-height: 1.3em; /* Reduce line spacing slightly */
+  overflow-wrap: anywhere;
 }
 
 .game-translation-card:hover {
@@ -843,6 +846,7 @@ footer .copyright {
   display: flex;
   justify-content: center; /* Center the word horizontally */
   flex-grow: 1; /* Allow the word to take up remaining space */
+  min-height: 8rem;
   text-align: center;
 }
 
@@ -3293,5 +3297,109 @@ ul {
 
   .word-list-row:hover td {
     background-color: transparent;
+  }
+}
+
+@media (max-width: 1024px) {
+  /* =========================================================
+   WORD GAME PAGE MODE
+   ========================================================= */
+
+  body.word-game-mode {
+    min-height: 100svh;
+    overflow-x: hidden;
+    overflow-x: clip;
+  }
+
+  /* The footer is unnecessary while actively playing. */
+  body.word-game-mode footer {
+    display: none;
+  }
+
+  /* Keep the clickable title, but remove excess header height. */
+  body.word-game-mode header {
+    padding: 6px 12px;
+  }
+
+  body.word-game-mode #site-title {
+    font-size: clamp(28px, 7vw, 38px) !important;
+    line-height: 1.1;
+    margin: 0;
+  }
+
+  body.word-game-mode #site-subtitle {
+    display: none;
+  }
+
+  /* Keep all three game selectors fluid, with slightly more room for CEFR. */
+  body.word-game-mode .selectors-wrapper {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr)
+      minmax(0, 1.15fr);
+    gap: 5px;
+    width: 100%;
+  }
+
+  /* Let the Level selector shrink beside its separate lock control. */
+  body.word-game-mode #cefr-select {
+    flex: 1 1 0;
+    width: 0;
+  }
+
+  body.word-game-mode #lock-icon {
+    flex: 0 0 18px;
+    margin: 0 8px 0 4px;
+  }
+
+  /* Keep the game prompt readable without sizing it for a particular phone. */
+  body.word-game-mode .game-word {
+    min-width: 0;
+    width: 100%;
+  }
+
+  body.word-game-mode .game-word h2 {
+    font-size: clamp(22px, 6vw, 34px);
+    hyphens: none;
+    line-height: 1.25;
+    max-width: 100%;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: normal;
+  }
+
+  /* Compact the game when vertical space is genuinely limited. */
+  @media (max-width: 1024px) and (max-height: 700px) {
+    body.word-game-mode header {
+      display: none;
+    }
+
+    body.word-game-mode .game-cefr-spacer {
+      min-height: 48px;
+    }
+
+    body.word-game-mode #game-next-word-button {
+      margin-top: 10px;
+      min-height: 48px;
+      padding: 12px 15px;
+    }
+  }
+}
+
+/* Preserve the original Word Game design on desktop. */
+@media (min-width: 1025px) {
+  .game-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .game-translation-card {
+    box-sizing: content-box;
+    height: 60px;
+    min-width: auto;
+    overflow-wrap: normal;
+    padding: 15px;
   }
 }

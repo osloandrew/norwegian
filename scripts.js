@@ -1146,6 +1146,8 @@ function disableSearchControls() {
 function handleTypeChange(type) {
   // If type is not passed in (e.g., called from dropdown), get it from the dropdown
   type = type || document.getElementById("type-select").value;
+  // Give the page a dedicated class while Word Game is selected.
+  document.body.classList.toggle("word-game-mode", type === "word-game");
   const query = document
     .getElementById("search-bar")
     .value.toLowerCase()
