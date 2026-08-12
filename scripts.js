@@ -2575,9 +2575,7 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
         ? [trimmedWord]
         : trimmedWord
             .split(",")
-            .flatMap((w) =>
-              generateWordVariationsForSentences(w.trim(), pos),
-            ),
+            .flatMap((w) => generateWordVariationsForSentences(w.trim(), pos)),
     ),
   ].filter(Boolean);
 
@@ -2609,7 +2607,6 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
   const relevantEntries = results.filter(
     (r) => r.eksempel && sentenceMatchesVariation(r.eksempel),
   );
-
   // Use a Set to store unique sentences and translations
   const uniqueSentences = new Set();
   const uniqueTranslations = new Set();
