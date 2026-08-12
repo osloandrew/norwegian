@@ -1140,18 +1140,15 @@
       );
 
       const learnWordsButton = createControlButton("Learn Words", () => {
-        if (typeof window.startMyWordsStudy === "function") {
-          window.startMyWordsStudy();
-        } else {
-          console.warn("My Words study mode has not loaded.");
-        }
+        selectType("word-game");
+        window.scrollTo({ top: 0, behavior: "smooth" });
       });
 
       learnWordsButton.disabled = myWordsEntryIds.size === 0;
       learnWordsButton.title =
         myWordsEntryIds.size === 0
           ? "Save at least one word first"
-          : "Study your saved words";
+          : "Start the Word Game with My Words prioritized";
 
       const removeAllButton = createControlButton("Remove All Words", () => {
         const savedWordCount = myWordsEntryIds.size;
