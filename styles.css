@@ -1148,13 +1148,13 @@ li {
 
 #lock-icon {
   color: white;
-  font-size: 16px;
-  margin: 0 5px 0 5px; /* Space between the icon and the text */
   cursor: pointer;
   display: none;
+  font-size: 16px;
+  margin: 0 15px 0 5px;
   order: 2;
+  pointer-events: auto;
   transition: all 0.2s ease;
-  pointer-events: auto; /* ensure it responds to clicks */
 }
 
 #lock-icon.locked {
