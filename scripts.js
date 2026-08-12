@@ -2325,23 +2325,42 @@ function renderWordDefinition(word, selectedPOS = "") {
   const posFilterContainer = document.querySelector(".pos-filter");
   posFilterContainer.classList.remove("disabled"); // Remove the 'disabled' class for visual effect
 
-  // Filter results based on both word and selected POS if provided
-  const matchingResults = results.filter((r) => {
-    const wordMatch = r.ord.toLowerCase().trim() === trimmedWord;
+  // Filter results based on both word and selected POS if provided.
+  const normalizedSelectedPOS = normalizeWordMetadataPOS(selectedPOS);
 
-    // Check for noun gender match when selectedPOS is 'noun'
+  const nounForms = [
+    "en",
+    "et",
+    "ei",
+    "en-et",
+    "en-ei",
+    "ei-et",
+    "en-ei-et",
+    "noun",
+  ];
+
+  const matchingResults = results.filter((entry) => {
+    /*
+     * Some CSV entries contain comma-separated spelling variants.
+     * A direct URL for any individual form must find the full entry.
+     */
+    const wordMatch = String(entry.ord || "")
+      .toLowerCase()
+      .split(",")
+      .map((form) => form.trim())
+      .includes(trimmedWord);
+
+    const entryPOS = normalizeWordMetadataPOS(entry.gender);
+
     const posMatch =
-      selectedPOS === "noun"
-        ? ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
-            r.gender.toLowerCase().includes(gender),
-          )
-        : selectedPOS
-          ? r.gender.toLowerCase().includes(selectedPOS)
+      normalizedSelectedPOS === "noun"
+        ? nounForms.includes(entryPOS)
+        : normalizedSelectedPOS
+          ? entryPOS === normalizedSelectedPOS
           : true;
 
     return wordMatch && posMatch;
   });
-
   if (matchingResults.length > 0) {
     displaySearchResults(matchingResults);
     updateWordMetadata(matchingResults[0]);
