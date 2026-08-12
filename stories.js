@@ -43,47 +43,110 @@ const genreIcons = {
 const CSV_URL = "norwegianStories.csv";
 const STORY_CACHE_KEY = "storyDataEs";
 const STORY_CACHE_TIME_KEY = "storyDataTimestampEs";
+const STORY_CACHE_MAX_AGE = 6 * 60 * 60 * 1000;
+let storyDataLoadPromise = null;
+const storyImagePathCache = new Map();
+
+function normalizeStoryEntries(entries) {
+  return entries.map((entry) => ({
+    ...entry,
+    titleNorwegian: (entry.titleNorwegian || "").trim(),
+  }));
+}
+
+function readCachedStoryData() {
+  try {
+    const cached = localStorage.getItem(STORY_CACHE_KEY);
+    if (!cached) return null;
+
+    const entries = JSON.parse(cached);
+    if (!Array.isArray(entries) || !entries.length) return null;
+
+    return {
+      entries: normalizeStoryEntries(entries),
+      timestamp: Number(localStorage.getItem(STORY_CACHE_TIME_KEY)) || 0,
+    };
+  } catch (error) {
+    console.warn("Cached story data could not be read.", error);
+    return null;
+  }
+}
+
+function cacheStoryData(entries) {
+  try {
+    localStorage.setItem(STORY_CACHE_KEY, JSON.stringify(entries));
+    localStorage.setItem(STORY_CACHE_TIME_KEY, String(Date.now()));
+  } catch (error) {
+    console.warn("Story data could not be cached.", error);
+  }
+}
+
+async function fetchFreshStoryData() {
+  const response = await fetch(CSV_URL);
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  const csvText = await response.text();
+  const parsed = Papa.parse(csvText, {
+    header: true,
+    skipEmptyLines: true,
+  }).data;
+  const entries = normalizeStoryEntries(parsed);
+
+  cacheStoryData(entries);
+  return entries;
+}
+
+function refreshStaleStoryCache() {
+  const refresh = () => {
+    fetchFreshStoryData().catch((error) => {
+      console.warn("Story data could not be refreshed.", error);
+    });
+  };
+
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(refresh, { timeout: 3000 });
+  } else {
+    window.setTimeout(refresh, 1500);
+  }
+}
 
 async function fetchAndLoadStoryData() {
+  if (storyResults.length) return storyResults;
+  if (storyDataLoadPromise) return storyDataLoadPromise;
+
   showSpinner();
-  try {
-    /*
-     * Use the browser's ordinary HTTP cache. GitHub Pages will
-     * revalidate the file when necessary, while repeat visitors avoid
-     * downloading the same story data on every visit.
-     */
-    const response = await fetch(CSV_URL);
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const csvText = await response.text();
-
-    // Parse the story CSV.
-    const parsed = Papa.parse(csvText, {
-      header: true,
-      skipEmptyLines: true,
-    }).data;
-    storyResults = parsed.map((entry) => ({
-      ...entry,
-      titleNorwegian: (entry.titleNorwegian || "").trim(),
-    }));
-
-    // 3) Optional: store for offline fallback (not used on next run)
-    localStorage.setItem(STORY_CACHE_KEY, JSON.stringify(storyResults));
-    localStorage.setItem(STORY_CACHE_TIME_KEY, String(Date.now()));
-  } catch (err) {
-    console.error("Live fetch failed, falling back to cache:", err);
-    const cached = localStorage.getItem(STORY_CACHE_KEY);
-    if (cached) {
-      storyResults = JSON.parse(cached);
-    } else {
-      storyResults = [];
-    }
-  } finally {
+  const cached = readCachedStoryData();
+  if (cached) {
+    storyResults = cached.entries;
     hideSpinner();
+
+    if (Date.now() - cached.timestamp > STORY_CACHE_MAX_AGE) {
+      refreshStaleStoryCache();
+    }
+
+    return storyResults;
   }
+
+  storyDataLoadPromise = fetchFreshStoryData()
+    .then((entries) => {
+      storyResults = entries;
+      return storyResults;
+    })
+    .catch((error) => {
+      console.error("Story data could not be loaded:", error);
+      storyResults = [];
+      return storyResults;
+    })
+    .finally(() => {
+      storyDataLoadPromise = null;
+      hideSpinner();
+    });
+
+  return storyDataLoadPromise;
 }
 // Helper function to determine CEFR class
 function getCefrClass(cefrLevel) {
@@ -291,9 +354,9 @@ async function displayStoryList(filteredStories = storyResults) {
     storyList = document.createElement("ul");
     storyList.id = "stories";
     storyList.className = "stories-list";
-    container.appendChild(storyList);
   }
   storyList.innerHTML = ""; // clear old list items
+  const storyItems = document.createDocumentFragment();
 
   filtered.forEach((story) => {
     const li = document.createElement("li");
@@ -303,6 +366,7 @@ async function displayStoryList(filteredStories = storyResults) {
     const storyLink = document.createElement("a");
     storyLink.className = "story-card-link";
     storyLink.href = `?type=story&story=${encodeURIComponent(story.titleNorwegian)}`;
+    storyLink.dataset.storyTitle = story.titleNorwegian;
 
     // Left side: Norwegian and English titles.
     const titleContainer = document.createElement("div");
@@ -342,25 +406,27 @@ async function displayStoryList(filteredStories = storyResults) {
     storyLink.appendChild(detailContainer);
     li.appendChild(storyLink);
 
-    /*
-     * A normal click keeps the current fast, single-page behavior.
-     * Modified clicks remain normal browser links:
-     * Command-click, Ctrl-click, Shift-click, and Alt-click.
-     */
-    storyLink.addEventListener("click", (event) => {
-      const modifiedClick =
-        event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
-
-      if (modifiedClick) {
-        return;
-      }
-
-      event.preventDefault();
-      displayStory(story.titleNorwegian);
-    });
-
-    storyList.appendChild(li);
+    storyItems.appendChild(li);
   });
+
+  /*
+   * One delegated listener replaces hundreds of identical listeners while
+   * preserving normal modified-click behavior for opening a new tab.
+   */
+  storyList.addEventListener("click", (event) => {
+    const storyLink = event.target.closest(".story-card-link");
+    if (!storyLink || !storyList.contains(storyLink)) return;
+
+    const modifiedClick =
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+    if (modifiedClick) return;
+
+    event.preventDefault();
+    displayStory(storyLink.dataset.storyTitle);
+  });
+
+  storyList.appendChild(storyItems);
+  container.appendChild(storyList);
 
   // show list / hide reader (unchanged behavior)
   const storyViewer = document.getElementById("story-viewer");
@@ -375,7 +441,7 @@ async function displayStoryList(filteredStories = storyResults) {
   hideSpinner();
 }
 
-async function displayStory(titleNorwegian) {
+function displayStory(titleNorwegian) {
   document.documentElement.classList.add("reading");
   showSpinner(); // Show spinner at the start of story loading
   const searchContainer = document.getElementById("search-container");
@@ -388,6 +454,7 @@ async function displayStory(titleNorwegian) {
 
   if (!selectedStory) {
     console.error(`No story found with the title: ${titleNorwegian}`);
+    hideSpinner();
     return;
   }
 
@@ -396,16 +463,9 @@ async function displayStory(titleNorwegian) {
   updateURL(null, "story", null, titleNorwegian); // Update URL with story parameter
 
   clearContainer();
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
 
-  // Check for the image (mirror JP: EN title only)
-  const imageFileURL = await hasImageByEnglishTitle(selectedStory.titleEnglish);
-  updateStoryMetadata(selectedStory, imageFileURL);
-
-  // Check for the audio file
-  const audioFileURL = await hasAudio(selectedStory.titleEnglish);
-  const audioHTML = audioFileURL
-    ? `<audio controls src="${audioFileURL}" class="stories-audio-player"></audio>`
-    : "";
+  updateStoryMetadata(selectedStory);
   // Build sticky header here, just before audio is constructed
   const genreIcon = genreIcons[selectedStory.genre.toLowerCase()] || "";
   const cefrClass = getCefrClass(selectedStory.CEFR);
@@ -563,15 +623,9 @@ async function displayStory(titleNorwegian) {
     .getElementById("back-button")
     ?.addEventListener("click", storiesBackBtn);
 
-  const imageHTML = imageFileURL
-    ? `<img src="${imageFileURL}" alt="${selectedStory.titleEnglish}" class="story-image">`
-    : "";
-  let contentHTML = imageHTML;
-  // Function to finalize and display the story content, with or without audio
-  const finalizeContent = (includeAudio = false) => {
-    if (includeAudio) {
-      contentHTML = audioHTML + contentHTML;
-    }
+  let contentHTML = '<div id="story-image-slot"></div>';
+  // Function to finalize and display the story content
+  const finalizeContent = () => {
 
     for (let i = 0; i < norwegianSentences.length; i++) {
       const norwegianSentence = norwegianSentences[i].trim();
@@ -654,7 +708,8 @@ async function displayStory(titleNorwegian) {
   norwegianSentences = combineSentences(norwegianSentences);
   englishSentences = combineSentences(englishSentences, /\basked\b/i);
 
-  finalizeContent(false);
+  finalizeContent();
+  loadStoryImage(selectedStory);
 }
 
 // Function to toggle the visibility of English sentences and update Norwegian box styles
@@ -738,7 +793,9 @@ function storiesBackBtn() {
   // 3) If you must switch the type tab, do it now (this may rebuild the filters)
   const typeSel = document.getElementById("type-select");
   if (typeSel) typeSel.value = "stories";
-  if (typeof handleTypeChange === "function") handleTypeChange("stories");
+  if (typeof handleTypeChange === "function") {
+    handleTypeChange("stories", { renderStories: false });
+  }
 
   // 4) Re-grab the (possibly re-rendered) selects and restore values
   const cefrElAfter = document.getElementById("cefr-select");
@@ -771,59 +828,54 @@ function restoreSearchContainerInner() {
   searchContainerInner.style.display = "";
 }
 
-// Check if an audio file exists based on the English title
-async function hasAudio(titleEnglish) {
-  const encodedTitleEnglish = encodeURIComponent(titleEnglish);
-  const audioFileURLs = [
-    `Resources/Audio/${encodedTitleEnglish}.m4a`,
-    `Resources/Audio/${encodedTitleEnglish}.mp3`,
-  ];
+function getStoryImageCandidates(titleEnglish) {
+  const title = String(titleEnglish || "").trim();
+  if (!title) return [];
 
-  for (const audioFileURL of audioFileURLs) {
-    try {
-      // Check if the audio file exists
-      const response = await fetch(audioFileURL, {
-        method: "HEAD",
-        cache: "no-cache",
-      });
-      if (response.ok) {
-        console.log(`Audio found: ${audioFileURL}`);
-        return audioFileURL;
-      }
-    } catch (error) {
-      console.error(`Error checking audio for ${audioFileURL}:`, error);
-    }
-  }
+  const sanitized = title.endsWith("?") ? title.slice(0, -1) : title;
+  const encodedTitles = [...new Set([title, sanitized])].map(encodeURIComponent);
+  const imageExtensions = ["png", "webp", "jpg", "avif", "jpeg", "gif"];
 
-  console.log(`No audio found for title: ${titleEnglish}`);
-  return null; // Return null if no audio file is found
+  return encodedTitles.flatMap((encoded) =>
+    imageExtensions.map((extension) =>
+      `Resources/Images/${encoded}.${extension}`,
+    ),
+  );
 }
 
-// Check if an image exists based on the EN title (mirror JP logic)
-async function hasImageByEnglishTitle(titleEnglish) {
-  const sanitized = titleEnglish.endsWith("?")
-    ? titleEnglish.slice(0, -1)
-    : titleEnglish;
+function loadStoryImage(story) {
+  const slot = document.getElementById("story-image-slot");
+  const cacheKey = String(story.titleEnglish || "").trim();
+  const cachedPath = storyImagePathCache.get(cacheKey);
+  const candidates = cachedPath
+    ? [cachedPath]
+    : getStoryImageCandidates(story.titleEnglish);
+  if (!slot || !candidates.length) return;
 
-  const encodedTitles = [
-    encodeURIComponent(titleEnglish),
-    encodeURIComponent(sanitized),
-  ];
+  const image = new Image();
+  let candidateIndex = 0;
+  let currentCandidate = "";
 
-  const imageExtensions = ["webp", "jpg", "jpeg", "avif", "png", "gif"];
-  const imagePaths = encodedTitles.flatMap((encoded) =>
-    imageExtensions.map((ext) => `Resources/Images/${encoded}.${ext}`),
-  );
+  image.alt = story.titleEnglish || story.titleNorwegian;
+  image.className = "story-image";
+  image.decoding = "async";
 
-  for (const path of imagePaths) {
-    try {
-      const res = await fetch(path, { method: "HEAD", cache: "no-cache" });
-      if (res.ok) return path;
-    } catch (e) {
-      console.warn("Error checking image for", path, e);
-    }
-  }
-  return null;
+  const tryNextCandidate = () => {
+    if (!slot.isConnected || candidateIndex >= candidates.length) return;
+    currentCandidate = candidates[candidateIndex];
+    image.src = currentCandidate;
+    candidateIndex += 1;
+  };
+
+  image.addEventListener("load", () => {
+    if (!slot.isConnected) return;
+    storyImagePathCache.set(cacheKey, currentCandidate);
+    slot.replaceChildren(image);
+    updateStoryMetadata(story, image.src);
+  });
+
+  image.addEventListener("error", tryNextCandidate);
+  tryNextCandidate();
 }
 
 function isStoriesTabActive() {
@@ -845,8 +897,19 @@ window.addEventListener("DOMContentLoaded", async () => {
    * handleTypeChange("stories") code loads the data at that point.
    */
   if (requestedType === "stories" || requestedStory) {
+    const typeSelect = document.getElementById("type-select");
+    if (typeSelect) {
+      typeSelect.value = "stories";
+      typeSelect.disabled = true;
+    }
+
     await fetchAndLoadStoryData();
-    loadStateFromURL();
+
+    if (requestedStory) {
+      displayStory(requestedStory);
+    } else {
+      handleTypeChange("stories");
+    }
   }
 
   // Wire up live story filtering:

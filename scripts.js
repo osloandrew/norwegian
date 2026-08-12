@@ -557,7 +557,7 @@ function formatGender(gender) {
 }
 
 // Clear the search input field
-function clearInput() {
+function clearInput(refreshCurrentView = true) {
   const searchEl = document.getElementById("search-bar");
 
   if (searchEl) {
@@ -573,7 +573,7 @@ function clearInput() {
     if (cefrEl) cefrEl.value = "";
     if (genreEl) genreEl.value = "";
 
-    displayStoryList();
+    if (refreshCurrentView) displayStoryList();
   } else if (typeSelect && typeSelect.value === "word-list") {
     renderWordList();
   }
@@ -1459,9 +1459,10 @@ function disableSearchControls() {
 }
 
 // Handle change in search type (words/sentences)
-function handleTypeChange(type) {
+function handleTypeChange(type, options = {}) {
   // If type is not passed in (e.g., called from dropdown), get it from the dropdown
   type = type || document.getElementById("type-select").value;
+  const shouldRenderStories = options.renderStories !== false;
   // Give the page a dedicated class while Word Game is selected.
   document.body.classList.toggle("word-game-mode", type === "word-game");
   const query = document
@@ -1519,7 +1520,7 @@ function handleTypeChange(type) {
     searchContainerInner.classList.remove("word-game-active");
 
     showLandingCard(false);
-    clearInput();
+    clearInput(false);
 
     cefrSelect.disabled = false; // Enable CEFR filter
     cefrFilterContainer.classList.remove("disabled"); // Visually enable the CEFR filter
@@ -1530,9 +1531,9 @@ function handleTypeChange(type) {
     // Load stories data if not already loaded
     if (!storyResults.length) {
       fetchAndLoadStoryData().then(() => {
-        displayStoryList(); // Display the list of stories
+        if (shouldRenderStories) displayStoryList();
       });
-    } else {
+    } else if (shouldRenderStories) {
       displayStoryList(); // Display the list of stories if already loaded
     }
   } else if (type === "sentences") {
@@ -3084,6 +3085,11 @@ function handleCardClick(event, word, pos, engelsk, definisjon) {
 
 // Initialization of the dictionary data and event listeners
 window.onload = function () {
+  const initialURL = new URL(window.location.href);
+  const initialType = initialURL.searchParams.get("type");
+  const initialStoryRoute =
+    initialType === "stories" || initialURL.searchParams.has("story");
+
   // Check if the buttons exist in the DOM
   const searchBtn = document.getElementById("search-btn");
   const randomBtn = document.getElementById("random-btn");
@@ -3124,9 +3130,25 @@ window.onload = function () {
     typeFilterContainer.classList.add("disabled");
     posFilterContainer.classList.add("disabled"); // Add the 'disabled' class to visually disable POS filter
     cefrFilterContainer.classList.add("disabled"); // Add the 'disabled' class to visually disable CEFR filter
+
+    /*
+     * Stories have their own data and can be searched or filtered before the
+     * much larger dictionary finishes loading. Keep the type switch disabled
+     * briefly so another section cannot be opened without its data.
+     */
+    if (initialStoryRoute) {
+      enableSearchControls();
+      cefrSelect.disabled = false;
+      cefrFilterContainer.classList.remove("disabled");
+    }
   }
 
-  fetchAndLoadDictionaryData(); // Load dictionary data when the page is refreshed
+  const loadDictionaryData = () => fetchAndLoadDictionaryData();
+  if (initialStoryRoute) {
+    window.setTimeout(loadDictionaryData, 1000);
+  } else {
+    loadDictionaryData();
+  }
 
   // Wait for the data to be fetched before triggering the search
   const checkDataLoaded = setInterval(() => {
@@ -3157,8 +3179,10 @@ window.onload = function () {
       posFilterContainer.classList.remove("disabled"); // Remove 'disabled' class for POS filter
       cefrFilterContainer.classList.remove("disabled"); // Remove 'disabled' class for CEFR filter
 
-      // Load state from URL
-      loadStateFromURL(); // This checks the URL for query/type/POS and triggers the appropriate search
+      // Stories are initialized by stories.js and must not be rendered twice.
+      if (!initialStoryRoute) {
+        loadStateFromURL();
+      }
     }
   }, 100);
 

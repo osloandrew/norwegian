@@ -2006,8 +2006,7 @@ ul {
   justify-content: space-between; /* Space between title/genre and CEFR */
   align-items: center; /* Vertically center the items */
   cursor: pointer;
-  padding: 7.5px 12.5px;
-  min-height: 60px;
+  min-height: 75px;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
@@ -2184,9 +2183,12 @@ ul {
 
 .story-card-link {
   align-items: center;
+  box-sizing: border-box;
   color: inherit;
   display: flex;
   justify-content: space-between;
+  min-height: 75px;
+  padding: 7.5px 12.5px;
   text-decoration: none;
   width: 100%;
 }
