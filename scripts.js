@@ -4,6 +4,158 @@ let isEnglishVisible = true;
 let latestMultipleResults = null;
 const resultsContainer = document.getElementById("results-container");
 
+function normalizeWordMetadataPOS(pos = "") {
+  return String(pos)
+    .trim()
+    .toLowerCase()
+    .replace(/^noun\s*-\s*/i, "");
+}
+
+function getWordClassForMetadata(pos = "") {
+  const normalizedPOS = normalizeWordMetadataPOS(pos);
+
+  const nounForms = [
+    "en",
+    "et",
+    "ei",
+    "en-et",
+    "en-ei",
+    "ei-et",
+    "en-ei-et",
+    "noun",
+  ];
+
+  return nounForms.includes(normalizedPOS) ? "noun" : normalizedPOS;
+}
+
+function findWordEntryForMetadata(word, selectedPOS = "") {
+  const normalizedWord = String(word).trim().toLowerCase();
+
+  const normalizedSelectedPOS = normalizeWordMetadataPOS(selectedPOS);
+
+  const nounForms = ["en", "et", "ei", "en-et", "en-ei", "ei-et", "en-ei-et"];
+
+  const wordMatches = results.filter((entry) =>
+    String(entry.ord || "")
+      .toLowerCase()
+      .split(",")
+      .map((form) => form.trim())
+      .includes(normalizedWord),
+  );
+
+  if (!normalizedSelectedPOS) {
+    return wordMatches[0] || null;
+  }
+
+  const preciseMatch = wordMatches.find((entry) => {
+    const entryPOS = normalizeWordMetadataPOS(entry.gender);
+
+    if (normalizedSelectedPOS === "noun") {
+      return nounForms.includes(entryPOS);
+    }
+
+    return entryPOS === normalizedSelectedPOS;
+  });
+
+  return preciseMatch || wordMatches[0] || null;
+}
+
+function setWordMetaTag(attributeName, attributeValue, content) {
+  let tag = document.head.querySelector(
+    `meta[${attributeName}="${attributeValue}"]`,
+  );
+
+  if (!tag) {
+    tag = document.createElement("meta");
+    tag.setAttribute(attributeName, attributeValue);
+    document.head.appendChild(tag);
+  }
+
+  tag.setAttribute("content", content);
+}
+
+function setWordCanonicalURL(url) {
+  let canonicalLink = document.head.querySelector('link[rel="canonical"]');
+
+  if (!canonicalLink) {
+    canonicalLink = document.createElement("link");
+    canonicalLink.setAttribute("rel", "canonical");
+    document.head.appendChild(canonicalLink);
+  }
+
+  canonicalLink.setAttribute("href", url);
+}
+
+function updateWordMetadata(entry) {
+  if (!entry) {
+    return;
+  }
+
+  const word = String(entry.ord || "")
+    .split(",")[0]
+    .trim();
+
+  const canonicalPOS = normalizeWordMetadataPOS(entry.gender);
+
+  const wordClass = getWordClassForMetadata(entry.gender);
+
+  const englishTranslation = String(entry.engelsk || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const pageTitle =
+    `${word}${wordClass ? ` (${wordClass})` : ""} ` +
+    "– Norwegian-English Dictionary";
+
+  const wordDescription = wordClass
+    ? `${wordClass} "${word}"`
+    : `word "${word}"`;
+
+  let description = englishTranslation
+    ? `Learn the Norwegian ${wordDescription}, meaning ` +
+      `"${englishTranslation}" in English. See definitions, ` +
+      "pronunciation, CEFR level, and example sentences."
+    : `Learn the Norwegian ${wordDescription}. See definitions, ` +
+      "pronunciation, CEFR level, and example sentences.";
+
+  if (description.length > 160) {
+    description =
+      description
+        .slice(0, 157)
+        .replace(/\s+\S*$/, "")
+        .trimEnd() + "...";
+  }
+
+  const canonicalURL = new URL(
+    window.location.origin + window.location.pathname,
+  );
+
+  canonicalURL.searchParams.set("type", "words");
+
+  if (canonicalPOS) {
+    canonicalURL.searchParams.set("pos", canonicalPOS);
+  }
+
+  canonicalURL.searchParams.set("word", word);
+
+  const socialImageURL = new URL(
+    "Resources/Icons/android-chrome-512x512.png",
+    window.location.href,
+  ).href;
+
+  document.title = pageTitle;
+
+  setWordMetaTag("name", "description", description);
+
+  setWordMetaTag("property", "og:title", pageTitle);
+  setWordMetaTag("property", "og:description", description);
+  setWordMetaTag("property", "og:type", "website");
+  setWordMetaTag("property", "og:url", canonicalURL.href);
+  setWordMetaTag("property", "og:image", socialImageURL);
+
+  setWordCanonicalURL(canonicalURL.href);
+}
+
 // --- Sentences index globals ---
 let sentenceCorpus = []; // Flat array of { id, no, en, noNorm, enNorm, cefr, audio }
 let sentenceIndex = null; // Map<string, Uint32Array | number[]>
@@ -2185,6 +2337,7 @@ function renderWordDefinition(word, selectedPOS = "") {
 
   if (matchingResults.length > 0) {
     displaySearchResults(matchingResults);
+    updateWordMetadata(matchingResults[0]);
   } else {
     document.getElementById("results-container").innerHTML = `
             <div class="definition error-message">
@@ -2570,10 +2723,16 @@ function updateURL(query, type, selectedPOS, story = null, word = null) {
   // Set the word parameter if a specific word entry is clicked
   if (word) {
     url.searchParams.set("word", word);
-    document.title = `${word} - Norwegian Dictionary`; // Set title to the word
-    // Update the URL without reloading the page
+
+    // Update the URL without reloading the page.
     window.history.pushState({}, "", url);
-    return; // Stop further execution to keep this title
+
+    // Apply the matching word's unique SEO metadata.
+    const metadataEntry = findWordEntryForMetadata(word, selectedPOS);
+
+    updateWordMetadata(metadataEntry);
+
+    return;
   }
 
   // Update the page title based on the context, if no specific word is provided
