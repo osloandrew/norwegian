@@ -105,11 +105,48 @@ function addEntryToSearchIndex(index, term, entry) {
   index.set(term, entries);
 }
 
-function foldNorwegianKeyboardInput(value) {
-  return normalizeSearchText(value)
-    .replace(/æ/g, "ae")
-    .replace(/ø/g, "o")
-    .replace(/å/g, "a");
+function getNorwegianKeyboardVariants(value) {
+  const normalizedValue = normalizeSearchText(value);
+  let variants = [""];
+
+  for (const character of normalizedValue) {
+    const replacements =
+      character === "æ"
+        ? ["ae"]
+        : character === "ø"
+          ? ["o", "oe"]
+          : character === "å"
+            ? ["a", "aa"]
+            : [character];
+
+    variants = variants.flatMap((variant) =>
+      replacements.map((replacement) => variant + replacement),
+    );
+  }
+
+  return [...new Set(variants)].filter(
+    (variant) => variant !== normalizedValue,
+  );
+}
+
+function addNorwegianKeyboardTerm(
+  sourceTerm,
+  resolvedTerm,
+  onlyWhenUnmapped = false,
+) {
+  getNorwegianKeyboardVariants(sourceTerm).forEach((keyboardTerm) => {
+    if (
+      onlyWhenUnmapped &&
+      wordSearchIndex.norwegianKeyboardTerms.has(keyboardTerm)
+    ) {
+      return;
+    }
+
+    const terms =
+      wordSearchIndex.norwegianKeyboardTerms.get(keyboardTerm) || new Set();
+    terms.add(resolvedTerm);
+    wordSearchIndex.norwegianKeyboardTerms.set(keyboardTerm, terms);
+  });
 }
 
 function buildWordSearchIndex() {
@@ -120,13 +157,7 @@ function buildWordSearchIndex() {
       addEntryToSearchIndex(wordSearchIndex.norwegianExact, term, entry);
       wordSearchIndex.searchTerms.set(term, 0);
 
-      const keyboardTerm = foldNorwegianKeyboardInput(term);
-      if (keyboardTerm !== term) {
-        const terms =
-          wordSearchIndex.norwegianKeyboardTerms.get(keyboardTerm) || new Set();
-        terms.add(term);
-        wordSearchIndex.norwegianKeyboardTerms.set(keyboardTerm, terms);
-      }
+      addNorwegianKeyboardTerm(term, term);
     });
 
     splitSearchTerms(entry.engelsk).forEach((term) => {
@@ -135,6 +166,12 @@ function buildWordSearchIndex() {
         wordSearchIndex.searchTerms.set(term, 1);
       }
     });
+  });
+
+  COMMON_NORWEGIAN_FORM_ALIASES.forEach((resolvedTerm, sourceTerm) => {
+    if (wordSearchIndex.norwegianExact.has(resolvedTerm)) {
+      addNorwegianKeyboardTerm(sourceTerm, resolvedTerm, true);
+    }
   });
 }
 
@@ -244,22 +281,6 @@ function findClosestSearchTerms(query, limit = 5) {
     )
     .slice(0, limit)
     .map(({ term }) => term);
-}
-
-function appendSearchCorrection(originalQuery, resolution) {
-  if (resolution.reason === "exact" || resolution.reason === "unresolved") return;
-
-  const explanation =
-    resolution.reason === "keyboard"
-      ? "We added the Norwegian letter for you."
-      : "We found the dictionary form of your word.";
-
-  appendToContainer(`
-    <div class="definition search-correction-message">
-      <h2 class="word-gender">Showing “${escapeHTML(resolution.query)}”</h2>
-      <p>${explanation} You searched for “${escapeHTML(originalQuery)}”.</p>
-    </div>
-  `);
 }
 
 function normalizeWordMetadataPOS(pos = "") {
@@ -1149,7 +1170,6 @@ async function search(queryOverride = null) {
       if (wordSearchResolution.reason === "exact") {
         updateURL(null, type, selectedPOS, null, singleResult.ord);
       }
-      appendSearchCorrection(originalQuery, wordSearchResolution);
       // Display this single result directly
       displaySearchResults([singleResult], query); // Display only this single result
       hideSpinner(); // Hide the spinner
@@ -1289,7 +1309,6 @@ async function search(queryOverride = null) {
       return;
     }
 
-    appendSearchCorrection(originalQuery, wordSearchResolution);
     displaySearchResults(matchingResults, query); // Render word-specific results
   }
   hideSpinner(); // Hide the spinner
