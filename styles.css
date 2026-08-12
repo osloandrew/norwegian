@@ -1041,7 +1041,10 @@ label {
 }
 
 .landing-card-btn {
+  box-sizing: border-box;
   display: block; /* Block-level element to allow centering */
+  width: fit-content; /* Keep links content-sized like the button elements */
+  max-width: 100%;
   margin: 0 auto; /* Centering with smaller vertical margins */
   margin-bottom: 15px;
   margin-top: 15px;
