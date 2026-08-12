@@ -2982,6 +2982,10 @@ ul {
     gap: 0;
   }
 
+  #search-container-inner.word-game-active .cefr-filter select {
+    padding-right: 30px;
+  }
+
   .selectors-wrapper {
     box-sizing: border-box !important;
     display: flex;
