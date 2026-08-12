@@ -345,9 +345,16 @@ function parseCSVData(data) {
         entry.ord = entry.ord.trim(); // Ensure the word is trimmed
         return entry;
       });
-      buildSentenceCorpus();
-      buildSentenceIndex();
-      console.log("Parsed and cleaned data:", results);
+
+      /*
+       * Sentence Search already builds these structures on demand.
+       * Avoid constructing the entire sentence corpus and search index
+       * for visitors who only use words, stories, lists, or the game.
+       */
+      sentenceCorpus = [];
+      sentenceIndex = null;
+
+      console.log(`[Dictionary] Loaded ${results.length} entries.`);
     },
     error: function (error) {
       console.error("Error parsing CSV:", error);

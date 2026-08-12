@@ -47,15 +47,20 @@ const STORY_CACHE_TIME_KEY = "storyDataTimestampEs";
 async function fetchAndLoadStoryData() {
   showSpinner();
   try {
-    // 1) Always bypass caches: unique param + no-store
-    const bust = Date.now(); // guarantees a new URL each request
-    const response = await fetch(`${CSV_URL}?bust=${bust}`, {
-      cache: "no-store",
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    /*
+     * Use the browser's ordinary HTTP cache. GitHub Pages will
+     * revalidate the file when necessary, while repeat visitors avoid
+     * downloading the same story data on every visit.
+     */
+    const response = await fetch(CSV_URL);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
     const csvText = await response.text();
 
-    // 2) Parse fresh CSV
+    // Parse the story CSV.
     const parsed = Papa.parse(csvText, {
       header: true,
       skipEmptyLines: true,
@@ -826,12 +831,25 @@ function isStoriesTabActive() {
   return typeSelect && typeSelect.value === "stories";
 }
 
-// Initialization on page load
 window.addEventListener("DOMContentLoaded", async () => {
-  // Load the story data and wait for it to complete
-  await fetchAndLoadStoryData();
-  // Now that the data is loaded, check the URL and display based on the URL parameters
-  loadStateFromURL();
+  const currentURL = new URL(window.location.href);
+
+  const requestedType = currentURL.searchParams.get("type");
+  const requestedStory = currentURL.searchParams.get("story");
+
+  /*
+   * Story data is unnecessary on the homepage, dictionary,
+   * Word List, Sentence Search, and Word Game.
+   *
+   * If a user later selects Stories without reloading, the existing
+   * handleTypeChange("stories") code loads the data at that point.
+   */
+  if (requestedType === "stories" || requestedStory) {
+    await fetchAndLoadStoryData();
+    loadStateFromURL();
+  }
+
+  // Wire up live story filtering:
 
   // After data is loaded, wire up live filtering like JP:
   const searchEl =

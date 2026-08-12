@@ -1,3 +1,40 @@
+let pronunciationLibrariesPromise = null;
+
+function loadPronunciationLibrary(src, globalName) {
+  if (window[globalName]) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = true;
+    script.onload = resolve;
+    script.onerror = () => {
+      reject(new Error(`Unable to load ${globalName}.`));
+    };
+
+    document.head.appendChild(script);
+  });
+}
+
+function ensurePronunciationLibraries() {
+  if (!pronunciationLibrariesPromise) {
+    pronunciationLibrariesPromise = Promise.all([
+      loadPronunciationLibrary("https://unpkg.com/wavesurfer.js", "WaveSurfer"),
+      loadPronunciationLibrary(
+        "https://unpkg.com/meyda/dist/web/meyda.min.js",
+        "Meyda",
+      ),
+    ]).catch((error) => {
+      pronunciationLibrariesPromise = null;
+      throw error;
+    });
+  }
+
+  return pronunciationLibrariesPromise;
+}
+
 function buildPronAudioUrl(sentenceText) {
   const base = "/norwegian"; // works both locally and on GitHub
 
@@ -88,12 +125,19 @@ async function computeSimilarity(nativeUrl, userUrl) {
 }
 
 // Entry point: called when Pronunciation tab is activated
-function initPronunciation() {
+async function initPronunciation() {
   showLandingCard(false);
   console.log("Pronunciation module loaded");
 
   if (!results.length) {
     console.warn("No dictionary data loaded yet");
+    return;
+  }
+
+  try {
+    await ensurePronunciationLibraries();
+  } catch (error) {
+    console.error("Unable to load pronunciation libraries:", error);
     return;
   }
 
@@ -110,7 +154,7 @@ function showRandomPronunciation() {
     (r) =>
       r.eksempel &&
       r.sentenceAudio === "X" &&
-      (!selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR))
+      (!selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR)),
   );
   if (!sentenceEntries.length) {
     resultsContainer.innerHTML = "<p>No sentences available.</p>";
@@ -143,7 +187,7 @@ function showRandomPronunciation() {
   // Clean sentence (strip old highlights if any)
   const cleanedEksempel = randomEntry.eksempel.replace(
     /<span[^>]*>(.*?)<\/span>/gi,
-    "$1"
+    "$1",
   );
 
   const selectedNorwegian = cleanedEksempel.trim();
@@ -261,9 +305,8 @@ function showRandomPronunciation() {
       window.wavesurferUser.load(url);
 
       computeSimilarity(audioFile, url).then((score) => {
-        document.getElementById(
-          "comparison-score"
-        ).textContent = `🎯 Similarity Score: ${score}%`;
+        document.getElementById("comparison-score").textContent =
+          `🎯 Similarity Score: ${score}%`;
       });
 
       // after recording finishes
