@@ -514,6 +514,37 @@ footer .copyright {
   margin: 1px !important;
 }
 
+.game-card-actions-subgroup {
+  align-items: flex-start;
+  flex-direction: row;
+  flex-shrink: 0;
+  gap: 6px;
+}
+
+.game-card-actions-subgroup .game-tricky-word {
+  align-self: flex-start;
+}
+
+.game-my-words-star {
+  flex: 0 0 40px;
+}
+
+/* Both empty and filled stars are muted before answering. */
+.game-my-words-star:disabled,
+.game-my-words-star.is-saved:disabled {
+  background-color: transparent;
+  color: #b5b5b5;
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}
+
+.game-my-words-star:disabled:hover,
+.game-my-words-star.is-saved:disabled:hover {
+  background-color: transparent;
+  transform: none;
+}
+
 .game-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -636,16 +667,44 @@ footer .copyright {
   flex-direction: column;
 }
 
+/* Keep the game-card controls horizontal. */
+.game-label-subgroup.game-card-actions-subgroup {
+  align-items: flex-start;
+  flex-direction: row;
+  flex-shrink: 0;
+  gap: 6px;
+}
+
 .game-labels-container {
-  align-items: center;
-  display: flex;
+  align-items: start;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   min-height: 70px;
-  justify-content: space-between;
   width: 100%;
 }
 
-#game-next-word-button,
-#game-add-my-word-button {
+.game-labels-container > .game-label-subgroup:first-child {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+}
+
+.game-labels-container > #game-banner-placeholder {
+  box-sizing: border-box;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  justify-self: center;
+  margin: 0 0 5px;
+  max-width: 60%;
+}
+
+.game-labels-container > .game-card-actions-subgroup {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+
+#game-next-word-button {
   margin-top: 15px;
   width: 100%;
   background-color: #f8d9b0; /* Subtle, lighter background */
@@ -667,14 +726,12 @@ footer .copyright {
     transform 0.2s ease; /* Subtle transitions */
 }
 
-#game-next-word-button:active,
-#game-add-my-word-button:active {
+#game-next-word-button:active {
   background-color: #f2c18c; /* Darker background on click */
   border-color: #8a7063; /* Border matches text color on click */
 }
 
-#game-next-word-button:disabled,
-#game-add-my-word-button:disabled {
+#game-next-word-button:disabled {
   background-color: #f0e5d2; /* Lighter background when disabled */
   color: #c5b3a6; /* More muted text color when disabled */
   border-color: #d1c4b5; /* Muted border when disabled */
@@ -2434,29 +2491,6 @@ ul {
   text-overflow: ellipsis; /* Add ellipsis for long words */
 }
 
-.word-game-action-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 15px;
-  width: 100%;
-}
-
-.word-game-action-row #game-add-my-word-button {
-  justify-self: left;
-  width: 50%;
-}
-.word-game-action-row #game-next-word-button {
-  justify-self: right;
-  width: 50%;
-}
-/* Confirmation that the word is already saved */
-.word-game-action-row #game-add-my-word-button[data-saved="true"]:disabled {
-  background-color: #edf5e8;
-  border-color: #c4d6b8;
-  color: #66795b;
-  opacity: 1;
-}
-
 .word-gender {
   align-items: flex;
   display: flex;
@@ -3350,10 +3384,6 @@ ul {
     text-overflow: unset;
   }
 
-  .word-game-action-row #game-add-my-word-button,
-  .word-game-action-row #game-next-word-button {
-    width: 90%;
-  }
   .word-gender {
     align-items: flex-start;
     display: flex;

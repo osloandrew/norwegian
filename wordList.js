@@ -1494,21 +1494,16 @@
     return myWordsEntryIds.has(getMyWordsEntryId(resolvedEntry));
   }
 
-  function addMyWordsEntry(entry) {
+  function toggleResolvedMyWordsEntry(entry) {
     const resolvedEntry = resolveMyWordsEntry(entry);
 
     if (!resolvedEntry) {
-      return false;
+      return null;
     }
 
-    const entryId = getMyWordsEntryId(resolvedEntry);
+    toggleMyWordsEntry(resolvedEntry);
 
-    if (!myWordsEntryIds.has(entryId)) {
-      myWordsEntryIds.add(entryId);
-      saveMyWordsEntryIds();
-    }
-
-    return true;
+    return isMyWordsEntrySaved(resolvedEntry);
   }
 
   // Make these functions available to scripts.js.
@@ -1522,6 +1517,6 @@
     getSavedEntries: getSavedWordStudyEntries,
     returnToMyWords: goToMyWords,
     isSaved: isMyWordsEntrySaved,
-    add: addMyWordsEntry,
+    toggle: toggleResolvedMyWordsEntry,
   });
 })();

@@ -771,64 +771,68 @@ function displayPronunciation(word) {
   }
 }
 
-function getGameActionButtonsMarkup(wordObj) {
-  const isSaved = window.MyWordsAPI?.isSaved?.(wordObj) === true;
-
-  const myWordsLabel = isSaved ? "Added to My Words" : "Add to My Words";
-
+function getGameMyWordsStarMarkup() {
   return `
-    <div
-      class="
-        game-next-button-container
-        word-game-action-row
-      "
+    <button
+      type="button"
+      id="game-my-words-star"
+      class="word-list-favorite-button game-my-words-star"
+      aria-pressed="false"
+      disabled
     >
-      <button
-        type="button"
-        id="game-add-my-word-button"
-        data-saved="${String(isSaved)}"
-        aria-pressed="${String(isSaved)}"
-        disabled
-      >
-        ${myWordsLabel}
-      </button>
-
-      <button
-        type="button"
-        id="game-next-word-button"
-        disabled
-      >
-        Next Word
-      </button>
-    </div>
+      <i class="far fa-star" aria-hidden="true"></i>
+    </button>
   `;
 }
 
-function attachGameActionButtonListeners(wordObj) {
-  const addButton = document.getElementById("game-add-my-word-button");
+function updateGameMyWordsStar(button, wordObj) {
+  if (!button) {
+    return;
+  }
+
+  const isSaved = window.MyWordsAPI?.isSaved?.(wordObj) === true;
+
+  const word = String(wordObj?.ord ?? "")
+    .split(",")[0]
+    .trim();
+
+  const action = isSaved ? "Remove" : "Add";
+  const destination = isSaved ? "from My Words" : "to My Words";
+
+  button.classList.toggle("is-saved", isSaved);
+  button.dataset.saved = String(isSaved);
+  button.setAttribute("aria-pressed", String(isSaved));
+  button.setAttribute("aria-label", `${action} ${word} ${destination}`);
+  button.title = `${action} ${word} ${destination}`;
+
+  const icon = button.querySelector("i");
+
+  if (icon) {
+    icon.className = `${isSaved ? "fas" : "far"} fa-star`;
+  }
+}
+
+function attachGameControls(wordObj) {
+  const starButton = document.getElementById("game-my-words-star");
 
   const nextButton = document.getElementById("game-next-word-button");
 
-  addButton?.addEventListener("click", () => {
-    /*
-     * A saved word must never become clickable again.
-     */
-    if (addButton.dataset.saved === "true") {
+  updateGameMyWordsStar(starButton, wordObj);
+
+  starButton?.addEventListener("click", () => {
+    if (starButton.disabled) {
       return;
     }
 
-    const wasSaved = window.MyWordsAPI?.add?.(wordObj) === true;
+    const savedState = window.MyWordsAPI?.toggle?.(wordObj);
 
-    if (!wasSaved) {
-      console.warn("The word could not be added to My Words.");
+    if (typeof savedState !== "boolean") {
+      console.warn("The My Words state could not be changed.");
 
       return;
     }
 
-    addButton.dataset.saved = "true";
-    addButton.setAttribute("aria-pressed", "true");
-    addButton.textContent = "Added to My Words";
-    addButton.disabled = true;
+    updateGameMyWordsStar(starButton, wordObj);
   });
 
   nextButton?.addEventListener("click", async () => {
@@ -838,28 +842,17 @@ function attachGameActionButtonListeners(wordObj) {
   });
 }
 
-function enableGameActionButtons() {
-  const addButton = document.getElementById("game-add-my-word-button");
-
+function enableGameControls() {
   const nextButton = document.getElementById("game-next-word-button");
 
-  /*
-   * Next Word always unlocks after an answer.
-   */
+  const starButton = document.getElementById("game-my-words-star");
+
   if (nextButton) {
     nextButton.disabled = false;
   }
 
-  /*
-   * Add to My Words unlocks only when the word is not
-   * already saved and the My Words API is available.
-   */
-  if (
-    addButton &&
-    addButton.dataset.saved !== "true" &&
-    typeof window.MyWordsAPI?.add === "function"
-  ) {
-    addButton.disabled = false;
+  if (starButton && typeof window.MyWordsAPI?.toggle === "function") {
+    starButton.disabled = false;
   }
 }
 
@@ -938,10 +931,15 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
                 ${cefrLabel}  <!-- Add the CEFR label here if applicable -->
               </div>
                 ${bannerPlaceholder}  <!-- This is where banners will appear dynamically -->
-                <div class="game-label-subgroup">
-                  ${secondTrickyLabel}
-                  <div class="game-gender" style="visibility: hidden;">${displayedGender}</div>
-                </div>
+<div
+  class="
+    game-label-subgroup
+    game-card-actions-subgroup
+  "
+>
+  ${secondTrickyLabel}
+  ${getGameMyWordsStarMarkup()}
+</div>
             </div>
             <div class="game-word">
                 <h2>${displayedWord}</h2>
@@ -961,8 +959,15 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
               )
               .join("")}
         </div>
-
- ${getGameActionButtonsMarkup(wordObj)}
+<div class="game-next-button-container">
+  <button
+    type="button"
+    id="game-next-word-button"
+    disabled
+  >
+    Next Word
+  </button>
+</div>
     `;
 
   // Add event listeners for translation cards
@@ -976,7 +981,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
     });
   });
 
-  attachGameActionButtonListeners(wordObj);
+  attachGameControls(wordObj);
 
   renderStats(); // Ensure stats are drawn once DOM is fully loaded
   playWordAudio(wordObj);
@@ -1200,15 +1205,26 @@ function renderClozeGameUI(
       }</div>          ${cefrLabel}
         </div>
         <div id="game-banner-placeholder"></div>
-        <div class="game-label-subgroup">
-          <div class="game-tricky-word" style="${
-            isReintroduced ? "visibility: visible;" : "visibility: hidden;"
-          }">
-            <i class="fa fa-repeat" aria-hidden="true"></i>
-          </div>
-          <div class="game-gender" style="visibility: hidden;"></div>
+<div
+  class="
+    game-label-subgroup
+    game-card-actions-subgroup
+  "
+>
+  <div
+    class="game-tricky-word"
+    style="${isReintroduced ? "visibility: visible;" : "visibility: hidden;"}"
+  >
+    <i
+      class="fa fa-repeat"
+      aria-hidden="true"
+    ></i>
+  </div>
+
+  ${getGameMyWordsStarMarkup()}
+</div>
+
         </div>
-      </div>
   
       <div class="game-word">
       <h2 id="cloze-sentence">${sentenceWithBlank}</h2>        <p class="game-english-translation" style="display: inline;">${matchingEnglish}</p> 
@@ -1229,8 +1245,15 @@ function renderClozeGameUI(
         )
         .join("")}
     </div>
-  
-${getGameActionButtonsMarkup(wordObj)}
+  <div class="game-next-button-container">
+  <button
+    type="button"
+    id="game-next-word-button"
+    disabled
+  >
+    Next Word
+  </button>
+</div>
   `;
 
   document.querySelectorAll(".game-translation-card").forEach((card) => {
@@ -1241,8 +1264,7 @@ ${getGameActionButtonsMarkup(wordObj)}
       handleTranslationClick(selectedTranslation, wordObj, true); // true = cloze mode
     });
   });
-
-  attachGameActionButtonListeners(wordObj);
+  attachGameControls(wordObj);
 
   renderStats(); // Ensure stats bar is present after cloze loads too
 }
@@ -1386,7 +1408,7 @@ async function handleTranslationClick(
     }
   }
 
-  enableGameActionButtons();
+  enableGameControls();
 
   // Update the stats after the answer
   renderStats();
