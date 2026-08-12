@@ -280,9 +280,16 @@
               src="Resources/Photos/words.svg"
               alt="Words"
             />
-            <button class="landing-card-btn" onclick="selectType('words')">
+            <a
+              class="landing-card-btn"
+              href="?type=words"
+              onclick="
+                event.preventDefault();
+                selectType('words');
+              "
+            >
               Dictionary Search
-            </button>
+            </a>
             <p>Discover words and their meanings with detailed examples.</p>
           </div>
 
@@ -294,13 +301,16 @@
               alt="Word List"
             />
 
-            <button
-              type="button"
+            <a
               class="landing-card-btn"
-              onclick="goToAllWords()"
+              href="?type=word-list"
+              onclick="
+                event.preventDefault();
+                goToAllWords();
+              "
             >
               Word List
-            </button>
+            </a>
 
             <p>
               Browse and filter the complete Norwegian vocabulary collection.
@@ -332,9 +342,16 @@
               src="Resources/Photos/sentences.svg"
               alt="Sentences"
             />
-            <button class="landing-card-btn" onclick="selectType('sentences')">
+            <a
+              class="landing-card-btn"
+              href="?type=sentences"
+              onclick="
+                event.preventDefault();
+                selectType('sentences');
+              "
+            >
               Sentence Search
-            </button>
+            </a>
             <p>Explore real sentences in context using your chosen words.</p>
           </div>
 
@@ -361,9 +378,16 @@
               src="Resources/Photos/word-game.svg"
               alt="Word Games"
             />
-            <button class="landing-card-btn" onclick="selectType('word-game')">
+            <a
+              class="landing-card-btn"
+              href="?type=word-game"
+              onclick="
+                event.preventDefault();
+                selectType('word-game');
+              "
+            >
               Word Game
-            </button>
+            </a>
             <p>
               Master vocabulary with an interactive game that adapts to your
               skill level.
