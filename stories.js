@@ -95,6 +95,115 @@ function getCefrClass(cefrLevel) {
   return "cefr-unknown"; // Default
 }
 
+function setMetaTag(attributeName, attributeValue, content) {
+  let tag = document.head.querySelector(
+    `meta[${attributeName}="${attributeValue}"]`,
+  );
+
+  if (!tag) {
+    tag = document.createElement("meta");
+    tag.setAttribute(attributeName, attributeValue);
+    document.head.appendChild(tag);
+  }
+
+  tag.setAttribute("content", content);
+}
+
+function setCanonicalURL(url) {
+  let canonicalLink = document.head.querySelector('link[rel="canonical"]');
+
+  if (!canonicalLink) {
+    canonicalLink = document.createElement("link");
+    canonicalLink.setAttribute("rel", "canonical");
+    document.head.appendChild(canonicalLink);
+  }
+
+  canonicalLink.setAttribute("href", url);
+}
+
+function createStoryURL(titleNorwegian) {
+  const storyURL = new URL(window.location.href);
+
+  storyURL.search = "";
+  storyURL.hash = "";
+  storyURL.searchParams.set("type", "story");
+  storyURL.searchParams.set("story", titleNorwegian);
+
+  return storyURL.href;
+}
+
+function updateStoryMetadata(story, imageFileURL = "") {
+  const norwegianTitle = (story.titleNorwegian || "").trim();
+  const englishTitle = (story.titleEnglish || "").trim();
+  const cefrLevel = (story.CEFR || "").trim().toUpperCase();
+  const genre = (story.genre || "").trim().toLowerCase();
+
+  const levelText = cefrLevel ? `${cefrLevel} ` : "";
+  const genreText = genre ? `${genre} ` : "";
+
+  const translatedTitle =
+    englishTitle && englishTitle !== norwegianTitle ? ` (${englishTitle})` : "";
+
+  const pageTitle = `${norwegianTitle}: ${levelText}Norwegian Story`;
+
+  const description =
+    `Read "${norwegianTitle}"${translatedTitle}, ` +
+    `a free ${levelText}Norwegian ${genreText}story ` +
+    `with an English translation.`;
+
+  const storyURL = createStoryURL(norwegianTitle);
+
+  const socialImageURL = imageFileURL
+    ? new URL(imageFileURL, window.location.href).href
+    : new URL(
+        "Resources/Icons/android-chrome-512x512.png",
+        window.location.href,
+      ).href;
+
+  document.title = pageTitle;
+
+  setMetaTag("name", "description", description);
+
+  setMetaTag("property", "og:title", pageTitle);
+  setMetaTag("property", "og:description", description);
+  setMetaTag("property", "og:type", "article");
+  setMetaTag("property", "og:url", storyURL);
+  setMetaTag("property", "og:image", socialImageURL);
+
+  setCanonicalURL(storyURL);
+}
+
+function updateStoriesListMetadata() {
+  const storiesURL = new URL(window.location.href);
+
+  storiesURL.search = "";
+  storiesURL.hash = "";
+  storiesURL.searchParams.set("type", "stories");
+
+  const pageTitle = "Norwegian Stories with English Translations";
+
+  const description =
+    "Read free Norwegian stories organized by CEFR level and genre, " +
+    "with English translations and audio.";
+
+  const socialImageURL = new URL(
+    "Resources/Icons/android-chrome-512x512.png",
+    window.location.href,
+  ).href;
+
+  document.title = pageTitle;
+
+  setMetaTag("name", "description", description);
+
+  setMetaTag("property", "og:title", pageTitle);
+  setMetaTag("property", "og:description", description);
+  setMetaTag("property", "og:type", "website");
+  setMetaTag("property", "og:url", storiesURL.href);
+  setMetaTag("property", "og:image", socialImageURL);
+
+  setCanonicalURL(storiesURL.href);
+}
+
 function updateEnglishVisibility() {
   const englishSentences = document.querySelectorAll(".english-sentence");
   const toggleEnglishBtn = document.getElementById("toggle-english-btn"); // Dynamically find the button
@@ -122,9 +231,10 @@ async function displayStoryList(filteredStories = storyResults) {
   history.replaceState(
     {},
     "",
-    `${window.location.origin}${window.location.pathname}`
+    `${window.location.origin}${window.location.pathname}`,
   );
   updateURL(null, "stories", null);
+  updateStoriesListMetadata();
 
   // Retrieve selected CEFR and genre filter values
   const selectedCEFR = document
@@ -182,31 +292,34 @@ async function displayStoryList(filteredStories = storyResults) {
 
   filtered.forEach((story) => {
     const li = document.createElement("li");
-    li.className = "stories-list-item"; // reuse your existing styling class
-    li.style.display = "flex";
-    li.style.justifyContent = "space-between";
-    li.style.alignItems = "center";
+    li.className = "stories-list-item";
 
-    // left: titles (ES over EN if different)
+    // Create a genuine link that search engines and browsers can follow.
+    const storyLink = document.createElement("a");
+    storyLink.className = "story-card-link";
+    storyLink.href = `?type=story&story=${encodeURIComponent(story.titleNorwegian)}`;
+
+    // Left side: Norwegian and English titles.
     const titleContainer = document.createElement("div");
     titleContainer.classList.add("title-container");
 
-    const es = document.createElement("div");
-    es.classList.add("japanese-title"); // reuse existing class name to avoid CSS churn
-    es.textContent = story.titleNorwegian;
+    const norwegianTitle = document.createElement("div");
+    norwegianTitle.classList.add("japanese-title");
+    norwegianTitle.textContent = story.titleNorwegian;
 
-    titleContainer.appendChild(es);
+    titleContainer.appendChild(norwegianTitle);
 
     if (story.titleNorwegian !== story.titleEnglish) {
-      const en = document.createElement("div");
-      en.classList.add("english-title", "stories-subtitle");
-      en.textContent = story.titleEnglish || "";
-      titleContainer.appendChild(en);
+      const englishTitle = document.createElement("div");
+      englishTitle.classList.add("english-title", "stories-subtitle");
+      englishTitle.textContent = story.titleEnglish || "";
+
+      titleContainer.appendChild(englishTitle);
     }
 
-    // right: genre icon + CEFR
-    const detail = document.createElement("div");
-    detail.classList.add("stories-detail-container");
+    // Right side: genre icon and CEFR level.
+    const detailContainer = document.createElement("div");
+    detailContainer.classList.add("stories-detail-container");
 
     const genreDiv = document.createElement("div");
     genreDiv.classList.add("stories-genre");
@@ -217,14 +330,29 @@ async function displayStoryList(filteredStories = storyResults) {
     cefrDiv.classList.add("cefr-value", getCefrClass(story.CEFR));
     cefrDiv.textContent = story.CEFR || "N/A";
 
-    detail.appendChild(genreDiv);
-    detail.appendChild(cefrDiv);
+    detailContainer.appendChild(genreDiv);
+    detailContainer.appendChild(cefrDiv);
 
-    li.appendChild(titleContainer);
-    li.appendChild(detail);
+    storyLink.appendChild(titleContainer);
+    storyLink.appendChild(detailContainer);
+    li.appendChild(storyLink);
 
-    // click → open reader (unchanged behavior)
-    li.addEventListener("click", () => displayStory(story.titleNorwegian));
+    /*
+     * A normal click keeps the current fast, single-page behavior.
+     * Modified clicks remain normal browser links:
+     * Command-click, Ctrl-click, Shift-click, and Alt-click.
+     */
+    storyLink.addEventListener("click", (event) => {
+      const modifiedClick =
+        event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+
+      if (modifiedClick) {
+        return;
+      }
+
+      event.preventDefault();
+      displayStory(story.titleNorwegian);
+    });
 
     storyList.appendChild(li);
   });
@@ -247,10 +375,10 @@ async function displayStory(titleNorwegian) {
   showSpinner(); // Show spinner at the start of story loading
   const searchContainer = document.getElementById("search-container");
   const searchContainerInner = document.getElementById(
-    "search-container-inner"
+    "search-container-inner",
   );
   const selectedStory = storyResults.find(
-    (story) => story.titleNorwegian === titleNorwegian
+    (story) => story.titleNorwegian === titleNorwegian,
   );
 
   if (!selectedStory) {
@@ -266,6 +394,7 @@ async function displayStory(titleNorwegian) {
 
   // Check for the image (mirror JP: EN title only)
   const imageFileURL = await hasImageByEnglishTitle(selectedStory.titleEnglish);
+  updateStoryMetadata(selectedStory, imageFileURL);
 
   // Check for the audio file
   const audioFileURL = await hasAudio(selectedStory.titleEnglish);
@@ -575,7 +704,7 @@ function storiesBackBtn() {
   const stickyHeader = document.getElementById("sticky-header");
   if (stickyHeader) {
     const players = stickyHeader.querySelectorAll(
-      "audio, .stories-audio-player"
+      "audio, .stories-audio-player",
     );
     players.forEach((p) => {
       if (typeof p.pause === "function") p.pause();
@@ -632,7 +761,7 @@ function removeStoryHeader() {
 // Helper function to restore the inner
 function restoreSearchContainerInner() {
   const searchContainerInner = document.getElementById(
-    "search-container-inner"
+    "search-container-inner",
   ); // The container to update
   searchContainerInner.style.display = "";
 }
@@ -678,7 +807,7 @@ async function hasImageByEnglishTitle(titleEnglish) {
 
   const imageExtensions = ["webp", "jpg", "jpeg", "avif", "png", "gif"];
   const imagePaths = encodedTitles.flatMap((encoded) =>
-    imageExtensions.map((ext) => `Resources/Images/${encoded}.${ext}`)
+    imageExtensions.map((ext) => `Resources/Images/${encoded}.${ext}`),
   );
 
   for (const path of imagePaths) {

@@ -1065,6 +1065,7 @@ label {
     0 4px 8px rgba(135, 135, 135, 0.2),
     0 2px 4px rgba(0, 0, 0, 0.1);
   min-width: 140px;
+  text-decoration: none;
 }
 
 .landing-card-btn:hover {
@@ -2176,6 +2177,15 @@ ul {
   display: flex;
   flex-direction: column;
   row-gap: 2.5px;
+}
+
+.story-card-link {
+  align-items: center;
+  color: inherit;
+  display: flex;
+  justify-content: space-between;
+  text-decoration: none;
+  width: 100%;
 }
 
 #story-content {
