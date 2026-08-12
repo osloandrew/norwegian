@@ -309,6 +309,179 @@ function renderStats() {
   if (reviewEl) reviewEl.textContent = wordsToReview;
 }
 
+function findClozeTarget(wordObj, preferredForm = "") {
+  const exampleText = String(wordObj?.eksempel ?? "").trim();
+
+  const baseWord = String(wordObj?.ord ?? "")
+    .split(",")[0]
+    .trim()
+    .normalize("NFC")
+    .toLocaleLowerCase("nb-NO");
+
+  if (!exampleText || !baseWord) {
+    return null;
+  }
+
+  const sentences = exampleText
+    .split(/(?<=[.!?])\s+/)
+    .filter((sentence) => sentence.trim() !== "");
+
+  const normalizeClozeText = (value) =>
+    String(value ?? "")
+      .normalize("NFC")
+      .toLocaleLowerCase("nb-NO")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const getIndexedTokens = (sentence) =>
+    Array.from(sentence.matchAll(/[\p{L}]+(?:-[\p{L}]+)*/gu), (match) => ({
+      text: match[0],
+      start: match.index,
+      end: match.index + match[0].length,
+    }));
+
+  const createTarget = (
+    sentence,
+    sentenceIndex,
+    tokens,
+    firstTokenIndex,
+    lastTokenIndex,
+  ) => {
+    const startIndex = tokens[firstTokenIndex].start;
+    const endIndex = tokens[lastTokenIndex].end;
+
+    return {
+      sentence,
+      sentenceIndex,
+      surfaceForm: sentence.slice(startIndex, endIndex),
+      startIndex,
+      endIndex,
+      startsSentence: sentence.slice(0, startIndex).trim() === "",
+    };
+  };
+
+  /*
+   * When a missed cloze question is shown again, first try to find
+   * the exact surface form that appeared in the original question.
+   */
+  const normalizedPreferredForm = normalizeClozeText(preferredForm);
+
+  if (normalizedPreferredForm) {
+    const preferredTokenCount =
+      preferredForm.match(/[\p{L}]+(?:-[\p{L}]+)*/gu)?.length || 1;
+
+    for (
+      let sentenceIndex = 0;
+      sentenceIndex < sentences.length;
+      sentenceIndex++
+    ) {
+      const sentence = sentences[sentenceIndex];
+      const tokens = getIndexedTokens(sentence);
+
+      for (
+        let firstTokenIndex = 0;
+        firstTokenIndex <= tokens.length - preferredTokenCount;
+        firstTokenIndex++
+      ) {
+        const lastTokenIndex = firstTokenIndex + preferredTokenCount - 1;
+
+        const startIndex = tokens[firstTokenIndex].start;
+        const endIndex = tokens[lastTokenIndex].end;
+        const surfaceForm = sentence.slice(startIndex, endIndex);
+
+        if (normalizeClozeText(surfaceForm) === normalizedPreferredForm) {
+          return createTarget(
+            sentence,
+            sentenceIndex,
+            tokens,
+            firstTokenIndex,
+            lastTokenIndex,
+          );
+        }
+      }
+    }
+  }
+
+  /*
+   * Find the target once and preserve its precise location.
+   */
+  const baseParts = baseWord.split(/\s+/);
+
+  for (
+    let sentenceIndex = 0;
+    sentenceIndex < sentences.length;
+    sentenceIndex++
+  ) {
+    const sentence = sentences[sentenceIndex];
+    const tokens = getIndexedTokens(sentence);
+
+    /*
+     * Handle multiword expressions such as "rydde ut".
+     */
+    if (baseParts.length > 1) {
+      for (
+        let firstTokenIndex = 0;
+        firstTokenIndex <= tokens.length - baseParts.length;
+        firstTokenIndex++
+      ) {
+        const firstToken = tokens[firstTokenIndex];
+
+        const firstPartMatches = matchesInflectedForm(
+          baseParts[0],
+          normalizeClozeText(firstToken.text),
+          "verb",
+        );
+
+        const remainingPartsMatch = baseParts
+          .slice(1)
+          .every(
+            (part, partIndex) =>
+              normalizeClozeText(
+                tokens[firstTokenIndex + partIndex + 1].text,
+              ) === part,
+          );
+
+        if (firstPartMatches && remainingPartsMatch) {
+          return createTarget(
+            sentence,
+            sentenceIndex,
+            tokens,
+            firstTokenIndex,
+            firstTokenIndex + baseParts.length - 1,
+          );
+        }
+      }
+
+      continue;
+    }
+
+    /*
+     * Handle ordinary single-word entries.
+     */
+    for (let tokenIndex = 0; tokenIndex < tokens.length; tokenIndex++) {
+      const token = tokens[tokenIndex];
+
+      if (
+        matchesInflectedForm(
+          baseWord,
+          normalizeClozeText(token.text),
+          wordObj.gender,
+        )
+      ) {
+        return createTarget(
+          sentence,
+          sentenceIndex,
+          tokens,
+          tokenIndex,
+          tokenIndex,
+        );
+      }
+    }
+  }
+
+  return null;
+}
+
 async function startWordGame() {
   document.getElementById("lock-icon").style.display = "inline";
   const searchContainerInner = document.getElementById(
@@ -378,40 +551,70 @@ async function startWordGame() {
         "Passing wordObj to renderWordGameUI:",
         firstWordInQueue.wordObj,
       );
-
       if (firstWordInQueue.wasCloze) {
         const randomWordObj = firstWordInQueue.wordObj;
+
         const baseWord = randomWordObj.ord.split(",")[0].trim().toLowerCase();
-        const matchingEntry = results.find(
-          (r) =>
-            r.ord.toLowerCase() === randomWordObj.ord.toLowerCase() &&
-            r.gender === randomWordObj.gender &&
-            r.CEFR === randomWordObj.CEFR,
-        );
-        const exampleText = matchingEntry?.eksempel || "";
-        const firstSentence = exampleText.split(/(?<=[.!?])\s+/)[0];
-        const tokens = firstSentence.match(/\p{L}+/gu) || [];
 
-        let clozedForm = firstWordInQueue.clozedForm;
-        const formattedClozed = clozedForm.toLowerCase();
-
-        const distractors = generateClozeDistractors(
-          baseWord,
-          clozedForm,
-          randomWordObj.CEFR,
-          randomWordObj.gender,
+        /*
+         * Locate the same surface form that was used in the
+         * original cloze question.
+         */
+        const clozeTarget = findClozeTarget(
+          randomWordObj,
+          firstWordInQueue.clozedForm,
         );
 
-        let allWords = shuffleArray([formattedClozed, ...distractors]);
-        let uniqueWords = ensureUniqueDisplayedValues(allWords);
+        if (!clozeTarget) {
+          /*
+           * renderClozeGameUI will safely convert this into
+           * a reintroduced flashcard.
+           */
+          renderClozeGameUI(
+            randomWordObj,
+            [],
+            firstWordInQueue.clozedForm,
+            true,
+            null,
+          );
+        } else {
+          /*
+           * Begin with lowercase choices. Capitalization is
+           * restored below when the blank starts the sentence.
+           */
+          let formattedClozed =
+            clozeTarget.surfaceForm.charAt(0).toLowerCase() +
+            clozeTarget.surfaceForm.slice(1);
 
-        if (/^[A-ZÆØÅ]/.test(clozedForm)) {
-          uniqueWords = uniqueWords.map(
-            (word) => word.charAt(0).toUpperCase() + word.slice(1),
+          const distractors = generateClozeDistractors(
+            baseWord,
+            formattedClozed,
+            randomWordObj.CEFR,
+            randomWordObj.gender,
+          );
+
+          let allWords = shuffleArray([formattedClozed, ...distractors]);
+
+          let uniqueWords = ensureUniqueDisplayedValues(allWords);
+
+          if (clozeTarget.startsSentence) {
+            uniqueWords = uniqueWords.map(
+              (word) => word.charAt(0).toUpperCase() + word.slice(1),
+            );
+
+            formattedClozed =
+              formattedClozed.charAt(0).toUpperCase() +
+              formattedClozed.slice(1);
+          }
+
+          renderClozeGameUI(
+            randomWordObj,
+            uniqueWords,
+            formattedClozed,
+            true,
+            clozeTarget,
           );
         }
-
-        renderClozeGameUI(randomWordObj, uniqueWords, clozedForm, true);
       } else {
         // Rebuild incorrect translations for non-cloze word
         let incorrectTranslations = fetchIncorrectTranslations(
@@ -514,94 +717,21 @@ async function startWordGame() {
 
   if (isClozeQuestion) {
     const baseWord = randomWordObj.ord.split(",")[0].trim().toLowerCase();
-    const matchingEntry = results.find(
-      (r) =>
-        r.ord.toLowerCase() === randomWordObj.ord.toLowerCase() &&
-        r.gender === randomWordObj.gender &&
-        r.CEFR === randomWordObj.CEFR,
-    );
-    const exampleText = matchingEntry?.eksempel || "";
-    const firstSentence = exampleText.split(/(?<=[.!?])\s+/)[0];
-    const tokens = firstSentence.match(/\p{L}+/gu) || [];
 
-    let clozedForm = null;
-    const baseWordTokens = baseWord.split(/\s+/);
+    const clozeTarget = findClozeTarget(randomWordObj);
 
-    for (let start = 0; start < tokens.length; start++) {
-      for (let end = start + 1; end <= tokens.length; end++) {
-        const group = tokens.slice(start, end);
-        const joinedWithSpace = group.join(" ").toLowerCase();
-        const joinedWithHyphen = group.join("-").toLowerCase();
-
-        if (
-          matchesInflectedForm(baseWord, joinedWithSpace, randomWordObj.gender)
-        ) {
-          clozedForm = group.join(" ");
-          break;
-        }
-        if (
-          matchesInflectedForm(baseWord, joinedWithHyphen, randomWordObj.gender)
-        ) {
-          clozedForm = group.join("-");
-          break;
-        }
-      }
-      if (clozedForm) break;
-    }
-
-    if (!clozedForm) {
-      const cleanedTokens = tokens.map((t) =>
-        t.toLowerCase().replace(/[.,!?;:()"]/g, ""),
+    if (!clozeTarget) {
+      console.warn(
+        "No reliable cloze target was found. Falling back to flashcard.",
+        randomWordObj,
       );
 
-      const normalizedTokens = cleanedTokens;
-      const normalizedBase = baseWord;
+      renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
 
-      let fallbackClozed = null;
-      for (let len = normalizedBase.length; len > 2; len--) {
-        const prefix = normalizedBase.slice(0, len);
-        const matchIndex = normalizedTokens.findIndex((t) =>
-          t.startsWith(prefix),
-        );
-        if (matchIndex !== -1) {
-          // Try to recover the full expression from the token window
-          const endIndex = matchIndex + baseWordTokens.length - 1;
-          const matchedTokens = tokens.slice(matchIndex, endIndex + 1);
-
-          const restOfBase = baseWordTokens.slice(1).join(" ");
-          const restOfSentence = matchedTokens.slice(1).join(" ").toLowerCase();
-
-          if (restOfSentence === restOfBase) {
-            fallbackClozed = matchedTokens.join(" "); // e.g., "ryddet ut"
-          } else {
-            fallbackClozed = tokens[matchIndex]; // fallback to just "ryddet"
-          }
-
-          break;
-        }
-      }
-
-      if (fallbackClozed) {
-        clozedForm = fallbackClozed;
-      } else {
-        console.warn("❌ CLOZE fallback triggered!");
-        console.warn("Word:", randomWordObj.ord);
-        console.warn("Sentence:", firstSentence);
-        console.warn("Base word for matching:", baseWord);
-        console.warn("Tokens analyzed:", cleanedTokens);
-        console.warn("Gender/POS:", randomWordObj.gender);
-        console.warn(
-          "No matching token found after analyzing sentence for cloze insertion.",
-        );
-        console.warn("⚠️ Falling back to flashcard due to cloze failure");
-        console.log("Fallback word object:", randomWordObj);
-        console.log("Fallback translations:", uniqueDisplayedTranslations);
-
-        renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
-        return;
-      }
+      return;
     }
 
+    const clozedForm = clozeTarget.surfaceForm;
     // Format the clozed word and get its final letter
     const formatCase = (word) => word.charAt(0).toLowerCase() + word.slice(1);
 
@@ -626,7 +756,13 @@ async function startWordGame() {
         formattedClozed.charAt(0).toUpperCase() + formattedClozed.slice(1);
     }
 
-    renderClozeGameUI(randomWordObj, uniqueWords, formattedClozed, false);
+    renderClozeGameUI(
+      randomWordObj,
+      uniqueWords,
+      formattedClozed,
+      false,
+      clozeTarget,
+    );
   } else {
     renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
   }
@@ -1022,7 +1158,7 @@ function renderClozeGameUI(
   translations,
   clozedWordForm,
   isReintroduced = false,
-  englishTranslation = "",
+  clozeTarget = null,
 ) {
   const blank = "___";
   const wordId = wordDataStore.push(wordObj) - 1;
@@ -1039,163 +1175,38 @@ function renderClozeGameUI(
     cefrLabel = '<div class="game-cefr-label hard">C</div>';
   }
   correctTranslation = clozedWordForm;
-  const baseWord = wordObj.ord.split(",")[0].trim().toLowerCase();
-  const matchingEntry = results.find(
-    (r) =>
-      r.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
-      r.gender === wordObj.gender &&
-      r.CEFR === wordObj.CEFR,
-  );
-  const exampleText = matchingEntry?.eksempel || "";
-  const englishText = wordObj.sentenceTranslation || "";
 
-  const norwegianSentences = exampleText
-    .split(/(?<=[.!?])\s+/)
-    .filter((s) => s.trim() !== "");
-  const englishSentences = englishText
-    .split(/(?<=[.!?])\s+/)
-    .filter((s) => s.trim() !== "");
+  if (!clozeTarget) {
+    console.warn(
+      "No saved cloze target was provided. Falling back to flashcard.",
+      wordObj,
+    );
 
-  let firstNorwegian = "[Mangler norsk setning]";
-  let matchingEnglish = "";
+    correctTranslation = wordObj.engelsk;
 
-  for (let i = 0; i < norwegianSentences.length; i++) {
-    const nSent = norwegianSentences[i];
-    const lower = nSent.toLowerCase().normalize("NFC");
-    const base = baseWord.toLowerCase().normalize("NFC");
-    const isExpression = wordObj.gender === "expression";
-
-    if (isExpression) {
-      const parts = baseWord.split(/\s+/); // e.g., ['ende', 'opp']
-      const tokens = nSent.match(/[\p{L}-]+/gu) || [];
-
-      for (let i = 0; i < tokens.length - (parts.length - 1); i++) {
-        const slice = tokens.slice(i, i + parts.length);
-        const [first, ...rest] = slice;
-
-        if (
-          matchesInflectedForm(parts[0], first, "verb") &&
-          rest.map((r) => r.toLowerCase()).join(" ") ===
-            parts.slice(1).join(" ")
-        ) {
-          firstNorwegian = nSent;
-          const matchingIndex = norwegianSentences.findIndex(
-            (s) => s === firstNorwegian,
-          );
-          matchingEnglish =
-            matchingIndex >= 0 ? englishSentences[matchingIndex] || "" : "";
-          break;
-        }
-      }
-    } else {
-      const tokens = nSent.match(/[\p{L}-]+/gu) || [];
-      for (const token of tokens) {
-        const clean = token.toLowerCase().replace(/[.,!?;:()"]/g, "");
-        if (matchesInflectedForm(base, clean, wordObj.gender)) {
-          firstNorwegian = nSent;
-          const matchingIndex = norwegianSentences.findIndex(
-            (s) => s === firstNorwegian,
-          );
-          matchingEnglish =
-            matchingIndex >= 0 ? englishSentences[matchingIndex] || "" : "";
-          break;
-        }
-      }
-      if (firstNorwegian !== "[Mangler norsk setning]") break;
-    }
-  }
-
-  // Try to find and blank the cloze target
-  let clozeTarget = null;
-  const lowerSentence = firstNorwegian.toLowerCase();
-  const lowerBaseWord = baseWord.toLowerCase();
-
-  if (wordObj.gender === "expression" || wordObj.gender === "interjection") {
-    const normalizedBase = baseWord.normalize("NFC").toLowerCase();
-    const normalizedSentence = firstNorwegian.normalize("NFC");
-
-    console.log("🔍 Attempting cloze match for expression:");
-    console.log("  Base word (normalized):", normalizedBase);
-    console.log("  Sentence (normalized):", normalizedSentence);
-
-    try {
-      const escapedBase = normalizedBase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const regex = new RegExp(escapedBase, "i");
-      const match = normalizedSentence.match(regex);
-
-      console.log("  Using regex:", regex);
-
-      if (match) {
-        clozeTarget = match[0];
-        console.log("✅ Match found:", clozeTarget);
-      } else {
-        // NEW fallback logic for inflected multi-word expressions
-        const parts = baseWord.split(/\s+/); // e.g., ['bli', 'borte']
-        const tokens = firstNorwegian.match(/[\p{L}-]+/gu) || [];
-
-        for (let i = 0; i < tokens.length - (parts.length - 1); i++) {
-          const slice = tokens.slice(i, i + parts.length);
-          const [first, ...rest] = slice;
-
-          if (
-            matchesInflectedForm(parts[0], first, "verb") &&
-            rest.map((t) => t.toLowerCase()).join(" ") ===
-              parts.slice(1).join(" ")
-          ) {
-            clozeTarget = slice.join(" ");
-            console.log("✅ Fallback match found:", clozeTarget);
-            break;
-          }
-        }
-
-        if (!clozeTarget) {
-          console.warn("❌ No match found using regex:", regex);
-        }
-      }
-    } catch (err) {
-      console.error("🚨 Regex construction failed:", err.message);
-      console.error("  Problematic base word was:", normalizedBase);
-    }
-  } else {
-    const tokens = firstNorwegian.match(/[\p{L}-]+/gu) || [];
-
-    // New vowel-stripping rule
-    const strippedBase = lowerBaseWord.replace(/[aeiouyæøå]+$/i, "");
-
-    for (const token of tokens) {
-      const clean = token.toLowerCase().replace(/[.,!?;:()"]/g, "");
-      if (clean.startsWith(strippedBase) && clean.length >= 3) {
-        clozeTarget = token;
-        break;
-      }
-    }
-  }
-
-  let sentenceWithBlank;
-  if (clozeTarget) {
-    sentenceWithBlank = firstNorwegian.replace(clozeTarget, blank);
-  } else {
-    console.warn("❌ No cloze target found — switching to flashcard fallback.");
-
-    correctTranslation = wordObj.engelsk; // ✅ Fix the root bug
-
-    // Regenerate English options
     const incorrectTranslations = fetchIncorrectTranslations(
       wordObj.gender,
       wordObj.engelsk,
-      currentCEFR,
+      wordObj.CEFR,
     );
 
     const allTranslations = shuffleArray([
       wordObj.engelsk,
       ...incorrectTranslations,
     ]);
+
     const uniqueDisplayedTranslations =
       ensureUniqueDisplayedValues(allTranslations);
 
-    renderWordGameUI(wordObj, uniqueDisplayedTranslations, false);
+    renderWordGameUI(wordObj, uniqueDisplayedTranslations, isReintroduced);
+
     return;
   }
+
+  const sentenceWithBlank =
+    clozeTarget.sentence.slice(0, clozeTarget.startIndex) +
+    blank +
+    clozeTarget.sentence.slice(clozeTarget.endIndex);
 
   gameContainer.innerHTML = `
     <!-- Session Stats Section -->
@@ -1291,7 +1302,12 @@ function renderClozeGameUI(
       const wordId = this.getAttribute("data-id");
       const selectedTranslation = this.innerText.trim();
       const wordObj = wordDataStore[wordId];
-      handleTranslationClick(selectedTranslation, wordObj, true); // true = cloze mode
+      handleTranslationClick(
+        selectedTranslation,
+        wordObj,
+        true,
+        clozeTarget.sentence,
+      );
     });
   });
   attachGameControls(wordObj);
@@ -1303,6 +1319,7 @@ async function handleTranslationClick(
   selectedTranslation,
   wordObj,
   isCloze = false,
+  clozeSentence = "",
 ) {
   if (!gameActive) return; // Prevent further clicks if the game is not active
 
@@ -1349,18 +1366,10 @@ async function handleTranslationClick(
     // Add the word to the correctly answered words array to exclude it from future questions
     correctlyAnsweredWords.add(wordObj);
     if (isCloze) {
-      const fullSentence =
-        results.find(
-          (r) =>
-            r.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
-            r.gender === wordObj.gender &&
-            r.CEFR === wordObj.CEFR,
-        )?.eksempel || "";
-
-      const firstSentence = fullSentence.split(/(?<=[.!?])\s+/)[0];
       const sentenceElement = document.getElementById("cloze-sentence");
-      if (sentenceElement && firstSentence) {
-        sentenceElement.textContent = firstSentence;
+
+      if (sentenceElement && clozeSentence) {
+        sentenceElement.textContent = clozeSentence;
       }
     }
 
@@ -1401,18 +1410,10 @@ async function handleTranslationClick(
     updateRecentAnswers(false); // Track this correct answer
 
     if (isCloze) {
-      const fullSentence =
-        results.find(
-          (r) =>
-            r.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
-            r.gender === wordObj.gender &&
-            r.CEFR === wordObj.CEFR,
-        )?.eksempel || "";
-
-      const firstSentence = fullSentence.split(/(?<=[.!?])\s+/)[0];
       const sentenceElement = document.getElementById("cloze-sentence");
-      if (sentenceElement && firstSentence) {
-        sentenceElement.textContent = firstSentence;
+
+      if (sentenceElement && clozeSentence) {
+        sentenceElement.textContent = clozeSentence;
       }
     }
 
