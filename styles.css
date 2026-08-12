@@ -2541,7 +2541,17 @@ ul {
   font-weight: 700;
   line-height: 1.5;
 }
+.word-list-word-link {
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+}
 
+.word-list-word-link:focus-visible {
+  border-radius: 4px;
+  outline: 3px solid #3c88d4;
+  outline-offset: 3px;
+}
 /*
  * Match .english and .multiple-results-english.
  */

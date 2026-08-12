@@ -86,6 +86,38 @@
   }
 
   /**
+   * Return the URL-compatible word class for an entry.
+   */
+  function getWordListEntryPOS(entry) {
+    return normalizeWordListText(entry.gender).replace(/^noun\s*-\s*/, "");
+  }
+
+  /**
+   * Create a genuine, crawlable URL for a Word List entry.
+   */
+  function createWordListDefinitionURL(entry) {
+    const primaryWord = String(entry.ord ?? "")
+      .split(",")[0]
+      .trim();
+
+    const entryPOS = getWordListEntryPOS(entry);
+
+    const url = new URL(window.location.origin + window.location.pathname);
+
+    url.searchParams.set("type", "words");
+
+    if (entryPOS) {
+      url.searchParams.set("pos", entryPOS);
+    }
+
+    if (primaryWord) {
+      url.searchParams.set("word", primaryWord);
+    }
+
+    return url.href;
+  }
+
+  /**
    * Create one table cell.
    */
   function createWordListCell(value, className, mobileLabel) {
@@ -600,7 +632,13 @@
     } else {
       resultsContainer.insertBefore(backButton, resultsContainer.firstChild);
     }
-    updateURL("", "words", "", null, word);
+    const primaryWord = String(entry.ord ?? "")
+      .split(",")[0]
+      .trim();
+
+    const entryPOS = getWordListEntryPOS(entry);
+
+    updateURL("", "words", entryPOS, null, primaryWord);
 
     window.scrollTo({
       top: 0,
@@ -615,19 +653,38 @@
     const row = document.createElement("tr");
 
     row.className = "word-list-row";
-    row.tabIndex = 0;
-    row.setAttribute("role", "link");
 
     const norwegianWord = String(entry.ord ?? "").trim();
     const englishTranslation = String(entry.engelsk ?? "").trim();
-
-    row.setAttribute("aria-label", `Open the definition for ${norwegianWord}`);
-
     const norwegianCell = createWordListCell(
-      norwegianWord,
+      "",
       "word-list-norwegian",
       "Norwegian",
     );
+
+    norwegianCell.textContent = "";
+
+    const norwegianLink = document.createElement("a");
+
+    norwegianLink.className = "word-list-word-link";
+    norwegianLink.href = createWordListDefinitionURL(entry);
+    norwegianLink.textContent = norwegianWord;
+    norwegianLink.setAttribute(
+      "aria-label",
+      `Open the definition for ${norwegianWord}`,
+    );
+
+    /*
+     * Preserve the existing single-page navigation for human users.
+     * Search engines can still discover the real href above.
+     */
+    norwegianLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openWordListDefinition(entry);
+    });
+
+    norwegianCell.appendChild(norwegianLink);
 
     const englishCell = createWordListCell(
       englishTranslation,
@@ -697,14 +754,6 @@
     // Mouse and touchscreen activation.
     row.addEventListener("click", () => {
       openWordListDefinition(entry);
-    });
-
-    // Keyboard activation.
-    row.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        openWordListDefinition(entry);
-      }
     });
 
     return row;
