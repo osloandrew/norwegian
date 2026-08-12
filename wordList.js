@@ -963,10 +963,30 @@
     return `"${cleanedValue.replace(/"/g, '""')}"`;
   }
 
+  function confirmWordListExport(format, entryCount) {
+    const viewName = activeWordListView === "my" ? "My Words" : "All Words";
+
+    const entryLabel = entryCount === 1 ? "entry" : "entries";
+
+    const largePDFWarning =
+      format === "PDF" && entryCount > 2000
+        ? "\n\nThis is a large PDF and may take a while to prepare."
+        : "";
+
+    return window.confirm(
+      `Export ${entryCount.toLocaleString()} ${entryLabel} ` +
+        `from ${viewName} as ${format}?${largePDFWarning}`,
+    );
+  }
+
   function exportWordListCSV() {
     const entries = getFilteredWordListEntries();
 
     if (entries.length === 0) {
+      return;
+    }
+
+    if (!confirmWordListExport("CSV", entries.length)) {
       return;
     }
 
@@ -1011,6 +1031,10 @@
     const entries = getFilteredWordListEntries();
 
     if (entries.length === 0) {
+      return;
+    }
+
+    if (!confirmWordListExport("TSV", entries.length)) {
       return;
     }
 
@@ -1203,19 +1227,8 @@
       return;
     }
 
-    /*
-     * Very large PDFs can take a long time to prepare.
-     * Give the user a choice before continuing.
-     */
-    if (entries.length > 2000) {
-      const shouldContinue = window.confirm(
-        `This PDF will contain ${entries.length} vocabulary entries ` +
-          "and may take a while to prepare. Continue?",
-      );
-
-      if (!shouldContinue) {
-        return;
-      }
+    if (!confirmWordListExport("PDF", entries.length)) {
+      return;
     }
 
     const printWindow = window.open("", "_blank");

@@ -2599,10 +2599,17 @@ ul {
   justify-content: center;
 }
 
-.word-list-export-controls {
-  border-top: 1px solid #eeeeee;
-  padding-top: 12px;
-  width: 100%;
+.word-list-export-controls .word-list-export-button {
+  border: 1px solid #dedede;
+  box-shadow: none;
+  color: #6c4a4a;
+  min-height: 44px;
+  padding: 8px 12px;
+}
+
+.word-list-export-controls .word-list-export-button:hover {
+  background-color: #f7f7f7;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .word-list-export-button {
@@ -2774,6 +2781,35 @@ ul {
   box-sizing: border-box;
   max-width: 100%;
   min-width: 0;
+}
+
+/* All Words / My Words behave as a view selector. */
+.word-list-control-group.word-list-view-controls {
+  background-color: #eef3f7;
+  border: 1px solid #dce5ed;
+  border-radius: 10px;
+  flex-wrap: nowrap;
+  gap: 4px;
+  padding: 4px;
+  width: fit-content;
+}
+
+.word-list-view-controls .word-list-export-button {
+  background-color: transparent;
+  box-shadow: none;
+  color: #3e5368;
+  min-height: 44px;
+}
+
+.word-list-view-controls .word-list-export-button:hover {
+  background-color: rgba(255, 255, 255, 0.7);
+  box-shadow: none;
+}
+
+.word-list-view-controls .word-list-export-button.is-active {
+  background-color: #0d3a69;
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(13, 58, 105, 0.22);
 }
 
 .word-list-table-container {
@@ -3460,6 +3496,21 @@ ul {
 
   .word-list-class {
     grid-area: word-class;
+  }
+
+  .word-list-control-group.word-list-export-controls {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .word-list-export-controls .word-list-export-button {
+    font-size: 10px;
+    letter-spacing: 0.01em;
+    min-width: 0;
+    padding: 8px 3px;
+    white-space: nowrap;
+    width: 100%;
   }
 
   .word-list-level {
