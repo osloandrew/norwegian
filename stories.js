@@ -838,6 +838,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("search-bar") ||
     document.getElementById("stories-search") ||
     document.getElementById("global-search");
+  const cefrEl = document.getElementById("cefr-select");
+  const genreEl = document.getElementById("genre-select");
   if (searchEl) {
     searchEl.addEventListener("input", () => {
       if (isStoriesTabActive()) {
