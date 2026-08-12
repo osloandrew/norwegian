@@ -1,7 +1,7 @@
 let activeAudio = [];
 let currentWord;
 let correctTranslation;
-let correctlyAnsweredWords = []; // Array to store correctly answered words
+let correctlyAnsweredWords = new Set(); // Track exact dictionary entries already answered correctly
 let correctLevelAnswers = 0; // Track correct answers per level
 let correctCount = 0; // Tracks the total number of correct answers
 let correctStreak = 0; // Track the current streak of correct answers
@@ -352,17 +352,6 @@ async function startWordGame() {
 
   cefrSelect.disabled = false;
   cefrFilterContainer.classList.remove("disabled");
-
-  // Check if all available words have been answered correctly
-  const totalWords = results.filter(
-    (r) => r.CEFR === currentCEFR && !noRandom.includes(r.ord.toLowerCase()),
-  );
-  if (correctlyAnsweredWords.length >= totalWords.length) {
-    console.log(
-      "All words answered correctly, resetting correctlyAnsweredWords array.",
-    );
-    correctlyAnsweredWords = []; // Reset the array
-  }
 
   // First, check if there is an incorrect word to reintroduce
   if (
@@ -1268,7 +1257,7 @@ function renderClozeGameUI(
         </div>
   
       <div class="game-word">
-      <h2 id="cloze-sentence">${sentenceWithBlank}</h2>        <p class="game-english-translation" style="display: inline;">${matchingEnglish}</p> 
+      <h2 id="cloze-sentence">${sentenceWithBlank}</h2>
       </div>
   
       <div class="game-cefr-spacer"></div>
@@ -1358,8 +1347,7 @@ async function handleTranslationClick(
     correctLevelAnswers++; // Increment correct count for this level
     updateRecentAnswers(true); // Track this correct answer
     // Add the word to the correctly answered words array to exclude it from future questions
-    correctlyAnsweredWords.push(wordObj.ord);
-
+    correctlyAnsweredWords.add(wordObj);
     if (isCloze) {
       const fullSentence =
         results.find(
@@ -1434,17 +1422,10 @@ async function handleTranslationClick(
     );
     if (!inQueueAlready) {
       incorrectWordQueue.push({
-        wordObj: {
-          ord: wordObj.ord, // explicitly using wordObj.ord here
-          engelsk: correctTranslation,
-          gender: wordObj.gender,
-          CEFR: wordObj.CEFR,
-          uttale: wordObj.uttale,
-          eksempel: wordObj.eksempel, // needed to rebuild sentence
-        },
-        counter: 0, // Start counter for this word
+        wordObj,
+        counter: 0,
         wasCloze: isCloze,
-        clozedForm: correctTranslation, // << STORE the clozed form separately!
+        clozedForm: isCloze ? correctTranslation : null,
       });
     }
   }
@@ -1573,82 +1554,183 @@ async function fetchExampleSentence(wordObj) {
   return { exampleSentence, sentenceTranslation };
 }
 
+const MY_WORDS_PRIORITY = 2 / 3;
+
+function getEligibleGameWords(selectedPOS, cefrLevel) {
+  return results.filter((entry) => {
+    const norwegianWord = String(entry?.ord ?? "").trim();
+    const englishTranslation = String(entry?.engelsk ?? "").trim();
+    const gender = String(entry?.gender ?? "").trim();
+    const entryCEFR = String(entry?.CEFR ?? "")
+      .trim()
+      .toUpperCase();
+
+    /*
+     * The game renderers require all four of these values.
+     */
+    if (!norwegianWord || !englishTranslation || !gender || !entryCEFR) {
+      return false;
+    }
+
+    /*
+     * Only include entries at the user's current CEFR level.
+     */
+    if (entryCEFR !== cefrLevel) {
+      return false;
+    }
+
+    if (noRandom.includes(norwegianWord.toLowerCase())) {
+      return false;
+    }
+
+    /*
+     * Avoid displaying the same spelling twice in a row.
+     */
+    if (norwegianWord === previousWord) {
+      return false;
+    }
+
+    /*
+     * An exact dictionary entry is excluded after a correct answer.
+     */
+    if (correctlyAnsweredWords.has(entry)) {
+      return false;
+    }
+
+    const normalizedGender = gender.toLowerCase();
+
+    if (selectedPOS === "noun") {
+      const isNoun =
+        normalizedGender.startsWith("en") ||
+        normalizedGender.startsWith("et") ||
+        normalizedGender.startsWith("ei");
+
+      if (!isNoun || normalizedGender === "pronoun") {
+        return false;
+      }
+    } else if (selectedPOS && !normalizedGender.startsWith(selectedPOS)) {
+      return false;
+    }
+
+    /*
+     * Do not ask questions where the displayed Norwegian and English
+     * answers are identical.
+     */
+    const displayedNorwegian = norwegianWord.split(",")[0].trim().toLowerCase();
+
+    const displayedEnglish = englishTranslation
+      .split(",")[0]
+      .trim()
+      .toLowerCase();
+
+    return displayedNorwegian !== displayedEnglish;
+  });
+}
+
+function pickRandomGameWord(entries) {
+  if (entries.length === 0) {
+    return null;
+  }
+
+  return entries[Math.floor(Math.random() * entries.length)];
+}
+
+function pickPrioritizedGameWord(eligibleEntries) {
+  const savedRecords = window.MyWordsAPI?.getSavedEntries?.() ?? [];
+
+  /*
+   * getSavedEntries() returns objects shaped like:
+   * { entryId, entry }
+   */
+  const savedEntries = new Set(
+    savedRecords.map((savedRecord) => savedRecord.entry).filter(Boolean),
+  );
+
+  const myWordsEntries = [];
+  const otherEntries = [];
+
+  for (const entry of eligibleEntries) {
+    if (savedEntries.has(entry)) {
+      myWordsEntries.push(entry);
+    } else {
+      otherEntries.push(entry);
+    }
+  }
+
+  /*
+   * If there are no eligible saved words at this CEFR level,
+   * use the ordinary pool.
+   */
+  if (myWordsEntries.length === 0) {
+    return pickRandomGameWord(otherEntries);
+  }
+
+  /*
+   * If every eligible word is saved, use the saved pool.
+   */
+  if (otherEntries.length === 0) {
+    return pickRandomGameWord(myWordsEntries);
+  }
+
+  /*
+   * When both pools are available:
+   *
+   * - My Words has a two-thirds chance.
+   * - Other Words has a one-third chance.
+   */
+  const selectedPool =
+    Math.random() < MY_WORDS_PRIORITY ? myWordsEntries : otherEntries;
+
+  return pickRandomGameWord(selectedPool);
+}
+
 async function fetchRandomWord() {
   const selectedPOS = document.getElementById("pos-select")
     ? document.getElementById("pos-select").value.toLowerCase()
     : "";
 
-  // Always use the current CEFR level, whether it's A1 by default or selected by the user
-  const cefrLevel = currentCEFR;
+  const cefrLevel = String(currentCEFR || "A1").toUpperCase();
 
-  // Filter results based on CEFR, POS, and excluding the previous word
-  let filteredResults = results.filter(
-    (r) =>
-      r.engelsk &&
-      !noRandom.includes(r.ord.toLowerCase()) &&
-      r.ord !== previousWord &&
-      r.CEFR === cefrLevel && // Ensure the word belongs to the same CEFR level
-      !correctlyAnsweredWords.includes(r.ord), // Exclude words already answered correctly
-  );
+  let eligibleEntries = getEligibleGameWords(selectedPOS, cefrLevel);
 
-  if (selectedPOS) {
-    filteredResults = filteredResults.filter((r) => {
-      const gender = r.gender ? r.gender.toLowerCase() : "";
+  /*
+   * If every eligible entry at this level has been answered,
+   * start a new cycle.
+   */
+  if (eligibleEntries.length === 0 && correctlyAnsweredWords.size > 0) {
+    correctlyAnsweredWords.clear();
 
-      // Handle nouns: Include "en", "et", "ei" but exclude "pronoun"
-      if (selectedPOS === "noun") {
-        return (
-          (gender.startsWith("en") ||
-            gender.startsWith("et") ||
-            gender.startsWith("ei")) &&
-          gender !== "pronoun"
-        );
-      }
-
-      // For non-noun POS, filter based on the selectedPOS value
-      return gender.startsWith(selectedPOS);
-    });
+    eligibleEntries = getEligibleGameWords(selectedPOS, cefrLevel);
   }
 
-  if (cefrLevel) {
-    // Filter by CEFR level if selected
-    filteredResults = filteredResults.filter(
-      (r) => r.CEFR && r.CEFR.toUpperCase() === cefrLevel,
-    );
+  /*
+   * This matters only if a level has one eligible entry.
+   * It permits that entry to appear again when no alternative exists.
+   */
+  if (eligibleEntries.length === 0 && previousWord !== null) {
+    previousWord = null;
+
+    eligibleEntries = getEligibleGameWords(selectedPOS, cefrLevel);
   }
 
-  // Filter out words where the Norwegian word and its English translation are identical
-  filteredResults = filteredResults.filter((r) => {
-    // Split and trim the Norwegian word (handle comma-separated words)
-    const norwegianWord = r.ord.split(",")[0].trim().toLowerCase();
-
-    // Split and trim the English translation (handle comma-separated translations)
-    const englishTranslation = r.engelsk.split(",")[0].trim().toLowerCase();
-
-    // Return true if the Norwegian and English words are not the same
-    return norwegianWord !== englishTranslation;
-  });
-
-  // If no words match the filters, return a message
-  if (filteredResults.length === 0) {
+  if (eligibleEntries.length === 0) {
     console.log("No words found matching the selected CEFR and POS filters.");
+
     return null;
   }
 
-  // Randomly select a result from the filtered results
-  const randomResult =
-    filteredResults[Math.floor(Math.random() * filteredResults.length)];
+  const selectedEntry = pickPrioritizedGameWord(eligibleEntries);
 
-  previousWord = randomResult.ord; // Update the previous word
+  if (!selectedEntry) {
+    return null;
+  }
 
-  return {
-    ord: randomResult.ord,
-    engelsk: randomResult.engelsk,
-    gender: randomResult.gender, // Add gender
-    CEFR: randomResult.CEFR, // Make sure CEFR is returned here
-    uttale: randomResult.uttale, // Ensure uttale is included here
-    eksempel: randomResult.eksempel, // ⬅️ ADD THIS LINE
-  };
+  previousWord = selectedEntry.ord;
+
+  /*
+   * Return the original dictionary entry. Do not create a partial copy.
+   */
+  return selectedEntry;
 }
 
 function advanceToNextLevel() {
@@ -1973,6 +2055,9 @@ function updateCEFRSelection() {
 }
 
 function resetGame(resetStreak = true) {
+  correctlyAnsweredWords.clear();
+  previousWord = null;
+  wordsSinceLastIncorrect = 0;
   correctCount = 0; // Reset correct answers count
   correctLevelAnswers = 0; // Reset correct answers for the current level
   if (resetStreak) {
