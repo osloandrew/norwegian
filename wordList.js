@@ -513,7 +513,6 @@
 
   function openWordListDefinition(entry) {
     const word = String(entry.ord ?? "").trim();
-    const english = String(entry.engelsk ?? "").trim();
 
     if (!word) {
       return;
@@ -538,65 +537,14 @@
     };
 
     /*
-     * Switch to Words and perform the same search that would happen
-     * if the user entered this word in the Words search field.
+     * Switch to Words without searching the full dictionary again. The exact
+     * entry is already known because the user selected it from Word List.
      */
     typeSelect.value = "words";
     searchInput.value = word;
 
-    handleTypeChange("words");
-
-    /*
-     * At this point, the normal Words search has rendered either:
-     *
-     * 1. One complete definition, or
-     * 2. Several multiple-result cards
-     *
-     * If several cards were returned, click the card matching the
-     * Word List entry. This invokes the normal handleCardClick()
-     * path used by the Words tab.
-     */
-    const resultCards = Array.from(
-      resultsContainer.querySelectorAll(
-        ".definition.multiple-results-definition",
-      ),
-    );
-
-    if (resultCards.length > 0) {
-      const normalizedWord = word.toLowerCase();
-      const normalizedEnglish = english.toLowerCase();
-
-      const matchingCard =
-        resultCards.find((card) => {
-          const cardWord = String(card.dataset.word ?? "")
-            .trim()
-            .toLowerCase();
-
-          const cardEnglish = String(card.dataset.engelsk ?? "")
-            .trim()
-            .toLowerCase();
-
-          return (
-            cardWord === normalizedWord && cardEnglish === normalizedEnglish
-          );
-        }) ||
-        resultCards.find((card) => {
-          const cardWord = String(card.dataset.word ?? "")
-            .trim()
-            .toLowerCase();
-
-          return cardWord === normalizedWord;
-        });
-
-      if (matchingCard) {
-        /*
-         * This runs the card's existing onclick code and therefore uses
-         * handleCardClick(), displaySearchResults(), and the ordinary
-         * sentence-loading sequence.
-         */
-        matchingCard.click();
-      }
-    }
+    handleTypeChange("words", { renderInitialContent: false });
+    displaySearchResults([{ ...entry }], word);
 
     /*
      * The ordinary search or card-click path may have created its own

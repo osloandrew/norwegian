@@ -1463,6 +1463,7 @@ function handleTypeChange(type, options = {}) {
   // If type is not passed in (e.g., called from dropdown), get it from the dropdown
   type = type || document.getElementById("type-select").value;
   const shouldRenderStories = options.renderStories !== false;
+  const shouldRenderInitialContent = options.renderInitialContent !== false;
   // Give the page a dedicated class while Word Game is selected.
   document.body.classList.toggle("word-game-mode", type === "word-game");
   const query = document
@@ -1650,8 +1651,11 @@ function handleTypeChange(type, options = {}) {
 
     enableSearchControls();
 
-    // Optionally, generate a random word if needed when switching back to words
-    if (query) {
+    // Word List can supply an exact entry without searching the full dictionary.
+    if (!shouldRenderInitialContent) {
+      showLandingCard(false);
+      clearContainer();
+    } else if (query) {
       console.log("Searching for words with query:", query);
       search(); // Trigger a word search if the search bar has a value
     } else {
@@ -2565,35 +2569,46 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
   }
 
   // Generate word variations using the external function
-  const wordVariations =
-    trimmedWord.length < 4
-      ? [trimmedWord]
-      : trimmedWord
-          .split(",")
-          .flatMap((w) => generateWordVariationsForSentences(w.trim(), pos));
+  const wordVariations = [
+    ...new Set(
+      trimmedWord.length < 4
+        ? [trimmedWord]
+        : trimmedWord
+            .split(",")
+            .flatMap((w) =>
+              generateWordVariationsForSentences(w.trim(), pos),
+            ),
+    ),
+  ].filter(Boolean);
+
+  const requiresStrictSentenceBoundary = [
+    "adverb",
+    "conjunction",
+    "preposition",
+    "interjection",
+    "numeral",
+  ].includes(pos);
+
+  /*
+   * Compile each variation once. Common words can occur throughout the
+   * dictionary, so rebuilding these expressions for every entry previously
+   * created hundreds of thousands of RegExp objects on the main thread.
+   */
+  const sentenceVariationPatterns = wordVariations.map((variation) => {
+    const escapedVariation = escapeRegExp(variation);
+
+    return requiresStrictSentenceBoundary
+      ? new RegExp(`(^|\\s)${escapedVariation}($|[\\s.,!?;])`, "i")
+      : new RegExp(`(^|[^\\wåæøÅÆØ])${escapedVariation}`, "i");
+  });
+
+  const sentenceMatchesVariation = (sentence) =>
+    sentenceVariationPatterns.some((pattern) => pattern.test(sentence));
 
   // First, filter results to get relevant entries
-  let relevantEntries = results.filter((r) => {
-    return wordVariations.some((variation) => {
-      if (
-        pos === "adverb" ||
-        pos === "conjunction" ||
-        pos === "preposition" ||
-        pos === "interjection" ||
-        pos === "numeral"
-      ) {
-        const regex = new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, "gi");
-        return regex.test(r.eksempel);
-      } else {
-        // For other parts of speech, ensure the word starts a word
-        const regexStartOfWord = new RegExp(
-          `(^|[^\\wåæøÅÆØ])${variation}`,
-          "i",
-        );
-        return regexStartOfWord.test(r.eksempel);
-      }
-    });
-  });
+  const relevantEntries = results.filter(
+    (r) => r.eksempel && sentenceMatchesVariation(r.eksempel),
+  );
 
   // Use a Set to store unique sentences and translations
   const uniqueSentences = new Set();
@@ -2610,17 +2625,7 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
     const matched = { matchedSentences: [], matchedTranslations: [] };
 
     sentences.forEach((sentence, index) => {
-      const isMatched = wordVariations.some((variation) => {
-        const regex =
-          pos === "adverb" ||
-          pos === "conjunction" ||
-          pos === "preposition" ||
-          pos === "interjection" ||
-          pos === "numeral"
-            ? new RegExp(`(^|\\s)${variation}($|[\\s.,!?;])`, "gi")
-            : new RegExp(`(^|[^\\wåæøÅÆØ])${variation}`, "i");
-        return regex.test(sentence);
-      });
+      const isMatched = sentenceMatchesVariation(sentence);
 
       if (isMatched) {
         if (!uniqueSentences.has(sentence)) {
@@ -2683,12 +2688,36 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
     pos,
   );
 
-  // Apply highlighting for the new word and reset any previous highlighting
+  /*
+   * Highlight every variation in one pass. Calling highlightQuery() once per
+   * variation repeatedly searched the entire dictionary and stripped the
+   * highlights added by the previous pass.
+   */
+  const sentenceHighlightTerms = [...wordVariations]
+    .map(normalizeSearchText)
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length);
+  const sentenceHighlightPattern = sentenceHighlightTerms.length
+    ? new RegExp(
+        `(?<![\\p{L}\\p{N}])(${sentenceHighlightTerms
+          .map(escapeRegExp)
+          .join("|")})(?![\\p{L}\\p{N}])`,
+        "giu",
+      )
+    : null;
+
   matchingResults.forEach((result) => {
-    wordVariations.forEach((variation) => {
-      const highlightedSentence = highlightQuery(result.eksempel, variation); // Highlight query in sentence
-      result.eksempel = highlightedSentence; // Set the highlighted sentence back
-    });
+    const cleanSentence = result.eksempel.replace(
+      /<span style="color: #3c88d4;">(.*?)<\/span>/gi,
+      "$1",
+    );
+
+    result.eksempel = sentenceHighlightPattern
+      ? cleanSentence.replace(
+          sentenceHighlightPattern,
+          '<span style="color: #3c88d4;">$1</span>',
+        )
+      : cleanSentence;
   });
 
   // Create the sentence content with CEFR labels
