@@ -707,9 +707,9 @@ footer .copyright {
 #game-next-word-button {
   margin-top: 15px;
   width: 100%;
-  background-color: #f8d9b0; /* Subtle, lighter background */
-  color: #8a7063; /* Subtle maroon text */
-  border: 1px solid #b8a58b; /* Slightly darker border for depth */
+  background-color: #0d3a69; /* Match the site's primary action color */
+  color: #ffffff;
+  border: 1px solid #0d3a69;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* More prominent shadow */
   border-radius: 6px; /* Slightly rounded corners */
   padding: 20px 15px;
@@ -726,17 +726,23 @@ footer .copyright {
     transform 0.2s ease; /* Subtle transitions */
 }
 
+#game-next-word-button:hover {
+  background-color: #4a99ff; /* Same hover treatment as the search button */
+  border-color: #4a99ff;
+}
+
 #game-next-word-button:active {
-  background-color: #f2c18c; /* Darker background on click */
-  border-color: #8a7063; /* Border matches text color on click */
+  background-color: #092c50; /* Darker background on click */
+  border-color: #092c50;
 }
 
 #game-next-word-button:disabled {
-  background-color: #f0e5d2; /* Lighter background when disabled */
-  color: #c5b3a6; /* More muted text color when disabled */
-  border-color: #d1c4b5; /* Muted border when disabled */
+  background-color: #0d3a69;
+  color: #ffffff;
+  border-color: #0d3a69;
   cursor: not-allowed; /* Disabled cursor */
   box-shadow: none; /* No shadow when disabled */
+  opacity: 0.4;
 }
 
 .game-pronunciation {
@@ -1204,6 +1210,7 @@ li {
 
 .links {
   display: flex;
+  flex-wrap: wrap; /* Avoid clipping/overflow on narrow screens */
   gap: 10px; /* Space between the buttons */
   margin: 10px 0 10px 0;
   align-items: center; /* Vertically align both buttons */
@@ -2967,6 +2974,7 @@ ul {
 
   .links {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     margin: 5px 0 5px 0;
     gap: 8px; /* Ensure proper space between buttons */
