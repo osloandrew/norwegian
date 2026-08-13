@@ -491,7 +491,7 @@ async function startWordGame() {
     "search-container-inner",
   ); // The container to update
   const searchBarWrapper = document.getElementById("search-bar-wrapper");
-  const randomBtn = document.getElementById("random-btn");
+  const randomBtn = document.getElementById("my-words-nav-btn");
 
   // Filter containers for POS, Genre, and CEFR
   const posFilterContainer = document.querySelector(".pos-filter");

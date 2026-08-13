@@ -116,8 +116,7 @@ audio {
   display: none !important; /* Always hidden */
 }
 
-.back-navigation,
-.single-result-my-words-link {
+.back-navigation {
   display: block; /* Block-level element to allow centering */
   line-height: 30px; /* Matches height for vertical centering */
   margin: 0 0 10px 0; /* Remove auto margin and set bottom margin only */
@@ -144,8 +143,7 @@ audio {
   height: 30px;
 }
 
-.back-navigation:hover,
-.single-result-my-words-link:hover {
+.back-navigation:hover {
   background-color: #f7f7f7; /* Slightly darker background on hover */
   box-shadow:
     0 6px 12px rgba(135, 135, 135, 0.3),
@@ -1379,7 +1377,7 @@ ul {
   font-weight: bold;
 }
 
-.random-btn {
+.my-words-nav-btn {
   align-items: center;
   background-color: #0d3a69;
   border: none;
@@ -1388,14 +1386,17 @@ ul {
   cursor: pointer;
   display: flex;
   font-family: "Noto Sans", sans-serif;
+  font-size: 14px;
+  gap: 8px;
   height: 42px;
   justify-content: center;
-  padding: 10px 20px;
+  padding: 10px 16px;
   transition: all 0.3s ease;
-  width: 20%; /* Adjust the width of the random button */
+  white-space: nowrap;
+  width: fit-content;
 }
 
-.random-btn:hover {
+.my-words-nav-btn:hover {
   background-color: #3c88d4;
   box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
 }
@@ -1819,12 +1820,6 @@ ul {
   margin: 8px 0 0;
 }
 
-.single-result-my-words-link {
-  appearance: none;
-  border: none;
-  box-sizing: content-box;
-}
-
 .single-result-navigation {
   align-items: center;
   box-sizing: border-box;
@@ -1836,11 +1831,6 @@ ul {
 
 .single-result-navigation .back-navigation {
   margin: 0;
-}
-
-.single-result-navigation .single-result-my-words-link {
-  margin: 0 0 0 auto;
-  white-space: nowrap;
 }
 
 .single-result-my-words-controls {
@@ -2919,10 +2909,6 @@ ul {
     margin: 0;
   }
 
-  .random-btn {
-    width: 20% !important;
-  }
-
   /* Example Sentences */
   .game-cefr-spacer p {
     font-size: 0.7em !important;
@@ -3373,10 +3359,26 @@ ul {
   .pos-filter,
   .genre-filter,
   .game-english-filter,
-  .random-btn,
   .search-bar-wrapper {
     box-sizing: border-box !important;
     width: 100%;
+  }
+
+  /*
+   * Stay small and icon-only so the search bar (flex-grow: 1) keeps the
+   * room it needs, instead of the two of them fighting over 100% each.
+   */
+  .my-words-nav-btn {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 50%;
+    gap: 0;
+  }
+
+  .my-words-nav-btn-label {
+    display: none;
   }
 
   .type-filter i,

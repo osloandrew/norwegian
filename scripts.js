@@ -1459,7 +1459,7 @@ function handleTypeChange(type, options = {}) {
     "search-container-inner",
   ); // The container to update
   const searchBarWrapper = document.getElementById("search-bar-wrapper");
-  const randomBtn = document.getElementById("random-btn");
+  const randomBtn = document.getElementById("my-words-nav-btn");
   const gameEnglishFilterContainer = document.querySelector(
     ".game-english-filter",
   );
@@ -3153,7 +3153,7 @@ window.onload = function () {
 
   // Check if the buttons exist in the DOM
   const searchBtn = document.getElementById("search-btn");
-  const randomBtn = document.getElementById("random-btn");
+  const randomBtn = document.getElementById("my-words-nav-btn");
   const searchBar = document.getElementById("search-bar");
   const clearBtn = document.getElementById("clear-btn");
   const typeSelect = document.getElementById("type-select");

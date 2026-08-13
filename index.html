@@ -263,27 +263,30 @@
               <button
                 id="search-btn"
                 class="search-btn"
-                aria-label="Search for the word"
-                onclick="search()"
+                aria-label="Search for the word, or generate a random word or sentence if the search field is empty"
+                onclick="
+                  document.getElementById('search-bar').value.trim()
+                    ? search()
+                    : (stopAllAudio(),
+                        randomWord(),
+                        (popChime.currentTime = 0),
+                        popChime.play())
+                "
               >
                 <i class="fas fa-search"></i>
               </button>
             </div>
 
-            <!-- Random Button -->
+            <!-- My Words Button -->
             <button
-              id="random-btn"
-              class="random-btn"
-              aria-label="Generate a random word"
-              onclick="
-                (stopAllAudio(),
-                  randomWord(),
-                  (popChime.currentTime = 0),
-                  popChime.play())
-              "
-              title="Generate a random word"
+              id="my-words-nav-btn"
+              class="my-words-nav-btn"
+              aria-label="Go to My Words"
+              onclick="goToMyWords()"
+              title="Go to My Words"
             >
-              <i class="fas fa-dice"></i>
+              <i class="fas fa-star"></i>
+              <span class="my-words-nav-btn-label">My Words</span>
             </button>
           </div>
         </div>

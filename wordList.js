@@ -445,8 +445,6 @@
     // Prevent duplicate controls if the definition is rendered again.
     card.querySelector(".single-result-my-words-controls")?.remove();
 
-    resultsContainer.querySelector(".single-result-my-words-link")?.remove();
-
     const controls = document.createElement("div");
     controls.className = "single-result-my-words-controls";
 
@@ -476,21 +474,6 @@
       event.stopPropagation();
     });
 
-    const goToMyWordsButton = document.createElement("button");
-
-    goToMyWordsButton.type = "button";
-    goToMyWordsButton.className = "single-result-my-words-link";
-    goToMyWordsButton.textContent = "Go to My Words";
-
-    goToMyWordsButton.addEventListener("click", (event) => {
-      event.stopPropagation();
-      goToMyWords();
-    });
-
-    goToMyWordsButton.addEventListener("keydown", (event) => {
-      event.stopPropagation();
-    });
-
     // Only the star remains inside the definition card.
     controls.appendChild(starButton);
     card.prepend(controls);
@@ -516,9 +499,6 @@
     if (backNavigation) {
       navigation.prepend(backNavigation);
     }
-
-    // The My Words button goes on the right.
-    navigation.appendChild(goToMyWordsButton);
   }
 
   function attachMultipleResultMyWordsStars(entries) {
