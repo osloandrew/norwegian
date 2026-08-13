@@ -2332,6 +2332,7 @@ ul {
   flex-direction: column;
   gap: 15px;
   margin: 0 10px 20px;
+  padding: 20px 40px !important;
   text-align: center;
 }
 
@@ -3252,97 +3253,33 @@ ul {
     margin-top: 10px;
   }
 
-  .word-list-favorite {
-    align-items: center;
-    display: flex;
-    grid-area: favorite;
-    justify-content: flex-end;
-    padding: 0 !important;
-    width: auto;
-  }
-
-  /* Responsive Word List cards */
-  .word-list-table-container {
-    overflow-x: hidden;
-  }
-
-  .word-list-table,
-  .word-list-table tbody {
-    display: block;
-    width: 100%;
-  }
-
-  .word-list-table {
-    border-spacing: 0;
-  }
-
-  .word-list-row {
-    box-sizing: border-box;
-    display: grid;
-    grid-template-areas:
-      "norwegian english favorite"
-      "word-class level favorite";
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-    gap: 8px 20px;
-    margin-bottom: 12px;
-    padding: 15px 20px;
-    width: 100%;
-
-    /* Same card treatment as .definition */
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-
-  .word-list-row td {
-    background-color: transparent;
-    border-radius: 0;
-    min-width: 0;
-    overflow-wrap: anywhere;
-    padding: 0;
-    width: auto;
-  }
-
   .word-list-norwegian {
-    grid-area: norwegian;
-    font-size: 18px;
-    line-height: 1.2;
+    font-size: 12px;
+    padding: 6px 10px !important;
   }
 
   .word-list-english {
-    grid-area: english;
-    font-size: 14px;
+    font-size: 10px;
+    padding: 6px 10px !important;
   }
 
-  .word-list-class {
-    grid-area: word-class;
-  }
-
-  .word-list-control-group.word-list-export-controls {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+  .word-list-class,
+  .word-list-level,
+  .word-list-favorite {
+    padding: 6px !important;
   }
 
   .word-list-export-controls .word-list-export-button {
     font-size: 10px;
-    letter-spacing: 0.01em;
-    min-width: 0;
-    padding: 8px 3px;
-    white-space: nowrap;
-    width: 100%;
+    min-height: 0px;
   }
 
-  .word-list-level {
-    grid-area: level;
+  .word-list-header {
+    padding: 10px 20px !important;
   }
 
-  .word-list-row:hover {
-    background-color: #f2f9fd;
-  }
-
-  .word-list-row:hover td {
-    background-color: transparent;
+  .word-list-table {
+    border-spacing: 0 8px;
   }
 }
 
