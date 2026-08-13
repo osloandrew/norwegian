@@ -3238,7 +3238,7 @@ ul {
     text-transform: uppercase;
     padding: 0 30px 0 8px;
     min-width: 0px;
-    letter-spacing: 0.05em;
+    letter-spacing: 0px;
     text-overflow: unset;
   }
 
