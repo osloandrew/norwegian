@@ -1018,7 +1018,7 @@ header p {
 @media (max-width: 600px) {
   .auth-container {
     position: static;
-    justify-content: center;
+    justify-content: right;
     margin-bottom: 10px;
   }
 
