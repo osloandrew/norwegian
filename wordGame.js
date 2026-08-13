@@ -1090,7 +1090,13 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
   ${getGameMyWordsStarMarkup()}
 </div>
             </div>
-            <div class="game-word">
+            <div
+              class="game-word game-word-audio"
+              role="button"
+              tabindex="0"
+              aria-label="Play pronunciation of ${displayedWord}"
+              title="Play pronunciation"
+            >
                 <h2>${displayedWord}</h2>
             </div>
             <div class="game-cefr-spacer"></div>
@@ -1128,6 +1134,23 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
 
       handleTranslationClick(selectedTranslation, wordObj);
     });
+  });
+
+  // Let the user replay the word's pronunciation by clicking it, whether
+  // they've answered yet or not.
+  const gameWordElement = document.querySelector(".game-word-audio");
+
+  gameWordElement?.addEventListener("click", () => {
+    stopAllAudio();
+    playWordAudio(wordObj);
+  });
+
+  gameWordElement?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      stopAllAudio();
+      playWordAudio(wordObj);
+    }
   });
 
   attachGameControls(wordObj);

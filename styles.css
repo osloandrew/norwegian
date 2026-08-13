@@ -854,6 +854,12 @@ footer .copyright {
   flex-grow: 1; /* Allow the word to take up remaining space */
   min-height: 8rem;
   text-align: center;
+  cursor: default;
+  user-select: none;
+}
+
+.game-word-audio {
+  cursor: pointer;
 }
 
 .game-word h2 {
