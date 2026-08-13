@@ -2114,18 +2114,63 @@ function generateWordVariationsForSentences(word, pos) {
       return variations;
     }
 
-    if (pos === "noun" && gender.includes("ei")) {
-      if (singleWord.endsWith("e")) {
-        stem = singleWord.slice(0, -1); // Remove the final -e from the word
+    if (pos === "noun" && (gender.includes("en") || gender.includes("et") || gender.includes("ei"))) {
+      // A word's gender field can list more than one article (e.g. "en-et"),
+      // so each applicable pattern below is additive rather than exclusive —
+      // this only adds extra highlight candidates, so an extra guess that
+      // never appears in a sentence is harmless.
+      if (gender.includes("ei")) {
+        if (singleWord.endsWith("e")) {
+          stem = singleWord.slice(0, -1); // Remove the final -e from the word
+        }
+        variations.push(
+          `${stem}`, // setning
+          `${stem}e`, // jente
+          `${stem}a`, // jenta
+          `${stem}en`, // jenten
+          `${stem}er`, // jenter
+          `${stem}ene`, // jentene
+        );
       }
-      variations.push(
-        `${stem}`, // setning
-        `${stem}e`, // jente
-        `${stem}a`, // jenta
-        `${stem}en`, // jenten
-        `${stem}er`, // jenter
-        `${stem}ene`, // jentene
-      );
+
+      if (gender.includes("en")) {
+        if (singleWord.endsWith("e")) {
+          const enStem = singleWord.slice(0, -1);
+          variations.push(
+            `${singleWord}`, // type
+            `${enStem}en`, // typen
+            `${enStem}er`, // typer
+            `${enStem}ene`, // typene
+          );
+        } else {
+          variations.push(
+            `${singleWord}`, // tilskuer / hund
+            `${singleWord}en`, // tilskueren / hunden
+            `${singleWord}er`, // hunder
+            `${singleWord}e`, // tilskuere (the common "-er" agent-noun plural)
+            `${singleWord}ene`, // hundene
+            `${singleWord}ne`, // tilskuerne (the common "-er" agent-noun definite plural)
+          );
+        }
+      }
+
+      if (gender.includes("et")) {
+        if (singleWord.endsWith("e")) {
+          variations.push(
+            `${singleWord}`, // eple
+            `${singleWord}t`, // eplet
+            `${singleWord}r`, // epler
+            `${singleWord}ne`, // eplene
+          );
+        } else {
+          variations.push(
+            `${singleWord}`, // hus
+            `${singleWord}et`, // huset
+            `${singleWord}er`, // (rare pluralizing et-words)
+            `${singleWord}ene`, // husene
+          );
+        }
+      }
       // Handle verb variations if the word is a verb and ends with "e"
     } else if (pos === "verb") {
       if (singleWord.endsWith("e")) {
@@ -2290,6 +2335,46 @@ function renderSentenceMatchesFromCorpus(rows, query) {
   document.getElementById("results-container").innerHTML = html;
 }
 
+/*
+ * Wrap every occurrence of any given term in a highlight span. Rather than
+ * requiring an exact match against a pre-generated list of inflected
+ * forms, a term of 3+ letters is treated as a stem: it's matched anywhere
+ * inside a word and the highlight is expanded to the whole word, so any
+ * inflection/suffix the caller's candidate list didn't anticipate (e.g. an
+ * irregular plural, or a form generateWordVariationsForSentences simply
+ * doesn't know about) still gets highlighted correctly. Terms shorter than
+ * that fall back to requiring an exact whole-word match, since a 1-2
+ * letter stem would otherwise match huge numbers of unrelated words.
+ */
+function highlightTermsInText(text, terms) {
+  const uniqueTerms = [...new Set(terms.filter(Boolean))];
+
+  if (!uniqueTerms.length) return text;
+
+  const longTerms = uniqueTerms.filter((term) => term.length >= 3);
+  const shortTerms = uniqueTerms.filter((term) => term.length < 3);
+  const patterns = [];
+
+  if (longTerms.length) {
+    const literalLongTerms = longTerms.map(escapeRegExp).join("|");
+    patterns.push(`[\\p{L}]*(?:${literalLongTerms})[\\p{L}]*`);
+  }
+
+  if (shortTerms.length) {
+    const literalShortTerms = shortTerms.map(escapeRegExp).join("|");
+    patterns.push(
+      `(?<![\\p{L}\\p{N}])(?:${literalShortTerms})(?![\\p{L}\\p{N}])`,
+    );
+  }
+
+  const regex = new RegExp(patterns.join("|"), "giu");
+
+  return text.replace(
+    regex,
+    (matchedText) => `<span style="color: #3c88d4;">${matchedText}</span>`,
+  );
+}
+
 // Highlight search query in text, accounting for Norwegian characters (å, æ, ø) and verb variations
 function highlightQuery(sentence, query) {
   if (!query) return sentence; // If no query, return sentence as is.
@@ -2319,22 +2404,9 @@ function highlightQuery(sentence, query) {
     ...generateWordVariationsForSentences(normalizedQuery, pos),
   ]
     .map(normalizeSearchText)
-    .filter(Boolean)
-    .filter((term, index, terms) => terms.indexOf(term) === index)
-    .sort((a, b) => b.length - a.length);
+    .filter(Boolean);
 
-  if (!highlightTerms.length) return cleanSentence;
-
-  const literalTerms = highlightTerms.map(escapeRegExp).join("|");
-  const regex = new RegExp(
-    `(?<![\\p{L}\\p{N}])(${literalTerms})(?![\\p{L}\\p{N}])`,
-    "giu",
-  );
-
-  return cleanSentence.replace(
-    regex,
-    '<span style="color: #3c88d4;">$1</span>',
-  );
+  return highlightTermsInText(cleanSentence, highlightTerms);
 }
 
 function renderSentencesHTML(sentenceResults, wordVariations) {
@@ -2662,16 +2734,7 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
    */
   const sentenceHighlightTerms = [...wordVariations]
     .map(normalizeSearchText)
-    .filter(Boolean)
-    .sort((a, b) => b.length - a.length);
-  const sentenceHighlightPattern = sentenceHighlightTerms.length
-    ? new RegExp(
-        `(?<![\\p{L}\\p{N}])(${sentenceHighlightTerms
-          .map(escapeRegExp)
-          .join("|")})(?![\\p{L}\\p{N}])`,
-        "giu",
-      )
-    : null;
+    .filter(Boolean);
 
   matchingResults.forEach((result) => {
     const cleanSentence = result.eksempel.replace(
@@ -2679,12 +2742,7 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
       "$1",
     );
 
-    result.eksempel = sentenceHighlightPattern
-      ? cleanSentence.replace(
-          sentenceHighlightPattern,
-          '<span style="color: #3c88d4;">$1</span>',
-        )
-      : cleanSentence;
+    result.eksempel = highlightTermsInText(cleanSentence, sentenceHighlightTerms);
   });
 
   // Create the sentence content with CEFR labels
