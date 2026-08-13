@@ -1025,7 +1025,6 @@ header p {
   .auth-container {
     position: static;
     justify-content: right;
-    margin-bottom: 10px;
   }
 
   .auth-user-name {
