@@ -578,6 +578,35 @@ function clearInput(refreshCurrentView = true) {
   }
 }
 
+// Click handler for the magnifying-glass search button.
+function handleSearchButtonClick() {
+  const query = document.getElementById("search-bar").value.trim();
+
+  if (query) {
+    search();
+    return;
+  }
+
+  const type = document.getElementById("type-select").value;
+
+  if (type === "word-list") {
+    // Nothing to search or randomize here when the field is empty.
+    return;
+  }
+
+  if (type === "stories") {
+    // Same as clicking the clear (X) button: reset the filters and
+    // reshuffle the story list, rather than searching for a word.
+    clearInput();
+    return;
+  }
+
+  stopAllAudio();
+  randomWord();
+  popChime.currentTime = 0;
+  popChime.play();
+}
+
 // Fetch the dictionary data from the file or server
 async function fetchAndLoadDictionaryData() {
   try {

@@ -262,15 +262,8 @@
               <button
                 id="search-btn"
                 class="search-btn"
-                aria-label="Search for the word, or generate a random word or sentence if the search field is empty"
-                onclick="
-                  document.getElementById('search-bar').value.trim()
-                    ? search()
-                    : (stopAllAudio(),
-                      randomWord(),
-                      (popChime.currentTime = 0),
-                      popChime.play())
-                "
+                aria-label="Search, or generate a random word/sentence/story if the search field is empty"
+                onclick="handleSearchButtonClick()"
               >
                 <i class="fas fa-search"></i>
               </button>
