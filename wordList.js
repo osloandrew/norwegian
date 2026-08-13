@@ -9,12 +9,15 @@
 
   const WORD_LIST_BATCH_SIZE = 100;
   const MY_WORDS_STORAGE_KEY = "norwegian-dictionary-my-words-v1";
+  const WORD_STRENGTH_STORAGE_KEY = "norwegian-dictionary-word-strength-v1";
+  const WORD_STRENGTH_MAX = 5;
 
   let activeWordListEntries = [];
   let renderedWordListCount = 0;
   let wordListBatchIsLoading = false;
   let wordListReturnState = null;
   let myWordsEntryIds = loadMyWordsEntryIds();
+  let wordStrengths = loadWordStrengths();
   let activeWordListView = "all";
 
   /**
@@ -197,6 +200,79 @@
     }
   }
 
+  function loadWordStrengths() {
+    try {
+      const storedValue = window.localStorage.getItem(
+        WORD_STRENGTH_STORAGE_KEY,
+      );
+
+      if (!storedValue) {
+        return {};
+      }
+
+      const parsedValue = JSON.parse(storedValue);
+
+      return parsedValue.strengths && typeof parsedValue.strengths === "object"
+        ? parsedValue.strengths
+        : {};
+    } catch (error) {
+      console.warn("Word strength could not be loaded.", error);
+      return {};
+    }
+  }
+
+  function saveWordStrengths({ syncRemote = true } = {}) {
+    try {
+      window.localStorage.setItem(
+        WORD_STRENGTH_STORAGE_KEY,
+        JSON.stringify({
+          version: 1,
+          strengths: wordStrengths,
+        }),
+      );
+    } catch (error) {
+      console.warn("Word strength could not be saved.", error);
+    }
+
+    // Let myWordsAuth.js know word strength changed, so it can sync to
+    // Firestore when a user is signed in. syncRemote is false when the
+    // change came from a remote merge, to avoid immediately writing it back.
+    window.dispatchEvent(
+      new CustomEvent("word-strength:updated", {
+        detail: { strengths: { ...wordStrengths }, syncRemote },
+      }),
+    );
+  }
+
+  function replaceWordStrengths(strengths) {
+    wordStrengths = { ...strengths };
+    saveWordStrengths({ syncRemote: false });
+
+    const typeSelect = document.getElementById("type-select");
+
+    if (typeSelect?.value === "word-list") {
+      renderWordList();
+    }
+  }
+
+  function recordWordStrengthResult(entry, isCorrect) {
+    const resolvedEntry = resolveMyWordsEntry(entry);
+
+    if (!resolvedEntry) {
+      return;
+    }
+
+    const entryId = getMyWordsEntryId(resolvedEntry);
+    const currentValue = wordStrengths[entryId] ?? 0;
+
+    wordStrengths[entryId] = Math.min(
+      WORD_STRENGTH_MAX,
+      Math.max(0, currentValue + (isCorrect ? 1 : -1)),
+    );
+
+    saveWordStrengths();
+  }
+
   function toggleMyWordsEntry(entry) {
     const entryId = getMyWordsEntryId(entry);
 
@@ -261,6 +337,43 @@
     });
 
     cell.appendChild(button);
+
+    return cell;
+  }
+
+  function createWordStrengthCell(entry) {
+    const cell = createWordListCell("", "word-list-strength", "Strength");
+
+    // Remove the placeholder added by createWordListCell().
+    cell.textContent = "";
+
+    const entryId = getMyWordsEntryId(entry);
+    const strengthValue = wordStrengths[entryId];
+
+    if (typeof strengthValue !== "number") {
+      cell.textContent = "—";
+      return cell;
+    }
+
+    const meter = document.createElement("span");
+    meter.className = "word-strength-meter";
+    meter.setAttribute(
+      "aria-label",
+      `Strength: ${strengthValue} out of ${WORD_STRENGTH_MAX}`,
+    );
+
+    for (let position = 0; position < WORD_STRENGTH_MAX; position++) {
+      const dot = document.createElement("i");
+      const isFilled = position < strengthValue;
+
+      dot.className = `word-strength-dot ${
+        isFilled ? "fa-solid" : "fa-regular"
+      } fa-circle`;
+      dot.setAttribute("aria-hidden", "true");
+      meter.appendChild(dot);
+    }
+
+    cell.appendChild(meter);
 
     return cell;
   }
@@ -779,6 +892,7 @@
       levelCell.textContent = "—";
     }
 
+    const strengthCell = createWordStrengthCell(entry);
     const myWordsCell = createMyWordsCell(entry);
 
     row.append(
@@ -786,6 +900,7 @@
       englishCell,
       wordClassCell,
       levelCell,
+      strengthCell,
       myWordsCell,
     );
 
@@ -1617,5 +1732,10 @@
     toggle: toggleResolvedMyWordsEntry,
     getEntryIds: () => Array.from(myWordsEntryIds),
     replaceEntryIds: replaceMyWordsEntryIds,
+  });
+  window.WordStrengthAPI = Object.freeze({
+    recordResult: recordWordStrengthResult,
+    getAll: () => ({ ...wordStrengths }),
+    replaceAll: replaceWordStrengths,
   });
 })();

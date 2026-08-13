@@ -1346,6 +1346,7 @@ async function handleTranslationClick(
     correctStreak++; // Increment the streak
     correctLevelAnswers++; // Increment correct count for this level
     updateRecentAnswers(true); // Track this correct answer
+    window.WordStrengthAPI?.recordResult?.(wordObj, true);
     // Add the word to the correctly answered words array to exclude it from future questions
     correctlyAnsweredWords.add(wordObj);
     if (isCloze) {
@@ -1391,6 +1392,7 @@ async function handleTranslationClick(
     incorrectCount++; // Increment incorrect count
     correctStreak = 0; // Reset the streak
     updateRecentAnswers(false); // Track this correct answer
+    window.WordStrengthAPI?.recordResult?.(wordObj, false);
 
     if (isCloze) {
       const sentenceElement = document.getElementById("cloze-sentence");

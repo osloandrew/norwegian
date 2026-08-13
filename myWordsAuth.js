@@ -44,19 +44,41 @@
 
   let currentUserId = null;
   let pushTimeoutId = null;
+  let strengthPushTimeoutId = null;
 
   function getUserDocRef(userId) {
     return db.collection("myWordsUsers").doc(userId);
   }
 
+  // {merge:true} is required on every write below: entryIds and
+  // wordStrengths are pushed independently (different events, different
+  // debounce timers), and without merge each write would silently wipe
+  // out whichever field it doesn't mention.
   function pushEntryIdsNow(userId, entryIds) {
     getUserDocRef(userId)
-      .set({
-        entryIds,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      })
+      .set(
+        {
+          entryIds,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      )
       .catch((error) => {
         console.warn("My Words could not be synced.", error);
+      });
+  }
+
+  function pushWordStrengthsNow(userId, strengths) {
+    getUserDocRef(userId)
+      .set(
+        {
+          wordStrengths: strengths,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      )
+      .catch((error) => {
+        console.warn("Word strength could not be synced.", error);
       });
   }
 
@@ -71,24 +93,63 @@
     }, PUSH_DEBOUNCE_MS);
   }
 
+  function scheduleStrengthPush(strengths) {
+    if (!currentUserId) {
+      return;
+    }
+
+    window.clearTimeout(strengthPushTimeoutId);
+    strengthPushTimeoutId = window.setTimeout(() => {
+      pushWordStrengthsNow(currentUserId, strengths);
+    }, PUSH_DEBOUNCE_MS);
+  }
+
   // Union the words already saved on this device with whatever is saved
   // under the signed-in account, then treat that union as the new truth
-  // both locally and remotely.
-  async function mergeRemoteEntries(userId) {
+  // both locally and remotely. Word strength isn't a set, so instead of a
+  // union each word takes the higher of its local/remote value, so
+  // progress made on either device survives the merge.
+  //
+  // Known limitation: there's no realtime listener, so two devices signed
+  // in at once each debounce-push their whole wordStrengths map and the
+  // last write wins for any word touched on both — acceptable for now.
+  async function mergeRemoteData(userId) {
     try {
       const snapshot = await getUserDocRef(userId).get();
-      const remoteEntryIds = snapshot.exists
-        ? snapshot.data().entryIds || []
+      const remoteData = snapshot.exists ? snapshot.data() : {};
+
+      const remoteEntryIds = Array.isArray(remoteData.entryIds)
+        ? remoteData.entryIds
         : [];
       const localEntryIds = window.MyWordsAPI?.getEntryIds?.() ?? [];
       const mergedEntryIds = Array.from(
         new Set([...remoteEntryIds, ...localEntryIds]),
       );
 
+      const remoteStrengths =
+        remoteData.wordStrengths && typeof remoteData.wordStrengths === "object"
+          ? remoteData.wordStrengths
+          : {};
+      const localStrengths = window.WordStrengthAPI?.getAll?.() ?? {};
+      const mergedStrengths = {};
+
+      for (const entryId of new Set([
+        ...Object.keys(remoteStrengths),
+        ...Object.keys(localStrengths),
+      ])) {
+        mergedStrengths[entryId] = Math.max(
+          remoteStrengths[entryId] ?? 0,
+          localStrengths[entryId] ?? 0,
+        );
+      }
+
       window.MyWordsAPI?.replaceEntryIds?.(mergedEntryIds);
+      window.WordStrengthAPI?.replaceAll?.(mergedStrengths);
+
       pushEntryIdsNow(userId, mergedEntryIds);
+      pushWordStrengthsNow(userId, mergedStrengths);
     } catch (error) {
-      console.warn("My Words could not be loaded from your account.", error);
+      console.warn("Your saved words could not be loaded from your account.", error);
     }
   }
 
@@ -131,7 +192,7 @@
     updateAuthUI(user);
 
     if (user) {
-      mergeRemoteEntries(user.uid);
+      mergeRemoteData(user.uid);
     }
   });
 
@@ -142,5 +203,14 @@
     }
 
     schedulePush(event.detail?.entryIds ?? []);
+  });
+
+  // Fired by wordList.js's saveWordStrengths() whenever word strength changes.
+  window.addEventListener("word-strength:updated", (event) => {
+    if (event.detail?.syncRemote === false) {
+      return;
+    }
+
+    scheduleStrengthPush(event.detail?.strengths ?? {});
   });
 })();
