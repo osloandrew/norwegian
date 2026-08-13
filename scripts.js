@@ -481,7 +481,6 @@ function handleKey(event) {
   debounceSearchTrigger(() => {
     if (event.key === "Enter") {
       search();
-      console.log("Enter key detected, search triggered.");
     }
   }, 300); // Delay of 300ms before calling search()
 }
@@ -582,19 +581,16 @@ function clearInput(refreshCurrentView = true) {
 // Fetch the dictionary data from the file or server
 async function fetchAndLoadDictionaryData() {
   try {
-    console.log("Attempting to load data from local CSV file...");
     const localResponse = await fetch("norwegianWords.csv");
     if (!localResponse.ok)
       throw new Error(`HTTP error! Status: ${localResponse.status}`);
     const localData = await localResponse.text();
-    console.log("Data successfully loaded from local file.");
     parseCSVData(localData);
   } catch (localError) {
     console.error(
       "Error fetching or parsing data from local CSV file:",
       localError,
     );
-    console.log("Falling back to Google Sheets.");
 
     // Fallback to Google Sheets CSV
     try {
@@ -634,8 +630,6 @@ function parseCSVData(data) {
        */
       sentenceCorpus = [];
       sentenceIndex = null;
-
-      console.log(`[Dictionary] Loaded ${results.length} entries.`);
     },
     error: function (error) {
       console.error("Error parsing CSV:", error);
@@ -665,9 +659,6 @@ function buildSentenceCorpus() {
       });
     }
   }
-  console.log(
-    `[Sentences] Corpus built: ${sentenceCorpus.length} sentence rows`,
-  );
 }
 
 function tokenize(text) {
@@ -699,7 +690,6 @@ function buildSentenceIndex() {
   }
   sentenceIndex = idx;
   console.timeEnd("[Sentences] build index");
-  console.log(`[Sentences] index terms: ${idx.size}`);
 }
 
 function flagMissingWordEntry(word) {
@@ -937,8 +927,6 @@ async function search(queryOverride = null) {
       ? resolveWordSearchQuery(originalQuery)
       : { query: originalQuery, reason: "exact" };
   const query = wordSearchResolution.query;
-
-  console.log("Search triggered with query:", query);
   const selectedPOS = document.getElementById("pos-select")
     ? document.getElementById("pos-select").value.toLowerCase()
     : "";
@@ -1178,7 +1166,6 @@ async function search(queryOverride = null) {
 
     if (matchingResults.length > 1) {
       latestMultipleResults = query;
-      console.log("Stored latestMultipleResults:", latestMultipleResults);
     } else {
       latestMultipleResults = null;
     }
@@ -1193,8 +1180,6 @@ async function search(queryOverride = null) {
       const suggestionOrder = new Map(
         inexactWordQueries.map((term, index) => [term, index]),
       );
-      console.log(`Closest Search Terms: ${inexactWordQueries}`);
-
       // Match only the suggested dictionary terms, not arbitrary substrings.
       let inexactWordMatches = results.filter((r) => {
         const entryTerms = [
@@ -1336,7 +1321,6 @@ function checkForSentences(word, pos) {
     });
 
     if (!matchingWordEntry) {
-      console.log(`No matching word entry for '${wordPart}' with POS '${pos}'`);
       return;
     }
 
@@ -1402,10 +1386,6 @@ function handlePOSChange() {
     updateURL(query, "words", selectedPOS);
 
     if (!query) {
-      console.log(
-        "Search field is empty. Generating random word based on selected POS.",
-      );
-
       randomWord();
     } else {
       search();
@@ -1564,10 +1544,8 @@ function handleTypeChange(type, options = {}) {
 
     // If the search bar is not empty, perform a sentence search
     if (query) {
-      console.log("Searching for sentences with query:", query);
       search(); // This will trigger a search for sentences based on the search bar query
     } else {
-      console.log("Search bar empty, generating a random sentence.");
       randomWord(); // Generate a random sentence if the search bar is empty
     }
   } else if (type === "word-game") {
@@ -1656,10 +1634,8 @@ function handleTypeChange(type, options = {}) {
       showLandingCard(false);
       clearContainer();
     } else if (query) {
-      console.log("Searching for words with query:", query);
       search(); // Trigger a word search if the search bar has a value
     } else {
-      console.log("Search bar empty, generating a random word.");
       randomWord(); // Generate a random word if the search bar is empty
     }
   }
@@ -1718,9 +1694,6 @@ function handleCEFRChange() {
   } else {
     // If the search field is empty, generate a random word based on the CEFR level
     if (!query) {
-      console.log(
-        "Search field is empty. Generating random word based on selected CEFR.",
-      );
       randomWord(); // Ensure randomWord() applies the CEFR filter
     } else {
       search(); // Perform a search with the selected CEFR
@@ -2008,7 +1981,6 @@ function displaySearchResults(results, query = "") {
 
   // Automatically load sentences for a single result, regardless of whether sentences exist in `eksempel`
   if (defaultResult && results[0]) {
-    console.log("Auto-loading sentences for:", results[0].ord);
     setTimeout(() => {
       const singleResult = results[0];
       fetchAndRenderSentences(
@@ -2018,7 +1990,6 @@ function displaySearchResults(results, query = "") {
       );
     }, 0);
   } else {
-    console.log("No sentences to load for:", results[0]?.ord || "No results");
   }
 }
 
@@ -2673,7 +2644,6 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
 
   // Check if there are any matching results
   if (matchingResults.length === 0) {
-    console.log(`No sentences found for the word variations.`);
     return;
   }
 
@@ -3035,23 +3005,14 @@ function loadStateFromURL() {
 
 // Function to handle clicking on a search result card
 function handleCardClick(event, word, pos, engelsk, definisjon) {
-  console.log(`Word clicked: ${word}, POS: ${pos}`); // Log the clicked word and POS
-
   // Filter to count only visible elements with the specific card class
   const visibleCards = Array.from(resultsContainer.children).filter(
     (child) =>
       child.classList.contains("definition") && child.offsetParent !== null,
   );
 
-  // Log the count of visible cards
-  console.log(
-    "Number of visible cards in resultsContainer:",
-    visibleCards.length,
-  );
-
   // Prevent activation if only one card is displayed
   if (visibleCards.length === 1) {
-    console.log("Only one card displayed, click action disabled.");
     return;
   }
 

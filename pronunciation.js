@@ -105,7 +105,6 @@ async function computeSimilarity(nativeUrl, userUrl) {
   const mfccU = extractMFCCSequence(userAudio);
 
   if (!mfccN.length || !mfccU.length) {
-    console.log("No voiced frames — returning 0");
     return 0;
   }
 
@@ -120,14 +119,12 @@ async function computeSimilarity(nativeUrl, userUrl) {
   const normalized = Math.min(Math.max(raw, 0), 1);
   const score = Math.round(normalized * 100);
 
-  console.log("DTW-MFCC similarity:", { dist, raw, score });
   return score;
 }
 
 // Entry point: called when Pronunciation tab is activated
 async function initPronunciation() {
   showLandingCard(false);
-  console.log("Pronunciation module loaded");
 
   if (!results.length) {
     console.warn("No dictionary data loaded yet");
@@ -195,7 +192,6 @@ function showRandomPronunciation() {
 
   // Build audio URL using the whole sentence
   const audioFile = buildPronAudioUrl(selectedNorwegian);
-  console.log("Pronunciation audio src →", audioFile);
 
   // Build sentence HTML
   let sentenceHTML = `

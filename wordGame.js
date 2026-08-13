@@ -537,20 +537,10 @@ async function startWordGame() {
       popChime.currentTime = 0; // Reset audio to the beginning
       popChime.play(); // Play the pop sound
 
-      console.log(
-        "Reintroducing word from incorrectWordQueue:",
-        firstWordInQueue.wordObj,
-      );
-
       // Reintroduce the word
       currentWord = firstWordInQueue.wordObj.ord;
       correctTranslation = firstWordInQueue.wordObj.engelsk;
 
-      // Log wordObj being passed to renderWordGameUI
-      console.log(
-        "Passing wordObj to renderWordGameUI:",
-        firstWordInQueue.wordObj,
-      );
       if (firstWordInQueue.wasCloze) {
         const randomWordObj = firstWordInQueue.wordObj;
 
@@ -709,11 +699,6 @@ async function startWordGame() {
     renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
     return;
   }
-
-  console.log(
-    "Showing " + (isClozeQuestion ? "CLOZE" : "FLASHCARD") + " question for:",
-    randomWordObj.ord,
-  );
 
   if (isClozeQuestion) {
     const baseWord = randomWordObj.ord.split(",")[0].trim().toLowerCase();
@@ -928,7 +913,6 @@ function displayPronunciation(word) {
   } else if (pronunciationContainer) {
     pronunciationContainer.innerHTML = ""; // Clear if no pronunciation
   } else {
-    console.log("No container found.");
   }
 }
 
@@ -1344,7 +1328,6 @@ async function handleTranslationClick(
   questionsAtCurrentLevel++; // Increment questions at this level
   const { exampleSentence, sentenceTranslation } =
     await fetchExampleSentence(wordObj);
-  console.log("Fetched example sentence:", exampleSentence);
 
   if (selectedTranslationPart === correctTranslationPart) {
     playSentenceAudio(exampleSentence);
@@ -1476,8 +1459,6 @@ async function handleTranslationClick(
 }
 
 async function fetchExampleSentence(wordObj) {
-  console.log("Fetching example sentence for:", wordObj);
-
   // Ensure gender and CEFR are defined before performing the search
   if (!wordObj.gender || !wordObj.CEFR || !wordObj.ord) {
     console.warn("Missing required fields for search:", wordObj);
@@ -1494,8 +1475,6 @@ async function fetchExampleSentence(wordObj) {
 
   // Log the matching entry or lack thereof
   if (matchingEntry) {
-    console.log("Matching entry found:", matchingEntry);
-    console.log("Example sentence found:", matchingEntry.eksempel);
   } else {
     console.warn(`No matching entry found for word: ${wordObj.ord}`);
   }
@@ -1506,10 +1485,6 @@ async function fetchExampleSentence(wordObj) {
     !matchingEntry.eksempel ||
     matchingEntry.eksempel.trim() === ""
   ) {
-    console.log(
-      `No example sentence available for word: ${wordObj.ord} with specified gender and CEFR.`,
-    );
-
     // Step 3: Search for another entry with the same 'ord' but without considering 'gender' or 'CEFR'
     matchingEntry = results.find(
       (result) =>
@@ -1517,10 +1492,6 @@ async function fetchExampleSentence(wordObj) {
         result.eksempel.toLowerCase().startsWith(wordObj.ord.toLowerCase()),
     );
     if (matchingEntry) {
-      console.log(
-        "Found example sentence from another word entry:",
-        matchingEntry.eksempel,
-      );
     } else {
       console.warn(
         `No example sentence found in the entire dataset containing the word: ${wordObj.ord}`,
@@ -1715,8 +1686,6 @@ async function fetchRandomWord() {
   }
 
   if (eligibleEntries.length === 0) {
-    console.log("No words found matching the selected CEFR and POS filters.");
-
     return null;
   }
 
@@ -1737,9 +1706,6 @@ async function fetchRandomWord() {
 function advanceToNextLevel() {
   if (incorrectWordQueue.length > 0) {
     // Block level advancement if there are still incorrect words
-    console.log(
-      "The user must review all incorrect words before advancing to the next level.",
-    );
     return;
   }
 
@@ -1794,8 +1760,6 @@ function evaluateProgression() {
   if (levelTotalQuestions >= 10) {
     const accuracy = levelCorrectAnswers / levelTotalQuestions;
     const { up, down } = levelThresholds[currentCEFR];
-    console.log(`Evaluating: Accuracy is ${Math.round(accuracy * 100)}%`);
-
     if (accuracy >= up && incorrectWordQueue.length === 0) {
       advanceToNextLevel();
     } else if (accuracy < down) {

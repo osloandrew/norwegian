@@ -149,7 +149,7 @@ async function fetchAndLoadStoryData() {
   return storyDataLoadPromise;
 }
 // Helper function to determine CEFR class
-function getCefrClass(cefrLevel) {
+function getStoryCefrClass(cefrLevel) {
   if (!cefrLevel) return "cefr-unknown"; // Fallback for missing CEFR levels
   const level = cefrLevel.toUpperCase();
   if (["A1"].includes(level)) return "a1";
@@ -396,7 +396,7 @@ async function displayStoryList(filteredStories = storyResults) {
       (story.genre && genreIcons[story.genre.toLowerCase()]) || "";
 
     const cefrDiv = document.createElement("div");
-    cefrDiv.classList.add("cefr-value", getCefrClass(story.CEFR));
+    cefrDiv.classList.add("cefr-value", getStoryCefrClass(story.CEFR));
     cefrDiv.textContent = story.CEFR || "N/A";
 
     detailContainer.appendChild(genreDiv);
@@ -468,7 +468,7 @@ function displayStory(titleNorwegian) {
   updateStoryMetadata(selectedStory);
   // Build sticky header here, just before audio is constructed
   const genreIcon = genreIcons[selectedStory.genre.toLowerCase()] || "";
-  const cefrClass = getCefrClass(selectedStory.CEFR);
+  const cefrClass = getStoryCefrClass(selectedStory.CEFR);
 
   const sticky = document.getElementById("sticky-header");
   sticky.classList.remove("hidden");
@@ -613,7 +613,6 @@ function displayStory(titleNorwegian) {
       slot.innerHTML = "";
       slot.appendChild(player);
       player.playbackRate = currentSpeed; // ensure it starts at the saved speed
-      console.log("[AUDIO] trying:", player.src);
     }
   }
 
@@ -626,7 +625,6 @@ function displayStory(titleNorwegian) {
   let contentHTML = '<div id="story-image-slot"></div>';
   // Function to finalize and display the story content
   const finalizeContent = () => {
-
     for (let i = 0; i < norwegianSentences.length; i++) {
       const norwegianSentence = norwegianSentences[i].trim();
       const englishSentence = englishSentences[i]
@@ -833,12 +831,14 @@ function getStoryImageCandidates(titleEnglish) {
   if (!title) return [];
 
   const sanitized = title.endsWith("?") ? title.slice(0, -1) : title;
-  const encodedTitles = [...new Set([title, sanitized])].map(encodeURIComponent);
+  const encodedTitles = [...new Set([title, sanitized])].map(
+    encodeURIComponent,
+  );
   const imageExtensions = ["png", "webp", "jpg", "avif", "jpeg", "gif"];
 
   return encodedTitles.flatMap((encoded) =>
-    imageExtensions.map((extension) =>
-      `Resources/Images/${encoded}.${extension}`,
+    imageExtensions.map(
+      (extension) => `Resources/Images/${encoded}.${extension}`,
     ),
   );
 }
