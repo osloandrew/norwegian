@@ -434,18 +434,15 @@ li {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   padding: 25px;
+  color: #951b1b; /* Error type in a similar error color */
+  font-size: 16px;
+  font-weight: 600;
 }
 
 /* Specific styling for the error message */
 .error-message h2 {
   color: #951b1b; /* Error title in a distinct color */
   font-size: 24px;
-}
-
-.error-message {
-  color: #951b1b; /* Error type in a similar error color */
-  font-size: 16px;
-  font-weight: 600;
 }
 
 .error-message p {
@@ -1349,6 +1346,13 @@ main {
   width: 50%; /* The word and gender take up 40% of the container */
   justify-content: center; /* Vertically center the word and gender within their container */
 }
+
+.my-words-nav-btn-label {
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 ol,
 ul {
   list-style-type: square;
@@ -1386,7 +1390,7 @@ ul {
   cursor: pointer;
   display: flex;
   font-family: "Noto Sans", sans-serif;
-  font-size: 14px;
+  font-size: 13.3333px;
   gap: 8px;
   height: 42px;
   justify-content: center;
@@ -2111,7 +2115,7 @@ ul {
   border-left: 5px solid #0d3a69;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  margin: 0 0 20px 0;
+  margin: 0 0 10px 0;
   overflow: hidden;
   transition:
     box-shadow 0.2s ease,
@@ -2897,6 +2901,10 @@ ul {
     line-height: 1.4 !important;
   }
 
+  .error-message {
+    margin: 5px;
+  }
+
   footer,
   header {
     width: 100%; /* Ensure both footer and header are the same width */
@@ -3343,6 +3351,10 @@ ul {
     margin-bottom: 1.25em;
   }
 
+  .story-recommendation {
+    margin: 0 0 7.5px 0;
+  }
+
   .type-filter,
   .pos-filter,
   .cefr-filter,
@@ -3445,7 +3457,7 @@ ul {
 
   .word-list-header {
     padding: 10px 20px !important;
-    margin: 0 5px 5px;
+    margin: 0px 5px;
   }
 
   .word-list-table {
