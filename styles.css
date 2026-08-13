@@ -582,7 +582,7 @@ footer .copyright {
 .game-cefr-label.c,
 .game-cefr-label.c1,
 .game-cefr-label.c2 {
-  background-color: #e9a895; /* Red for 'C' */
+  background-color: #ecb3a3; /* Red for 'C' */
 }
 
 .game-cefr-spacer {
@@ -3233,12 +3233,12 @@ ul {
   .game-english-filter select {
     box-sizing: border-box !important;
     cursor: pointer;
-    font-size: 11px; /* Further reduce the font size for very small screens */
+    font-size: 10px; /* Further reduce the font size for very small screens */
     font-weight: 500;
     text-transform: uppercase;
     padding: 0 30px 0 8px;
     min-width: 0px;
-    letter-spacing: 0;
+    letter-spacing: 0.05em;
     text-overflow: unset;
   }
 
@@ -3260,7 +3260,7 @@ ul {
 
   .word-list-english {
     font-size: 10px;
-    padding: 6px 10px !important;
+    padding: 6px !important;
   }
 
   .word-list-class,
@@ -3276,10 +3276,14 @@ ul {
 
   .word-list-header {
     padding: 10px 20px !important;
+    margin: 0 5px 5px;
   }
 
   .word-list-table {
-    border-spacing: 0 8px;
+    border-spacing: 0 8px !important;
+  }
+  .word-list-table-container {
+    padding: 0 5px;
   }
 }
 
