@@ -2478,8 +2478,8 @@ ul {
 .word-list-row .word-list-class,
 .word-list-row .word-list-level,
 .word-list-row .word-list-strength {
-  padding-left: 10px;
-  padding-right: 10px;
+  padding-left: 6px;
+  padding-right: 6px;
 }
 
 .word-list-row td:first-child {
@@ -3371,7 +3371,7 @@ ul {
 
   .word-list-norwegian {
     font-size: 12px;
-    padding: 6px 10px !important;
+    padding: 6px !important;
   }
 
   .word-list-english {
@@ -3383,7 +3383,7 @@ ul {
   .word-list-level,
   .word-list-strength,
   .word-list-favorite {
-    padding: 6px !important;
+    padding: 4px !important;
   }
 
   .word-strength-dot {
