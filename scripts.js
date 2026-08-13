@@ -1495,7 +1495,7 @@ function handleTypeChange(type, options = {}) {
 
     searchBarWrapper.style.display = "inline-flex"; // Hide search-bar-wrapper
     posFilterContainer.style.display = "none";
-    randomBtn.style.display = "none"; // Hide random button
+    randomBtn.style.display = "block"; // My Words is still useful from the story list
     cefrLock.style.display = "none";
 
     searchContainerInner.classList.remove("word-game-active");
@@ -1571,7 +1571,7 @@ function handleTypeChange(type, options = {}) {
   } else if (type === "word-list") {
     // Hide controls that Word List does not use.
     genreFilterContainer.style.display = "none";
-    randomBtn.style.display = "none";
+    randomBtn.style.display = "block";
 
     // Keep the shared search field visible.
     searchBarWrapper.style.display = "inline-flex";

@@ -144,7 +144,6 @@
                 <option value="sentences">Sentences</option>
                 <option value="stories">Stories</option>
                 <option value="word-game">Word Game</option>
-                <option value="pronunciation">Pronunciation</option>
                 <option value="word-list">Word List</option>
               </select>
               <i class="fas fa-chevron-down"></i>
@@ -268,9 +267,9 @@
                   document.getElementById('search-bar').value.trim()
                     ? search()
                     : (stopAllAudio(),
-                        randomWord(),
-                        (popChime.currentTime = 0),
-                        popChime.play())
+                      randomWord(),
+                      (popChime.currentTime = 0),
+                      popChime.play())
                 "
               >
                 <i class="fas fa-search"></i>
