@@ -3042,6 +3042,22 @@ function loadStateFromURL() {
         handleTypeChange("pronunciation"); // 👈 ensure pronunciation tab is restored
       } else if (type !== "words") {
         handleTypeChange(type);
+      } else {
+        // "words" skips handleTypeChange (its search/landing-page logic is
+        // handled separately below), but the CEFR filter and Word Game's
+        // visual state still need resetting here too — otherwise a level
+        // saved from Word Game (e.g. via the browser back button) leaks
+        // into the Words/Sentences CEFR filter instead of coming up blank.
+        const cefrSelectEl = document.getElementById("cefr-select");
+        const cefrLockEl = document.getElementById("lock-icon");
+        const searchContainerInnerEl = document.getElementById(
+          "search-container-inner",
+        );
+
+        if (cefrSelectEl) cefrSelectEl.value = "";
+        if (cefrLockEl) cefrLockEl.style.display = "none";
+        searchContainerInnerEl?.classList.remove("word-game-active");
+        gameActive = false;
       }
 
       // Perform a search if a query is specified; otherwise, show the landing page
