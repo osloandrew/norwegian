@@ -2117,7 +2117,18 @@ function setGameLevel(newLevel) {
 function replaceGameLevel(newLevel) {
   currentCEFR = newLevel;
   saveGameLevel({ syncRemote: false });
-  updateCEFRSelection();
+
+  // Only touch the shared CEFR dropdown if Word Game is the view actually
+  // on screen right now. This runs after an async sign-in merge, which
+  // often resolves while the user is looking at Words/Sentences/etc. —
+  // writing to the dropdown then would visibly hijack whatever filter
+  // they had selected there for a moment, even though it has nothing to
+  // do with the game level.
+  const typeSelect = document.getElementById("type-select");
+
+  if (typeSelect?.value === "word-game") {
+    updateCEFRSelection();
+  }
 }
 
 function resetGame(resetStreak = true) {
