@@ -2115,6 +2115,46 @@ ul {
   transform: scale(1.01);
 }
 
+.story-recommendation {
+  background-color: #eaf3fc;
+  border: 1px solid #b7d8f5;
+  border-left: 5px solid #0d3a69;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 0 0 20px 0;
+  overflow: hidden;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.story-recommendation:hover {
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  transform: scale(1.01);
+}
+
+.story-recommendation-label {
+  align-items: center;
+  color: #0d3a69;
+  display: flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  gap: 6px;
+  letter-spacing: 0.04em;
+  padding: 10px 12.5px 0 12.5px;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.story-recommendation-label i {
+  color: #d9a441;
+}
+
+.story-recommendation .story-card-link {
+  cursor: pointer;
+}
+
 .stories-list-item p {
   color: #333;
   font-size: 20px;

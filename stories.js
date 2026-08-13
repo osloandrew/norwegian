@@ -1,6 +1,14 @@
 let storyResults = []; // Global variable to store the stories
 let currentSpeed = 1.0; // default speed
 
+/*
+ * Cache of the current "recommended for your level" pick, keyed by CEFR
+ * level. Reused across re-renders (e.g. changing the genre filter) so the
+ * suggestion doesn't reshuffle on every unrelated interaction - it only
+ * changes on a fresh page load or when the user's Word Game level changes.
+ */
+let cachedStoryRecommendation = null; // { level, story }
+
 // Define an object mapping genres to Font Awesome icons
 const genreIcons = {
   action: '<i class="fas fa-bolt"></i>', // Action genre icon
@@ -288,6 +296,117 @@ function updateEnglishVisibility() {
   }
 }
 
+/*
+ * Picks (and caches) a random story matching the user's saved Word Game
+ * level. Returns null if that level isn't available yet, or no story at
+ * that level exists.
+ */
+function getRecommendedStory() {
+  const level = window.WordGameHelpers?.getCurrentLevel?.();
+
+  if (!level) {
+    return null;
+  }
+
+  if (cachedStoryRecommendation && cachedStoryRecommendation.level === level) {
+    return cachedStoryRecommendation.story;
+  }
+
+  const candidates = storyResults.filter(
+    (story) =>
+      story.CEFR &&
+      story.CEFR.trim().toUpperCase() === level &&
+      story.titleNorwegian,
+  );
+
+  const story = candidates.length
+    ? candidates[Math.floor(Math.random() * candidates.length)]
+    : null;
+
+  cachedStoryRecommendation = { level, story };
+
+  return story;
+}
+
+/*
+ * Build the shared title+detail markup for a story card. Used by both the
+ * regular story list and the recommendation banner, so they always stay
+ * visually consistent.
+ */
+function createStoryCardLink(story) {
+  const storyLink = document.createElement("a");
+  storyLink.className = "story-card-link";
+  storyLink.href = `?type=story&story=${encodeURIComponent(story.titleNorwegian)}`;
+  storyLink.dataset.storyTitle = story.titleNorwegian;
+
+  const titleContainer = document.createElement("div");
+  titleContainer.classList.add("title-container");
+
+  const norwegianTitle = document.createElement("div");
+  norwegianTitle.classList.add("japanese-title");
+  norwegianTitle.textContent = story.titleNorwegian;
+
+  titleContainer.appendChild(norwegianTitle);
+
+  if (story.titleNorwegian !== story.titleEnglish) {
+    const englishTitle = document.createElement("div");
+    englishTitle.classList.add("english-title", "stories-subtitle");
+    englishTitle.textContent = story.titleEnglish || "";
+
+    titleContainer.appendChild(englishTitle);
+  }
+
+  const detailContainer = document.createElement("div");
+  detailContainer.classList.add("stories-detail-container");
+
+  const genreDiv = document.createElement("div");
+  genreDiv.classList.add("stories-genre");
+  genreDiv.innerHTML =
+    (story.genre && genreIcons[story.genre.toLowerCase()]) || "";
+
+  const cefrDiv = document.createElement("div");
+  cefrDiv.classList.add("cefr-value", getStoryCefrClass(story.CEFR));
+  cefrDiv.textContent = story.CEFR || "N/A";
+
+  detailContainer.appendChild(genreDiv);
+  detailContainer.appendChild(cefrDiv);
+
+  storyLink.appendChild(titleContainer);
+  storyLink.appendChild(detailContainer);
+
+  return storyLink;
+}
+
+/*
+ * Build the highlighted "recommended for your level" banner shown at the
+ * top of the Stories page.
+ */
+function createStoryRecommendationElement(story, level) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "story-recommendation";
+
+  const label = document.createElement("div");
+  label.className = "story-recommendation-label";
+  label.innerHTML = `<i class="fas fa-star" aria-hidden="true"></i> Recommended for your level (${level})`;
+
+  const storyLink = createStoryCardLink(story);
+  storyLink.classList.add("story-recommendation-link");
+
+  storyLink.addEventListener("click", (event) => {
+    const modifiedClick =
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+    if (modifiedClick) return;
+
+    event.preventDefault();
+    displayStory(storyLink.dataset.storyTitle);
+  });
+
+  wrapper.appendChild(label);
+  wrapper.appendChild(storyLink);
+
+  return wrapper;
+}
+
 async function displayStoryList(filteredStories = storyResults) {
   showSpinner(); // Show spinner before rendering story list
   restoreSearchContainerInner();
@@ -341,6 +460,15 @@ async function displayStoryList(filteredStories = storyResults) {
     return genreMatch && cefrMatch && hasNorwegian && matchesSearch;
   });
 
+  // Recommend a story at the user's saved Word Game level, elevated above
+  // the regular list, and excluded from it so it isn't shown twice.
+  const recommendedLevel = window.WordGameHelpers?.getCurrentLevel?.();
+  const recommendedStory = getRecommendedStory();
+
+  if (recommendedStory) {
+    filtered = filtered.filter((story) => story !== recommendedStory);
+  }
+
   // Shuffle the filtered stories using Fisher-Yates algorithm
   for (let i = filtered.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -361,51 +489,7 @@ async function displayStoryList(filteredStories = storyResults) {
   filtered.forEach((story) => {
     const li = document.createElement("li");
     li.className = "stories-list-item";
-
-    // Create a genuine link that search engines and browsers can follow.
-    const storyLink = document.createElement("a");
-    storyLink.className = "story-card-link";
-    storyLink.href = `?type=story&story=${encodeURIComponent(story.titleNorwegian)}`;
-    storyLink.dataset.storyTitle = story.titleNorwegian;
-
-    // Left side: Norwegian and English titles.
-    const titleContainer = document.createElement("div");
-    titleContainer.classList.add("title-container");
-
-    const norwegianTitle = document.createElement("div");
-    norwegianTitle.classList.add("japanese-title");
-    norwegianTitle.textContent = story.titleNorwegian;
-
-    titleContainer.appendChild(norwegianTitle);
-
-    if (story.titleNorwegian !== story.titleEnglish) {
-      const englishTitle = document.createElement("div");
-      englishTitle.classList.add("english-title", "stories-subtitle");
-      englishTitle.textContent = story.titleEnglish || "";
-
-      titleContainer.appendChild(englishTitle);
-    }
-
-    // Right side: genre icon and CEFR level.
-    const detailContainer = document.createElement("div");
-    detailContainer.classList.add("stories-detail-container");
-
-    const genreDiv = document.createElement("div");
-    genreDiv.classList.add("stories-genre");
-    genreDiv.innerHTML =
-      (story.genre && genreIcons[story.genre.toLowerCase()]) || "";
-
-    const cefrDiv = document.createElement("div");
-    cefrDiv.classList.add("cefr-value", getStoryCefrClass(story.CEFR));
-    cefrDiv.textContent = story.CEFR || "N/A";
-
-    detailContainer.appendChild(genreDiv);
-    detailContainer.appendChild(cefrDiv);
-
-    storyLink.appendChild(titleContainer);
-    storyLink.appendChild(detailContainer);
-    li.appendChild(storyLink);
-
+    li.appendChild(createStoryCardLink(story));
     storyItems.appendChild(li);
   });
 
@@ -426,6 +510,13 @@ async function displayStoryList(filteredStories = storyResults) {
   });
 
   storyList.appendChild(storyItems);
+
+  if (recommendedStory) {
+    container.appendChild(
+      createStoryRecommendationElement(recommendedStory, recommendedLevel),
+    );
+  }
+
   container.appendChild(storyList);
 
   // show list / hide reader (unchanged behavior)
