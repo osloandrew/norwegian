@@ -45,6 +45,7 @@
   let currentUserId = null;
   let pushTimeoutId = null;
   let strengthPushTimeoutId = null;
+  let levelPushTimeoutId = null;
 
   function getUserDocRef(userId) {
     return db.collection("myWordsUsers").doc(userId);
@@ -82,6 +83,20 @@
       });
   }
 
+  function pushGameLevelNow(userId, level) {
+    getUserDocRef(userId)
+      .set(
+        {
+          gameLevel: level,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      )
+      .catch((error) => {
+        console.warn("Game level could not be synced.", error);
+      });
+  }
+
   function schedulePush(entryIds) {
     if (!currentUserId) {
       return;
@@ -101,6 +116,17 @@
     window.clearTimeout(strengthPushTimeoutId);
     strengthPushTimeoutId = window.setTimeout(() => {
       pushWordStrengthsNow(currentUserId, strengths);
+    }, PUSH_DEBOUNCE_MS);
+  }
+
+  function scheduleLevelPush(level) {
+    if (!currentUserId) {
+      return;
+    }
+
+    window.clearTimeout(levelPushTimeoutId);
+    levelPushTimeoutId = window.setTimeout(() => {
+      pushGameLevelNow(currentUserId, level);
     }, PUSH_DEBOUNCE_MS);
   }
 
@@ -143,11 +169,30 @@
         );
       }
 
+      // Level is a single ordinal value, not a set or a per-word map — merge
+      // by taking whichever of local/remote represents more progress.
+      const levelOrder = window.WordGameHelpers?.getLevelOrder?.() ?? [
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C",
+      ];
+      const localLevel = window.WordGameHelpers?.getCurrentLevel?.() ?? "A1";
+      const remoteLevel =
+        typeof remoteData.gameLevel === "string" ? remoteData.gameLevel : "A1";
+      const mergedLevel =
+        levelOrder.indexOf(remoteLevel) > levelOrder.indexOf(localLevel)
+          ? remoteLevel
+          : localLevel;
+
       window.MyWordsAPI?.replaceEntryIds?.(mergedEntryIds);
       window.WordStrengthAPI?.replaceAll?.(mergedStrengths);
+      window.WordGameHelpers?.replaceLevel?.(mergedLevel);
 
       pushEntryIdsNow(userId, mergedEntryIds);
       pushWordStrengthsNow(userId, mergedStrengths);
+      pushGameLevelNow(userId, mergedLevel);
     } catch (error) {
       console.warn("Your saved words could not be loaded from your account.", error);
     }
@@ -212,5 +257,14 @@
     }
 
     scheduleStrengthPush(event.detail?.strengths ?? {});
+  });
+
+  // Fired by wordGame.js's saveGameLevel() whenever the CEFR level changes.
+  window.addEventListener("game-level:updated", (event) => {
+    if (event.detail?.syncRemote === false) {
+      return;
+    }
+
+    scheduleLevelPush(event.detail?.level ?? "A1");
   });
 })();

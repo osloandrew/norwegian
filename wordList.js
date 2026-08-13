@@ -1737,5 +1737,15 @@
     recordResult: recordWordStrengthResult,
     getAll: () => ({ ...wordStrengths }),
     replaceAll: replaceWordStrengths,
+    // Direct O(1) lookup, valid only for canonical `results` entries (not
+    // resolved/partial copies) — the Word Game always hands over the
+    // original entry reference, so this is safe for that caller.
+    get: (entry) => {
+      const raw = wordStrengths[getMyWordsEntryId(entry)];
+
+      return typeof raw === "number" && Number.isFinite(raw)
+        ? Math.min(WORD_STRENGTH_MAX, Math.max(0, raw))
+        : null;
+    },
   });
 })();

@@ -5,7 +5,10 @@ let correctlyAnsweredWords = new Set(); // Track exact dictionary entries alread
 let correctLevelAnswers = 0; // Track correct answers per level
 let correctCount = 0; // Tracks the total number of correct answers
 let correctStreak = 0; // Track the current streak of correct answers
-let currentCEFR = "A1"; // Start at A1 by default
+const GAME_LEVEL_STORAGE_KEY = "norwegian-dictionary-game-level-v1";
+const CEFR_LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C"];
+
+let currentCEFR = loadGameLevel(); // Resumes at the saved level; defaults to A1
 let levelCorrectAnswers = 0;
 let levelTotalQuestions = 0;
 let gameActive = false;
@@ -503,6 +506,10 @@ async function startWordGame() {
   const cefrSelect = document.getElementById("cefr-select");
   const gameEnglishSelect = document.getElementById("game-english-select");
 
+  // Keep the dropdown in sync with the (possibly persisted/resumed) level
+  // whenever the word-game view is entered or re-entered.
+  updateCEFRSelection();
+
   gameActive = true;
   showLandingCard(false);
   hideAllBanners(); // Hide banners before starting the new word
@@ -606,23 +613,15 @@ async function startWordGame() {
           );
         }
       } else {
-        // Rebuild incorrect translations for non-cloze word
-        let incorrectTranslations = fetchIncorrectTranslations(
+        // Rebuild incorrect translations for non-cloze word. This already
+        // widens its own search — same gender across all CEFR levels, then
+        // any word at all — internally if the same-CEFR pool is too small,
+        // so no separate cross-level fallback call is needed here.
+        const incorrectTranslations = fetchIncorrectTranslations(
           firstWordInQueue.wordObj.gender,
           correctTranslation,
           firstWordInQueue.wordObj.CEFR,
         );
-
-        if (incorrectTranslations.length < 3) {
-          const additionalTranslations =
-            fetchIncorrectTranslationsFromOtherCEFRLevels(
-              firstWordInQueue.wordObj.gender,
-              correctTranslation,
-            );
-          incorrectTranslations = incorrectTranslations.concat(
-            additionalTranslations,
-          );
-        }
 
         const allTranslations = shuffleArray([
           correctTranslation,
@@ -658,7 +657,7 @@ async function startWordGame() {
 
   // Use the currentCEFR directly, since it's dynamically updated when the user selects a new CEFR level
   if (!currentCEFR) {
-    currentCEFR = "A1"; // Default to A1 if no level is set
+    setGameLevel("A1"); // Default to A1 if no level is set
   }
 
   // Fetch a random word that respects CEFR and POS filters
@@ -1601,12 +1600,36 @@ function getEligibleGameWords(selectedPOS, cefrLevel) {
   });
 }
 
-function pickRandomGameWord(entries) {
+const STRENGTH_WEIGHT_CEILING = 6; // WordStrengthAPI values are 0-5
+const STRENGTH_WEIGHT_EXPONENT = 2; // squared — retune here if the curve needs adjusting
+
+function getGameWordWeight(entry) {
+  const strength = window.WordStrengthAPI?.get?.(entry) ?? 0;
+
+  return Math.pow(STRENGTH_WEIGHT_CEILING - strength, STRENGTH_WEIGHT_EXPONENT);
+}
+
+/*
+ * Favors low-strength (weak or never-tried) words over high-strength
+ * (mastered) ones, without ever fully excluding a mastered word.
+ */
+function pickWeightedGameWord(entries) {
   if (entries.length === 0) {
     return null;
   }
 
-  return entries[Math.floor(Math.random() * entries.length)];
+  const weights = entries.map(getGameWordWeight);
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  let target = Math.random() * totalWeight;
+
+  for (let i = 0; i < entries.length; i++) {
+    target -= weights[i];
+    if (target < 0) {
+      return entries[i];
+    }
+  }
+
+  return entries[entries.length - 1]; // floating-point rounding fallback
 }
 
 function pickPrioritizedGameWord(eligibleEntries) {
@@ -1636,14 +1659,14 @@ function pickPrioritizedGameWord(eligibleEntries) {
    * use the ordinary pool.
    */
   if (myWordsEntries.length === 0) {
-    return pickRandomGameWord(otherEntries);
+    return pickWeightedGameWord(otherEntries);
   }
 
   /*
    * If every eligible word is saved, use the saved pool.
    */
   if (otherEntries.length === 0) {
-    return pickRandomGameWord(myWordsEntries);
+    return pickWeightedGameWord(myWordsEntries);
   }
 
   /*
@@ -1655,7 +1678,7 @@ function pickPrioritizedGameWord(eligibleEntries) {
   const selectedPool =
     Math.random() < MY_WORDS_PRIORITY ? myWordsEntries : otherEntries;
 
-  return pickRandomGameWord(selectedPool);
+  return pickWeightedGameWord(selectedPool);
 }
 
 async function fetchRandomWord() {
@@ -1719,7 +1742,7 @@ function advanceToNextLevel() {
 
   // Only advance if we are not already at the next level
   if (currentCEFR !== nextLevel && nextLevel) {
-    currentCEFR = nextLevel;
+    setGameLevel(nextLevel);
     resetGame(false); // Preserve streak when progressing
     showBanner("congratulations", nextLevel); // Show the banner
     updateCEFRSelection();
@@ -1735,7 +1758,7 @@ function fallbackToPreviousLevel() {
 
   // Only change the level if it is actually falling back to a previous level
   if (currentCEFR !== previousLevel && previousLevel) {
-    currentCEFR = previousLevel; // Update the current level to the previous one
+    setGameLevel(previousLevel);
     resetGame(false); // Preserve streak when progressing
     incorrectWordQueue = []; // Reset the incorrect word queue on fallback
     showBanner("fallback", previousLevel); // Show the fallback banner
@@ -2021,6 +2044,59 @@ function updateCEFRSelection() {
   cefrSelect.value = currentCEFR;
 }
 
+function loadGameLevel() {
+  try {
+    const storedValue = window.localStorage.getItem(GAME_LEVEL_STORAGE_KEY);
+
+    if (!storedValue) {
+      return "A1";
+    }
+
+    const parsedValue = JSON.parse(storedValue);
+
+    return CEFR_LEVEL_ORDER.includes(parsedValue.level)
+      ? parsedValue.level
+      : "A1";
+  } catch (error) {
+    console.warn("Game level could not be loaded.", error);
+    return "A1";
+  }
+}
+
+function saveGameLevel({ syncRemote = true } = {}) {
+  try {
+    window.localStorage.setItem(
+      GAME_LEVEL_STORAGE_KEY,
+      JSON.stringify({ version: 1, level: currentCEFR }),
+    );
+  } catch (error) {
+    console.warn("Game level could not be saved.", error);
+  }
+
+  // Let myWordsAuth.js know the level changed, so it can sync to Firestore
+  // when a user is signed in. syncRemote is false when the change came
+  // from a remote merge, to avoid immediately writing it back.
+  window.dispatchEvent(
+    new CustomEvent("game-level:updated", {
+      detail: { level: currentCEFR, syncRemote },
+    }),
+  );
+}
+
+// Only level progression persists — streak, the incorrect-word queue, and
+// per-level accuracy counters stay session-only (resetGame() already
+// leaves currentCEFR untouched, and continues to).
+function setGameLevel(newLevel) {
+  currentCEFR = newLevel;
+  saveGameLevel();
+}
+
+function replaceGameLevel(newLevel) {
+  currentCEFR = newLevel;
+  saveGameLevel({ syncRemote: false });
+  updateCEFRSelection();
+}
+
 function resetGame(resetStreak = true) {
   correctlyAnsweredWords.clear();
   previousWord = null;
@@ -2051,7 +2127,7 @@ document.getElementById("cefr-select").addEventListener("change", function () {
 
   if (typeValue === "word-game") {
     const selectedCEFR = this.value.toUpperCase(); // Get the newly selected CEFR level
-    currentCEFR = selectedCEFR; // Set the current CEFR level to the new one
+    setGameLevel(selectedCEFR); // Set and persist the new CEFR level
     resetGame(); // Reset the game stats
     startWordGame(); // Start the game with the new CEFR level
   }
@@ -2080,4 +2156,7 @@ window.WordGameHelpers = Object.freeze({
   stopAllAudio,
   fetchIncorrectTranslations,
   shuffleArray,
+  getCurrentLevel: () => currentCEFR,
+  getLevelOrder: () => CEFR_LEVEL_ORDER.slice(),
+  replaceLevel: replaceGameLevel,
 });
