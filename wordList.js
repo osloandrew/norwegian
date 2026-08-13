@@ -165,7 +165,7 @@
     }
   }
 
-  function saveMyWordsEntryIds() {
+  function saveMyWordsEntryIds({ syncRemote = true } = {}) {
     try {
       window.localStorage.setItem(
         MY_WORDS_STORAGE_KEY,
@@ -176,6 +176,24 @@
       );
     } catch (error) {
       console.warn("My Words could not be saved.", error);
+    }
+
+    // Let myWordsAuth.js know My Words changed, so it can sync to Firestore
+    // when a user is signed in. syncRemote is false when the change came
+    // from a remote merge, to avoid immediately writing it back.
+    window.dispatchEvent(
+      new CustomEvent("my-words:updated", {
+        detail: { entryIds: Array.from(myWordsEntryIds), syncRemote },
+      }),
+    );
+  }
+
+  function replaceMyWordsEntryIds(entryIds) {
+    myWordsEntryIds = new Set(entryIds);
+    saveMyWordsEntryIds({ syncRemote: false });
+
+    if (activeWordListView === "my") {
+      renderWordList();
     }
   }
 
@@ -1597,5 +1615,7 @@
     returnToMyWords: goToMyWords,
     isSaved: isMyWordsEntrySaved,
     toggle: toggleResolvedMyWordsEntry,
+    getEntryIds: () => Array.from(myWordsEntryIds),
+    replaceEntryIds: replaceMyWordsEntryIds,
   });
 })();

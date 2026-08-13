@@ -91,6 +91,31 @@
 
   <body>
     <header>
+      <div id="auth-container" class="auth-container">
+        <button
+          id="google-signin-btn"
+          type="button"
+          class="google-signin-btn"
+          title="Sign in with Google to sync My Words across devices"
+        >
+          <i class="fa-brands fa-google" aria-hidden="true"></i>
+          Sign in
+        </button>
+
+        <div id="auth-user-info" class="auth-user-info hidden">
+          <img id="auth-user-avatar" class="auth-user-avatar" alt="" />
+          <span id="auth-user-name" class="auth-user-name"></span>
+          <button
+            id="google-signout-btn"
+            type="button"
+            class="google-signout-btn"
+            title="Sign out"
+          >
+            Sign out
+          </button>
+        </div>
+      </div>
+
       <h1 id="site-title" onclick="returnToLandingPage()">
         Norwegian Dictionary
       </h1>
@@ -675,11 +700,17 @@
       });
     </script>
 
+    <!-- Firebase (Google sign-in + My Words sync) -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
     <script src="noRandom.js" defer></script>
     <script src="scripts.js" defer></script>
     <script src="wordGame.js" defer></script>
     <script src="stories.js" defer></script>
     <script src="pronunciation.js"></script>
     <script src="wordList.js"></script>
+    <script src="myWordsAuth.js"></script>
   </body>
 </html>
