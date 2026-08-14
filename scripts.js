@@ -653,8 +653,33 @@ function cacheWordCSV(csvText) {
   }
 }
 
+// Set when both the local CSV fetch and the Google Sheets fallback have
+// failed, so the loading-gate poll (in loadStateFromURL) knows to stop
+// waiting forever and show a retry option instead.
+let dictionaryLoadFailed = false;
+
+function showDictionaryLoadError() {
+  if (document.getElementById("dictionary-load-error")) return;
+
+  const banner = document.createElement("div");
+  banner.id = "dictionary-load-error";
+  banner.className = "error-message";
+  banner.innerHTML = `
+    <p>We couldn't load the dictionary. Please check your connection and try again.</p>
+    <button type="button" class="landing-card-btn">Retry</button>
+  `;
+  banner.querySelector("button").addEventListener("click", () => {
+    location.reload();
+  });
+
+  const main = document.querySelector("main");
+  main.insertBefore(banner, main.firstChild.nextSibling);
+}
+
 // Fetch the dictionary data from the file or server
 async function fetchAndLoadDictionaryData() {
+  dictionaryLoadFailed = false;
+
   const cachedCSV = readCachedWordCSV();
 
   if (cachedCSV) {
@@ -689,6 +714,8 @@ async function fetchAndLoadDictionaryData() {
         "Error fetching or parsing data from Google Sheets:",
         googleSheetsError,
       );
+      dictionaryLoadFailed = true;
+      showDictionaryLoadError();
     }
   }
 }
@@ -951,7 +978,7 @@ async function randomWord() {
 
     // Clear any existing highlights in the sentence
     const cleanedSentence = selectedSentence.replace(
-      /<span style="color: #3c88d4;">(.*?)<\/span>/gi,
+      /<span style="color: #1f6fb3;">(.*?)<\/span>/gi,
       "$1",
     );
 
@@ -2479,7 +2506,7 @@ function highlightTermsInText(text, terms) {
 
   return text.replace(
     regex,
-    (matchedText) => `<span style="color: #3c88d4;">${matchedText}</span>`,
+    (matchedText) => `<span style="color: #1f6fb3;">${matchedText}</span>`,
   );
 }
 
@@ -2489,7 +2516,7 @@ function highlightQuery(sentence, query) {
 
   // Always remove any existing highlights by replacing the <span> tags to avoid persistent old highlights
   const cleanSentence = sentence.replace(
-    /<span style="color: #3c88d4;">(.*?)<\/span>/gi,
+    /<span style="color: #1f6fb3;">(.*?)<\/span>/gi,
     "$1",
   );
 
@@ -2551,7 +2578,7 @@ function renderSentencesHTML(sentenceResults, wordVariations) {
 
           const highlightedSentence = sentence.replace(
             regex,
-            '<span style="color: #3c88d4;">$1</span>',
+            '<span style="color: #1f6fb3;">$1</span>',
           );
 
           // Determine if it's an exact match (contains the exact search term as a full word)
@@ -2846,7 +2873,7 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
 
   matchingResults.forEach((result) => {
     const cleanSentence = result.eksempel.replace(
-      /<span style="color: #3c88d4;">(.*?)<\/span>/gi,
+      /<span style="color: #1f6fb3;">(.*?)<\/span>/gi,
       "$1",
     );
 
@@ -3321,6 +3348,13 @@ window.onload = function () {
 
   // Wait for the data to be fetched before triggering the search
   const checkDataLoaded = setInterval(() => {
+    if (dictionaryLoadFailed) {
+      // showDictionaryLoadError() already ran from inside the failed fetch
+      // itself — just stop polling instead of waiting forever.
+      clearInterval(checkDataLoaded);
+      return;
+    }
+
     if (results.length > 0) {
       // Ensure results are loaded
       clearInterval(checkDataLoaded);

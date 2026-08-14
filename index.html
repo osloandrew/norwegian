@@ -57,13 +57,28 @@
       href="Resources/Icons/favicon-16x16.png"
     />
 
-    <!-- Google Fonts -->
+    <!--
+      Google Fonts, loaded without blocking first paint: the stylesheet is
+      requested as media="print" (so the browser fetches it but doesn't wait
+      on it to render) and switched to media="all" once it's actually
+      loaded. The `display=swap` in the URL already means text renders in a
+      fallback font immediately either way; this just stops the request
+      itself from delaying that first render.
+    -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Noto+Serif:wght@100..900&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Noto+Serif:wght@100..900&amp;display=swap"
+      />
+    </noscript>
 
     <!-- External Scripts -->
     <!--
@@ -686,10 +701,13 @@
       });
     </script>
 
-    <!-- Firebase (Google sign-in + My Words sync) -->
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <!--
+      Firebase (Google sign-in + My Words sync) is no longer loaded here.
+      It's fetched lazily by myWordsAuth.js — on first click of "Sign in,"
+      or immediately if this browser has signed in before — instead of
+      blocking every pageview's initial paint for a feature most visitors
+      never use.
+    -->
 
     <script src="noRandom.js" defer></script>
     <script src="scripts.js" defer></script>

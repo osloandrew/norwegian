@@ -12,6 +12,19 @@
     projectId: "norwegian-dictionary-71da6",
   };
 
+  // The Firebase SDK (~3 blocking scripts) is only needed by the minority of
+  // visitors who actually sign in. Loading it eagerly on every pageview was
+  // blocking initial paint for everyone else. Instead it's fetched lazily,
+  // either on the first click of "Sign in" or, for someone who has signed in
+  // on this browser before, immediately on load so their session still
+  // restores silently like it used to.
+  const FIREBASE_SCRIPT_URLS = [
+    "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js",
+    "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js",
+    "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js",
+  ];
+  const WAS_SIGNED_IN_KEY = "norwegian-dictionary-was-signed-in-v1";
+
   const PUSH_DEBOUNCE_MS = 800;
 
   const isFirebaseConfigured =
@@ -23,7 +36,7 @@
   const userAvatar = document.getElementById("auth-user-avatar");
   const userName = document.getElementById("auth-user-name");
 
-  if (!isFirebaseConfigured || typeof firebase === "undefined") {
+  if (!isFirebaseConfigured) {
     console.warn(
       "My Words sync is disabled: add your Firebase config to myWordsAuth.js.",
     );
@@ -36,16 +49,49 @@
     return;
   }
 
-  firebase.initializeApp(FIREBASE_CONFIG);
-
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-  const provider = new firebase.auth.GoogleAuthProvider();
-
+  let auth = null;
+  let db = null;
+  let provider = null;
   let currentUserId = null;
   let pushTimeoutId = null;
   let strengthPushTimeoutId = null;
   let levelPushTimeoutId = null;
+
+  function loadFirebaseScripts() {
+    return FIREBASE_SCRIPT_URLS.reduce(
+      (chain, src) =>
+        chain.then(
+          () =>
+            new Promise((resolve, reject) => {
+              const script = document.createElement("script");
+              script.src = src;
+              script.onload = resolve;
+              script.onerror = () =>
+                reject(new Error(`Failed to load ${src}`));
+              document.head.appendChild(script);
+            }),
+        ),
+      Promise.resolve(),
+    );
+  }
+
+  let authReadyPromise = null;
+
+  // Loads the SDK (once) and wires up auth. Safe to call multiple times —
+  // the sign-in click handler and the "was signed in before" auto-load path
+  // both call this, and only the first call does any work.
+  function ensureAuthReady() {
+    if (!authReadyPromise) {
+      authReadyPromise = loadFirebaseScripts().then(() => {
+        if (typeof firebase === "undefined") {
+          throw new Error("Firebase failed to load.");
+        }
+        initAuth();
+      });
+    }
+
+    return authReadyPromise;
+  }
 
   function getUserDocRef(userId) {
     return db.collection("myWordsUsers").doc(userId);
@@ -97,13 +143,23 @@
       });
   }
 
+  // Debounced writes need their latest pending value kept around outside
+  // the setTimeout closure, so a flush (tab hidden/closed before the 800ms
+  // fires) can push it immediately instead of losing it.
+  let pendingEntryIds = null;
+  let pendingStrengths = null;
+  let pendingLevel = null;
+
   function schedulePush(entryIds) {
     if (!currentUserId) {
       return;
     }
 
+    pendingEntryIds = entryIds;
     window.clearTimeout(pushTimeoutId);
     pushTimeoutId = window.setTimeout(() => {
+      pushTimeoutId = null;
+      pendingEntryIds = null;
       pushEntryIdsNow(currentUserId, entryIds);
     }, PUSH_DEBOUNCE_MS);
   }
@@ -113,8 +169,11 @@
       return;
     }
 
+    pendingStrengths = strengths;
     window.clearTimeout(strengthPushTimeoutId);
     strengthPushTimeoutId = window.setTimeout(() => {
+      strengthPushTimeoutId = null;
+      pendingStrengths = null;
       pushWordStrengthsNow(currentUserId, strengths);
     }, PUSH_DEBOUNCE_MS);
   }
@@ -124,11 +183,51 @@
       return;
     }
 
+    pendingLevel = level;
     window.clearTimeout(levelPushTimeoutId);
     levelPushTimeoutId = window.setTimeout(() => {
+      levelPushTimeoutId = null;
+      pendingLevel = null;
       pushGameLevelNow(currentUserId, level);
     }, PUSH_DEBOUNCE_MS);
   }
+
+  // Fires when the tab is backgrounded, closed, or navigated away from —
+  // pushes anything still waiting out its debounce instead of risking it
+  // being silently dropped if the page never becomes active again.
+  function flushPendingPushes() {
+    if (!currentUserId) {
+      return;
+    }
+
+    if (pushTimeoutId !== null) {
+      window.clearTimeout(pushTimeoutId);
+      pushTimeoutId = null;
+      pushEntryIdsNow(currentUserId, pendingEntryIds);
+      pendingEntryIds = null;
+    }
+
+    if (strengthPushTimeoutId !== null) {
+      window.clearTimeout(strengthPushTimeoutId);
+      strengthPushTimeoutId = null;
+      pushWordStrengthsNow(currentUserId, pendingStrengths);
+      pendingStrengths = null;
+    }
+
+    if (levelPushTimeoutId !== null) {
+      window.clearTimeout(levelPushTimeoutId);
+      levelPushTimeoutId = null;
+      pushGameLevelNow(currentUserId, pendingLevel);
+      pendingLevel = null;
+    }
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      flushPendingPushes();
+    }
+  });
+  window.addEventListener("pagehide", flushPendingPushes);
 
   // Union the words already saved on this device with whatever is saved
   // under the signed-in account, then treat that union as the new truth
@@ -217,29 +316,79 @@
     }
   }
 
-  signInButton?.addEventListener("click", () => {
-    auth.signInWithPopup(provider).catch((error) => {
+  function rememberSignedInState(isSignedIn) {
+    try {
+      if (isSignedIn) {
+        localStorage.setItem(WAS_SIGNED_IN_KEY, "1");
+      } else {
+        localStorage.removeItem(WAS_SIGNED_IN_KEY);
+      }
+    } catch (error) {
+      // Best-effort only — worst case, Firebase loads on click instead of
+      // automatically restoring the session next visit.
+    }
+  }
+
+  function triggerSignIn() {
+    return auth.signInWithPopup(provider).catch((error) => {
       if (error?.code !== "auth/popup-closed-by-user") {
         console.warn("Google sign-in failed.", error);
         window.alert("Google sign-in failed. Please try again.");
       }
     });
-  });
+  }
 
-  signOutButton?.addEventListener("click", () => {
-    auth.signOut().catch((error) => {
-      console.warn("Sign-out failed.", error);
+  // Runs once, after the SDK scripts have finished loading.
+  function initAuth() {
+    firebase.initializeApp(FIREBASE_CONFIG);
+
+    auth = firebase.auth();
+    db = firebase.firestore();
+    provider = new firebase.auth.GoogleAuthProvider();
+
+    signOutButton?.addEventListener("click", () => {
+      auth.signOut().catch((error) => {
+        console.warn("Sign-out failed.", error);
+      });
     });
+
+    auth.onAuthStateChanged((user) => {
+      currentUserId = user ? user.uid : null;
+      updateAuthUI(user);
+      rememberSignedInState(Boolean(user));
+
+      if (user) {
+        mergeRemoteData(user.uid);
+      }
+    });
+  }
+
+  signInButton?.addEventListener("click", () => {
+    signInButton.disabled = true;
+
+    ensureAuthReady()
+      .then(triggerSignIn)
+      .catch((error) => {
+        console.warn("Google sign-in could not be loaded.", error);
+        window.alert("Google sign-in failed. Please try again.");
+      })
+      .finally(() => {
+        signInButton.disabled = false;
+      });
   });
 
-  auth.onAuthStateChanged((user) => {
-    currentUserId = user ? user.uid : null;
-    updateAuthUI(user);
+  let wasSignedInBefore = false;
+  try {
+    wasSignedInBefore = localStorage.getItem(WAS_SIGNED_IN_KEY) === "1";
+  } catch (error) {
+    // Ignore — falls back to loading on click, same as a first-time visitor.
+  }
 
-    if (user) {
-      mergeRemoteData(user.uid);
-    }
-  });
+  if (wasSignedInBefore) {
+    ensureAuthReady().catch((error) => {
+      console.warn("Could not restore your signed-in session.", error);
+    });
+  }
 
   // Fired by wordList.js's saveMyWordsEntryIds() whenever My Words changes.
   window.addEventListener("my-words:updated", (event) => {

@@ -24,6 +24,14 @@ const levelThresholds = {
 let previousWord = null;
 let recentAnswers = []; // Track the last X answers, 1 for correct, 0 for incorrect
 let reintroduceThreshold = 10; // Set how many words to show before reintroducing incorrect ones
+// Progression checks every 20 questions and requires the incorrect-word
+// queue to be empty. The old target of 10 here (on top of the 10-question
+// reintroduceThreshold gate above) meant a single miss took ~20+ questions
+// just to be shown again, routinely missing that same evaluation window and
+// blocking an otherwise-qualifying level-up for a full extra cycle. Lowering
+// the target gives it a reliable chance to clear within one 20-question
+// window while still keeping some spacing before the retry.
+const INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET = 3;
 let totalQuestions = 0; // Track total questions per level
 let wordsSinceLastIncorrect = 0; // Counter to track words shown since the last incorrect word
 let wordDataStore = [];
@@ -540,7 +548,7 @@ async function startWordGame() {
     wordsSinceLastIncorrect >= reintroduceThreshold
   ) {
     const firstWordInQueue = incorrectWordQueue[0];
-    if (firstWordInQueue.counter >= 10) {
+    if (firstWordInQueue.counter >= INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET) {
       // Play the popChime when reintroducing an incorrect word
       popChime.currentTime = 0; // Reset audio to the beginning
       popChime.play(); // Play the pop sound
@@ -1007,7 +1015,9 @@ function enableGameControls() {
 }
 
 function renderWordGameUI(wordObj, translations, isReintroduced = false) {
-  // Add the word object to the data store and get its index
+  // Each render replaces the previous question entirely, so nothing still
+  // references earlier entries — reset instead of growing forever.
+  wordDataStore = [];
   const wordId = wordDataStore.push(wordObj) - 1;
 
   // Split the word at the comma and use the first part
@@ -1168,6 +1178,9 @@ function renderClozeGameUI(
   clozeTarget = null,
 ) {
   const blank = "___";
+  // Each render replaces the previous question entirely, so nothing still
+  // references earlier entries — reset instead of growing forever.
+  wordDataStore = [];
   const wordId = wordDataStore.push(wordObj) - 1;
   let cefrLabel = "";
   if (wordObj.CEFR === "A1") {
@@ -1965,6 +1978,20 @@ function applyInflection(base, clozedForm, gender) {
   return base;
 }
 
+// Word class ("gender" in the CSV) is either a single POS token
+// (e.g. "adjective", "preposition") or, for nouns, one or more grammatical
+// genders joined by hyphens (e.g. "en", "en-et"). Comparing by shared prefix
+// used to conflate "adjective"/"adverb" and "preposition"/"pronoun" (both
+// pairs share their first two letters), offering distractors of the wrong
+// grammatical class. Comparing token sets instead fixes that while still
+// treating a compound noun gender like "en-et" as compatible with "en".
+function hasCompatibleGender(targetGender, candidateGender) {
+  if (!candidateGender) return false;
+  const targetTokens = targetGender.toLowerCase().split("-");
+  const candidateTokens = candidateGender.toLowerCase().split("-");
+  return targetTokens.some((token) => candidateTokens.includes(token));
+}
+
 function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
   const formattedClozed = clozedForm.toLowerCase();
   const formattedBase = baseWord.toLowerCase();
@@ -1983,11 +2010,7 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
     if (!ord || ord === formattedBase) return false;
     if (ord.includes(" ")) return false;
     if (ord.length < 3 || ord.length > 12) return false;
-    if (
-      r.gender &&
-      !r.gender.toLowerCase().startsWith(gender.slice(0, 2).toLowerCase())
-    )
-      return false;
+    if (r.gender && !hasCompatibleGender(gender, r.gender)) return false;
     if (r.CEFR !== CEFR) return false;
     if (bannedWordClasses.some((b) => r.gender?.toLowerCase().startsWith(b)))
       return false;
@@ -2016,7 +2039,7 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
         const raw = r.ord.split(",")[0].trim().toLowerCase();
         return (
           raw !== formattedBase &&
-          r.gender === gender &&
+          hasCompatibleGender(gender, r.gender) &&
           !bannedWordClasses.some((b) => r.gender?.toLowerCase().startsWith(b))
         );
       })

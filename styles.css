@@ -285,7 +285,7 @@ button:disabled i {
   align-items: center;
   background-color: white;
   border: none;
-  color: #999;
+  color: #666;
   cursor: pointer;
   display: flex;
   font-size: 18px;
@@ -293,7 +293,7 @@ button:disabled i {
 }
 
 .clear-btn i {
-  color: #999;
+  color: #666;
   font-size: 18px;
   transition:
     color 0.3s ease,
@@ -1785,6 +1785,11 @@ ul {
   user-select: none; /* Prevent text selection */
   text-align: center;
   min-width: 15px;
+  /* Matches .sentence-audio-icon's rendered width (~38px), so the two line
+     up neatly in the stacked desktop column instead of the label looking
+     narrower than the icon above/below it. */
+  box-sizing: border-box;
+  width: 38px;
 }
 
 .sentence-cefr-label.easy {
@@ -2949,6 +2954,16 @@ ul {
 
   .cefr-audio-block {
     flex-direction: row;
+  }
+
+  /* In the row layout, height (not width) is what needs to line up with
+     .sentence-audio-icon so the two look aligned sitting side by side. */
+  .sentence-cefr-label {
+    width: auto;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .definition {
