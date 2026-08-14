@@ -639,6 +639,13 @@ function cacheWordCSV(csvText) {
     localStorage.setItem(WORD_CSV_CACHE_KEY, csvText);
     localStorage.setItem(WORD_CSV_CACHE_TIME_KEY, String(Date.now()));
   } catch (error) {
+    // Don't leave a stale/partial entry occupying quota for next time.
+    try {
+      localStorage.removeItem(WORD_CSV_CACHE_KEY);
+      localStorage.removeItem(WORD_CSV_CACHE_TIME_KEY);
+    } catch (cleanupError) {
+      // Ignore — best-effort cleanup only.
+    }
     console.warn("Word data could not be cached.", error);
   }
 }
