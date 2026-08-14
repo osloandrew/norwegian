@@ -492,7 +492,7 @@ footer .copyright {
   font-size: 16px !important; /* Smaller font size to fit the text on one line */
   font-weight: normal; /* Adjusted to normal to avoid boldness */
   font-family: "Noto Serif", serif; /* Using Noto Sans, sans-serif */
-  margin: 0 1px 0 1px 0 auto; /* Reduced spacing between banner and the rest */
+  margin: 0 1px; /* Reduced spacing between banner and the rest */
   margin-bottom: 5px;
   max-width: 60%;
   transition: opacity 0.5s ease-in-out; /* Smooth transition */
@@ -512,7 +512,11 @@ footer .copyright {
 }
 
 .game-card-actions-subgroup .game-tricky-word {
-  align-self: flex-start;
+  /* Matches the parent's align-items:center — this badge is much shorter
+     than the 40px star button next to it, so without an explicit
+     align-self here it would otherwise be pinned to the top instead of
+     sharing the star's vertical center. */
+  align-self: center;
 }
 
 .game-my-words-star {
@@ -698,18 +702,30 @@ footer .copyright {
   flex-direction: column;
 }
 
-/* Keep the game-card controls horizontal. */
+/* Keep the game-card controls horizontal. align-items:center (rather than
+   flex-start) matters here because the star button is a fixed 40x40px
+   circle while the tricky-word badge is much shorter — top-aligning them
+   left their midpoints at different heights, so they didn't read as being
+   on the same row. Centering lines up their visual middles regardless of
+   the size difference. */
 .game-label-subgroup.game-card-actions-subgroup {
-  align-items: flex-start;
+  align-items: center;
   flex-direction: row;
   flex-shrink: 0;
   gap: 6px;
 }
 
+/* Three real columns (rather than the banner spanning grid-column:1/-1
+   over the same row as the other two) so the banner has its own space and
+   can't visually overlap or touch the icon group on the right — the two
+   outer columns size to their content (auto) and the middle one absorbs
+   whatever space is left, with `gap` guaranteeing a minimum margin on
+   both sides regardless of how wide the banner text gets. */
 .game-labels-container {
   align-items: start;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
   min-height: 70px;
   width: 100%;
 }
@@ -722,15 +738,15 @@ footer .copyright {
 
 .game-labels-container > #game-banner-placeholder {
   box-sizing: border-box;
-  grid-column: 1 / -1;
+  grid-column: 2;
   grid-row: 1;
   justify-self: center;
   margin: 0 0 5px;
-  max-width: 60%;
+  max-width: 100%;
 }
 
 .game-labels-container > .game-card-actions-subgroup {
-  grid-column: 2;
+  grid-column: 3;
   grid-row: 1;
   justify-self: end;
 }
@@ -794,7 +810,6 @@ footer .copyright {
   font-family: "Noto Sans", sans-serif;
   white-space: nowrap; /* Prevent text wrapping */
   background-color: #fae5c3;
-  margin-bottom: 5px; /* Space between label and word */
   visibility: hidden; /* Initially hidden but space is reserved */
 }
 
@@ -1119,7 +1134,6 @@ input[type="text"] {
   outline: none;
   padding: 12px 16px;
 }
-
 
 input[type="text"]:focus + label,
 input[type="text"]:not(:placeholder-shown) + label {
