@@ -607,13 +607,55 @@ function handleSearchButtonClick() {
   popChime.play();
 }
 
+const WORD_CSV_CACHE_KEY = "wordDataCsv";
+const WORD_CSV_CACHE_TIME_KEY = "wordDataCsvTimestamp";
+const WORD_CSV_CACHE_MAX_AGE = 6 * 60 * 60 * 1000; // 6 hours, matching stories.js
+
+// Read the cached raw CSV text (not parsed entries — a parsed copy of the
+// ~29,000-row dictionary would run several MB larger than the CSV itself
+// purely from repeated JSON key names, risking localStorage's quota).
+// Returns null on a cache miss, a parse error, or if the cache is stale.
+function readCachedWordCSV() {
+  try {
+    const cachedText = localStorage.getItem(WORD_CSV_CACHE_KEY);
+    if (!cachedText) return null;
+
+    const timestamp = Number(localStorage.getItem(WORD_CSV_CACHE_TIME_KEY)) || 0;
+    if (Date.now() - timestamp > WORD_CSV_CACHE_MAX_AGE) return null;
+
+    return cachedText;
+  } catch (error) {
+    console.warn("Cached word data could not be read.", error);
+    return null;
+  }
+}
+
+// Best-effort only: if this fails (quota exceeded, private browsing, etc.)
+// the app keeps working, it just re-fetches next time instead of caching.
+function cacheWordCSV(csvText) {
+  try {
+    localStorage.setItem(WORD_CSV_CACHE_KEY, csvText);
+    localStorage.setItem(WORD_CSV_CACHE_TIME_KEY, String(Date.now()));
+  } catch (error) {
+    console.warn("Word data could not be cached.", error);
+  }
+}
+
 // Fetch the dictionary data from the file or server
 async function fetchAndLoadDictionaryData() {
+  const cachedCSV = readCachedWordCSV();
+
+  if (cachedCSV) {
+    parseCSVData(cachedCSV);
+    return;
+  }
+
   try {
     const localResponse = await fetch("norwegianWords.csv");
     if (!localResponse.ok)
       throw new Error(`HTTP error! Status: ${localResponse.status}`);
     const localData = await localResponse.text();
+    cacheWordCSV(localData);
     parseCSVData(localData);
   } catch (localError) {
     console.error(
@@ -639,31 +681,56 @@ async function fetchAndLoadDictionaryData() {
   }
 }
 
-// Parse the CSV data using PapaParse
-function parseCSVData(data) {
-  Papa.parse(data, {
-    header: true,
-    skipEmptyLines: true,
-    complete: function (resultsFromParse) {
-      results = resultsFromParse.data.map((entry) => {
-        entry.ord = entry.ord.trim(); // Ensure the word is trimmed
-        return entry;
-      });
+// Parse the CSV data using PapaParse. Runs in a Web Worker by default so
+// parsing ~29,000 rows never blocks the main thread/freezes the page.
+function parseCSVData(data, options = {}) {
+  const useWorker = options.useWorker !== false;
 
-      buildWordSearchIndex();
+  try {
+    Papa.parse(data, {
+      header: true,
+      skipEmptyLines: true,
+      worker: useWorker,
+      complete: function (resultsFromParse) {
+        results = resultsFromParse.data.map((entry) => {
+          entry.ord = entry.ord.trim(); // Ensure the word is trimmed
+          return entry;
+        });
 
-      /*
-       * Sentence Search already builds these structures on demand.
-       * Avoid constructing the entire sentence corpus and search index
-       * for visitors who only use words, stories, lists, or the game.
-       */
-      sentenceCorpus = [];
-      sentenceIndex = null;
-    },
-    error: function (error) {
-      console.error("Error parsing CSV:", error);
-    },
-  });
+        buildWordSearchIndex();
+
+        /*
+         * Sentence Search already builds these structures on demand.
+         * Avoid constructing the entire sentence corpus and search index
+         * for visitors who only use words, stories, lists, or the game.
+         */
+        sentenceCorpus = [];
+        sentenceIndex = null;
+      },
+      error: function (error) {
+        console.error("Error parsing CSV:", error);
+
+        // A worker runtime failure shouldn't leave the dictionary stuck
+        // empty forever — fall back to parsing on the main thread once,
+        // the same way this always worked before worker:true existed.
+        if (useWorker) {
+          console.warn("Retrying CSV parse without a Web Worker.");
+          parseCSVData(data, { useWorker: false });
+        }
+      },
+    });
+  } catch (parseSetupError) {
+    // Papa.parse can throw synchronously if the worker itself couldn't be
+    // constructed (e.g. blocked by an extension or an unsupported
+    // browser), rather than only reporting failure through the error
+    // callback above.
+    console.error("Error starting CSV parse:", parseSetupError);
+
+    if (useWorker) {
+      console.warn("Retrying CSV parse without a Web Worker.");
+      parseCSVData(data, { useWorker: false });
+    }
+  }
 }
 
 function buildSentenceCorpus() {

@@ -64,10 +64,14 @@
     />
 
     <!-- External Scripts -->
-    <script
-      defer
-      src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"
-    ></script>
+    <!--
+      Self-hosted (not the cdnjs CDN) so that Papa.parse's worker:true mode
+      constructs its Web Worker from a same-origin script. A cross-origin
+      worker's success depends on the CDN's CORS headers and isn't
+      guaranteed, and a failed worker construction here would otherwise
+      leave the whole dictionary silently stuck at "loading" forever.
+    -->
+    <script defer src="vendor/papaparse.min.js"></script>
     <!-- Font Awesome CDN -->
     <link
       rel="stylesheet"
