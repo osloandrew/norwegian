@@ -607,6 +607,37 @@ footer .copyright {
   justify-content: center;
   align-items: center;
   height: 80px; /* Consistent height with the other cards */
+  animation: game-card-pop 0.35s ease-out;
+}
+
+/*
+ * background-color above is !important, and CSS Animations can never win
+ * against an !important static declaration for the same property — so the
+ * feedback motion here is built from transform/box-shadow instead, which
+ * these cards don't otherwise set.
+ */
+@keyframes game-card-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.07);
+    box-shadow: 0 0 0 3px rgba(42, 77, 20, 0.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.game-correct-card::after {
+  content: "\2713";
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  color: #2a4d14; /* Dark forest green, matches the A1 badge text color */
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1;
 }
 
 .game-english-translation {
@@ -648,6 +679,38 @@ footer .copyright {
   justify-content: center;
   align-items: center;
   height: 80px; /* Consistent height with the other cards */
+  animation: game-card-shake 0.4s ease-in-out;
+}
+
+@keyframes game-card-shake {
+  10%,
+  90% {
+    transform: translateX(-1px);
+  }
+  20%,
+  80% {
+    transform: translateX(2px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-4px);
+  }
+  40%,
+  60% {
+    transform: translateX(4px);
+  }
+}
+
+.game-incorrect-card::after {
+  content: "\2717";
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  color: #5a1a1a; /* Dark maroon, matches this site's existing accent maroon */
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1;
 }
 
 .game-label-subgroup {
@@ -816,6 +879,7 @@ footer .copyright {
   border-radius: 10px; /* Same rounded corners */
   box-sizing: border-box;
   padding: 10px;
+  position: relative; /* Anchors the correct/incorrect ::after badge */
   text-align: center; /* Centered text */
   font-family: "Noto Sans", sans-serif;
   font-size: 1.2em !important; /* Consistent font size */

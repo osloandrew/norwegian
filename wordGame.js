@@ -47,6 +47,18 @@ popChime.volume = 0.2;
 const gameContainer = document.getElementById("results-container"); // Assume this is where you'll display the game
 const statsContainer = document.getElementById("game-session-stats"); // New container for session stats
 
+// #results-container is shared with word search results and the story
+// list — .game-fade/.fade-out are only ever applied for the instant
+// between clearing the old question and inserting the new one, then
+// fade-out is removed synchronously below, so nothing is ever left
+// pointing at opacity:0 for those other features to inherit.
+function setGameContainerHTML(html) {
+  gameContainer.classList.add("game-fade", "fade-out");
+  gameContainer.innerHTML = html;
+  void gameContainer.offsetHeight; // Force a reflow so the opacity:0 state is registered before animating back to 1.
+  gameContainer.classList.remove("fade-out");
+}
+
 // Centralized banner handler
 const banners = {
   congratulations: "game-congratulations-banner",
@@ -1078,7 +1090,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
   // Create placeholder for banners (this will be dynamically updated when banners are shown)
   let bannerPlaceholder = '<div id="game-banner-placeholder"></div>';
 
-  gameContainer.innerHTML = `
+  setGameContainerHTML(`
         <!-- Session Stats Section -->
         <div class="game-stats-content" id="game-session-stats">
             <!-- Stats will be updated dynamically in renderStats() -->
@@ -1134,7 +1146,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
     Next Word
   </button>
 </div>
-    `;
+    `);
 
   // Add event listeners for translation cards
   document.querySelectorAll(".game-translation-card").forEach((card) => {
@@ -1228,7 +1240,7 @@ function renderClozeGameUI(
     blank +
     clozeTarget.sentence.slice(clozeTarget.endIndex);
 
-  gameContainer.innerHTML = `
+  setGameContainerHTML(`
     <!-- Session Stats Section -->
     <div class="game-stats-content" id="game-session-stats">
       <!-- Stats will be updated dynamically in renderStats() -->
@@ -1315,7 +1327,7 @@ function renderClozeGameUI(
     Next Word
   </button>
 </div>
-  `;
+  `);
 
   document.querySelectorAll(".game-translation-card").forEach((card) => {
     card.addEventListener("click", function () {
