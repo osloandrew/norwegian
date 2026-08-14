@@ -441,6 +441,8 @@ let sentenceIndex = null; // Map<string, Uint32Array | number[]>
 
 // Function to show or hide the landing card
 function showLandingCard(show) {
+  document.documentElement.classList.toggle("landing", show);
+
   const landingCard = document.getElementById("landing-card");
   const main = document.querySelector("main");
 

@@ -296,30 +296,14 @@
           Norwegian Dictionary
         </h2>
         <p style="text-align: center">
-          Explore Norwegian vocabulary interactively. <br />
-          Click on one of the buttons below to get started.
+          Search for a word above, or explore by feature below.
+        </p>
+        <p style="text-align: center; font-weight: 600; color: #0d3a69">
+          29,000+ Norwegian words, definitions, and example sentences.
         </p>
 
         <div class="landing-card-button-grid">
-          <!-- Dictionary Search Button -->
-          <div class="button-container">
-            <img
-              class="landing-card-image"
-              src="Resources/Photos/words.svg"
-              alt="Words"
-            />
-            <a
-              class="landing-card-btn"
-              href="?type=words"
-              onclick="
-                event.preventDefault();
-                selectType('words');
-              "
-            >
-              Dictionary Search
-            </a>
-            <p>Discover words and their meanings with detailed examples.</p>
-          </div>
+          <!-- Row 1: reference/lookup tools -->
 
           <!-- Word List -->
           <div class="button-container">
@@ -345,24 +329,6 @@
             </p>
           </div>
 
-          <!-- My Words -->
-          <div class="button-container">
-            <img
-              class="landing-card-image"
-              src="Resources/Photos/bookmark.svg"
-              alt="My Words"
-            />
-
-            <button
-              type="button"
-              class="landing-card-btn"
-              onclick="goToMyWords()"
-            >
-              My Words
-            </button>
-
-            <p>Return to your saved words for review, practice, or export.</p>
-          </div>
           <!-- Sentence Search Button -->
           <div class="button-container">
             <img
@@ -383,21 +349,7 @@
             <p>Explore real sentences in context using your chosen words.</p>
           </div>
 
-          <!-- Norwegian Stories Button -->
-          <div class="button-container">
-            <img
-              class="landing-card-image"
-              src="Resources/Photos/stories.svg"
-              alt="Stories"
-            />
-            <a class="landing-card-btn" href="?type=stories">
-              Norwegian Stories
-            </a>
-            <p>
-              Immerse yourself in fiction and non-fiction to deepen your
-              language skills.
-            </p>
-          </div>
+          <!-- Row 2: practice/engagement tools -->
 
           <!-- Word Game Button -->
           <div class="button-container">
@@ -422,7 +374,43 @@
             </p>
           </div>
 
-          <!-- Pronunciation Guide Button -->
+          <!-- Norwegian Stories Button -->
+          <div class="button-container">
+            <img
+              class="landing-card-image"
+              src="Resources/Photos/stories.svg"
+              alt="Stories"
+            />
+            <a class="landing-card-btn" href="?type=stories">
+              Norwegian Stories
+            </a>
+            <p>
+              Immerse yourself in fiction and non-fiction to deepen your
+              language skills.
+            </p>
+          </div>
+
+          <!-- My Words -->
+          <div class="button-container">
+            <img
+              class="landing-card-image"
+              src="Resources/Photos/bookmark.svg"
+              alt="My Words"
+            />
+
+            <button
+              type="button"
+              class="landing-card-btn"
+              onclick="goToMyWords()"
+            >
+              My Words
+            </button>
+
+            <p>Return to your saved words for review, practice, or export.</p>
+          </div>
+
+          <!-- Pronunciation Guide Button: last, since it expands into a long
+               table directly below the grid rather than navigating away -->
           <div class="button-container">
             <img
               class="landing-card-image"
@@ -437,27 +425,6 @@
               Pronunciation Guide
             </button>
             <p>Perfect your pronunciation by learning Norwegian sounds.</p>
-          </div>
-
-          <!-- Support Button -->
-          <div class="button-container">
-            <img
-              class="landing-card-image"
-              src="Resources/Photos/support.svg"
-              alt="Support the Project"
-            />
-            <a
-              href="https://www.buymeacoffee.com/afeinberg4l"
-              target="_blank"
-              rel="noopener noreferrer"
-              style="text-decoration: none"
-            >
-              <button class="landing-card-btn">Support the Project</button>
-            </a>
-            <p>
-              Help keep this resource free and growing — every little bit makes
-              a difference!
-            </p>
           </div>
         </div>
 

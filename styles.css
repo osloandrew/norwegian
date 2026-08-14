@@ -182,11 +182,6 @@ button:disabled i {
   margin-bottom: 10px;
 }
 
-.button-container p {
-  font-size: 5px !important;
-  text-align: center !important;
-}
-
 .button-pron {
   background-color: #f4f4f4; /* Neutral light gray */
   border: #bbb 1px solid;
@@ -1031,6 +1026,26 @@ header p {
   .auth-user-name {
     max-width: 90px;
   }
+
+  /* Scoped with #landing-card so these win regardless of source order
+     against the later, equal-specificity base .landing-card-* rules. */
+  #landing-card .landing-card-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  #landing-card .landing-card-btn {
+    margin-top: 6px;
+    margin-bottom: 6px;
+  }
+
+  #landing-card .button-container p {
+    margin: 4px 0;
+  }
+
+  #landing-card .landing-card-button-grid {
+    gap: 10px;
+  }
 }
 
 .hidden {
@@ -1098,16 +1113,43 @@ label {
   transform: translateY(-50%);
 }
 
-/* Modify the landing card styling to match definition cards */
 #landing-card {
-  background-color: #ffffff; /* Matches the background of definition cards */
-  border-radius: 12px; /* Same border radius as definition cards */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Same box shadow */
-  margin: 20px auto; /* Matches the margin of definition cards */
-  max-width: 1200px;
-  padding: 25px; /* Matches the padding of definition cards */
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+  /* Its own, narrower cap instead of matching the definition card's 45%
+     width — that percentage was sized for dense paragraph text and grows
+     into an oddly wide, short banner here once it's short and centered. */
+  max-width: 760px;
+  padding: 25px;
   text-align: center;
-  width: 45%; /* Same width as definition cards */
+  width: 90%;
+}
+
+/*
+ * On the landing page, keep the card near the top (right under the search
+ * bar, like most sites) and push any leftover space below it instead,
+ * so the footer still lands at the bottom of the viewport (via main's
+ * flex:1, same as every other page) without stranding a dead gap between
+ * the card and the footer.
+ * #search-container's own `margin: auto` must be reset to 0 on every side
+ * here — as a flex item, `main`'s default cross-axis stretch (which is what
+ * normally makes it span full width) is suppressed by auto side margins,
+ * and its own auto top/bottom margin would otherwise compete with the card
+ * for the same leftover space instead of staying put at the top.
+ */
+html.landing main {
+  display: flex;
+  flex-direction: column;
+}
+
+html.landing #search-container {
+  margin: 0;
+}
+
+html.landing #landing-card {
+  margin-bottom: auto;
 }
 
 /* Adjust the heading size and color to match the word titles in definition cards */
