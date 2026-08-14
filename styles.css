@@ -629,17 +629,6 @@ footer .copyright {
   }
 }
 
-.game-correct-card::after {
-  content: "\2713";
-  position: absolute;
-  top: 6px;
-  right: 10px;
-  color: #2a4d14; /* Dark forest green, matches the A1 badge text color */
-  font-size: 14px;
-  font-weight: bold;
-  line-height: 1;
-}
-
 .game-english-translation {
   color: gray !important;
 }
@@ -700,17 +689,6 @@ footer .copyright {
   60% {
     transform: translateX(4px);
   }
-}
-
-.game-incorrect-card::after {
-  content: "\2717";
-  position: absolute;
-  top: 6px;
-  right: 10px;
-  color: #5a1a1a; /* Dark maroon, matches this site's existing accent maroon */
-  font-size: 14px;
-  font-weight: bold;
-  line-height: 1;
 }
 
 .game-label-subgroup {

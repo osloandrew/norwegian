@@ -25,7 +25,7 @@
   ];
   const WAS_SIGNED_IN_KEY = "norwegian-dictionary-was-signed-in-v1";
 
-  const PUSH_DEBOUNCE_MS = 800;
+  const PUSH_DEBOUNCE_MS = 300;
 
   const isFirebaseConfigured =
     Boolean(FIREBASE_CONFIG.apiKey) && FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY";
@@ -229,15 +229,55 @@
   });
   window.addEventListener("pagehide", flushPendingPushes);
 
+  let unsubscribeRealtimeSync = null;
+
+  // Keeps this tab in sync with changes made on *other* signed-in devices,
+  // without waiting for a page reload here. Firestore's own snapshot
+  // metadata is what makes this safe against feedback loops: while our own
+  // debounced write is still in flight, the snapshot we get back is marked
+  // hasPendingWrites:true (it's just our own optimistic local echo) and is
+  // skipped; only a server-confirmed snapshot is applied. Applying our own
+  // just-confirmed write back to local state is a harmless no-op since the
+  // values already match — no extra "is this really a remote change"
+  // bookkeeping needed on top of that.
+  function attachRealtimeSync(userId) {
+    unsubscribeRealtimeSync?.();
+
+    unsubscribeRealtimeSync = getUserDocRef(userId).onSnapshot(
+      (snapshot) => {
+        if (userId !== currentUserId) {
+          return; // Stale listener from a previous sign-in.
+        }
+
+        if (!snapshot.exists || snapshot.metadata.hasPendingWrites) {
+          return;
+        }
+
+        const data = snapshot.data();
+
+        if (Array.isArray(data.entryIds)) {
+          window.MyWordsAPI?.replaceEntryIds?.(data.entryIds);
+        }
+
+        if (data.wordStrengths && typeof data.wordStrengths === "object") {
+          window.WordStrengthAPI?.replaceAll?.(data.wordStrengths);
+        }
+
+        if (typeof data.gameLevel === "string") {
+          window.WordGameHelpers?.replaceLevel?.(data.gameLevel);
+        }
+      },
+      (error) => {
+        console.warn("Live sync for My Words was interrupted.", error);
+      },
+    );
+  }
+
   // Union the words already saved on this device with whatever is saved
   // under the signed-in account, then treat that union as the new truth
   // both locally and remotely. Word strength isn't a set, so instead of a
   // union each word takes the higher of its local/remote value, so
   // progress made on either device survives the merge.
-  //
-  // Known limitation: there's no realtime listener, so two devices signed
-  // in at once each debounce-push their whole wordStrengths map and the
-  // last write wins for any word touched on both — acceptable for now.
   async function mergeRemoteData(userId) {
     try {
       const snapshot = await getUserDocRef(userId).get();
@@ -359,6 +399,10 @@
 
       if (user) {
         mergeRemoteData(user.uid);
+        attachRealtimeSync(user.uid);
+      } else {
+        unsubscribeRealtimeSync?.();
+        unsubscribeRealtimeSync = null;
       }
     });
   }
