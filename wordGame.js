@@ -47,16 +47,37 @@ popChime.volume = 0.2;
 const gameContainer = document.getElementById("results-container"); // Assume this is where you'll display the game
 const statsContainer = document.getElementById("game-session-stats"); // New container for session stats
 
-// #results-container is shared with word search results and the story
-// list — .game-fade/.fade-out are only ever applied for the instant
-// between clearing the old question and inserting the new one, then
-// fade-out is removed synchronously below, so nothing is ever left
-// pointing at opacity:0 for those other features to inherit.
+// Getting a CSS transition to restart reliably after a class toggle turned
+// out to be genuinely unreliable here — a forced reflow (offsetHeight),
+// double requestAnimationFrame, and a short setTimeout were all tried and
+// each either collapsed into an instant jump or fired far later than their
+// nominal delay. The Web Animations API sidesteps that whole class of
+// timing bug: it animates directly on its own explicit timeline instead of
+// depending on the browser noticing a style change between two frames, so
+// there's nothing to "restart" and nothing to race.
 function setGameContainerHTML(html) {
-  gameContainer.classList.add("game-fade", "fade-out");
   gameContainer.innerHTML = html;
-  void gameContainer.offsetHeight; // Force a reflow so the opacity:0 state is registered before animating back to 1.
-  gameContainer.classList.remove("fade-out");
+
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+  if (prefersReducedMotion) return;
+
+  // Only fade the word/sentence card and each answer choice — the stats
+  // bar and Next Word button don't change content, so leaving them out
+  // means each click flashes just the new question, not the whole screen.
+  // Starting from 0.15 rather than 0 keeps content from ever going fully
+  // blank, which is most of what made the full-screen version feel jarring.
+  const fadeTargets = gameContainer.querySelectorAll(
+    ".game-word-card, .game-translation-card",
+  );
+
+  fadeTargets.forEach((el) => {
+    el.animate([{ opacity: 0.15 }, { opacity: 1 }], {
+      duration: 300,
+      easing: "ease-out",
+    });
+  });
 }
 
 // Centralized banner handler
