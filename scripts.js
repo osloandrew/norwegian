@@ -1339,7 +1339,7 @@ async function search(queryOverride = null) {
                       ${
                         !selectedPOS && !selectedCEFR
                           ? `
-                        <button class="landing-card-btn">
+                        <button class="landing-card-btn flag-missing-word-btn">
                           <i class="fas fa-flag"></i> Flag Missing Word Entry
                         </button>`
                           : ""
@@ -1348,7 +1348,7 @@ async function search(queryOverride = null) {
             `;
 
       // Add flag button functionality
-      const flagButton = document.querySelector(".landing-card-btn");
+      const flagButton = document.querySelector(".flag-missing-word-btn");
       if (flagButton) {
         flagButton.addEventListener("click", function () {
           const searchBar = document.getElementById("search-bar");
@@ -1362,7 +1362,7 @@ async function search(queryOverride = null) {
         displaySearchResults(inexactWordMatches);
 
         // Reattach the flag button functionality AFTER rendering the search results
-        const flagButton = document.querySelector(".landing-card-btn");
+        const flagButton = document.querySelector(".flag-missing-word-btn");
         if (flagButton) {
           flagButton.addEventListener("click", function () {
             const searchBar = document.getElementById("search-bar");
@@ -1380,14 +1380,14 @@ async function search(queryOverride = null) {
                     ${
                       !selectedPOS && !selectedCEFR
                         ? `
-                      <button class="landing-card-btn">
+                      <button class="landing-card-btn flag-missing-word-btn">
                         <i class="fas fa-flag"></i> Flag Missing Word Entry
                       </button>`
                         : ""
                     }
             </div>`);
 
-        const flagButton = document.querySelector(".landing-card-btn");
+        const flagButton = document.querySelector(".flag-missing-word-btn");
         if (flagButton) {
           flagButton.addEventListener("click", function () {
             const searchBar = document.getElementById("search-bar");

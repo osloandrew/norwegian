@@ -34,6 +34,7 @@ let popChime = new Audio("Resources/Audio/popChime.wav");
 
 goodChime.volume = 0.2;
 badChime.volume = 0.2;
+popChime.volume = 0.2;
 
 const gameContainer = document.getElementById("results-container"); // Assume this is where you'll display the game
 const statsContainer = document.getElementById("game-session-stats"); // New container for session stats

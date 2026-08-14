@@ -1078,6 +1078,7 @@ input[type="text"] {
   padding: 12px 16px;
 }
 
+
 input[type="text"]:focus + label,
 input[type="text"]:not(:placeholder-shown) + label {
   color: #293a78;
@@ -1293,7 +1294,8 @@ li {
   cursor: pointer;
   display: none;
   font-size: 16px;
-  margin: 0 15px 0 5px;
+  margin: 0 5px 0 -5px;
+  padding: 14px;
   order: 2;
   pointer-events: auto;
   transition: all 0.2s ease;
@@ -1567,6 +1569,15 @@ ul {
   outline: none;
 }
 
+.type-filter select:focus-visible,
+.pos-filter select:focus-visible,
+.cefr-filter select:focus-visible,
+.genre-filter select:focus-visible,
+.game-english-filter select:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
 .search-btn {
   align-items: center;
   background-color: #0d3a69;
@@ -1610,6 +1621,14 @@ ul {
   overflow: hidden;
   position: relative;
   width: 100%;
+}
+
+/* Keyboard-focus indicator that follows the pill shape, instead of a plain
+   rectangular outline clipped/mismatched against the rounded corners. */
+.search-bar-wrapper:has(input:focus-visible) {
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    0 0 0 2px #0d3a69;
 }
 
 #search-container {
@@ -1686,7 +1705,7 @@ ul {
   display: inline-flex !important; /* Flexbox to center the icon */
   align-items: center !important; /* Vertical centering */
   justify-content: center !important; /* Horizontal centering */
-  padding: 6px !important; /* Same padding as .sentence-cefr-label */
+  padding: 10px !important; /* Enlarged for a more comfortable tap target */
   font-size: 14px !important; /* Icon size inside */
   border-radius: 4px !important; /* Same rounded corners */
   background-color: #f0f0f0 !important; /* Matches the default CEFR look */
@@ -3494,7 +3513,6 @@ ul {
 
   .word-list-export-controls .word-list-export-button {
     font-size: 10px;
-    min-height: 0px;
   }
 
   .word-list-header {

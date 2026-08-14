@@ -2,10 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Norwegian Dictionary | Search in Norwegian or English</title>
 
     <!-- Meta Description -->
@@ -31,9 +28,14 @@
     />
     <meta
       property="og:image"
-      content="Resources/Icons/android-chrome-512x512.png"
+      content="https://osloandrew.github.io/norwegian/Resources/Icons/android-chrome-512x512.png"
     />
     <meta property="og:url" content="https://osloandrew.github.io/norwegian/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://osloandrew.github.io/norwegian/" />
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="styles.css" />
@@ -60,7 +62,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@100..900&amp;family=Noto+Sans:ital,wght@0,100..900;1,100..900&amp;family=Noto+Serif:ital,wght@0,100..900&amp;display=swap"
+      href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Noto+Serif:wght@100..900&amp;display=swap"
     />
 
     <!-- External Scripts -->
@@ -75,7 +77,7 @@
     <!-- Font Awesome CDN -->
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     />
 
     <!-- Google Analytics -->
@@ -90,6 +92,23 @@
       }
       gtag("js", new Date());
       gtag("config", "G-M5H81RF3DT");
+
+      // Minimal client-side error visibility: a JS exception in production
+      // previously produced no signal at all. Beacon uncaught errors and
+      // unhandled promise rejections to GA as events (message + location
+      // only — no user data) so at least something is discoverable.
+      window.addEventListener("error", (event) => {
+        gtag("event", "js_error", {
+          event_category: "error",
+          event_label: `${event.message} @ ${event.filename}:${event.lineno}`,
+        });
+      });
+      window.addEventListener("unhandledrejection", (event) => {
+        gtag("event", "js_unhandled_rejection", {
+          event_category: "error",
+          event_label: String(event.reason).slice(0, 150),
+        });
+      });
     </script>
   </head>
 
@@ -611,6 +630,7 @@
           <img
             src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=afeinberg4l&button_colour=0d3a69&font_colour=ffffff&font_family=Lato&outline_colour=ffffff&coffee_colour=FFDD00"
             class="coffee-img"
+            alt="Buy me a coffee"
           />
         </a>
 
