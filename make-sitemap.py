@@ -21,6 +21,15 @@ WORDS_CSV = Path("norwegianWords.csv")
 STORIES_CSV = Path("norwegianStories.csv")
 OUTPUT_FILE = Path("sitemap.xml")
 
+# The site is a client-rendered single page app: every one of the ~29,000
+# per-word/per-story URLs this script *can* generate returns byte-for-byte
+# identical HTML until JavaScript runs and fetches/parses a 6MB CSV. Until
+# those pages are actually pre-rendered with unique content, submitting all
+# of them just spends a new/low-authority site's limited crawl budget on
+# near-duplicate pages instead of the handful that matter. Flip this back
+# on once pre-rendering exists.
+INCLUDE_INDIVIDUAL_PAGES = False
+
 SITEMAP_NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9"
 MAX_SITEMAP_URLS = 50_000
 MAX_SITEMAP_BYTES = 50 * 1024 * 1024
@@ -175,8 +184,10 @@ def main() -> None:
     raw_urls = []
 
     raw_urls.extend(CORE_URLS)
-    raw_urls.extend(build_word_urls(WORDS_CSV))
-    raw_urls.extend(build_story_urls(STORIES_CSV))
+
+    if INCLUDE_INDIVIDUAL_PAGES:
+        raw_urls.extend(build_word_urls(WORDS_CSV))
+        raw_urls.extend(build_story_urls(STORIES_CSV))
 
     unique_urls = deduplicate_urls(raw_urls)
     duplicates_removed = len(raw_urls) - len(unique_urls)
