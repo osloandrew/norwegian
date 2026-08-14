@@ -609,8 +609,11 @@ function handleSearchButtonClick() {
   popChime.play();
 }
 
-const WORD_CSV_CACHE_KEY = "wordDataCsv";
-const WORD_CSV_CACHE_TIME_KEY = "wordDataCsvTimestamp";
+// Prefixed: all language-site forks share one origin (osloandrew.github.io),
+// so localStorage is shared across them too — an unprefixed key here would
+// let a visit to another language site overwrite this one's cached data.
+const WORD_CSV_CACHE_KEY = "wordDataCsvNorwegian";
+const WORD_CSV_CACHE_TIME_KEY = "wordDataCsvTimestampNorwegian";
 const WORD_CSV_CACHE_MAX_AGE = 6 * 60 * 60 * 1000; // 6 hours, matching stories.js
 
 // Read the cached raw CSV text (not parsed entries — a parsed copy of the

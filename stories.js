@@ -49,8 +49,11 @@ const genreIcons = {
 };
 
 const CSV_URL = "norwegianStories.csv";
-const STORY_CACHE_KEY = "storyDataEs";
-const STORY_CACHE_TIME_KEY = "storyDataTimestampEs";
+// Prefixed: all language-site forks share one origin (osloandrew.github.io),
+// so localStorage is shared across them too — an unprefixed key here would
+// let a visit to another language site overwrite this one's cached data.
+const STORY_CACHE_KEY = "storyDataNorwegian";
+const STORY_CACHE_TIME_KEY = "storyDataTimestampNorwegian";
 const STORY_CACHE_MAX_AGE = 6 * 60 * 60 * 1000;
 let storyDataLoadPromise = null;
 const storyImagePathCache = new Map();
