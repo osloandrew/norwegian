@@ -1917,12 +1917,12 @@ function handleTypeChange(type, options = {}) {
     searchContainerInner.classList.remove("word-game-active");
     gameActive = false;
 
-    // Disable the POS dropdown and gray it out
-    posFilterContainer.style.display = "inline-flex"; // Show POS dropdown
-    posSelect.disabled = true; // Disable POS dropdown
+    // Word class isn't a meaningful filter for sentence search, so hide
+    // it entirely rather than showing it grayed out.
+    posFilterContainer.style.display = "none";
+    posSelect.disabled = true;
     cefrLock.style.display = "none";
     posSelect.value = ""; // Reset to "Part of Speech" option
-    posFilterContainer.classList.add("disabled"); // Add the 'disabled' class
 
     // Disable the CEFR dropdown and gray it out
     cefrSelect.disabled = false; // Enable CEFR filter when sentences are selected
