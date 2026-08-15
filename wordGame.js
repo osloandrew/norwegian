@@ -87,6 +87,24 @@ let reintroduceThreshold = 10; // Set how many words to show before reintroducin
 // the target gives it a reliable chance to clear within one 20-question
 // window while still keeping some spacing before the retry.
 const INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET = 3;
+
+// reintroduceThreshold (10) and the counter target above were tuned for
+// infinite mode, where a 10-13 question wait barely registers against an
+// endless stream. In a bounded round that same wait can balloon a round
+// well past the word count the learner picked — a single miss in a
+// 10-word round could nearly double it. Session mode uses this instead:
+// scales with the round's own size (small rounds get a short but still
+// real gap — immediate re-asking is weak retrieval practice — larger
+// rounds get more room), capped so even a 50-word round doesn't wait
+// needlessly long between retries.
+function getWordGameReintroduceThreshold() {
+  if (wordGameMode !== "session") {
+    return reintroduceThreshold;
+  }
+
+  return Math.min(6, Math.max(2, Math.round(wordGameSessionTarget / 5)));
+}
+
 let totalQuestions = 0; // Track total questions per level
 let wordsSinceLastIncorrect = 0; // Counter to track words shown since the last incorrect word
 let wordDataStore = [];
@@ -397,12 +415,20 @@ function renderStats() {
 
   // Session rounds don't level up/down (see evaluateProgression) — the
   // threshold-relative % bar has nothing left to communicate there, so it
-  // swaps for the round's own "Word X of N" progress instead. Infinite
-  // mode keeps the original bar, plus an optional way to stop and see
-  // stats.
+  // swaps for a bar filling toward the round's own "Word X of N" progress
+  // instead, so completing a round *feels* like progress the same way the
+  // infinite-mode bar does. Infinite mode keeps the original bar, plus an
+  // optional way to stop and see stats.
   const middleContentHTML = isSessionRound
-    ? `<div class="game-session-progress-inline" id="game-session-progress">
-         ${getWordGameSessionProgressLabel()}
+    ? `<div class="game-session-progress-bg" style="flex-grow: 1; border-radius: 10px; overflow: hidden; position: relative; display: flex; align-items: center;">
+         <div class="game-session-progress-fill" id="game-session-progress-fill"
+           style="position: absolute; top: 0; left: 0; bottom: 0; width: ${getWordGameSessionProgressPercent()}%;"></div>
+         <p class="game-session-progress-label" id="game-session-progress"
+           style="position: relative; width: 100%; text-align: center; margin: 0; user-select: none;
+                  font-family: 'Noto Sans', sans-serif; font-size: 14px; font-weight: 500;
+                  z-index: 1; color: #444;">
+           ${getWordGameSessionProgressLabel()}
+         </p>
        </div>`
     : `<div class="level-progress-bar-bg" style="flex-grow: 1; border-radius: 10px; overflow: hidden; position: relative;">
          <div class="level-progress-bar-fill"
@@ -452,6 +478,9 @@ function renderStats() {
   const labelEl = statsContainer.querySelector(".level-progress-label");
   const streakEl = statsContainer.querySelector("#streak-count");
   const reviewEl = statsContainer.querySelector("#review-count");
+  const progressFillEl = statsContainer.querySelector(
+    "#game-session-progress-fill",
+  );
   const progressEl = statsContainer.querySelector("#game-session-progress");
 
   if (fillEl) {
@@ -466,6 +495,9 @@ function renderStats() {
 
   if (streakEl) streakEl.textContent = correctStreak;
   if (reviewEl) reviewEl.textContent = wordsToReview;
+  if (progressFillEl) {
+    progressFillEl.style.width = `${getWordGameSessionProgressPercent()}%`;
+  }
   if (progressEl) {
     progressEl.textContent = getWordGameSessionProgressLabel();
   }
@@ -648,7 +680,29 @@ function findClozeTarget(wordObj, preferredForm = "") {
 // fetched — lets the learner choose a bounded round (a specific number of
 // words to learn, with missed words requeued until answered correctly —
 // see handleTranslationClick) or an unbounded, endless drill.
+// The level lock is only meaningful during actual infinite-mode play —
+// leveling never evaluates in session mode (see evaluateProgression), and
+// the intro/summary screens aren't gameplay at all. Called explicitly from
+// all three places rather than relying on whatever startWordGame() last
+// left it at, since the intro and summary screens don't go through
+// startWordGame().
+function setWordGameLockIconVisible(visible) {
+  const lockIcon = document.getElementById("lock-icon");
+  if (lockIcon) {
+    lockIcon.style.display = visible ? "inline" : "none";
+  }
+
+  // The CEFR pill reserves extra chevron/select space specifically for
+  // the lock icon (see styles.css) — only needed while the icon is
+  // actually shown, otherwise the pill grows a visible empty gap on the
+  // side where the icon would have been.
+  document
+    .getElementById("search-container-inner")
+    ?.classList.toggle("game-lock-visible", visible);
+}
+
 function renderWordGameIntro() {
+  setWordGameLockIconVisible(false);
   setGameContainerHTML(`
     <div class="game-intro-card">
       <h2 class="game-intro-heading">How do you want to practice?</h2>
@@ -723,6 +777,20 @@ function getWordGameSessionProgressLabel() {
   return `Word ${correctSoFar} of ${wordGameSessionTarget}`;
 }
 
+// Fill width for the session progress bar (see renderStats) — same
+// correctSoFar/target fraction the label text is built from, so the two
+// always agree.
+function getWordGameSessionProgressPercent() {
+  if (!wordGameSessionTarget) return 0;
+
+  const correctSoFar = Math.min(
+    wordGameSessionCorrectWords.size,
+    wordGameSessionTarget,
+  );
+
+  return (correctSoFar / wordGameSessionTarget) * 100;
+}
+
 // Resets round-scoped state (distinct from CEFR level progression, which
 // is untouched here and keeps working the same within whichever round is
 // active) and kicks off the first question.
@@ -748,6 +816,7 @@ function beginWordGameRound(mode, targetWords = 0) {
 function showWordGameRoundSummary() {
   stopAllAudio();
   hideAllBanners();
+  setWordGameLockIconVisible(false);
 
   const elapsedSeconds = Math.max(
     1,
@@ -803,7 +872,6 @@ function showWordGameRoundSummary() {
 }
 
 async function startWordGame() {
-  document.getElementById("lock-icon").style.display = "inline";
   const searchContainerInner = document.getElementById(
     "search-container-inner",
   ); // The container to update
@@ -859,10 +927,14 @@ async function startWordGame() {
     return;
   }
 
+  // Only meaningful during actual infinite-mode play — leveling never
+  // evaluates in session mode (see evaluateProgression).
+  setWordGameLockIconVisible(wordGameMode === "infinite");
+
   // First, check if there is an incorrect word to reintroduce
   if (
     incorrectWordQueue.length > 0 &&
-    wordsSinceLastIncorrect >= reintroduceThreshold
+    wordsSinceLastIncorrect >= getWordGameReintroduceThreshold()
   ) {
     const firstWordInQueue = incorrectWordQueue[0];
     if (firstWordInQueue.counter >= firstWordInQueue.requiredCounter) {
@@ -2023,14 +2095,21 @@ async function handleTranslationClick(
 
     // If the word is already in the review queue, missing it again means
     // it needs a longer runway before its next reintroduction attempt.
-    // Otherwise, add it to the queue for the first time.
+    // Otherwise, add it to the queue for the first time. Session mode's
+    // requiredCounter starts at 0 — the getWordGameReintroduceThreshold()
+    // gate above is the sole wait for a first miss there; the ramp this
+    // constant represents was calibrated for infinite mode's 20-question
+    // progression window, which session rounds don't use (see
+    // evaluateProgression).
     const existingQueueEntry = incorrectWordQueue.find(
       (incorrectWord) => incorrectWord.wordObj.ord === wordObj.ord,
     );
     if (existingQueueEntry) {
       existingQueueEntry.counter = 0;
       existingQueueEntry.requiredCounter +=
-        INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET;
+        wordGameMode === "session"
+          ? getWordGameReintroduceThreshold()
+          : INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET;
       existingQueueEntry.wasCloze = isCloze;
       existingQueueEntry.wasReverse = isReverse;
       existingQueueEntry.wasListening = isListening;
@@ -2039,7 +2118,8 @@ async function handleTranslationClick(
       incorrectWordQueue.push({
         wordObj,
         counter: 0,
-        requiredCounter: INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET,
+        requiredCounter:
+          wordGameMode === "session" ? 0 : INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET,
         wasCloze: isCloze,
         wasReverse: isReverse,
         wasListening: isListening,
@@ -2872,8 +2952,16 @@ document.getElementById("cefr-select").addEventListener("change", function () {
   if (typeValue === "word-game") {
     const selectedCEFR = this.value.toUpperCase(); // Get the newly selected CEFR level
     setGameLevel(selectedCEFR); // Set and persist the new CEFR level
-    resetGame(); // Reset the game stats
-    startWordGame(); // Start the game with the new CEFR level
+
+    if (wordGameRoundActive && wordGameMode === "session") {
+      // Changing level mid-round would otherwise mix two levels' words
+      // into what's supposed to be one coherent "N words at this level"
+      // round — restart fresh instead, same mode/size, at the new level.
+      beginWordGameRound(wordGameMode, wordGameSessionTarget);
+    } else {
+      resetGame(); // Reset the game stats
+      startWordGame(); // Start the game with the new CEFR level
+    }
   }
 });
 

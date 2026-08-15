@@ -1171,25 +1171,23 @@ footer .copyright {
   width: 100%;
 }
 
-/* Bounded-round progress ("Word 4 of 20"), shown inline where infinite
-   mode's level-progress-bar-bg sits — session rounds don't level up/down,
-   so that bar has nothing left to communicate (see renderStats() and
-   evaluateProgression() in wordGame.js). */
-.game-session-progress-inline {
-  align-items: center;
-  background-color: #f0f0f0;
+/* Bounded-round progress ("Word 4 of 20"), filling with green as the round
+   advances — shown where infinite mode's level-progress-bar-bg/-fill sit,
+   since session rounds don't level up/down and that bar has nothing left
+   to communicate there (see renderStats() and evaluateProgression() in
+   wordGame.js). Mirrors .level-progress-bar-bg/-fill's colors so the two
+   read as the same component in different modes. */
+.game-session-progress-bg {
+  background-color: #eee;
   border-radius: 10px;
-  color: #444;
-  display: flex;
   flex-grow: 1;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  height: 38px;
-  justify-content: center;
-  padding: 0 8px;
-  text-align: center;
-  user-select: none;
+  overflow: hidden;
+  position: relative;
+}
+
+.game-session-progress-fill {
+  background-color: #c7e3b6;
+  transition: width 0.3s ease;
 }
 
 /* Infinite mode's "end early" control, shown just below the stats bar. */
@@ -2173,11 +2171,18 @@ ul {
   margin: 0 auto;
 }
 
-#search-container-inner.word-game-active .cefr-filter > .fa-chevron-down {
+/* Reserves chevron/select space for the lock icon — only while it's
+   actually shown (session-mode rounds hide it entirely; see
+   setWordGameLockIconVisible in wordGame.js). Without the
+   .game-lock-visible guard, the pill kept this space free-standing even
+   with the icon gone, leaving a visible empty gap on its side. */
+#search-container-inner.word-game-active.game-lock-visible
+  .cefr-filter
+  > .fa-chevron-down {
   right: 44px;
 }
 
-#search-container-inner.word-game-active .cefr-filter select {
+#search-container-inner.word-game-active.game-lock-visible .cefr-filter select {
   padding-right: 72px;
 }
 
@@ -2186,13 +2191,16 @@ ul {
    just outside it) draws a ring that visually cuts through the lock
    icon instead of enclosing it. Ring the whole pill on focus instead,
    and suppress the select's own ring so there's only ever one. Scoped
-   to word-game-active since the CEFR filter has no lock icon (and so
-   no cutoff problem) anywhere else it's used. */
-#search-container-inner.word-game-active .cefr-filter select:focus-visible {
+   to word-game-active plus the lock actually being visible — without a
+   lock icon to cut through, the shared .cefr-filter select:focus-visible
+   rule already rings the select correctly on its own. */
+#search-container-inner.word-game-active.game-lock-visible
+  .cefr-filter
+  select:focus-visible {
   outline: none;
 }
 
-#search-container-inner.word-game-active .cefr-filter:focus-within {
+#search-container-inner.word-game-active.game-lock-visible .cefr-filter:focus-within {
   outline: 2px solid #ffffff;
   outline-offset: 2px;
 }
@@ -4232,8 +4240,11 @@ ul {
      class selector can't outrank regardless of source order) leaves an
      oversized gap before the lock icon on the much narrower mobile
      pill — closes that up without touching the lock icon's own
-     position/margin above. */
-  #search-container-inner.word-game-active .cefr-filter > .fa-chevron-down {
+     position/margin above. Only applies while the lock is actually
+     visible, same as the desktop rule it's overriding. */
+  #search-container-inner.word-game-active.game-lock-visible
+    .cefr-filter
+    > .fa-chevron-down {
     right: 32px;
   }
 
