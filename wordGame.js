@@ -26,6 +26,12 @@ let wordGameRoundActive = false; // false until the intro screen's mode is chose
 let wordGameMode = null; // "session" | "infinite"
 let wordGameSessionTarget = 0; // distinct correct words needed to finish a "session" round
 let wordGameSessionCorrectWords = new Set(); // distinct words answered correctly this round
+// Every distinct word ever shown as a genuinely new question this round
+// (not a reintroduction). Capped at wordGameSessionTarget — see
+// fetchRandomWord(): once this hits the target, no further new words are
+// pulled from the wider dictionary, so a round of N always introduces
+// exactly N words, never more.
+let wordGameSessionIntroducedWords = new Set();
 let wordGameSessionQuestionsAnswered = 0;
 let wordGameSessionCorrectAnswers = 0;
 let wordGameSessionIncorrectAnswers = 0;
@@ -714,6 +720,7 @@ function beginWordGameRound(mode, targetWords = 0) {
   wordGameMode = mode;
   wordGameSessionTarget = mode === "session" ? targetWords : 0;
   wordGameSessionCorrectWords = new Set();
+  wordGameSessionIntroducedWords = new Set();
   wordGameSessionQuestionsAnswered = 0;
   wordGameSessionCorrectAnswers = 0;
   wordGameSessionIncorrectAnswers = 0;
@@ -2351,7 +2358,47 @@ function pickPrioritizedGameWord(eligibleEntries) {
   return pickWeightedGameWord(eligibleEntries, weights);
 }
 
+// Once a session round has introduced its full target word count, every
+// further "new question" slot reviews one already-introduced word instead
+// of pulling a brand-new one from the dictionary — this is what keeps a
+// round of N to exactly N distinct words (see fetchRandomWord). Prefers
+// words already answered correctly (pure review); words still awaiting
+// their own scheduled reintroduction are left to that timing, which is
+// handled separately at the top of startWordGame().
+function pickWordGameSessionFillerWord() {
+  const queuedWords = new Set(
+    incorrectWordQueue.map((entry) => entry.wordObj),
+  );
+  const reviewCandidates = Array.from(wordGameSessionCorrectWords).filter(
+    (entry) => !queuedWords.has(entry),
+  );
+
+  if (reviewCandidates.length > 0) {
+    return pickWeightedGameWord(
+      reviewCandidates,
+      reviewCandidates.map(getGameWordWeight),
+    );
+  }
+
+  // Nothing correct yet to review (e.g. every introduced word so far has
+  // been missed) — pick from all introduced words rather than returning
+  // nothing, even if that means showing one slightly ahead of its own
+  // scheduled reintroduction.
+  const introduced = Array.from(wordGameSessionIntroducedWords);
+
+  return introduced.length > 0
+    ? introduced[Math.floor(Math.random() * introduced.length)]
+    : null;
+}
+
 async function fetchRandomWord() {
+  if (
+    wordGameMode === "session" &&
+    wordGameSessionIntroducedWords.size >= wordGameSessionTarget
+  ) {
+    return pickWordGameSessionFillerWord();
+  }
+
   const selectedPOS = document.getElementById("pos-select")
     ? document.getElementById("pos-select").value.toLowerCase()
     : "";
@@ -2391,6 +2438,10 @@ async function fetchRandomWord() {
   }
 
   previousWord = selectedEntry.ord;
+
+  if (wordGameRoundActive) {
+    wordGameSessionIntroducedWords.add(selectedEntry);
+  }
 
   /*
    * Return the original dictionary entry. Do not create a partial copy.
