@@ -419,32 +419,60 @@ function renderStats() {
   // instead, so completing a round *feels* like progress the same way the
   // infinite-mode bar does. Infinite mode keeps the original bar, plus an
   // optional way to stop and see stats.
-  const middleContentHTML = isSessionRound
-    ? `<div class="game-session-progress-bg" style="flex-grow: 1; border-radius: 10px; overflow: hidden; position: relative; display: flex; align-items: center;">
-         <div class="game-session-progress-fill" id="game-session-progress-fill"
-           style="position: absolute; top: 0; left: 0; bottom: 0; width: ${getWordGameSessionProgressPercent()}%;"></div>
-         <p class="game-session-progress-label" id="game-session-progress"
-           style="position: relative; width: 100%; text-align: center; margin: 0; user-select: none;
-                  font-family: 'Noto Sans', sans-serif; font-size: 14px; font-weight: 500;
-                  z-index: 1; color: #444;">
-           ${getWordGameSessionProgressLabel()}
-         </p>
-       </div>`
-    : `<div class="level-progress-bar-bg" style="flex-grow: 1; border-radius: 10px; overflow: hidden; position: relative;">
-         <div class="level-progress-bar-fill"
-           style="width: 0%; background-color: ${fillColor}; height: 100%;"></div>
-         <p class="level-progress-label"
-           style="position: absolute; width: 100%; text-align: center; margin: 0; user-select: none;
-                  font-family: 'Noto Sans', sans-serif; font-size: 18px; font-weight: 500;
-                  z-index: 1; color: ${fontColor}; line-height: 38px;">
-           ${Math.round(correctPercentage)}%
-         </p>
-       </div>`;
+  // Available in every mode now, not just infinite — a learner might just
+  // as well want to stop partway through a bounded round and see how
+  // they've done so far. Ending early this way is exactly why
+  // recordStreakActivity() (streak.js) is gated on having gotten at least
+  // 10 words correct: without that floor, tapping this the instant a
+  // round starts would count as a full day's practice.
+  //
+  // This compact copy is a fallback for very short phones only (see the
+  // max-height:700px block in styles.css) — everywhere else the real
+  // control is #game-end-session-btn, a static button in the toolbar
+  // (index.html, between the CEFR filter and the report-issue flag) shown
+  // and wired once via updateEndSessionToolbarButtonVisibility() below,
+  // not re-rendered per question like this one is.
+  const endSessionButtonCompactHTML = `<button type="button" id="game-end-session-btn-compact" class="game-end-session-btn">Quit &amp; see stats</button>`;
 
-  const belowRowHTML =
-    wordGameRoundActive && wordGameMode === "infinite"
-      ? `<button type="button" id="game-end-session-btn" class="game-end-session-btn">End &amp; see stats</button>`
-      : "";
+  // The compact button comes first, above the label — see the
+  // max-height:700px block in styles.css, the only place it's ever
+  // shown. Its own height is trimmed there too, so pulling it out of
+  // .game-stats-accuracy-row (which used to sit below the bar) actually
+  // saves vertical space overall on these short screens, rather than
+  // just relocating the same footprint.
+  const middleContentHTML = isSessionRound
+    ? `<div class="game-stats-progress-wrapper" style="flex-grow: 1;">
+         ${endSessionButtonCompactHTML}
+         <p class="game-stat-label">Round progress</p>
+         <div class="game-stats-accuracy-row">
+           <div class="game-session-progress-bg" style="border-radius: 10px; overflow: hidden; position: relative; display: flex; align-items: center;">
+             <div class="game-session-progress-fill" id="game-session-progress-fill"
+               style="position: absolute; top: 0; left: 0; bottom: 0; width: ${getWordGameSessionProgressPercent()}%;"></div>
+             <p class="game-session-progress-label" id="game-session-progress"
+               style="position: relative; width: 100%; text-align: center; margin: 0; user-select: none;
+                      font-family: 'Noto Sans', sans-serif; font-size: 14px; font-weight: 500;
+                      z-index: 1; color: #444;">
+               ${getWordGameSessionProgressLabel()}
+             </p>
+           </div>
+         </div>
+       </div>`
+    : `<div class="game-stats-progress-wrapper" style="flex-grow: 1;">
+         ${endSessionButtonCompactHTML}
+         <p class="game-stat-label">Recent accuracy</p>
+         <div class="game-stats-accuracy-row">
+           <div class="level-progress-bar-bg" style="border-radius: 10px; overflow: hidden; position: relative;">
+             <div class="level-progress-bar-fill"
+               style="width: 0%; background-color: ${fillColor}; height: 100%;"></div>
+             <p class="level-progress-label"
+               style="position: absolute; width: 100%; text-align: center; margin: 0; user-select: none;
+                      font-family: 'Noto Sans', sans-serif; font-size: 18px; font-weight: 500;
+                      z-index: 1; color: ${fontColor}; line-height: 38px;">
+               ${Math.round(correctPercentage)}%
+             </p>
+           </div>
+         </div>
+       </div>`;
 
   // Inject HTML only if it hasn't been rendered yet for this question.
   // .game-stats-wrapper (rather than .level-progress-bar-fill, which only
@@ -458,16 +486,21 @@ function renderStats() {
     statsContainer.innerHTML = `
       <div class="game-stats-wrapper">
         <div class="game-stats-content" style="width: 100%;">
-          <div class="game-stats-correct-box"><p id="streak-count">${correctStreak}</p></div>
+          <div class="game-stats-correct-box">
+            <p class="game-stat-label">Correct in a row</p>
+            <p id="streak-count">${correctStreak}</p>
+          </div>
           ${middleContentHTML}
-          <div class="game-stats-incorrect-box"><p id="review-count">${wordsToReview}</p></div>
+          <div class="game-stats-incorrect-box">
+            <p class="game-stat-label">Words to review</p>
+            <p id="review-count">${wordsToReview}</p>
+          </div>
         </div>
-        ${belowRowHTML}
       </div>
     `;
 
     document
-      .getElementById("game-end-session-btn")
+      .getElementById("game-end-session-btn-compact")
       ?.addEventListener("click", () => {
         showWordGameRoundSummary();
       });
@@ -791,6 +824,28 @@ function getWordGameSessionProgressPercent() {
   return (correctSoFar / wordGameSessionTarget) * 100;
 }
 
+// Shows/hides the two static copies of Quit & see stats — index.html has
+// three total: #game-end-session-btn in the toolbar (desktop/tablet,
+// between the CEFR filter and the report-issue flag), and
+// #game-end-session-btn-header in the header's auth row (non-tiny
+// mobile — real document flow there, right alongside the streak badge/
+// Google sign-in pill, so it shares their height and pushes the title
+// down on its own instead of needing a fixed position plus manually
+// reserved space). The third, #game-end-session-btn-compact, is rendered
+// fresh per question inside renderStats() (very short phones only), so
+// it doesn't need this — but these two are only ever created once, so
+// their visibility has to be toggled explicitly wherever
+// wordGameRoundActive changes, rather than just following whether they
+// got rendered this time.
+function updateEndSessionToolbarButtonVisibility() {
+  document
+    .getElementById("game-end-session-btn")
+    ?.classList.toggle("hidden", !wordGameRoundActive);
+  document
+    .getElementById("game-end-session-btn-header")
+    ?.classList.toggle("hidden", !wordGameRoundActive);
+}
+
 // Resets round-scoped state (distinct from CEFR level progression, which
 // is untouched here and keeps working the same within whichever round is
 // active) and kicks off the first question.
@@ -804,13 +859,14 @@ function beginWordGameRound(mode, targetWords = 0) {
   wordGameSessionIncorrectAnswers = 0;
   wordGameSessionStartedAt = Date.now();
   wordGameRoundActive = true;
+  updateEndSessionToolbarButtonVisibility();
 
   resetGame();
   startWordGame();
 }
 
 // Shown when a bounded round hits its word-count target, or when the
-// learner manually ends an infinite round via the "End & see stats"
+// learner manually ends an infinite round via the "Quit & see stats"
 // button (see renderStats). wordGameRoundActive is cleared so the next
 // entry into the word game shows the intro screen again.
 function showWordGameRoundSummary() {
@@ -835,10 +891,19 @@ function showWordGameRoundSummary() {
   const wasBoundedRound = wordGameMode === "session";
 
   wordGameRoundActive = false;
+  updateEndSessionToolbarButtonVisibility();
 
-  // Every completed/ended round counts toward the day streak — see
-  // recordStreakActivity() in streak.js for the extend/grace/reset rules.
-  const streakResult = window.StreakAPI?.recordActivity?.();
+  // Counts toward the day streak only once at least 10 distinct words have
+  // been answered correctly this round — the same floor a bounded round's
+  // smallest option (10 words) already enforces just by requiring you to
+  // finish it. Without this, "Quit & see stats" (available in every mode,
+  // including right at the start of an infinite round) would let a single
+  // click count as a full day's practice. See recordStreakActivity() in
+  // streak.js for the extend/grace/reset rules themselves.
+  const streakResult =
+    wordGameSessionCorrectWords.size >= 10
+      ? window.StreakAPI?.recordActivity?.()
+      : null;
   const streakBannerHTML =
     streakResult && streakResult.count > 0
       ? `
@@ -1282,6 +1347,15 @@ function ensureUniqueDisplayedValues(translations) {
 
 function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
   const isCapitalized = /^[A-Z]/.test(correctTranslation); // Check if the current word starts with a capital letter
+  // The displayed form is only the part before the first comma (see
+  // ensureUniqueDisplayedValues, which the caller runs on the final
+  // 4-option list) — a distractor whose *full* engelsk string differs from
+  // correctTranslation but shares that displayed part (e.g. correct is
+  // "boat, ship" and a distractor is "boat, watercraft") used to slip
+  // through here, since the filter below only compared full strings. That
+  // let a 4th option get silently deduped away downstream, leaving only 3
+  // visible cards.
+  const correctDisplayedTranslation = correctTranslation.split(",")[0].trim();
 
   let incorrectResults = results.filter((r) => {
     const isMatchingCase = /^[A-Z]/.test(r.engelsk) === isCapitalized; // Check if the word's case matches
@@ -1297,8 +1371,10 @@ function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
   // Shuffle the incorrect results to ensure randomness
   incorrectResults = shuffleArray(incorrectResults);
 
-  // Use a Set to track the displayed parts of translations to avoid duplicates
-  const displayedTranslationsSet = new Set();
+  // Use a Set to track the displayed parts of translations to avoid
+  // duplicates — pre-seeded with the correct answer's own displayed part
+  // (see comment above) so a distractor can't silently match it.
+  const displayedTranslationsSet = new Set([correctDisplayedTranslation]);
   const incorrectTranslations = [];
 
   // First, try to collect translations from the same CEFR level
@@ -1317,7 +1393,7 @@ function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
   }
 
   // If we still don't have enough, broaden the search to include words of the same gender but any CEFR level
-  if (incorrectTranslations.length < 4) {
+  if (incorrectTranslations.length < 3) {
     let additionalResults = results.filter((r) => {
       const isMatchingCase = /^[A-Z]/.test(r.engelsk) === isCapitalized; // Ensure case matches for fallback
       return (
@@ -1345,7 +1421,7 @@ function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
   }
 
   // If we still don't have enough, broaden the search to include any word, ignoring CEFR and gender
-  if (incorrectTranslations.length < 4) {
+  if (incorrectTranslations.length < 3) {
     let fallbackResults = results.filter((r) => {
       const isMatchingCase = /^[A-Z]/.test(r.engelsk) === isCapitalized; // Ensure case matches for fallback
       return (
@@ -1569,6 +1645,21 @@ function enableGameControls() {
   }
 }
 
+// States what a question is asking for, since a bare word/sentence plus
+// four choices didn't say what to do with them.
+function getGameInstructionText(mode) {
+  switch (mode) {
+    case "reverse":
+      return "Choose the Norwegian word";
+    case "listening":
+      return "Listen and choose the meaning";
+    case "cloze":
+      return "Choose the word that completes the sentence";
+    default:
+      return "Choose the English meaning";
+  }
+}
+
 // mode: "forward" (Norwegian shown, recognize English — the default),
 // "reverse" (English shown, recall Norwegian), or "listening" (Norwegian
 // audio only, recognize English — the word's own text is hidden until
@@ -1628,6 +1719,7 @@ function renderWordGameUI(
             <!-- Stats will be updated dynamically in renderStats() -->
         </div>
 
+        <p class="game-instruction">${getGameInstructionText(mode)}</p>
         <div class="game-word-card">
             <div class="game-labels-container">
               <div class="game-label-subgroup">
@@ -1793,6 +1885,7 @@ function renderClozeGameUI(
       <!-- Stats will be updated dynamically in renderStats() -->
     </div>
   
+    <p class="game-instruction">${getGameInstructionText("cloze")}</p>
     <div class="game-word-card">
       <div class="game-labels-container">
         <div class="game-label-subgroup">
@@ -1819,7 +1912,7 @@ function renderClozeGameUI(
 </div>
 
         </div>
-  
+
       <div class="game-word">
       <h2 id="cloze-sentence">${sentenceWithBlank}</h2>
       </div>
@@ -2806,7 +2899,33 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
   const matchCapitalization = /^[A-ZÆØÅ]/.test(clozedForm);
   const endingPattern = getEndingPattern(formattedClozed);
 
-  let strictDistractors = [];
+  // Seeded with the correct answer's own displayed form, and shared across
+  // all three widening tiers below, so a distractor can't silently
+  // duplicate the correct answer OR another distractor already picked in
+  // this tier or an earlier one — none of that was previously guarded
+  // against here (each tier only checked a candidate against the correct
+  // answer, never against its own siblings or earlier tiers' picks).
+  // ensureUniqueDisplayedValues (wordGame.js) later dedupes the final
+  // 4-option list by exact displayed text, so any duplicate slipping
+  // through here used to get silently collapsed away, leaving only 3
+  // visible answer cards instead of 4.
+  const seen = new Set([formattedClozed]);
+  const distractors = [];
+
+  const collect = (words) => {
+    for (let i = 0; i < words.length && distractors.length < 3; i++) {
+      const word = words[i];
+      // Keyed by lowercase: the "extra" tier below can return
+      // capitalized forms (to match a sentence-initial blank) while the
+      // other two tiers only ever produce lowercase, so a case-sensitive
+      // key would miss a same-word duplicate that differs only in case.
+      const key = word.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        distractors.push(word);
+      }
+    }
+  };
 
   const baseCandidates = results.filter((r) => {
     const ord = r.ord.split(",")[0].trim().toLowerCase();
@@ -2834,9 +2953,9 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
         (isUninflected || endingPattern.test(w)),
     );
 
-  strictDistractors = shuffleArray(inflected).slice(0, 3);
+  collect(shuffleArray(inflected));
 
-  if (strictDistractors.length < 3) {
+  if (distractors.length < 3) {
     const relaxed = results
       .filter((r) => {
         const raw = r.ord.split(",")[0].trim().toLowerCase();
@@ -2859,12 +2978,10 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
           (isUninflected || endingPattern.test(w)),
       );
 
-    strictDistractors = strictDistractors
-      .concat(shuffleArray(relaxed))
-      .slice(0, 3);
+    collect(shuffleArray(relaxed));
   }
 
-  if (strictDistractors.length < 3) {
+  if (distractors.length < 3) {
     const extra = results
       .map((r) => {
         const raw = r.ord.split(",")[0].trim();
@@ -2880,12 +2997,10 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
           /^[a-zA-ZæøåÆØÅ]/.test(w) === matchCapitalization,
       );
 
-    strictDistractors = strictDistractors
-      .concat(shuffleArray(extra))
-      .slice(0, 3);
+    collect(shuffleArray(extra));
   }
 
-  return strictDistractors;
+  return distractors;
 }
 
 function updateCEFRSelection() {
@@ -3017,6 +3132,16 @@ document.addEventListener("keydown", function (event) {
       nextWordButton.click(); // Simulate a click on the next word button
     }
   }
+});
+
+// Static (not re-rendered per question, unlike #game-end-session-btn-compact
+// in renderStats()), so they only need wiring once, here at load time —
+// visibility is handled separately by updateEndSessionToolbarButtonVisibility().
+document.getElementById("game-end-session-btn")?.addEventListener("click", () => {
+  showWordGameRoundSummary();
+});
+document.getElementById("game-end-session-btn-header")?.addEventListener("click", () => {
+  showWordGameRoundSummary();
 });
 
 window.toggleLevelLock = toggleLevelLock;

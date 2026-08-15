@@ -145,13 +145,32 @@
         <span class="story-report-issue-btn-label">Report an issue</span>
       </button>
 
-      <div id="auth-container" class="auth-container">
-        <!-- Hidden until there's an actual streak to show — see
-             updateStreakBadge() in streak.js. Lives inside #auth-container
-             (rather than floating separately) purely for layout: it's
-             meaningful whether or not the visitor is signed in, since
-             streak state lives in localStorage either way. -->
-        <div id="streak-badge" class="streak-badge hidden" title="Day streak">
+      <!-- Mobile-only home for "Quit & see stats" (index.html's other
+           copies: #game-end-session-btn in the toolbar for desktop/tablet,
+           #game-end-session-btn-compact in the stats row for very short
+           phones). Wrapping it with #auth-container here — rather than
+           somewhere positioned separately — is what lets it sit in normal
+           document flow at the same height as the streak badge/Google
+           sign-in pill on the opposite side of this row, and means the
+           header just grows to fit it like any other content instead of
+           needing manual space reserved for it. -->
+      <div class="header-top-row">
+        <button
+          type="button"
+          id="game-end-session-btn-header"
+          class="game-end-session-btn hidden"
+          aria-label="Quit this round early and see your stats"
+        >
+          Quit &amp; see stats
+        </button>
+
+        <div id="auth-container" class="auth-container">
+          <!-- Hidden until there's an actual streak to show — see
+               updateStreakBadge() in streak.js. Lives inside #auth-container
+               (rather than floating separately) purely for layout: it's
+               meaningful whether or not the visitor is signed in, since
+               streak state lives in localStorage either way. -->
+          <div id="streak-badge" class="streak-badge hidden" title="Day streak">
           <i class="fas fa-fire" aria-hidden="true"></i>
           <span id="streak-badge-count">0</span>
         </div>
@@ -206,6 +225,7 @@
           >
             Sign out
           </button>
+        </div>
         </div>
       </div>
 
@@ -344,6 +364,23 @@
                   onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleLevelLock() }"
                 ></i>
               </div>
+              <!-- Only shown mid-round, in any Word Game mode — see
+                   updateEndSessionToolbarButtonVisibility() in wordGame.js,
+                   which toggles the "hidden" class below, and the
+                   word-game-active scoping in styles.css. On mobile this
+                   moves to the header's top-left corner (the same spot
+                   .story-report-issue-btn uses during story reading); on
+                   very short phones it's hidden entirely in favor of
+                   #game-end-session-btn-compact, which stays in the stats
+                   row instead. -->
+              <button
+                type="button"
+                id="game-end-session-btn"
+                class="game-end-session-btn hidden"
+                aria-label="Quit this round early and see your stats"
+              >
+                Quit &amp; see stats
+              </button>
               <!-- Only shown in Word Game mode, via #search-container-inner.word-game-active in styles.css -->
               <button
                 type="button"
@@ -439,9 +476,7 @@
               Word List
             </a>
 
-            <p>
-              Browse and filter the complete Norwegian vocabulary collection.
-            </p>
+            <p>Browse and filter the Norwegian vocabulary collection.</p>
           </div>
 
           <!-- Sentence Search Button -->
@@ -484,8 +519,8 @@
               Word Game
             </a>
             <p>
-              Master vocabulary with an interactive game that adapts to your
-              skill level.
+              Practice vocabulary with an interactive game that adapts to
+              your skill level.
             </p>
           </div>
 
@@ -539,7 +574,7 @@
             >
               Pronunciation Guide
             </button>
-            <p>Perfect your pronunciation by learning Norwegian sounds.</p>
+            <p>Practice your pronunciation by learning Norwegian sounds.</p>
           </div>
         </div>
 
