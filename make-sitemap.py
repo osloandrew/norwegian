@@ -158,11 +158,21 @@ def write_sitemap(urls: list[str], output_file: Path) -> None:
 
     temporary_file = output_file.with_suffix(".xml.tmp")
 
+    # xml_declaration=True would have ElementTree emit its own declaration,
+    # but it hardcodes single-quoted attributes and lowercase "utf-8"
+    # (<?xml version='1.0' encoding='utf-8'?>) — valid per the XML spec, but
+    # non-conventional enough that some stricter/naive sitemap validators
+    # fail to recognize it. Writing the body without a declaration and then
+    # prepending the conventional double-quoted, uppercase form ourselves
+    # avoids that friction entirely.
     tree.write(
         temporary_file,
         encoding="utf-8",
-        xml_declaration=True,
+        xml_declaration=False,
     )
+
+    declaration = b'<?xml version="1.0" encoding="UTF-8"?>\n'
+    temporary_file.write_bytes(declaration + temporary_file.read_bytes())
 
     sitemap_size = temporary_file.stat().st_size
 
