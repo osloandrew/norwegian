@@ -581,7 +581,7 @@ async function startWordGame() {
     wordsSinceLastIncorrect >= reintroduceThreshold
   ) {
     const firstWordInQueue = incorrectWordQueue[0];
-    if (firstWordInQueue.counter >= INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET) {
+    if (firstWordInQueue.counter >= firstWordInQueue.requiredCounter) {
       // Play the popChime when reintroducing an incorrect word
       popChime.currentTime = 0; // Reset audio to the beginning
       popChime.play(); // Play the pop sound
@@ -1505,14 +1505,23 @@ async function handleTranslationClick(
       completeClozeSentence(clozeSentence);
     }
 
-    // If the word isn't already in the review queue, add it
-    const inQueueAlready = incorrectWordQueue.some(
+    // If the word is already in the review queue, missing it again means
+    // it needs a longer runway before its next reintroduction attempt.
+    // Otherwise, add it to the queue for the first time.
+    const existingQueueEntry = incorrectWordQueue.find(
       (incorrectWord) => incorrectWord.wordObj.ord === wordObj.ord,
     );
-    if (!inQueueAlready) {
+    if (existingQueueEntry) {
+      existingQueueEntry.counter = 0;
+      existingQueueEntry.requiredCounter +=
+        INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET;
+      existingQueueEntry.wasCloze = isCloze;
+      existingQueueEntry.clozedForm = isCloze ? correctTranslation : null;
+    } else {
       incorrectWordQueue.push({
         wordObj,
         counter: 0,
+        requiredCounter: INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET,
         wasCloze: isCloze,
         clozedForm: isCloze ? correctTranslation : null,
       });
@@ -1634,6 +1643,10 @@ async function fetchExampleSentence(wordObj) {
 const MY_WORDS_PRIORITY = 2 / 3;
 
 function getEligibleGameWords(selectedPOS, cefrLevel) {
+  const queuedForReintroduction = new Set(
+    incorrectWordQueue.map((queued) => queued.wordObj),
+  );
+
   return results.filter((entry) => {
     const norwegianWord = String(entry?.ord ?? "").trim();
     const englishTranslation = String(entry?.engelsk ?? "").trim();
@@ -1671,6 +1684,14 @@ function getEligibleGameWords(selectedPOS, cefrLevel) {
      * An exact dictionary entry is excluded after a correct answer.
      */
     if (correctlyAnsweredWords.has(entry)) {
+      return false;
+    }
+
+    /*
+     * Already queued for its own deliberate, delayed reintroduction —
+     * don't let the normal weighted draw surface it early.
+     */
+    if (queuedForReintroduction.has(entry)) {
       return false;
     }
 
