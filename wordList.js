@@ -132,10 +132,18 @@
   /**
    * Create one table cell.
    */
-  function createWordListCell(value, className, mobileLabel) {
+  function createWordListCell(
+    value,
+    className,
+    mobileLabel,
+    { richContent = false } = {},
+  ) {
     const cell = document.createElement("td");
 
-    cell.textContent = value || "—";
+    // richContent cells are about to have their real content (an icon,
+    // badge, or link) appended by the caller — skip the "—" placeholder
+    // rather than setting then immediately discarding it.
+    cell.textContent = richContent ? "" : value || "—";
     cell.className = className;
     cell.dataset.label = mobileLabel;
 
@@ -311,14 +319,14 @@
   }
 
   function createMyWordsCell(entry) {
-    const cell = createWordListCell("", "word-list-favorite", "My Words");
+    const cell = createWordListCell("", "word-list-favorite", "My Words", {
+      richContent: true,
+    });
 
     const button = document.createElement("button");
     const icon = document.createElement("i");
     const entryId = getMyWordsEntryId(entry);
     const word = String(entry.ord ?? "").trim();
-
-    cell.textContent = "";
 
     button.type = "button";
     button.className = "word-list-favorite-button";
@@ -351,10 +359,9 @@
   }
 
   function createWordStrengthCell(entry) {
-    const cell = createWordListCell("", "word-list-strength", "Strength");
-
-    // Remove the placeholder added by createWordListCell().
-    cell.textContent = "";
+    const cell = createWordListCell("", "word-list-strength", "Strength", {
+      richContent: true,
+    });
 
     const entryId = getMyWordsEntryId(entry);
     const strengthValue = wordStrengths[entryId];
@@ -775,9 +782,8 @@
       "",
       "word-list-norwegian",
       "Norwegian",
+      { richContent: true },
     );
-
-    norwegianCell.textContent = "";
 
     const norwegianLink = document.createElement("a");
     const wordTextBlock = document.createElement("span");
@@ -831,10 +837,8 @@
       "",
       "word-list-class",
       "Word Class",
+      { richContent: true },
     );
-
-    // Remove the placeholder inserted by createWordListCell().
-    wordClassCell.textContent = "";
 
     const wordClassBadge = document.createElement("span");
 
@@ -852,10 +856,9 @@
       .trim()
       .toUpperCase();
 
-    const levelCell = createWordListCell("", "word-list-level", "Level");
-
-    // Remove the placeholder added by createWordListCell().
-    levelCell.textContent = "";
+    const levelCell = createWordListCell("", "word-list-level", "Level", {
+      richContent: true,
+    });
 
     if (level) {
       const levelBadge = document.createElement("span");
@@ -1137,10 +1140,14 @@
     return `${filenameParts.join("-")}.${extension}`;
   }
 
-  function escapeWordListCSVValue(value) {
-    const cleanedValue = String(value ?? "")
+  function cleanWordListExportValue(value) {
+    return String(value ?? "")
       .replace(/\r?\n/g, " ")
       .trim();
+  }
+
+  function escapeWordListCSVValue(value) {
+    const cleanedValue = cleanWordListExportValue(value);
 
     return `"${cleanedValue.replace(/"/g, '""')}"`;
   }
@@ -1195,10 +1202,7 @@
   }
 
   function escapeWordListTSVValue(value) {
-    return String(value ?? "")
-      .replace(/\t/g, " ")
-      .replace(/\r?\n/g, " ")
-      .trim();
+    return cleanWordListExportValue(value).replace(/\t/g, " ");
   }
 
   function createWordListTag(value) {
@@ -1241,33 +1245,33 @@
       "text/tab-separated-values",
     );
   }
+  function createControlGroup(className, ariaLabel) {
+    const group = document.createElement("div");
+
+    group.className = `word-list-control-group ${className}`;
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-label", ariaLabel);
+
+    return group;
+  }
+
+  function createControlButton(label, onClick) {
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = "word-list-export-button";
+    button.textContent = label;
+
+    if (typeof onClick === "function") {
+      button.addEventListener("click", onClick);
+    }
+
+    return button;
+  }
+
   function createWordListControls(visibleCount) {
     const controls = document.createElement("div");
     controls.className = "word-list-controls";
-
-    function createControlGroup(className, ariaLabel) {
-      const group = document.createElement("div");
-
-      group.className = `word-list-control-group ${className}`;
-      group.setAttribute("role", "group");
-      group.setAttribute("aria-label", ariaLabel);
-
-      return group;
-    }
-
-    function createControlButton(label, onClick) {
-      const button = document.createElement("button");
-
-      button.type = "button";
-      button.className = "word-list-export-button";
-      button.textContent = label;
-
-      if (typeof onClick === "function") {
-        button.addEventListener("click", onClick);
-      }
-
-      return button;
-    }
 
     /*
      * View selection
@@ -1655,25 +1659,26 @@
     }
 
     /*
-     * Reintroduced Word Game objects may contain only a subset
-     * of the original entry's properties.
+     * Reintroduced Word Game objects may contain only a subset of the
+     * original entry's properties — try the most specific field set first,
+     * then fall back to a looser one that drops "engelsk".
      */
-    return (
-      results.find(
-        (candidate) =>
-          sameValue(candidate.ord, entry.ord) &&
-          sameValue(candidate.engelsk, entry.engelsk) &&
-          sameValue(candidate.gender, entry.gender) &&
-          sameValue(candidate.CEFR, entry.CEFR),
-      ) ||
-      results.find(
-        (candidate) =>
-          sameValue(candidate.ord, entry.ord) &&
-          sameValue(candidate.gender, entry.gender) &&
-          sameValue(candidate.CEFR, entry.CEFR),
-      ) ||
-      entry
-    );
+    const fieldTiers = [
+      ["ord", "engelsk", "gender", "CEFR"],
+      ["ord", "gender", "CEFR"],
+    ];
+
+    for (const fields of fieldTiers) {
+      const match = results.find((candidate) =>
+        fields.every((field) => sameValue(candidate[field], entry[field])),
+      );
+
+      if (match) {
+        return match;
+      }
+    }
+
+    return entry;
   }
 
   function isMyWordsEntrySaved(entry) {

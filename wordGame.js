@@ -91,6 +91,28 @@ function getGameCefrLabelHTML(cefrLevel) {
     : "";
 }
 
+// Shared by renderWordGameUI and renderClozeGameUI's gender/word-class badge.
+function getGameGenderLabel(gender) {
+  if (
+    gender.startsWith("en") ||
+    gender.startsWith("et") ||
+    gender.startsWith("ei")
+  ) {
+    return "N - " + gender;
+  }
+  if (gender.startsWith("adjective")) return "Adj";
+  if (gender.startsWith("adverb")) return "Adv";
+  if (gender.startsWith("conjunction")) return "Conj";
+  if (gender.startsWith("determiner")) return "Det";
+  if (gender.startsWith("expression")) return "Exp";
+  if (gender.startsWith("interjection")) return "Inter";
+  if (gender.startsWith("numeral")) return "Num";
+  if (gender.startsWith("possessive")) return "Poss";
+  if (gender.startsWith("preposition")) return "Prep";
+  if (gender.startsWith("pronoun")) return "Pron";
+  return gender;
+}
+
 // Getting a CSS transition to restart reliably after a class toggle turned
 // out to be genuinely unreliable here — a forced reflow (offsetHeight),
 // double requestAnimationFrame, and a short setTimeout were all tried and
@@ -1245,35 +1267,7 @@ function renderWordGameUI(
   let displayedWord = isReverse
     ? String(wordObj.engelsk ?? "").split(",")[0].trim()
     : wordObj.ord.split(",")[0].trim();
-  let displayedGender = wordObj.gender;
-
-  if (
-    wordObj.gender.startsWith("en") ||
-    wordObj.gender.startsWith("et") ||
-    wordObj.gender.startsWith("ei")
-  ) {
-    displayedGender = "N - " + displayedGender;
-  } else if (wordObj.gender.startsWith("adjective")) {
-    displayedGender = "Adj";
-  } else if (wordObj.gender.startsWith("adverb")) {
-    displayedGender = "Adv";
-  } else if (wordObj.gender.startsWith("conjunction")) {
-    displayedGender = "Conj";
-  } else if (wordObj.gender.startsWith("determiner")) {
-    displayedGender = "Det";
-  } else if (wordObj.gender.startsWith("expression")) {
-    displayedGender = "Exp";
-  } else if (wordObj.gender.startsWith("interjection")) {
-    displayedGender = "Inter";
-  } else if (wordObj.gender.startsWith("numeral")) {
-    displayedGender = "Num";
-  } else if (wordObj.gender.startsWith("possessive")) {
-    displayedGender = "Poss";
-  } else if (wordObj.gender.startsWith("preposition")) {
-    displayedGender = "Prep";
-  } else if (wordObj.gender.startsWith("pronoun")) {
-    displayedGender = "Pron";
-  }
+  const displayedGender = getGameGenderLabel(wordObj.gender);
 
   // Check if CEFR is selected; if not, add a label based on wordObj.CEFR
   let cefrLabel = "";
@@ -1466,33 +1460,7 @@ function renderClozeGameUI(
     <div class="game-word-card">
       <div class="game-labels-container">
         <div class="game-label-subgroup">
-      <div class="game-gender">${
-        wordObj.gender.startsWith("en") ||
-        wordObj.gender.startsWith("et") ||
-        wordObj.gender.startsWith("ei")
-          ? "N - " + wordObj.gender
-          : wordObj.gender.startsWith("adjective")
-            ? "Adj"
-            : wordObj.gender.startsWith("adverb")
-              ? "Adv"
-              : wordObj.gender.startsWith("conjunction")
-                ? "Conj"
-                : wordObj.gender.startsWith("determiner")
-                  ? "Det"
-                  : wordObj.gender.startsWith("expression")
-                    ? "Exp"
-                    : wordObj.gender.startsWith("interjection")
-                      ? "Inter"
-                      : wordObj.gender.startsWith("numeral")
-                        ? "Num"
-                        : wordObj.gender.startsWith("possessive")
-                          ? "Poss"
-                          : wordObj.gender.startsWith("preposition")
-                            ? "Prep"
-                            : wordObj.gender.startsWith("pronoun")
-                              ? "Pron"
-                              : wordObj.gender
-      }</div>          ${cefrLabel}
+      <div class="game-gender">${getGameGenderLabel(wordObj.gender)}</div>          ${cefrLabel}
         </div>
         <div id="game-banner-placeholder"></div>
 <div

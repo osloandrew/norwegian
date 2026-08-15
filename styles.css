@@ -1602,8 +1602,11 @@ main {
 
 /* The gender */
 .multiple-results-gender-class {
+  /* font-size needs !important: .word-gender .gender (a higher-specificity
+     descendant rule) sets 14px and would otherwise win. margin doesn't —
+     it already beats .gender's own margin by source order alone. */
   font-size: 12px !important;
-  margin: 10px 0px 0px 0px !important;
+  margin: 10px 0px 0px 0px;
 }
 
 .multiple-results-my-words-star {
@@ -3059,7 +3062,11 @@ ul {
 }
 
 .word-list-favorite {
-  padding: 6px 18px 6px 8px !important;
+  /* Always overridden by .word-list-row .word-list-favorite below, which
+     wins on specificity alone — no !important needed on any of the three
+     padding declarations for this class (verified: this cell is always
+     rendered inside a .word-list-row). */
+  padding: 6px 18px 6px 8px;
   text-align: right;
   width: 48px;
 }
@@ -3292,7 +3299,7 @@ ul {
 }
 
 .word-list-row .word-list-favorite {
-  padding: 6px !important;
+  padding: 6px;
   text-align: center;
 }
 
@@ -3884,10 +3891,12 @@ ul {
     padding: 6px !important;
   }
 
+  /* .word-list-favorite deliberately omitted here: its padding is always
+     overridden by .word-list-row .word-list-favorite on specificity alone
+     (see that rule), so a value here would never actually apply. */
   .word-list-class,
   .word-list-level,
-  .word-list-strength,
-  .word-list-favorite {
+  .word-list-strength {
     padding: 4px !important;
   }
 

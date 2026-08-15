@@ -513,10 +513,6 @@ function splitIntoSentences(text) {
   const arr = text.match(/[^.!?]+[.!?]*/g);
   return arr ? arr.map((s) => s.trim()) : [text.trim()];
 }
-function normalize(str) {
-  return normalizeSearchText(str);
-}
-
 function togglePronunciationGuide() {
   const pronunciationWrapper = document.querySelector(".pronunciation-wrapper"); // Target the wrapper div
   pronunciationWrapper.classList.toggle("hidden"); // Toggle hidden class
@@ -787,8 +783,8 @@ function buildSentenceCorpus() {
         id: id++,
         no,
         en,
-        noNorm: normalize(no),
-        enNorm: normalize(en),
+        noNorm: normalizeSearchText(no),
+        enNorm: normalizeSearchText(en),
         cefr: (r.CEFR || "").toUpperCase(),
         audio: r.sentenceAudio === "X",
       });
@@ -913,6 +909,21 @@ function flagMissingWordEntry(word) {
       console.error("Error flagging the word:", error);
       alert("There was an issue flagging this word. Please try again later.");
     });
+}
+
+// The "no match" branch re-renders #results-container more than once
+// (first for the message itself, then again if inexact matches are found),
+// which destroys and recreates the flag button each time — so this needs
+// to be called again after every re-render, not just once.
+function wireFlagMissingWordButton() {
+  const flagButton = document.querySelector(".flag-missing-word-btn");
+  if (!flagButton) return;
+
+  flagButton.addEventListener("click", () => {
+    const searchBar = document.getElementById("search-bar");
+    const wordToFlag = searchBar.dataset.originalQuery || searchBar.value;
+    flagMissingWordEntry(wordToFlag);
+  });
 }
 
 function openWordCardFeedbackDialog(triggerElement, word, pos, cefr) {
@@ -1386,7 +1397,7 @@ async function search(queryOverride = null) {
     }
 
     console.time("[Sentences] query");
-    const terms = normalize(query).split(/\s+/).filter(Boolean);
+    const terms = normalizeSearchText(query).split(/\s+/).filter(Boolean);
 
     let ids = null;
     for (const t of terms) {
@@ -1420,8 +1431,8 @@ async function search(queryOverride = null) {
     const partial = [];
     for (const r of rowsFiltered) {
       const inOrder =
-        r.noNorm.includes(normalize(query)) ||
-        r.enNorm.includes(normalize(query));
+        r.noNorm.includes(normalizeSearchText(query)) ||
+        r.enNorm.includes(normalizeSearchText(query));
       if (inOrder) {
         exact.push(r);
       } else {
@@ -1603,29 +1614,14 @@ async function search(queryOverride = null) {
             `;
 
       // Add flag button functionality
-      const flagButton = document.querySelector(".flag-missing-word-btn");
-      if (flagButton) {
-        flagButton.addEventListener("click", function () {
-          const searchBar = document.getElementById("search-bar");
-          const wordToFlag = searchBar.dataset.originalQuery || searchBar.value;
-          flagMissingWordEntry(wordToFlag);
-        });
-      }
+      wireFlagMissingWordButton();
 
       // If inexact matches are found, display them below the message
       if (inexactWordMatches.length > 0) {
         displaySearchResults(inexactWordMatches);
 
         // Reattach the flag button functionality AFTER rendering the search results
-        const flagButton = document.querySelector(".flag-missing-word-btn");
-        if (flagButton) {
-          flagButton.addEventListener("click", function () {
-            const searchBar = document.getElementById("search-bar");
-            const wordToFlag =
-              searchBar.dataset.originalQuery || searchBar.value;
-            flagMissingWordEntry(wordToFlag);
-          });
-        }
+        wireFlagMissingWordButton();
       } else {
         clearContainer();
         appendToContainer(`
@@ -1642,15 +1638,7 @@ async function search(queryOverride = null) {
                     }
             </div>`);
 
-        const flagButton = document.querySelector(".flag-missing-word-btn");
-        if (flagButton) {
-          flagButton.addEventListener("click", function () {
-            const searchBar = document.getElementById("search-bar");
-            const wordToFlag =
-              searchBar.dataset.originalQuery || searchBar.value;
-            flagMissingWordEntry(wordToFlag);
-          });
-        }
+        wireFlagMissingWordButton();
       }
 
       hideSpinner();

@@ -1,4 +1,5 @@
 let pronunciationLibrariesPromise = null;
+const PRONUNCIATION_AUDIO_BASE_PATH = "/norwegian"; // works both locally and on GitHub
 
 function loadPronunciationLibrary(src, globalName) {
   if (window[globalName]) {
@@ -36,17 +37,13 @@ function ensurePronunciationLibraries() {
 }
 
 function buildPronAudioUrl(sentenceText) {
-  const base = "/norwegian"; // works both locally and on GitHub
-
-  return `${base}/Resources/Sentences/${sentenceText
+  return `${PRONUNCIATION_AUDIO_BASE_PATH}/Resources/Sentences/${sentenceText
     .trim()
     .replace(/\?$/, "")}.m4a`;
 }
 
 function buildWordAudioUrl(wordText) {
-  const base = "/norwegian"; // works both locally and on GitHub
-
-  return `${base}/Resources/Words/${wordText.trim()}.m4a`;
+  return `${PRONUNCIATION_AUDIO_BASE_PATH}/Resources/Words/${wordText.trim()}.m4a`;
 }
 
 async function computeSimilarity(nativeUrl, userUrl) {
