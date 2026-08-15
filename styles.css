@@ -981,6 +981,225 @@ footer .copyright {
   outline-offset: 3px;
 }
 
+/* Word Game intro screen — mode picker shown before every round. */
+.game-intro-card {
+  align-items: center;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.game-intro-heading {
+  color: #0d3a69;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1.4em;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.game-intro-subheading {
+  color: #666;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.95em;
+  margin: 0 0 25px 0;
+}
+
+.game-intro-options {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+}
+
+.game-intro-option {
+  align-items: center;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  color: #0d3a69;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font-family: "Noto Sans", sans-serif;
+  gap: 4px;
+  justify-content: center;
+  padding: 20px 10px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+  user-select: none;
+}
+
+.game-intro-option:hover {
+  background-color: #f0f6ff;
+  border-color: #4a99ff;
+}
+
+.game-intro-option:active {
+  transform: scale(0.97);
+}
+
+.game-intro-option-count {
+  font-size: 1.8em;
+  font-weight: 700;
+}
+
+.game-intro-option-label {
+  font-size: 0.85em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.game-intro-option-infinite {
+  background-color: #0d3a69;
+  color: #ffffff;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.game-intro-option-infinite:hover {
+  background-color: #4a99ff;
+  border-color: #4a99ff;
+}
+
+.game-intro-option-infinite i {
+  font-size: 1.3em;
+}
+
+/* Word Game round-summary screen — shown when a bounded round finishes or
+   an infinite round is manually ended (see #game-end-session-btn below). */
+.game-summary-card {
+  align-items: center;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.game-summary-icon {
+  color: #f2d96b;
+  font-size: 2.2em;
+  margin-bottom: 10px;
+}
+
+.game-summary-heading {
+  color: #0d3a69;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1.4em;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+}
+
+.game-summary-stats {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 25px;
+  width: 100%;
+}
+
+.game-summary-stat {
+  background-color: #f7f9fc;
+  border-radius: 10px;
+  padding: 14px 10px;
+}
+
+.game-summary-stat-value {
+  color: #0d3a69;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1.5em;
+  font-weight: 700;
+  margin: 0;
+}
+
+.game-summary-stat-label {
+  color: #666;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.8em;
+  letter-spacing: 0.03em;
+  margin: 4px 0 0 0;
+  text-transform: uppercase;
+}
+
+.game-summary-primary-btn {
+  background-color: #0d3a69;
+  border: 1px solid #0d3a69;
+  border-radius: 6px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  padding: 15px;
+  text-transform: uppercase;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  user-select: none;
+  width: 100%;
+}
+
+.game-summary-primary-btn:hover {
+  background-color: #4a99ff;
+  border-color: #4a99ff;
+}
+
+.game-summary-primary-btn:active {
+  background-color: #092c50;
+  border-color: #092c50;
+}
+
+/* Plain block wrapper so the round-progress row below stacks under the
+   stats bar instead of becoming a flex sibling of it (#game-session-stats
+   itself is a .game-stats-content flex row). */
+.game-stats-wrapper {
+  width: 100%;
+}
+
+/* Bounded-round progress line / infinite-mode "end early" control, both
+   shown just below the stats bar (see renderStats() in wordGame.js). */
+.game-session-progress {
+  color: #666;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
+  margin: 6px 0 0 0;
+  text-align: center;
+  user-select: none;
+}
+
+.game-end-session-btn {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  display: block;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
+  margin: 6px auto 0 auto;
+  padding: 2px 6px;
+  text-decoration: underline;
+  user-select: none;
+}
+
+.game-end-session-btn:hover {
+  color: #0d3a69;
+}
+
 .game-word-card {
   align-items: center; /* Center the content horizontally */
   background-color: white;

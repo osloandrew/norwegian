@@ -1840,6 +1840,12 @@ function handleTypeChange(type, options = {}) {
   } else if (type === "word-game") {
     // Handle "Word Game" type
 
+    // Every explicit entry into the word game shows the mode-picker intro
+    // again — this is a fresh visit, not a continuation of whatever round
+    // (if any) was previously active. startWordGame() itself becomes a
+    // no-op past the "show the intro" gate until beginWordGameRound() sets
+    // this back to true.
+    wordGameRoundActive = false;
     resetGame();
     startWordGame(); // Call the word game function
   } else if (type === "pronunciation") {
@@ -3187,6 +3193,10 @@ function loadStateFromURL() {
       }
 
       if (type === "word-game") {
+        // Same reasoning as handleTypeChange's word-game branch: treat
+        // this as a fresh entry (e.g. via browser back/forward) and show
+        // the mode-picker intro again rather than resuming silently.
+        wordGameRoundActive = false;
         startWordGame();
       } else if (type === "pronunciation") {
         handleTypeChange("pronunciation"); // 👈 ensure pronunciation tab is restored

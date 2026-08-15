@@ -16,6 +16,20 @@ let currentCEFR = loadGameLevel(); // Resumes at the saved level; defaults to A1
 let levelCorrectAnswers = 0;
 let levelTotalQuestions = 0;
 let gameActive = false;
+
+// A "round" is the intro-screen-driven session wrapper around the game:
+// either a bounded number of words to learn, or an infinite drill. This is
+// distinct from CEFR level progression above, which continues to work
+// exactly as before within whichever round is active.
+const WORD_GAME_SESSION_WORD_COUNTS = [10, 20, 50];
+let wordGameRoundActive = false; // false until the intro screen's mode is chosen
+let wordGameMode = null; // "session" | "infinite"
+let wordGameSessionTarget = 0; // distinct correct words needed to finish a "session" round
+let wordGameSessionCorrectWords = new Set(); // distinct words answered correctly this round
+let wordGameSessionQuestionsAnswered = 0;
+let wordGameSessionCorrectAnswers = 0;
+let wordGameSessionIncorrectAnswers = 0;
+let wordGameSessionStartedAt = 0;
 let incorrectCount = 0; // Tracks the total number of incorrect answers
 let incorrectWordQueue = []; // Queue for storing incorrect words with counters
 const levelThresholds = {
@@ -373,26 +387,48 @@ function renderStats() {
     fontColor = "#a0881c";
   }
 
+  // Session round progress ("Word 4 of 20") or, in infinite mode, an
+  // optional way to stop and see stats without forcing it.
+  const roundRowHTML =
+    wordGameRoundActive && wordGameMode === "session"
+      ? `<p class="game-session-progress" id="game-session-progress">${getWordGameSessionProgressLabel()}</p>`
+      : wordGameRoundActive && wordGameMode === "infinite"
+        ? `<button type="button" id="game-end-session-btn" class="game-end-session-btn">End &amp; see stats</button>`
+        : "";
+
   // Inject HTML only if it hasn't been rendered yet
   if (!statsContainer.querySelector(".level-progress-bar-fill")) {
+    // #game-session-stats (statsContainer itself) is also a
+    // .game-stats-content flex row, so the round-progress row needs its
+    // own plain block wrapper — otherwise it becomes a flex sibling of
+    // the stats row below instead of stacking underneath it.
     statsContainer.innerHTML = `
-      <div class="game-stats-content" style="width: 100%;">
-        <div class="game-stats-correct-box"><p id="streak-count">${correctStreak}</p></div>
+      <div class="game-stats-wrapper">
+        <div class="game-stats-content" style="width: 100%;">
+          <div class="game-stats-correct-box"><p id="streak-count">${correctStreak}</p></div>
 
-        <div class="level-progress-bar-bg" style="flex-grow: 1; border-radius: 10px; overflow: hidden; position: relative;">
-          <div class="level-progress-bar-fill"
-            style="width: 0%; background-color: ${fillColor}; height: 100%;"></div>
-          <p class="level-progress-label"
-            style="position: absolute; width: 100%; text-align: center; margin: 0; user-select: none;
-                   font-family: 'Noto Sans', sans-serif; font-size: 18px; font-weight: 500;
-                   z-index: 1; color: ${fontColor}; line-height: 38px;">
-            ${Math.round(correctPercentage)}%
-          </p>
+          <div class="level-progress-bar-bg" style="flex-grow: 1; border-radius: 10px; overflow: hidden; position: relative;">
+            <div class="level-progress-bar-fill"
+              style="width: 0%; background-color: ${fillColor}; height: 100%;"></div>
+            <p class="level-progress-label"
+              style="position: absolute; width: 100%; text-align: center; margin: 0; user-select: none;
+                     font-family: 'Noto Sans', sans-serif; font-size: 18px; font-weight: 500;
+                     z-index: 1; color: ${fontColor}; line-height: 38px;">
+              ${Math.round(correctPercentage)}%
+            </p>
+          </div>
+
+          <div class="game-stats-incorrect-box"><p id="review-count">${wordsToReview}</p></div>
         </div>
-
-        <div class="game-stats-incorrect-box"><p id="review-count">${wordsToReview}</p></div>
+        ${roundRowHTML}
       </div>
     `;
+
+    document
+      .getElementById("game-end-session-btn")
+      ?.addEventListener("click", () => {
+        showWordGameRoundSummary();
+      });
   }
 
   // Update existing elements only
@@ -400,6 +436,7 @@ function renderStats() {
   const labelEl = statsContainer.querySelector(".level-progress-label");
   const streakEl = statsContainer.querySelector("#streak-count");
   const reviewEl = statsContainer.querySelector("#review-count");
+  const progressEl = statsContainer.querySelector("#game-session-progress");
 
   if (fillEl) {
     fillEl.style.width = `${correctPercentage}%`;
@@ -413,6 +450,9 @@ function renderStats() {
 
   if (streakEl) streakEl.textContent = correctStreak;
   if (reviewEl) reviewEl.textContent = wordsToReview;
+  if (progressEl) {
+    progressEl.textContent = getWordGameSessionProgressLabel();
+  }
 }
 
 function findClozeTarget(wordObj, preferredForm = "") {
@@ -588,6 +628,163 @@ function findClozeTarget(wordObj, preferredForm = "") {
   return null;
 }
 
+// Shown every time the word game is (re)entered, before any question is
+// fetched — lets the learner choose a bounded round (a specific number of
+// words to learn, with missed words requeued until answered correctly —
+// see handleTranslationClick) or an unbounded, endless drill.
+function renderWordGameIntro() {
+  setGameContainerHTML(`
+    <div class="game-intro-card">
+      <h2 class="game-intro-heading">How do you want to practice?</h2>
+      <p class="game-intro-subheading">
+        Pick a round to work toward, or keep going for as long as you like.
+      </p>
+      <div class="game-intro-options">
+        ${WORD_GAME_SESSION_WORD_COUNTS.map(
+          (count) => `
+          <button
+            type="button"
+            class="game-intro-option"
+            data-mode="session"
+            data-count="${count}"
+          >
+            <span class="game-intro-option-count">${count}</span>
+            <span class="game-intro-option-label">words</span>
+          </button>
+        `,
+        ).join("")}
+        <button
+          type="button"
+          class="game-intro-option game-intro-option-infinite"
+          data-mode="infinite"
+        >
+          <i class="fas fa-infinity" aria-hidden="true"></i>
+          <span class="game-intro-option-label">Endless</span>
+        </button>
+      </div>
+    </div>
+  `);
+
+  document.querySelectorAll(".game-intro-option").forEach((button) => {
+    button.addEventListener("click", () => {
+      const mode = button.dataset.mode;
+      const targetWords =
+        mode === "session" ? parseInt(button.dataset.count, 10) : 0;
+
+      beginWordGameRound(mode, targetWords);
+    });
+  });
+}
+
+// A session round isn't actually done just because N distinct words have
+// been answered correctly at some point — a word that was missed and
+// requeued (see incorrectWordQueue in handleTranslationClick) has to be
+// answered correctly too before the round can end, or a miss could get
+// silently left behind unlearned.
+function isWordGameRoundComplete() {
+  return (
+    wordGameMode === "session" &&
+    wordGameSessionCorrectWords.size >= wordGameSessionTarget &&
+    incorrectWordQueue.length === 0
+  );
+}
+
+// "Word X of N" normally, but once X reaches N with a miss still pending
+// retry, says so explicitly — otherwise it reads as finished when clicking
+// Next Word won't actually end the round yet (see isWordGameRoundComplete).
+function getWordGameSessionProgressLabel() {
+  const correctSoFar = Math.min(
+    wordGameSessionCorrectWords.size,
+    wordGameSessionTarget,
+  );
+  const pendingReview = incorrectWordQueue.length;
+
+  if (correctSoFar >= wordGameSessionTarget && pendingReview > 0) {
+    const word = pendingReview === 1 ? "word" : "words";
+    return `${wordGameSessionTarget} of ${wordGameSessionTarget} — ${pendingReview} ${word} to review`;
+  }
+
+  return `Word ${correctSoFar} of ${wordGameSessionTarget}`;
+}
+
+// Resets round-scoped state (distinct from CEFR level progression, which
+// is untouched here and keeps working the same within whichever round is
+// active) and kicks off the first question.
+function beginWordGameRound(mode, targetWords = 0) {
+  wordGameMode = mode;
+  wordGameSessionTarget = mode === "session" ? targetWords : 0;
+  wordGameSessionCorrectWords = new Set();
+  wordGameSessionQuestionsAnswered = 0;
+  wordGameSessionCorrectAnswers = 0;
+  wordGameSessionIncorrectAnswers = 0;
+  wordGameSessionStartedAt = Date.now();
+  wordGameRoundActive = true;
+
+  resetGame();
+  startWordGame();
+}
+
+// Shown when a bounded round hits its word-count target, or when the
+// learner manually ends an infinite round via the "End & see stats"
+// button (see renderStats). wordGameRoundActive is cleared so the next
+// entry into the word game shows the intro screen again.
+function showWordGameRoundSummary() {
+  stopAllAudio();
+  hideAllBanners();
+
+  const elapsedSeconds = Math.max(
+    1,
+    Math.round((Date.now() - wordGameSessionStartedAt) / 1000),
+  );
+  const minutes = Math.floor(elapsedSeconds / 60);
+  const seconds = elapsedSeconds % 60;
+  const timeLabel = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+  const accuracy =
+    wordGameSessionQuestionsAnswered > 0
+      ? Math.round(
+          (wordGameSessionCorrectAnswers / wordGameSessionQuestionsAnswered) *
+            100,
+        )
+      : 0;
+  const wasBoundedRound = wordGameMode === "session";
+
+  wordGameRoundActive = false;
+
+  setGameContainerHTML(`
+    <div class="game-summary-card">
+      <div class="game-summary-icon"><i class="fas fa-trophy" aria-hidden="true"></i></div>
+      <h2 class="game-summary-heading">${wasBoundedRound ? "Round complete!" : "Nice work!"}</h2>
+      <div class="game-summary-stats">
+        <div class="game-summary-stat">
+          <p class="game-summary-stat-value">${wordGameSessionCorrectWords.size}</p>
+          <p class="game-summary-stat-label">Words learned</p>
+        </div>
+        <div class="game-summary-stat">
+          <p class="game-summary-stat-value">${accuracy}%</p>
+          <p class="game-summary-stat-label">Accuracy</p>
+        </div>
+        <div class="game-summary-stat">
+          <p class="game-summary-stat-value">${wordGameSessionQuestionsAnswered}</p>
+          <p class="game-summary-stat-label">Questions</p>
+        </div>
+        <div class="game-summary-stat">
+          <p class="game-summary-stat-value">${timeLabel}</p>
+          <p class="game-summary-stat-label">Time</p>
+        </div>
+      </div>
+      <button type="button" class="game-summary-primary-btn" id="game-summary-restart-btn">
+        Start a new round
+      </button>
+    </div>
+  `);
+
+  document
+    .getElementById("game-summary-restart-btn")
+    ?.addEventListener("click", () => {
+      renderWordGameIntro();
+    });
+}
+
 async function startWordGame() {
   document.getElementById("lock-icon").style.display = "inline";
   const searchContainerInner = document.getElementById(
@@ -635,6 +832,15 @@ async function startWordGame() {
 
   cefrSelect.disabled = false;
   cefrFilterContainer.classList.remove("disabled");
+
+  // No round chosen yet (fresh entry into the word game, or just finished
+  // a round) — show the mode picker instead of fetching a question. Once
+  // beginWordGameRound() sets wordGameRoundActive, it calls this function
+  // again itself to actually fetch the first question.
+  if (!wordGameRoundActive) {
+    renderWordGameIntro();
+    return;
+  }
 
   // First, check if there is an incorrect word to reintroduce
   if (
@@ -1215,6 +1421,12 @@ function attachGameControls(wordObj, isCloze = false) {
   nextButton?.addEventListener("click", async () => {
     stopAllAudio();
     hideAllBanners();
+
+    if (isWordGameRoundComplete()) {
+      showWordGameRoundSummary();
+      return;
+    }
+
     await startWordGame();
   });
 }
@@ -1722,6 +1934,11 @@ async function handleTranslationClick(
     window.WordStrengthAPI?.recordResult?.(wordObj, true);
     // Add the word to the correctly answered words array to exclude it from future questions
     correctlyAnsweredWords.add(wordObj);
+    if (wordGameRoundActive) {
+      wordGameSessionQuestionsAnswered++;
+      wordGameSessionCorrectAnswers++;
+      wordGameSessionCorrectWords.add(wordObj);
+    }
     if (isCloze) {
       completeClozeSentence(clozeSentence);
     }
@@ -1768,6 +1985,10 @@ async function handleTranslationClick(
     correctStreak = 0; // Reset the streak
     updateRecentAnswers(false); // Track this correct answer
     window.WordStrengthAPI?.recordResult?.(wordObj, false);
+    if (wordGameRoundActive) {
+      wordGameSessionQuestionsAnswered++;
+      wordGameSessionIncorrectAnswers++;
+    }
 
     if (isCloze) {
       completeClozeSentence(clozeSentence);
@@ -1807,6 +2028,17 @@ async function handleTranslationClick(
   }
 
   enableGameControls();
+
+  // If this answer just finished a bounded round, relabel the button so
+  // it's clear the next click leads to results, not another question —
+  // the actual branching happens in the click handler itself (see
+  // attachGameControls), checked fresh at click time.
+  if (isWordGameRoundComplete()) {
+    const nextButton = document.getElementById("game-next-word-button");
+    if (nextButton) {
+      nextButton.textContent = "See Results";
+    }
+  }
 
   // Update the stats after the answer
   renderStats();
