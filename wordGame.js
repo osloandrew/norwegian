@@ -888,6 +888,12 @@ function showWordGameRoundSummary() {
     ?.addEventListener("click", () => {
       renderWordGameIntro();
     });
+
+  // A completed/ended round is the first moment a signed-out visitor has
+  // something worth protecting (a streak, saved word progress) — see
+  // maybeShowSignInNudge() in myWordsAuth.js, which no-ops after the first
+  // time it's ever shown, or if the visitor is already signed in.
+  window.SignInNudgeAPI?.maybeShow?.();
 }
 
 async function startWordGame() {
@@ -950,11 +956,21 @@ async function startWordGame() {
   // evaluates in session mode (see evaluateProgression).
   setWordGameLockIconVisible(wordGameMode === "infinite");
 
-  // First, check if there is an incorrect word to reintroduce
-  if (
-    incorrectWordQueue.length > 0 &&
-    wordsSinceLastIncorrect >= getWordGameReintroduceThreshold()
-  ) {
+  // First, check if there is an incorrect word to reintroduce. In session
+  // mode, a miss is held back until the round has introduced every new word
+  // it plans to show — reintroducing it any sooner is closer to massed
+  // repetition than real retrieval practice, and a short bounded round has
+  // no room for meaningful spacing except at its tail (see
+  // getWordGameReintroduceThreshold, which used to gate this instead: its
+  // 2-6 question floor could bring a miss back within just 1-2 questions in
+  // a small round). Infinite mode has no "used up all the new content"
+  // moment to wait for, so it keeps using that threshold as before.
+  const readyToReintroduceMissedWords =
+    wordGameMode === "session"
+      ? wordGameSessionIntroducedWords.size >= wordGameSessionTarget
+      : wordsSinceLastIncorrect >= getWordGameReintroduceThreshold();
+
+  if (incorrectWordQueue.length > 0 && readyToReintroduceMissedWords) {
     const firstWordInQueue = incorrectWordQueue[0];
     if (firstWordInQueue.counter >= firstWordInQueue.requiredCounter) {
       // Play the popChime when reintroducing an incorrect word
@@ -2115,11 +2131,13 @@ async function handleTranslationClick(
     // If the word is already in the review queue, missing it again means
     // it needs a longer runway before its next reintroduction attempt.
     // Otherwise, add it to the queue for the first time. Session mode's
-    // requiredCounter starts at 0 — the getWordGameReintroduceThreshold()
-    // gate above is the sole wait for a first miss there; the ramp this
-    // constant represents was calibrated for infinite mode's 20-question
-    // progression window, which session rounds don't use (see
-    // evaluateProgression).
+    // requiredCounter starts at 0 — the "every new word introduced" gate
+    // above (see readyToReintroduceMissedWords in startWordGame) is what
+    // gives a first miss its spacing there, so no extra wait is needed on
+    // top of it. A repeat miss during the review phase still needs its own
+    // longer runway though, hence the same escalation session mode uses
+    // below, just now measured in review-phase turns rather than raw
+    // round turns.
     const existingQueueEntry = incorrectWordQueue.find(
       (incorrectWord) => incorrectWord.wordObj.ord === wordObj.ord,
     );

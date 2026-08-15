@@ -24,6 +24,7 @@
     "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js",
   ];
   const WAS_SIGNED_IN_KEY = "norwegian-dictionary-was-signed-in-v1";
+  const SIGNIN_NUDGE_SHOWN_KEY = "norwegian-dictionary-signin-nudge-shown-v1";
 
   const PUSH_DEBOUNCE_MS = 300;
 
@@ -36,6 +37,13 @@
   const userAvatar = document.getElementById("auth-user-avatar");
   const userName = document.getElementById("auth-user-name");
   const syncStatus = document.getElementById("sync-status");
+  const signInNudgeBanner = document.getElementById("signin-nudge-banner");
+  const signInNudgeSignInButton = document.getElementById(
+    "signin-nudge-signin-btn",
+  );
+  const signInNudgeDismissButton = document.getElementById(
+    "signin-nudge-dismiss-btn",
+  );
 
   if (!isFirebaseConfigured) {
     console.warn(
@@ -97,6 +105,44 @@
 
   function getUserDocRef(userId) {
     return db.collection("myWordsUsers").doc(userId);
+  }
+
+  // Shown at most once ever, per browser, the first time it's called after
+  // the visitor has something worth protecting (see maybeShowSignInNudge's
+  // caller in wordGame.js). Uses WAS_SIGNED_IN_KEY rather than currentUserId
+  // to decide "already signed in" — currentUserId is still null for a
+  // moment while a returning user's session silently restores (Firebase
+  // loads async), and this avoids nudging them during that window.
+  function maybeShowSignInNudge() {
+    if (!signInNudgeBanner) {
+      return;
+    }
+
+    let alreadyShown = true;
+    try {
+      alreadyShown =
+        localStorage.getItem(SIGNIN_NUDGE_SHOWN_KEY) === "1" ||
+        localStorage.getItem(WAS_SIGNED_IN_KEY) === "1";
+    } catch (error) {
+      // If localStorage is unavailable, err toward not nagging.
+      return;
+    }
+
+    if (alreadyShown || currentUserId) {
+      return;
+    }
+
+    try {
+      localStorage.setItem(SIGNIN_NUDGE_SHOWN_KEY, "1");
+    } catch (error) {
+      // Best-effort only — worst case, it shows again next visit.
+    }
+
+    signInNudgeBanner.classList.remove("hidden");
+  }
+
+  function dismissSignInNudge() {
+    signInNudgeBanner?.classList.add("hidden");
   }
 
   // Firestore write failures used to be console.warn-only — invisible to
@@ -455,6 +501,7 @@
     if (user) {
       signInButton?.classList.add("hidden");
       userInfo?.classList.remove("hidden");
+      dismissSignInNudge();
 
       if (userAvatar) {
         userAvatar.src = user.photoURL || "";
@@ -582,5 +629,31 @@
     }
 
     scheduleStreakPush(event.detail?.streak ?? {});
+  });
+
+  signInNudgeDismissButton?.addEventListener("click", () => {
+    dismissSignInNudge();
+  });
+
+  signInNudgeSignInButton?.addEventListener("click", () => {
+    dismissSignInNudge();
+    signInNudgeSignInButton.disabled = true;
+
+    ensureAuthReady()
+      .then(triggerSignIn)
+      .catch((error) => {
+        console.warn("Google sign-in could not be loaded.", error);
+        window.alert("Google sign-in failed. Please try again.");
+      })
+      .finally(() => {
+        signInNudgeSignInButton.disabled = false;
+      });
+  });
+
+  // Called by wordGame.js after the first completed round — the moment a
+  // signed-out visitor first has something (a streak, saved words) worth
+  // protecting from a cleared cache.
+  window.SignInNudgeAPI = Object.freeze({
+    maybeShow: maybeShowSignInNudge,
   });
 })();

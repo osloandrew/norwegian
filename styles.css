@@ -1412,51 +1412,179 @@ html.reading .story-report-issue-btn {
 
 .google-signin-btn,
 .google-signout-btn {
+  appearance: none;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background-color: #fff;
-  color: #4a4a4a;
-  border: 0.5px solid #a0a0a0;
+  color: #3c4043;
+  border: 1px solid #dadce0;
   border-radius: 6px;
-  padding: 6px 12px;
+  padding: 7px 12px;
+  font-family: "Noto Sans", sans-serif;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
+  line-height: 1;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.12);
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .google-signin-btn:hover,
 .google-signout-btn:hover {
-  background-color: #f0f0f0;
-  border-color: #6a6a6a;
+  background-color: #f8f9fa;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.22);
 }
 
-.google-signin-btn i {
-  color: #4285f4;
+.google-signin-btn-logo {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .google-signin-btn:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+  box-shadow: none;
+}
+
+/* Persistent, low-key cue that there's a reason to sign in — pairs with
+   the one-time .signin-nudge-banner (shown after the first completed
+   round), but stays up for as long as the visitor remains signed out,
+   unlike that banner. */
+.google-signin-btn {
+  position: relative;
+}
+
+.google-signin-btn::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #f2994a;
+  border: 1.5px solid #fff;
+}
+
+.google-signin-btn:disabled::after {
+  display: none;
+}
+
+/* Shown at most once ever, per browser — see maybeShowSignInNudge() in
+   myWordsAuth.js. Fixed to the bottom of the viewport so it appears the
+   same way regardless of which page/scroll position triggered it. */
+.signin-nudge-banner {
+  align-items: center;
+  background-color: #0d3a69;
+  border-radius: 10px;
+  bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  color: #fff;
+  display: flex;
+  font-family: "Noto Sans", sans-serif;
+  gap: 12px;
+  left: 50%;
+  max-width: 480px;
+  padding: 14px 16px;
+  position: fixed;
+  transform: translateX(-50%);
+  width: calc(100% - 40px);
+  z-index: 10;
+}
+
+.signin-nudge-banner > .fa-cloud-arrow-up {
+  color: #8fc4ff;
+  font-size: 1.3em;
+}
+
+.signin-nudge-banner p {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.signin-nudge-signin-btn {
+  background-color: #fff;
+  border: none;
+  border-radius: 6px;
+  color: #0d3a69;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  transition: background-color 0.2s ease;
+}
+
+.signin-nudge-signin-btn:hover {
+  background-color: #d9e8ff;
+}
+
+.signin-nudge-signin-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.signin-nudge-dismiss-btn {
+  background: none;
+  border: none;
+  color: #b7c8dd;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 14px;
+  padding: 4px;
+}
+
+.signin-nudge-dismiss-btn:hover {
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .signin-nudge-banner {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .signin-nudge-banner p {
+    order: 1;
+    text-align: center;
+    width: 100%;
+  }
+
+  .signin-nudge-signin-btn {
+    order: 2;
+  }
+
+  .signin-nudge-dismiss-btn {
+    order: 3;
+  }
 }
 
 .auth-user-info {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background-color: #fff;
-  border: 0.5px solid #a0a0a0;
+  border: 1px solid #dadce0;
   border-radius: 6px;
-  padding: 4px 10px 4px 4px;
+  padding: 5px 10px 5px 5px;
   font-size: 13px;
-  color: #4a4a4a;
+  font-weight: 500;
+  color: #3c4043;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.12);
 }
 
 .auth-user-avatar {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
+  border: 1px solid #dadce0;
 }
 
 .auth-user-name {
@@ -1467,8 +1595,14 @@ html.reading .story-report-issue-btn {
 }
 
 .google-signout-btn {
-  padding: 3px 8px;
+  border-color: transparent;
+  box-shadow: none;
+  padding: 4px 8px;
   font-size: 12px;
+}
+
+.google-signout-btn:hover {
+  box-shadow: none;
 }
 
 /* Shown when a My Words/word-strength/game-level write to Firestore fails.
@@ -1491,6 +1625,29 @@ html.reading .story-report-issue-btn {
 
   .auth-user-name {
     max-width: 90px;
+  }
+
+  /* Icon-only on mobile — the full-width label pushed this into the
+     streak badge/auth pill on the opposite corner once the header's
+     right-side content grew (see .streak-badge). aria-label/title on the
+     button still name it for screen readers. */
+  .story-report-issue-btn-label {
+    display: none;
+  }
+
+  .story-report-issue-btn {
+    padding: 8px;
+  }
+
+  /* The My Words star (.single-result-my-words-controls) sits absolutely
+     positioned at top:25px/right:25px, 40px square — a 65px-from-the-edge
+     footprint that isn't reserved by normal text flow. A long single word
+     (or the alt-spelling line under a comma-containing entry) can otherwise
+     wrap right underneath it. Scoped to word-text-block specifically, not
+     the whole .word-gender header, so the shorter gender/English/CEFR
+     lines below it keep using the full card width. */
+  .single-result-definition .word-text-block {
+    padding-right: 48px;
   }
 
   /* Scoped with #landing-card so these win regardless of source order
@@ -2502,6 +2659,18 @@ ul {
   gap: 10px;
   margin: 0 0 10px;
   width: 100%;
+}
+
+/* attachSingleResultMyWordsControls() (wordList.js) always inserts this
+   wrapper, even when there's no prior search to go "back" to (a direct
+   link or fresh page load) and it ends up with no children at all. Without
+   this, its own margin-bottom still reserved a phantom 10px of vertical
+   space above the definition card on every such visit, stacking on top of
+   #results-container's margin and #search-container's padding to read as
+   a doubled gap — especially noticeable on mobile where those add up to a
+   larger share of the screen. */
+.single-result-navigation:empty {
+  display: none;
 }
 
 .single-result-navigation .back-navigation {
