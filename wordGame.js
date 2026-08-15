@@ -393,17 +393,38 @@ function renderStats() {
     fontColor = "#a0881c";
   }
 
-  // Session round progress ("Word 4 of 20") or, in infinite mode, an
-  // optional way to stop and see stats without forcing it.
-  const roundRowHTML =
-    wordGameRoundActive && wordGameMode === "session"
-      ? `<p class="game-session-progress" id="game-session-progress">${getWordGameSessionProgressLabel()}</p>`
-      : wordGameRoundActive && wordGameMode === "infinite"
-        ? `<button type="button" id="game-end-session-btn" class="game-end-session-btn">End &amp; see stats</button>`
-        : "";
+  const isSessionRound = wordGameRoundActive && wordGameMode === "session";
 
-  // Inject HTML only if it hasn't been rendered yet
-  if (!statsContainer.querySelector(".level-progress-bar-fill")) {
+  // Session rounds don't level up/down (see evaluateProgression) — the
+  // threshold-relative % bar has nothing left to communicate there, so it
+  // swaps for the round's own "Word X of N" progress instead. Infinite
+  // mode keeps the original bar, plus an optional way to stop and see
+  // stats.
+  const middleContentHTML = isSessionRound
+    ? `<div class="game-session-progress-inline" id="game-session-progress">
+         ${getWordGameSessionProgressLabel()}
+       </div>`
+    : `<div class="level-progress-bar-bg" style="flex-grow: 1; border-radius: 10px; overflow: hidden; position: relative;">
+         <div class="level-progress-bar-fill"
+           style="width: 0%; background-color: ${fillColor}; height: 100%;"></div>
+         <p class="level-progress-label"
+           style="position: absolute; width: 100%; text-align: center; margin: 0; user-select: none;
+                  font-family: 'Noto Sans', sans-serif; font-size: 18px; font-weight: 500;
+                  z-index: 1; color: ${fontColor}; line-height: 38px;">
+           ${Math.round(correctPercentage)}%
+         </p>
+       </div>`;
+
+  const belowRowHTML =
+    wordGameRoundActive && wordGameMode === "infinite"
+      ? `<button type="button" id="game-end-session-btn" class="game-end-session-btn">End &amp; see stats</button>`
+      : "";
+
+  // Inject HTML only if it hasn't been rendered yet for this question.
+  // .game-stats-wrapper (rather than .level-progress-bar-fill, which only
+  // exists in infinite mode's layout) is the marker here since it's
+  // present in both session and infinite layouts.
+  if (!statsContainer.querySelector(".game-stats-wrapper")) {
     // #game-session-stats (statsContainer itself) is also a
     // .game-stats-content flex row, so the round-progress row needs its
     // own plain block wrapper — otherwise it becomes a flex sibling of
@@ -412,21 +433,10 @@ function renderStats() {
       <div class="game-stats-wrapper">
         <div class="game-stats-content" style="width: 100%;">
           <div class="game-stats-correct-box"><p id="streak-count">${correctStreak}</p></div>
-
-          <div class="level-progress-bar-bg" style="flex-grow: 1; border-radius: 10px; overflow: hidden; position: relative;">
-            <div class="level-progress-bar-fill"
-              style="width: 0%; background-color: ${fillColor}; height: 100%;"></div>
-            <p class="level-progress-label"
-              style="position: absolute; width: 100%; text-align: center; margin: 0; user-select: none;
-                     font-family: 'Noto Sans', sans-serif; font-size: 18px; font-weight: 500;
-                     z-index: 1; color: ${fontColor}; line-height: 38px;">
-              ${Math.round(correctPercentage)}%
-            </p>
-          </div>
-
+          ${middleContentHTML}
           <div class="game-stats-incorrect-box"><p id="review-count">${wordsToReview}</p></div>
         </div>
-        ${roundRowHTML}
+        ${belowRowHTML}
       </div>
     `;
 
@@ -1964,8 +1974,12 @@ async function handleTranslationClick(
     if (indexInQueue !== -1) {
       incorrectWordQueue.splice(indexInQueue, 1); // Remove from review queue once answered correctly
     }
-    // Trigger the streak banner if the user reaches a streak
-    if (correctStreak % 10 === 0) {
+    // Trigger the streak banner if the user reaches a streak. Suppressed
+    // in session mode — a 10-streak is barely reachable in a small bounded
+    // round (often only hittable by finishing flawlessly, at which point
+    // it'd fire in the same instant as "round complete"), so the round
+    // summary is the one celebration moment there instead.
+    if (wordGameMode !== "session" && correctStreak % 10 === 0) {
       showBanner("streak", correctStreak);
     }
     // Trigger the cleared practice words banner ONLY if the queue is now empty
@@ -2497,6 +2511,14 @@ function toggleLevelLock() {
 // Check if the user can level up or fall back
 function evaluateProgression() {
   if (levelLocked) return;
+
+  // Level changes are an infinite-mode concept: they rely on a rolling
+  // accuracy window large enough to be reliable (a single miss swings a
+  // 10-word round's accuracy by 10 points, enough to cross most
+  // thresholds on its own), and a bounded round is meant to be a focused
+  // drill at a level the learner already chose, not something that
+  // auto-escalates mid-round.
+  if (wordGameMode === "session") return;
 
   if (levelTotalQuestions >= 10) {
     const accuracy = levelCorrectAnswers / levelTotalQuestions;

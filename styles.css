@@ -1171,17 +1171,28 @@ footer .copyright {
   width: 100%;
 }
 
-/* Bounded-round progress line / infinite-mode "end early" control, both
-   shown just below the stats bar (see renderStats() in wordGame.js). */
-.game-session-progress {
-  color: #666;
+/* Bounded-round progress ("Word 4 of 20"), shown inline where infinite
+   mode's level-progress-bar-bg sits — session rounds don't level up/down,
+   so that bar has nothing left to communicate (see renderStats() and
+   evaluateProgression() in wordGame.js). */
+.game-session-progress-inline {
+  align-items: center;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  color: #444;
+  display: flex;
+  flex-grow: 1;
   font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
-  margin: 6px 0 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  height: 38px;
+  justify-content: center;
+  padding: 0 8px;
   text-align: center;
   user-select: none;
 }
 
+/* Infinite mode's "end early" control, shown just below the stats bar. */
 .game-end-session-btn {
   background: none;
   border: none;
