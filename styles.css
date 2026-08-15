@@ -635,6 +635,7 @@ footer .copyright {
 
 .game-english-translation {
   color: gray !important;
+  cursor: default;
 }
 
 .game-fade {
