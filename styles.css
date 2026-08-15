@@ -1885,14 +1885,19 @@ html.reading .story-report-issue-btn {
 
   /* Scoped with #landing-card so these win regardless of source order
      against the later, equal-specificity base .landing-card-* rules. */
-  #landing-card .landing-card-image {
+  #landing-card .landing-card-icon-chip {
     width: 56px;
     height: 56px;
   }
 
-  #landing-card .landing-card-btn {
-    margin-top: 6px;
-    margin-bottom: 6px;
+  #landing-card .landing-card-image {
+    width: 30px;
+    height: 30px;
+  }
+
+  #landing-card .landing-card-title {
+    margin-top: 10px;
+    margin-bottom: 4px;
   }
 
   #landing-card .button-container p {
@@ -2037,9 +2042,10 @@ html.landing #landing-card {
   margin: 0 auto; /* Centering with smaller vertical margins */
   margin-bottom: 15px;
   margin-top: 15px;
-  background-color: #fff; /* Subtle, lighter background */
-  color: #4a4a4a; /* Soft gray text */
-  border: 0.5px solid #a0a0a0; /* Light gray border */
+  background-color: #fff;
+  color: #0d3a69; /* Brand navy, matching the header/filters/badges rather
+                      than a disconnected neutral gray */
+  border: 1px solid #b7c9e2; /* Soft navy-tinted border instead of gray */
   border-radius: 6px; /* Slightly rounded corners */
   padding: 8px 14px; /* Larger padding for a more clickable feel */
   font-family: "Noto Sans", sans-serif; /* Clean, modern font */
@@ -2061,8 +2067,10 @@ html.landing #landing-card {
 }
 
 .landing-card-btn:hover {
-  background-color: #f0f0f0; /* Slightly darker on hover */
-  border-color: #6a6a6a; /* Darker gray on hover */
+  background-color: #eaf1fb; /* Same navy tint as the icon chip/word-count
+                                 badge, so hover reads as part of the same
+                                 color family instead of a plain gray */
+  border-color: #0d3a69;
 }
 
 .landing-card-btn i {
@@ -2077,10 +2085,165 @@ html.landing #landing-card {
   margin-top: 20px;
 }
 
+/* Each tile is the click target itself — an <a> or <button>, not a div
+   wrapping a separate nested button — styled as a real bordered card. CSS
+   Grid already stretches every card in a row to match its tallest
+   neighbor, so cards line up into a clean block even though card content
+   length varies. flex-grow on the paragraph (below) absorbs that leftover
+   height so each tile's tag anchors to the same bottom edge on every
+   card. The reset properties (appearance/color/font/text-decoration/etc.)
+   strip the default <a>/<button> look so both tags present identically. */
+.button-container {
+  align-items: center;
+  appearance: none;
+  background-color: #fbfcfe;
+  border: 1px solid #e3e8f0;
+  border-radius: 14px;
+  box-sizing: border-box;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font: inherit;
+  margin: 0;
+  padding: 22px 18px 20px;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.button-container:hover {
+  border-color: #c3d2e8;
+  box-shadow: 0 8px 20px rgba(13, 58, 105, 0.1);
+  transform: translateY(-2px);
+}
+
+.button-container:focus-visible {
+  outline: 2px solid #0d3a69;
+  outline-offset: 2px;
+}
+
+.button-container p {
+  align-self: stretch;
+  flex-grow: 1;
+}
+
+/* The tile's name — plain typography now that the card itself is the
+   click target, rather than a bordered pill button nested inside it. */
+.landing-card-title {
+  color: #0d3a69;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 14px 0 6px;
+  text-transform: uppercase;
+}
+
 .landing-card-image {
-  fill: #ff0000; /* changes the color to red */
-  width: 80px;
-  height: 80px;
+  width: 40px;
+  height: 40px;
+}
+
+/* Icon chip: a soft navy-tinted circle behind each tile's icon. The icons
+   themselves are external <img>s (SVGs with stroke:#000, no fill) that CSS
+   can't recolor directly, so the color has to come from behind them
+   instead. One shared tint (not one per tile) deliberately — it ties every
+   chip to the same brand navy used in the header/buttons/badges, and to
+   .landing-word-count-badge below, rather than reading as six unrelated
+   colors picked at random. */
+.landing-card-icon-chip {
+  align-items: center;
+  background-color: #e7eef8;
+  border-radius: 50%;
+  display: flex;
+  height: 72px;
+  justify-content: center;
+  margin: 0 auto;
+  width: 72px;
+}
+
+/* Small tag calling out one real, current capability of the feature above
+   it. Each tile's tag gets its own accent color — this is deliberately
+   the opposite choice from .landing-card-icon-chip above (one shared
+   navy tint, no per-tile color): the icons/cards/buttons all stay
+   restrained and navy so the grid doesn't read as a random rainbow, and
+   these small tags are where the page gets to have some color and energy
+   instead. None of the six is blue on purpose — the header, buttons, and
+   icon chips are already blue/navy throughout the page, so a blue tag
+   would just blend in instead of standing out. The palette is otherwise
+   kept coordinated rather than scattered: a warm autumn family (mustard,
+   rust, fire amber, plum) with pine green as the one cool accent — colors
+   that read as Norwegian (forest, flag, rosemaling gold) rather than an
+   arbitrary web palette. --streak matches .streak-badge exactly, since
+   it's the same feature shown in both places. */
+.landing-feature-tag {
+  border-radius: 6px;
+  display: block;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 8px auto 0;
+  padding: 3px 10px;
+  user-select: none;
+  width: fit-content;
+}
+
+.landing-feature-tag--filter {
+  background-color: #f7ecd0;
+  border: 1px solid #e0c98a;
+  color: #8a6d1f;
+}
+
+.landing-feature-tag--audio {
+  background-color: #f5ded2;
+  border: 1px solid #e0a988;
+  color: #9c4f26;
+}
+
+.landing-feature-tag--streak {
+  background-color: #fff3e0;
+  border: 1px solid #f0c896;
+  color: #b3541e;
+}
+
+.landing-feature-tag--narrated {
+  background-color: #e3ede1;
+  border: 1px solid #b9d0b0;
+  color: #3f6b39;
+}
+
+.landing-feature-tag--sync {
+  background-color: #f3e3ea;
+  border: 1px solid #d9aec2;
+  color: #8a3a5c;
+}
+
+.landing-feature-tag--speak {
+  background-color: #fae0dd;
+  border: 1px solid #e6ab9f;
+  color: #a8402a;
+}
+
+/* Word count stat badge — was plain bold text; a subtly-rounded badge
+   matches the tag language above and gives the eye one clear accent near
+   the top of the card, without the fully-pill/rounded shape reading as
+   too playful for a reference tool. Scoped with #landing-card and the
+   type selector to outweigh the base #landing-card p rule (text-align:
+   left, color:#555) regardless of source order. */
+#landing-card p.landing-word-count-badge {
+  background-color: #eaf1fb;
+  border-radius: 6px;
+  color: #0d3a69;
+  display: inline-block;
+  font-weight: 600;
+  margin: 8px auto 0;
+  padding: 6px 14px;
+  text-align: center;
 }
 
 /* Progress bar container and fill */

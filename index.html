@@ -447,135 +447,146 @@
         <p style="text-align: center">
           Search for a word above, or explore by feature below.
         </p>
-        <p
-          id="landing-word-count"
-          style="text-align: center; font-weight: 600; color: #0d3a69"
-        >
-          29,000+ Norwegian words, definitions, and example sentences.
+        <p id="landing-word-count" class="landing-word-count-badge">
+          📖 29,000+ Norwegian words, definitions, and example sentences.
         </p>
 
         <div class="landing-card-button-grid">
           <!-- Row 1: reference/lookup tools -->
 
-          <!-- Word List -->
-          <div class="button-container">
-            <img
-              class="landing-card-image"
-              src="Resources/Photos/list.svg"
-              alt="Word List"
-            />
-
-            <a
-              class="landing-card-btn"
-              href="?type=word-list"
-              onclick="
-                event.preventDefault();
-                goToAllWords();
-              "
-            >
-              Word List
-            </a>
-
+          <!-- Word List: the whole card is the click target (not a nested
+               button) — see .button-container in styles.css. -->
+          <a
+            class="button-container"
+            href="?type=word-list"
+            onclick="
+              event.preventDefault();
+              goToAllWords();
+            "
+          >
+            <div class="landing-card-icon-chip">
+              <img
+                class="landing-card-image"
+                src="Resources/Photos/list.svg"
+                alt=""
+              />
+            </div>
+            <h3 class="landing-card-title">Word List</h3>
             <p>Browse and filter the Norwegian vocabulary collection.</p>
-          </div>
-
-          <!-- Sentence Search Button -->
-          <div class="button-container">
-            <img
-              class="landing-card-image"
-              src="Resources/Photos/sentences.svg"
-              alt="Sentences"
-            />
-            <a
-              class="landing-card-btn"
-              href="?type=sentences"
-              onclick="
-                event.preventDefault();
-                selectType('sentences');
-              "
+            <span class="landing-feature-tag landing-feature-tag--filter"
+              >🔍 Filter by level &amp; type</span
             >
-              Sentence Search
-            </a>
+          </a>
+
+          <!-- Sentence Search -->
+          <a
+            class="button-container"
+            href="?type=sentences"
+            onclick="
+              event.preventDefault();
+              selectType('sentences');
+            "
+          >
+            <div class="landing-card-icon-chip">
+              <img
+                class="landing-card-image"
+                src="Resources/Photos/sentences.svg"
+                alt=""
+              />
+            </div>
+            <h3 class="landing-card-title">Sentence Search</h3>
             <p>Explore real sentences in context using your chosen words.</p>
-          </div>
+            <span class="landing-feature-tag landing-feature-tag--audio"
+              >🔊 Audio for each sentence</span
+            >
+          </a>
 
           <!-- Row 2: practice/engagement tools -->
 
-          <!-- Word Game Button -->
-          <div class="button-container">
-            <img
-              class="landing-card-image"
-              src="Resources/Photos/word-game.svg"
-              alt="Word Games"
-            />
-            <a
-              class="landing-card-btn"
-              href="?type=word-game"
-              onclick="
-                event.preventDefault();
-                selectType('word-game');
-              "
-            >
-              Word Game
-            </a>
+          <!-- Word Game -->
+          <a
+            class="button-container"
+            href="?type=word-game"
+            onclick="
+              event.preventDefault();
+              selectType('word-game');
+            "
+          >
+            <div class="landing-card-icon-chip">
+              <img
+                class="landing-card-image"
+                src="Resources/Photos/word-game.svg"
+                alt=""
+              />
+            </div>
+            <h3 class="landing-card-title">Word Game</h3>
             <p>
-              Practice vocabulary with an interactive game that adapts to
-              your skill level.
+              Practice vocabulary with a game that adapts to your CEFR
+              level, from A1 to C.
             </p>
-          </div>
+            <span class="landing-feature-tag landing-feature-tag--streak"
+              >🔥 Daily streak</span
+            >
+          </a>
 
-          <!-- Norwegian Stories Button -->
-          <div class="button-container">
-            <img
-              class="landing-card-image"
-              src="Resources/Photos/stories.svg"
-              alt="Stories"
-            />
-            <a class="landing-card-btn" href="?type=stories">
-              Norwegian Stories
-            </a>
+          <!-- Norwegian Stories -->
+          <a class="button-container" href="?type=stories">
+            <div class="landing-card-icon-chip">
+              <img
+                class="landing-card-image"
+                src="Resources/Photos/stories.svg"
+                alt=""
+              />
+            </div>
+            <h3 class="landing-card-title">Norwegian Stories</h3>
             <p>
               Immerse yourself in fiction and non-fiction to deepen your
               language skills.
             </p>
-          </div>
+            <span class="landing-feature-tag landing-feature-tag--narrated"
+              >🎧 Narrated with audio</span
+            >
+          </a>
 
           <!-- My Words -->
-          <div class="button-container">
-            <img
-              class="landing-card-image"
-              src="Resources/Photos/bookmark.svg"
-              alt="My Words"
-            />
-
-            <button
-              type="button"
-              class="landing-card-btn"
-              onclick="goToMyWords()"
+          <button type="button" class="button-container" onclick="goToMyWords()">
+            <div class="landing-card-icon-chip">
+              <img
+                class="landing-card-image"
+                src="Resources/Photos/bookmark.svg"
+                alt=""
+              />
+            </div>
+            <h3 class="landing-card-title">My Words</h3>
+            <p>
+              Save words as you go, then review, practice, or export them.
+            </p>
+            <span class="landing-feature-tag landing-feature-tag--sync"
+              >☁ Synced across devices</span
             >
-              My Words
-            </button>
+          </button>
 
-            <p>Return to your saved words for review, practice, or export.</p>
-          </div>
-
-          <!-- Pronunciation Guide Button: last, since it expands into a long
-               table directly below the grid rather than navigating away -->
-          <div class="button-container">
-            <img
-              class="landing-card-image"
-              src="Resources/Photos/pronunciation.svg"
-              alt="Pronunciation"
-            />
-            <button
-              class="landing-card-btn"
-              id="toggle-pronunciation"
-              onclick="togglePronunciationGuide()"
-            >
-              Pronunciation Guide
-            </button>
+          <!-- Pronunciation Guide: last, since it expands into a long table
+               directly below the grid rather than navigating away -->
+          <button
+            type="button"
+            class="button-container"
+            id="toggle-pronunciation"
+            onclick="togglePronunciationGuide()"
+          >
+            <div class="landing-card-icon-chip">
+              <img
+                class="landing-card-image"
+                src="Resources/Photos/pronunciation.svg"
+                alt=""
+              />
+            </div>
+            <h3 class="landing-card-title">Pronunciation Guide</h3>
             <p>Practice your pronunciation by learning Norwegian sounds.</p>
-          </div>
+            <span class="landing-feature-tag landing-feature-tag--speak"
+              >🔤 Sounds &amp; symbols</span
+            >
+          </button>
         </div>
 
         <div class="pronunciation-wrapper hidden">
