@@ -1,0 +1,23 @@
+{
+  "name": "Norwegian Dictionary",
+  "short_name": "NO Dictionary",
+  "description": "Search Norwegian and English words, practice vocabulary with the word game, and learn through stories and pronunciation practice.",
+  "start_url": "./?utm_source=pwa&utm_medium=homescreen",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#dce3ef",
+  "theme_color": "#0d3a69",
+  "icons": [
+    {
+      "src": "Resources/Icons/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "Resources/Icons/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

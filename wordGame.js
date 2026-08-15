@@ -836,10 +836,29 @@ function showWordGameRoundSummary() {
 
   wordGameRoundActive = false;
 
+  // Every completed/ended round counts toward the day streak — see
+  // recordStreakActivity() in streak.js for the extend/grace/reset rules.
+  const streakResult = window.StreakAPI?.recordActivity?.();
+  const streakBannerHTML =
+    streakResult && streakResult.count > 0
+      ? `
+    <div class="game-summary-streak">
+      <i class="fas fa-fire" aria-hidden="true"></i>
+      <span class="game-summary-streak-count">${streakResult.count} day streak</span>
+      ${
+        streakResult.status === "grace-used"
+          ? `<p class="game-summary-streak-note">Your free grace day covered a missed day — streak saved!</p>`
+          : ""
+      }
+    </div>
+  `
+      : "";
+
   setGameContainerHTML(`
     <div class="game-summary-card">
       <div class="game-summary-icon"><i class="fas fa-trophy" aria-hidden="true"></i></div>
       <h2 class="game-summary-heading">${wasBoundedRound ? "Round complete!" : "Nice work!"}</h2>
+      ${streakBannerHTML}
       <div class="game-summary-stats">
         <div class="game-summary-stat">
           <p class="game-summary-stat-value">${wordGameSessionCorrectWords.size}</p>

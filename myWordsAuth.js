@@ -57,6 +57,7 @@
   let pushTimeoutId = null;
   let strengthPushTimeoutId = null;
   let levelPushTimeoutId = null;
+  let streakPushTimeoutId = null;
 
   function loadFirebaseScripts() {
     return FIREBASE_SCRIPT_URLS.reduce(
@@ -169,12 +170,29 @@
       });
   }
 
+  function pushStreakNow(userId, streak) {
+    getUserDocRef(userId)
+      .set(
+        {
+          streak,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      )
+      .then(clearSyncStatusError)
+      .catch((error) => {
+        console.warn("Streak could not be synced.", error);
+        showSyncStatusError();
+      });
+  }
+
   // Debounced writes need their latest pending value kept around outside
   // the setTimeout closure, so a flush (tab hidden/closed before the 800ms
   // fires) can push it immediately instead of losing it.
   let pendingEntryIds = null;
   let pendingStrengths = null;
   let pendingLevel = null;
+  let pendingStreak = null;
 
   function schedulePush(entryIds) {
     if (!currentUserId) {
@@ -218,6 +236,20 @@
     }, PUSH_DEBOUNCE_MS);
   }
 
+  function scheduleStreakPush(streak) {
+    if (!currentUserId) {
+      return;
+    }
+
+    pendingStreak = streak;
+    window.clearTimeout(streakPushTimeoutId);
+    streakPushTimeoutId = window.setTimeout(() => {
+      streakPushTimeoutId = null;
+      pendingStreak = null;
+      pushStreakNow(currentUserId, streak);
+    }, PUSH_DEBOUNCE_MS);
+  }
+
   // Fires when the tab is backgrounded, closed, or navigated away from —
   // pushes anything still waiting out its debounce instead of risking it
   // being silently dropped if the page never becomes active again.
@@ -245,6 +277,13 @@
       levelPushTimeoutId = null;
       pushGameLevelNow(currentUserId, pendingLevel);
       pendingLevel = null;
+    }
+
+    if (streakPushTimeoutId !== null) {
+      window.clearTimeout(streakPushTimeoutId);
+      streakPushTimeoutId = null;
+      pushStreakNow(currentUserId, pendingStreak);
+      pendingStreak = null;
     }
   }
 
@@ -291,6 +330,10 @@
 
         if (typeof data.gameLevel === "string") {
           window.WordGameHelpers?.replaceLevel?.(data.gameLevel);
+        }
+
+        if (data.streak && typeof data.streak === "object") {
+          window.StreakAPI?.replaceState?.(data.streak);
         }
       },
       (error) => {
@@ -351,13 +394,58 @@
           ? remoteLevel
           : localLevel;
 
+      // Streak isn't a set or a max-per-key map either — it's a single
+      // running count tied to a specific last-active date, so the side with
+      // the more recent lastActiveDate is the one whose count/graceUsed
+      // actually reflects reality. "YYYY-MM-DD" strings sort correctly with
+      // plain comparison. On a same-day tie, keep the higher count (in case
+      // one device already recorded today's activity and the other hasn't)
+      // and treat the grace day as spent if either side spent it.
+      const remoteStreak =
+        remoteData.streak && typeof remoteData.streak === "object"
+          ? remoteData.streak
+          : {};
+      const localStreak = window.StreakAPI?.getState?.() ?? {};
+      const remoteLastActive = remoteStreak.lastActiveDate ?? "";
+      const localLastActive = localStreak.lastActiveDate ?? "";
+
+      let mergedStreak;
+
+      if (remoteLastActive === localLastActive) {
+        mergedStreak = {
+          count: Math.max(remoteStreak.count ?? 0, localStreak.count ?? 0),
+          lastActiveDate: localLastActive || null,
+          graceUsed: Boolean(remoteStreak.graceUsed) || Boolean(localStreak.graceUsed),
+        };
+      } else if (remoteLastActive > localLastActive) {
+        mergedStreak = {
+          count: remoteStreak.count ?? 0,
+          lastActiveDate: remoteLastActive,
+          graceUsed: Boolean(remoteStreak.graceUsed),
+        };
+      } else {
+        mergedStreak = {
+          count: localStreak.count ?? 0,
+          lastActiveDate: localLastActive || null,
+          graceUsed: Boolean(localStreak.graceUsed),
+        };
+      }
+
+      mergedStreak.longestCount = Math.max(
+        remoteStreak.longestCount ?? 0,
+        localStreak.longestCount ?? 0,
+        mergedStreak.count,
+      );
+
       window.MyWordsAPI?.replaceEntryIds?.(mergedEntryIds);
       window.WordStrengthAPI?.replaceAll?.(mergedStrengths);
       window.WordGameHelpers?.replaceLevel?.(mergedLevel);
+      window.StreakAPI?.replaceState?.(mergedStreak);
 
       pushEntryIdsNow(userId, mergedEntryIds);
       pushWordStrengthsNow(userId, mergedStrengths);
       pushGameLevelNow(userId, mergedLevel);
+      pushStreakNow(userId, mergedStreak);
     } catch (error) {
       console.warn("Your saved words could not be loaded from your account.", error);
     }
@@ -485,5 +573,14 @@
     }
 
     scheduleLevelPush(event.detail?.level ?? "A1");
+  });
+
+  // Fired by streak.js's saveStreakState() whenever the streak changes.
+  window.addEventListener("streak:updated", (event) => {
+    if (event.detail?.syncRemote === false) {
+      return;
+    }
+
+    scheduleStreakPush(event.detail?.streak ?? {});
   });
 })();

@@ -1103,6 +1103,38 @@ footer .copyright {
   margin: 0 0 20px 0;
 }
 
+/* Shown when recordStreakActivity() (streak.js) reports an active streak
+   after this round — see showWordGameRoundSummary() in wordGame.js. */
+.game-summary-streak {
+  align-items: center;
+  background-color: #fff3e0;
+  border-radius: 8px;
+  color: #b3541e;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: -8px 0 20px 0;
+  padding: 10px 16px;
+  width: 100%;
+}
+
+.game-summary-streak-count {
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1.1em;
+  font-weight: 700;
+}
+
+.game-summary-streak .fa-fire {
+  color: #f2994a;
+  margin-right: 4px;
+}
+
+.game-summary-streak-note {
+  color: #8a5a2e;
+  font-size: 0.8em;
+  margin: 0;
+}
+
 .game-summary-stats {
   display: grid;
   gap: 12px;
@@ -1305,6 +1337,27 @@ header p {
   font-family: "Noto Sans", sans-serif;
   letter-spacing: normal;
   text-transform: none;
+}
+
+/* Day-streak pill, sitting just left of the sign-in button/user pill inside
+   #auth-container. Hidden (via the shared .hidden class) until there's an
+   actual streak — see updateStreakBadge() in streak.js. */
+.streak-badge {
+  align-items: center;
+  background-color: #fff3e0;
+  border: 0.5px solid #f0c896;
+  border-radius: 6px;
+  color: #b3541e;
+  display: flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 4px;
+  padding: 6px 10px;
+  user-select: none;
+}
+
+.streak-badge .fa-fire {
+  color: #f2994a;
 }
 
 /* Mirrors .auth-container's positioning on the opposite corner, and

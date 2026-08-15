@@ -37,6 +37,10 @@
     <!-- Canonical URL -->
     <link rel="canonical" href="https://osloandrew.github.io/norwegian/" />
 
+    <!-- PWA: installable to a home screen, see manifest.json and sw.js -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#0d3a69" />
+
     <!-- Stylesheets -->
     <link rel="stylesheet" href="styles.css" />
     <link
@@ -141,6 +145,16 @@
       </button>
 
       <div id="auth-container" class="auth-container">
+        <!-- Hidden until there's an actual streak to show — see
+             updateStreakBadge() in streak.js. Lives inside #auth-container
+             (rather than floating separately) purely for layout: it's
+             meaningful whether or not the visitor is signed in, since
+             streak state lives in localStorage either way. -->
+        <div id="streak-badge" class="streak-badge hidden" title="Day streak">
+          <i class="fas fa-fire" aria-hidden="true"></i>
+          <span id="streak-badge-count">0</span>
+        </div>
+
         <button
           id="google-signin-btn"
           type="button"
@@ -752,9 +766,26 @@
     <script src="noRandom.js" defer></script>
     <script src="scripts.js" defer></script>
     <script src="wordGame.js" defer></script>
+    <script src="streak.js" defer></script>
     <script src="stories.js" defer></script>
     <script src="pronunciation.js"></script>
     <script src="wordList.js"></script>
     <script src="myWordsAuth.js"></script>
+
+    <!--
+      Registered after "load" (not deferred alongside the app scripts
+      above) so it never competes with them for bandwidth/CPU during
+      initial page load — installability doesn't need to happen
+      immediately, just eventually.
+    -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("sw.js").catch((error) => {
+            console.warn("Service worker registration failed.", error);
+          });
+        });
+      }
+    </script>
   </body>
 </html>
