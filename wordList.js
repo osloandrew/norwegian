@@ -433,10 +433,28 @@
     openWordList("my");
   }
 
+  // getSavedWordStudyEntries() runs once per word-game question (see
+  // wordGame.js's My Words weighting), so rebuilding an entryId->entry map
+  // over the entire ~29,000-word dictionary on every call was a real,
+  // measurable cost regardless of how many words were actually saved.
+  // results is only ever assigned once (at initial CSV load), so this
+  // index is cached and only rebuilt if that reference ever changes.
+  let entriesByIdCache = null;
+  let entriesByIdCacheSource = null;
+
+  function getEntriesByIdIndex() {
+    if (entriesByIdCacheSource !== results) {
+      entriesByIdCache = new Map(
+        results.map((entry) => [getMyWordsEntryId(entry), entry]),
+      );
+      entriesByIdCacheSource = results;
+    }
+
+    return entriesByIdCache;
+  }
+
   function getSavedWordStudyEntries() {
-    const entriesById = new Map(
-      results.map((entry) => [getMyWordsEntryId(entry), entry]),
-    );
+    const entriesById = getEntriesByIdIndex();
 
     return Array.from(myWordsEntryIds)
       .map((entryId) => {

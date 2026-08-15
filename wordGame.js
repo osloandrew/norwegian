@@ -1914,8 +1914,6 @@ async function fetchExampleSentence(wordObj) {
   return { exampleSentence, sentenceTranslation };
 }
 
-const MY_WORDS_PRIORITY = 2 / 3;
-
 function getEligibleGameWords(selectedPOS, cefrLevel) {
   const queuedForReintroduction = new Set(
     incorrectWordQueue.map((queued) => queued.wordObj),
@@ -2002,6 +2000,32 @@ function getEligibleGameWords(selectedPOS, cefrLevel) {
 const STRENGTH_WEIGHT_CEILING = 6; // WordStrengthAPI values are 0-5
 const STRENGTH_WEIGHT_EXPONENT = 2; // squared — retune here if the curve needs adjusting
 
+// My Words used to be a separate pool with a flat 2/3 chance of being
+// drawn from whenever the user had saved *any* eligible word — regardless
+// of how many words were saved or how well they already knew them. That
+// made a small saved list feel overwhelming and let a fully mastered word
+// keep crowding out words the user was actually struggling with.
+//
+// Instead, every eligible word (saved or not) now competes in a single
+// weighted draw. A word's weight is its strength weight (below) times
+// MY_WORDS_BOOST if it's saved, times 1 otherwise — so "is it saved" and
+// "how well do I know it" pull against each other on the same axis,
+// rather than being decided in two disconnected steps.
+//
+// MY_WORDS_BOOST=100 means saving about 1% of a level's word pool earns
+// roughly half of practice time going to saved words (before strength
+// pulls that back down as they're learned): with N saved words (weight w
+// each) against M other words (weight w each), the saved share works out
+// to N*BOOST / (N*BOOST + M), which is already a small share for a
+// handful of saved words and grows on its own as the list grows — no
+// separate scaling curve needed.
+const MY_WORDS_BOOST = 100;
+
+// Even a large, mostly-untried saved list shouldn't be able to crowd out
+// every other word — cap My Words' combined share of the draw so there's
+// always some chance of practicing a word that hasn't been saved.
+const MY_WORDS_MAX_SHARE = 0.85;
+
 function getGameWordWeight(entry) {
   const strength = window.WordStrengthAPI?.get?.(entry) ?? 0;
 
@@ -2010,14 +2034,16 @@ function getGameWordWeight(entry) {
 
 /*
  * Favors low-strength (weak or never-tried) words over high-strength
- * (mastered) ones, without ever fully excluding a mastered word.
+ * (mastered) ones, without ever fully excluding a mastered word. Takes a
+ * pre-computed weights array (same length/order as entries) rather than a
+ * weight function, so callers that need each entry's weight for more than
+ * just this draw (see pickPrioritizedGameWord) only compute it once.
  */
-function pickWeightedGameWord(entries) {
+function pickWeightedGameWord(entries, weights) {
   if (entries.length === 0) {
     return null;
   }
 
-  const weights = entries.map(getGameWordWeight);
   const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
   let target = Math.random() * totalWeight;
 
@@ -2042,42 +2068,55 @@ function pickPrioritizedGameWord(eligibleEntries) {
     savedRecords.map((savedRecord) => savedRecord.entry).filter(Boolean),
   );
 
-  const myWordsEntries = [];
-  const otherEntries = [];
+  // Each entry's strength weight involves a WordStrengthAPI lookup — worth
+  // computing exactly once per entry rather than re-deriving it for the
+  // pool totals below and again for the draw itself.
+  const strengthWeights = eligibleEntries.map(getGameWordWeight);
 
-  for (const entry of eligibleEntries) {
-    if (savedEntries.has(entry)) {
-      myWordsEntries.push(entry);
+  if (savedEntries.size === 0) {
+    return pickWeightedGameWord(eligibleEntries, strengthWeights);
+  }
+
+  const isSaved = eligibleEntries.map((entry) => savedEntries.has(entry));
+
+  let myWordsTotal = 0;
+  let otherTotal = 0;
+
+  for (let i = 0; i < eligibleEntries.length; i++) {
+    if (isSaved[i]) {
+      myWordsTotal += strengthWeights[i] * MY_WORDS_BOOST;
     } else {
-      otherEntries.push(entry);
+      otherTotal += strengthWeights[i];
     }
   }
 
-  /*
-   * If there are no eligible saved words at this CEFR level,
-   * use the ordinary pool.
-   */
-  if (myWordsEntries.length === 0) {
-    return pickWeightedGameWord(otherEntries);
+  // All-saved or all-unsaved eligible pool: nothing to balance against,
+  // so the cap below doesn't apply.
+  if (myWordsTotal === 0 || otherTotal === 0) {
+    const weights = strengthWeights.map((weight, i) =>
+      isSaved[i] ? weight * MY_WORDS_BOOST : weight,
+    );
+
+    return pickWeightedGameWord(eligibleEntries, weights);
   }
 
-  /*
-   * If every eligible word is saved, use the saved pool.
-   */
-  if (otherEntries.length === 0) {
-    return pickWeightedGameWord(myWordsEntries);
-  }
+  // If My Words would naturally pull in more than MY_WORDS_MAX_SHARE of
+  // the draw, scale every saved word's weight down by the same factor so
+  // the combined total lands exactly at the cap. This only rebalances
+  // saved vs. not-saved — each saved word's weight *relative to other
+  // saved words* (i.e. its own strength) is unchanged.
+  const uncappedShare = myWordsTotal / (myWordsTotal + otherTotal);
+  const scale =
+    uncappedShare > MY_WORDS_MAX_SHARE
+      ? (MY_WORDS_MAX_SHARE * otherTotal) /
+        ((1 - MY_WORDS_MAX_SHARE) * myWordsTotal)
+      : 1;
 
-  /*
-   * When both pools are available:
-   *
-   * - My Words has a two-thirds chance.
-   * - Other Words has a one-third chance.
-   */
-  const selectedPool =
-    Math.random() < MY_WORDS_PRIORITY ? myWordsEntries : otherEntries;
+  const weights = strengthWeights.map((weight, i) =>
+    isSaved[i] ? weight * MY_WORDS_BOOST * scale : weight,
+  );
 
-  return pickWeightedGameWord(selectedPool);
+  return pickWeightedGameWord(eligibleEntries, weights);
 }
 
 async function fetchRandomWord() {
