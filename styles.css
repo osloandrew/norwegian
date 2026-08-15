@@ -504,21 +504,6 @@ footer .copyright {
   margin: 1px !important;
 }
 
-.game-card-actions-subgroup {
-  align-items: flex-start;
-  flex-direction: row;
-  flex-shrink: 0;
-  gap: 6px;
-}
-
-.game-card-actions-subgroup .game-tricky-word {
-  /* Matches the parent's align-items:center — this badge is much shorter
-     than the 40px star button next to it, so without an explicit
-     align-self here it would otherwise be pinned to the top instead of
-     sharing the star's vertical center. */
-  align-self: center;
-}
-
 .game-my-words-star {
   flex: 0 0 40px;
 }
@@ -714,6 +699,10 @@ footer .copyright {
   flex-direction: row;
   flex-shrink: 0;
   gap: 6px;
+}
+
+.game-card-actions-subgroup .game-tricky-word {
+  align-self: center;
 }
 
 /* Three real columns (rather than the banner spanning grid-column:1/-1
@@ -1647,6 +1636,61 @@ ul {
   outline-offset: 2px;
 }
 
+/* .cefr-filter keeps its own flex:1/min-width:180px from the shared
+   filter rule above (untouched) — that's its real floor, enough room for
+   "A1"/"B2" etc. to render in full. This group has no min-width of its
+   own, so its automatic minimum is simply the sum of that 180px floor
+   plus the button's natural size: enough space for the button comes from
+   the row growing a little wider, not from shrinking .cefr-filter's own
+   legible floor. The type/POS/genre/show-english dropdowns, as separate
+   flex:1 siblings of this group in the row, are unaffected either way. */
+.cefr-filter-group {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  /* Matches the row's own gap between filter groups (#search-container-inner,
+     .selectors-wrapper), so the space before this button feels consistent
+     with the spacing everywhere else in the row rather than looking cramped
+     against its neighbor. */
+  gap: 10px;
+}
+
+/* Hidden outside Word Game mode — shown only via the same
+   #search-container-inner.word-game-active flag the lock icon uses.
+   Styled as its own light chip button (like .report-issue-btn on the
+   definition card) rather than blending into the dark blue toolbar. */
+.toolbar-report-issue-btn {
+  align-items: center;
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 8px;
+  color: #951b1b;
+  cursor: pointer;
+  display: none;
+  flex: 0 0 auto;
+  font-size: 16px;
+  justify-content: center;
+  padding: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+#search-container-inner.word-game-active .toolbar-report-issue-btn {
+  display: inline-flex;
+}
+
+.toolbar-report-issue-btn:hover {
+  background-color: #e0e0e0;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.toolbar-report-issue-btn:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
 .search-btn {
   align-items: center;
   background-color: #0d3a69;
@@ -1978,6 +2022,60 @@ ul {
   right: 25px;
   top: 25px;
   z-index: 2;
+}
+
+/* Same pill shape/capitalization language as .back-navigation, but gray
+   and a size down — a secondary, lower-key action next to the definition
+   content rather than a primary navigation control. */
+.report-issue-btn {
+  /* Always its own full-width row (rather than falling into whichever
+     of the two columns auto-flow happens to leave for it) — otherwise
+     its height depended on which column it landed in: stretched to
+     match a taller row-mate on one side (42.8px), or with too little
+     column width on the other, forcing its label to wrap onto two
+     lines (57px). Spanning both columns sidesteps both problems and
+     keeps its height at a consistent, content-driven ~27px. */
+  grid-column: 1 / -1;
+  align-items: center;
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 6px;
+  color: #666;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  gap: 6px;
+  justify-self: start;
+  letter-spacing: 0.03em;
+  margin-top: 12px;
+  padding: 6px 12px;
+  text-transform: uppercase;
+  touch-action: manipulation;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.definition-content .report-issue-btn i {
+  color: #951b1b;
+  font-size: 12px;
+  margin-right: 0;
+  width: auto;
+}
+
+.report-issue-btn:hover {
+  background-color: #e5e5e5;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.report-issue-btn:focus-visible {
+  outline: 2px solid #666;
+  outline-offset: 2px;
 }
 
 #site-title {
@@ -3649,7 +3747,7 @@ ul {
     grid-template-columns:
       minmax(0, 1fr)
       minmax(0, 1fr)
-      minmax(0, 1.15fr);
+      minmax(0, 1.5fr);
     gap: 5px;
     width: 100%;
   }
@@ -3663,6 +3761,16 @@ ul {
   body.word-game-mode #lock-icon {
     flex: 0 0 18px;
     margin: 0 8px 0 4px;
+  }
+
+  /* Genuinely compact here (smaller than the lock icon's own mobile
+     footprint) — flex-shrink:0 means padding/font-size, not flex-basis,
+     are what actually determine its rendered size, and the CEFR select
+     has very little room to spare at this width. */
+  body.word-game-mode .toolbar-report-issue-btn {
+    flex: 0 0 auto;
+    font-size: 12px;
+    padding: 6px;
   }
 
   /* Keep the game prompt readable without sizing it for a particular phone. */
@@ -3714,4 +3822,129 @@ ul {
     overflow-wrap: normal;
     padding: 15px;
   }
+}
+
+/* Report-an-issue dialog: one shared component used by the word card and
+   the word game. */
+.feedback-dialog-overlay {
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  z-index: 2000;
+}
+
+.feedback-dialog {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  max-width: 380px;
+  padding: 20px;
+  text-align: left;
+  width: 100%;
+}
+
+.feedback-dialog h3 {
+  color: #0d3a69;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 16px;
+  margin: 0 0 15px;
+  word-break: break-word;
+}
+
+.feedback-dialog-label {
+  /* Overrides the site-wide floating-label `label` rule (position:
+     absolute, centered over an input) — this label sits in normal flow
+     above its field instead. */
+  color: #4a4a4a;
+  display: block;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  left: auto;
+  margin: 12px 0 5px;
+  pointer-events: auto;
+  position: static;
+  top: auto;
+  transform: none;
+}
+
+.feedback-dialog select,
+.feedback-dialog textarea {
+  border: 1px solid #a0a0a0;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 14px;
+  padding: 8px 10px;
+  width: 100%;
+}
+
+.feedback-dialog textarea {
+  resize: vertical;
+}
+
+.feedback-dialog select:focus-visible,
+.feedback-dialog textarea:focus-visible {
+  outline: 2px solid #0d3a69;
+  outline-offset: 1px;
+}
+
+.feedback-dialog-status {
+  color: #4a4a4a;
+  font-size: 13px;
+  margin: 12px 0 0;
+  min-height: 1.2em;
+}
+
+.feedback-dialog-status-error {
+  color: #b3261e;
+}
+
+.feedback-dialog-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+.feedback-dialog-cancel,
+.feedback-dialog-submit {
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+}
+
+.feedback-dialog-cancel {
+  background-color: #ffffff;
+  border: 1px solid #a0a0a0;
+  color: #4a4a4a;
+}
+
+.feedback-dialog-cancel:hover {
+  background-color: #f0f0f0;
+}
+
+.feedback-dialog-submit {
+  background-color: #0d3a69;
+  border: 1px solid #0d3a69;
+  color: #ffffff;
+}
+
+.feedback-dialog-submit:hover {
+  background-color: #0a2e54;
+}
+
+.feedback-dialog-cancel:disabled,
+.feedback-dialog-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }

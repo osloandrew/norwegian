@@ -998,8 +998,9 @@ function updateGameMyWordsStar(button, wordObj) {
   }
 }
 
-function attachGameControls(wordObj) {
+function attachGameControls(wordObj, isCloze = false) {
   const starButton = document.getElementById("game-my-words-star");
+  const reportButton = document.getElementById("game-report-issue");
 
   const nextButton = document.getElementById("game-next-word-button");
 
@@ -1025,6 +1026,31 @@ function attachGameControls(wordObj) {
 
     showBanner(savedState ? "savedWord" : "removedWord", displayedWord);
   });
+
+  // Unlike the star, this is enabled from the moment the question loads:
+  // a broken audio clip or garbled sentence is noticed before answering,
+  // and making the learner answer first just to report it would be
+  // backwards.
+  //
+  // This button lives permanently in the toolbar (not regenerated per
+  // question like the rest of the card), so its handler is overwritten
+  // via assignment rather than addEventListener — otherwise every
+  // question transition would stack another listener bound to a
+  // now-stale wordObj.
+  if (reportButton) {
+    reportButton.onclick = () => {
+      openFeedbackDialog({
+        source: isCloze ? "Word Game · Cloze" : "Word Game · Flashcard",
+        word: wordObj.ord,
+        pos: wordObj.gender,
+        cefr: wordObj.CEFR,
+        // The cloze sentence hides this exact word until answered —
+        // showing it in the dialog title would give away the answer.
+        showWordInTitle: false,
+        triggerElement: reportButton,
+      });
+    };
+  }
 
   nextButton?.addEventListener("click", async () => {
     stopAllAudio();
@@ -1197,7 +1223,7 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
     }
   });
 
-  attachGameControls(wordObj);
+  attachGameControls(wordObj, false);
 
   renderStats(); // Ensure stats are drawn once DOM is fully loaded
   playWordAudio(wordObj);
@@ -1369,7 +1395,7 @@ function renderClozeGameUI(
   // them listen for the answer instead of reasoning about which word fits.
   // handleTranslationClick() makes it clickable once the sentence is whole.
 
-  attachGameControls(wordObj);
+  attachGameControls(wordObj, true);
 
   renderStats(); // Ensure stats bar is present after cloze loads too
 }

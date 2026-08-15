@@ -827,21 +827,64 @@ function buildSentenceIndex() {
   console.timeEnd("[Sentences] build index");
 }
 
-function flagMissingWordEntry(word) {
-  // URL of your Google Form
-  const formUrl =
-    "https://docs.google.com/forms/d/e/1FAIpQLSdMpnbI2DyUo6SWBRR53ZnYucDPdAYXK9rksP3AhMrC7b91Dw/formResponse";
+// Every kind of user feedback — a missing word, a wrong translation, a
+// broken audio clip — funnels through this one Google Form field. The
+// form itself only has a single short-answer question, so each caller
+// packs its context into one readable, self-describing string rather
+// than requiring a matching form field to exist for every case.
+const FEEDBACK_FORM_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSdMpnbI2DyUo6SWBRR53ZnYucDPdAYXK9rksP3AhMrC7b91Dw/formResponse";
+const FEEDBACK_FORM_FIELD_ID = "entry.279285583";
 
-  // Prepare the data to be sent
+const FEEDBACK_CATEGORIES = [
+  "Norwegian word or spelling",
+  "English translation",
+  "Norwegian example sentence",
+  "English sentence translation",
+  "Word audio",
+  "Sentence audio",
+  "Something else",
+];
+
+function submitUserFeedback(message) {
   const formData = new FormData();
-  formData.append("entry.279285583", word); // This is the field ID for the word entry
+  formData.append(FEEDBACK_FORM_FIELD_ID, message);
 
-  // Send the form data via POST request
-  fetch(formUrl, {
+  return fetch(FEEDBACK_FORM_URL, {
     method: "POST",
     body: formData,
     mode: "no-cors", // Necessary to avoid CORS issues
-  })
+  });
+}
+
+function buildFeedbackMessage({ source, word, pos, cefr, category, details }) {
+  const parts = [];
+
+  if (source) {
+    parts.push(`[${source}]`);
+  }
+
+  if (word) {
+    const attributes = [pos, cefr].filter(Boolean).join(", ");
+    parts.push(attributes ? `"${word}" (${attributes})` : `"${word}"`);
+  }
+
+  if (category) {
+    parts.push(`— Issue: ${category}`);
+  }
+
+  if (details) {
+    parts.push(`— "${details}"`);
+  }
+
+  return parts.join(" ");
+}
+
+function flagMissingWordEntry(word) {
+  // Unlike every other report type, this goes to the form as the bare
+  // word — no brackets, category, or quoting — since the form's one
+  // field is otherwise treated as a simple "missing word" list.
+  submitUserFeedback(word)
     .then(() => {
       alert(`The word "${word}" has been flagged successfully!`);
     })
@@ -849,6 +892,164 @@ function flagMissingWordEntry(word) {
       console.error("Error flagging the word:", error);
       alert("There was an issue flagging this word. Please try again later.");
     });
+}
+
+function openWordCardFeedbackDialog(triggerElement, word, pos, cefr) {
+  openFeedbackDialog({ source: "Word Card", word, pos, cefr, triggerElement });
+}
+
+let feedbackDialogTriggerElement = null;
+
+function handleFeedbackDialogKeydown(event) {
+  if (event.key === "Escape") {
+    closeFeedbackDialog();
+  }
+}
+
+function closeFeedbackDialog() {
+  const overlay = document.querySelector(".feedback-dialog-overlay");
+  if (!overlay) return;
+
+  overlay.remove();
+  document.removeEventListener("keydown", handleFeedbackDialogKeydown);
+
+  if (
+    feedbackDialogTriggerElement &&
+    typeof feedbackDialogTriggerElement.focus === "function"
+  ) {
+    feedbackDialogTriggerElement.focus();
+  }
+  feedbackDialogTriggerElement = null;
+}
+
+// One shared "report an issue" dialog, reused by the word card and the
+// word game. `source` identifies where the report came from (e.g. "Word
+// Card", "Word Game · Cloze") and, along with `word`/`pos`/`cefr`, is
+// folded into the single message string sent to the form.
+function openFeedbackDialog({
+  source,
+  word,
+  pos,
+  cefr,
+  showWordInTitle = true,
+  triggerElement,
+}) {
+  // Only one report dialog should ever be open at a time.
+  closeFeedbackDialog();
+
+  feedbackDialogTriggerElement = triggerElement || null;
+
+  const overlay = document.createElement("div");
+  overlay.className = "feedback-dialog-overlay";
+
+  const dialog = document.createElement("div");
+  dialog.className = "feedback-dialog";
+  dialog.setAttribute("role", "dialog");
+  dialog.setAttribute("aria-modal", "true");
+  dialog.setAttribute("aria-labelledby", "feedback-dialog-title");
+
+  const title = document.createElement("h3");
+  title.id = "feedback-dialog-title";
+  title.textContent =
+    word && showWordInTitle
+      ? `Report an issue with "${word}"`
+      : "Report an issue with this question";
+  dialog.appendChild(title);
+
+  const categoryLabel = document.createElement("label");
+  categoryLabel.className = "feedback-dialog-label";
+  categoryLabel.htmlFor = "feedback-dialog-category";
+  categoryLabel.textContent = "What's the issue?";
+  dialog.appendChild(categoryLabel);
+
+  const categorySelect = document.createElement("select");
+  categorySelect.id = "feedback-dialog-category";
+  FEEDBACK_CATEGORIES.forEach((category) => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    categorySelect.appendChild(option);
+  });
+  dialog.appendChild(categorySelect);
+
+  const detailsLabel = document.createElement("label");
+  detailsLabel.className = "feedback-dialog-label";
+  detailsLabel.htmlFor = "feedback-dialog-details";
+  detailsLabel.textContent = "Details (optional)";
+  dialog.appendChild(detailsLabel);
+
+  const detailsTextarea = document.createElement("textarea");
+  detailsTextarea.id = "feedback-dialog-details";
+  detailsTextarea.rows = 3;
+  detailsTextarea.placeholder = "What's wrong, exactly?";
+  dialog.appendChild(detailsTextarea);
+
+  const status = document.createElement("p");
+  status.className = "feedback-dialog-status";
+  dialog.appendChild(status);
+
+  const actions = document.createElement("div");
+  actions.className = "feedback-dialog-actions";
+
+  const cancelButton = document.createElement("button");
+  cancelButton.type = "button";
+  cancelButton.className = "feedback-dialog-cancel";
+  cancelButton.textContent = "Cancel";
+  cancelButton.addEventListener("click", closeFeedbackDialog);
+
+  const submitButton = document.createElement("button");
+  submitButton.type = "button";
+  submitButton.className = "feedback-dialog-submit";
+  submitButton.textContent = "Send";
+
+  submitButton.addEventListener("click", () => {
+    const category = categorySelect.value;
+    const details = detailsTextarea.value.trim();
+
+    if (category === "Something else" && !details) {
+      status.textContent = "Please add a few details.";
+      status.classList.add("feedback-dialog-status-error");
+      detailsTextarea.focus();
+      return;
+    }
+
+    submitButton.disabled = true;
+    cancelButton.disabled = true;
+    status.classList.remove("feedback-dialog-status-error");
+    status.textContent = "Sending…";
+
+    submitUserFeedback(
+      buildFeedbackMessage({ source, word, pos, cefr, category, details }),
+    )
+      .then(() => {
+        status.textContent = "Thanks — your report was sent.";
+        setTimeout(closeFeedbackDialog, 1400);
+      })
+      .catch((error) => {
+        console.error("Error sending feedback:", error);
+        status.textContent = "Something went wrong. Please try again.";
+        status.classList.add("feedback-dialog-status-error");
+        submitButton.disabled = false;
+        cancelButton.disabled = false;
+      });
+  });
+
+  actions.appendChild(cancelButton);
+  actions.appendChild(submitButton);
+  dialog.appendChild(actions);
+
+  overlay.appendChild(dialog);
+
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) {
+      closeFeedbackDialog();
+    }
+  });
+
+  document.body.appendChild(overlay);
+  document.addEventListener("keydown", handleFeedbackDialogKeydown);
+
+  categorySelect.focus();
 }
 
 // Generate and display a random word or sentence
@@ -2071,7 +2272,7 @@ function displaySearchResults(results, query = "") {
                     }
                     ${
                       result.etymologi
-                        ? `<p class="etymology"><i class="fa-solid fa-flag"></i> ${result.etymologi}</p>`
+                        ? `<p class="etymology"><i class="fa-solid fa-scroll"></i> ${result.etymologi}</p>`
                         : ""
                     }
                     ${
@@ -2081,6 +2282,12 @@ function displaySearchResults(results, query = "") {
                           )};">${result.CEFR}</span></p>`
                         : ""
                     }
+                    <button
+                      type="button"
+                      class="report-issue-btn"
+                      onclick="event.stopPropagation(); openWordCardFeedbackDialog(this, '${escapedWord}', '${result.pos}', '${result.CEFR || ""}')"
+                      onkeydown="event.stopPropagation()"
+                    ><i class="fas fa-flag"></i> Report an issue</button>
                 </div>
                 <!-- OLD: Check if example sentence exists -->
                 <!-- <div class="${multipleResultsHiddenContent}">${

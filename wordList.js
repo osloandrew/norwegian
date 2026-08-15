@@ -474,7 +474,8 @@
       event.stopPropagation();
     });
 
-    // Only the star remains inside the definition card.
+    // Reporting an issue lives in the definition-content grid below
+    // (see displaySearchResults in scripts.js), not up here with the star.
     controls.appendChild(starButton);
     card.prepend(controls);
 
