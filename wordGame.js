@@ -1379,6 +1379,29 @@ function renderClozeGameUI(
 // click-to-replay, but deliberately withheld until after answering so
 // hearing the sentence early can't be used to skip reasoning about which
 // word fits the blank.
+function makeSentenceClickable(element, sentenceText) {
+  if (!element || !sentenceText) return;
+
+  element.classList.add("game-word-audio");
+  element.setAttribute("role", "button");
+  element.setAttribute("tabindex", "0");
+  element.setAttribute("aria-label", "Play sentence audio");
+  element.title = "Play sentence audio";
+
+  const replay = () => {
+    stopAllAudio();
+    playSentenceAudio(sentenceText);
+  };
+
+  element.addEventListener("click", replay);
+  element.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      replay();
+    }
+  });
+}
+
 function completeClozeSentence(clozeSentence) {
   const sentenceElement = document.getElementById("cloze-sentence");
   if (!sentenceElement || !clozeSentence) return;
@@ -1390,24 +1413,7 @@ function completeClozeSentence(clozeSentence) {
     return;
   }
 
-  wordElement.classList.add("game-word-audio");
-  wordElement.setAttribute("role", "button");
-  wordElement.setAttribute("tabindex", "0");
-  wordElement.setAttribute("aria-label", "Play sentence audio");
-  wordElement.title = "Play sentence audio";
-
-  const replay = () => {
-    stopAllAudio();
-    playSentenceAudio(clozeSentence);
-  };
-
-  wordElement.addEventListener("click", replay);
-  wordElement.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      replay();
-    }
-  });
+  makeSentenceClickable(wordElement, clozeSentence);
 }
 
 async function handleTranslationClick(
@@ -1550,10 +1556,15 @@ async function handleTranslationClick(
 
     document.querySelector(".game-cefr-spacer").innerHTML = `
       <div class="sentence-pair">
-        <p>${completedSentence}</p>
+        <p class="game-example-sentence">${completedSentence}</p>
         ${translationHTML}
       </div>
     `;
+
+    const sentenceElement = document.querySelector(
+      ".game-cefr-spacer .game-example-sentence",
+    );
+    makeSentenceClickable(sentenceElement, completedSentence);
   } else if (exampleSentence && isCloze) {
     const translationHTML = `
       <p class="game-english-translation" style="display: ${
