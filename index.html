@@ -129,6 +129,17 @@
 
   <body>
     <header>
+      <!-- Only shown while reading an individual story, via html.reading in styles.css -->
+      <button
+        type="button"
+        id="story-report-issue"
+        class="story-report-issue-btn"
+        aria-label="Report an issue with this story"
+        title="Report an issue"
+      >
+        <i class="fas fa-flag" aria-hidden="true"></i> Report an issue
+      </button>
+
       <div id="auth-container" class="auth-container">
         <button
           id="google-signin-btn"

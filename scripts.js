@@ -846,6 +846,15 @@ const FEEDBACK_CATEGORIES = [
   "Something else",
 ];
 
+const STORY_FEEDBACK_CATEGORIES = [
+  "Norwegian story text",
+  "English translation",
+  "Story audio",
+  "Story image",
+  "CEFR level seems wrong",
+  "Something else",
+];
+
 function submitUserFeedback(message) {
   const formData = new FormData();
   formData.append(FEEDBACK_FORM_FIELD_ID, message);
@@ -922,16 +931,19 @@ function closeFeedbackDialog() {
   feedbackDialogTriggerElement = null;
 }
 
-// One shared "report an issue" dialog, reused by the word card and the
-// word game. `source` identifies where the report came from (e.g. "Word
-// Card", "Word Game · Cloze") and, along with `word`/`pos`/`cefr`, is
-// folded into the single message string sent to the form.
+// One shared "report an issue" dialog, reused by the word card, the word
+// game, and individual stories. `source` identifies where the report came
+// from (e.g. "Word Card", "Word Game · Cloze", "Story") and, along with
+// `word`/`pos`/`cefr`, is folded into the single message string sent to
+// the form. `categories` lets each caller show issue types relevant to
+// its own content (a story has no "word audio" to report, for instance).
 function openFeedbackDialog({
   source,
   word,
   pos,
   cefr,
   showWordInTitle = true,
+  categories = FEEDBACK_CATEGORIES,
   triggerElement,
 }) {
   // Only one report dialog should ever be open at a time.
@@ -964,7 +976,7 @@ function openFeedbackDialog({
 
   const categorySelect = document.createElement("select");
   categorySelect.id = "feedback-dialog-category";
-  FEEDBACK_CATEGORIES.forEach((category) => {
+  categories.forEach((category) => {
     const option = document.createElement("option");
     option.value = category;
     option.textContent = category;

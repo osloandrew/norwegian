@@ -560,6 +560,26 @@ function displayStory(titleNorwegian) {
   window.scrollTo({ top: 0, left: 0, behavior: "auto" });
 
   updateStoryMetadata(selectedStory);
+
+  // This button lives permanently in the site header (shown/hidden via
+  // html.reading in CSS), not regenerated per story, so its handler is
+  // overwritten via assignment rather than addEventListener — otherwise
+  // navigating between stories would stack another listener bound to a
+  // now-stale story.
+  const reportIssueButton = document.getElementById("story-report-issue");
+  if (reportIssueButton) {
+    reportIssueButton.onclick = () => {
+      openFeedbackDialog({
+        source: "Story",
+        word: selectedStory.titleNorwegian,
+        pos: selectedStory.genre,
+        cefr: selectedStory.CEFR,
+        categories: STORY_FEEDBACK_CATEGORIES,
+        triggerElement: reportIssueButton,
+      });
+    };
+  }
+
   // Build sticky header here, just before audio is constructed
   const genreIcon = genreIcons[selectedStory.genre.toLowerCase()] || "";
   const cefrClass = getStoryCefrClass(selectedStory.CEFR);
