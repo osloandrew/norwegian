@@ -7,6 +7,15 @@
     numeric: true,
   });
 
+  function getWordListFilterElements() {
+    return {
+      typeSelect: document.getElementById("type-select"),
+      searchInput: document.getElementById("search-bar"),
+      posSelect: document.getElementById("pos-select"),
+      cefrSelect: document.getElementById("cefr-select"),
+    };
+  }
+
   const WORD_LIST_BATCH_SIZE = 100;
   const MY_WORDS_STORAGE_KEY = "norwegian-dictionary-my-words-v1";
   const WORD_STRENGTH_STORAGE_KEY = "norwegian-dictionary-word-strength-v1";
@@ -379,10 +388,8 @@
   }
 
   function openWordList(view) {
-    const typeSelect = document.getElementById("type-select");
-    const searchInput = document.getElementById("search-bar");
-    const posSelect = document.getElementById("pos-select");
-    const cefrSelect = document.getElementById("cefr-select");
+    const { typeSelect, searchInput, posSelect, cefrSelect } =
+      getWordListFilterElements();
 
     if (!typeSelect) {
       return;
@@ -550,10 +557,8 @@
   }
 
   function returnToWordList() {
-    const typeSelect = document.getElementById("type-select");
-    const searchInput = document.getElementById("search-bar");
-    const posSelect = document.getElementById("pos-select");
-    const cefrSelect = document.getElementById("cefr-select");
+    const { typeSelect, searchInput, posSelect, cefrSelect } =
+      getWordListFilterElements();
 
     if (!typeSelect) {
       return;
@@ -631,10 +636,8 @@
       return;
     }
 
-    const typeSelect = document.getElementById("type-select");
-    const searchInput = document.getElementById("search-bar");
-    const posSelect = document.getElementById("pos-select");
-    const cefrSelect = document.getElementById("cefr-select");
+    const { typeSelect, searchInput, posSelect, cefrSelect } =
+      getWordListFilterElements();
 
     if (!typeSelect || !searchInput) {
       return;
@@ -898,9 +901,7 @@
    * the matching entries.
    */
   function getFilteredWordListEntries() {
-    const searchInput = document.getElementById("search-bar");
-    const posSelect = document.getElementById("pos-select");
-    const cefrSelect = document.getElementById("cefr-select");
+    const { searchInput, posSelect, cefrSelect } = getWordListFilterElements();
 
     const searchText = normalizeWordListText(
       searchInput ? searchInput.value : "",
@@ -1105,9 +1106,7 @@
   }
 
   function createWordListExportFilename(extension) {
-    const searchInput = document.getElementById("search-bar");
-    const posSelect = document.getElementById("pos-select");
-    const cefrSelect = document.getElementById("cefr-select");
+    const { searchInput, posSelect, cefrSelect } = getWordListFilterElements();
 
     const search = String(searchInput?.value ?? "").trim();
     const wordClass = String(posSelect?.value ?? "").trim();

@@ -824,28 +824,6 @@ function displayStory(titleNorwegian) {
   loadStoryImage(selectedStory);
 }
 
-// Function to toggle the visibility of English sentences and update Norwegian box styles
-function toggleEnglishSentences() {
-  const englishEls = document.querySelectorAll(".english-sentence");
-  const englishBtn = document.querySelector(".stories-english-btn");
-  if (!englishBtn) return;
-
-  const desktopText = englishBtn.querySelector(".desktop-text");
-  const mobileText = englishBtn.querySelector(".mobile-text");
-  const isCurrentlyHidden =
-    desktopText && desktopText.textContent === "Show English";
-
-  englishEls.forEach((el) => {
-    el.style.display = isCurrentlyHidden ? "" : "none";
-  });
-
-  if (desktopText)
-    desktopText.textContent = isCurrentlyHidden
-      ? "Hide English"
-      : "Show English";
-  if (mobileText) mobileText.textContent = "ENG";
-}
-
 function handleGenreChange() {
   const selectedGenre = document
     .getElementById("genre-select")

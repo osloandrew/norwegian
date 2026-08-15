@@ -7,6 +7,10 @@ let correctCount = 0; // Tracks the total number of correct answers
 let correctStreak = 0; // Track the current streak of correct answers
 const GAME_LEVEL_STORAGE_KEY = "norwegian-dictionary-game-level-v1";
 const CEFR_LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C"];
+// Word classes excluded from cloze/distractor generation — too grammatically
+// constrained (e.g. a numeral rarely substitutes for another numeral in
+// context) to make plausible-but-wrong answer choices.
+const BANNED_WORD_CLASSES = ["numeral", "pronoun", "possessive", "determiner"];
 
 let currentCEFR = loadGameLevel(); // Resumes at the saved level; defaults to A1
 let levelCorrectAnswers = 0;
@@ -77,6 +81,15 @@ popChime.volume = 0.2;
 
 const gameContainer = document.getElementById("results-container"); // Assume this is where you'll display the game
 const statsContainer = document.getElementById("game-session-stats"); // New container for session stats
+
+// Reuses scripts.js's getCefrClass (easy/medium/hard) so the word-game's
+// own CEFR badge stays in sync with the rest of the app's CEFR styling.
+function getGameCefrLabelHTML(cefrLevel) {
+  const cefrClass = getCefrClass(cefrLevel);
+  return cefrClass
+    ? `<div class="game-cefr-label ${cefrClass}">${cefrLevel}</div>`
+    : "";
+}
 
 // Getting a CSS transition to restart reliably after a class toggle turned
 // out to be genuinely unreliable here — a forced reflow (offsetHeight),
@@ -267,10 +280,6 @@ function updateRecentAnswers(isCorrect) {
     levelCorrectAnswers++;
   }
   levelTotalQuestions++;
-}
-
-function isBaseForm(word, baseWord) {
-  return word.toLowerCase() === baseWord.toLowerCase();
 }
 
 function toggleGameEnglish() {
@@ -790,7 +799,6 @@ async function startWordGame() {
     !isClozeQuestion &&
     !isListeningQuestion &&
     Math.random() < (REVERSE_FLASHCARD_PROBABILITY[currentCEFR] ?? 0.25);
-  const bannedWordClasses = ["numeral", "pronoun", "possessive", "determiner"];
 
   // Fetch incorrect translations with the same gender
   const incorrectTranslations = fetchIncorrectTranslations(
@@ -811,7 +819,7 @@ async function startWordGame() {
   // Skip cloze if the selected word is in a banned class
   if (
     isClozeQuestion &&
-    bannedWordClasses.some((b) =>
+    BANNED_WORD_CLASSES.some((b) =>
       randomWordObj.gender?.toLowerCase().startsWith(b),
     )
   ) {
@@ -1276,17 +1284,8 @@ function renderWordGameUI(
     : '<div class="game-tricky-word" style="visibility: hidden;"><i class="fa fa-repeat" aria-hidden="true"></i></div>';
 
   // Always show the CEFR label if CEFR is available
-  if (wordObj.CEFR === "A1") {
-    cefrLabel = '<div class="game-cefr-label easy">A1</div>';
-  } else if (wordObj.CEFR === "A2") {
-    cefrLabel = '<div class="game-cefr-label easy">A2</div>';
-  } else if (wordObj.CEFR === "B1") {
-    cefrLabel = '<div class="game-cefr-label medium">B1</div>';
-  } else if (wordObj.CEFR === "B2") {
-    cefrLabel = '<div class="game-cefr-label medium">B2</div>';
-  } else if (wordObj.CEFR === "C") {
-    cefrLabel = '<div class="game-cefr-label hard">C</div>';
-  } else {
+  cefrLabel = getGameCefrLabelHTML(wordObj.CEFR);
+  if (!cefrLabel) {
     console.warn("CEFR value is missing for this word:", wordObj);
   }
 
@@ -1423,18 +1422,7 @@ function renderClozeGameUI(
   // references earlier entries — reset instead of growing forever.
   wordDataStore = [];
   const wordId = wordDataStore.push(wordObj) - 1;
-  let cefrLabel = "";
-  if (wordObj.CEFR === "A1") {
-    cefrLabel = '<div class="game-cefr-label easy">A1</div>';
-  } else if (wordObj.CEFR === "A2") {
-    cefrLabel = '<div class="game-cefr-label easy">A2</div>';
-  } else if (wordObj.CEFR === "B1") {
-    cefrLabel = '<div class="game-cefr-label medium">B1</div>';
-  } else if (wordObj.CEFR === "B2") {
-    cefrLabel = '<div class="game-cefr-label medium">B2</div>';
-  } else if (wordObj.CEFR === "C") {
-    cefrLabel = '<div class="game-cefr-label hard">C</div>';
-  }
+  const cefrLabel = getGameCefrLabelHTML(wordObj.CEFR);
   correctTranslation = clozedWordForm;
 
   if (!clozeTarget) {
@@ -2177,11 +2165,8 @@ function advanceToNextLevel() {
     return;
   }
 
-  let nextLevel = "";
-  if (currentCEFR === "A1") nextLevel = "A2";
-  else if (currentCEFR === "A2") nextLevel = "B1";
-  else if (currentCEFR === "B1") nextLevel = "B2";
-  else if (currentCEFR === "B2") nextLevel = "C";
+  const nextLevel =
+    CEFR_LEVEL_ORDER[CEFR_LEVEL_ORDER.indexOf(currentCEFR) + 1] || "";
 
   // Only advance if we are not already at the next level
   if (currentCEFR !== nextLevel && nextLevel) {
@@ -2193,11 +2178,8 @@ function advanceToNextLevel() {
 }
 
 function fallbackToPreviousLevel() {
-  let previousLevel = "";
-  if (currentCEFR === "A2") previousLevel = "A1";
-  else if (currentCEFR === "B1") previousLevel = "A2";
-  else if (currentCEFR === "B2") previousLevel = "B1";
-  else if (currentCEFR === "C") previousLevel = "B2";
+  const previousLevel =
+    CEFR_LEVEL_ORDER[CEFR_LEVEL_ORDER.indexOf(currentCEFR) - 1] || "";
 
   // Only change the level if it is actually falling back to a previous level
   if (currentCEFR !== previousLevel && previousLevel) {
@@ -2257,19 +2239,6 @@ function getEndingPattern(form) {
   if (form.match(/t$/)) return /t$/i;
   if (form.match(/r$/)) return /r$/i; // ⬅️ New line you add
   return new RegExp(form.slice(-1) + "$", "i"); // fallback
-}
-
-function isDefiniteNounForm(word, gender) {
-  const lower = word.toLowerCase();
-  if (gender.startsWith("en") || gender.startsWith("ei")) {
-    return lower.endsWith("en") || lower.endsWith("a");
-    // ❗ REMOVE lower.endsWith("n")
-  }
-  if (gender.startsWith("et")) {
-    return lower.endsWith("et");
-    // ❗ REMOVE lower.endsWith("t")
-  }
-  return false;
 }
 
 function matchesInflectedForm(base, token, gender) {
@@ -2408,8 +2377,6 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
   const matchCapitalization = /^[A-ZÆØÅ]/.test(clozedForm);
   const endingPattern = getEndingPattern(formattedClozed);
 
-  const bannedWordClasses = ["numeral", "pronoun", "possessive", "determiner"];
-
   let strictDistractors = [];
 
   const baseCandidates = results.filter((r) => {
@@ -2419,7 +2386,7 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
     if (ord.length < 3 || ord.length > 12) return false;
     if (r.gender && !hasCompatibleGender(gender, r.gender)) return false;
     if (r.CEFR !== CEFR) return false;
-    if (bannedWordClasses.some((b) => r.gender?.toLowerCase().startsWith(b)))
+    if (BANNED_WORD_CLASSES.some((b) => r.gender?.toLowerCase().startsWith(b)))
       return false;
     return true;
   });
@@ -2447,7 +2414,7 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
         return (
           raw !== formattedBase &&
           hasCompatibleGender(gender, r.gender) &&
-          !bannedWordClasses.some((b) => r.gender?.toLowerCase().startsWith(b))
+          !BANNED_WORD_CLASSES.some((b) => r.gender?.toLowerCase().startsWith(b))
         );
       })
       .map((r) => {

@@ -283,6 +283,17 @@ function findClosestSearchTerms(query, limit = 5) {
     .map(({ term }) => term);
 }
 
+// All grammatical-gender values a noun's `gender` field can take, including
+// entries that list more than one article (e.g. "en-et"). Used both for
+// exact-match POS checks (below) and, via isNounGenderValue, for substring
+// checks against raw/unnormalized gender strings elsewhere in this file.
+const NOUN_GENDER_FORMS = ["en", "et", "ei", "en-et", "en-ei", "ei-et", "en-ei-et"];
+
+function isNounGenderValue(genderValue = "") {
+  const normalized = String(genderValue).toLowerCase();
+  return NOUN_GENDER_FORMS.some((form) => normalized.includes(form));
+}
+
 function normalizeWordMetadataPOS(pos = "") {
   return String(pos)
     .trim()
@@ -293,18 +304,9 @@ function normalizeWordMetadataPOS(pos = "") {
 function getWordClassForMetadata(pos = "") {
   const normalizedPOS = normalizeWordMetadataPOS(pos);
 
-  const nounForms = [
-    "en",
-    "et",
-    "ei",
-    "en-et",
-    "en-ei",
-    "ei-et",
-    "en-ei-et",
-    "noun",
-  ];
-
-  return nounForms.includes(normalizedPOS) ? "noun" : normalizedPOS;
+  return [...NOUN_GENDER_FORMS, "noun"].includes(normalizedPOS)
+    ? "noun"
+    : normalizedPOS;
 }
 
 function findWordEntryForMetadata(word, selectedPOS = "") {
@@ -312,7 +314,7 @@ function findWordEntryForMetadata(word, selectedPOS = "") {
 
   const normalizedSelectedPOS = normalizeWordMetadataPOS(selectedPOS);
 
-  const nounForms = ["en", "et", "ei", "en-et", "en-ei", "ei-et", "en-ei-et"];
+  const nounForms = NOUN_GENDER_FORMS;
 
   const wordMatches = results.filter((entry) =>
     String(entry.ord || "")
@@ -506,13 +508,6 @@ function appendToContainer(content) {
   resultsContainer.innerHTML += content;
 }
 
-function formatDefinitionWithMultipleSentences(definition) {
-  return definition
-    .split(/(?<=[.!?])\s+/) // Split by sentence delimiters
-    .map((sentence) => `<p class="example">${sentence}</p>`) // Wrap each sentence in a <p> tag
-    .join(""); // Join them together into a string
-}
-
 function splitIntoSentences(text) {
   if (!text) return [];
   const arr = text.match(/[^.!?]+[.!?]*/g);
@@ -534,12 +529,7 @@ function filterResultsByPOS(results, selectedPOS) {
   return results.filter((r) => {
     // Handle nouns based on gender
     if (selectedPOS === "noun") {
-      return (
-        r.gender &&
-        ["en", "et", "ei", "en-et", "en-ei-et"].some((genderVal) =>
-          r.gender.toLowerCase().includes(genderVal),
-        )
-      );
+      return r.gender && isNounGenderValue(r.gender);
     }
 
     // Handle all other POS types like "verb," "adjective," etc.
@@ -1203,18 +1193,8 @@ async function randomWord() {
     : "";
 
   // Generate CEFR label based on the result's CEFR value
-  let cefrLabel = "";
-  if (randomResult.CEFR === "A1") {
-    cefrLabel = '<div class="sentence-cefr-label easy">A1</div>';
-  } else if (randomResult.CEFR === "A2") {
-    cefrLabel = '<div class="sentence-cefr-label easy">A2</div>';
-  } else if (randomResult.CEFR === "B1") {
-    cefrLabel = '<div class="sentence-cefr-label medium">B1</div>';
-  } else if (randomResult.CEFR === "B2") {
-    cefrLabel = '<div class="sentence-cefr-label medium">B2</div>';
-  } else if (randomResult.CEFR === "C") {
-    cefrLabel = '<div class="sentence-cefr-label hard">C</div>';
-  } else {
+  const cefrLabel = getSentenceCefrLabelHTML(randomResult.CEFR);
+  if (!cefrLabel) {
     console.warn("CEFR value is missing for this entry:", randomResult);
   }
 
@@ -1530,10 +1510,7 @@ async function search(queryOverride = null) {
       return (
         matchesQuery &&
         (!selectedPOS ||
-          (selectedPOS === "noun" &&
-            ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
-              r.gender.toLowerCase().includes(gender),
-            )) ||
+          (selectedPOS === "noun" && isNounGenderValue(r.gender)) ||
           r.gender.toLowerCase().includes(selectedPOS)) &&
         (!selectedCEFR || r.CEFR === selectedCEFR)
       );
@@ -1581,10 +1558,7 @@ async function search(queryOverride = null) {
         return (
           matchesInexact &&
           (!selectedPOS ||
-            (selectedPOS === "noun" &&
-              ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
-                r.gender.toLowerCase().includes(gender),
-              )) ||
+            (selectedPOS === "noun" && isNounGenderValue(r.gender)) ||
             r.gender.toLowerCase().includes(selectedPOS)) &&
           (!selectedCEFR || r.CEFR === selectedCEFR)
         );
@@ -1686,68 +1660,6 @@ async function search(queryOverride = null) {
     displaySearchResults(matchingResults, query); // Render word-specific results
   }
   hideSpinner(); // Hide the spinner
-}
-
-// Check if any sentences exist for a word or its variations
-function checkForSentences(word, pos) {
-  const lowerCaseWord = word.trim().toLowerCase();
-  const wordParts = lowerCaseWord.split(",").map((w) => w.trim());
-  let sentenceFound = false;
-
-  // Iterate through each part of the comma-separated list
-  wordParts.forEach((wordPart) => {
-    // Find matching word entry by both word and POS
-    const matchingWordEntry = results.find((result) => {
-      const wordMatch = result.ord.toLowerCase().includes(wordPart);
-      // Handle POS matching for nouns and other parts of speech
-      const posMatch =
-        (pos === "noun" &&
-          ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
-            result.gender.toLowerCase().includes(gender),
-          )) ||
-        result.gender.toLowerCase().includes(pos.toLowerCase());
-      return wordMatch && posMatch; // Ensure both word and POS match
-    });
-
-    if (!matchingWordEntry) {
-      return;
-    }
-
-    // Generate word variations
-    const wordVariations = generateWordVariationsForSentences(wordPart, pos);
-
-    // Check if any sentences in the data include this word or its variations in the 'eksempel' field
-    if (
-      results.some(
-        (result) =>
-          result.eksempel &&
-          wordVariations.some((variation) => {
-            if (
-              pos === "adverb" ||
-              pos === "conjunction" ||
-              pos === "preposition" ||
-              pos === "interjection" ||
-              pos === "numeral"
-            ) {
-              // Apply the strict match logic for these POS types (perfect match, no special endings)
-              const regex = new RegExp(
-                `(^|\\s)${variation}($|[\\s.,!?;])`,
-                "gi",
-              );
-              const match = regex.test(result.eksempel);
-              return match;
-            } else {
-              const regex = new RegExp(`\\b${variation}`, "i"); // Match word boundaries
-              const match = regex.test(result.eksempel.toLowerCase().trim());
-              return match;
-            }
-          }),
-      )
-    ) {
-      sentenceFound = true; // If a sentence is found for any variation, mark as true
-    }
-  });
-  return sentenceFound;
 }
 
 // Handle change in part of speech (POS) filter
@@ -2198,19 +2110,12 @@ function displaySearchResults(results, query = "") {
   results.slice(0, 10).forEach((result) => {
     result.gender = formatGender(result.gender);
     // Directly handle the POS based on the gender field
-    result.pos = ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
-      result.gender.toLowerCase().includes(gender),
-    )
+    result.pos = isNounGenderValue(result.gender)
       ? "noun"
       : result.gender.toLowerCase();
 
     // Convert the word to lowercase and trim spaces when generating the ID
     const normalizedWord = result.ord.toLowerCase().trim();
-
-    // Highlight the word being defined (result.ord) in the example sentence
-    const highlightedExample = result.eksempel
-      ? highlightQuery(result.eksempel, query || result.ord.toLowerCase())
-      : "";
 
     // Determine whether to initially hide the content for multiple results
     const multipleResultsExposedContent = defaultResult
@@ -2342,15 +2247,6 @@ function displaySearchResults(results, query = "") {
                       onkeydown="event.stopPropagation()"
                     ><i class="fas fa-flag"></i> Report an issue</button>
                 </div>
-                <!-- OLD: Check if example sentence exists -->
-                <!-- <div class="${multipleResultsHiddenContent}">${
-                  highlightedExample
-                    ? `<p class="example">${formatDefinitionWithMultipleSentences(
-                        highlightedExample,
-                      )}</p>`
-                    : ""
-                }</div> -->
-     
                 </div>
                                 <!-- Show "Show Sentences" button only if sentences exist -->
                     <div class="${multipleResultsHiddenContent}">
@@ -2461,6 +2357,13 @@ function getCefrClass(cefrLevel) {
     return "hard";
   }
   return "";
+}
+
+function getSentenceCefrLabelHTML(cefrLevel) {
+  const cefrClass = getCefrClass(cefrLevel);
+  return cefrClass
+    ? `<div class="sentence-cefr-label ${cefrClass}">${cefrLevel}</div>`
+    : "";
 }
 
 function getCefrColor(cefrLevel) {
@@ -2643,22 +2546,6 @@ function generateWordVariationsForSentences(word, pos) {
 }
 
 // Render a single sentence
-function renderSentence(sentenceResult) {
-  // Split the example by common sentence delimiters (period, question mark, exclamation mark)
-  const sentences = sentenceResult.eksempel.split(/(?<=[.!?])\s+/);
-
-  // Get the first sentence from the array
-  const firstSentence = sentences[0];
-
-  const sentenceHTML = `
-        <div class="definition">
-            <p class="sentence">${firstSentence}</p>
-        </div>
-    `;
-
-  document.getElementById("results-container").innerHTML = sentenceHTML;
-}
-
 function renderSentenceMatchesFromCorpus(rows, query) {
   clearContainer();
   const safeQuery = escapeHTML(query);
@@ -2683,18 +2570,7 @@ function renderSentenceMatchesFromCorpus(rows, query) {
 
   for (const row of rows) {
     const cefr = row.cefr;
-    const cefrLabel =
-      cefr === "A1"
-        ? '<div class="sentence-cefr-label easy">A1</div>'
-        : cefr === "A2"
-          ? '<div class="sentence-cefr-label easy">A2</div>'
-          : cefr === "B1"
-            ? '<div class="sentence-cefr-label medium">B1</div>'
-            : cefr === "B2"
-              ? '<div class="sentence-cefr-label medium">B2</div>'
-              : cefr === "C"
-                ? '<div class="sentence-cefr-label hard">C</div>'
-                : "";
+    const cefrLabel = getSentenceCefrLabelHTML(cefr);
 
     const noHTML = highlightQuery(row.no, query);
     const enHTML = row.en ? highlightQuery(row.en, query) : "";
@@ -2789,9 +2665,7 @@ function highlightQuery(sentence, query) {
     normalizeSearchText(result.ord).includes(normalizedQuery),
   );
   const pos = matchingWordEntry
-    ? ["en", "et", "ei", "en-et", "en-ei-et"].some((gender) =>
-        matchingWordEntry.gender.toLowerCase().includes(gender),
-      )
+    ? isNounGenderValue(matchingWordEntry.gender)
       ? "noun"
       : matchingWordEntry.gender.toLowerCase()
     : "";
@@ -2805,96 +2679,6 @@ function highlightQuery(sentence, query) {
     .filter(Boolean);
 
   return highlightTermsInText(cleanSentence, highlightTerms);
-}
-
-function renderSentencesHTML(sentenceResults, wordVariations) {
-  let htmlString = ""; // String to accumulate the generated HTML
-  let exactMatches = [];
-  let inexactMatches = [];
-  let uniqueSentences = new Set(); // Track unique sentences
-
-  sentenceResults.forEach((result) => {
-    // Strip out any existing <span> tags from the example sentence
-    const rawSentence = result.eksempel.replace(/<[^>]*>/g, "");
-
-    // Split the example sentence into individual sentences, handling sentence delimiters correctly
-    const sentences = rawSentence.match(/[^.!?]+[.!?]*/g) || [rawSentence];
-
-    sentences.forEach((sentence) => {
-      const trimmedSentence = sentence.trim();
-      if (!uniqueSentences.has(trimmedSentence)) {
-        // Only add unique sentences
-        uniqueSentences.add(trimmedSentence);
-
-        // Check if the sentence contains any of the word variations
-        let matchedVariation = wordVariations.find((variation) =>
-          sentence.toLowerCase().includes(variation),
-        );
-
-        if (matchedVariation) {
-          // Use a regular expression to match the full word containing any of the variations
-          const norwegianPattern = "[\\wåæøÅÆØ]"; // Pattern including Norwegian letters
-          const regex = new RegExp(
-            `(${norwegianPattern}*${matchedVariation}${norwegianPattern}*)`,
-            "gi",
-          );
-
-          const highlightedSentence = sentence.replace(
-            regex,
-            '<span style="color: #1f6fb3;">$1</span>',
-          );
-
-          // Determine if it's an exact match (contains the exact search term as a full word)
-          const exactMatchRegex = new RegExp(
-            `\\b${matchedVariation.replace(
-              /[-\/\\^$*+?.()|[\]{}]/g,
-              "\\$&",
-            )}\\b`,
-            "i",
-          );
-
-          if (exactMatchRegex.test(sentence)) {
-            exactMatches.push(highlightedSentence); // Exact match
-          } else {
-            inexactMatches.push(highlightedSentence); // Inexact match
-          }
-        } else {
-        }
-      }
-    });
-  });
-
-  // Combine exact matches first, then inexact matches, respecting the 10 sentence limit
-  const combinedMatches = [...exactMatches, ...inexactMatches].slice(0, 10);
-
-  if (combinedMatches.length === 0) {
-    console.warn("No sentences found for the word variations.");
-  }
-
-  // Generate HTML for the combined matches
-  combinedMatches.forEach((sentence) => {
-    htmlString += `
-            <div class="definition">
-                <p class="sentence">${sentence}</p>
-            </div>
-        `;
-  });
-
-  // If no sentences were matched, return a message indicating that
-  if (htmlString === "") {
-    htmlString = `
-            <div class="definition error-message">
-                <h2 class="word-gender">
-                    Error <span class="gender">No Matching Sentences</span>
-                </h2>
-                <p>No sentences found for the word "${wordVariations.join(
-                  ", ",
-                )}".</p>
-            </div>
-        `;
-  }
-
-  return htmlString;
 }
 
 function renderWordDefinition(word, selectedPOS = "") {
@@ -2913,16 +2697,7 @@ function renderWordDefinition(word, selectedPOS = "") {
   // Filter results based on both word and selected POS if provided.
   const normalizedSelectedPOS = normalizeWordMetadataPOS(selectedPOS);
 
-  const nounForms = [
-    "en",
-    "et",
-    "ei",
-    "en-et",
-    "en-ei",
-    "ei-et",
-    "en-ei-et",
-    "noun",
-  ];
+  const nounForms = [...NOUN_GENDER_FORMS, "noun"];
 
   const matchingResults = results.filter((entry) => {
     /*
@@ -3156,18 +2931,7 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
         : [];
 
       // Generate the CEFR label based on the result's CEFR value
-      let cefrLabel = "";
-      if (result.CEFR === "A1") {
-        cefrLabel = '<div class="sentence-cefr-label easy">A1</div>';
-      } else if (result.CEFR === "A2") {
-        cefrLabel = '<div class="sentence-cefr-label easy">A2</div>';
-      } else if (result.CEFR === "B1") {
-        cefrLabel = '<div class="sentence-cefr-label medium">B1</div>';
-      } else if (result.CEFR === "B2") {
-        cefrLabel = '<div class="sentence-cefr-label medium">B2</div>';
-      } else if (result.CEFR === "C") {
-        cefrLabel = '<div class="sentence-cefr-label hard">C</div>';
-      }
+      const cefrLabel = getSentenceCefrLabelHTML(result.CEFR);
 
       // For each sentence, map it to a card
       return sentences
@@ -3571,23 +3335,15 @@ window.onload = function () {
     posSelect &&
     cefrSelect
   ) {
-    searchBtn.disabled = true;
+    disableSearchControls();
     randomBtn.disabled = true;
-    searchBar.disabled = true;
-    clearBtn.disabled = true;
     posSelect.disabled = true;
     cefrSelect.disabled = true;
     typeSelect.disabled = true;
 
     // Apply the disabled styling
-    searchBtn.style.color = "#ccc";
-    searchBtn.style.cursor = "not-allowed";
     randomBtn.style.color = "#ccc";
     randomBtn.style.cursor = "not-allowed";
-    searchBar.style.color = "#ccc";
-    searchBar.style.cursor = "not-allowed";
-    clearBtn.style.color = "#ccc";
-    clearBtn.style.cursor = "not-allowed";
     typeFilterContainer.classList.add("disabled");
     posFilterContainer.classList.add("disabled"); // Add the 'disabled' class to visually disable POS filter
     cefrFilterContainer.classList.add("disabled"); // Add the 'disabled' class to visually disable CEFR filter
@@ -3626,23 +3382,15 @@ window.onload = function () {
 
       // Enable the buttons once data is fully loaded
       // Enable the buttons and filters once data is fully loaded
-      searchBtn.disabled = false;
+      enableSearchControls();
       randomBtn.disabled = false;
-      searchBar.disabled = false;
-      clearBtn.disabled = false;
       typeSelect.disabled = false;
       posSelect.disabled = false;
       cefrSelect.disabled = false;
 
       // Restore original styling
-      searchBtn.style.color = "";
-      searchBtn.style.cursor = "pointer";
       randomBtn.style.color = "";
       randomBtn.style.cursor = "pointer";
-      searchBar.style.color = "";
-      searchBar.style.cursor = "text";
-      clearBtn.style.color = "";
-      clearBtn.style.cursor = "pointer";
       typeFilterContainer.classList.remove("disabled"); // Remove 'disabled' class for POS filter
       posFilterContainer.classList.remove("disabled"); // Remove 'disabled' class for POS filter
       cefrFilterContainer.classList.remove("disabled"); // Remove 'disabled' class for CEFR filter
