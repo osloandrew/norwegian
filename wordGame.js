@@ -21,6 +21,23 @@ const levelThresholds = {
   B2: { up: 0.975, down: 0.8 },
   C: { up: null, down: 0.9 }, // Final level — can fall from here, but not climb higher
 };
+// Reverse flashcards (English shown, Norwegian recalled from memory) test
+// productive vocabulary knowledge — meaningfully harder than the forward
+// flashcard's receptive recognition (Norwegian shown, English recognized
+// from a handful of options). Ramping this share up with CEFR level
+// mirrors how language curricula shift emphasis from receptive to
+// productive skill as proficiency grows, rather than handing beginners
+// the hardest recall direction before they've built a receptive base.
+// This only governs the non-cloze half of questions — cloze's own 50%
+// share (a different, sentence-scaffolded kind of Norwegian recall) is
+// unaffected.
+const REVERSE_FLASHCARD_PROBABILITY = {
+  A1: 0.1,
+  A2: 0.2,
+  B1: 0.35,
+  B2: 0.45,
+  C: 0.5,
+};
 let previousWord = null;
 let recentAnswers = []; // Track the last X answers, 1 for correct, 0 for incorrect
 let reintroduceThreshold = 10; // Set how many words to show before reintroducing incorrect ones
@@ -654,6 +671,28 @@ async function startWordGame() {
             clozeTarget,
           );
         }
+      } else if (firstWordInQueue.wasReverse) {
+        // Rebuild incorrect Norwegian-word options for the reintroduced
+        // reverse flashcard — same widening behavior as the translation
+        // fallback above (same gender/CEFR, then same gender, then any
+        // word) if the narrow pool is too small.
+        const randomWordObj = firstWordInQueue.wordObj;
+
+        const incorrectNorwegianWords = fetchIncorrectNorwegianWords(
+          randomWordObj.ord,
+          randomWordObj.CEFR,
+          randomWordObj.gender,
+        );
+
+        const allNorwegianOptions = shuffleArray([
+          randomWordObj.ord,
+          ...incorrectNorwegianWords,
+        ]);
+
+        const uniqueNorwegianOptions =
+          ensureUniqueDisplayedValues(allNorwegianOptions);
+
+        renderWordGameUI(randomWordObj, uniqueNorwegianOptions, true, true);
       } else {
         // Rebuild incorrect translations for non-cloze word. This already
         // widens its own search — same gender across all CEFR levels, then
@@ -712,6 +751,11 @@ async function startWordGame() {
   correctTranslation = randomWordObj.engelsk;
 
   const isClozeQuestion = Math.random() < 0.5; // 50% chance to show a cloze question
+  // Only applies to the non-cloze half — see REVERSE_FLASHCARD_PROBABILITY
+  // above for why this scales with level instead of being a flat coin flip.
+  const isReverseQuestion =
+    !isClozeQuestion &&
+    Math.random() < (REVERSE_FLASHCARD_PROBABILITY[currentCEFR] ?? 0.25);
   const bannedWordClasses = ["numeral", "pronoun", "possessive", "determiner"];
 
   // Fetch incorrect translations with the same gender
@@ -789,13 +833,32 @@ async function startWordGame() {
       false,
       clozeTarget,
     );
+  } else if (isReverseQuestion) {
+    const incorrectNorwegianWords = fetchIncorrectNorwegianWords(
+      randomWordObj.ord,
+      currentCEFR,
+      randomWordObj.gender,
+    );
+
+    const allNorwegianOptions = shuffleArray([
+      randomWordObj.ord,
+      ...incorrectNorwegianWords,
+    ]);
+
+    const uniqueNorwegianOptions =
+      ensureUniqueDisplayedValues(allNorwegianOptions);
+
+    renderWordGameUI(randomWordObj, uniqueNorwegianOptions, false, true);
   } else {
     renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
   }
 
   // Render the updated stats box
   renderStats();
-  if (!isClozeQuestion) {
+  // Skipped for reverse questions: this shows the Norwegian word's own
+  // phonetic transcription, which would hint at the not-yet-revealed
+  // answer the same way playing its audio early would.
+  if (!isClozeQuestion && !isReverseQuestion) {
     displayPronunciation(currentWord);
   }
 }
@@ -912,7 +975,20 @@ function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
 function fetchIncorrectNorwegianWords(correctWord, CEFR, gender) {
   const baseWord = correctWord.split(",")[0].trim().toLowerCase();
 
-  let incorrectResults = results.filter((r) => {
+  const collect = (pool, seen, incorrectWords) => {
+    for (let i = 0; i < pool.length && incorrectWords.length < 3; i++) {
+      const word = pool[i].ord.split(",")[0].trim();
+      if (!seen.has(word)) {
+        seen.add(word);
+        incorrectWords.push(word);
+      }
+    }
+  };
+
+  const seen = new Set();
+  const incorrectWords = [];
+
+  let sameLevelResults = results.filter((r) => {
     const word = r.ord.split(",")[0].trim().toLowerCase();
     return (
       word !== baseWord &&
@@ -921,22 +997,34 @@ function fetchIncorrectNorwegianWords(correctWord, CEFR, gender) {
       !noRandom.includes(r.ord.toLowerCase())
     );
   });
+  collect(shuffleArray(sameLevelResults), seen, incorrectWords);
 
-  incorrectResults = shuffleArray(incorrectResults);
+  // If the same gender/CEFR pool is too small (rare word classes at some
+  // levels), widen to the same gender across all CEFR levels.
+  if (incorrectWords.length < 3) {
+    let sameGenderResults = results.filter((r) => {
+      const word = r.ord.split(",")[0].trim();
+      return (
+        word.toLowerCase() !== baseWord &&
+        r.gender === gender &&
+        !noRandom.includes(r.ord.toLowerCase()) &&
+        !seen.has(word)
+      );
+    });
+    collect(shuffleArray(sameGenderResults), seen, incorrectWords);
+  }
 
-  const seen = new Set();
-  const incorrectWords = [];
-
-  for (
-    let i = 0;
-    i < incorrectResults.length && incorrectWords.length < 3;
-    i++
-  ) {
-    const word = incorrectResults[i].ord.split(",")[0].trim();
-    if (!seen.has(word)) {
-      seen.add(word);
-      incorrectWords.push(word);
-    }
+  // Last resort: any word at all.
+  if (incorrectWords.length < 3) {
+    let fallbackResults = results.filter((r) => {
+      const word = r.ord.split(",")[0].trim();
+      return (
+        word.toLowerCase() !== baseWord &&
+        !noRandom.includes(r.ord.toLowerCase()) &&
+        !seen.has(word)
+      );
+    });
+    collect(shuffleArray(fallbackResults), seen, incorrectWords);
   }
 
   return incorrectWords;
@@ -1073,14 +1161,30 @@ function enableGameControls() {
   }
 }
 
-function renderWordGameUI(wordObj, translations, isReintroduced = false) {
+function renderWordGameUI(
+  wordObj,
+  translations,
+  isReintroduced = false,
+  isReverse = false,
+) {
   // Each render replaces the previous question entirely, so nothing still
   // references earlier entries — reset instead of growing forever.
   wordDataStore = [];
   const wordId = wordDataStore.push(wordObj) - 1;
 
+  // Reverse flashcards show the English meaning and ask the learner to
+  // recall the Norwegian word — the answer options (and so the "correct"
+  // value handleTranslationClick checks against) are Norwegian words
+  // instead of English translations. Mirrors renderClozeGameUI reassigning
+  // this same global to the clozed Norwegian form.
+  if (isReverse) {
+    correctTranslation = wordObj.ord.split(",")[0].trim();
+  }
+
   // Split the word at the comma and use the first part
-  let displayedWord = wordObj.ord.split(",")[0].trim();
+  let displayedWord = isReverse
+    ? String(wordObj.engelsk ?? "").split(",")[0].trim()
+    : wordObj.ord.split(",")[0].trim();
   let displayedGender = wordObj.gender;
 
   if (
@@ -1161,11 +1265,15 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
 </div>
             </div>
             <div
-              class="game-word game-word-audio"
-              role="button"
+              class="game-word${isReverse ? "" : " game-word-audio"}"
+              ${
+                isReverse
+                  ? ""
+                  : `role="button"
               tabindex="0"
               aria-label="Play pronunciation of ${displayedWord}"
-              title="Play pronunciation"
+              title="Play pronunciation"`
+              }
             >
                 <h2>${displayedWord}</h2>
             </div>
@@ -1202,31 +1310,40 @@ function renderWordGameUI(wordObj, translations, isReintroduced = false) {
       const selectedTranslation = this.innerText.trim();
       const wordObj = wordDataStore[wordId]; // Get the word object from the data store
 
-      handleTranslationClick(selectedTranslation, wordObj);
+      handleTranslationClick(selectedTranslation, wordObj, false, "", isReverse);
     });
   });
 
-  // Let the user replay the word's pronunciation by clicking it, whether
-  // they've answered yet or not.
-  const gameWordElement = document.querySelector(".game-word-audio");
+  // Forward flashcards: let the user replay the word's pronunciation by
+  // clicking it, whether they've answered yet or not — seeing and hearing
+  // the Norwegian word together is just reinforcement here, since the
+  // word itself is already fully shown. Reverse flashcards deliberately
+  // skip this wiring (see revealReverseWordAudio) — the prompt is the
+  // English meaning, so unlocking Norwegian audio before answering would
+  // let the learner match sounds instead of recalling the word.
+  if (!isReverse) {
+    const gameWordElement = document.querySelector(".game-word-audio");
 
-  gameWordElement?.addEventListener("click", () => {
-    stopAllAudio();
-    playWordAudio(wordObj);
-  });
-
-  gameWordElement?.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
+    gameWordElement?.addEventListener("click", () => {
       stopAllAudio();
       playWordAudio(wordObj);
-    }
-  });
+    });
+
+    gameWordElement?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        stopAllAudio();
+        playWordAudio(wordObj);
+      }
+    });
+  }
 
   attachGameControls(wordObj, false);
 
   renderStats(); // Ensure stats are drawn once DOM is fully loaded
-  playWordAudio(wordObj);
+  if (!isReverse) {
+    playWordAudio(wordObj);
+  }
 }
 
 function renderClozeGameUI(
@@ -1400,24 +1517,20 @@ function renderClozeGameUI(
   renderStats(); // Ensure stats bar is present after cloze loads too
 }
 
-// Fills in the blank and, only now that the sentence is actually complete,
-// makes it clickable to replay its audio — matching the flashcard word's
-// click-to-replay, but deliberately withheld until after answering so
-// hearing the sentence early can't be used to skip reasoning about which
-// word fits the blank.
-function makeSentenceClickable(element, sentenceText) {
-  if (!element || !sentenceText) return;
+// Shared by the cloze sentence and the reverse-flashcard prompt: both
+// start deliberately non-interactive (no audio affordance) so hearing the
+// Norwegian answer early can't substitute for actually recalling it, and
+// only become click/keyboard-replayable once something has made that
+// audio fair game (the sentence is complete, or the question's been
+// answered).
+function makeAudioReplayable(element, label, replay) {
+  if (!element) return;
 
   element.classList.add("game-word-audio");
   element.setAttribute("role", "button");
   element.setAttribute("tabindex", "0");
-  element.setAttribute("aria-label", "Play sentence audio");
-  element.title = "Play sentence audio";
-
-  const replay = () => {
-    stopAllAudio();
-    playSentenceAudio(sentenceText);
-  };
+  element.setAttribute("aria-label", label);
+  element.title = label;
 
   element.addEventListener("click", replay);
   element.addEventListener("keydown", (event) => {
@@ -1426,6 +1539,51 @@ function makeSentenceClickable(element, sentenceText) {
       replay();
     }
   });
+}
+
+// Fills in the blank and, only now that the sentence is actually complete,
+// makes it clickable to replay its audio — matching the flashcard word's
+// click-to-replay, but deliberately withheld until after answering so
+// hearing the sentence early can't be used to skip reasoning about which
+// word fits the blank.
+function makeSentenceClickable(element, sentenceText) {
+  if (!sentenceText) return;
+
+  makeAudioReplayable(element, "Play sentence audio", () => {
+    stopAllAudio();
+    playSentenceAudio(sentenceText);
+  });
+}
+
+// Reverse flashcards show the English meaning and ask for the Norwegian
+// word — unlike the forward flashcard, the prompt starts with no audio
+// affordance at all (hearing the Norwegian pronunciation before answering
+// would just let the learner match sounds instead of recalling the word).
+// Once answered, the audio unlocks on the correct-answer card (which is
+// where the Norwegian word itself is now visible) rather than on the
+// prompt — the prompt is English text with no English audio behind it,
+// so making it look clickable would promise a sound that doesn't exist.
+function revealReverseWordAudio(wordObj) {
+  const correctCardElement = document.querySelector(".game-correct-card");
+  if (
+    !correctCardElement ||
+    correctCardElement.classList.contains("game-word-audio")
+  ) {
+    return;
+  }
+
+  const displayedWord = String(wordObj?.ord ?? "")
+    .split(",")[0]
+    .trim();
+
+  makeAudioReplayable(
+    correctCardElement,
+    `Play pronunciation of ${displayedWord}`,
+    () => {
+      stopAllAudio();
+      playWordAudio(wordObj);
+    },
+  );
 }
 
 function completeClozeSentence(clozeSentence) {
@@ -1447,6 +1605,7 @@ async function handleTranslationClick(
   wordObj,
   isCloze = false,
   clozeSentence = "",
+  isReverse = false,
 ) {
   if (!gameActive) return; // Prevent further clicks if the game is not active
 
@@ -1495,6 +1654,9 @@ async function handleTranslationClick(
     if (isCloze) {
       completeClozeSentence(clozeSentence);
     }
+    if (isReverse) {
+      revealReverseWordAudio(wordObj);
+    }
 
     // If the word was in the review queue and the user answered it correctly, remove it
     const indexInQueue = incorrectWordQueue.findIndex(
@@ -1536,6 +1698,9 @@ async function handleTranslationClick(
     if (isCloze) {
       completeClozeSentence(clozeSentence);
     }
+    if (isReverse) {
+      revealReverseWordAudio(wordObj);
+    }
 
     // If the word is already in the review queue, missing it again means
     // it needs a longer runway before its next reintroduction attempt.
@@ -1548,6 +1713,7 @@ async function handleTranslationClick(
       existingQueueEntry.requiredCounter +=
         INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET;
       existingQueueEntry.wasCloze = isCloze;
+      existingQueueEntry.wasReverse = isReverse;
       existingQueueEntry.clozedForm = isCloze ? correctTranslation : null;
     } else {
       incorrectWordQueue.push({
@@ -1555,6 +1721,7 @@ async function handleTranslationClick(
         counter: 0,
         requiredCounter: INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET,
         wasCloze: isCloze,
+        wasReverse: isReverse,
         clozedForm: isCloze ? correctTranslation : null,
       });
     }
@@ -1610,40 +1777,31 @@ async function handleTranslationClick(
 }
 
 async function fetchExampleSentence(wordObj) {
-  // Ensure gender and CEFR are defined before performing the search
-  if (!wordObj.gender || !wordObj.CEFR || !wordObj.ord) {
+  if (!wordObj || !wordObj.ord) {
     console.warn("Missing required fields for search:", wordObj);
     return null;
   }
 
-  // Find the exact matching word object based on 'ord', 'definisjon', 'gender', and 'CEFR'
-  let matchingEntry = results.find(
-    (result) =>
-      result.ord.toLowerCase() === wordObj.ord.toLowerCase() &&
-      result.gender === wordObj.gender &&
-      result.CEFR === wordObj.CEFR,
-  );
+  // wordObj is already the exact dictionary entry the question was built
+  // from — use its own example sentence directly. Re-deriving "the"
+  // matching entry by ord+gender+CEFR (as this used to) is ambiguous
+  // whenever two senses of the same word share a gender and CEFR level
+  // (e.g. "råk" meaning "trail" vs. "crack", both ei/B2): .find() would
+  // silently return whichever row happens to come first in the data,
+  // which can be a completely different sense with its own unrelated
+  // example sentence — playing back audio/text that doesn't match what
+  // the user actually just answered.
+  let matchingEntry = wordObj;
 
-  // Log the matching entry or lack thereof
-  if (matchingEntry) {
-  } else {
-    console.warn(`No matching entry found for word: ${wordObj.ord}`);
-  }
-
-  // Step 2: Check if the matching entry has an example sentence
-  if (
-    !matchingEntry ||
-    !matchingEntry.eksempel ||
-    matchingEntry.eksempel.trim() === ""
-  ) {
-    // Step 3: Search for another entry with the same 'ord' but without considering 'gender' or 'CEFR'
+  // Only fall back to searching the rest of the dataset if this exact
+  // entry has no example sentence of its own.
+  if (!matchingEntry.eksempel || matchingEntry.eksempel.trim() === "") {
     matchingEntry = results.find(
       (result) =>
         result.eksempel &&
         result.eksempel.toLowerCase().startsWith(wordObj.ord.toLowerCase()),
     );
-    if (matchingEntry) {
-    } else {
+    if (!matchingEntry) {
       console.warn(
         `No example sentence found in the entire dataset containing the word: ${wordObj.ord}`,
       );
