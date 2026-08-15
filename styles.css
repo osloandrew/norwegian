@@ -707,14 +707,20 @@ footer .copyright {
 
 /* Three real columns (rather than the banner spanning grid-column:1/-1
    over the same row as the other two) so the banner has its own space and
-   can't visually overlap or touch the icon group on the right — the two
-   outer columns size to their content (auto) and the middle one absorbs
-   whatever space is left, with `gap` guaranteeing a minimum margin on
-   both sides regardless of how wide the banner text gets. */
+   can't visually overlap or touch the icon group on the right. The two
+   outer columns share a floor (72px — roughly the icon group's own
+   width, the wider of the two sides) rather than each sizing to just
+   its own content — with plain `auto` columns, a bare `1fr auto 1fr`,
+   or anything else where the columns can end up different widths, the
+   banner (centered within just the middle track) drifts off-center from
+   the card as a whole. A shared floor keeps both tracks — and so the
+   middle track and the banner in it — the same width and centered,
+   while `justify-self` below still pins each side's actual content to
+   its outer edge, so nothing visually shifts inward. */
 .game-labels-container {
   align-items: start;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: minmax(72px, 1fr) auto minmax(72px, 1fr);
   gap: 10px;
   min-height: 70px;
   width: 100%;
@@ -1003,18 +1009,17 @@ header p {
   text-transform: none;
 }
 
-/* Mirrors .auth-container's positioning on the opposite corner. Hidden
-   everywhere except while reading an individual story — the story list
-   page doesn't get one, since "an issue" isn't scoped to any one story
-   there. Same gray-pill look as .report-issue-btn on the definition
-   card, kept as its own class since this button lives in an absolutely
-   positioned corner rather than a content grid. */
+/* Mirrors .auth-container's positioning on the opposite corner, and
+   .google-signin-btn's white background/border so the two corner
+   buttons read as a matched pair. Hidden everywhere except while
+   reading an individual story — the story list page doesn't get one,
+   since "an issue" isn't scoped to any one story there. */
 .story-report-issue-btn {
   align-items: center;
-  background-color: #f0f0f0;
-  border: none;
+  background-color: #fff;
+  border: 0.5px solid #a0a0a0;
   border-radius: 6px;
-  color: #666;
+  color: #4a4a4a;
   cursor: pointer;
   display: none;
   font-family: "Noto Sans", sans-serif;
@@ -1030,8 +1035,7 @@ header p {
   touch-action: manipulation;
   transition:
     background-color 0.2s ease,
-    box-shadow 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-color 0.2s ease;
   white-space: nowrap;
   z-index: 3;
 }
@@ -1046,12 +1050,12 @@ html.reading .story-report-issue-btn {
 }
 
 .story-report-issue-btn:hover {
-  background-color: #e5e5e5;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  background-color: #f0f0f0;
+  border-color: #6a6a6a;
 }
 
 .story-report-issue-btn:focus-visible {
-  outline: 2px solid #666;
+  outline: 2px solid #4a4a4a;
   outline-offset: 2px;
 }
 
@@ -1141,8 +1145,8 @@ html.reading .story-report-issue-btn {
   /* Scoped with #landing-card so these win regardless of source order
      against the later, equal-specificity base .landing-card-* rules. */
   #landing-card .landing-card-image {
-    width: 40px;
-    height: 40px;
+    width: 56px;
+    height: 56px;
   }
 
   #landing-card .landing-card-btn {
@@ -1393,10 +1397,59 @@ li {
   color: #0a66c2;
 }
 
+.linkedin-btn:focus-visible,
+.coffee-btn:focus-visible,
+.feedback-footer-btn:focus-visible,
+.site-switcher-select:focus-visible {
+  outline: 2px solid #0d3a69;
+  outline-offset: 2px;
+}
+
 .linkedin-icon {
   height: auto;
   margin-right: 8px;
   width: 18px;
+}
+
+/* Same pill shape/sizing as .linkedin-btn, but in the site's own primary
+   color rather than a third-party brand color, so it reads as "this
+   site's own control" rather than another external link. */
+.feedback-footer-btn {
+  align-items: center;
+  background-color: white;
+  border: 1px solid #0d3a69;
+  border-radius: 4px;
+  color: #0d3a69;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  gap: 8px;
+  height: 30px;
+  padding: 2px 15px;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.feedback-footer-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.feedback-footer-btn i {
+  font-size: 14px;
+}
+
+.site-switcher-select {
+  background: #fff;
+  border: 1px solid #052242;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  padding: 5px;
+  text-transform: uppercase;
 }
 
 #lock-icon {
@@ -1404,7 +1457,7 @@ li {
   cursor: pointer;
   display: none;
   font-size: 16px;
-  margin: 0 5px 0 -5px;
+  margin: 0 5px 0 4px;
   padding: 14px;
   order: 2;
   pointer-events: auto;
@@ -1823,6 +1876,22 @@ ul {
 
 #search-container-inner.word-game-active .cefr-filter select {
   padding-right: 72px;
+}
+
+/* The default focus ring outlines only the <select> box, which (since
+   its own padding-right above reserves room for the lock icon sitting
+   just outside it) draws a ring that visually cuts through the lock
+   icon instead of enclosing it. Ring the whole pill on focus instead,
+   and suppress the select's own ring so there's only ever one. Scoped
+   to word-game-active since the CEFR filter has no lock icon (and so
+   no cutoff problem) anywhere else it's used. */
+#search-container-inner.word-game-active .cefr-filter select:focus-visible {
+  outline: none;
+}
+
+#search-container-inner.word-game-active .cefr-filter:focus-within {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .selectors-wrapper {
@@ -3322,6 +3391,11 @@ ul {
     display: none;
   }
 
+  .feedback-footer-btn {
+    font-size: 12px;
+    padding: 0px 10px;
+  }
+
   .landing-card-button-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -3804,26 +3878,83 @@ ul {
     width: 100%;
   }
 
+  /* One explicit height, set on every pill in the row (rather than
+     leaving some at the base 42px and letting CSS Grid's default
+     align-items:stretch inflate others to match whatever the tallest
+     sibling happens to be) — that mix is exactly what made them look
+     inconsistent and, once "Show English" needed two lines, chubby.
+     38px is tall enough for two lines of the english selector's wrapped
+     text but leaner than the 42-48px mix this replaces. */
+  body.word-game-mode .type-filter,
+  body.word-game-mode .game-english-filter,
+  body.word-game-mode .cefr-filter-group,
+  body.word-game-mode .cefr-filter {
+    height: 38px;
+  }
+
+  body.word-game-mode .type-filter select,
+  body.word-game-mode .cefr-filter select {
+    height: 38px;
+  }
+
   /* Let the Level selector shrink beside its separate lock control. */
   body.word-game-mode #cefr-select {
     flex: 1 1 0;
     width: 0;
   }
 
+  /* Trimmed down from its non-game-mode padding/font-size (which alone
+     pushed it past 40px tall) so it fits the shared 38px row instead of
+     overflowing it. Right margin keeps it from sitting flush against
+     the pill's own edge. */
   body.word-game-mode #lock-icon {
-    flex: 0 0 18px;
-    margin: 0 8px 0 4px;
+    flex: 0 0 16px;
+    font-size: 13px;
+    margin: 0 10px 0 4px;
+    padding: 0;
   }
 
-  /* Genuinely compact here (smaller than the lock icon's own mobile
-     footprint) — flex-shrink:0 means padding/font-size, not flex-basis,
-     are what actually determine its rendered size, and the CEFR select
-     has very little room to spare at this width. */
+  /* Desktop's right:44px (from #search-container-inner.word-game-active
+     .cefr-filter > .fa-chevron-down, an ID-anchored rule that a plain
+     class selector can't outrank regardless of source order) leaves an
+     oversized gap before the lock icon on the much narrower mobile
+     pill — closes that up without touching the lock icon's own
+     position/margin above. */
+  #search-container-inner.word-game-active .cefr-filter > .fa-chevron-down {
+    right: 32px;
+  }
+
+  /* Stretches to fill the shared 38px row rather than sitting as a
+     short button with dead space above and below. */
   body.word-game-mode .toolbar-report-issue-btn {
+    align-self: stretch;
     flex: 0 0 auto;
     font-size: 12px;
-    padding: 6px;
+    height: auto;
+    padding: 4px 6px;
   }
+
+  /* "Show English"/"Hide English" doesn't fit on one line at this font
+     size without either truncating or shrinking past legibility — let it
+     wrap onto two lines within the shared 38px height instead. */
+  body.word-game-mode .game-english-filter select {
+    height: 38px;
+    line-height: 1.05;
+    padding: 1px 24px 1px 6px;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Nudged in from the shared 15px (calibrated for the wider desktop
+     pill) so it doesn't sit too far toward the left edge of these much
+     narrower mobile pills. True vertical centering (top:50%) is kept
+     from the base rule — .game-english-filter's two-line text still
+     centers around the same midpoint as the single-line pills. */
+  body.word-game-mode .type-filter > .fa-chevron-down,
+  body.word-game-mode .game-english-filter > .fa-chevron-down {
+    right: 10px;
+  }
+
 
   /* Keep the game prompt readable without sizing it for a particular phone. */
   body.word-game-mode .game-word {

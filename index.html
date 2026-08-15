@@ -374,7 +374,10 @@
         <p style="text-align: center">
           Search for a word above, or explore by feature below.
         </p>
-        <p style="text-align: center; font-weight: 600; color: #0d3a69">
+        <p
+          id="landing-word-count"
+          style="text-align: center; font-weight: 600; color: #0d3a69"
+        >
           29,000+ Norwegian words, definitions, and example sentences.
         </p>
 
@@ -690,23 +693,18 @@
             alt="Buy me a coffee"
           />
         </a>
+        <button
+          type="button"
+          id="general-feedback-btn"
+          class="feedback-footer-btn"
+          onclick="openGeneralFeedbackDialog(this)"
+        >
+          <i class="fas fa-comment-dots" aria-hidden="true"></i>
+          <span>Feedback</span>
+        </button>
 
         <!-- Site switcher -->
-        <select
-          id="site-switcher"
-          aria-label="Go to another site"
-          style="
-            background: #fff;
-            border: 1px solid #052242;
-            border-radius: 6px;
-            cursor: pointer;
-            font: inherit;
-            font-size: 12px;
-            letter-spacing: 0.3px;
-            padding: 5px;
-            text-transform: uppercase;
-          "
-        >
+        <select id="site-switcher" class="site-switcher-select" aria-label="Go to another site">
           <option value="">Other Languages</option>
           <option value="croatian">Croatian</option>
           <option value="german">German</option>

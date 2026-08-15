@@ -737,6 +737,7 @@ function parseCSVData(data, options = {}) {
         });
 
         buildWordSearchIndex();
+        updateLandingWordCount();
 
         /*
          * Sentence Search already builds these structures on demand.
@@ -770,6 +771,15 @@ function parseCSVData(data, options = {}) {
       parseCSVData(data, { useWorker: false });
     }
   }
+}
+
+// Swaps the landing page's static "29,000+" placeholder for the real,
+// exact count once the dictionary has actually loaded.
+function updateLandingWordCount() {
+  const el = document.getElementById("landing-word-count");
+  if (!el || !results.length) return;
+
+  el.textContent = `${results.length.toLocaleString("en-US")} Norwegian words, definitions, and example sentences.`;
 }
 
 function buildSentenceCorpus() {
@@ -839,6 +849,8 @@ const FEEDBACK_FORM_FIELD_ID = "entry.279285583";
 const FEEDBACK_CATEGORIES = [
   "Norwegian word or spelling",
   "English translation",
+  "Part of speech / word class",
+  "CEFR level seems wrong",
   "Norwegian example sentence",
   "English sentence translation",
   "Word audio",
@@ -852,6 +864,14 @@ const STORY_FEEDBACK_CATEGORIES = [
   "Story audio",
   "Story image",
   "CEFR level seems wrong",
+  "Something else",
+];
+
+const GENERAL_FEEDBACK_CATEGORIES = [
+  "Bug or technical issue",
+  "Feature request or suggestion",
+  "Something is confusing",
+  "General feedback or compliment",
   "Something else",
 ];
 
@@ -879,7 +899,9 @@ function buildFeedbackMessage({ source, word, pos, cefr, category, details }) {
   }
 
   if (category) {
-    parts.push(`— Issue: ${category}`);
+    // "Category" rather than "Issue" — general feedback covers things
+    // like feature requests and compliments, not just problems.
+    parts.push(`— Category: ${category}`);
   }
 
   if (details) {
@@ -905,6 +927,20 @@ function flagMissingWordEntry(word) {
 
 function openWordCardFeedbackDialog(triggerElement, word, pos, cefr) {
   openFeedbackDialog({ source: "Word Card", word, pos, cefr, triggerElement });
+}
+
+// Site-wide feedback, not scoped to any one word/story/question — reachable
+// from the footer on every page.
+function openGeneralFeedbackDialog(triggerElement) {
+  openFeedbackDialog({
+    source: "General Feedback",
+    categories: GENERAL_FEEDBACK_CATEGORIES,
+    dialogTitle: "Share your feedback",
+    categoryQuestion: "What's this about?",
+    detailsPlaceholder: "Tell us more (optional)",
+    successMessage: "Thanks — your feedback was sent.",
+    triggerElement,
+  });
 }
 
 let feedbackDialogTriggerElement = null;
@@ -944,6 +980,10 @@ function openFeedbackDialog({
   cefr,
   showWordInTitle = true,
   categories = FEEDBACK_CATEGORIES,
+  dialogTitle,
+  categoryQuestion = "What's the issue?",
+  detailsPlaceholder = "What's wrong, exactly?",
+  successMessage = "Thanks — your report was sent.",
   triggerElement,
 }) {
   // Only one report dialog should ever be open at a time.
@@ -963,15 +1003,16 @@ function openFeedbackDialog({
   const title = document.createElement("h3");
   title.id = "feedback-dialog-title";
   title.textContent =
-    word && showWordInTitle
+    dialogTitle ||
+    (word && showWordInTitle
       ? `Report an issue with "${word}"`
-      : "Report an issue with this question";
+      : "Report an issue with this question");
   dialog.appendChild(title);
 
   const categoryLabel = document.createElement("label");
   categoryLabel.className = "feedback-dialog-label";
   categoryLabel.htmlFor = "feedback-dialog-category";
-  categoryLabel.textContent = "What's the issue?";
+  categoryLabel.textContent = categoryQuestion;
   dialog.appendChild(categoryLabel);
 
   const categorySelect = document.createElement("select");
@@ -993,7 +1034,7 @@ function openFeedbackDialog({
   const detailsTextarea = document.createElement("textarea");
   detailsTextarea.id = "feedback-dialog-details";
   detailsTextarea.rows = 3;
-  detailsTextarea.placeholder = "What's wrong, exactly?";
+  detailsTextarea.placeholder = detailsPlaceholder;
   dialog.appendChild(detailsTextarea);
 
   const status = document.createElement("p");
@@ -1034,7 +1075,7 @@ function openFeedbackDialog({
       buildFeedbackMessage({ source, word, pos, cefr, category, details }),
     )
       .then(() => {
-        status.textContent = "Thanks — your report was sent.";
+        status.textContent = successMessage;
         setTimeout(closeFeedbackDialog, 1400);
       })
       .catch((error) => {
