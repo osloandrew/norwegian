@@ -143,6 +143,14 @@
         <div id="auth-user-info" class="auth-user-info hidden">
           <img id="auth-user-avatar" class="auth-user-avatar" alt="" />
           <span id="auth-user-name" class="auth-user-name"></span>
+          <span
+            id="sync-status"
+            class="sync-status hidden"
+            role="status"
+            title="Your changes are saved on this device but haven't synced to your account yet. We'll keep trying."
+          >
+            <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+          </span>
           <button
             id="google-signout-btn"
             type="button"
@@ -154,7 +162,14 @@
         </div>
       </div>
 
-      <h1 id="site-title" onclick="returnToLandingPage()">
+      <h1
+        id="site-title"
+        tabindex="0"
+        role="link"
+        aria-label="Norwegian Dictionary, return to home"
+        onclick="returnToLandingPage()"
+        onkeydown="if (event.key === 'Enter') { returnToLandingPage() }"
+      >
         Norwegian Dictionary
       </h1>
       <p id="site-subtitle">Search in Norwegian or English</p>
@@ -273,7 +288,12 @@
                 id="lock-icon"
                 class="fas fa-lock-open"
                 title="Toggle level lock"
+                aria-label="Toggle level lock"
+                role="button"
+                tabindex="0"
+                aria-pressed="false"
                 onclick="toggleLevelLock()"
+                onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleLevelLock() }"
               ></i>
             </div>
           </div>
@@ -286,7 +306,6 @@
                 type="text"
                 id="search-bar"
                 placeholder=" "
-                onkeydown="handleKey(event)"
                 aria-label="Search for Norwegian or English words"
               />
               <button

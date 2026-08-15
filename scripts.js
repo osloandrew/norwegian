@@ -1992,17 +1992,20 @@ function displaySearchResults(results, query = "") {
       .replace(/\r?\n|\r/g, ""); // Escapes single quotes, double quotes, and removes newlines
     const hasSentencesPlaceholder = `<button class="sentence-btn english-toggle-btn" style="display: none;" onclick="event.stopPropagation(); toggleEnglishTranslations('${normalizedWord}')">Show English</button>`;
 
+    const escapedGender = result.gender.replace(/'/g, "\\'").trim();
+    const escapedEngelsk = result.engelsk.replace(/'/g, "\\'").trim();
+    const handleCardClickArgs = `'${escapedWord}', '${escapedGender}', '${escapedEngelsk}', this.querySelector('.${multipleResultsDefinitionText}')?.textContent?.trim() || ''`;
+
     htmlString += `
-<div 
-  class="definition ${multipleResultsDefinition}" 
-  data-word="${escapedWord}" 
-  data-pos="${result.pos}" 
-  data-engelsk="${result.engelsk}" 
-  onclick="if (!window.getSelection().toString()) handleCardClick(event, '${escapedWord}', '${result.gender
-    .replace(/'/g, "\\'")
-    .trim()}', '${result.engelsk
-    .replace(/'/g, "\\'")
-    .trim()}', this.querySelector('.${multipleResultsDefinitionText}')?.textContent?.trim() || '')">
+<div
+  class="definition ${multipleResultsDefinition}"
+  data-word="${escapedWord}"
+  data-pos="${result.pos}"
+  data-engelsk="${result.engelsk}"
+  tabindex="0"
+  role="button"
+  onclick="if (!window.getSelection().toString()) handleCardClick(event, ${handleCardClickArgs})"
+  onkeydown="if ((event.key === 'Enter' || event.key === ' ') && !window.getSelection().toString()) { event.preventDefault(); handleCardClick(event, ${handleCardClickArgs}) }">
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-gender ${multipleResultsWordgender}">
                   <div class="word-text-block">
@@ -3251,6 +3254,8 @@ function handleCardClick(event, word, pos, engelsk, definisjon) {
   if (latestMultipleResults) {
     const backDiv = document.createElement("div");
     backDiv.className = "back-navigation";
+    backDiv.tabIndex = 0;
+    backDiv.setAttribute("role", "button");
 
     // Create the icon element
     const icon = document.createElement("i");
@@ -3403,7 +3408,17 @@ window.onload = function () {
   document.getElementById("search-bar").addEventListener("keyup", handleKey);
 
   document.addEventListener("click", (event) => {
-    if (event.target.matches(".back-navigation")) {
+    if (event.target.closest(".back-navigation")) {
+      search(latestMultipleResults);
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (
+      (event.key === "Enter" || event.key === " ") &&
+      event.target.closest(".back-navigation")
+    ) {
+      event.preventDefault();
       search(latestMultipleResults);
     }
   });

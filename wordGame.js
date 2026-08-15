@@ -1363,9 +1363,51 @@ function renderClozeGameUI(
       );
     });
   });
+
+  // Deliberately NOT clickable yet: the sentence still has its blank, and
+  // letting someone hear the complete sentence before answering would let
+  // them listen for the answer instead of reasoning about which word fits.
+  // handleTranslationClick() makes it clickable once the sentence is whole.
+
   attachGameControls(wordObj);
 
   renderStats(); // Ensure stats bar is present after cloze loads too
+}
+
+// Fills in the blank and, only now that the sentence is actually complete,
+// makes it clickable to replay its audio — matching the flashcard word's
+// click-to-replay, but deliberately withheld until after answering so
+// hearing the sentence early can't be used to skip reasoning about which
+// word fits the blank.
+function completeClozeSentence(clozeSentence) {
+  const sentenceElement = document.getElementById("cloze-sentence");
+  if (!sentenceElement || !clozeSentence) return;
+
+  sentenceElement.textContent = clozeSentence;
+
+  const wordElement = sentenceElement.closest(".game-word");
+  if (!wordElement || wordElement.classList.contains("game-word-audio")) {
+    return;
+  }
+
+  wordElement.classList.add("game-word-audio");
+  wordElement.setAttribute("role", "button");
+  wordElement.setAttribute("tabindex", "0");
+  wordElement.setAttribute("aria-label", "Play sentence audio");
+  wordElement.title = "Play sentence audio";
+
+  const replay = () => {
+    stopAllAudio();
+    playSentenceAudio(clozeSentence);
+  };
+
+  wordElement.addEventListener("click", replay);
+  wordElement.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      replay();
+    }
+  });
 }
 
 async function handleTranslationClick(
@@ -1419,11 +1461,7 @@ async function handleTranslationClick(
     // Add the word to the correctly answered words array to exclude it from future questions
     correctlyAnsweredWords.add(wordObj);
     if (isCloze) {
-      const sentenceElement = document.getElementById("cloze-sentence");
-
-      if (sentenceElement && clozeSentence) {
-        sentenceElement.textContent = clozeSentence;
-      }
+      completeClozeSentence(clozeSentence);
     }
 
     // If the word was in the review queue and the user answered it correctly, remove it
@@ -1464,11 +1502,7 @@ async function handleTranslationClick(
     window.WordStrengthAPI?.recordResult?.(wordObj, false);
 
     if (isCloze) {
-      const sentenceElement = document.getElementById("cloze-sentence");
-
-      if (sentenceElement && clozeSentence) {
-        sentenceElement.textContent = clozeSentence;
-      }
+      completeClozeSentence(clozeSentence);
     }
 
     // If the word isn't already in the review queue, add it
@@ -1844,6 +1878,7 @@ function toggleLevelLock() {
   if (icon) {
     icon.className = levelLocked ? "fas fa-lock" : "fas fa-lock-open";
     icon.title = levelLocked ? "Level is locked" : "Level is unlocked";
+    icon.setAttribute("aria-pressed", String(levelLocked));
   }
   showBanner("levelLock", levelLocked ? "locked" : "unlocked");
 }

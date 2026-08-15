@@ -35,6 +35,7 @@
   const userInfo = document.getElementById("auth-user-info");
   const userAvatar = document.getElementById("auth-user-avatar");
   const userName = document.getElementById("auth-user-name");
+  const syncStatus = document.getElementById("sync-status");
 
   if (!isFirebaseConfigured) {
     console.warn(
@@ -97,6 +98,25 @@
     return db.collection("myWordsUsers").doc(userId);
   }
 
+  // Firestore write failures used to be console.warn-only — invisible to
+  // the user, who'd have no idea their changes weren't reaching their
+  // account. This surfaces a small, non-alarming indicator (nothing is
+  // actually lost; localStorage is always the source of truth) and clears
+  // itself the moment any write succeeds again.
+  let pendingFailureCount = 0;
+
+  function showSyncStatusError() {
+    pendingFailureCount++;
+    syncStatus?.classList.remove("hidden");
+  }
+
+  function clearSyncStatusError() {
+    pendingFailureCount = Math.max(0, pendingFailureCount - 1);
+    if (pendingFailureCount === 0) {
+      syncStatus?.classList.add("hidden");
+    }
+  }
+
   // {merge:true} is required on every write below: entryIds and
   // wordStrengths are pushed independently (different events, different
   // debounce timers), and without merge each write would silently wipe
@@ -110,8 +130,10 @@
         },
         { merge: true },
       )
+      .then(clearSyncStatusError)
       .catch((error) => {
         console.warn("My Words could not be synced.", error);
+        showSyncStatusError();
       });
   }
 
@@ -124,8 +146,10 @@
         },
         { merge: true },
       )
+      .then(clearSyncStatusError)
       .catch((error) => {
         console.warn("Word strength could not be synced.", error);
+        showSyncStatusError();
       });
   }
 
@@ -138,8 +162,10 @@
         },
         { merge: true },
       )
+      .then(clearSyncStatusError)
       .catch((error) => {
         console.warn("Game level could not be synced.", error);
+        showSyncStatusError();
       });
   }
 

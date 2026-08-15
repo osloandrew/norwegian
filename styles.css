@@ -1074,6 +1074,18 @@ header p {
   font-size: 12px;
 }
 
+/* Shown when a My Words/word-strength/game-level write to Firestore fails.
+   Amber rather than red: nothing is actually lost (localStorage is always
+   the source of truth, per this app's local-first design) — it just means
+   cross-device sync is temporarily behind, and it retries automatically. */
+.sync-status {
+  display: inline-flex;
+  align-items: center;
+  color: #b8860b;
+  font-size: 13px;
+  cursor: help;
+}
+
 @media (max-width: 600px) {
   .auth-container {
     position: static;
