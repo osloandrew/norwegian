@@ -38,6 +38,20 @@ const REVERSE_FLASHCARD_PROBABILITY = {
   B2: 0.45,
   C: 0.5,
 };
+// Listening comprehension draws on a different skill (auditory
+// segmentation, not recall direction) that's worth practicing from the
+// very start — CEFR listening "can-do" statements begin at A1 alongside
+// reading, unlike productive recall. So this ramps gently rather than
+// following the steep receptive-to-productive curve above; the audio is
+// always freely replayable, which softens the "one-shot" difficulty a
+// pure listening test would otherwise have.
+const LISTENING_PROBABILITY = {
+  A1: 0.2,
+  A2: 0.25,
+  B1: 0.3,
+  B2: 0.35,
+  C: 0.4,
+};
 let previousWord = null;
 let recentAnswers = []; // Track the last X answers, 1 for correct, 0 for incorrect
 let reintroduceThreshold = 10; // Set how many words to show before reintroducing incorrect ones
@@ -75,11 +89,10 @@ const statsContainer = document.getElementById("game-session-stats"); // New con
 function setGameContainerHTML(html) {
   gameContainer.innerHTML = html;
 
-  const prefersReducedMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  ).matches;
-  if (prefersReducedMotion) return;
-
+  // Deliberately not gated behind prefers-reduced-motion — a subtle
+  // opacity fade, not motion (no parallax/zoom/movement), and this
+  // should play for everyone regardless of that OS-level setting.
+  //
   // Only fade the word/sentence card and each answer choice — the stats
   // bar and Next Word button don't change content, so leaving them out
   // means each click flashes just the new question, not the whole screen.
@@ -692,12 +705,19 @@ async function startWordGame() {
         const uniqueNorwegianOptions =
           ensureUniqueDisplayedValues(allNorwegianOptions);
 
-        renderWordGameUI(randomWordObj, uniqueNorwegianOptions, true, true);
+        renderWordGameUI(
+          randomWordObj,
+          uniqueNorwegianOptions,
+          true,
+          "reverse",
+        );
       } else {
-        // Rebuild incorrect translations for non-cloze word. This already
-        // widens its own search — same gender across all CEFR levels, then
-        // any word at all — internally if the same-CEFR pool is too small,
-        // so no separate cross-level fallback call is needed here.
+        // Shared by forward and listening reintroduction — both use
+        // English answer options, built the same way; only the render
+        // mode differs. This already widens its own search — same
+        // gender across all CEFR levels, then any word at all —
+        // internally if the same-CEFR pool is too small, so no separate
+        // cross-level fallback call is needed here.
         const incorrectTranslations = fetchIncorrectTranslations(
           firstWordInQueue.wordObj.gender,
           correctTranslation,
@@ -716,6 +736,7 @@ async function startWordGame() {
           firstWordInQueue.wordObj,
           uniqueDisplayedTranslations,
           true,
+          firstWordInQueue.wasListening ? "listening" : "forward",
         );
       }
 
@@ -751,10 +772,23 @@ async function startWordGame() {
   correctTranslation = randomWordObj.engelsk;
 
   const isClozeQuestion = Math.random() < 0.5; // 50% chance to show a cloze question
-  // Only applies to the non-cloze half — see REVERSE_FLASHCARD_PROBABILITY
-  // above for why this scales with level instead of being a flat coin flip.
+  // Decided ahead of isReverseQuestion so the two don't compete for the
+  // same slot — see LISTENING_PROBABILITY above for why this scales more
+  // gently than the reverse-flashcard ramp. Requires the word to actually
+  // have a recorded audio file (nearly all do, but a listening question
+  // with a silent prompt and no visible text would be unanswerable) —
+  // falls through to a forward flashcard for the rare word that lacks
+  // one, same as the cloze fallbacks above.
+  const isListeningQuestion =
+    !isClozeQuestion &&
+    randomWordObj.wordAudio === "X" &&
+    Math.random() < (LISTENING_PROBABILITY[currentCEFR] ?? 0.25);
+  // Only applies to the non-cloze, non-listening remainder — see
+  // REVERSE_FLASHCARD_PROBABILITY above for why this scales with level
+  // instead of being a flat coin flip.
   const isReverseQuestion =
     !isClozeQuestion &&
+    !isListeningQuestion &&
     Math.random() < (REVERSE_FLASHCARD_PROBABILITY[currentCEFR] ?? 0.25);
   const bannedWordClasses = ["numeral", "pronoun", "possessive", "determiner"];
 
@@ -848,17 +882,25 @@ async function startWordGame() {
     const uniqueNorwegianOptions =
       ensureUniqueDisplayedValues(allNorwegianOptions);
 
-    renderWordGameUI(randomWordObj, uniqueNorwegianOptions, false, true);
+    renderWordGameUI(randomWordObj, uniqueNorwegianOptions, false, "reverse");
+  } else if (isListeningQuestion) {
+    renderWordGameUI(
+      randomWordObj,
+      uniqueDisplayedTranslations,
+      false,
+      "listening",
+    );
   } else {
     renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
   }
 
   // Render the updated stats box
   renderStats();
-  // Skipped for reverse questions: this shows the Norwegian word's own
-  // phonetic transcription, which would hint at the not-yet-revealed
-  // answer the same way playing its audio early would.
-  if (!isClozeQuestion && !isReverseQuestion) {
+  // Skipped for reverse and listening questions: this shows the
+  // Norwegian word's own phonetic transcription, which would hint at
+  // the not-yet-revealed answer the same way playing its audio (or, for
+  // listening, showing its text) early would.
+  if (!isClozeQuestion && !isReverseQuestion && !isListeningQuestion) {
     displayPronunciation(currentWord);
   }
 }
@@ -1161,12 +1203,19 @@ function enableGameControls() {
   }
 }
 
+// mode: "forward" (Norwegian shown, recognize English — the default),
+// "reverse" (English shown, recall Norwegian), or "listening" (Norwegian
+// audio only, recognize English — the word's own text is hidden until
+// answered).
 function renderWordGameUI(
   wordObj,
   translations,
   isReintroduced = false,
-  isReverse = false,
+  mode = "forward",
 ) {
+  const isReverse = mode === "reverse";
+  const isListening = mode === "listening";
+
   // Each render replaces the previous question entirely, so nothing still
   // references earlier entries — reset instead of growing forever.
   wordDataStore = [];
@@ -1176,12 +1225,15 @@ function renderWordGameUI(
   // recall the Norwegian word — the answer options (and so the "correct"
   // value handleTranslationClick checks against) are Norwegian words
   // instead of English translations. Mirrors renderClozeGameUI reassigning
-  // this same global to the clozed Norwegian form.
+  // this same global to the clozed Norwegian form. Listening's correct
+  // answer is English, same as forward, so it needs no reassignment here.
   if (isReverse) {
     correctTranslation = wordObj.ord.split(",")[0].trim();
   }
 
-  // Split the word at the comma and use the first part
+  // Split the word at the comma and use the first part. Listening shows
+  // no word text at all pre-answer (see the prompt markup below) — this
+  // is only used post-answer once revealListeningWordText swaps it in.
   let displayedWord = isReverse
     ? String(wordObj.engelsk ?? "").split(",")[0].trim()
     : wordObj.ord.split(",")[0].trim();
@@ -1271,11 +1323,15 @@ function renderWordGameUI(
                   ? ""
                   : `role="button"
               tabindex="0"
-              aria-label="Play pronunciation of ${displayedWord}"
-              title="Play pronunciation"`
+              aria-label="${isListening ? "Play word audio" : `Play pronunciation of ${displayedWord}`}"
+              title="${isListening ? "Play word audio" : "Play pronunciation"}"`
               }
             >
-                <h2>${displayedWord}</h2>
+                ${
+                  isListening
+                    ? '<i class="fas fa-volume-up game-listening-icon" aria-hidden="true"></i>'
+                    : `<h2>${displayedWord}</h2>`
+                }
             </div>
             <div class="game-cefr-spacer"></div>
         </div>
@@ -1285,7 +1341,7 @@ function renderWordGameUI(
             ${translations
               .map(
                 (translation, index) => `
-                <div class="game-translation-card" data-id="${wordId}" data-index="${index}">
+                <div class="game-translation-card" lang="${isReverse ? "nb" : "en"}" data-id="${wordId}" data-index="${index}">
                     ${translation.split(",")[0].trim()}
                 </div>
             `,
@@ -1310,7 +1366,14 @@ function renderWordGameUI(
       const selectedTranslation = this.innerText.trim();
       const wordObj = wordDataStore[wordId]; // Get the word object from the data store
 
-      handleTranslationClick(selectedTranslation, wordObj, false, "", isReverse);
+      handleTranslationClick(
+        selectedTranslation,
+        wordObj,
+        false,
+        "",
+        isReverse,
+        isListening,
+      );
     });
   });
 
@@ -1325,6 +1388,7 @@ function renderWordGameUI(
     const gameWordElement = document.querySelector(".game-word-audio");
 
     gameWordElement?.addEventListener("click", () => {
+      playAudioTapFeedback(gameWordElement);
       stopAllAudio();
       playWordAudio(wordObj);
     });
@@ -1332,6 +1396,7 @@ function renderWordGameUI(
     gameWordElement?.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
+        playAudioTapFeedback(gameWordElement);
         stopAllAudio();
         playWordAudio(wordObj);
       }
@@ -1475,7 +1540,7 @@ function renderClozeGameUI(
       ${translations
         .map(
           (translation, index) => `
-          <div class="game-translation-card" data-id="${wordId}" data-index="${index}">
+          <div class="game-translation-card" lang="nb" data-id="${wordId}" data-index="${index}">
             ${translation}
           </div>
         `,
@@ -1523,6 +1588,27 @@ function renderClozeGameUI(
 // only become click/keyboard-replayable once something has made that
 // audio fair game (the sentence is complete, or the question's been
 // answered).
+// A brief, deliberately subtle bounce so tapping the big listening-exercise
+// audio button gives some visible acknowledgment beyond just the sound
+// starting. Only targets .game-listening-icon — words and sentences are
+// also click-to-replay audio, but they already show a text change/highlight
+// on interaction, so bouncing that text as well just reads as jumpy rather
+// than as feedback — not gated behind prefers-reduced-motion, matching this
+// game's other animations (see setGameContainerHTML).
+function playAudioTapFeedback(element) {
+  const target = element?.querySelector?.(".game-listening-icon");
+  if (!target) return;
+
+  target.animate(
+    [
+      { transform: "scale(0.88)" },
+      { transform: "scale(1.06)" },
+      { transform: "scale(1)" },
+    ],
+    { duration: 220, easing: "ease-out" },
+  );
+}
+
 function makeAudioReplayable(element, label, replay) {
   if (!element) return;
 
@@ -1532,11 +1618,16 @@ function makeAudioReplayable(element, label, replay) {
   element.setAttribute("aria-label", label);
   element.title = label;
 
-  element.addEventListener("click", replay);
+  const replayWithFeedback = () => {
+    playAudioTapFeedback(element);
+    replay();
+  };
+
+  element.addEventListener("click", replayWithFeedback);
   element.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      replay();
+      replayWithFeedback();
     }
   });
 }
@@ -1586,6 +1677,29 @@ function revealReverseWordAudio(wordObj) {
   );
 }
 
+// Listening questions hide the Norwegian word's text (only its audio,
+// already freely replayable from the moment the question loads — see
+// renderWordGameUI) until the question's been answered. This swaps the
+// speaker-icon placeholder for the actual word once it's fair to show it;
+// the click/keyboard audio wiring from the initial render is untouched
+// and still valid, since it already plays this same wordObj regardless of
+// what's currently visible.
+function revealListeningWordText(wordObj) {
+  const promptElement = document.querySelector(".game-word");
+  if (!promptElement) return;
+
+  const displayedWord = String(wordObj?.ord ?? "")
+    .split(",")[0]
+    .trim();
+
+  promptElement.innerHTML = `<h2>${displayedWord}</h2>`;
+  promptElement.setAttribute(
+    "aria-label",
+    `Play pronunciation of ${displayedWord}`,
+  );
+  promptElement.title = "Play pronunciation";
+}
+
 function completeClozeSentence(clozeSentence) {
   const sentenceElement = document.getElementById("cloze-sentence");
   if (!sentenceElement || !clozeSentence) return;
@@ -1606,6 +1720,7 @@ async function handleTranslationClick(
   isCloze = false,
   clozeSentence = "",
   isReverse = false,
+  isListening = false,
 ) {
   if (!gameActive) return; // Prevent further clicks if the game is not active
 
@@ -1657,6 +1772,9 @@ async function handleTranslationClick(
     if (isReverse) {
       revealReverseWordAudio(wordObj);
     }
+    if (isListening) {
+      revealListeningWordText(wordObj);
+    }
 
     // If the word was in the review queue and the user answered it correctly, remove it
     const indexInQueue = incorrectWordQueue.findIndex(
@@ -1701,6 +1819,9 @@ async function handleTranslationClick(
     if (isReverse) {
       revealReverseWordAudio(wordObj);
     }
+    if (isListening) {
+      revealListeningWordText(wordObj);
+    }
 
     // If the word is already in the review queue, missing it again means
     // it needs a longer runway before its next reintroduction attempt.
@@ -1714,6 +1835,7 @@ async function handleTranslationClick(
         INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET;
       existingQueueEntry.wasCloze = isCloze;
       existingQueueEntry.wasReverse = isReverse;
+      existingQueueEntry.wasListening = isListening;
       existingQueueEntry.clozedForm = isCloze ? correctTranslation : null;
     } else {
       incorrectWordQueue.push({
@@ -1722,6 +1844,7 @@ async function handleTranslationClick(
         requiredCounter: INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET,
         wasCloze: isCloze,
         wasReverse: isReverse,
+        wasListening: isListening,
         clozedForm: isCloze ? correctTranslation : null,
       });
     }
