@@ -1,7 +1,10 @@
 let activeAudio = [];
 let currentWord;
 let correctTranslation;
-let correctlyAnsweredWords = new Set(); // Track exact dictionary entries already answered correctly
+// Identifies which scheduler queue supplied the current question. Correct
+// filler/early-review answers do not lengthen an interval, while due, new,
+// and deliberate relearning answers do.
+let currentWordQueueType = null;
 let correctLevelAnswers = 0; // Track correct answers per level
 let correctCount = 0; // Tracks the total number of correct answers
 let correctStreak = 0; // Track the current streak of correct answers
@@ -42,7 +45,10 @@ let wordGameSessionStartedAt = 0;
 // second look.
 let wordGameSessionMissedWords = new Set();
 let incorrectCount = 0; // Tracks the total number of incorrect answers
-let incorrectWordQueue = []; // Queue for storing incorrect words with counters
+// Short in-session relearning queue. Durable state and its due timestamp live
+// in WordStrengthAPI; this queue only supplies enough intervening questions
+// before a retry and remembers which exercise form was missed.
+let incorrectWordQueue = [];
 const levelThresholds = {
   A1: { up: 0.85, down: null }, // Starting level — can't go lower
   A2: { up: 0.9, down: 0.6 },
@@ -83,25 +89,12 @@ const LISTENING_PROBABILITY = {
 };
 let previousWord = null;
 let recentAnswers = []; // Track the last X answers, 1 for correct, 0 for incorrect
-let reintroduceThreshold = 10; // Set how many words to show before reintroducing incorrect ones
-// Progression checks every 20 questions and requires the incorrect-word
-// queue to be empty. The old target of 10 here (on top of the 10-question
-// reintroduceThreshold gate above) meant a single miss took ~20+ questions
-// just to be shown again, routinely missing that same evaluation window and
-// blocking an otherwise-qualifying level-up for a full extra cycle. Lowering
-// the target gives it a reliable chance to clear within one 20-question
-// window while still keeping some spacing before the retry.
-const INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET = 3;
+let reintroduceThreshold = 10; // Intervening answers before an Endless retry
 
-// reintroduceThreshold (10) and the counter target above were tuned for
-// infinite mode, where a 10-13 question wait barely registers against an
-// endless stream. In a bounded round that same wait can balloon a round
-// well past the word count the learner picked — a single miss in a
-// 10-word round could nearly double it. Session mode uses this instead:
-// scales with the round's own size (small rounds get a short but still
-// real gap — immediate re-asking is weak retrieval practice — larger
-// rounds get more room), capped so even a 50-word round doesn't wait
-// needlessly long between retries.
+// Bounded rounds use their selected size as the cap on distinct words, while
+// Endless mode can keep discovering words after all currently due work is
+// clear. Failed words use this shorter scaled gap so retries remain feasible
+// inside a 10/20/50-word round without becoming immediate repetition.
 function getWordGameReintroduceThreshold() {
   if (wordGameMode !== "session") {
     return reintroduceThreshold;
@@ -111,7 +104,6 @@ function getWordGameReintroduceThreshold() {
 }
 
 let totalQuestions = 0; // Track total questions per level
-let wordsSinceLastIncorrect = 0; // Counter to track words shown since the last incorrect word
 let wordDataStore = [];
 let questionsAtCurrentLevel = 0; // Track questions answered at current level
 let goodChime = new Audio("Resources/Audio/goodChime.wav");
@@ -1434,48 +1426,55 @@ async function startWordGame() {
   // evaluates in session mode (see evaluateProgression).
   setWordGameLockIconVisible(wordGameMode === "infinite");
 
-  // First, check if there is an incorrect word to reintroduce. In session
-  // mode, a miss is held back until the round has introduced every new word
-  // it plans to show — reintroducing it any sooner is closer to massed
-  // repetition than real retrieval practice, and a short bounded round has
-  // no room for meaningful spacing except at its tail (see
-  // getWordGameReintroduceThreshold, which used to gate this instead: its
-  // 2-6 question floor could bring a miss back within just 1-2 questions in
-  // a small round). Infinite mode has no "used up all the new content"
-  // moment to wait for, so it keeps using that threshold as before.
-  const readyToReintroduceMissedWords =
-    wordGameMode === "session"
-      ? wordGameSessionIntroducedWords.size >= wordGameSessionTarget
-      : wordsSinceLastIncorrect >= getWordGameReintroduceThreshold();
+  // A miss enters an explicit short-term relearning queue. Its availability
+  // is measured in intervening answered questions, while WordStrengthAPI's
+  // timestamped record independently ensures it remains due across sessions.
+  const firstWordInQueue = incorrectWordQueue.find(
+    (queued) =>
+      wordGameSessionQuestionsAnswered >= queued.availableAfterQuestion,
+  );
 
-  if (incorrectWordQueue.length > 0 && readyToReintroduceMissedWords) {
-    const firstWordInQueue = incorrectWordQueue[0];
-    if (firstWordInQueue.counter >= firstWordInQueue.requiredCounter) {
-      // Play the popChime when reintroducing an incorrect word
-      popChime.currentTime = 0; // Reset audio to the beginning
-      popChime.play(); // Play the pop sound
+  if (firstWordInQueue) {
+    currentWordQueueType = "relearning";
+    // Play the popChime when reintroducing an incorrect word
+    popChime.currentTime = 0; // Reset audio to the beginning
+    popChime.play(); // Play the pop sound
 
-      // Reintroduce the word
-      currentWord = firstWordInQueue.wordObj.ord;
-      correctTranslation = firstWordInQueue.wordObj.engelsk;
+    // Reintroduce the word
+    currentWord = firstWordInQueue.wordObj.ord;
+    correctTranslation = firstWordInQueue.wordObj.engelsk;
+    firstWordInQueue.shown = true;
 
-      if (firstWordInQueue.wasCloze) {
-        const randomWordObj = firstWordInQueue.wordObj;
+    if (firstWordInQueue.wasCloze) {
+      const randomWordObj = firstWordInQueue.wordObj;
 
+      /*
+       * Locate the same surface form that was used in the
+       * original cloze question.
+       */
+      const clozeTarget = findClozeTarget(
+        randomWordObj,
+        firstWordInQueue.clozedForm,
+      );
+
+      if (!clozeTarget) {
         /*
-         * Locate the same surface form that was used in the
-         * original cloze question.
+         * renderClozeGameUI will safely convert this into
+         * a reintroduced flashcard.
          */
-        const clozeTarget = findClozeTarget(
+        renderClozeGameUI(
           randomWordObj,
+          [],
           firstWordInQueue.clozedForm,
+          true,
+          null,
         );
-
-        if (!clozeTarget) {
-          /*
-           * renderClozeGameUI will safely convert this into
-           * a reintroduced flashcard.
-           */
+      } else {
+        const distractors = generateClozeDistractors(
+          randomWordObj,
+          clozeTarget,
+        );
+        if (distractors.length < 3) {
           renderClozeGameUI(
             randomWordObj,
             [],
@@ -1483,118 +1482,93 @@ async function startWordGame() {
             true,
             null,
           );
-        } else {
-          const distractors = generateClozeDistractors(
-            randomWordObj,
-            clozeTarget,
-          );
-          if (distractors.length < 3) {
-            renderClozeGameUI(
-              randomWordObj,
-              [],
-              firstWordInQueue.clozedForm,
-              true,
-              null,
-            );
-            return;
-          }
+          return;
+        }
 
-          const { correctChoice, choices } = prepareClozeChoices(
-            randomWordObj,
-            clozeTarget,
-            distractors,
-          );
-          if (choices.length < 4) {
-            renderClozeGameUI(
-              randomWordObj,
-              [],
-              firstWordInQueue.clozedForm,
-              true,
-              null,
-            );
-            return;
-          }
-
+        const { correctChoice, choices } = prepareClozeChoices(
+          randomWordObj,
+          clozeTarget,
+          distractors,
+        );
+        if (choices.length < 4) {
           renderClozeGameUI(
             randomWordObj,
-            choices,
-            correctChoice,
+            [],
+            firstWordInQueue.clozedForm,
             true,
-            clozeTarget,
+            null,
           );
+          return;
         }
-      } else if (firstWordInQueue.wasReverse) {
-        // Rebuild incorrect Norwegian-word options for the reintroduced
-        // reverse flashcard — same widening behavior as the translation
-        // fallback above (same gender/CEFR, then same gender, then any
-        // word) if the narrow pool is too small.
-        const randomWordObj = firstWordInQueue.wordObj;
 
-        const incorrectNorwegianWords = fetchIncorrectNorwegianWords(
-          randomWordObj.ord,
-          randomWordObj.CEFR,
-          randomWordObj.gender,
-        );
-
-        const allNorwegianOptions = shuffleArray([
-          randomWordObj.ord,
-          ...incorrectNorwegianWords,
-        ]);
-
-        const uniqueNorwegianOptions =
-          ensureUniqueDisplayedValues(allNorwegianOptions);
-
-        renderWordGameUI(
+        renderClozeGameUI(
           randomWordObj,
-          uniqueNorwegianOptions,
+          choices,
+          correctChoice,
           true,
-          "reverse",
-        );
-      } else {
-        // Shared by forward and listening reintroduction — both use
-        // English answer options, built the same way; only the render
-        // mode differs. This already widens its own search — same
-        // gender across all CEFR levels, then any word at all —
-        // internally if the same-CEFR pool is too small, so no separate
-        // cross-level fallback call is needed here.
-        const incorrectTranslations = fetchIncorrectTranslations(
-          firstWordInQueue.wordObj.gender,
-          correctTranslation,
-          firstWordInQueue.wordObj.CEFR,
-        );
-
-        const allTranslations = shuffleArray([
-          correctTranslation,
-          ...incorrectTranslations,
-        ]);
-
-        const uniqueDisplayedTranslations =
-          ensureUniqueDisplayedValues(allTranslations);
-
-        renderWordGameUI(
-          firstWordInQueue.wordObj,
-          uniqueDisplayedTranslations,
-          true,
-          firstWordInQueue.wasListening ? "listening" : "forward",
+          clozeTarget,
         );
       }
+    } else if (firstWordInQueue.wasReverse) {
+      // Rebuild incorrect Norwegian-word options for the reintroduced
+      // reverse flashcard — same widening behavior as the translation
+      // fallback above (same gender/CEFR, then same gender, then any
+      // word) if the narrow pool is too small.
+      const randomWordObj = firstWordInQueue.wordObj;
 
-      // Do not remove the word from the queue yet. It will be removed when answered correctly.
-      firstWordInQueue.shown = true; // Mark that this word has been shown again
+      const incorrectNorwegianWords = fetchIncorrectNorwegianWords(
+        randomWordObj.ord,
+        randomWordObj.CEFR,
+        randomWordObj.gender,
+      );
 
-      // Reset counter for new words shown
-      wordsSinceLastIncorrect = 0;
+      const allNorwegianOptions = shuffleArray([
+        randomWordObj.ord,
+        ...incorrectNorwegianWords,
+      ]);
 
-      // Render the updated stats box
-      renderStats();
-      return;
+      const uniqueNorwegianOptions =
+        ensureUniqueDisplayedValues(allNorwegianOptions);
+
+      renderWordGameUI(
+        randomWordObj,
+        uniqueNorwegianOptions,
+        true,
+        "reverse",
+      );
     } else {
-      // Increment the counter for this word
-      incorrectWordQueue.forEach((word) => word.counter++);
-    }
-  }
+      // Shared by forward and listening reintroduction — both use
+      // English answer options, built the same way; only the render
+      // mode differs. This already widens its own search — same
+      // gender across all CEFR levels, then any word at all —
+      // internally if the same-CEFR pool is too small, so no separate
+      // cross-level fallback call is needed here.
+      const incorrectTranslations = fetchIncorrectTranslations(
+        firstWordInQueue.wordObj.gender,
+        correctTranslation,
+        firstWordInQueue.wordObj.CEFR,
+      );
 
-  wordsSinceLastIncorrect++; // Increment counter for words since last incorrect word
+      const allTranslations = shuffleArray([
+        correctTranslation,
+        ...incorrectTranslations,
+      ]);
+
+      const uniqueDisplayedTranslations =
+        ensureUniqueDisplayedValues(allTranslations);
+
+      renderWordGameUI(
+        firstWordInQueue.wordObj,
+        uniqueDisplayedTranslations,
+        true,
+        firstWordInQueue.wasListening ? "listening" : "forward",
+      );
+    }
+
+    // Render the updated stats box
+    renderStats();
+    return;
+  }
 
   // Use the currentCEFR directly, since it's dynamically updated when the user selects a new CEFR level
   if (!currentCEFR) {
@@ -2528,9 +2502,13 @@ async function handleTranslationClick(
     correctStreak++; // Increment the streak
     correctLevelAnswers++; // Increment correct count for this level
     updateRecentAnswers(true); // Track this correct answer
-    window.WordStrengthAPI?.recordResult?.(wordObj, true);
-    // Add the word to the correctly answered words array to exclude it from future questions
-    correctlyAnsweredWords.add(wordObj);
+    window.WordStrengthAPI?.recordResult?.(wordObj, true, {
+      // A bounded-round filler or voluntary early review is not a spaced
+      // retrieval and therefore must not lengthen the durable interval.
+      credit: !["session-filler", "scheduled"].includes(
+        currentWordQueueType,
+      ),
+    });
     if (wordGameRoundActive) {
       wordGameSessionQuestionsAnswered++;
       wordGameSessionCorrectAnswers++;
@@ -2604,25 +2582,20 @@ async function handleTranslationClick(
       revealListeningWordText(wordObj);
     }
 
-    // If the word is already in the review queue, missing it again means
-    // it needs a longer runway before its next reintroduction attempt.
-    // Otherwise, add it to the queue for the first time. Session mode's
-    // requiredCounter starts at 0 — the "every new word introduced" gate
-    // above (see readyToReintroduceMissedWords in startWordGame) is what
-    // gives a first miss its spacing there, so no extra wait is needed on
-    // top of it. A repeat miss during the review phase still needs its own
-    // longer runway though, hence the same escalation session mode uses
-    // below, just now measured in review-phase turns rather than raw
-    // round turns.
+    // Keep the durable lapse in WordStrengthAPI and also schedule a short
+    // retry after intervening questions in this active round. Repeat misses
+    // get a modestly longer gap without blocking other ready queue entries.
     const existingQueueEntry = incorrectWordQueue.find(
       (incorrectWord) => incorrectWord.wordObj === wordObj,
     );
+    const baseGap = getWordGameReintroduceThreshold();
+
     if (existingQueueEntry) {
-      existingQueueEntry.counter = 0;
-      existingQueueEntry.requiredCounter +=
-        wordGameMode === "session"
-          ? getWordGameReintroduceThreshold()
-          : INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET;
+      existingQueueEntry.reviewAttempts += 1;
+      existingQueueEntry.availableAfterQuestion =
+        wordGameSessionQuestionsAnswered +
+        baseGap * Math.min(2, existingQueueEntry.reviewAttempts);
+      existingQueueEntry.shown = false;
       existingQueueEntry.wasCloze = isCloze;
       existingQueueEntry.wasReverse = isReverse;
       existingQueueEntry.wasListening = isListening;
@@ -2630,9 +2603,10 @@ async function handleTranslationClick(
     } else {
       incorrectWordQueue.push({
         wordObj,
-        counter: 0,
-        requiredCounter:
-          wordGameMode === "session" ? 0 : INCORRECT_WORD_REINTRODUCE_COUNTER_TARGET,
+        availableAfterQuestion:
+          wordGameSessionQuestionsAnswered + baseGap,
+        reviewAttempts: 1,
+        shown: false,
         wasCloze: isCloze,
         wasReverse: isReverse,
         wasListening: isListening,
@@ -2798,10 +2772,14 @@ function getEligibleGameWords(selectedPOS, cefrLevel) {
       return false;
     }
 
-    /*
-     * An exact dictionary entry is excluded after a correct answer.
-     */
-    if (correctlyAnsweredWords.has(entry)) {
+    // A bounded round promises N distinct words. Scheduler state already
+    // prevents ordinary due/new repeats after an answer; this also excludes
+    // early scheduled reviews already introduced during the same round.
+    if (
+      wordGameMode === "session" &&
+      wordGameSessionIntroducedWords.size < wordGameSessionTarget &&
+      wordGameSessionIntroducedWords.has(entry)
+    ) {
       return false;
     }
 
@@ -2844,17 +2822,10 @@ function getEligibleGameWords(selectedPOS, cefrLevel) {
 const STRENGTH_WEIGHT_CEILING = 6; // WordStrengthAPI values are 0-5
 const STRENGTH_WEIGHT_EXPONENT = 2; // squared — retune here if the curve needs adjusting
 
-// My Words used to be a separate pool with a flat 2/3 chance of being
-// drawn from whenever the user had saved *any* eligible word — regardless
-// of how many words were saved or how well they already knew them. That
-// made a small saved list feel overwhelming and let a fully mastered word
-// keep crowding out words the user was actually struggling with.
-//
-// Instead, every eligible word (saved or not) now competes in a single
-// weighted draw. A word's weight is its strength weight (below) times
-// MY_WORDS_BOOST if it's saved, times 1 otherwise — so "is it saved" and
-// "how well do I know it" pull against each other on the same axis,
-// rather than being decided in two disconnected steps.
+// The scheduler first chooses an explicit queue (relearning, due, new, or
+// scheduled fallback). Strength and My Words then influence only the draw
+// *within that queue*, so an undrilled new word can no longer jump ahead of
+// an overdue review merely because its scalar weight is larger.
 //
 // MY_WORDS_BOOST=100 means saving about 1% of a level's word pool earns
 // roughly half of practice time going to saved words (before strength
@@ -2963,6 +2934,49 @@ function pickPrioritizedGameWord(eligibleEntries) {
   return pickWeightedGameWord(eligibleEntries, weights);
 }
 
+function buildGameWordQueues(eligibleEntries, now = Date.now()) {
+  const queues = {
+    relearning: [],
+    due: [],
+    new: [],
+    scheduled: [],
+  };
+
+  for (const entry of eligibleEntries) {
+    const queue =
+      window.WordStrengthAPI?.getSnapshot?.(entry, now)?.queue ?? "new";
+
+    queues[queue]?.push(entry);
+  }
+
+  return queues;
+}
+
+function getNextGameQueueName(queues) {
+  return ["relearning", "due", "new", "scheduled"].find(
+    (queueName) => queues[queueName]?.length > 0,
+  );
+}
+
+// When somebody deliberately starts a round with no due or new material,
+// let them practice rather than showing an empty screen. Only the nearest
+// upcoming reviews are considered, minimizing how far the scheduler is
+// pulled forward; correct answers in this fallback do not extend intervals.
+function pickNearestScheduledGameWord(entries) {
+  const nearest = entries
+    .map((entry) => ({
+      entry,
+      dueAt:
+        window.WordStrengthAPI?.getRecord?.(entry)?.dueAt ??
+        Number.POSITIVE_INFINITY,
+    }))
+    .sort((left, right) => left.dueAt - right.dueAt)
+    .slice(0, Math.min(50, entries.length))
+    .map(({ entry }) => entry);
+
+  return pickPrioritizedGameWord(nearest);
+}
+
 // Once a session round has introduced its full target word count, every
 // further "new question" slot reviews one already-introduced word instead
 // of pulling a brand-new one from the dictionary — this is what keeps a
@@ -3001,6 +3015,7 @@ async function fetchRandomWord() {
     wordGameMode === "session" &&
     wordGameSessionIntroducedWords.size >= wordGameSessionTarget
   ) {
+    currentWordQueueType = "session-filler";
     return pickWordGameSessionFillerWord();
   }
 
@@ -3011,16 +3026,6 @@ async function fetchRandomWord() {
   const cefrLevel = String(currentCEFR || "A1").toUpperCase();
 
   let eligibleEntries = getEligibleGameWords(selectedPOS, cefrLevel);
-
-  /*
-   * If every eligible entry at this level has been answered,
-   * start a new cycle.
-   */
-  if (eligibleEntries.length === 0 && correctlyAnsweredWords.size > 0) {
-    correctlyAnsweredWords.clear();
-
-    eligibleEntries = getEligibleGameWords(selectedPOS, cefrLevel);
-  }
 
   /*
    * This matters only if a level has one eligible entry.
@@ -3036,7 +3041,13 @@ async function fetchRandomWord() {
     return null;
   }
 
-  const selectedEntry = pickPrioritizedGameWord(eligibleEntries);
+  const queues = buildGameWordQueues(eligibleEntries);
+  const queueName = getNextGameQueueName(queues);
+  currentWordQueueType = queueName;
+  const selectedEntry =
+    queueName === "scheduled"
+      ? pickNearestScheduledGameWord(queues.scheduled)
+      : pickPrioritizedGameWord(queues[queueName] ?? []);
 
   if (!selectedEntry) {
     return null;
@@ -3465,9 +3476,8 @@ function replaceGameLevel(newLevel) {
 }
 
 function resetGame(resetStreak = true) {
-  correctlyAnsweredWords.clear();
+  currentWordQueueType = null;
   previousWord = null;
-  wordsSinceLastIncorrect = 0;
   correctCount = 0; // Reset correct answers count
   correctLevelAnswers = 0; // Reset correct answers for the current level
   if (resetStreak) {

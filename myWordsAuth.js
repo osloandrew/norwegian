@@ -371,7 +371,10 @@
         }
 
         if (data.wordStrengths && typeof data.wordStrengths === "object") {
-          window.WordStrengthAPI?.replaceAll?.(data.wordStrengths);
+          // Merge chronologically instead of replacing local state: a
+          // debounced lapse made on this device must not be erased by a
+          // server snapshot that still contains an older, stronger record.
+          window.WordStrengthAPI?.mergeAll?.(data.wordStrengths);
         }
 
         if (typeof data.gameLevel === "string") {
@@ -390,9 +393,9 @@
 
   // Union the words already saved on this device with whatever is saved
   // under the signed-in account, then treat that union as the new truth
-  // both locally and remotely. Word strength isn't a set, so instead of a
-  // union each word takes the higher of its local/remote value, so
-  // progress made on either device survives the merge.
+  // both locally and remotely. Review records merge by their latest answer
+  // timestamp; unlike the old Math.max strength merge, this preserves a
+  // newer lapse instead of reviving an obsolete mastery score.
   async function mergeRemoteData(userId) {
     try {
       const snapshot = await getUserDocRef(userId).get();
@@ -411,17 +414,11 @@
           ? remoteData.wordStrengths
           : {};
       const localStrengths = window.WordStrengthAPI?.getAll?.() ?? {};
-      const mergedStrengths = {};
-
-      for (const entryId of new Set([
-        ...Object.keys(remoteStrengths),
-        ...Object.keys(localStrengths),
-      ])) {
-        mergedStrengths[entryId] = Math.max(
-          remoteStrengths[entryId] ?? 0,
-          localStrengths[entryId] ?? 0,
-        );
-      }
+      const mergedStrengths =
+        window.WordStrengthAPI?.mergeCollections?.(
+          localStrengths,
+          remoteStrengths,
+        ) ?? localStrengths;
 
       // Level is a single ordinal value, not a set or a per-word map — merge
       // by taking whichever of local/remote represents more progress.

@@ -192,10 +192,30 @@
       }
 
       const parsedValue = JSON.parse(storedValue);
+      const rawRecords =
+        parsedValue.records && typeof parsedValue.records === "object"
+          ? parsedValue.records
+          : parsedValue.strengths && typeof parsedValue.strengths === "object"
+            ? parsedValue.strengths
+            : {};
+      const records = window.SpacedRepetition.normalizeCollection(rawRecords);
 
-      return parsedValue.strengths && typeof parsedValue.strengths === "object"
-        ? parsedValue.strengths
-        : {};
+      // Migrate the old 0-5 scalar map in place. Legacy words are deliberately
+      // due once because their original review dates were never stored.
+      if (
+        parsedValue.version !== window.SpacedRepetition.STORAGE_VERSION ||
+        !parsedValue.records
+      ) {
+        window.localStorage.setItem(
+          WORD_STRENGTH_STORAGE_KEY,
+          JSON.stringify({
+            version: window.SpacedRepetition.STORAGE_VERSION,
+            records,
+          }),
+        );
+      }
+
+      return records;
     } catch (error) {
       console.warn("Word strength could not be loaded.", error);
       return {};
@@ -207,8 +227,8 @@
       window.localStorage.setItem(
         WORD_STRENGTH_STORAGE_KEY,
         JSON.stringify({
-          version: 1,
-          strengths: wordStrengths,
+          version: window.SpacedRepetition.STORAGE_VERSION,
+          records: wordStrengths,
         }),
       );
     } catch (error) {
@@ -226,7 +246,7 @@
   }
 
   function replaceWordStrengths(strengths) {
-    wordStrengths = { ...strengths };
+    wordStrengths = window.SpacedRepetition.normalizeCollection(strengths);
     saveWordStrengths({ syncRemote: false });
 
     const typeSelect = document.getElementById("type-select");
@@ -236,22 +256,49 @@
     }
   }
 
-  function recordWordStrengthResult(entry, isCorrect) {
+  function mergeWordStrengths(strengths) {
+    wordStrengths = window.SpacedRepetition.mergeCollections(
+      wordStrengths,
+      strengths,
+    );
+    saveWordStrengths({ syncRemote: false });
+
+    const typeSelect = document.getElementById("type-select");
+
+    if (typeSelect?.value === "word-list") {
+      renderWordList();
+    }
+
+    return window.SpacedRepetition.cloneCollection(wordStrengths);
+  }
+
+  function recordWordStrengthResult(entry, isCorrect, options = {}) {
     const resolvedEntry = resolveMyWordsEntry(entry);
 
     if (!resolvedEntry) {
-      return;
+      return null;
     }
 
     const entryId = getMyWordsEntryId(resolvedEntry);
-    const currentValue = wordStrengths[entryId] ?? 0;
 
-    wordStrengths[entryId] = Math.min(
-      WORD_STRENGTH_MAX,
-      Math.max(0, currentValue + (isCorrect ? 1 : -1)),
+    // Filler questions are deliberately shown before their actual due date
+    // only to keep a bounded round moving while a failed word is being
+    // spaced. A correct answer there is useful exposure, but not evidence
+    // that should lengthen the durable interval. A failure always counts.
+    if (isCorrect && options.credit === false) {
+      return window.SpacedRepetition.cloneRecord(
+        wordStrengths[entryId] || null,
+      );
+    }
+
+    wordStrengths[entryId] = window.SpacedRepetition.recordResult(
+      wordStrengths[entryId],
+      isCorrect,
     );
 
     saveWordStrengths();
+
+    return window.SpacedRepetition.cloneRecord(wordStrengths[entryId]);
   }
 
   function toggleMyWordsEntry(entry) {
@@ -328,19 +375,31 @@
     });
 
     const entryId = getMyWordsEntryId(entry);
-    const strengthValue = wordStrengths[entryId];
+    const snapshot = window.SpacedRepetition.getSnapshot(
+      wordStrengths[entryId],
+    );
+    const strengthValue = snapshot.strength;
 
-    if (typeof strengthValue !== "number") {
+    if (strengthValue === null) {
       cell.textContent = "—";
       return cell;
     }
+
+    const dueLabel = snapshot.isDue
+      ? snapshot.queue === "relearning"
+        ? "Relearning due now"
+        : "Review due now"
+      : `Next review ${new Intl.DateTimeFormat("en", {
+          dateStyle: "medium",
+        }).format(snapshot.record.dueAt)}`;
 
     const meter = document.createElement("span");
     meter.className = "word-strength-meter";
     meter.setAttribute(
       "aria-label",
-      `Strength: ${strengthValue} out of ${WORD_STRENGTH_MAX}`,
+      `Strength: ${strengthValue} out of ${WORD_STRENGTH_MAX}. ${dueLabel}`,
     );
+    meter.title = dueLabel;
 
     for (let position = 0; position < WORD_STRENGTH_MAX; position++) {
       const dot = document.createElement("i");
@@ -1698,17 +1757,26 @@
   });
   window.WordStrengthAPI = Object.freeze({
     recordResult: recordWordStrengthResult,
-    getAll: () => ({ ...wordStrengths }),
+    getAll: () => window.SpacedRepetition.cloneCollection(wordStrengths),
     replaceAll: replaceWordStrengths,
+    mergeAll: mergeWordStrengths,
+    mergeCollections: window.SpacedRepetition.mergeCollections,
     // Direct O(1) lookup, valid only for canonical `results` entries (not
     // resolved/partial copies) — the Word Game always hands over the
     // original entry reference, so this is safe for that caller.
     get: (entry) => {
-      const raw = wordStrengths[getMyWordsEntryId(entry)];
-
-      return typeof raw === "number" && Number.isFinite(raw)
-        ? Math.min(WORD_STRENGTH_MAX, Math.max(0, raw))
-        : null;
+      return window.SpacedRepetition.getSnapshot(
+        wordStrengths[getMyWordsEntryId(entry)],
+      ).strength;
     },
+    getRecord: (entry) =>
+      window.SpacedRepetition.cloneRecord(
+        wordStrengths[getMyWordsEntryId(entry)] || null,
+      ),
+    getSnapshot: (entry, now = Date.now()) =>
+      window.SpacedRepetition.getSnapshot(
+        wordStrengths[getMyWordsEntryId(entry)],
+        now,
+      ),
   });
 })();
