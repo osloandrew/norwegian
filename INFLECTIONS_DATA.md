@@ -9,9 +9,21 @@ University of Bergen and Språkrådet.
 - License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/)
 
 The generated snapshot contains only noun, adjective, and verb lemmas used by
-this project. Paradigms are encoded compactly and expanded only for the selected
-word. The file is loaded outside the app's critical startup path and replaces
-the former spelling-based guesses in the learner-facing **Word forms** table.
+this project, plus the leading verbs needed by its multiword verb entries.
+Paradigms are encoded compactly and expanded only when used. The five verb forms
+shown in the learner-facing **Word forms** table remain unchanged; hidden
+official passive and participial slots support exact sentence search and Word
+Game matching. The file is loaded outside the app's critical startup path and
+replaces spelling-based guesses throughout the application.
+
+Noun records are keyed by both lemma and the gender assigned to the individual
+dictionary entry. Homographs such as masculine *far* (father) and neuter *far*
+(track/course) therefore keep completely separate tables and sentence-search
+forms. Dictionary entries with no exact Ordbank record receive either a
+gender-compatible compound-head paradigm (clearly labeled as derived in the
+UI) or a lemma-only table with unknown forms; guessed regular endings are never
+presented as verified forms.
+
 The grammatical category in `norwegianWords.csv` is authoritative when it
 differs from Norsk Ordbank; for example, the project's adjective entry `alene`
 is represented as an invariant adjective.

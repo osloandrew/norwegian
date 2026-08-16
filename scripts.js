@@ -37,54 +37,6 @@ function escapeHTML(value) {
     .replace(/'/g, "&#039;");
 }
 
-const COMMON_NORWEGIAN_FORM_ALIASES = new Map([
-  ["boka", "bok"],
-  ["boken", "bok"],
-  ["bøkene", "bok"],
-  ["bøker", "bok"],
-  ["ble", "bli"],
-  ["blir", "bli"],
-  ["blitt", "bli"],
-  ["drakk", "drikke"],
-  ["drukket", "drikke"],
-  ["dro", "dra"],
-  ["dratt", "dra"],
-  ["fant", "finne"],
-  ["funnet", "finne"],
-  ["fikk", "få"],
-  ["fått", "få"],
-  ["gikk", "gå"],
-  ["gått", "gå"],
-  ["gjorde", "gjøre"],
-  ["gjort", "gjøre"],
-  ["hadde", "ha"],
-  ["hatt", "ha"],
-  ["holdt", "holde"],
-  ["kom", "komme"],
-  ["kommet", "komme"],
-  ["leste", "lese"],
-  ["lest", "lese"],
-  ["løp", "løpe"],
-  ["løpt", "løpe"],
-  ["sa", "si"],
-  ["sagt", "si"],
-  ["skrev", "skrive"],
-  ["skrevet", "skrive"],
-  ["sov", "sove"],
-  ["sovet", "sove"],
-  ["spiser", "spise"],
-  ["spist", "spise"],
-  ["spiste", "spise"],
-  ["sto", "stå"],
-  ["stod", "stå"],
-  ["stått", "stå"],
-  ["tatt", "ta"],
-  ["tok", "ta"],
-  ["var", "være"],
-  ["visste", "vite"],
-  ["vært", "være"],
-]);
-
 let wordSearchIndex = createEmptyWordSearchIndex();
 
 function createEmptyWordSearchIndex() {
@@ -172,11 +124,6 @@ function buildWordSearchIndex() {
     });
   });
 
-  COMMON_NORWEGIAN_FORM_ALIASES.forEach((resolvedTerm, sourceTerm) => {
-    if (wordSearchIndex.norwegianExact.has(resolvedTerm)) {
-      addNorwegianKeyboardTerm(sourceTerm, resolvedTerm, true);
-    }
-  });
 }
 
 function hasExactSearchTerm(query) {
@@ -186,23 +133,38 @@ function hasExactSearchTerm(query) {
   );
 }
 
-function resolveWordSearchQuery(originalQuery) {
+async function resolveWordSearchQuery(originalQuery, selectedPOS = "") {
   if (hasExactSearchTerm(originalQuery)) {
-    return { query: originalQuery, reason: "exact" };
+    return { query: originalQuery, queries: [originalQuery], reason: "exact" };
   }
 
-  const formAlias = COMMON_NORWEGIAN_FORM_ALIASES.get(originalQuery);
-  if (formAlias && wordSearchIndex.norwegianExact.has(formAlias)) {
-    return { query: formAlias, reason: "word-form" };
+  const officialResolution = await window.Inflections?.findLemmas(
+    originalQuery,
+    selectedPOS,
+  );
+  const officialLemmas = (officialResolution?.lemmas || []).filter((lemma) =>
+    wordSearchIndex.norwegianExact.has(lemma),
+  );
+  if (officialLemmas.length > 0) {
+    return {
+      query: officialLemmas[0],
+      queries: officialLemmas,
+      reason: "word-form",
+    };
   }
 
   const keyboardTerms =
     wordSearchIndex.norwegianKeyboardTerms.get(originalQuery);
   if (keyboardTerms && keyboardTerms.size === 1) {
-    return { query: [...keyboardTerms][0], reason: "keyboard" };
+    const query = [...keyboardTerms][0];
+    return { query, queries: [query], reason: "keyboard" };
   }
 
-  return { query: originalQuery, reason: "unresolved" };
+  return {
+    query: originalQuery,
+    queries: [originalQuery],
+    reason: "unresolved",
+  };
 }
 
 function hasSearchableCharacters(value) {
@@ -429,7 +391,7 @@ function updateWordMetadata(entry) {
 
 // --- Sentences index globals ---
 let sentenceCorpus = []; // Flat array of { id, no, en, noNorm, enNorm, cefr, audio }
-let sentenceIndex = null; // Map<string, Uint32Array | number[]>
+let sentenceIndex = null; // { norwegian: Map, english: Map }
 
 // Function to show or hide the landing card
 function showLandingCard(show) {
@@ -570,8 +532,8 @@ function handleSearchButtonClick() {
 // Prefixed: all language-site forks share one origin (osloandrew.github.io),
 // so localStorage is shared across them too — an unprefixed key here would
 // let a visit to another language site overwrite this one's cached data.
-const WORD_CSV_CACHE_KEY = "wordDataCsvNorwegian";
-const WORD_CSV_CACHE_TIME_KEY = "wordDataCsvTimestampNorwegian";
+const WORD_CSV_CACHE_KEY = "wordDataCsvNorwegianV2";
+const WORD_CSV_CACHE_TIME_KEY = "wordDataCsvTimestampNorwegianV2";
 const WORD_CSV_CACHE_MAX_AGE = 6 * 60 * 60 * 1000; // 6 hours, matching stories.js
 
 // Read the cached raw CSV text (not parsed entries — a parsed copy of the
@@ -772,24 +734,34 @@ function tokenize(text) {
 
 function buildSentenceIndex() {
   console.time("[Sentences] build index");
-  const idx = new Map();
-  for (const row of sentenceCorpus) {
+  const addRowTokens = (index, rowId, tokens) => {
     const seen = new Set();
-    for (const tok of [...tokenize(row.noNorm), ...tokenize(row.enNorm)]) {
+    for (const tok of tokens) {
       if (tok.length === 0) continue;
       if (seen.has(tok)) continue; // avoid dup adds for same row
       seen.add(tok);
-      let postings = idx.get(tok);
+      let postings = index.get(tok);
       if (!postings) {
         postings = [];
-        idx.set(tok, postings);
+        index.set(tok, postings);
       }
-      postings.push(row.id);
+      postings.push(rowId);
     }
+  };
+
+  const idx = { norwegian: new Map(), english: new Map() };
+  for (const row of sentenceCorpus) {
+    addRowTokens(idx.norwegian, row.id, tokenize(row.noNorm));
+    addRowTokens(idx.english, row.id, tokenize(row.enNorm));
   }
-  // Optionally compact to typed arrays if large
-  for (const [k, list] of idx) {
-    if (list.length > 1024) idx.set(k, Uint32Array.from(list));
+
+  // Optionally compact large postings to typed arrays.
+  for (const languageIndex of Object.values(idx)) {
+    for (const [key, list] of languageIndex) {
+      if (list.length > 1024) {
+        languageIndex.set(key, Uint32Array.from(list));
+      }
+    }
   }
   sentenceIndex = idx;
   console.timeEnd("[Sentences] build index");
@@ -1292,19 +1264,19 @@ async function search(queryOverride = null) {
     return;
   }
 
-  const wordSearchResolution =
-    selector === "words"
-      ? resolveWordSearchQuery(originalQuery)
-      : { query: originalQuery, reason: "exact" };
-  const query = wordSearchResolution.query;
   const selectedPOS = document.getElementById("pos-select")
     ? document.getElementById("pos-select").value.toLowerCase()
     : "";
+  const wordSearchResolution =
+    selector === "words"
+      ? await resolveWordSearchQuery(originalQuery, selectedPOS)
+      : { query: originalQuery, queries: [originalQuery], reason: "exact" };
+  const query = wordSearchResolution.query;
   const selectedCEFR = document.getElementById("cefr-select")
     ? document.getElementById("cefr-select").value.toUpperCase()
     : ""; // Fetch the selected CEFR level
   const type = document.getElementById("type-select").value; // Get the search type (words or sentences)
-  const normalizedQueries = [normalizeSearchText(query)]; // Use only the base query for matching
+  const normalizedQueries = wordSearchResolution.queries.map(normalizeSearchText);
 
   // Build the "No Matches" message based on filters
   const filterMessage = [];
@@ -1388,15 +1360,31 @@ async function search(queryOverride = null) {
 
     console.time("[Sentences] query");
     const terms = normalizeSearchText(query).split(/\s+/).filter(Boolean);
+    const norwegianTermGroups = await Promise.all(
+      terms.map((term) => window.Inflections.expandSearchTerm(term)),
+    );
+    const norwegianHighlightTerms = [
+      ...new Set(norwegianTermGroups.flat()),
+    ];
 
     let ids = null;
-    for (const t of terms) {
-      const match = sentenceIndex.get(t) || [];
-      const asArray = ArrayBuffer.isView(match) ? Array.from(match) : match;
+    for (let termIndex = 0; termIndex < terms.length; termIndex++) {
+      const groupIds = new Set();
+      for (const form of norwegianTermGroups[termIndex]) {
+        const match = sentenceIndex.norwegian.get(form) || [];
+        for (const id of match) groupIds.add(id);
+      }
+
+      // English examples are not Norwegian morphology. Search the literal
+      // English token only, so an official Norwegian form that happens to be
+      // an English word cannot broaden the English side of the corpus.
+      const englishMatch = sentenceIndex.english.get(terms[termIndex]) || [];
+      for (const id of englishMatch) groupIds.add(id);
+
       ids =
         ids === null
-          ? new Set(asArray)
-          : new Set(asArray.filter((x) => ids.has(x)));
+          ? groupIds
+          : new Set([...groupIds].filter((id) => ids.has(id)));
     }
 
     // If nothing matched, default to empty
@@ -1426,13 +1414,9 @@ async function search(queryOverride = null) {
       if (inOrder) {
         exact.push(r);
       } else {
-        // fallback: all words must still appear somewhere
-        const matchesAll = terms.every(
-          (t) => r.noNorm.includes(t) || r.enNorm.includes(t),
-        );
-        if (matchesAll) {
-          partial.push(r);
-        }
+        // The postings intersection above already guarantees one accepted
+        // form for every query term; these are morphology-expanded matches.
+        partial.push(r);
       }
     }
 
@@ -1454,7 +1438,12 @@ async function search(queryOverride = null) {
     }
     combined = combined.slice(0, 10);
 
-    renderSentenceMatchesFromCorpus(combined, query);
+    renderSentenceMatchesFromCorpus(
+      combined,
+      query,
+      norwegianHighlightTerms,
+      terms,
+    );
 
     console.timeEnd("[Sentences] query");
     hideSpinner();
@@ -1489,8 +1478,15 @@ async function search(queryOverride = null) {
 
     // Filter results by query and selected POS for words
     matchingResults = cleanResults.filter((r) => {
-      // Exact and partial match logic
       const matchesQuery = normalizedQueries.some((variation) => {
+        if (wordSearchResolution.reason === "word-form") {
+          return splitSearchTerms(r.ord).includes(variation);
+        }
+
+        // Literal word/translation searches retain their existing exact,
+        // prefix, and substring behavior. Resolved inflections above are
+        // deliberately exact so an inflected form of "bar" cannot also pull
+        // in an unrelated headword such as "barn".
         const exactRegex = createWholeTermRegex(variation); // Exact match for Unicode words
         const partialRegex = new RegExp(escapeRegExp(variation), "iu"); // Literal partial match for larger words
         const wordMatch =
@@ -1539,7 +1535,8 @@ async function search(queryOverride = null) {
 
     // If no exact matches are found, find inexact matches
     if (noExactMatches) {
-      // Only use spelling distance after exact, alias, prefix, and substring matching fail.
+      // Only use spelling distance after exact, official-form, prefix, and
+      // substring matching fail.
       const inexactWordQueries = findClosestSearchTerms(query);
       const suggestionOrder = new Map(
         inexactWordQueries.map((term, index) => [term, index]),
@@ -2114,8 +2111,20 @@ function renderInflectionRows(forms) {
 }
 
 function renderInflectionsSource(inflections) {
-  if (!inflections?.isAuthoritative) return "";
-  return `<p class="inflections-hint">Forms from <a href="https://ord.uib.no/ord_1_Ordlister.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Norsk Ordbank</a></p>`;
+  if (inflections?.sourceType === "ordbank") {
+    return `<p class="inflections-hint">Forms from <a href="https://ord.uib.no/ord_1_Ordlister.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Norsk Ordbank</a></p>`;
+  }
+  if (inflections?.sourceType === "dictionary-override") {
+    return `<p class="inflections-hint">Forms based on this dictionary’s adjective classification</p>`;
+  }
+  if (inflections?.sourceType === "ordbank-derived") {
+    const sourceLemma = escapeHTML(inflections.derivedFrom || "a compound head");
+    return `<p class="inflections-hint">Forms derived from the <a href="https://ord.uib.no/ord_1_Ordlister.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Norsk Ordbank</a> paradigm for <i>${sourceLemma}</i></p>`;
+  }
+  if (inflections?.sourceType === "dictionary-only") {
+    return `<p class="inflections-hint">Only the dictionary form is available; no verified inflections were found</p>`;
+  }
+  return "";
 }
 
 function renderInflectionsTableWrapper(inflections) {
@@ -2181,6 +2190,19 @@ async function toggleInflectionsTable(button) {
   }
 }
 
+const dictionaryEntryDomIds = new WeakMap();
+let nextDictionaryEntryDomId = 1;
+
+function getDictionaryEntryDomKey(entry) {
+  if (!entry || (typeof entry !== "object" && typeof entry !== "function")) {
+    return "entry-unknown";
+  }
+  if (!dictionaryEntryDomIds.has(entry)) {
+    dictionaryEntryDomIds.set(entry, nextDictionaryEntryDomId++);
+  }
+  return `entry-${dictionaryEntryDomIds.get(entry)}`;
+}
+
 // Render a list of results (words)
 function displaySearchResults(results, query = "") {
   query = query.toLowerCase().trim(); // Ensure the query is lowercased and trimmed
@@ -2199,8 +2221,7 @@ function displaySearchResults(results, query = "") {
     // or for entries without a verified noun/verb/adjective paradigm.
     const inflections = window.Inflections?.getForms(result) || null;
 
-    // Convert the word to lowercase and trim spaces when generating the ID
-    const normalizedWord = result.ord.toLowerCase().trim();
+    const dictionaryEntryDomKey = getDictionaryEntryDomKey(result);
 
     // Determine whether to initially hide the content for multiple results
     const multipleResultsExposedContent = defaultResult
@@ -2234,7 +2255,7 @@ function displaySearchResults(results, query = "") {
       .replace(/'/g, "\\'")
       .replace(/"/g, "&quot;")
       .replace(/\r?\n|\r/g, ""); // Escapes single quotes, double quotes, and removes newlines
-    const hasSentencesPlaceholder = `<button class="sentence-btn english-toggle-btn" style="display: none;" onclick="event.stopPropagation(); toggleEnglishTranslations('${normalizedWord}')">Show English</button>`;
+    const hasSentencesPlaceholder = `<button class="sentence-btn english-toggle-btn" style="display: none;" onclick="event.stopPropagation(); toggleEnglishTranslations('${dictionaryEntryDomKey}')">Show English</button>`;
 
     const escapedGender = result.gender.replace(/'/g, "\\'").trim();
     const escapedEngelsk = result.engelsk.replace(/'/g, "\\'").trim();
@@ -2342,7 +2363,7 @@ function displaySearchResults(results, query = "") {
                         ${hasSentencesPlaceholder}
                     </div>       
             <!-- Sentences container is now outside the definition block -->
-            <div class="sentences-container" id="sentences-container-${normalizedWord}"></div>
+            <div class="sentences-container" id="sentences-container-${dictionaryEntryDomKey}"></div>
         `;
   });
   appendToContainer(htmlString);
@@ -2367,8 +2388,8 @@ function displaySearchResults(results, query = "") {
     setTimeout(() => {
       const singleResult = results[0];
       fetchAndRenderSentences(
-        singleResult.ord,
-        singleResult.pos,
+        singleResult,
+        getDictionaryEntryDomKey(singleResult),
         isEnglishVisible,
       ).catch((error) => {
         console.error("Could not load inflected example sentences.", error);
@@ -2431,14 +2452,6 @@ function toggleEnglishTranslations(wordId = null) {
   });
 }
 
-// Function to find the gender of a word
-function getWordGender(word) {
-  const matchingWord = results.find(
-    (result) => result.ord.toLowerCase() === word.toLowerCase(),
-  );
-  return matchingWord ? matchingWord.gender : "unknown"; // Default to 'unknown' if not found
-}
-
 function getCefrClass(cefrLevel) {
   if (cefrLevel === "A1" || cefrLevel === "A2") {
     return "easy";
@@ -2472,174 +2485,21 @@ function getCefrColor(cefrLevel) {
   }
 }
 
-// Utility function to generate word variations for verbs ending in -ere and handle adjective/noun forms
-function generateWordVariationsForSentences(word, pos) {
-  const variations = [];
-
-  // Split the word into parts in case it's a phrase (e.g., "vedtatt sannhet")
-  const wordParts = word.split(" ");
-
-  // Handle phrases with slashes (e.g., "være/vær så snill", "logge inn/på")
-  if (word.includes("/")) {
-    // Split on the slash and create variations for both parts
-    const [firstPart, secondPart] = word.split("/");
-    const restOfPhrase = word.split(" ").slice(1).join(" "); // Get the rest of the phrase after the first word
-
-    variations.push(`${firstPart} ${restOfPhrase}`); // Add the first part with the rest of the phrase
-    variations.push(`${secondPart} ${restOfPhrase}`); // Add the second part with the rest of the phrase
-    return variations;
-  }
-
-  // Reflexive pronouns to handle reflexive verbs with variations (e.g., "seg", "deg", "meg", "oss", etc.)
-  const reflexivePronouns = ["seg", "deg", "meg", "oss", "dere"];
-
-  // If it's a single word
-  if (wordParts.length === 1) {
-    const singleWord = wordParts[0];
-    let stem = singleWord;
-    let gender = getWordGender(singleWord);
-
-    if (singleWord.length <= 2) {
-      // Handle the case where the word is too short to generate meaningful variations
-      console.warn(`Word "${singleWord}" is too short to generate variations.`);
-      variations.push(singleWord); // Just return the word as is
-      return variations;
-    }
-
-    if (pos === "noun" && (gender.includes("en") || gender.includes("et") || gender.includes("ei"))) {
-      // A word's gender field can list more than one article (e.g. "en-et"),
-      // so each applicable pattern below is additive rather than exclusive —
-      // this only adds extra highlight candidates, so an extra guess that
-      // never appears in a sentence is harmless.
-      if (gender.includes("ei")) {
-        if (singleWord.endsWith("e")) {
-          stem = singleWord.slice(0, -1); // Remove the final -e from the word
-        }
-        variations.push(
-          `${stem}`, // setning
-          `${stem}e`, // jente
-          `${stem}a`, // jenta
-          `${stem}en`, // jenten
-          `${stem}er`, // jenter
-          `${stem}ene`, // jentene
-        );
-      }
-
-      if (gender.includes("en")) {
-        if (singleWord.endsWith("e")) {
-          const enStem = singleWord.slice(0, -1);
-          variations.push(
-            `${singleWord}`, // type
-            `${enStem}en`, // typen
-            `${enStem}er`, // typer
-            `${enStem}ene`, // typene
-          );
-        } else {
-          variations.push(
-            `${singleWord}`, // tilskuer / hund
-            `${singleWord}en`, // tilskueren / hunden
-            `${singleWord}er`, // hunder
-            `${singleWord}e`, // tilskuere (the common "-er" agent-noun plural)
-            `${singleWord}ene`, // hundene
-            `${singleWord}ne`, // tilskuerne (the common "-er" agent-noun definite plural)
-          );
-        }
-      }
-
-      if (gender.includes("et")) {
-        if (singleWord.endsWith("e")) {
-          variations.push(
-            `${singleWord}`, // eple
-            `${singleWord}t`, // eplet
-            `${singleWord}r`, // epler
-            `${singleWord}ne`, // eplene
-          );
-        } else {
-          variations.push(
-            `${singleWord}`, // hus
-            `${singleWord}et`, // huset
-            `${singleWord}er`, // (rare pluralizing et-words)
-            `${singleWord}ene`, // husene
-          );
-        }
-      }
-      // Handle verb variations if the word is a verb and ends with "e"
-    } else if (pos === "verb") {
-      if (singleWord.endsWith("e")) {
-        stem = singleWord.slice(0, -1); // Remove the final -e from the verb
-      }
-      variations.push(
-        `${stem}`, // imperative: anglifiser
-        `${stem}a`, // past tense: snakka
-        `${stem}e`, // infinitive: anglifisere
-        `${stem}er`, // present tense: anglifiserer
-        `${stem}es`, // passive: anglifiseres
-        `${stem}et`, // past tense: snakket
-        `${stem}r`, // present tense: bor
-        `${stem}t`, // past participle: anglifisert
-        `${stem}te`, // past tense: anglifiserte
-      );
-    } else {
-      // For non-verbs, just add the word itself as a variation
-      variations.push(singleWord);
-    }
-
-    // If it's a phrase (e.g., "vedtatt sannhet"), handle each part separately
-  } else if (wordParts.length >= 2) {
-    const [firstWord, secondWord, ...restOfPhrase] = wordParts;
-    const remainingPhrase = restOfPhrase.join(" ");
-
-    // Handle reflexive verbs like "beklage seg" with variations for reflexive pronouns
-    if (reflexivePronouns.includes(secondWord)) {
-      let stem;
-      // Only remove the final 'e' if it exists; otherwise, use the full word (e.g., for "bry")
-      if (firstWord.endsWith("e")) {
-        stem = firstWord.slice(0, -1); // Remove the final -e from the verb
-      } else {
-        stem = firstWord; // Use the full word if it doesn't end with 'e'
-      }
-      // Add variations for all reflexive pronouns (seg, deg, meg, etc.)
-      reflexivePronouns.forEach((reflexive) => {
-        variations.push(
-          `${stem}e ${reflexive} ${remainingPhrase}`, // infinitive
-          `${stem}er ${reflexive} ${remainingPhrase}`, // present tense
-          `${stem}te ${reflexive} ${remainingPhrase}`, // past tense
-          `${stem}t ${reflexive} ${remainingPhrase}`, // past participle
-          `${stem}et ${reflexive} ${remainingPhrase}`, // past tense/past participle
-          `${stem}a ${reflexive} ${remainingPhrase}`, // past tense/past participle
-          `${stem} ${reflexive} ${remainingPhrase}`, // imperative
-          `${stem}es ${reflexive} ${remainingPhrase}`, // passive
-        );
-      });
-    } else if (wordParts.length === 2) {
-      // Handle adjective inflection (e.g., "vedtatt" -> "vedtatte")
-      const adjectiveVariations = [firstWord, firstWord.replace(/t$/, "te")]; // Add plural/adjective form
-
-      // Handle noun pluralization (e.g., "sannhet" -> "sannheter")
-      const nounVariations = [secondWord, secondWord + "er"]; // Add plural form for nouns
-
-      // Combine all variations of adjective and noun
-      adjectiveVariations.forEach((adj) => {
-        nounVariations.forEach((noun) => {
-          variations.push(`${adj} ${noun}`);
-        });
-      });
-    } else {
-      // For other longer phrases, just return the phrase as is
-      variations.push(word);
-    }
-  } else {
-    // Add the original phrase as a variation (no transformation needed for long phrases)
-    variations.push(word);
-  }
-
-  return variations;
-}
-
 // Render a single sentence
-function renderSentenceMatchesFromCorpus(rows, query) {
+function renderSentenceMatchesFromCorpus(
+  rows,
+  query,
+  norwegianHighlightTerms,
+  englishHighlightTerms,
+) {
   clearContainer();
   const safeQuery = escapeHTML(query);
+  const norwegianMatcher = window.SentenceFormMatching.createMatcher(
+    norwegianHighlightTerms,
+  );
+  const englishMatcher = window.SentenceFormMatching.createMatcher(
+    englishHighlightTerms,
+  );
 
   if (!rows.length) {
     document.getElementById("results-container").innerHTML = `
@@ -2663,8 +2523,8 @@ function renderSentenceMatchesFromCorpus(rows, query) {
     const cefr = row.cefr;
     const cefrLabel = getSentenceCefrLabelHTML(cefr);
 
-    const noHTML = highlightQuery(row.no, query);
-    const enHTML = row.en ? highlightQuery(row.en, query) : "";
+    const noHTML = norwegianMatcher.highlight(row.no);
+    const enHTML = row.en ? englishMatcher.highlight(row.en) : "";
 
     html += `
       <div class="sentence-container">
@@ -2698,76 +2558,6 @@ function renderSentenceMatchesFromCorpus(rows, query) {
   }
 
   document.getElementById("results-container").innerHTML = html;
-}
-
-/*
- * Wrap every occurrence of any given term in a highlight span. Rather than
- * requiring an exact match against a pre-generated list of inflected
- * forms, a term of 3+ letters is treated as a stem: it's matched anywhere
- * inside a word and the highlight is expanded to the whole word, so any
- * inflection/suffix the caller's candidate list didn't anticipate (e.g. an
- * irregular plural, or a form generateWordVariationsForSentences simply
- * doesn't know about) still gets highlighted correctly. Terms shorter than
- * that fall back to requiring an exact whole-word match, since a 1-2
- * letter stem would otherwise match huge numbers of unrelated words.
- */
-function highlightTermsInText(text, terms) {
-  const uniqueTerms = [...new Set(terms.filter(Boolean))];
-
-  if (!uniqueTerms.length) return text;
-
-  const longTerms = uniqueTerms.filter((term) => term.length >= 3);
-  const shortTerms = uniqueTerms.filter((term) => term.length < 3);
-  const patterns = [];
-
-  if (longTerms.length) {
-    const literalLongTerms = longTerms.map(escapeRegExp).join("|");
-    patterns.push(`[\\p{L}]*(?:${literalLongTerms})[\\p{L}]*`);
-  }
-
-  if (shortTerms.length) {
-    const literalShortTerms = shortTerms.map(escapeRegExp).join("|");
-    patterns.push(
-      `(?<![\\p{L}\\p{N}])(?:${literalShortTerms})(?![\\p{L}\\p{N}])`,
-    );
-  }
-
-  const regex = new RegExp(patterns.join("|"), "giu");
-
-  return text.replace(
-    regex,
-    (matchedText) => `<span style="color: #1f6fb3;">${matchedText}</span>`,
-  );
-}
-
-// Highlight search query in text, accounting for Norwegian characters (å, æ, ø) and verb variations
-function highlightQuery(sentence, query) {
-  if (!query) return sentence; // If no query, return sentence as is.
-
-  // Always remove any existing highlights by replacing the <span> tags to avoid persistent old highlights
-  const cleanSentence = sentence.replace(
-    /<span style="color: #1f6fb3;">(.*?)<\/span>/gi,
-    "$1",
-  );
-
-  // Get part of speech (POS) for the query to pass into `generateWordVariationsForSentences`
-  const normalizedQuery = normalizeSearchText(query);
-  const matchingWordEntry = results.find((result) =>
-    normalizeSearchText(result.ord).includes(normalizedQuery),
-  );
-  const pos = matchingWordEntry
-    ? WordClass.getWordClass(matchingWordEntry.gender)
-    : "";
-
-  // Generate word variations using the external function
-  const highlightTerms = [
-    ...splitSearchTerms(query),
-    ...generateWordVariationsForSentences(normalizedQuery, pos),
-  ]
-    .map(normalizeSearchText)
-    .filter(Boolean);
-
-  return highlightTermsInText(cleanSentence, highlightTerms);
 }
 
 function renderWordDefinition(word, selectedPOS = "") {
@@ -2826,23 +2616,39 @@ function renderWordDefinition(word, selectedPOS = "") {
   }
 }
 
-// Fetch and render sentences for a word or phrase. Supplemental examples use
-// only exact, authoritative forms from inflections-data.json; the entry's own
-// example is always inserted first, whether or not it contains one of them.
-async function fetchAndRenderSentences(word, pos, showEnglish = true) {
-  // Added showEnglish parameter with default value
-  const trimmedWord = word
+function getHomographEntries(entry) {
+  return [
+    ...new Set(
+      splitSearchTerms(entry?.ord).flatMap(
+        (lemma) => wordSearchIndex.norwegianExact.get(lemma) || [],
+      ),
+    ),
+  ];
+}
+
+// Fetch and render sentences for one exact dictionary sense. Supplemental
+// examples use only forms not shared by another homograph; the selected
+// entry's own example is always inserted first.
+async function fetchAndRenderSentences(
+  matchingWordEntry,
+  dictionaryEntryDomKey,
+  showEnglish = true,
+) {
+  if (!matchingWordEntry?.ord) return;
+  const trimmedWord = matchingWordEntry.ord
     .trim()
     .toLowerCase()
     .replace(/[\r\n]+/g, ""); // Remove any carriage returns or newlines
-  const button = document.querySelector(`button[data-word='${word}']`);
   const sentenceContainer = document.getElementById(
-    `sentences-container-${trimmedWord}`,
+    `sentences-container-${dictionaryEntryDomKey}`,
   );
 
   if (!sentenceContainer) {
     return;
   }
+  const button = sentenceContainer.previousElementSibling?.querySelector(
+    ".english-toggle-btn",
+  );
 
   // Toggle visibility without re-fetching sentences
   if (sentenceContainer.getAttribute("data-fetched") === "true") {
@@ -2864,26 +2670,9 @@ async function fetchAndRenderSentences(word, pos, showEnglish = true) {
 
   sentenceContainer.innerHTML = ""; // Clear previous sentences
 
-  // Find the part of speech (POS) of the word — needed to disambiguate a
-  // homograph (e.g. a word with both a noun and a verb sense) into the
-  // right entry. matchesWordClass alone misses entries with a bare
-  // "noun" gender (no en/et/ei article on file, ~32 CSV rows) — it's
-  // deliberately strict there — so also accept a direct pos === "noun"
-  // match, same broadening used elsewhere for this known edge case.
-  const matchingWordEntry = results.find(
-    (result) =>
-      result.ord.toLowerCase() === trimmedWord &&
-      pos &&
-      (WordClass.matchesWordClass(result.gender, pos) ||
-        (pos === "noun" && result.gender === "noun")),
-  );
-  if (!matchingWordEntry) {
-    console.error(`No matching word found for "${trimmedWord}".`);
-    return; // Stop if the word isn't found
-  }
-
-  const sentenceForms = await window.Inflections.getSentenceForms(
+  const sentenceForms = await window.Inflections.getSupplementalSentenceForms(
     matchingWordEntry,
+    getHomographEntries(matchingWordEntry),
   );
   if (!sentenceContainer.isConnected) return;
   const formMatcher = window.SentenceFormMatching.createMatcher(sentenceForms);
@@ -2900,7 +2689,7 @@ async function fetchAndRenderSentences(word, pos, showEnglish = true) {
     supplementalResults,
     trimmedWord,
     "eksempel",
-    pos,
+    WordClass.getWordClass(matchingWordEntry.gender),
   );
   let matchingResults = [...primaryResults, ...rankedSupplemental].slice(0, 10);
 
@@ -2975,9 +2764,7 @@ async function fetchAndRenderSentences(word, pos, showEnglish = true) {
     sentenceContainer.style.display = "block"; // Show the container
 
     // Find the button and display it if sentences exist
-    const englishButton = sentenceContainer.parentElement.querySelector(
-      ".english-toggle-btn",
-    );
+    const englishButton = button;
     if (englishButton) {
       englishButton.style.display = "block"; // Make the button visible
       englishButton.innerText = showEnglish ? "Hide English" : "Show English";
@@ -3383,7 +3170,10 @@ window.onload = function () {
       // The verified word-form snapshot is deliberately lower priority than
       // the main dictionary. Warm it only after the dictionary is usable; a
       // learner who opens a table first will reuse the same in-flight request.
-      const preloadInflections = () => window.Inflections?.preload();
+      const preloadInflections = async () => {
+        await window.Inflections?.preload();
+        await window.Inflections?.prepareSearchIndex();
+      };
       if ("requestIdleCallback" in window) {
         window.requestIdleCallback(preloadInflections, { timeout: 4000 });
       } else {

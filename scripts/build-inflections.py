@@ -26,7 +26,8 @@ NOUN_GENDERS = {"en", "et", "ei"}
 CLASS_PREFIX = {"noun": "n", "adjective": "a", "verb": "v"}
 FIELD_SEPARATOR = "|"
 ALTERNATIVE_SEPARATOR = "/"
-DATA_VERSION = 3
+DATA_VERSION = 6
+NOUN_GENDER_ORDER = ("en", "ei", "et")
 
 
 def normalize(value: str) -> str:
@@ -58,7 +59,73 @@ def read_targets(dictionary_path: Path) -> dict[str, set[str]]:
                 lemma = normalize(raw_lemma)
                 if lemma and " " not in lemma:
                     targets[current_class].add(lemma)
+                elif lemma and current_class == "verb":
+                    # Multiword verb entries (for example "rydde ut") need
+                    # the first verb's official paradigm in the cloze game.
+                    # It is kept as lookup-only data; the table still belongs
+                    # to the complete dictionary entry and is not fabricated.
+                    first_part = lemma.split()[0].split("/")[0]
+                    if first_part:
+                        targets[current_class].add(first_part)
     return targets
+
+
+def canonical_noun_gender(gender: str) -> str:
+    tokens = set(gender.strip().lower().split("-")) & NOUN_GENDERS
+    return "-".join(article for article in NOUN_GENDER_ORDER if article in tokens)
+
+
+def noun_record_key(lemma: str, gender: str) -> str:
+    return f"n:{lemma}:{canonical_noun_gender(gender)}"
+
+
+def noun_gender_articles(gender: str) -> set[str]:
+    articles = set(canonical_noun_gender(gender).split("-")) & NOUN_GENDERS
+    # In Bokmål, a dictionary entry presented with ``ei`` may also use the
+    # common-gender ``en`` paradigm. Keep that accepted option within the same
+    # sense, without leaking neuter or unrelated homograph paradigms into it.
+    if "ei" in articles:
+        articles.add("en")
+    return articles
+
+
+def noun_paradigm_article(paradigm: list[object]) -> str:
+    if len(paradigm) != 3:
+        return ""
+    definite_singular = normalize(str(paradigm[0]))
+    if definite_singular.endswith("a"):
+        return "ei"
+    if definite_singular.endswith("t"):
+        return "et"
+    if definite_singular.endswith("n"):
+        return "en"
+    return ""
+
+
+def read_noun_articles(dictionary_path: Path) -> dict[str, set[str]]:
+    """Return every distinct dictionary noun-gender signature per lemma."""
+    genders: dict[str, set[str]] = defaultdict(set)
+    with dictionary_path.open(encoding="utf-8-sig", newline="") as source:
+        for row in csv.DictReader(source):
+            gender = canonical_noun_gender(row.get("gender", ""))
+            if not gender:
+                continue
+            for raw_lemma in row.get("ord", "").split(","):
+                lemma = normalize(raw_lemma)
+                if lemma and " " not in lemma:
+                    genders[lemma].add(gender)
+    return genders
+
+
+def read_dictionary_lemmas(dictionary_path: Path) -> set[str]:
+    lemmas: set[str] = set()
+    with dictionary_path.open(encoding="utf-8-sig", newline="") as source:
+        for row in csv.DictReader(source):
+            for raw_lemma in row.get("ord", "").split(","):
+                lemma = normalize(raw_lemma)
+                if lemma and " " not in lemma:
+                    lemmas.add(lemma)
+    return lemmas
 
 
 def download_source() -> list[list[object]]:
@@ -84,7 +151,10 @@ def add(record: list[set[str]], index: int, *values: str) -> None:
 
 
 def build_records(
-    source_entries: list[list[object]], targets: dict[str, set[str]]
+    source_entries: list[list[object]],
+    targets: dict[str, set[str]],
+    dictionary_class_overrides: set[str] | None = None,
+    noun_genders: dict[str, set[str]] | None = None,
 ) -> dict[str, list[list[str]]]:
     records: dict[str, list[set[str]]] = {}
     adverbial_adjective_fallbacks: dict[str, list[set[str]]] = {}
@@ -122,10 +192,15 @@ def build_records(
             and inflection_group in {"NOUN_regular", "NOUN_reg_fem"}
             and lemma in targets["noun"]
         ):
-            key = f"n:{lemma}"
-            record = records.setdefault(key, [set() for _ in range(3)])
             for paradigm in paradigms:
-                if isinstance(paradigm, list) and len(paradigm) == 3:
+                if not isinstance(paradigm, list):
+                    continue
+                article = noun_paradigm_article(paradigm)
+                for gender in (noun_genders or {}).get(lemma, {""}):
+                    if gender and article not in noun_gender_articles(gender):
+                        continue
+                    key = noun_record_key(lemma, gender) if gender else f"n:{lemma}"
+                    record = records.setdefault(key, [set() for _ in range(3)])
                     add(record, 0, str(paradigm[0]))
                     add(record, 1, str(paradigm[1]))
                     add(record, 2, str(paradigm[2]))
@@ -171,14 +246,17 @@ def build_records(
 
         # VERB_regular paradigms include present, passive forms, past,
         # participles, and imperative alternatives after an unused alternate-
-        # infinitive slot. Keep the five learner-facing forms only.
+        # infinitive slot. The first five compact fields remain the forms shown
+        # in the learner-facing table. The remaining seven fields retain the
+        # official passive and participial slots for exact sentence matching
+        # and same-slot Word Game distractors.
         elif (
             source_class == "VERB"
             and inflection_group == "VERB_regular"
             and lemma in targets["verb"]
         ):
             key = f"v:{lemma}"
-            record = records.setdefault(key, [set() for _ in range(5)])
+            record = records.setdefault(key, [set() for _ in range(12)])
             add(record, 0, str(raw_lemma))
             for paradigm in paradigms:
                 if not isinstance(paradigm, list) or len(paradigm) != 15:
@@ -194,6 +272,13 @@ def build_records(
                     str(paradigm[13]),
                     str(paradigm[14]),
                 )
+                add(record, 5, str(paradigm[2]), str(paradigm[3]))
+                add(record, 6, str(paradigm[6]))
+                add(record, 7, str(paradigm[7]))
+                add(record, 8, str(paradigm[8]))
+                add(record, 9, str(paradigm[9]))
+                add(record, 10, str(paradigm[10]))
+                add(record, 11, str(paradigm[11]))
 
         # VERB_sPass covers verbs such as finnes/fins. The last field can be a
         # theoretical imperative; the public dictionary's learner-facing
@@ -204,7 +289,7 @@ def build_records(
             and lemma in targets["verb"]
         ):
             key = f"v:{lemma}"
-            record = records.setdefault(key, [set() for _ in range(5)])
+            record = records.setdefault(key, [set() for _ in range(12)])
             add(record, 0, str(raw_lemma))
             for paradigm in paradigms:
                 if not isinstance(paradigm, list) or len(paradigm) != 4:
@@ -214,12 +299,113 @@ def build_records(
                 add(record, 3, str(paradigm[2]))
 
     for lemma, fallback in adverbial_adjective_fallbacks.items():
-        records.setdefault(f"a:{lemma}", fallback)
+        key = f"a:{lemma}"
+        if key not in records:
+            records[key] = fallback
+            if dictionary_class_overrides is not None:
+                dictionary_class_overrides.add(key)
 
     return {
         key: [sorted(values) for values in record]
         for key, record in sorted(records.items())
     }
+
+
+def add_dictionary_fallback_records(
+    records: dict[str, list[list[str]]],
+    targets: dict[str, set[str]],
+    noun_genders: dict[str, set[str]],
+    dictionary_lemmas: set[str],
+) -> tuple[dict[str, str], set[str]]:
+    """Cover dictionary entries that have no exact Ordbank lemma.
+
+    A missing entry first inherits a same-class suffix paradigm only when the
+    preceding compound element is itself a dictionary lemma (allowing the
+    common linking ``-s-``/``-e-``). This models right-headed compounds such as
+    ``luftfoto -> foto`` while rejecting accidental suffixes. Noun heads must
+    agree with the dictionary's article when both sides provide one.
+
+    If no defensible head exists, retain a lemma-only record. That still gives
+    the learner a Word Forms table without presenting guessed endings as fact.
+    """
+    exact_records = dict(records)
+    derived_from: dict[str, str] = {}
+    dictionary_only: set[str] = set()
+
+    for current_class, prefix in CLASS_PREFIX.items():
+        if current_class == "noun":
+            target_entries = [
+                (lemma, noun_record_key(lemma, gender), gender)
+                for lemma in sorted(targets[current_class])
+                for gender in sorted(noun_genders.get(lemma, set()))
+            ]
+            official_heads = [
+                (key.split(":", 2)[1], key, key.rsplit(":", 1)[1])
+                for key in exact_records
+                if key.startswith("n:") and key.count(":") == 2
+            ]
+        else:
+            target_entries = [
+                (lemma, f"{prefix}:{lemma}", "")
+                for lemma in sorted(targets[current_class])
+            ]
+            official_heads = [
+                (key[2:], key, "")
+                for key in exact_records
+                if key.startswith(f"{prefix}:")
+            ]
+
+        for lemma, key, target_gender in target_entries:
+            if key in records:
+                continue
+
+            candidate_heads: list[tuple[int, str, str]] = []
+            for head, head_key, head_gender in official_heads:
+                if len(head) < 3 or len(lemma) < len(head) + 2:
+                    continue
+                if not lemma.endswith(head):
+                    continue
+                if current_class == "noun" and head_gender != target_gender:
+                    continue
+                compound_prefix = lemma[: -len(head)]
+                boundary_score = 0
+                if compound_prefix in dictionary_lemmas:
+                    boundary_score = 1
+                if (
+                    compound_prefix[-1:] in {"e", "s"}
+                    and compound_prefix[:-1] in dictionary_lemmas
+                ):
+                    # Prefer a recognized Norwegian linking element. This
+                    # avoids false longest-suffix analyses such as treating
+                    # aksjonsdag as aksj + onsdag or fedrelandsvenn as
+                    # fedreland + svenn.
+                    boundary_score = 2
+                if boundary_score == 0:
+                    continue
+                candidate_heads.append((boundary_score, head, head_key))
+
+            if candidate_heads:
+                _, head, head_key = max(
+                    candidate_heads,
+                    key=lambda value: (value[0], len(value[1]), value[1]),
+                )
+                compound_prefix = lemma[: -len(head)]
+                records[key] = [
+                    [compound_prefix + form for form in field]
+                    for field in exact_records[head_key]
+                ]
+                derived_from[key] = head_key
+                continue
+
+            if current_class == "noun":
+                records[key] = [[], [], []]
+            elif current_class == "adjective":
+                records[key] = [[lemma], [lemma], [], [], [], [], [], []]
+            else:
+                records[key] = [[lemma], *([[]] * 11)]
+            dictionary_only.add(key)
+
+    return derived_from, dictionary_only
 
 
 def encode_records(records: dict[str, list[list[str]]]) -> dict[str, str]:
@@ -262,12 +448,29 @@ def main() -> int:
     args = parser.parse_args()
 
     targets = read_targets(args.dictionary)
+    noun_genders = read_noun_articles(args.dictionary)
+    dictionary_lemmas = read_dictionary_lemmas(args.dictionary)
     source_entries = read_source(args.source)
-    records = build_records(source_entries, targets)
+    dictionary_class_overrides: set[str] = set()
+    records = build_records(
+        source_entries,
+        targets,
+        dictionary_class_overrides,
+        noun_genders,
+    )
+    derived_from, dictionary_only = add_dictionary_fallback_records(
+        records,
+        targets,
+        noun_genders,
+        dictionary_lemmas,
+    )
     payload = {
         "version": DATA_VERSION,
         "source": SOURCE_URL,
         "license": "CC BY 4.0",
+        "dictionaryClassOverrides": sorted(dictionary_class_overrides),
+        "derivedFrom": dict(sorted(derived_from.items())),
+        "dictionaryOnly": sorted(dictionary_only),
         "forms": encode_records(records),
     }
     args.output.write_text(
@@ -277,8 +480,9 @@ def main() -> int:
 
     target_count = sum(len(values) for values in targets.values())
     print(
-        f"Wrote {len(records):,} authoritative records for "
-        f"{target_count:,} inflectable dictionary spellings to {args.output}",
+        f"Wrote {len(records):,} records for {target_count:,} inflectable "
+        f"dictionary spellings ({len(derived_from):,} derived, "
+        f"{len(dictionary_only):,} lemma-only) to {args.output}",
         file=sys.stderr,
     )
     return 0

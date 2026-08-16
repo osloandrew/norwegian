@@ -53,6 +53,7 @@ assert.equal(value(finnes, "Imperative"), "–");
 // Indeclinable adjectives remain invariant and do not acquire invented
 // comparison forms; lexically irregular adjectives retain stem changes.
 const foekkings = getForms("føkkings", "adjective");
+assert.equal(foekkings.sourceType, "ordbank");
 assert.equal(value(foekkings, "Neuter"), "føkkings");
 assert.equal(value(foekkings, "Plural"), "føkkings");
 assert.equal(value(foekkings, "Comparative"), "–");
@@ -64,6 +65,7 @@ assert.equal(value(kjedsom, "Comparative"), "kjedsommere");
 assert.equal(value(kjedsom, "Definite superlative"), "kjedsomste");
 
 const alene = getForms("alene", "adjective");
+assert.equal(alene.sourceType, "dictionary-override");
 assert.equal(value(alene, "Neuter"), "alene");
 assert.equal(value(alene, "Plural"), "alene");
 assert.equal(value(alene, "Comparative"), "–");
@@ -77,11 +79,114 @@ assert.deepEqual(alternatives(value(museum, "Definite plural")), [
   "museene",
 ]);
 
+// Same-spelling noun senses retain completely separate paradigms when the
+// dictionary gives them different genders.
+const father = getForms("far", "noun - en");
+assert.equal(value(father, "Indefinite singular"), "en far");
+assert.equal(value(father, "Definite singular"), "faren");
+assert.equal(value(father, "Indefinite plural"), "fedre");
+assert.equal(value(father, "Definite plural"), "fedrene");
+
+const track = getForms("far", "noun - et");
+assert.equal(value(track, "Indefinite singular"), "et far");
+assert.equal(value(track, "Definite singular"), "faret");
+assert.equal(value(track, "Indefinite plural"), "far");
+assert.deepEqual(alternatives(value(track, "Definite plural")), [
+  "fara",
+  "farene",
+]);
+assert.equal(alternatives(value(father, "Definite plural")).includes("farene"), false);
+assert.equal(alternatives(value(track, "Indefinite plural")).includes("fedre"), false);
+assert.deepEqual(
+  [...await context.Inflections.getSentenceForms({ ord: "far", gender: "noun - en" })],
+  ["far", "faren", "fedre", "fedrene"],
+);
+assert.deepEqual(
+  [...await context.Inflections.getSentenceForms({ ord: "far", gender: "noun - et" })],
+  ["far", "faret", "fara", "farene"],
+);
+
+const fatherEntry = {
+  ord: "far",
+  gender: "noun - en",
+  eksempel: "Faren min er flink til å lage mat.",
+};
+const trackEntry = {
+  ord: "far",
+  gender: "noun - et",
+  eksempel: "Jegerne fulgte faret etter elgen gjennom skogen.",
+};
+const farHomographs = [fatherEntry, trackEntry];
+assert.deepEqual(
+  [
+    ...await context.Inflections.getSupplementalSentenceForms(
+      fatherEntry,
+      farHomographs,
+    ),
+  ],
+  ["faren", "fedre", "fedrene"],
+);
+const trackSupplementalForms =
+  await context.Inflections.getSupplementalSentenceForms(
+    trackEntry,
+    farHomographs,
+  );
+assert.deepEqual([...trackSupplementalForms], ["faret", "fara", "farene"]);
+
+// Dictionary-only compounds inherit the official paradigm of a compatible
+// right-hand head, but are attributed as derived rather than exact Ordbank
+// entries.
+const luftfoto = getForms("luftfoto", "noun - et");
+assert.equal(luftfoto.sourceType, "ordbank-derived");
+assert.equal(luftfoto.derivedFrom, "foto");
+assert.equal(value(luftfoto, "Definite singular"), "luftfotoet");
+assert.deepEqual(alternatives(value(luftfoto, "Indefinite plural")), [
+  "luftfoto",
+  "luftfotoer",
+]);
+assert.deepEqual(alternatives(value(luftfoto, "Definite plural")), [
+  "luftfotoa",
+  "luftfotoene",
+]);
+
+const airfryer = getForms("airfryer", "noun - en");
+assert.equal(airfryer.sourceType, "dictionary-only");
+assert.equal(value(airfryer, "Indefinite singular"), "en airfryer");
+assert.equal(value(airfryer, "Definite singular"), "–");
+
 // Unknown words no longer borrow the paradigm of an unrelated suffix or
 // receive a guessed regular paradigm.
 assert.equal(getForms("tullmuseum", "noun - et"), null);
 assert.equal(getForms("superkjedsom", "adjective"), null);
 assert.equal(getForms("xbetale", "verb"), null);
+
+const drikkeParadigm = context.Inflections.getParadigm({
+  ord: "drikke",
+  gender: "verb",
+});
+assert.deepEqual([...drikkeParadigm.slots[2]], ["drakk"]);
+assert.equal(drikkeParadigm.slots[11].includes("drikkende"), true);
+assert.deepEqual(
+  [...context.Inflections.getMatchingSlots({ ord: "drikke", gender: "verb" }, "drakk")],
+  [2],
+);
+assert.deepEqual(
+  [...context.Inflections.getMatchingSlots({ ord: "bar", gender: "noun - en" }, "barn")],
+  [],
+);
+
+const resolvedUgler = await context.Inflections.findLemmas("ugler", "noun");
+assert.equal(resolvedUgler.matchType, "exact");
+assert.deepEqual([...resolvedUgler.lemmas], ["ugle"]);
+const expandedUgler = await context.Inflections.expandSearchTerm("ugler");
+assert.deepEqual([...expandedUgler], [
+  "ugler",
+  "ugle",
+  "ugla",
+  "uglen",
+  "uglene",
+]);
+assert.equal(expandedUgler.includes("uglasert"), false);
 
 const ugleSentenceForms = await context.Inflections.getSentenceForms({
   ord: "ugle",
@@ -108,6 +213,33 @@ assert.equal(
   false,
 );
 assert.equal(ugleMatcher.test("Ugler jakter om natten."), true);
+
+const trackMatcher = context.SentenceFormMatching.createMatcher(
+  trackSupplementalForms,
+);
+assert.equal(trackMatcher.test("Faren min er flink til å lage mat."), false);
+assert.equal(trackMatcher.test("Han så opp til sin far."), false);
+assert.equal(
+  trackMatcher.test("Det gamle faret var fremdeles synlig i skogen."),
+  true,
+);
+const collectedTrackExamples = context.SentenceFormMatching.collectExamples(
+  trackEntry,
+  [
+    fatherEntry,
+    trackEntry,
+    {
+      ord: "spor",
+      eksempel: "Det gamle faret var fremdeles synlig i skogen.",
+    },
+  ],
+  trackMatcher,
+);
+assert.equal(collectedTrackExamples.primary[0].eksempel, trackEntry.eksempel);
+assert.deepEqual(
+  [...collectedTrackExamples.supplemental].map((entry) => entry.eksempel),
+  ["Det gamle faret var fremdeles synlig i skogen."],
+);
 const selectedUgleEntry = {
   ord: "ugle",
   eksempel: "Den gamle ugla lettet og fløy forbi.",
