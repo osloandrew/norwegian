@@ -808,6 +808,7 @@ const FEEDBACK_CATEGORIES = [
   "Norwegian word or spelling",
   "English translation",
   "Part of speech / word class",
+  "Word inflections",
   "CEFR level seems wrong",
   "Norwegian example sentence",
   "English sentence translation",
@@ -898,8 +899,21 @@ function wireFlagMissingWordButton() {
   });
 }
 
-function openWordCardFeedbackDialog(triggerElement, word, pos, cefr) {
-  openFeedbackDialog({ source: "Word Card", word, pos, cefr, triggerElement });
+function openWordCardFeedbackDialog(
+  triggerElement,
+  word,
+  pos,
+  cefr,
+  initialCategory,
+) {
+  openFeedbackDialog({
+    source: "Word Card",
+    word,
+    pos,
+    cefr,
+    initialCategory,
+    triggerElement,
+  });
 }
 
 // Site-wide feedback, not scoped to any one word/story/question — reachable
@@ -957,6 +971,7 @@ function openFeedbackDialog({
   categoryQuestion = "What's the issue?",
   detailsPlaceholder = "What's wrong, exactly?",
   successMessage = "Thanks — your report was sent.",
+  initialCategory,
   triggerElement,
 }) {
   // Only one report dialog should ever be open at a time.
@@ -996,6 +1011,9 @@ function openFeedbackDialog({
     option.textContent = category;
     categorySelect.appendChild(option);
   });
+  if (initialCategory && categories.includes(initialCategory)) {
+    categorySelect.value = initialCategory;
+  }
   dialog.appendChild(categorySelect);
 
   const detailsLabel = document.createElement("label");
@@ -2059,6 +2077,75 @@ function makeDefinitionClickable(defText) {
     .join(" ");
 }
 
+// Collapsed-by-default "Word forms" toggle, sitting next to the "Report an
+// issue" button in .definition-actions-row (see inflections.js for the
+// noun/verb/adjective generation logic). Returns "" when the word class
+// doesn't inflect, so no empty toggle ever renders.
+function renderInflectionsToggleButton(inflections) {
+  if (!inflections) return "";
+  return `
+    <button
+      type="button"
+      class="inflections-toggle-btn"
+      aria-expanded="false"
+      onclick="event.stopPropagation(); toggleInflectionsTable(this)"
+      onkeydown="event.stopPropagation()"
+    ><i class="fas fa-chevron-down"></i> Word forms (beta)</button>`;
+}
+
+// A form's value is either a plain string, or an array of accepted
+// alternates (e.g. an ei-noun's feminine/masculine definite singular) —
+// shown together in one cell.
+function formatInflectionValue(value) {
+  return Array.isArray(value) ? value.join(" / ") : value;
+}
+
+function renderInflectionsTableWrapper(inflections, escapedWord, pos, cefr) {
+  if (!inflections) return "";
+
+  const rowsHTML = inflections.forms
+    .map(
+      (form) => `
+        <tr>
+          <th>${form.label}</th>
+          <td data-label="${form.label}">${formatInflectionValue(form.value)}</td>
+        </tr>`,
+    )
+    .join("");
+
+  const disclaimerHTML = inflections.isException
+    ? ""
+    : `<p class="inflections-hint">These forms are generated automatically and may not always be correct.</p>`;
+
+  return `
+    <div class="inflections-table-wrapper hidden">
+      <table class="inflections-table">
+        <tbody>${rowsHTML}</tbody>
+      </table>
+      ${disclaimerHTML}
+      <button
+        type="button"
+        class="inflections-flag-btn"
+        onclick="event.stopPropagation(); openWordCardFeedbackDialog(this, '${escapedWord}', '${pos}', '${cefr || ""}', 'Word inflections')"
+        onkeydown="event.stopPropagation()"
+      ><i class="fas fa-flag"></i> Flag these forms</button>
+    </div>`;
+}
+
+// The toggle button and its table live in separate DOM positions (button
+// inside .definition-actions-row, table right after it) so the button can
+// sit next to "Report an issue" in its own column — walk back up to the
+// shared row, then to its next sibling, rather than assuming adjacency.
+function toggleInflectionsTable(button) {
+  const row = button.closest(".definition-actions-row");
+  const wrapper = row ? row.nextElementSibling : null;
+  if (!wrapper) return;
+  const isExpanded = button.getAttribute("aria-expanded") === "true";
+  button.setAttribute("aria-expanded", String(!isExpanded));
+  button.classList.toggle("inflections-toggle-expanded", !isExpanded);
+  wrapper.classList.toggle("hidden", isExpanded);
+}
+
 // Render a list of results (words)
 function displaySearchResults(results, query = "") {
   query = query.toLowerCase().trim(); // Ensure the query is lowercased and trimmed
@@ -2072,6 +2159,10 @@ function displaySearchResults(results, query = "") {
     result.gender = WordClass.formatWordClassLabel(result.gender);
     // Directly handle the POS based on the gender field
     result.pos = WordClass.getWordClass(result.gender);
+
+    // null for word classes that don't inflect (adverb, preposition, ...)
+    // — see inflections.js for the full noun/verb/adjective rule engine.
+    const inflections = window.Inflections?.getForms(result) || null;
 
     // Convert the word to lowercase and trim spaces when generating the ID
     const normalizedWord = result.ord.toLowerCase().trim();
@@ -2199,12 +2290,21 @@ function displaySearchResults(results, query = "") {
                           )};">${result.CEFR}</span></p>`
                         : ""
                     }
-                    <button
-                      type="button"
-                      class="report-issue-btn"
-                      onclick="event.stopPropagation(); openWordCardFeedbackDialog(this, '${escapedWord}', '${result.pos}', '${result.CEFR || ""}')"
-                      onkeydown="event.stopPropagation()"
-                    ><i class="fas fa-flag"></i> Report an issue</button>
+                    <div class="definition-actions-row">
+                      <button
+                        type="button"
+                        class="report-issue-btn"
+                        onclick="event.stopPropagation(); openWordCardFeedbackDialog(this, '${escapedWord}', '${result.pos}', '${result.CEFR || ""}')"
+                        onkeydown="event.stopPropagation()"
+                      ><i class="fas fa-flag"></i> Report an issue</button>
+                      ${renderInflectionsToggleButton(inflections)}
+                    </div>
+                    ${renderInflectionsTableWrapper(
+                      inflections,
+                      escapedWord,
+                      result.pos,
+                      result.CEFR,
+                    )}
                 </div>
                 </div>
                                 <!-- Show "Show Sentences" button only if sentences exist -->
@@ -2732,12 +2832,16 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
 
   // Find the part of speech (POS) of the word — needed to disambiguate a
   // homograph (e.g. a word with both a noun and a verb sense) into the
-  // right entry.
+  // right entry. matchesWordClass alone misses entries with a bare
+  // "noun" gender (no en/et/ei article on file, ~32 CSV rows) — it's
+  // deliberately strict there — so also accept a direct pos === "noun"
+  // match, same broadening used elsewhere for this known edge case.
   const matchingWordEntry = results.find(
     (result) =>
       result.ord.toLowerCase() === trimmedWord &&
       pos &&
-      WordClass.matchesWordClass(result.gender, pos),
+      (WordClass.matchesWordClass(result.gender, pos) ||
+        (pos === "noun" && result.gender === "noun")),
   );
   if (!matchingWordEntry) {
     console.error(`No matching word found for "${trimmedWord}".`);

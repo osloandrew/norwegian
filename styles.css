@@ -3021,15 +3021,22 @@ ul {
 /* Same pill shape/capitalization language as .back-navigation, but gray
    and a size down — a secondary, lower-key action next to the definition
    content rather than a primary navigation control. */
-.report-issue-btn {
-  /* Always its own full-width row (rather than falling into whichever
-     of the two columns auto-flow happens to leave for it) — otherwise
-     its height depended on which column it landed in: stretched to
-     match a taller row-mate on one side (42.8px), or with too little
-     column width on the other, forcing its label to wrap onto two
-     lines (57px). Spanning both columns sidesteps both problems and
-     keeps its height at a consistent, content-driven ~27px. */
+/* Holds "Report an issue" and, when the word class inflects, the "Word
+   forms" toggle as side-by-side columns — spans both .definition-content
+   columns itself so its own two children get one full-width column each,
+   regardless of how the optional fields above it (pronunciation/etymology/
+   CEFR) happened to fill the grid. */
+.definition-actions-row {
   grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.report-issue-btn,
+.inflections-toggle-btn,
+.inflections-flag-btn {
   align-items: center;
   background-color: #f0f0f0;
   border: none;
@@ -3043,7 +3050,6 @@ ul {
   gap: 6px;
   justify-self: start;
   letter-spacing: 0.03em;
-  margin-top: 12px;
   padding: 6px 12px;
   text-transform: uppercase;
   touch-action: manipulation;
@@ -3055,21 +3061,82 @@ ul {
   width: fit-content;
 }
 
-.definition-content .report-issue-btn i {
+.definition-content .report-issue-btn i,
+.definition-content .inflections-flag-btn i {
   color: #951b1b;
   font-size: 12px;
   margin-right: 0;
   width: auto;
 }
 
-.report-issue-btn:hover {
+.report-issue-btn:hover,
+.inflections-toggle-btn:hover,
+.inflections-flag-btn:hover {
   background-color: #e5e5e5;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
-.report-issue-btn:focus-visible {
+.report-issue-btn:focus-visible,
+.inflections-toggle-btn:focus-visible,
+.inflections-flag-btn:focus-visible {
   outline: 2px solid #666;
   outline-offset: 2px;
+}
+
+.inflections-flag-btn {
+  margin-top: 10px;
+}
+
+.inflections-toggle-btn i {
+  color: #666;
+  font-size: 12px;
+  margin-right: 0;
+  transition: transform 0.2s ease;
+}
+
+.inflections-toggle-btn.inflections-toggle-expanded i {
+  transform: rotate(180deg);
+}
+
+.inflections-table-wrapper {
+  grid-column: 1 / -1;
+  margin-top: 18px;
+}
+
+.inflections-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.inflections-table th,
+.inflections-table td {
+  border: 1px solid #dddddd;
+  padding: 8px 10px;
+}
+
+.inflections-table th {
+  background-color: #f5f5f5;
+  color: #777;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  width: 45%;
+}
+
+/* Deliberately understated — a quiet footnote under the table, not a
+   warning: small uppercase caption in the same muted gray as the table's
+   own row labels. Doubled-up selector to outrank ".definition p, li"
+   (styles.css:293), which otherwise wins on specificity and forces this
+   back to 20px near-black body text. */
+.inflections-hint.inflections-hint {
+  color: #999;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  margin: 8px 0 0 0;
+  text-transform: uppercase;
 }
 
 #site-title {

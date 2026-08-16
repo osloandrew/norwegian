@@ -869,6 +869,15 @@
     -->
     <script src="wordClass.js"></script>
 
+    <!--
+      Also not deferred, same load-order reasoning as wordClass.js above:
+      defines window.Inflections (noun/verb/adjective form generation for
+      the "Word forms" section on the definition page), which uses
+      WordClass and needs to exist before scripts.js's render functions
+      run.
+    -->
+    <script src="inflections.js"></script>
+
     <script src="noRandom.js" defer></script>
     <script src="scripts.js" defer></script>
     <script src="wordGame.js" defer></script>
