@@ -350,22 +350,27 @@ function toggleGameEnglish() {
   }
 }
 
+// Shared by every one-off audio-clip playback in the app (word/sentence
+// audio here, and the pronunciation-icon click handler in scripts.js) —
+// creates the clip, tracks it in activeAudio so stopAllAudio() can halt it
+// later, and plays it.
+function playTrackedAudio(url) {
+  const audio = new Audio(url);
+  activeAudio.push(audio);
+  audio.play().catch((err) => console.warn("Audio playback failed:", err));
+  return audio;
+}
+
 function playWordAudio(wordObj) {
   if (!wordObj || !wordObj.ord) return;
   const cleanWord = wordObj.ord.split(",")[0].trim();
-  const url = buildWordAudioUrl(cleanWord);
-  const audio = new Audio(url);
-  activeAudio.push(audio); // track it
-  audio.play().catch((err) => console.warn("Word audio failed:", err));
+  playTrackedAudio(buildWordAudioUrl(cleanWord));
 }
 
 function playSentenceAudio(exampleSentence) {
   if (!exampleSentence) return;
   const cleanSentence = exampleSentence.replace(/<[^>]*>/g, "").trim();
-  const audioUrl = buildPronAudioUrl(cleanSentence);
-  const audio = new Audio(audioUrl);
-  activeAudio.push(audio); // track it
-  audio.play().catch((err) => console.warn("Sentence audio failed:", err));
+  playTrackedAudio(buildPronAudioUrl(cleanSentence));
 }
 
 function stopAllAudio() {

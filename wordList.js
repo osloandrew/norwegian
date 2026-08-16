@@ -1376,14 +1376,10 @@
     return controls;
   }
 
-  function escapeWordListHTML(value) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
+  // escapeHTML lives in scripts.js — this file runs before scripts.js at
+  // load time (non-deferred vs. deferred), but by the time any of this
+  // file's functions actually run (in response to user interaction), the
+  // page has finished loading and scripts.js has already defined it.
 
   function exportWordListPDF() {
     const entries = getFilteredWordListEntries();
@@ -1418,10 +1414,10 @@
       .map(
         (entry) => `
         <tr>
-          <td>${escapeWordListHTML(entry.ord)}</td>
-          <td>${escapeWordListHTML(entry.engelsk)}</td>
-          <td>${escapeWordListHTML(getWordListClassLabel(entry))}</td>
-          <td>${escapeWordListHTML(entry.CEFR)}</td>
+          <td>${escapeHTML(entry.ord)}</td>
+          <td>${escapeHTML(entry.engelsk)}</td>
+          <td>${escapeHTML(getWordListClassLabel(entry))}</td>
+          <td>${escapeHTML(entry.CEFR)}</td>
         </tr>
       `,
       )
@@ -1432,7 +1428,7 @@
     <html lang="en">
       <head>
         <meta charset="UTF-8">
-        <title>${escapeWordListHTML(documentTitle)}</title>
+        <title>${escapeHTML(documentTitle)}</title>
 
         <style>
           @page {

@@ -472,11 +472,9 @@ async function displayStoryList(filteredStories = storyResults) {
     filtered = filtered.filter((story) => story !== recommendedStory);
   }
 
-  // Shuffle the filtered stories using Fisher-Yates algorithm
-  for (let i = filtered.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
-  }
+  // shuffleArray (Fisher-Yates) is defined in wordGame.js, which runs
+  // before this file in script load order.
+  filtered = shuffleArray(filtered);
 
   // ▶ NEW: populate <ul id="stories"> with <li> items (JP mirror)
   const container = document.getElementById("results-container");

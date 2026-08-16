@@ -4,6 +4,10 @@ let isEnglishVisible = true;
 let latestMultipleResults = null;
 const resultsContainer = document.getElementById("results-container");
 
+// Numeric rank for sorting/comparing CEFR levels — lower is easier.
+// Was previously redeclared locally in two different sort comparators.
+const CEFR_ORDER = { A1: 1, A2: 2, B1: 3, B2: 4, C: 5 };
+
 function normalizeSearchText(value) {
   return String(value ?? "")
     .normalize("NFC")
@@ -25,7 +29,7 @@ function createWholeTermRegex(value, flags = "iu") {
 }
 
 function escapeHTML(value) {
-  return String(value)
+  return String(value ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -224,8 +228,7 @@ function compareWordSearchResults(a, b, query) {
     getSearchMatchRank(a, query) - getSearchMatchRank(b, query);
   if (rankDifference) return rankDifference;
 
-  const cefrOrder = { A1: 1, A2: 2, B1: 3, B2: 4, C: 5 };
-  const cefrDifference = (cefrOrder[a.CEFR] || 99) - (cefrOrder[b.CEFR] || 99);
+  const cefrDifference = (CEFR_ORDER[a.CEFR] || 99) - (CEFR_ORDER[b.CEFR] || 99);
   if (cefrDifference) return cefrDifference;
 
   return String(a.ord).localeCompare(String(b.ord), "nb");
@@ -1413,14 +1416,13 @@ async function search(queryOverride = null) {
           partial.push(r);
         }
       }
-    } // CEFR order for sorting
-    const cefrOrder = { A1: 1, A2: 2, B1: 3, B2: 4, C: 5 };
+    }
 
     // Sort helper: lower CEFR first, then leave relative order intact
     function sortByCEFR(arr) {
       return arr.sort((a, b) => {
-        const aVal = cefrOrder[a.cefr] || 99;
-        const bVal = cefrOrder[b.cefr] || 99;
+        const aVal = CEFR_ORDER[a.cefr] || 99;
+        const bVal = CEFR_ORDER[b.cefr] || 99;
         return aVal - bVal;
       });
     }
@@ -3455,10 +3457,6 @@ document.addEventListener("click", (event) => {
       audioUrl = buildPronAudioUrl(text);
     }
 
-    const audio = new Audio(audioUrl);
-    activeAudio.push(audio);
-    audio.play().catch((err) => {
-      console.error("Audio playback failed:", err);
-    });
+    playTrackedAudio(audioUrl);
   }
 });
