@@ -3035,8 +3035,7 @@ ul {
 }
 
 .report-issue-btn,
-.inflections-toggle-btn,
-.inflections-flag-btn {
+.inflections-toggle-btn {
   align-items: center;
   background-color: #f0f0f0;
   border: none;
@@ -3061,8 +3060,7 @@ ul {
   width: fit-content;
 }
 
-.definition-content .report-issue-btn i,
-.definition-content .inflections-flag-btn i {
+.definition-content .report-issue-btn i {
   color: #951b1b;
   font-size: 12px;
   margin-right: 0;
@@ -3070,21 +3068,15 @@ ul {
 }
 
 .report-issue-btn:hover,
-.inflections-toggle-btn:hover,
-.inflections-flag-btn:hover {
+.inflections-toggle-btn:hover {
   background-color: #e5e5e5;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
 .report-issue-btn:focus-visible,
-.inflections-toggle-btn:focus-visible,
-.inflections-flag-btn:focus-visible {
+.inflections-toggle-btn:focus-visible {
   outline: 2px solid #666;
   outline-offset: 2px;
-}
-
-.inflections-flag-btn {
-  margin-top: 10px;
 }
 
 .inflections-toggle-btn i {

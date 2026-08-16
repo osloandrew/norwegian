@@ -2078,8 +2078,7 @@ function makeDefinitionClickable(defText) {
 }
 
 // Collapsed-by-default "Word forms" toggle, sitting next to the "Report an
-// issue" button in .definition-actions-row (see inflections.js for the
-// noun/verb/adjective generation logic). Returns "" when the word class
+// issue" button in .definition-actions-row. Returns "" when the word class
 // doesn't inflect, so no empty toggle ever renders.
 function renderInflectionsToggleButton(inflections) {
   if (!inflections) return "";
@@ -2090,7 +2089,7 @@ function renderInflectionsToggleButton(inflections) {
       aria-expanded="false"
       onclick="event.stopPropagation(); toggleInflectionsTable(this)"
       onkeydown="event.stopPropagation()"
-    ><i class="fas fa-chevron-down"></i> Word forms (beta)</button>`;
+    ><i class="fas fa-chevron-down"></i> Word forms</button>`;
 }
 
 // A form's value is either a plain string, or an array of accepted
@@ -2100,43 +2099,70 @@ function formatInflectionValue(value) {
   return Array.isArray(value) ? value.join(" / ") : value;
 }
 
-function renderInflectionsTableWrapper(inflections, escapedWord, pos, cefr) {
+function renderInflectionRows(forms) {
+  return forms
+    .map((form) => {
+      const label = escapeHTML(form.label);
+      const value = escapeHTML(formatInflectionValue(form.value));
+      return `
+        <tr>
+          <th>${label}</th>
+          <td data-label="${label}">${value}</td>
+        </tr>`;
+    })
+    .join("");
+}
+
+function renderInflectionsSource(inflections) {
+  if (!inflections?.isAuthoritative) return "";
+  return `<p class="inflections-hint">Forms from <a href="https://ord.uib.no/ord_1_Ordlister.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Norsk Ordbank</a></p>`;
+}
+
+function renderInflectionsTableWrapper(inflections) {
   if (!inflections) return "";
 
-  const rowsHTML = inflections.forms
-    .map(
-      (form) => `
-        <tr>
-          <th>${form.label}</th>
-          <td data-label="${form.label}">${formatInflectionValue(form.value)}</td>
-        </tr>`,
-    )
-    .join("");
-
-  const disclaimerHTML = inflections.isException
-    ? ""
-    : `<p class="inflections-hint">These forms are generated automatically and may not always be correct.</p>`;
+  const requestAttribute = inflections.pending
+    ? ` data-inflections-request-id="${escapeHTML(inflections.requestId)}"`
+    : "";
+  const rowsHTML = inflections.pending
+    ? `<tr><td colspan="2">Loading verified forms…</td></tr>`
+    : renderInflectionRows(inflections.forms);
 
   return `
-    <div class="inflections-table-wrapper hidden">
+    <div class="inflections-table-wrapper hidden"${requestAttribute}>
       <table class="inflections-table">
         <tbody>${rowsHTML}</tbody>
       </table>
-      ${disclaimerHTML}
-      <button
-        type="button"
-        class="inflections-flag-btn"
-        onclick="event.stopPropagation(); openWordCardFeedbackDialog(this, '${escapedWord}', '${pos}', '${cefr || ""}', 'Word inflections')"
-        onkeydown="event.stopPropagation()"
-      ><i class="fas fa-flag"></i> Flag these forms</button>
+      <div class="inflections-source">${renderInflectionsSource(inflections)}</div>
     </div>`;
+}
+
+async function loadPendingInflections(wrapper) {
+  const requestId = wrapper.dataset.inflectionsRequestId;
+  if (!requestId) return;
+
+  const inflections = await window.Inflections?.resolvePending(requestId);
+  delete wrapper.dataset.inflectionsRequestId;
+
+  const tableBody = wrapper.querySelector(".inflections-table tbody");
+  const source = wrapper.querySelector(".inflections-source");
+  if (!tableBody) return;
+
+  if (!inflections) {
+    tableBody.innerHTML = `<tr><td colspan="2">No verified forms are available for this entry.</td></tr>`;
+    if (source) source.innerHTML = "";
+    return;
+  }
+
+  tableBody.innerHTML = renderInflectionRows(inflections.forms);
+  if (source) source.innerHTML = renderInflectionsSource(inflections);
 }
 
 // The toggle button and its table live in separate DOM positions (button
 // inside .definition-actions-row, table right after it) so the button can
 // sit next to "Report an issue" in its own column — walk back up to the
 // shared row, then to its next sibling, rather than assuming adjacency.
-function toggleInflectionsTable(button) {
+async function toggleInflectionsTable(button) {
   const row = button.closest(".definition-actions-row");
   const wrapper = row ? row.nextElementSibling : null;
   if (!wrapper) return;
@@ -2144,6 +2170,15 @@ function toggleInflectionsTable(button) {
   button.setAttribute("aria-expanded", String(!isExpanded));
   button.classList.toggle("inflections-toggle-expanded", !isExpanded);
   wrapper.classList.toggle("hidden", isExpanded);
+
+  if (!isExpanded && wrapper.dataset.inflectionsRequestId) {
+    button.disabled = true;
+    try {
+      await loadPendingInflections(wrapper);
+    } finally {
+      button.disabled = false;
+    }
+  }
 }
 
 // Render a list of results (words)
@@ -2161,7 +2196,7 @@ function displaySearchResults(results, query = "") {
     result.pos = WordClass.getWordClass(result.gender);
 
     // null for word classes that don't inflect (adverb, preposition, ...)
-    // — see inflections.js for the full noun/verb/adjective rule engine.
+    // or for entries without a verified noun/verb/adjective paradigm.
     const inflections = window.Inflections?.getForms(result) || null;
 
     // Convert the word to lowercase and trim spaces when generating the ID
@@ -2299,12 +2334,7 @@ function displaySearchResults(results, query = "") {
                       ><i class="fas fa-flag"></i> Report an issue</button>
                       ${renderInflectionsToggleButton(inflections)}
                     </div>
-                    ${renderInflectionsTableWrapper(
-                      inflections,
-                      escapedWord,
-                      result.pos,
-                      result.CEFR,
-                    )}
+                    ${renderInflectionsTableWrapper(inflections)}
                 </div>
                 </div>
                                 <!-- Show "Show Sentences" button only if sentences exist -->
@@ -2340,7 +2370,9 @@ function displaySearchResults(results, query = "") {
         singleResult.ord,
         singleResult.pos,
         isEnglishVisible,
-      );
+      ).catch((error) => {
+        console.error("Could not load inflected example sentences.", error);
+      });
     }, 0);
   } else {
   }
@@ -2794,8 +2826,10 @@ function renderWordDefinition(word, selectedPOS = "") {
   }
 }
 
-// Fetch and render sentences for a word or phrase, including handling comma-separated variations
-function fetchAndRenderSentences(word, pos, showEnglish = true) {
+// Fetch and render sentences for a word or phrase. Supplemental examples use
+// only exact, authoritative forms from inflections-data.json; the entry's own
+// example is always inserted first, whether or not it contains one of them.
+async function fetchAndRenderSentences(word, pos, showEnglish = true) {
   // Added showEnglish parameter with default value
   const trimmedWord = word
     .trim()
@@ -2848,138 +2882,36 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
     return; // Stop if the word isn't found
   }
 
-  // Generate word variations using the external function
-  const wordVariations = [
-    ...new Set(
-      trimmedWord.length < 4
-        ? [trimmedWord]
-        : trimmedWord
-            .split(",")
-            .flatMap((w) => generateWordVariationsForSentences(w.trim(), pos)),
-    ),
-  ].filter(Boolean);
-
-  const requiresStrictSentenceBoundary = [
-    "adverb",
-    "conjunction",
-    "preposition",
-    "interjection",
-    "numeral",
-  ].includes(pos);
-
-  /*
-   * Compile each variation once. Common words can occur throughout the
-   * dictionary, so rebuilding these expressions for every entry previously
-   * created hundreds of thousands of RegExp objects on the main thread.
-   */
-  const sentenceVariationPatterns = wordVariations.map((variation) => {
-    const escapedVariation = escapeRegExp(variation);
-
-    return requiresStrictSentenceBoundary
-      ? new RegExp(`(^|\\s)${escapedVariation}($|[\\s.,!?;])`, "i")
-      : new RegExp(`(^|[^\\wåæøÅÆØ])${escapedVariation}`, "i");
-  });
-
-  const sentenceMatchesVariation = (sentence) =>
-    sentenceVariationPatterns.some((pattern) => pattern.test(sentence));
-
-  // First, filter results to get relevant entries
-  const relevantEntries = results.filter(
-    (r) => r.eksempel && sentenceMatchesVariation(r.eksempel),
+  const sentenceForms = await window.Inflections.getSentenceForms(
+    matchingWordEntry,
   );
-  // Use a Set to store unique sentences and translations
-  const uniqueSentences = new Set();
-  const uniqueTranslations = new Set();
+  if (!sentenceContainer.isConnected) return;
+  const formMatcher = window.SentenceFormMatching.createMatcher(sentenceForms);
+  const { primary: primaryResults, supplemental: supplementalResults } =
+    window.SentenceFormMatching.collectExamples(
+      matchingWordEntry,
+      results,
+      formMatcher,
+    );
 
-  // Now, split sentences and align translations
-  let matchingResults = [];
-  outerLoop: for (const r of relevantEntries) {
-    const sentences = r.eksempel.split(/(?<=[.!?])\s+/);
-    const translations = r.sentenceTranslation
-      ? r.sentenceTranslation.split(/(?<=[.!?])\s+/)
-      : [];
-
-    const matched = { matchedSentences: [], matchedTranslations: [] };
-
-    sentences.forEach((sentence, index) => {
-      const isMatched = sentenceMatchesVariation(sentence);
-
-      if (isMatched) {
-        if (!uniqueSentences.has(sentence)) {
-          uniqueSentences.add(sentence);
-          matched.matchedSentences.push(sentence);
-        }
-        if (
-          translations[index] &&
-          !uniqueTranslations.has(translations[index])
-        ) {
-          uniqueTranslations.add(translations[index]);
-          matched.matchedTranslations.push(translations[index]);
-        }
-      }
-    });
-
-    if (matched.matchedSentences.length > 0) {
-      matchingResults.push({
-        ...r,
-        eksempel: matched.matchedSentences.join(" "),
-        sentenceTranslation: matched.matchedTranslations.join(" "),
-      });
-    }
-
-    if (uniqueSentences.size >= 10) break outerLoop;
-  }
-
-  // Ensure each sentence in the primary 'eksempel' attribute from the matching word entry is added if unique
-  if (matchingWordEntry.eksempel) {
-    const primarySentences = matchingWordEntry.eksempel.split(/(?<=[.!?])\s+/);
-    const primaryTranslations = matchingWordEntry.sentenceTranslation
-      ? matchingWordEntry.sentenceTranslation.split(/(?<=[.!?])\s+/)
-      : [];
-
-    primarySentences.forEach((sentence, index) => {
-      // Check if each sentence is already in uniqueSentences before adding
-      if (!uniqueSentences.has(sentence)) {
-        uniqueSentences.add(sentence); // Track unique primary sentence
-
-        matchingResults.unshift({
-          ...matchingWordEntry,
-          eksempel: sentence, // Add only the unique sentence
-          sentenceTranslation: primaryTranslations[index] || "",
-        });
-      }
-    });
-  }
-
-  // Check if there are any matching results
-  if (matchingResults.length === 0) {
-    return;
-  }
-
-  // Prioritize the matching results using the prioritizeResults function
-  matchingResults = prioritizeResults(
-    matchingResults,
+  // Rank supplemental examples without allowing them to move ahead of the
+  // primary entry's own example sentence(s).
+  const rankedSupplemental = prioritizeResults(
+    supplementalResults,
     trimmedWord,
     "eksempel",
     pos,
   );
+  let matchingResults = [...primaryResults, ...rankedSupplemental].slice(0, 10);
 
-  /*
-   * Highlight every variation in one pass. Calling highlightQuery() once per
-   * variation repeatedly searched the entire dictionary and stripped the
-   * highlights added by the previous pass.
-   */
-  const sentenceHighlightTerms = [...wordVariations]
-    .map(normalizeSearchText)
-    .filter(Boolean);
+  if (matchingResults.length === 0) return;
 
   matchingResults.forEach((result) => {
     const cleanSentence = result.eksempel.replace(
       /<span style="color: #1f6fb3;">(.*?)<\/span>/gi,
       "$1",
     );
-
-    result.eksempel = highlightTermsInText(cleanSentence, sentenceHighlightTerms);
+    result.eksempel = formMatcher.highlight(cleanSentence);
   });
 
   // Create the sentence content with CEFR labels
@@ -3447,6 +3379,16 @@ window.onload = function () {
     if (results.length > 0) {
       // Ensure results are loaded
       clearInterval(checkDataLoaded);
+
+      // The verified word-form snapshot is deliberately lower priority than
+      // the main dictionary. Warm it only after the dictionary is usable; a
+      // learner who opens a table first will reuse the same in-flight request.
+      const preloadInflections = () => window.Inflections?.preload();
+      if ("requestIdleCallback" in window) {
+        window.requestIdleCallback(preloadInflections, { timeout: 4000 });
+      } else {
+        window.setTimeout(preloadInflections, 0);
+      }
 
       // Enable the buttons once data is fully loaded
       // Enable the buttons and filters once data is fully loaded
