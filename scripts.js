@@ -2119,10 +2119,10 @@ function renderInflectionsSource(inflections) {
   }
   if (inflections?.sourceType === "ordbank-derived") {
     const sourceLemma = escapeHTML(inflections.derivedFrom || "a compound head");
-    return `<p class="inflections-hint">Forms derived from the <a href="https://ord.uib.no/ord_1_Ordlister.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Norsk Ordbank</a> paradigm for <i>${sourceLemma}</i></p>`;
+    return `<p class="inflections-hint">Forms derived from the <a href="https://ord.uib.no/ord_1_Ordlister.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Norsk Ordbank</a> paradigm for ${sourceLemma}</p>`;
   }
   if (inflections?.sourceType === "dictionary-only") {
-    return `<p class="inflections-hint">Only the dictionary form is available; no verified inflections were found</p>`;
+    return `<p class="inflections-hint">Only the dictionary form is available; no verified inflections were found. The remaining forms are regular estimates.</p>`;
   }
   return "";
 }
@@ -2626,10 +2626,10 @@ function getHomographEntries(entry) {
   ];
 }
 
-// Fetch and render sentences for one exact dictionary sense. Shared forms
-// belong to the earliest-taught homograph (so common senses such as ting-en
-// keep their useful recall); later senses use only exclusive forms. The
-// selected entry's own example is always inserted first.
+// Fetch and render sentences for one exact dictionary sense. Cross-class and
+// same-gender homographs retain their searchable spelling; only genuinely
+// different noun-gender paradigms allocate shared forms to the earliest-
+// taught paradigm. The selected entry's own example is always inserted first.
 async function fetchAndRenderSentences(
   matchingWordEntry,
   dictionaryEntryDomKey,
@@ -2676,8 +2676,13 @@ async function fetchAndRenderSentences(
     matchingWordEntry,
     homographEntries,
   );
+  const primaryHighlightForms = await window.Inflections.getSentenceForms(
+    matchingWordEntry,
+  );
   if (!sentenceContainer.isConnected) return;
   const formMatcher = window.SentenceFormMatching.createMatcher(sentenceForms);
+  const primaryHighlightMatcher =
+    window.SentenceFormMatching.createMatcher(primaryHighlightForms);
   const { primary: primaryResults, supplemental: supplementalResults } =
     window.SentenceFormMatching.collectExamples(
       matchingWordEntry,
@@ -2699,12 +2704,16 @@ async function fetchAndRenderSentences(
 
   if (matchingResults.length === 0) return;
 
+  const primaryResultSet = new Set(primaryResults);
   matchingResults.forEach((result) => {
     const cleanSentence = result.eksempel.replace(
       /<span style="color: #1f6fb3;">(.*?)<\/span>/gi,
       "$1",
     );
-    result.eksempel = formMatcher.highlight(cleanSentence);
+    const highlightMatcher = primaryResultSet.has(result)
+      ? primaryHighlightMatcher
+      : formMatcher;
+    result.eksempel = highlightMatcher.highlight(cleanSentence);
   });
 
   // Create the sentence content with CEFR labels

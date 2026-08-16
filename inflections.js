@@ -163,12 +163,19 @@
     if (!snapshot?.forms || !key) return null;
     const encodedRecord = snapshot.forms[key];
     if (!encodedRecord) return null;
-    const record = decodeRecord(encodedRecord);
+    let record = decodeRecord(encodedRecord);
     if (!record) return null;
 
     const parsedKey = parseRecordKey(key);
     if (!parsedKey) return null;
     const { lemma, wordClass, gender } = parsedKey;
+    const sourceMetadata = getSourceMetadata(key);
+    if (sourceMetadata.sourceType === "dictionary-only") {
+      record = fillMissingRecord(
+        record,
+        createEstimatedDictionaryRecord(lemma, wordClass, gender),
+      );
+    }
 
     let slots;
     if (wordClass === "noun") {
@@ -188,7 +195,7 @@
       lemma,
       wordClass,
       slots: slots.map((values) => unique(values.map(normalizeLemma))),
-      ...getSourceMetadata(key),
+      ...sourceMetadata,
     };
   }
 
@@ -231,6 +238,31 @@
 
   function flattenParadigmForms(paradigm) {
     return paradigm ? unique(paradigm.slots.flat()) : [];
+  }
+
+  function createNounPossessiveForms(form) {
+    const normalizedForm = normalizeLemma(form);
+    if (!normalizedForm) return [];
+
+    // Bokmål adds possessive/genitive -s to the complete noun form. Words
+    // already ending in s, x, or z take an apostrophe instead; accept both
+    // common Unicode spellings while preserving exact token boundaries.
+    return /[sxz]$/iu.test(normalizedForm)
+      ? [`${normalizedForm}'`, `${normalizedForm}’`]
+      : [`${normalizedForm}s`];
+  }
+
+  function addNounPossessiveForms(forms) {
+    return unique(
+      forms.flatMap((form) => [form, ...createNounPossessiveForms(form)]),
+    );
+  }
+
+  function getParadigmSearchForms(paradigm) {
+    const forms = flattenParadigmForms(paradigm);
+    return paradigm?.wordClass === "noun"
+      ? addNounPossessiveForms(forms)
+      : forms;
   }
 
   function getMatchingSlots(entry, surface) {
@@ -305,9 +337,93 @@
     };
   }
 
-  function createForms(entry) {
-    if (!snapshot?.forms) return null;
+  function createEstimatedNounRecord(lemma, gender) {
+    const articles = new Set(
+      WordClass.stripNounPrefix(gender).split("-").filter(Boolean),
+    );
+    const endsInE = lemma.endsWith("e");
+    const endsInEr = lemma.endsWith("er");
+    const stem = endsInE ? lemma.slice(0, -1) : lemma;
+    const definiteSingular = [];
+    if (articles.has("ei")) {
+      definiteSingular.push(`${stem}a`, `${stem}en`);
+    }
+    if (articles.has("en")) definiteSingular.push(`${stem}en`);
+    if (articles.has("et")) definiteSingular.push(`${stem}et`);
 
+    let indefinitePlural;
+    let definitePlural;
+    if (endsInEr) {
+      indefinitePlural = [`${lemma}e`];
+      definitePlural = [`${lemma}ne`];
+    } else if (articles.size === 1 && articles.has("et") && !endsInE) {
+      // Neuter nouns commonly allow a zero plural. Keep the productive -er
+      // alternative too because loanwords and polysyllables often require it.
+      indefinitePlural = [lemma, `${lemma}er`];
+      definitePlural = [`${lemma}ene`];
+    } else {
+      indefinitePlural = [`${stem}er`];
+      definitePlural = [`${stem}ene`];
+    }
+
+    return [
+      unique(definiteSingular),
+      unique(indefinitePlural),
+      unique(definitePlural),
+    ];
+  }
+
+  function createEstimatedAdjectiveRecord(lemma) {
+    const invariantEnding = /(?:e|ig|lig|sk)$/iu.test(lemma);
+    const declinedPositive = lemma.endsWith("e")
+      ? lemma
+      : lemma.endsWith("m")
+        ? `${lemma}me`
+        : /e[ln]$/iu.test(lemma)
+          ? `${lemma.slice(0, -2)}${lemma.slice(-1)}e`
+          : `${lemma}e`;
+    return [
+      [lemma],
+      [lemma],
+      [invariantEnding ? lemma : `${lemma}t`],
+      [declinedPositive],
+      [declinedPositive],
+      [`mer ${lemma}`],
+      [`mest ${lemma}`],
+      [`mest ${lemma}`],
+    ];
+  }
+
+  function createEstimatedVerbRecord(lemma) {
+    const stem = lemma.endsWith("e") ? lemma.slice(0, -1) : lemma;
+    const pastParticiple = `${stem}et`;
+    return [
+      [lemma],
+      [`${lemma}r`],
+      [pastParticiple],
+      [pastParticiple],
+      [stem],
+      ...Array.from({ length: 7 }, () => []),
+    ];
+  }
+
+  function createEstimatedDictionaryRecord(lemma, wordClass, gender = "") {
+    if (wordClass === "noun") return createEstimatedNounRecord(lemma, gender);
+    if (wordClass === "adjective") return createEstimatedAdjectiveRecord(lemma);
+    if (wordClass === "verb") return createEstimatedVerbRecord(lemma);
+    return null;
+  }
+
+  function fillMissingRecord(record, estimate) {
+    if (!estimate) return record;
+    return Array.from(
+      { length: Math.max(record.length, estimate.length) },
+      (_, index) =>
+        record[index]?.length ? record[index] : estimate[index] || [],
+    );
+  }
+
+  function createForms(entry) {
     const lemma = extractLemma(entry);
     if (!lemma || isProperNoun(lemma)) return null;
 
@@ -316,10 +432,24 @@
     if (!prefix) return null;
 
     const key = createRecordKey(lemma, wordClass, entry.gender);
-    const encodedRecord = snapshot.forms[key];
-    if (!encodedRecord) return null;
-    const record = decodeRecord(encodedRecord);
+    const encodedRecord = snapshot?.forms?.[key];
+    const sourceMetadata = encodedRecord
+      ? getSourceMetadata(key)
+      : {
+          isAuthoritative: false,
+          source: "dictionary",
+          sourceType: "dictionary-only",
+        };
+    let record = encodedRecord
+      ? decodeRecord(encodedRecord)
+      : createEstimatedDictionaryRecord(lemma, wordClass, entry.gender);
     if (!record) return null;
+    if (sourceMetadata.sourceType === "dictionary-only") {
+      record = fillMissingRecord(
+        record,
+        createEstimatedDictionaryRecord(lemma, wordClass, entry.gender),
+      );
+    }
 
     let result;
     if (wordClass === "noun") result = createNounForms(entry, lemma, record);
@@ -328,16 +458,19 @@
 
     return {
       ...result,
-      ...getSourceMetadata(key),
+      ...sourceMetadata,
     };
   }
 
   function collectSentenceForms(entry) {
     const lemmas = extractLemmas(entry);
     const accepted = lemmas.map(normalizeLemma);
-    if (!snapshot?.forms) return unique(accepted);
-
     const wordClass = WordClass.getWordClass(entry.gender);
+    if (!snapshot?.forms) {
+      const forms = unique(accepted);
+      return wordClass === "noun" ? addNounPossessiveForms(forms) : forms;
+    }
+
     const prefix = CLASS_PREFIX[wordClass];
     if (!prefix) return unique(accepted);
 
@@ -346,7 +479,8 @@
       accepted.push(...flattenParadigmForms(paradigm));
     }
 
-    return unique(accepted);
+    const forms = unique(accepted);
+    return wordClass === "noun" ? addNounPossessiveForms(forms) : forms;
   }
 
   function getNorwegianKeyboardVariants(value) {
@@ -384,6 +518,19 @@
     const value = index?.get(normalizeLemma(surface));
     if (!value) return [];
     return typeof value === "string" ? [value] : value;
+  }
+
+  function readNounPossessiveMappings(index, surface) {
+    const normalizedSurface = normalizeLemma(surface);
+    const baseSurface = /['’]$/u.test(normalizedSurface)
+      ? normalizedSurface.slice(0, -1)
+      : normalizedSurface.endsWith("s")
+        ? normalizedSurface.slice(0, -1)
+        : "";
+    if (!baseSurface) return [];
+    return readReverseMappings(index, baseSurface).filter(
+      (key) => parseRecordKey(key)?.wordClass === "noun",
+    );
   }
 
   async function buildReverseIndexes() {
@@ -432,7 +579,15 @@
     let keys = readReverseMappings(reverseIndex, surface);
     let matchType = "exact";
     if (keys.length === 0) {
+      keys = readNounPossessiveMappings(reverseIndex, surface);
+      matchType = keys.length ? "possessive" : "none";
+    }
+    if (keys.length === 0) {
       keys = readReverseMappings(keyboardReverseIndex, surface);
+      matchType = keys.length ? "keyboard" : "none";
+    }
+    if (keys.length === 0) {
+      keys = readNounPossessiveMappings(keyboardReverseIndex, surface);
       matchType = keys.length ? "keyboard" : "none";
     }
 
@@ -453,15 +608,25 @@
     }
 
     let keys = readReverseMappings(reverseIndex, normalizedSurface);
-    const exactMatch = keys.length > 0;
-    if (!exactMatch) {
+    let preserveSurface = keys.length > 0;
+    if (keys.length === 0) {
+      keys = readNounPossessiveMappings(reverseIndex, normalizedSurface);
+      preserveSurface = keys.length > 0;
+    }
+    if (keys.length === 0) {
       keys = readReverseMappings(keyboardReverseIndex, normalizedSurface);
+    }
+    if (keys.length === 0) {
+      keys = readNounPossessiveMappings(
+        keyboardReverseIndex,
+        normalizedSurface,
+      );
     }
     if (keys.length === 0) return [normalizedSurface];
 
-    const expanded = exactMatch ? [normalizedSurface] : [];
+    const expanded = preserveSurface ? [normalizedSurface] : [];
     for (const key of keys) {
-      expanded.push(...flattenParadigmForms(createParadigmFromKey(key)));
+      expanded.push(...getParadigmSearchForms(createParadigmFromKey(key)));
     }
     return unique(expanded);
   }
@@ -522,7 +687,7 @@
     }
 
     if (snapshot) return createForms(entry);
-    if (loadFailed) return null;
+    if (loadFailed) return createForms(entry);
 
     return {
       wordClass,
@@ -537,8 +702,8 @@
     pendingEntries.delete(String(requestId));
     if (!entry) return null;
 
-    const loaded = await loadSnapshot();
-    return loaded ? createForms(entry) : null;
+    await loadSnapshot();
+    return createForms(entry);
   }
 
   async function getSentenceForms(entry) {
@@ -561,13 +726,36 @@
         .map(normalizeLemma)
         .some((lemma) => selectedLemmas.has(lemma)),
     );
+    const selectedWordClass = WordClass.getWordClass(entry.gender);
+
+    // Cross-word-class homographs must retain their own literal search form.
+    // Removing "ved" from the preposition because a noun "ved" also exists
+    // leaves the preposition with no searchable or highlightable form at all.
+    // The caller separately excludes competing entries' own examples.
+    if (selectedWordClass !== "noun") return acceptedForms;
+
+    const selectedNounGender = WordClass.stripNounPrefix(entry.gender);
+    const nounHomographs = homographs.filter(
+      (candidate) => WordClass.getWordClass(candidate.gender) === "noun",
+    );
+    const nounGenders = new Set(
+      nounHomographs.map((candidate) =>
+        WordClass.stripNounPrefix(candidate.gender),
+      ),
+    );
+
+    // Same-gender noun senses have the same morphological evidence, so an
+    // arbitrary primary sense cannot safely own their shared forms. Allocation
+    // is useful only when distinct genders produce distinct paradigms.
+    if (nounGenders.size < 2) return acceptedForms;
+
     const cefrRank = (candidate) => {
       const rank = ["A1", "A2", "B1", "B2", "C"].indexOf(
         String(candidate?.CEFR || "").toUpperCase(),
       );
       return rank < 0 ? Number.MAX_SAFE_INTEGER : rank;
     };
-    const primarySense = homographs.reduce(
+    const primarySense = nounHomographs.reduce(
       (primary, candidate) =>
         !primary || cefrRank(candidate) < cefrRank(primary)
           ? candidate
@@ -575,17 +763,22 @@
       null,
     );
 
-    // Shared morphology belongs to the dictionary's earliest-taught sense.
-    // This keeps productive common forms such as bare/plural "ting" on the
-    // A1 en-sense, while a later specialized homograph such as et "ting"
-    // still searches its exclusive form "tinget". Competing entries' own
-    // examples are separately excluded by collectExamples.
-    if (primarySense === entry) return acceptedForms;
+    const primaryNounGender = WordClass.stripNounPrefix(primarySense?.gender);
+
+    // Shared morphology belongs to the earliest-taught noun-gender paradigm.
+    // Every sense with that gender retains it; later, genuinely different
+    // paradigms use only their exclusive forms.
+    if (primaryNounGender === selectedNounGender) return acceptedForms;
 
     const formsUsedByCompetingSenses = new Set();
 
-    for (const competitor of homographs) {
-      if (!competitor?.ord || competitor === entry) continue;
+    for (const competitor of nounHomographs) {
+      if (
+        !competitor?.ord ||
+        WordClass.stripNounPrefix(competitor.gender) === selectedNounGender
+      ) {
+        continue;
+      }
       for (const form of collectSentenceForms(competitor)) {
         formsUsedByCompetingSenses.add(form);
       }

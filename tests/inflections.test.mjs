@@ -99,11 +99,11 @@ assert.equal(alternatives(value(father, "Definite plural")).includes("farene"), 
 assert.equal(alternatives(value(track, "Indefinite plural")).includes("fedre"), false);
 assert.deepEqual(
   [...await context.Inflections.getSentenceForms({ ord: "far", gender: "noun - en" })],
-  ["far", "faren", "fedre", "fedrene"],
+  ["far", "fars", "faren", "farens", "fedre", "fedres", "fedrene", "fedrenes"],
 );
 assert.deepEqual(
   [...await context.Inflections.getSentenceForms({ ord: "far", gender: "noun - et" })],
-  ["far", "faret", "fara", "farene"],
+  ["far", "fars", "faret", "farets", "fara", "faras", "farene", "farenes"],
 );
 
 const fatherEntry = {
@@ -124,14 +124,42 @@ assert.deepEqual(
       farHomographs,
     ),
   ],
-  ["far", "faren", "fedre", "fedrene"],
+  ["far", "fars", "faren", "farens", "fedre", "fedres", "fedrene", "fedrenes"],
 );
 const trackSupplementalForms =
   await context.Inflections.getSupplementalSentenceForms(
     trackEntry,
     farHomographs,
   );
-assert.deepEqual([...trackSupplementalForms], ["faret", "fara", "farene"]);
+assert.deepEqual([...trackSupplementalForms], [
+  "faret",
+  "farets",
+  "fara",
+  "faras",
+  "farene",
+  "farenes",
+]);
+
+// A homographic noun must not erase the literal form of a preposition. Doing
+// so used to leave ved (preposition) with only its primary example and made
+// even that sentence impossible to highlight.
+const woodEntry = {
+  ord: "ved",
+  gender: "noun - en",
+  CEFR: "A1",
+  eksempel: "Jeg har nok ved for hele vinteren.",
+};
+const byEntry = {
+  ord: "ved",
+  gender: "preposition",
+  CEFR: "A1",
+  eksempel: "Jeg krysset elven ved å svømme.",
+};
+const vedForms = await context.Inflections.getSupplementalSentenceForms(
+  byEntry,
+  [woodEntry, byEntry],
+);
+assert.deepEqual([...vedForms], ["ved"]);
 
 // Shared morphology is retained by the earliest-taught sense rather than
 // being removed from every homograph. Thus the common A1 en-sense of ting
@@ -157,9 +185,13 @@ const commonThingForms =
   );
 assert.deepEqual([...commonThingForms], [
   "ting",
+  "tings",
   "tingen",
+  "tingens",
   "tinga",
+  "tingas",
   "tingene",
+  "tingenes",
 ]);
 assert.deepEqual(
   [
@@ -168,7 +200,7 @@ assert.deepEqual(
       thingHomographs,
     ),
   ],
-  ["tinget"],
+  ["tinget", "tingets"],
 );
 
 // Dictionary-only compounds inherit the official paradigm of a compatible
@@ -190,13 +222,50 @@ assert.deepEqual(alternatives(value(luftfoto, "Definite plural")), [
 const airfryer = getForms("airfryer", "noun - en");
 assert.equal(airfryer.sourceType, "dictionary-only");
 assert.equal(value(airfryer, "Indefinite singular"), "en airfryer");
-assert.equal(value(airfryer, "Definite singular"), "–");
+assert.equal(value(airfryer, "Definite singular"), "airfryeren");
+assert.equal(value(airfryer, "Indefinite plural"), "airfryere");
+assert.equal(value(airfryer, "Definite plural"), "airfryerne");
 
-// Unknown words no longer borrow the paradigm of an unrelated suffix or
-// receive a guessed regular paradigm.
-assert.equal(getForms("tullmuseum", "noun - et"), null);
-assert.equal(getForms("superkjedsom", "adjective"), null);
-assert.equal(getForms("xbetale", "verb"), null);
+const speedo = getForms("speedo", "noun - en");
+assert.equal(speedo.sourceType, "dictionary-only");
+assert.equal(value(speedo, "Indefinite singular"), "en speedo");
+assert.equal(value(speedo, "Definite singular"), "speedoen");
+assert.equal(value(speedo, "Indefinite plural"), "speedoer");
+assert.equal(value(speedo, "Definite plural"), "speedoene");
+assert.equal(
+  (
+    await context.Inflections.getSentenceForms({
+      ord: "speedo",
+      gender: "noun - en",
+    })
+  ).includes("speedoen"),
+  true,
+);
+
+// A dictionary entry added after the snapshot was built still receives the
+// complete table structure with explicitly non-authoritative regular estimates.
+const unknownNoun = getForms("tullmuseum", "noun - et");
+assert.equal(unknownNoun.sourceType, "dictionary-only");
+assert.equal(value(unknownNoun, "Indefinite singular"), "et tullmuseum");
+assert.equal(value(unknownNoun, "Definite singular"), "tullmuseumet");
+assert.deepEqual(alternatives(value(unknownNoun, "Indefinite plural")), [
+  "tullmuseum",
+  "tullmuseumer",
+]);
+assert.equal(value(unknownNoun, "Definite plural"), "tullmuseumene");
+
+const unknownAdjective = getForms("superkjedsom", "adjective");
+assert.equal(unknownAdjective.sourceType, "dictionary-only");
+assert.equal(value(unknownAdjective, "Masculine"), "superkjedsom");
+assert.equal(value(unknownAdjective, "Feminine"), "superkjedsom");
+assert.equal(value(unknownAdjective, "Neuter"), "superkjedsomt");
+assert.equal(value(unknownAdjective, "Plural"), "superkjedsomme");
+
+const unknownVerb = getForms("xbetale", "verb");
+assert.equal(unknownVerb.sourceType, "dictionary-only");
+assert.equal(value(unknownVerb, "Infinitive"), "å xbetale");
+assert.equal(value(unknownVerb, "Present"), "xbetaler");
+assert.equal(value(unknownVerb, "Past"), "xbetalet");
 
 const drikkeParadigm = context.Inflections.getParadigm({
   ord: "drikke",
@@ -220,9 +289,14 @@ const expandedUgler = await context.Inflections.expandSearchTerm("ugler");
 assert.deepEqual([...expandedUgler], [
   "ugler",
   "ugle",
+  "ugles",
   "ugla",
+  "uglas",
   "uglen",
+  "uglens",
+  "uglers",
   "uglene",
+  "uglenes",
 ]);
 assert.equal(expandedUgler.includes("uglasert"), false);
 
@@ -232,17 +306,78 @@ const ugleSentenceForms = await context.Inflections.getSentenceForms({
 });
 assert.deepEqual([...ugleSentenceForms], [
   "ugle",
+  "ugles",
   "ugla",
+  "uglas",
   "uglen",
+  "uglens",
   "ugler",
+  "uglers",
   "uglene",
+  "uglenes",
 ]);
 assert.equal(ugleSentenceForms.includes("ugl"), false);
+
+// Norwegian possessive/genitive -s is productive over every verified noun
+// surface even though it is not shown as a separate Word Forms table slot.
+const elskovSentenceForms = await context.Inflections.getSentenceForms({
+  ord: "elskov",
+  gender: "noun - en",
+});
+assert.equal(elskovSentenceForms.includes("elskovens"), true);
+assert.equal(elskovSentenceForms.includes("elskovs"), true);
+assert.equal(elskovSentenceForms.includes("elskovenes"), true);
+const isSentenceForms = await context.Inflections.getSentenceForms({
+  ord: "is",
+  gender: "noun - en",
+});
+assert.equal(isSentenceForms.includes("is'"), true);
+assert.equal(isSentenceForms.includes("is’"), true);
+assert.equal(isSentenceForms.includes("iss"), false);
+
+const resolvedElskovens = await context.Inflections.findLemmas(
+  "elskovens",
+  "noun",
+);
+assert.deepEqual([...resolvedElskovens.lemmas], ["elskov"]);
+const expandedElskov = await context.Inflections.expandSearchTerm("elskov");
+assert.equal(expandedElskov.includes("elskovens"), true);
 
 vm.runInContext(
   fs.readFileSync(path.join(root, "sentenceFormMatching.js"), "utf8"),
   context,
   { filename: "sentenceFormMatching.js" },
+);
+const vedMatcher = context.SentenceFormMatching.createMatcher(vedForms);
+assert.equal(vedMatcher.test("Hun satt ved bordet og ventet."), true);
+assert.equal(
+  vedMatcher.highlight(byEntry.eksempel),
+  'Jeg krysset elven <span style="color: #1f6fb3;">ved</span> å svømme.',
+);
+const collectedVedExamples = context.SentenceFormMatching.collectExamples(
+  byEntry,
+  [
+    woodEntry,
+    byEntry,
+    { ord: "bord", eksempel: "Hun satt ved bordet og ventet." },
+    { ord: "behov", eksempel: "Ring meg ved behov." },
+  ],
+  vedMatcher,
+  100,
+  [woodEntry],
+);
+assert.equal(collectedVedExamples.primary[0].eksempel, byEntry.eksempel);
+assert.deepEqual(
+  [...collectedVedExamples.supplemental].map((item) => item.eksempel),
+  ["Hun satt ved bordet og ventet.", "Ring meg ved behov."],
+);
+const elskovMatcher =
+  context.SentenceFormMatching.createMatcher(elskovSentenceForms);
+assert.equal(
+  elskovMatcher.highlight(
+    "De hadde funnet en gammel bok om elskovens historie.",
+  ),
+  'De hadde funnet en gammel bok om <span style="color: #1f6fb3;">elskovens</span> historie.',
 );
 const ugleMatcher = context.SentenceFormMatching.createMatcher(ugleSentenceForms);
 assert.equal(ugleMatcher.test("Den gamle ugla lettet og fløy forbi."), true);
