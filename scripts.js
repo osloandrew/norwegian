@@ -392,6 +392,7 @@ function updateWordMetadata(entry) {
 // --- Sentences index globals ---
 let sentenceCorpus = []; // Flat array of { id, no, en, noNorm, enNorm, cefr, audio }
 let sentenceIndex = null; // { norwegian: Map, english: Map }
+let expressionSentenceCandidateCache = new WeakMap();
 
 // Function to show or hide the landing card
 function showLandingCard(show) {
@@ -666,6 +667,7 @@ function parseCSVData(data, options = {}) {
          */
         sentenceCorpus = [];
         sentenceIndex = null;
+        expressionSentenceCandidateCache = new WeakMap();
       },
       error: function (error) {
         console.error("Error parsing CSV:", error);
@@ -1359,32 +1361,66 @@ async function search(queryOverride = null) {
     }
 
     console.time("[Sentences] query");
-    const terms = normalizeSearchText(query).split(/\s+/).filter(Boolean);
-    const norwegianTermGroups = await Promise.all(
-      terms.map((term) => window.Inflections.expandSearchTerm(term)),
+    const normalizedQuery = normalizeSearchText(query);
+    const terms = normalizedQuery.split(/\s+/).filter(Boolean);
+    const expressionEntry = results.find(
+      (entry) =>
+        WordClass.getWordClass(entry.gender) === "expression" &&
+        window.ExpressionPatterns
+          ?.getVariants(entry)
+          .some((variant) => normalizeSearchText(variant) === normalizedQuery),
     );
-    const norwegianHighlightTerms = [
-      ...new Set(norwegianTermGroups.flat()),
-    ];
-
+    const expressionAnalysis = expressionEntry
+      ? await window.ExpressionPatterns.getAnalysis(expressionEntry)
+      : null;
+    const expressionMatcher = expressionAnalysis?.matcher || null;
+    let norwegianHighlightTerms = [];
     let ids = null;
-    for (let termIndex = 0; termIndex < terms.length; termIndex++) {
-      const groupIds = new Set();
-      for (const form of norwegianTermGroups[termIndex]) {
-        const match = sentenceIndex.norwegian.get(form) || [];
-        for (const id of match) groupIds.add(id);
+
+    if (expressionAnalysis) {
+      ids = new Set();
+      for (const alternative of expressionAnalysis.searchAlternatives) {
+        let alternativeIds = null;
+        for (const acceptedForms of alternative) {
+          const groupIds = new Set();
+          for (const form of acceptedForms) {
+            for (const id of sentenceIndex.norwegian.get(form) || []) {
+              groupIds.add(id);
+            }
+          }
+          alternativeIds =
+            alternativeIds === null
+              ? groupIds
+              : new Set(
+                  [...alternativeIds].filter((id) => groupIds.has(id)),
+                );
+        }
+        for (const id of alternativeIds || []) ids.add(id);
       }
+    } else {
+      const norwegianTermGroups = await Promise.all(
+        terms.map((term) => window.Inflections.expandSearchTerm(term)),
+      );
+      norwegianHighlightTerms = [...new Set(norwegianTermGroups.flat())];
 
-      // English examples are not Norwegian morphology. Search the literal
-      // English token only, so an official Norwegian form that happens to be
-      // an English word cannot broaden the English side of the corpus.
-      const englishMatch = sentenceIndex.english.get(terms[termIndex]) || [];
-      for (const id of englishMatch) groupIds.add(id);
+      for (let termIndex = 0; termIndex < terms.length; termIndex++) {
+        const groupIds = new Set();
+        for (const form of norwegianTermGroups[termIndex]) {
+          const match = sentenceIndex.norwegian.get(form) || [];
+          for (const id of match) groupIds.add(id);
+        }
 
-      ids =
-        ids === null
-          ? groupIds
-          : new Set([...groupIds].filter((id) => ids.has(id)));
+        // English examples are not Norwegian morphology. Search the literal
+        // English token only, so an official Norwegian form that happens to be
+        // an English word cannot broaden the English side of the corpus.
+        const englishMatch = sentenceIndex.english.get(terms[termIndex]) || [];
+        for (const id of englishMatch) groupIds.add(id);
+
+        ids =
+          ids === null
+            ? groupIds
+            : new Set([...groupIds].filter((id) => ids.has(id)));
+      }
     }
 
     // If nothing matched, default to empty
@@ -1394,7 +1430,10 @@ async function search(queryOverride = null) {
 
     // Materialize rows
     const rowsAll = [];
-    for (const sid of ids) rowsAll.push(sentenceCorpus[sid]);
+    for (const sid of ids) {
+      const row = sentenceCorpus[sid];
+      if (!expressionMatcher || expressionMatcher.test(row.no)) rowsAll.push(row);
+    }
 
     // Apply CEFR filter if set
     const selectedCEFR = document.getElementById("cefr-select")
@@ -1409,8 +1448,9 @@ async function search(queryOverride = null) {
     const partial = [];
     for (const r of rowsFiltered) {
       const inOrder =
-        r.noNorm.includes(normalizeSearchText(query)) ||
-        r.enNorm.includes(normalizeSearchText(query));
+        Boolean(expressionMatcher) ||
+        r.noNorm.includes(normalizedQuery) ||
+        r.enNorm.includes(normalizedQuery);
       if (inOrder) {
         exact.push(r);
       } else {
@@ -1443,6 +1483,7 @@ async function search(queryOverride = null) {
       query,
       norwegianHighlightTerms,
       terms,
+      expressionMatcher,
     );
 
     console.timeEnd("[Sentences] query");
@@ -2124,6 +2165,28 @@ function renderInflectionsSource(inflections) {
   if (inflections?.sourceType === "dictionary-only") {
     return `<p class="inflections-hint">Only the dictionary form is available; no verified inflections were found. The remaining forms are regular estimates.</p>`;
   }
+  if (inflections?.sourceType === "variant-mixed") {
+    const variantSources = inflections.variantSources || [];
+    const hasOrdbankSource = variantSources.some(
+      (variant) =>
+        variant.sourceType === "ordbank" ||
+        variant.sourceType === "ordbank-derived",
+    );
+    const hasEstimatedSource = variantSources.some(
+      (variant) => variant.sourceType === "dictionary-only",
+    );
+    return `<p class="inflections-hint">Forms combine the available paradigms for the listed spelling variants${hasOrdbankSource ? `, including forms from <a href="https://ord.uib.no/ord_1_Ordlister.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Norsk Ordbank</a>` : ""}.${hasEstimatedSource ? " Some forms are dictionary-based estimates." : ""}</p>`;
+  }
+  if (inflections?.sourceType === "expression-ordbank") {
+    const heads = escapeHTML((inflections.expressionHeads || []).join(" / "));
+    return `<p class="inflections-hint inflections-hint-expression">Component forms${heads ? ` for ${heads}` : ""} from <a href="https://ord.uib.no/ord_1_Ordlister.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Norsk Ordbank</a></p>`;
+  }
+  if (inflections?.sourceType === "expression-estimated") {
+    return `<p class="inflections-hint">Some component forms are regular estimates because no verified paradigm was available.</p>`;
+  }
+  if (inflections?.sourceType === "expression-fixed") {
+    return `<p class="inflections-hint">No reliable inflecting component was found, so this is treated as a fixed expression.</p>`;
+  }
   return "";
 }
 
@@ -2491,12 +2554,13 @@ function renderSentenceMatchesFromCorpus(
   query,
   norwegianHighlightTerms,
   englishHighlightTerms,
+  norwegianMatcherOverride = null,
 ) {
   clearContainer();
   const safeQuery = escapeHTML(query);
-  const norwegianMatcher = window.SentenceFormMatching.createMatcher(
-    norwegianHighlightTerms,
-  );
+  const norwegianMatcher =
+    norwegianMatcherOverride ||
+    window.SentenceFormMatching.createMatcher(norwegianHighlightTerms);
   const englishMatcher = window.SentenceFormMatching.createMatcher(
     englishHighlightTerms,
   );
@@ -2626,6 +2690,63 @@ function getHomographEntries(entry) {
   ];
 }
 
+// Expression matching understands reordered verbs, movable negation,
+// reflexives, possessives, and object gaps. That makes it much more useful
+// than a simple form regex, but also too expensive to run against every
+// dictionary row whenever a definition card opens. First require one or two
+// of the expression's most selective, token-bounded components. The complete
+// matcher then only has to inspect the small set that survives this pass.
+//
+// This deliberately avoids building the full Sentence Search index on first
+// use: even its one-time construction would make the first card feel slower.
+function getExpressionSentenceCandidates(primaryEntry, analysis) {
+  if (!primaryEntry || !analysis) return results;
+
+  const cached = expressionSentenceCandidateCache.get(primaryEntry);
+  if (cached) return cached;
+
+  const coarseAlternatives = (analysis.searchAlternatives || [])
+    .map((groups) =>
+      groups
+        .map((forms) =>
+          window.SentenceFormMatching.normalizeForms(forms),
+        )
+        .filter((forms) => forms.length > 0)
+        .sort((left, right) => {
+          // A literal component has fewer accepted forms than an inflected
+          // one. Among equally fixed components, the longer word/phrase is
+          // usually rarer ("ulvene" is a better anchor than "til").
+          if (left.length !== right.length) return left.length - right.length;
+          const leftLength = Math.max(...left.map((form) => form.length));
+          const rightLength = Math.max(...right.map((form) => form.length));
+          return rightLength - leftLength;
+        })
+        .slice(0, 2)
+        .map((forms) => window.SentenceFormMatching.createMatcher(forms)),
+    )
+    .filter((matchers) => matchers.length > 0);
+
+  // An expression made entirely from placeholders has no safe coarse
+  // anchors. Such an unusual row still gets its own example immediately;
+  // scanning the whole dictionary with the expensive matcher is not useful.
+  if (coarseAlternatives.length === 0) {
+    const ownEntryOnly = [primaryEntry];
+    expressionSentenceCandidateCache.set(primaryEntry, ownEntryOnly);
+    return ownEntryOnly;
+  }
+
+  const candidates = results.filter(
+    (entry) =>
+      entry === primaryEntry ||
+      (entry?.eksempel &&
+        coarseAlternatives.some((matchers) =>
+          matchers.every((matcher) => matcher.test(entry.eksempel)),
+        )),
+  );
+  expressionSentenceCandidateCache.set(primaryEntry, candidates);
+  return candidates;
+}
+
 // Fetch and render sentences for one exact dictionary sense. Cross-class and
 // same-gender homographs retain their searchable spelling; only genuinely
 // different noun-gender paradigms allocate shared forms to the earliest-
@@ -2672,21 +2793,34 @@ async function fetchAndRenderSentences(
   sentenceContainer.innerHTML = ""; // Clear previous sentences
 
   const homographEntries = getHomographEntries(matchingWordEntry);
-  const sentenceForms = await window.Inflections.getSupplementalSentenceForms(
-    matchingWordEntry,
-    homographEntries,
-  );
-  const primaryHighlightForms = await window.Inflections.getSentenceForms(
-    matchingWordEntry,
-  );
+  const isExpression =
+    WordClass.getWordClass(matchingWordEntry.gender) === "expression";
+  const expressionAnalysis = isExpression
+    ? await window.ExpressionPatterns?.getAnalysis(matchingWordEntry)
+    : null;
+  const sentenceForms = expressionAnalysis
+    ? []
+    : await window.Inflections.getSupplementalSentenceForms(
+        matchingWordEntry,
+        homographEntries,
+      );
+  const primaryHighlightForms = expressionAnalysis
+    ? []
+    : await window.Inflections.getSentenceForms(matchingWordEntry);
   if (!sentenceContainer.isConnected) return;
-  const formMatcher = window.SentenceFormMatching.createMatcher(sentenceForms);
-  const primaryHighlightMatcher =
-    window.SentenceFormMatching.createMatcher(primaryHighlightForms);
+  const formMatcher = expressionAnalysis
+    ? expressionAnalysis.matcher
+    : window.SentenceFormMatching.createMatcher(sentenceForms);
+  const primaryHighlightMatcher = expressionAnalysis
+    ? expressionAnalysis.matcher
+    : window.SentenceFormMatching.createMatcher(primaryHighlightForms);
+  const sentenceCandidateEntries = expressionAnalysis
+    ? getExpressionSentenceCandidates(matchingWordEntry, expressionAnalysis)
+    : results;
   const { primary: primaryResults, supplemental: supplementalResults } =
     window.SentenceFormMatching.collectExamples(
       matchingWordEntry,
-      results,
+      sentenceCandidateEntries,
       formMatcher,
       100,
       homographEntries.filter((entry) => entry !== matchingWordEntry),

@@ -5,7 +5,7 @@
 (function () {
   "use strict";
 
-  const DATA_VERSION = 6;
+  const DATA_VERSION = 8;
   const DATA_URL = `inflections-data.json?v=${DATA_VERSION}`;
   const MAX_PENDING_ENTRIES = 100;
   const CLASS_PREFIX = {
@@ -210,6 +210,8 @@
     const paradigms = WordClass.NOUN_GENDER_FORMS.map((nounGender) =>
       createParadigmFromKey(createRecordKey(lemma, wordClass, nounGender)),
     ).filter(Boolean);
+    const genderlessParadigm = createParadigmFromKey(`n:${normalizeLemma(lemma)}`);
+    if (genderlessParadigm) paradigms.push(genderlessParadigm);
     if (paradigms.length === 0) return null;
     if (paradigms.length === 1) return paradigms[0];
 
@@ -414,6 +416,32 @@
     return null;
   }
 
+  function getEstimatedParadigmForLemma(lemma, wordClass, gender = "") {
+    const normalizedLemma = normalizeLemma(String(lemma ?? "").trim());
+    const record = createEstimatedDictionaryRecord(
+      normalizedLemma,
+      wordClass,
+      gender,
+    );
+    if (!normalizedLemma || !record) return null;
+    const slots =
+      wordClass === "noun"
+        ? [[normalizedLemma], ...record.slice(0, 3)]
+        : wordClass === "adjective"
+          ? record.slice(0, 8)
+          : Array.from({ length: 12 }, (_, index) => record[index] || []);
+    return {
+      gender: wordClass === "noun" ? canonicalNounGender(gender) : "",
+      isAuthoritative: false,
+      key: "",
+      lemma: normalizedLemma,
+      slots: slots.map((values) => unique(values.map(normalizeLemma))),
+      source: "dictionary",
+      sourceType: "dictionary-only",
+      wordClass,
+    };
+  }
+
   function fillMissingRecord(record, estimate) {
     if (!estimate) return record;
     return Array.from(
@@ -423,10 +451,7 @@
     );
   }
 
-  function createForms(entry) {
-    const lemma = extractLemma(entry);
-    if (!lemma || isProperNoun(lemma)) return null;
-
+  function createFormsForLemma(entry, lemma) {
     const wordClass = WordClass.getWordClass(entry.gender);
     const prefix = CLASS_PREFIX[wordClass];
     if (!prefix) return null;
@@ -459,6 +484,79 @@
     return {
       ...result,
       ...sourceMetadata,
+      lemma,
+    };
+  }
+
+  function mergeFormValues(values) {
+    const merged = unique(
+      values.flatMap((value) =>
+        value === "–" ? [] : Array.isArray(value) ? value : [value],
+      ),
+    );
+    return displayValue(merged);
+  }
+
+  function mergeVariantSourceMetadata(variantForms) {
+    const sourceTypes = unique(
+      variantForms.map((forms) => forms.sourceType).filter(Boolean),
+    );
+    const variantSources = variantForms.map((forms) => ({
+      derivedFrom: forms.derivedFrom || "",
+      isAuthoritative: Boolean(forms.isAuthoritative),
+      lemma: forms.lemma,
+      sourceType: forms.sourceType || "dictionary-only",
+    }));
+    if (sourceTypes.length === 1) {
+      const first = variantForms[0];
+      const derivedFrom = unique(
+        variantForms.map((forms) => forms.derivedFrom).filter(Boolean),
+      );
+      return {
+        isAuthoritative: variantForms.every((forms) => forms.isAuthoritative),
+        source: first.source,
+        sourceType: first.sourceType,
+        variantSources,
+        ...(derivedFrom.length > 0
+          ? { derivedFrom: derivedFrom.join(" / ") }
+          : {}),
+      };
+    }
+    return {
+      isAuthoritative: false,
+      source: "mixed",
+      sourceType: "variant-mixed",
+      variantSources,
+    };
+  }
+
+  function createForms(entry) {
+    const lemmas = extractLemmas(entry);
+    if (lemmas.length === 0 || lemmas.some(isProperNoun)) return null;
+
+    const variantForms = lemmas
+      .map((lemma) => createFormsForLemma(entry, lemma))
+      .filter(Boolean);
+    if (variantForms.length === 0) return null;
+    if (variantForms.length === 1) return variantForms[0];
+
+    const labels = unique(
+      variantForms.flatMap((forms) =>
+        forms.forms.map((form) => form.label),
+      ),
+    );
+    return {
+      wordClass: variantForms[0].wordClass,
+      forms: labels.map((label) => ({
+        label,
+        value: mergeFormValues(
+          variantForms.map(
+            (forms) =>
+              forms.forms.find((form) => form.label === label)?.value || "–",
+          ),
+        ),
+      })),
+      ...mergeVariantSourceMetadata(variantForms),
     };
   }
 
@@ -552,8 +650,14 @@
       // background index warm-up from creating one noticeable main-thread
       // pause on slower phones while preserving a synchronous test fallback.
       processed++;
-      if (processed % 500 === 0 && typeof setTimeout === "function") {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      if (processed % 150 === 0 && typeof setTimeout === "function") {
+        await new Promise((resolve) => {
+          if (typeof window.requestIdleCallback === "function") {
+            window.requestIdleCallback(resolve, { timeout: 1000 });
+          } else {
+            setTimeout(resolve, 0);
+          }
+        });
       }
     }
 
@@ -599,6 +703,17 @@
         .filter(Boolean),
     ).sort((a, b) => a.localeCompare(b, "nb"));
     return { lemmas, matchType: lemmas.length ? matchType : "none" };
+  }
+
+  function getExpressionComponentParadigms(surface, wordClass = "") {
+    const normalizedSurface = normalizeLemma(String(surface ?? "").trim());
+    const encodedKeys = snapshot?.expressionComponentLookup?.[normalizedSurface];
+    if (!encodedKeys) return [];
+    const prefix = CLASS_PREFIX[wordClass] || "";
+    return unique(encodedKeys.split("/"))
+      .filter((key) => !prefix || key.startsWith(`${prefix}:`))
+      .map(createParadigmFromKey)
+      .filter(Boolean);
   }
 
   async function expandSearchTerm(surface) {
@@ -662,6 +777,8 @@
   function rememberPendingEntry(entry) {
     const requestId = String(nextRequestId++);
     pendingEntries.set(requestId, {
+      definisjon: entry.definisjon,
+      eksempel: entry.eksempel,
       ord: entry.ord,
       gender: entry.gender,
     });
@@ -678,9 +795,16 @@
     if (!entry || !entry.ord || !entry.gender) return null;
 
     const lemma = extractLemma(entry);
-    if (!lemma || isProperNoun(lemma)) return null;
-
     const wordClass = WordClass.getWordClass(entry.gender);
+    if (wordClass === "expression") {
+      return {
+        wordClass,
+        pending: true,
+        requestId: rememberPendingEntry(entry),
+        forms: [],
+      };
+    }
+    if (!lemma || isProperNoun(lemma)) return null;
     if (!CLASS_PREFIX[wordClass]) return null;
     if (wordClass === "noun" && extractNounArticles(entry).length === 0) {
       return null;
@@ -703,6 +827,9 @@
     if (!entry) return null;
 
     await loadSnapshot();
+    if (WordClass.getWordClass(entry.gender) === "expression") {
+      return window.ExpressionPatterns?.getForms(entry) || null;
+    }
     return createForms(entry);
   }
 
@@ -796,6 +923,8 @@
   window.Inflections = Object.freeze({
     expandSearchTerm,
     findLemmas,
+    getEstimatedParadigmForLemma,
+    getExpressionComponentParadigms,
     getForms,
     getMatchingSlots,
     getParadigm,

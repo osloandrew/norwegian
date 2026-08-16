@@ -50,6 +50,24 @@ assert.equal(value(finnes, "Past"), "fantes");
 assert.equal(value(finnes, "Present perfect"), "har funnes");
 assert.equal(value(finnes, "Imperative"), "–");
 
+// The common copular/existential være sense must not be merged with the rare
+// regular homograph (værer, været). This same record feeds expression tables,
+// sentence lookup, and Word Game slots.
+const vaere = getForms("være", "verb");
+assert.equal(value(vaere, "Infinitive"), "å være");
+assert.equal(value(vaere, "Present"), "er");
+assert.equal(value(vaere, "Past"), "var");
+assert.equal(value(vaere, "Present perfect"), "har vært");
+assert.equal(value(vaere, "Imperative"), "vær!");
+assert.equal(
+  ["værer", "væra", "været", "værede", "værete"].some((form) =>
+    context.Inflections.getParadigm({ ord: "være", gender: "verb" })
+      .slots.flat()
+      .includes(form),
+  ),
+  false,
+);
+
 // Indeclinable adjectives remain invariant and do not acquire invented
 // comparison forms; lexically irregular adjectives retain stem changes.
 const foekkings = getForms("føkkings", "adjective");
@@ -77,6 +95,32 @@ assert.equal(value(museum, "Indefinite plural"), "museer");
 assert.deepEqual(alternatives(value(museum, "Definite plural")), [
   "musea",
   "museene",
+]);
+
+// Comma-separated dictionary spellings are equal variants of one entry. The
+// table combines each variant's own official paradigm instead of silently
+// showing only the first spelling.
+const future = getForms("fremtid, framtid", "noun - ei");
+assert.equal(future.sourceType, "ordbank");
+assert.deepEqual(alternatives(value(future, "Indefinite singular")), [
+  "ei fremtid",
+  "en fremtid",
+  "ei framtid",
+  "en framtid",
+]);
+assert.deepEqual(alternatives(value(future, "Definite singular")), [
+  "fremtida",
+  "fremtiden",
+  "framtida",
+  "framtiden",
+]);
+assert.deepEqual(alternatives(value(future, "Indefinite plural")), [
+  "fremtider",
+  "framtider",
+]);
+assert.deepEqual(alternatives(value(future, "Definite plural")), [
+  "fremtidene",
+  "framtidene",
 ]);
 
 // Same-spelling noun senses retain completely separate paradigms when the

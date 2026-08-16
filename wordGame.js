@@ -993,7 +993,219 @@ function createClozeTarget(
   };
 }
 
-function findClozeTarget(wordObj, preferredForm = "") {
+function refineExpressionVerbSlotIndexes(slotIndexes, sentence, startIndex) {
+  const accepted = [...new Set(slotIndexes || [])];
+  if (accepted.length <= 1) return accepted;
+  const precedingTokens = getIndexedClozeTokens(sentence.slice(0, startIndex));
+  const preceding = normalizeGameAnswer(
+    precedingTokens[precedingTokens.length - 1]?.text || "",
+  );
+  if (["har", "hadde"].includes(preceding) && accepted.includes(3)) {
+    return [3];
+  }
+  if (
+    ["å", "kan", "kunne", "må", "måtte", "skal", "skulle", "vil", "ville", "bør", "burde"].includes(
+      preceding,
+    ) &&
+    accepted.includes(0)
+  ) {
+    return [0];
+  }
+  if (["ble", "blir", "er", "var"].includes(preceding)) {
+    const participial = accepted.filter((slot) => [6, 7, 8, 9, 10].includes(slot));
+    if (participial.length > 0) return participial;
+  }
+  // With no auxiliary immediately before it, a surface shared by the weak
+  // past and participle paradigms is functioning as a finite past verb.
+  if (accepted.includes(2)) return [2];
+  return accepted;
+}
+
+function refineExpressionAdjectiveSlotIndexes(
+  slotIndexes,
+  sentence,
+  startIndex,
+  endIndex,
+) {
+  const sentenceTokens = getIndexedClozeTokens(sentence);
+  const firstTokenIndex = sentenceTokens.findIndex(
+    (token) => token.start === startIndex,
+  );
+  const endTokenIndex = sentenceTokens.findIndex(
+    (token) => token.end >= endIndex,
+  );
+  if (firstTokenIndex < 0 || endTokenIndex < firstTokenIndex) {
+    return [...new Set(slotIndexes || [])];
+  }
+  return refineAdjectiveSlotIndexes(
+    [...new Set(slotIndexes || [])],
+    sentenceTokens,
+    firstTokenIndex,
+    endTokenIndex + 1,
+  );
+}
+
+function createNounGenitiveForm(form) {
+  const value = String(form ?? "");
+  if (!value) return "";
+  return /[sxz]$/iu.test(value) ? `${value}'` : `${value}s`;
+}
+
+function getExpressionNounCase(anchorSpan, slotIndexes) {
+  if (anchorSpan?.node?.selected?.wordClass !== "noun") return "base";
+  const normalizeCaseForm = (value) =>
+    normalizeGameAnswer(value).replace(/’/gu, "'");
+  const surface = normalizeCaseForm(anchorSpan.surface);
+  const paradigm = anchorSpan.node.selected.paradigm;
+  const baseForms = [
+    ...new Set(
+      (slotIndexes || []).flatMap(
+        (slotIndex) => paradigm?.slots?.[slotIndex] || [],
+      ),
+    ),
+  ];
+  if (baseForms.some((form) => normalizeCaseForm(form) === surface)) {
+    return "base";
+  }
+  return baseForms.some(
+    (form) => normalizeCaseForm(createNounGenitiveForm(form)) === surface,
+  )
+    ? "genitive"
+    : "base";
+}
+
+function getExpressionAnchorSpan(match) {
+  const priority = { verb: 0, noun: 1, adjective: 2 };
+  return match.spans
+    .map((span, index) => ({
+      span,
+      index,
+      wordClass: span.node.selected?.wordClass || "",
+      changed:
+        normalizeGameAnswer(span.surface) !==
+        normalizeGameAnswer(span.node.selected?.lemma || span.node.text),
+    }))
+    .filter(
+      ({ span, wordClass }) =>
+        Number.isInteger(priority[wordClass]) &&
+        span.slotIndexes.some(Number.isInteger),
+    )
+    .sort(
+      (left, right) =>
+        priority[left.wordClass] - priority[right.wordClass] ||
+        Number(right.changed) - Number(left.changed) ||
+        left.index - right.index,
+    )[0]?.span;
+}
+
+async function findExpressionClozeTarget(wordObj, preferredForm = "") {
+  const analysis = await window.ExpressionPatterns?.getAnalysis(wordObj);
+  const exampleText = normalizeGameWhitespace(wordObj?.eksempel);
+  if (!analysis || !exampleText) return null;
+  const sentences = exampleText
+    .split(/(?<=[.!?])\s+/)
+    .filter((sentence) => sentence.trim() !== "");
+  const normalizedPreferredForm = normalizeGameAnswer(preferredForm);
+  let firstMatch = null;
+
+  for (let sentenceIndex = 0; sentenceIndex < sentences.length; sentenceIndex++) {
+    const sentence = sentences[sentenceIndex];
+    const match = analysis.matcher.find(sentence);
+    if (!match) continue;
+
+    // Keep the expression's fixed words, objects, and reflexives in the
+    // sentence while blanking one recognized inflectable component. Its word
+    // class and exact paradigm slot then constrain every distractor. This is
+    // what turns "kastet henne til ulvene" into "___ henne til ulvene", and
+    // also supports noun- and adjective-headed expressions.
+    const anchorSpan = getExpressionAnchorSpan(match);
+    let target;
+    if (anchorSpan) {
+      const anchorWordClass = anchorSpan.node.selected.wordClass;
+      let slotIndexes = [...new Set(anchorSpan.slotIndexes)].filter(
+        Number.isInteger,
+      );
+      if (anchorWordClass === "verb") {
+        slotIndexes = refineExpressionVerbSlotIndexes(
+          slotIndexes,
+          sentence,
+          anchorSpan.start,
+        );
+      } else if (anchorWordClass === "adjective") {
+        slotIndexes = refineExpressionAdjectiveSlotIndexes(
+          slotIndexes,
+          sentence,
+          anchorSpan.start,
+          anchorSpan.end,
+        );
+      }
+      target = {
+        sentence,
+        sentenceIndex,
+        surfaceForm: anchorSpan.surface,
+        startIndex: anchorSpan.start,
+        endIndex: anchorSpan.end,
+        startsSentence: /^[^\p{L}\p{N}]*$/u.test(
+          sentence.slice(0, anchorSpan.start),
+        ),
+        slotIndexes,
+        targetLemma: anchorSpan.node.selected.lemma,
+        targetGender:
+          anchorWordClass === "noun"
+            ? anchorSpan.node.selected.paradigm?.gender || ""
+            : anchorWordClass,
+        nounCase: getExpressionNounCase(anchorSpan, slotIndexes),
+        wordClass: anchorWordClass,
+        wordCount: 1,
+        kind: "expression-anchor",
+        template: anchorSpan.node.text,
+        templateTokens: [anchorSpan.node.text],
+        phraseSlot: null,
+        requiresInflectionAgreement: true,
+        expressionAnalysis: analysis,
+      };
+    } else {
+      const hasSelectedInflectableComponent = match.spans.some(
+        (span) => span.node.selected?.wordClass,
+      );
+      if (hasSelectedInflectableComponent) continue;
+      target = {
+        sentence,
+        sentenceIndex,
+        surfaceForm: sentence.slice(match.start, match.end),
+        startIndex: match.start,
+        endIndex: match.end,
+        startsSentence: /^[^\p{L}\p{N}]*$/u.test(
+          sentence.slice(0, match.start),
+        ),
+        slotIndexes: [],
+        targetLemma: "",
+        wordClass: "expression",
+        wordCount: match.spans.length,
+        kind: "phrase",
+        template: match.pattern.display,
+        templateTokens: getClozePatternTokens(match.pattern.display),
+        phraseSlot: null,
+        requiresInflectionAgreement: false,
+        expressionAnalysis: analysis,
+      };
+    }
+
+    if (
+      normalizedPreferredForm &&
+      normalizeGameAnswer(target.surfaceForm) === normalizedPreferredForm
+    ) {
+      return target;
+    }
+    firstMatch ||= target;
+  }
+  return firstMatch;
+}
+
+async function findClozeTarget(wordObj, preferredForm = "") {
+  if (WordClass.getWordClass(wordObj?.gender) === "expression") {
+    return findExpressionClozeTarget(wordObj, preferredForm);
+  }
   const exampleText = normalizeGameWhitespace(wordObj?.eksempel);
   const variants = getNorwegianEntryVariants(wordObj)
     .map((variant) => ({
@@ -1452,7 +1664,7 @@ async function startWordGame() {
        * Locate the same surface form that was used in the
        * original cloze question.
        */
-      const clozeTarget = findClozeTarget(
+      const clozeTarget = await findClozeTarget(
         randomWordObj,
         firstWordInQueue.clozedForm,
       );
@@ -1632,7 +1844,7 @@ async function startWordGame() {
   }
 
   if (isClozeQuestion) {
-    const clozeTarget = findClozeTarget(randomWordObj);
+    const clozeTarget = await findClozeTarget(randomWordObj);
 
     if (!clozeTarget) {
       console.warn(
@@ -3319,9 +3531,10 @@ function generateClozeDistractors(wordObj, clozeTarget) {
   if (slotIndexes.length === 0) return [];
   const baseExpression = normalizeGameAnswer(getPrimaryNorwegianForm(wordObj));
   const targetWordClass = clozeTarget.wordClass;
+  const targetGender = clozeTarget.targetGender || wordObj.gender;
   const correctAnswer = normalizeGameAnswer(clozeTarget.surfaceForm);
   const targetCapitalized = startsWithUppercaseLetter(
-    getPrimaryNorwegianForm(wordObj),
+    clozeTarget.targetLemma || getPrimaryNorwegianForm(wordObj),
   );
   const seen = new Set([correctAnswer]);
   const distractors = [];
@@ -3349,6 +3562,11 @@ function generateClozeDistractors(wordObj, clozeTarget) {
       return accepted.filter((form) => currentSlot.has(form));
     }, null);
     return (compatibleForms || [])
+      .map((form) =>
+        clozeTarget.nounCase === "genitive"
+          ? createNounGenitiveForm(form)
+          : form,
+      )
       .map((form) => restoreDictionaryCase(form, displayExpression))
       .filter(
         (form) =>
@@ -3378,14 +3596,17 @@ function generateClozeDistractors(wordObj, clozeTarget) {
       ) &&
       WordClass.getWordClass(entry.gender) === targetWordClass &&
       (targetWordClass !== "noun" ||
-        WordClass.hasCompatibleGender(wordObj.gender, entry.gender)),
+        !targetGender ||
+        WordClass.hasCompatibleGender(targetGender, entry.gender)),
   );
 
   collect(
     eligible.filter(
       (entry) =>
         entry.CEFR === wordObj.CEFR &&
-        WordClass.hasCompatibleGender(wordObj.gender, entry.gender) &&
+        (targetWordClass !== "noun" ||
+          !targetGender ||
+          WordClass.hasCompatibleGender(targetGender, entry.gender)) &&
         startsWithUppercaseLetter(getPrimaryNorwegianForm(entry)) ===
           targetCapitalized,
     ),
@@ -3394,7 +3615,9 @@ function generateClozeDistractors(wordObj, clozeTarget) {
     collect(
       eligible.filter(
         (entry) =>
-          WordClass.hasCompatibleGender(wordObj.gender, entry.gender) &&
+          (targetWordClass !== "noun" ||
+            !targetGender ||
+            WordClass.hasCompatibleGender(targetGender, entry.gender)) &&
           startsWithUppercaseLetter(getPrimaryNorwegianForm(entry)) ===
             targetCapitalized,
       ),

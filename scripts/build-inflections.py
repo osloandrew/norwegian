@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 import sys
 import unicodedata
 import urllib.request
@@ -26,8 +27,34 @@ NOUN_GENDERS = {"en", "et", "ei"}
 CLASS_PREFIX = {"noun": "n", "adjective": "a", "verb": "v"}
 FIELD_SEPARATOR = "|"
 ALTERNATIVE_SEPARATOR = "/"
-DATA_VERSION = 6
+DATA_VERSION = 8
 NOUN_GENDER_ORDER = ("en", "ei", "et")
+EXPRESSION_TOKEN_RE = re.compile(r"[^\W_]+(?:[-'’][^\W_]+)*", re.UNICODE)
+
+# Norsk Ordbank contains two verb lexemes spelled ``være``. The ordinary
+# copular/existential verb is the A1 dictionary sense used throughout this
+# project (er, var, vært); the much rarer homograph contributes regular forms
+# such as værer and været. The source export identifies separate lexemes, but
+# the compact browser snapshot is keyed by spelling and would otherwise merge
+# them. Keep only the common sense's official forms in that merged record so
+# the standalone table, expression components, reverse search, and Word Game
+# all teach the intended paradigm.
+LEARNER_PARADIGM_FILTERS = {
+    "v:være": (
+        {"være"},
+        {"er"},
+        {"var"},
+        {"vært"},
+        {"vær"},
+        {"væres"},
+        {"vært"},
+        {"vært"},
+        set(),
+        set(),
+        set(),
+        {"værende"},
+    ),
+}
 
 
 def normalize(value: str) -> str:
@@ -68,6 +95,53 @@ def read_targets(dictionary_path: Path) -> dict[str, set[str]]:
                     if first_part:
                         targets[current_class].add(first_part)
     return targets
+
+
+def read_expression_component_surfaces(dictionary_path: Path) -> set[str]:
+    """Return lexical tokens whose official component paradigms may be needed.
+
+    These are lookup targets, not dictionary classifications.  A token is
+    retained only in the grammatical classes in which Norsk Ordbank itself
+    records it (or records it as an inflected surface), so a preposition that
+    happens to occur in thousands of expressions does not acquire fabricated
+    noun, adjective, or verb records.
+    """
+    surfaces: set[str] = set()
+    with dictionary_path.open(encoding="utf-8-sig", newline="") as source:
+        for row in csv.DictReader(source):
+            if row.get("gender", "").strip().lower() != "expression":
+                continue
+            for token in EXPRESSION_TOKEN_RE.findall(row.get("ord", "")):
+                normalized = normalize(token)
+                if normalized:
+                    surfaces.add(normalized)
+    return surfaces
+
+
+def expand_targets_for_expression_components(
+    source_entries: list[list[object]],
+    declared_targets: dict[str, set[str]],
+    component_surfaces: set[str],
+) -> dict[str, set[str]]:
+    """Add Ordbank lemmas represented by an expression component surface."""
+    expanded = {word_class: set(values) for word_class, values in declared_targets.items()}
+    source_class_map = {"NOUN": "noun", "ADJ": "adjective", "VERB": "verb"}
+
+    for entry in source_entries:
+        if not isinstance(entry, list) or len(entry) < 6:
+            continue
+        raw_lemma, _, source_class, _, _, paradigms = entry[:6]
+        current_class = source_class_map.get(str(source_class))
+        if not current_class or not isinstance(paradigms, list):
+            continue
+        surfaces = {normalize(str(raw_lemma))}
+        for paradigm in paradigms:
+            if not isinstance(paradigm, list):
+                continue
+            surfaces.update(normalize(str(value)) for value in paradigm if value)
+        if surfaces & component_surfaces:
+            expanded[current_class].add(normalize(str(raw_lemma)))
+    return expanded
 
 
 def canonical_noun_gender(gender: str) -> str:
@@ -155,6 +229,7 @@ def build_records(
     targets: dict[str, set[str]],
     dictionary_class_overrides: set[str] | None = None,
     noun_genders: dict[str, set[str]] | None = None,
+    dictionary_adjective_targets: set[str] | None = None,
 ) -> dict[str, list[list[str]]]:
     records: dict[str, list[set[str]]] = {}
     adverbial_adjective_fallbacks: dict[str, list[set[str]]] = {}
@@ -172,7 +247,10 @@ def build_records(
         # an adverb, retain the dictionary's adjective classification and use
         # an invariant positive paradigm. ADV_adj still contributes its
         # documented comparative and superlative (for example ille/verre/verst).
-        if lemma in targets["adjective"] and source_class == "ADV":
+        if (
+            lemma in (dictionary_adjective_targets or targets["adjective"])
+            and source_class == "ADV"
+        ):
             fallback = adverbial_adjective_fallbacks.setdefault(
                 lemma, [set() for _ in range(8)]
             )
@@ -196,7 +274,9 @@ def build_records(
                 if not isinstance(paradigm, list):
                     continue
                 article = noun_paradigm_article(paradigm)
-                for gender in (noun_genders or {}).get(lemma, {""}):
+                dictionary_genders = (noun_genders or {}).get(lemma)
+                inferred_article = noun_paradigm_article(paradigm)
+                for gender in dictionary_genders or {inferred_article}:
                     if gender and article not in noun_gender_articles(gender):
                         continue
                     key = noun_record_key(lemma, gender) if gender else f"n:{lemma}"
@@ -309,6 +389,22 @@ def build_records(
         key: [sorted(values) for values in record]
         for key, record in sorted(records.items())
     }
+
+
+def filter_merged_homograph_records(
+    records: dict[str, list[list[str]]],
+) -> None:
+    """Apply explicit sense preferences where a spelling key merges lexemes."""
+    for key, allowed_slots in LEARNER_PARADIGM_FILTERS.items():
+        record = records.get(key)
+        if not record:
+            continue
+        records[key] = [
+            [form for form in record[index] if form in allowed]
+            if index < len(record)
+            else []
+            for index, allowed in enumerate(allowed_slots)
+        ]
 
 
 def add_dictionary_fallback_records(
@@ -427,6 +523,31 @@ def encode_records(records: dict[str, list[list[str]]]) -> dict[str, str]:
     return encoded
 
 
+def build_expression_component_lookup(
+    records: dict[str, list[list[str]]],
+    component_surfaces: set[str],
+) -> dict[str, str]:
+    """Map only authored expression surfaces to their compact record keys.
+
+    This deliberately tiny reverse lookup lets the browser analyze an
+    expression immediately without building the much larger general-search
+    reverse index. Multiple homographic classes remain separate record keys.
+    """
+    lookup: dict[str, set[str]] = defaultdict(set)
+    for key, record in records.items():
+        prefix = key[0]
+        body = key[2:]
+        lemma = body.rsplit(":", 1)[0] if prefix == "n" and ":" in body else body
+        surfaces = {normalize(lemma)}
+        surfaces.update(normalize(form) for field in record for form in field)
+        for surface in surfaces & component_surfaces:
+            lookup[surface].add(key)
+    return {
+        surface: ALTERNATIVE_SEPARATOR.join(sorted(keys))
+        for surface, keys in sorted(lookup.items())
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -447,20 +568,28 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    targets = read_targets(args.dictionary)
+    declared_targets = read_targets(args.dictionary)
     noun_genders = read_noun_articles(args.dictionary)
     dictionary_lemmas = read_dictionary_lemmas(args.dictionary)
     source_entries = read_source(args.source)
+    component_surfaces = read_expression_component_surfaces(args.dictionary)
+    targets = expand_targets_for_expression_components(
+        source_entries,
+        declared_targets,
+        component_surfaces,
+    )
     dictionary_class_overrides: set[str] = set()
     records = build_records(
         source_entries,
         targets,
         dictionary_class_overrides,
         noun_genders,
+        declared_targets["adjective"],
     )
+    filter_merged_homograph_records(records)
     derived_from, dictionary_only = add_dictionary_fallback_records(
         records,
-        targets,
+        declared_targets,
         noun_genders,
         dictionary_lemmas,
     )
@@ -471,6 +600,10 @@ def main() -> int:
         "dictionaryClassOverrides": sorted(dictionary_class_overrides),
         "derivedFrom": dict(sorted(derived_from.items())),
         "dictionaryOnly": sorted(dictionary_only),
+        "expressionComponentLookup": build_expression_component_lookup(
+            records,
+            component_surfaces,
+        ),
         "forms": encode_records(records),
     }
     args.output.write_text(

@@ -14,7 +14,7 @@ context.__BOKMAL_INFLECTIONS_DATA__ = snapshot;
 context.BANNED_WORD_CLASSES = [];
 context.noRandom = [];
 
-for (const file of ["wordClass.js", "inflections.js"]) {
+for (const file of ["wordClass.js", "inflections.js", "expressionPatterns.js"]) {
   vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), context, {
     filename: file,
   });
@@ -46,21 +46,21 @@ assert.equal(
   false,
 );
 
-const barTarget = context.findClozeTarget({
+const barTarget = await context.findClozeTarget({
   ord: "bar",
   gender: "noun - en",
   eksempel: "Barn samlet bar etter stengetid.",
 });
 assert.equal(barTarget.surfaceForm, "bar");
 
-const legeTarget = context.findClozeTarget({
+const legeTarget = await context.findClozeTarget({
   ord: "lege",
   gender: "verb",
   eksempel: "Legen forsøkte å lege såret.",
 });
 assert.equal(legeTarget.surfaceForm, "lege");
 
-const ugleTarget = context.findClozeTarget({
+const ugleTarget = await context.findClozeTarget({
   ord: "ugle",
   gender: "noun - ei",
   eksempel:
@@ -74,7 +74,7 @@ const drikkeEntry = {
   CEFR: "A2",
   eksempel: "Han drakk vann.",
 };
-const drikkeTarget = context.findClozeTarget(drikkeEntry);
+const drikkeTarget = await context.findClozeTarget(drikkeEntry);
 assert.deepEqual([...drikkeTarget.slotIndexes], [2]);
 
 context.results = [
@@ -113,7 +113,7 @@ const pluralNounCandidates = [
   { ord: "dato", gender: "en", CEFR: "A2" },
 ];
 context.results = [pluralNounEntry, ...pluralNounCandidates];
-const pluralNounTarget = context.findClozeTarget(pluralNounEntry);
+const pluralNounTarget = await context.findClozeTarget(pluralNounEntry);
 assert.deepEqual([...pluralNounTarget.slotIndexes], [3]);
 const pluralNounDistractors = context.generateClozeDistractors(
   pluralNounEntry,
@@ -152,7 +152,7 @@ const adjectiveCandidates = [
   { ord: "liten", gender: "adjective", CEFR: "B1" },
 ];
 context.results = [adjectiveEntry, ...adjectiveCandidates];
-const adjectiveTarget = context.findClozeTarget(adjectiveEntry);
+const adjectiveTarget = await context.findClozeTarget(adjectiveEntry);
 assert.deepEqual([...adjectiveTarget.slotIndexes], [3, 4]);
 const adjectiveDistractors = context.generateClozeDistractors(
   adjectiveEntry,
@@ -191,7 +191,7 @@ const properNounEntries = [
   { ord: "Norge", gender: "et", CEFR: "A2" },
 ];
 context.results = properNounEntries;
-const austriaTarget = context.findClozeTarget(austriaEntry);
+const austriaTarget = await context.findClozeTarget(austriaEntry);
 assert.equal(austriaTarget.surfaceForm, "Østerrike");
 assert.equal(context.formatCorrectClozeChoice(austriaEntry, austriaTarget), "Østerrike");
 const properNounDistractors = context.generateClozeDistractors(
@@ -209,7 +209,7 @@ const railsEntry = {
   CEFR: "B2",
   eksempel: "Alt går på skinner i norsk økonomi.",
 };
-const railsTarget = context.findClozeTarget(railsEntry);
+const railsTarget = await context.findClozeTarget(railsEntry);
 assert.equal(railsTarget.kind, "phrase");
 assert.equal(railsTarget.surfaceForm, "går på skinner");
 
@@ -234,9 +234,132 @@ const wildcardEntry = {
   CEFR: "B2",
   eksempel: "Hennes generasjon ble borte for et kvart århundre siden.",
 };
-const wildcardTarget = context.findClozeTarget(wildcardEntry);
+const wildcardTarget = await context.findClozeTarget(wildcardEntry);
 assert.equal(wildcardTarget.kind, "phrase");
 assert.equal(wildcardTarget.surfaceForm, "for et kvart århundre siden");
+
+const wolvesExpressionEntry = {
+  ord: "kaste til ulvene, kaste for ulvene",
+  gender: "expression",
+  CEFR: "B2",
+  definisjon: "overlate (noen) til tøff behandling",
+  eksempel: "Lederen kastet henne til ulvene da skandalen ble kjent.",
+};
+const wolvesExpressionTarget = await context.findClozeTarget(
+  wolvesExpressionEntry,
+);
+assert.equal(wolvesExpressionTarget.kind, "expression-anchor");
+assert.equal(wolvesExpressionTarget.surfaceForm, "kastet");
+assert.equal(wolvesExpressionTarget.wordClass, "verb");
+assert.deepEqual([...wolvesExpressionTarget.slotIndexes], [2]);
+assert.equal(
+  wolvesExpressionTarget.sentence.slice(
+    wolvesExpressionTarget.startIndex,
+    wolvesExpressionTarget.endIndex,
+  ),
+  "kastet",
+);
+context.results = [
+  wolvesExpressionEntry,
+  { ord: "betale", gender: "verb", CEFR: "B2" },
+  { ord: "blåse", gender: "verb", CEFR: "B2" },
+  { ord: "skrive", gender: "verb", CEFR: "B2" },
+  { ord: "spise", gender: "verb", CEFR: "B2" },
+];
+const wolvesExpressionDistractors = context.generateClozeDistractors(
+  wolvesExpressionEntry,
+  wolvesExpressionTarget,
+);
+assert.equal(wolvesExpressionDistractors.length, 3);
+assert.equal(
+  wolvesExpressionDistractors.every((choice) =>
+    ["betalte", "blåste", "skreiv", "skrev", "spiste"].includes(choice),
+  ),
+  true,
+);
+
+// Nominal expressions carry the head noun's actual gender and exact slot.
+// The entry itself is classified as "expression", so using its outer gender
+// here would reject every noun candidate or fall back to unrelated forms.
+const bisonExpressionEntry = {
+  ord: "amerikansk bison",
+  gender: "expression",
+  CEFR: "B1",
+  eksempel: "Den amerikanske bisonen er en imponerende skapning.",
+};
+const bisonExpressionTarget = await context.findClozeTarget(
+  bisonExpressionEntry,
+);
+assert.equal(bisonExpressionTarget.kind, "expression-anchor");
+assert.equal(bisonExpressionTarget.surfaceForm, "bisonen");
+assert.equal(bisonExpressionTarget.wordClass, "noun");
+assert.equal(bisonExpressionTarget.targetGender, "en");
+assert.deepEqual([...bisonExpressionTarget.slotIndexes], [1]);
+const expressionNounCandidates = [
+  { ord: "bil", gender: "en", CEFR: "B1" },
+  { ord: "dag", gender: "en", CEFR: "B1" },
+  { ord: "hare", gender: "en", CEFR: "B1" },
+  { ord: "dato", gender: "en", CEFR: "B1" },
+];
+context.results = [bisonExpressionEntry, ...expressionNounCandidates];
+const bisonExpressionDistractors = context.generateClozeDistractors(
+  bisonExpressionEntry,
+  bisonExpressionTarget,
+);
+assert.equal(bisonExpressionDistractors.length, 3);
+for (const distractor of bisonExpressionDistractors) {
+  assert.equal(
+    expressionNounCandidates.some((candidate) =>
+      context.Inflections.getParadigm(candidate).slots[1].includes(distractor),
+    ),
+    true,
+    `${distractor} is not a definite-singular noun`,
+  );
+}
+
+// Adjective-headed expressions use the same degree/agreement slot as the
+// realized adjective, not the adjective's dictionary form.
+const comparativeExpressionEntry = {
+  ord: "vakker i",
+  gender: "expression",
+  CEFR: "B1",
+  eksempel: "Hun var vakrere i den blå kjolen enn i den røde.",
+};
+const comparativeExpressionTarget = await context.findClozeTarget(
+  comparativeExpressionEntry,
+);
+assert.equal(comparativeExpressionTarget.kind, "expression-anchor");
+assert.equal(comparativeExpressionTarget.surfaceForm, "vakrere");
+assert.equal(comparativeExpressionTarget.wordClass, "adjective");
+assert.deepEqual([...comparativeExpressionTarget.slotIndexes], [5]);
+context.results = [comparativeExpressionEntry, ...adjectiveCandidates];
+const comparativeExpressionDistractors = context.generateClozeDistractors(
+  comparativeExpressionEntry,
+  comparativeExpressionTarget,
+);
+assert.equal(comparativeExpressionDistractors.length, 3);
+for (const distractor of comparativeExpressionDistractors) {
+  assert.equal(
+    adjectiveCandidates.some((candidate) =>
+      context.Inflections.getParadigm(candidate).slots[5].includes(distractor),
+    ),
+    true,
+    `${distractor} is not a comparative adjective`,
+  );
+}
+
+const treesExpressionEntry = {
+  ord: "ikke vokse på trær",
+  gender: "expression",
+  CEFR: "B2",
+  eksempel: "Slike muligheter vokser ikke på trær.",
+};
+const treesExpressionTarget = await context.findClozeTarget(
+  treesExpressionEntry,
+);
+assert.equal(treesExpressionTarget.kind, "expression-anchor");
+assert.equal(treesExpressionTarget.surfaceForm, "vokser");
+assert.deepEqual([...treesExpressionTarget.slotIndexes], [1]);
 
 const slashEntry = {
   ord: "logge inn/på",
@@ -244,7 +367,7 @@ const slashEntry = {
   CEFR: "B1",
   eksempel: "Hun logget på systemet i går.",
 };
-const slashTarget = context.findClozeTarget(slashEntry);
+const slashTarget = await context.findClozeTarget(slashEntry);
 assert.equal(slashTarget.kind, "phrase");
 assert.equal(slashTarget.surfaceForm, "logget på");
 
@@ -299,8 +422,8 @@ context.results = [
   { ord: "mat", gender: "en", CEFR: "A1" },
   ...adjectiveCandidates,
 ];
-assert.equal(context.findClozeTarget(misclassifiedKoreanNounExample), null);
-const koreanTarget = context.findClozeTarget(koreanAdjectiveEntry);
+assert.equal(await context.findClozeTarget(misclassifiedKoreanNounExample), null);
+const koreanTarget = await context.findClozeTarget(koreanAdjectiveEntry);
 assert.equal(koreanTarget.wordClass, "adjective");
 assert.deepEqual([...koreanTarget.slotIndexes], [0]);
 const koreanDistractors = context.generateClozeDistractors(

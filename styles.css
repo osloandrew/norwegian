@@ -3118,17 +3118,33 @@ ul {
   width: 45%;
 }
 
-/* Deliberately understated — a quiet footnote under the table, not a
-   warning: small uppercase caption in the same muted gray as the table's
-   own row labels. Doubled-up selector to outrank ".definition p, li"
-   (styles.css:293), which otherwise wins on specificity and forces this
-   back to 20px near-black body text. */
+/* A quiet but readable source note under the table. Doubled-up selector
+   outranks ".definition p, li", which otherwise turns this back into large
+   body copy. */
 .inflections-hint.inflections-hint {
-  color: #999;
-  font-size: 11px;
-  letter-spacing: 0.03em;
-  margin: 8px 0 0 0;
-  text-transform: uppercase;
+  color: #737373;
+  font-size: 12px;
+  letter-spacing: 0;
+  line-height: 1.45;
+  margin: 9px 0 0;
+  text-transform: none;
+}
+
+.inflections-hint a {
+  color: #526c91;
+  font-weight: 500;
+  text-decoration-color: #aab8ca;
+  text-underline-offset: 2px;
+}
+
+.inflections-hint-expression {
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .inflections-hint-expression {
+    white-space: normal;
+  }
 }
 
 #site-title {

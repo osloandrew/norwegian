@@ -13,6 +13,38 @@ SPEC.loader.exec_module(BUILD)
 
 
 class BuildInflectionsTests(unittest.TestCase):
+    def test_expression_surfaces_add_only_official_source_classes(self):
+        source = [
+            ["vokse", 1, "VERB", "VERB_regular", [], [["vokse", "vokser"]]],
+            ["vekst", 2, "NOUN", "NOUN_regular", [], [["veksten"]]],
+            ["voksen", 3, "ADJ", "ADJ_regular", [], [["voksne"]]],
+        ]
+        declared = {"noun": set(), "adjective": set(), "verb": set()}
+
+        expanded = BUILD.expand_targets_for_expression_components(
+            source,
+            declared,
+            {"vokser"},
+        )
+
+        self.assertEqual(expanded["verb"], {"vokse"})
+        self.assertEqual(expanded["noun"], set())
+        self.assertEqual(expanded["adjective"], set())
+
+    def test_expression_component_lookup_is_small_and_exact(self):
+        records = {
+            "v:vokse": [["vokse"], ["vokser"], ["vokste"]],
+            "n:tre:et": [["treet"], ["trær"], ["trærne"]],
+            "a:annen": [["annen"], ["annet"]],
+        }
+
+        lookup = BUILD.build_expression_component_lookup(
+            records,
+            {"vokser", "trær", "mangler"},
+        )
+
+        self.assertEqual(lookup, {"trær": "n:tre:et", "vokser": "v:vokse"})
+
     def test_homograph_from_another_word_class_is_not_merged(self):
         source = [
             [
@@ -51,6 +83,35 @@ class BuildInflectionsTests(unittest.TestCase):
         self.assertEqual(record[:5], [["alene"]] * 5)
         self.assertEqual(record[5:], [[], [], []])
         self.assertEqual(overrides, {"a:alene"})
+
+    def test_common_vaere_sense_excludes_rare_homograph_paradigm(self):
+        records = {
+            "v:være": [
+                ["være"],
+                ["er", "værer"],
+                ["var", "væra", "været"],
+                ["væra", "været", "vært"],
+                ["vær"],
+                ["væres"],
+                ["væra", "været", "vært"],
+                ["væra", "været"],
+                [],
+                ["væra", "værede", "værete"],
+                ["væra", "værede", "værete"],
+                ["værende"],
+            ]
+        }
+
+        BUILD.filter_merged_homograph_records(records)
+
+        self.assertEqual(
+            records["v:være"][:5],
+            [["være"], ["er"], ["var"], ["vært"], ["vær"]],
+        )
+        self.assertFalse(
+            {"værer", "væra", "været", "værede", "værete"}
+            & {form for slot in records["v:være"] for form in slot}
+        )
 
     def test_missing_compound_inherits_same_gender_head_paradigm(self):
         records = {
