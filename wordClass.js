@@ -89,12 +89,19 @@
   // compatible with "en".
   function hasCompatibleGender(targetGender, candidateGender) {
     if (!candidateGender) return false;
-    const targetTokens = String(targetGender ?? "")
-      .toLowerCase()
-      .split("-");
-    const candidateTokens = String(candidateGender ?? "")
-      .toLowerCase()
-      .split("-");
+    const targetClass = getWordClass(targetGender);
+    const candidateClass = getWordClass(candidateGender);
+    if (!targetClass || targetClass !== candidateClass) return false;
+    if (targetClass !== "noun") return true;
+
+    const targetTokens = stripNounPrefix(targetGender)
+      .split("-")
+      .map((token) => token.trim())
+      .filter(Boolean);
+    const candidateTokens = stripNounPrefix(candidateGender)
+      .split("-")
+      .map((token) => token.trim())
+      .filter(Boolean);
     return targetTokens.some((token) => candidateTokens.includes(token));
   }
 

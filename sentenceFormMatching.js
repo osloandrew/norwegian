@@ -63,8 +63,15 @@
       : [];
   }
 
-  function collectExamples(primaryEntry, entries, matcher, limit = 100) {
+  function collectExamples(
+    primaryEntry,
+    entries,
+    matcher,
+    limit = 100,
+    excludedEntries = [],
+  ) {
     const uniqueSentences = new Set();
+    const excludedEntrySet = new Set(excludedEntries || []);
     const primary = [];
     const supplemental = [];
 
@@ -100,6 +107,7 @@
     });
 
     outerLoop: for (const entry of entries || []) {
+      if (entry !== primaryEntry && excludedEntrySet.has(entry)) continue;
       if (!entry?.eksempel || !matcher.test(entry.eksempel)) continue;
       const sentences = splitSentences(entry?.eksempel);
       const translations = splitSentences(entry?.sentenceTranslation);

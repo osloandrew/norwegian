@@ -124,7 +124,7 @@ assert.deepEqual(
       farHomographs,
     ),
   ],
-  ["faren", "fedre", "fedrene"],
+  ["far", "faren", "fedre", "fedrene"],
 );
 const trackSupplementalForms =
   await context.Inflections.getSupplementalSentenceForms(
@@ -132,6 +132,44 @@ const trackSupplementalForms =
     farHomographs,
   );
 assert.deepEqual([...trackSupplementalForms], ["faret", "fara", "farene"]);
+
+// Shared morphology is retained by the earliest-taught sense rather than
+// being removed from every homograph. Thus the common A1 en-sense of ting
+// can find the many bare/plural examples, while the B2 et-sense is kept to
+// its exclusive form and cannot steal the en-sense's examples.
+const commonThingEntry = {
+  ord: "ting",
+  gender: "noun - en",
+  CEFR: "A1",
+  eksempel: "Tingen lå på bordet.",
+};
+const assemblyThingEntry = {
+  ord: "ting",
+  gender: "noun - et",
+  CEFR: "B2",
+  eksempel: "Tinget vedtok forslaget.",
+};
+const thingHomographs = [commonThingEntry, assemblyThingEntry];
+const commonThingForms =
+  await context.Inflections.getSupplementalSentenceForms(
+    commonThingEntry,
+    thingHomographs,
+  );
+assert.deepEqual([...commonThingForms], [
+  "ting",
+  "tingen",
+  "tinga",
+  "tingene",
+]);
+assert.deepEqual(
+  [
+    ...await context.Inflections.getSupplementalSentenceForms(
+      assemblyThingEntry,
+      thingHomographs,
+    ),
+  ],
+  ["tinget"],
+);
 
 // Dictionary-only compounds inherit the official paradigm of a compatible
 // right-hand head, but are attributed as derived rather than exact Ordbank
@@ -239,6 +277,25 @@ assert.equal(collectedTrackExamples.primary[0].eksempel, trackEntry.eksempel);
 assert.deepEqual(
   [...collectedTrackExamples.supplemental].map((entry) => entry.eksempel),
   ["Det gamle faret var fremdeles synlig i skogen."],
+);
+const commonThingMatcher =
+  context.SentenceFormMatching.createMatcher(commonThingForms);
+const collectedThingExamples = context.SentenceFormMatching.collectExamples(
+  commonThingEntry,
+  [
+    commonThingEntry,
+    assemblyThingEntry,
+    { ord: "sak", eksempel: "Det stod mange ting på bordet." },
+    { ord: "eiendel", eksempel: "Tingene hennes var pakket ned." },
+  ],
+  commonThingMatcher,
+  100,
+  [assemblyThingEntry],
+);
+assert.equal(collectedThingExamples.primary[0].eksempel, commonThingEntry.eksempel);
+assert.deepEqual(
+  [...collectedThingExamples.supplemental].map((entry) => entry.eksempel),
+  ["Det stod mange ting på bordet.", "Tingene hennes var pakket ned."],
 );
 const selectedUgleEntry = {
   ord: "ugle",

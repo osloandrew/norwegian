@@ -137,19 +137,20 @@ function getGameCefrLabelHTML(cefrLevel) {
 // Shared by renderWordGameUI and renderClozeGameUI's gender/word-class badge.
 function getGameGenderLabel(gender) {
   if (WordClass.isNounGender(gender)) {
-    return "N - " + gender;
+    return "N - " + WordClass.stripNounPrefix(gender);
   }
-  if (gender.startsWith("adjective")) return "Adj";
-  if (gender.startsWith("adverb")) return "Adv";
-  if (gender.startsWith("conjunction")) return "Conj";
-  if (gender.startsWith("determiner")) return "Det";
-  if (gender.startsWith("expression")) return "Exp";
-  if (gender.startsWith("interjection")) return "Inter";
-  if (gender.startsWith("numeral")) return "Num";
-  if (gender.startsWith("possessive")) return "Poss";
-  if (gender.startsWith("preposition")) return "Prep";
-  if (gender.startsWith("pronoun")) return "Pron";
-  return gender;
+  const normalizedGender = String(gender ?? "").toLowerCase();
+  if (normalizedGender.startsWith("adjective")) return "Adj";
+  if (normalizedGender.startsWith("adverb")) return "Adv";
+  if (normalizedGender.startsWith("conjunction")) return "Conj";
+  if (normalizedGender.startsWith("determiner")) return "Det";
+  if (normalizedGender.startsWith("expression")) return "Exp";
+  if (normalizedGender.startsWith("interjection")) return "Inter";
+  if (normalizedGender.startsWith("numeral")) return "Num";
+  if (normalizedGender.startsWith("possessive")) return "Poss";
+  if (normalizedGender.startsWith("preposition")) return "Prep";
+  if (normalizedGender.startsWith("pronoun")) return "Pron";
+  return String(gender ?? "");
 }
 
 // Getting a CSS transition to restart reliably after a class toggle turned
@@ -542,215 +543,541 @@ function renderStats() {
   }
 }
 
-function findClozeTarget(wordObj, preferredForm = "") {
-  const exampleText = String(wordObj?.eksempel ?? "").trim();
-
-  const baseWord = String(wordObj?.ord ?? "")
-    .split(",")[0]
-    .trim()
+function normalizeGameWhitespace(value) {
+  return String(value ?? "")
     .normalize("NFC")
-    .toLocaleLowerCase("nb-NO");
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-  if (!exampleText || !baseWord) {
+function normalizeGameAnswer(value) {
+  return normalizeGameWhitespace(value).toLocaleLowerCase("nb-NO");
+}
+
+function startsWithUppercaseLetter(value) {
+  const firstLetter = String(value ?? "").match(/\p{L}/u)?.[0] || "";
+  return (
+    firstLetter !== "" &&
+    firstLetter === firstLetter.toLocaleUpperCase("nb-NO") &&
+    firstLetter !== firstLetter.toLocaleLowerCase("nb-NO")
+  );
+}
+
+function getDisplayedAnswer(value) {
+  return normalizeGameWhitespace(String(value ?? "").split(",")[0]);
+}
+
+function escapeGameHTML(value) {
+  if (typeof escapeHTML === "function") return escapeHTML(value);
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function getPrimaryNorwegianForm(entryOrValue) {
+  const value =
+    typeof entryOrValue === "object" ? entryOrValue?.ord : entryOrValue;
+  return getDisplayedAnswer(value);
+}
+
+function expandSlashVariant(variant) {
+  let combinations = [""];
+  for (const token of normalizeGameWhitespace(variant).split(" ")) {
+    const options = token.split("/").filter(Boolean);
+    combinations = combinations.flatMap((prefix) =>
+      options.map((option) => (prefix ? `${prefix} ${option}` : option)),
+    );
+  }
+  return combinations;
+}
+
+function getNorwegianEntryVariants(entry) {
+  return [
+    ...new Set(
+      String(entry?.ord ?? "")
+        .split(",")
+        .flatMap(expandSlashVariant)
+        .map(normalizeGameWhitespace)
+        .filter(Boolean),
+    ),
+  ];
+}
+
+function uppercaseFirstNorwegian(value) {
+  const characters = Array.from(String(value ?? ""));
+  if (characters.length === 0) return "";
+  characters[0] = characters[0].toLocaleUpperCase("nb-NO");
+  return characters.join("");
+}
+
+function restoreDictionaryCase(value, dictionaryForm) {
+  const normalizedValue = normalizeGameWhitespace(value);
+  const reference = normalizeGameWhitespace(dictionaryForm);
+  if (!normalizedValue || !reference) return normalizedValue;
+
+  const foldedValue = normalizeGameAnswer(normalizedValue);
+  const foldedReference = normalizeGameAnswer(reference);
+  if (foldedValue.startsWith(foldedReference)) {
+    return reference + normalizedValue.slice(reference.length);
+  }
+
+  const referenceTokens =
+    reference.match(/[\p{L}\p{N}]+(?:[-'’][\p{L}\p{N}]+)*/gu) || [];
+  let tokenIndex = 0;
+  return normalizedValue.replace(
+    /[\p{L}\p{N}]+(?:[-'’][\p{L}\p{N}]+)*/gu,
+    (token) => {
+      const referenceToken = referenceTokens[tokenIndex++] || "";
+      if (!referenceToken) return token;
+      if (
+        referenceToken === referenceToken.toLocaleUpperCase("nb-NO") &&
+        referenceToken !== referenceToken.toLocaleLowerCase("nb-NO")
+      ) {
+        return token.toLocaleUpperCase("nb-NO");
+      }
+      return /^[\p{Lu}]/u.test(referenceToken)
+        ? uppercaseFirstNorwegian(token)
+        : token;
+    },
+  );
+}
+
+function getIndexedClozeTokens(text) {
+  return Array.from(
+    String(text ?? "").matchAll(
+      /[\p{L}\p{N}]+(?:[-'’][\p{L}\p{N}]+)*/gu,
+    ),
+    (match) => ({
+      text: match[0],
+      start: match.index,
+      end: match.index + match[0].length,
+    }),
+  );
+}
+
+function getClozePatternTokens(value) {
+  return (
+    normalizeGameWhitespace(value).match(
+      /\.{3}|[\p{L}\p{N}]+(?:[-'’][\p{L}\p{N}]+)*/gu,
+    ) || []
+  );
+}
+
+function getParadigmSlotsForLemma(lemma, surface, wordClass, gender = "") {
+  const paradigm = window.Inflections?.getParadigmForLemma(
+    normalizeGameAnswer(lemma),
+    wordClass,
+    gender,
+  );
+  const normalizedSurface = normalizeGameAnswer(surface);
+  return paradigm
+    ? paradigm.slots.flatMap((forms, index) =>
+        forms.includes(normalizedSurface) ? [index] : [],
+      )
+    : [];
+}
+
+function getAdjectiveAgreementSlotsFromNounGender(gender) {
+  const articles = new Set(
+    WordClass.stripNounPrefix(gender).split("-").filter(Boolean),
+  );
+  const slots = [];
+  if (articles.has("en")) slots.push(0);
+  if (articles.has("ei")) slots.push(1);
+  if (articles.has("et")) slots.push(2);
+  return slots;
+}
+
+let gameNounGenderIndexSource = null;
+let gameNounGendersByLemma = new Map();
+
+function getGameNounGendersByLemma() {
+  if (typeof results === "undefined") return new Map();
+  if (gameNounGenderIndexSource === results) return gameNounGendersByLemma;
+
+  const nextIndex = new Map();
+  for (const entry of results) {
+    if (!WordClass.isNounGender(entry?.gender)) continue;
+    for (const variant of getNorwegianEntryVariants(entry)) {
+      const tokens = getClozePatternTokens(variant);
+      if (
+        tokens.length !== 1 ||
+        normalizeGameAnswer(tokens[0]) !== normalizeGameAnswer(variant)
+      ) {
+        continue;
+      }
+      const lemma = normalizeGameAnswer(variant);
+      const genders = nextIndex.get(lemma) || [];
+      genders.push(entry.gender);
+      nextIndex.set(lemma, genders);
+    }
+  }
+
+  gameNounGenderIndexSource = results;
+  gameNounGendersByLemma = nextIndex;
+  return gameNounGendersByLemma;
+}
+
+function hasCompetingAdjectiveEntry(wordObj, lemma) {
+  if (typeof results === "undefined") return false;
+  const normalizedLemma = normalizeGameAnswer(lemma);
+  return results.some(
+    (entry) =>
+      entry !== wordObj &&
+      WordClass.getWordClass(entry?.gender) === "adjective" &&
+      getNorwegianEntryVariants(entry).some(
+        (variant) => normalizeGameAnswer(variant) === normalizedLemma,
+      ),
+  );
+}
+
+function refineAdjectiveSlotIndexes(
+  slotIndexes,
+  sentenceTokens,
+  firstTokenIndex,
+  endTokenIndex,
+) {
+  if (slotIndexes.length < 2) return slotIndexes;
+
+  const precedingToken = normalizeGameAnswer(
+    sentenceTokens[firstTokenIndex - 1]?.text,
+  );
+  const determinerSlot = {
+    en: 0,
+    ei: 1,
+    et: 2,
+    den: 3,
+    det: 3,
+    de: 4,
+  }[precedingToken];
+  if (Number.isInteger(determinerSlot) && slotIndexes.includes(determinerSlot)) {
+    return [determinerSlot];
+  }
+
+  // An uninflected adjective can occupy several official singular slots
+  // (koreansk is identical in masculine, feminine, and neuter). When the
+  // following token is an exact dictionary noun lemma, its declared article
+  // resolves that agreement without suffix guessing. If several noun senses
+  // remain possible, retain all compatible slots and let distractor selection
+  // require a form that is valid for every one of them.
+  const followingToken = normalizeGameAnswer(sentenceTokens[endTokenIndex]?.text);
+  if (!followingToken || typeof results === "undefined") return slotIndexes;
+
+  const nounAgreementSlots = new Set();
+  const matchingNounGenders =
+    getGameNounGendersByLemma().get(followingToken) || [];
+  for (const nounGender of matchingNounGenders) {
+    for (const slot of getAdjectiveAgreementSlotsFromNounGender(nounGender)) {
+      nounAgreementSlots.add(slot);
+    }
+  }
+
+  const refinedSlots = slotIndexes.filter((slot) => nounAgreementSlots.has(slot));
+  return refinedSlots.length > 0 ? refinedSlots : slotIndexes;
+}
+
+function matchesClozePatternToken(patternToken, surfaceToken, wordObj, isSingle) {
+  if (normalizeGameAnswer(patternToken) === normalizeGameAnswer(surfaceToken)) {
+    return true;
+  }
+
+  const entryWordClass = WordClass.getWordClass(wordObj.gender);
+  if (
+    isSingle &&
+    ["noun", "adjective", "verb"].includes(entryWordClass)
+  ) {
+    return (
+      getParadigmSlotsForLemma(
+        patternToken,
+        surfaceToken,
+        entryWordClass,
+        entryWordClass === "noun" ? wordObj.gender : "",
+      ).length > 0
+    );
+  }
+
+  // A complex expression does not declare the grammatical class of each
+  // component. Try every inflectable class, but still require an exact
+  // official paradigm form; this supports "gå på skinner" -> "går på
+  // skinner" without reviving prefix or suffix guesses.
+  return ["verb", "adjective", "noun"].some(
+    (wordClass) =>
+      getParadigmSlotsForLemma(patternToken, surfaceToken, wordClass).length >
+      0,
+  );
+}
+
+function matchClozePatternAt(patternTokens, sentenceTokens, startIndex, wordObj) {
+  const isSingle =
+    patternTokens.length === 1 && patternTokens[0] !== "...";
+
+  const walk = (patternIndex, sentenceIndex) => {
+    if (patternIndex === patternTokens.length) return sentenceIndex;
+    if (sentenceIndex >= sentenceTokens.length) return -1;
+
+    const patternToken = patternTokens[patternIndex];
+    if (patternToken === "...") {
+      const minimumRemaining = patternTokens
+        .slice(patternIndex + 1)
+        .filter((token) => token !== "...").length;
+      const latestNextIndex = sentenceTokens.length - minimumRemaining;
+      for (
+        let nextIndex = sentenceIndex + 1;
+        nextIndex <= latestNextIndex;
+        nextIndex++
+      ) {
+        const endIndex = walk(patternIndex + 1, nextIndex);
+        if (endIndex >= 0) return endIndex;
+      }
+      return -1;
+    }
+
+    if (
+      !matchesClozePatternToken(
+        patternToken,
+        sentenceTokens[sentenceIndex].text,
+        wordObj,
+        isSingle,
+      )
+    ) {
+      return -1;
+    }
+    return walk(patternIndex + 1, sentenceIndex + 1);
+  };
+
+  return walk(0, startIndex);
+}
+
+function getPhraseSlotDescriptor(
+  wordObj,
+  patternTokens,
+  matchedSentenceTokens,
+) {
+  if (
+    patternTokens.includes("...") ||
+    patternTokens.length !== matchedSentenceTokens.length
+  ) {
     return null;
   }
+
+  const entryWordClass = WordClass.getWordClass(wordObj.gender);
+  const createDescriptor = (componentIndex, wordClass, gender = "") => {
+    const slotIndexes = getParadigmSlotsForLemma(
+      patternTokens[componentIndex],
+      matchedSentenceTokens[componentIndex].text,
+      wordClass,
+      gender,
+    );
+    if (slotIndexes.length === 0) return null;
+    return {
+      componentIndex,
+      position:
+        componentIndex === 0
+          ? "first"
+          : componentIndex === patternTokens.length - 1
+            ? "last"
+            : "index",
+      wordClass,
+      slotIndexes,
+    };
+  };
+
+  if (["noun", "adjective", "verb"].includes(entryWordClass)) {
+    const componentIndex = entryWordClass === "noun" ? patternTokens.length - 1 : 0;
+    return createDescriptor(
+      componentIndex,
+      entryWordClass,
+      entryWordClass === "noun" ? wordObj.gender : "",
+    );
+  }
+
+  // Expressions do not identify the class of each component. A visibly
+  // inflected component can still be aligned to an official slot; a fully
+  // unchanged fixed expression needs no synthetic inflection at all and is
+  // left as a phrase instead of assigning a random noun/verb role to one of
+  // its unchanged words.
+  const componentOrder = patternTokens
+    .map((token, index) => ({
+      index,
+      changed:
+        normalizeGameAnswer(token) !==
+        normalizeGameAnswer(matchedSentenceTokens[index].text),
+    }))
+    .filter(({ changed }) => changed)
+    .sort((a, b) => Number(b.changed) - Number(a.changed));
+  for (const { index } of componentOrder) {
+    for (const wordClass of ["verb", "adjective", "noun"]) {
+      const descriptor = createDescriptor(index, wordClass);
+      if (descriptor) return descriptor;
+    }
+  }
+  return null;
+}
+
+function createClozeTarget(
+  wordObj,
+  sentence,
+  sentenceIndex,
+  sentenceTokens,
+  firstTokenIndex,
+  endTokenIndex,
+  variant,
+  patternTokens,
+) {
+  const startIndex = sentenceTokens[firstTokenIndex].start;
+  const endIndex = sentenceTokens[endTokenIndex - 1].end;
+  const surfaceForm = sentence.slice(startIndex, endIndex);
+  const wordClass = WordClass.getWordClass(wordObj.gender);
+  const isLexical =
+    patternTokens.length === 1 &&
+    patternTokens[0] !== "..." &&
+    ["noun", "adjective", "verb"].includes(wordClass);
+  const targetLemma = patternTokens.find((token) => token !== "...") || "";
+  let slotIndexes = isLexical
+    ? getParadigmSlotsForLemma(
+        targetLemma,
+        surfaceForm,
+        wordClass,
+        wordClass === "noun" ? wordObj.gender : "",
+      )
+    : [];
+  if (isLexical && wordClass === "adjective") {
+    slotIndexes = refineAdjectiveSlotIndexes(
+      slotIndexes,
+      sentenceTokens,
+      firstTokenIndex,
+      endTokenIndex,
+    );
+  }
+  const matchedSentenceTokens = sentenceTokens.slice(
+    firstTokenIndex,
+    endTokenIndex,
+  );
+  const phraseSlot = isLexical
+    ? null
+    : getPhraseSlotDescriptor(wordObj, patternTokens, matchedSentenceTokens);
+
+  // If a noun and adjective share the same dictionary spelling, a bare noun
+  // lemma immediately modifying another noun is an adjective use. Rejecting
+  // that source row is safer than teaching noun distractors in an adjective
+  // context; the correctly classified adjective entry remains eligible for
+  // its own cloze question. Punctuation blocks this check, so appositives are
+  // not mistaken for attributive adjectives.
+  const followingSentenceToken = sentenceTokens[endTokenIndex];
+  const nounUsedAttributively =
+    isLexical &&
+    wordClass === "noun" &&
+    normalizeGameAnswer(surfaceForm) === normalizeGameAnswer(targetLemma) &&
+    followingSentenceToken &&
+    /^\s*$/u.test(sentence.slice(endIndex, followingSentenceToken.start)) &&
+    getGameNounGendersByLemma().has(
+      normalizeGameAnswer(followingSentenceToken.text),
+    ) &&
+    hasCompetingAdjectiveEntry(wordObj, targetLemma);
+  if (nounUsedAttributively) return null;
+
+  return {
+    sentence,
+    sentenceIndex,
+    surfaceForm,
+    startIndex,
+    endIndex,
+    startsSentence: /^[^\p{L}\p{N}]*$/u.test(
+      sentence.slice(0, startIndex),
+    ),
+    slotIndexes,
+    targetLemma,
+    wordClass,
+    wordCount: endTokenIndex - firstTokenIndex,
+    kind: isLexical ? "lexical" : "phrase",
+    template: variant,
+    templateTokens: patternTokens,
+    phraseSlot,
+    requiresInflectionAgreement:
+      !isLexical && ["noun", "adjective", "verb"].includes(wordClass),
+  };
+}
+
+function findClozeTarget(wordObj, preferredForm = "") {
+  const exampleText = normalizeGameWhitespace(wordObj?.eksempel);
+  const variants = getNorwegianEntryVariants(wordObj)
+    .map((variant) => ({
+      variant,
+      tokens: getClozePatternTokens(variant),
+    }))
+    .filter((candidate) => candidate.tokens.length > 0)
+    .sort((a, b) => b.tokens.length - a.tokens.length);
+  if (!exampleText || variants.length === 0) return null;
 
   const sentences = exampleText
     .split(/(?<=[.!?])\s+/)
     .filter((sentence) => sentence.trim() !== "");
+  const normalizedPreferredForm = normalizeGameAnswer(preferredForm);
+  let firstMatch = null;
 
-  const normalizeClozeText = (value) =>
-    String(value ?? "")
-      .normalize("NFC")
-      .toLocaleLowerCase("nb-NO")
-      .replace(/\s+/g, " ")
-      .trim();
-
-  const getIndexedTokens = (sentence) =>
-    Array.from(sentence.matchAll(/[\p{L}]+(?:-[\p{L}]+)*/gu), (match) => ({
-      text: match[0],
-      start: match.index,
-      end: match.index + match[0].length,
-    }));
-
-  const baseParts = baseWord.split(/\s+/);
-  const targetWordClass =
-    baseParts.length > 1 ? "verb" : WordClass.getWordClass(wordObj.gender);
-
-  const createTarget = (
-    sentence,
-    sentenceIndex,
-    tokens,
-    firstTokenIndex,
-    lastTokenIndex,
-  ) => {
-    const startIndex = tokens[firstTokenIndex].start;
-    const endIndex = tokens[lastTokenIndex].end;
-
-    const normalizedFirstToken = normalizeClozeText(
-      tokens[firstTokenIndex].text,
-    );
-    const paradigm = window.Inflections?.getParadigmForLemma(
-      baseParts[0],
-      targetWordClass,
-      wordObj.gender,
-    );
-    const slotIndexes = paradigm
-      ? paradigm.slots.flatMap((forms, index) =>
-          forms.includes(normalizedFirstToken) ? [index] : [],
-        )
-      : [];
-
-    return {
-      sentence,
-      sentenceIndex,
-      surfaceForm: sentence.slice(startIndex, endIndex),
-      startIndex,
-      endIndex,
-      startsSentence: sentence.slice(0, startIndex).trim() === "",
-      slotIndexes,
-      targetLemma: baseParts[0],
-      wordClass: targetWordClass,
-      wordCount: baseParts.length,
-    };
-  };
-
-  /*
-   * When a missed cloze question is shown again, first try to find
-   * the exact surface form that appeared in the original question.
-   */
-  const normalizedPreferredForm = normalizeClozeText(preferredForm);
-
-  if (normalizedPreferredForm) {
-    const preferredTokenCount =
-      preferredForm.match(/[\p{L}]+(?:-[\p{L}]+)*/gu)?.length || 1;
-
-    for (
-      let sentenceIndex = 0;
-      sentenceIndex < sentences.length;
-      sentenceIndex++
-    ) {
-      const sentence = sentences[sentenceIndex];
-      const tokens = getIndexedTokens(sentence);
-
-      for (
-        let firstTokenIndex = 0;
-        firstTokenIndex <= tokens.length - preferredTokenCount;
-        firstTokenIndex++
-      ) {
-        const lastTokenIndex = firstTokenIndex + preferredTokenCount - 1;
-
-        const startIndex = tokens[firstTokenIndex].start;
-        const endIndex = tokens[lastTokenIndex].end;
-        const surfaceForm = sentence.slice(startIndex, endIndex);
-
-        const firstPartMatches = matchesInflectedForm(
-          baseParts[0],
-          normalizeClozeText(tokens[firstTokenIndex].text),
-          baseParts.length > 1 ? targetWordClass : wordObj.gender,
-        );
-        const remainingPartsMatch = baseParts
-          .slice(1)
-          .every(
-            (part, partIndex) =>
-              normalizeClozeText(
-                tokens[firstTokenIndex + partIndex + 1]?.text,
-              ) === part,
-          );
-
-        if (
-          normalizeClozeText(surfaceForm) === normalizedPreferredForm &&
-          firstPartMatches &&
-          remainingPartsMatch
-        ) {
-          return createTarget(
-            sentence,
-            sentenceIndex,
-            tokens,
-            firstTokenIndex,
-            lastTokenIndex,
-          );
-        }
-      }
-    }
-  }
-
-  /*
-   * Find the target once and preserve its precise location.
-   */
-  for (
-    let sentenceIndex = 0;
-    sentenceIndex < sentences.length;
-    sentenceIndex++
-  ) {
+  for (let sentenceIndex = 0; sentenceIndex < sentences.length; sentenceIndex++) {
     const sentence = sentences[sentenceIndex];
-    const tokens = getIndexedTokens(sentence);
+    const sentenceTokens = getIndexedClozeTokens(sentence);
 
-    /*
-     * Handle multiword expressions such as "rydde ut".
-     */
-    if (baseParts.length > 1) {
-      for (
-        let firstTokenIndex = 0;
-        firstTokenIndex <= tokens.length - baseParts.length;
-        firstTokenIndex++
-      ) {
-        const firstToken = tokens[firstTokenIndex];
-
-        const firstPartMatches = matchesInflectedForm(
-          baseParts[0],
-          normalizeClozeText(firstToken.text),
-          "verb",
+    for (let firstTokenIndex = 0; firstTokenIndex < sentenceTokens.length; firstTokenIndex++) {
+      for (const { variant, tokens: patternTokens } of variants) {
+        const endTokenIndex = matchClozePatternAt(
+          patternTokens,
+          sentenceTokens,
+          firstTokenIndex,
+          wordObj,
         );
+        if (endTokenIndex <= firstTokenIndex) continue;
 
-        const remainingPartsMatch = baseParts
-          .slice(1)
-          .every(
-            (part, partIndex) =>
-              normalizeClozeText(
-                tokens[firstTokenIndex + partIndex + 1].text,
-              ) === part,
-          );
-
-        if (firstPartMatches && remainingPartsMatch) {
-          return createTarget(
-            sentence,
-            sentenceIndex,
-            tokens,
-            firstTokenIndex,
-            firstTokenIndex + baseParts.length - 1,
-          );
-        }
-      }
-
-      continue;
-    }
-
-    /*
-     * Handle ordinary single-word entries.
-     */
-    for (let tokenIndex = 0; tokenIndex < tokens.length; tokenIndex++) {
-      const token = tokens[tokenIndex];
-
-      if (
-        matchesInflectedForm(
-          baseWord,
-          normalizeClozeText(token.text),
-          wordObj.gender,
-        )
-      ) {
-        return createTarget(
+        const target = createClozeTarget(
+          wordObj,
           sentence,
           sentenceIndex,
-          tokens,
-          tokenIndex,
-          tokenIndex,
+          sentenceTokens,
+          firstTokenIndex,
+          endTokenIndex,
+          variant,
+          patternTokens,
         );
+        if (!target) continue;
+        if (
+          normalizedPreferredForm &&
+          normalizeGameAnswer(target.surfaceForm) === normalizedPreferredForm
+        ) {
+          return target;
+        }
+        firstMatch ||= target;
       }
     }
   }
 
-  return null;
+  return firstMatch;
+}
+
+function formatCorrectClozeChoice(wordObj, clozeTarget) {
+  let choice = restoreDictionaryCase(
+    clozeTarget.surfaceForm,
+    clozeTarget.template || getPrimaryNorwegianForm(wordObj),
+  );
+  if (clozeTarget.startsSentence) {
+    choice = uppercaseFirstNorwegian(choice);
+  }
+  return choice;
+}
+
+function prepareClozeChoices(wordObj, clozeTarget, distractors) {
+  const correctChoice = formatCorrectClozeChoice(wordObj, clozeTarget);
+  const formattedDistractors = distractors.map((choice) =>
+    clozeTarget.startsSentence ? uppercaseFirstNorwegian(choice) : choice,
+  );
+  const choices = ensureUniqueDisplayedValues(
+    shuffleArray([correctChoice, ...formattedDistractors]),
+    true,
+  );
+  return { correctChoice, choices };
 }
 
 // Shown every time the word game is (re)entered, before any question is
@@ -1157,14 +1484,6 @@ async function startWordGame() {
             null,
           );
         } else {
-          /*
-           * Begin with lowercase choices. Capitalization is
-           * restored below when the blank starts the sentence.
-           */
-          let formattedClozed =
-            clozeTarget.surfaceForm.charAt(0).toLowerCase() +
-            clozeTarget.surfaceForm.slice(1);
-
           const distractors = generateClozeDistractors(
             randomWordObj,
             clozeTarget,
@@ -1180,24 +1499,26 @@ async function startWordGame() {
             return;
           }
 
-          let allWords = shuffleArray([formattedClozed, ...distractors]);
-
-          let uniqueWords = ensureUniqueDisplayedValues(allWords);
-
-          if (clozeTarget.startsSentence) {
-            uniqueWords = uniqueWords.map(
-              (word) => word.charAt(0).toUpperCase() + word.slice(1),
+          const { correctChoice, choices } = prepareClozeChoices(
+            randomWordObj,
+            clozeTarget,
+            distractors,
+          );
+          if (choices.length < 4) {
+            renderClozeGameUI(
+              randomWordObj,
+              [],
+              firstWordInQueue.clozedForm,
+              true,
+              null,
             );
-
-            formattedClozed =
-              formattedClozed.charAt(0).toUpperCase() +
-              formattedClozed.slice(1);
+            return;
           }
 
           renderClozeGameUI(
             randomWordObj,
-            uniqueWords,
-            formattedClozed,
+            choices,
+            correctChoice,
             true,
             clozeTarget,
           );
@@ -1337,8 +1658,6 @@ async function startWordGame() {
   }
 
   if (isClozeQuestion) {
-    const baseWord = randomWordObj.ord.split(",")[0].trim().toLowerCase();
-
     const clozeTarget = findClozeTarget(randomWordObj);
 
     if (!clozeTarget) {
@@ -1352,13 +1671,6 @@ async function startWordGame() {
       return;
     }
 
-    const clozedForm = clozeTarget.surfaceForm;
-    // Format the clozed word and get its final letter
-    const formatCase = (word) => word.charAt(0).toLowerCase() + word.slice(1);
-
-    let formattedClozed = formatCase(clozedForm);
-    const wasCapitalizedFromLowercase =
-      !/^[A-ZÆØÅ]/.test(baseWord) && /^[A-ZÆØÅ]/.test(clozedForm);
     const distractors = generateClozeDistractors(randomWordObj, clozeTarget);
     if (distractors.length < 3) {
       console.warn(
@@ -1369,21 +1681,20 @@ async function startWordGame() {
       return;
     }
 
-    let allWords = shuffleArray([formattedClozed, ...distractors]);
-    let uniqueWords = ensureUniqueDisplayedValues(allWords);
-
-    if (wasCapitalizedFromLowercase) {
-      uniqueWords = uniqueWords.map(
-        (word) => word.charAt(0).toUpperCase() + word.slice(1),
-      );
-      formattedClozed =
-        formattedClozed.charAt(0).toUpperCase() + formattedClozed.slice(1);
+    const { correctChoice, choices } = prepareClozeChoices(
+      randomWordObj,
+      clozeTarget,
+      distractors,
+    );
+    if (choices.length < 4) {
+      renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
+      return;
     }
 
     renderClozeGameUI(
       randomWordObj,
-      uniqueWords,
-      formattedClozed,
+      choices,
+      correctChoice,
       false,
       clozeTarget,
     );
@@ -1425,14 +1736,17 @@ async function startWordGame() {
   }
 }
 
-function ensureUniqueDisplayedValues(translations) {
+function ensureUniqueDisplayedValues(translations, preserveFullValue = false) {
   const uniqueTranslations = [];
-  const displayedSet = new Set(); // To track displayed parts
+  const displayedSet = new Set();
 
   translations.forEach((translation) => {
-    const displayedPart = translation.split(",")[0].trim();
-    if (!displayedSet.has(displayedPart)) {
-      displayedSet.add(displayedPart);
+    const displayedPart = preserveFullValue
+      ? normalizeGameWhitespace(translation)
+      : getDisplayedAnswer(translation);
+    const identity = normalizeGameAnswer(displayedPart);
+    if (identity && !displayedSet.has(identity)) {
+      displayedSet.add(identity);
       uniqueTranslations.push(translation);
     }
   });
@@ -1441,164 +1755,130 @@ function ensureUniqueDisplayedValues(translations) {
 }
 
 function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
-  const isCapitalized = /^[A-Z]/.test(correctTranslation); // Check if the current word starts with a capital letter
-  // The displayed form is only the part before the first comma (see
-  // ensureUniqueDisplayedValues, which the caller runs on the final
-  // 4-option list) — a distractor whose *full* engelsk string differs from
-  // correctTranslation but shares that displayed part (e.g. correct is
-  // "boat, ship" and a distractor is "boat, watercraft") used to slip
-  // through here, since the filter below only compared full strings. That
-  // let a 4th option get silently deduped away downstream, leaving only 3
-  // visible cards.
-  const correctDisplayedTranslation = correctTranslation.split(",")[0].trim();
+  const correctDisplayedTranslation = getDisplayedAnswer(correctTranslation);
+  const correctIdentity = normalizeGameAnswer(correctDisplayedTranslation);
+  const isCapitalized = startsWithUppercaseLetter(correctDisplayedTranslation);
+  const targetWordClass = WordClass.getWordClass(gender);
+  const displayedTranslationsSet = new Set([correctIdentity]);
+  const incorrectTranslations = [];
 
-  let incorrectResults = results.filter((r) => {
-    const isMatchingCase = /^[A-Z]/.test(r.engelsk) === isCapitalized; // Check if the word's case matches
+  const collect = (pool) => {
+    for (const entry of shuffleArray([...pool])) {
+      if (incorrectTranslations.length >= 3) return;
+      const displayedTranslation = getDisplayedAnswer(entry.engelsk);
+      const identity = normalizeGameAnswer(displayedTranslation);
+      if (!identity || displayedTranslationsSet.has(identity)) continue;
+      incorrectTranslations.push(entry.engelsk);
+      displayedTranslationsSet.add(identity);
+    }
+  };
+
+  const eligible = results.filter((entry) => {
+    const displayedTranslation = getDisplayedAnswer(entry?.engelsk);
     return (
-      WordClass.hasCompatibleGender(gender, r.gender) &&
-      r.engelsk !== correctTranslation &&
-      r.CEFR === currentCEFR && // Ensure CEFR matches
-      isMatchingCase && // Ensure the case matches
-      !noRandom.includes(r.ord.toLowerCase())
+      displayedTranslation &&
+      normalizeGameAnswer(displayedTranslation) !== correctIdentity &&
+      startsWithUppercaseLetter(displayedTranslation) === isCapitalized &&
+      !noRandom.includes(normalizeGameAnswer(entry.ord))
     );
   });
 
-  // Shuffle the incorrect results to ensure randomness
-  incorrectResults = shuffleArray(incorrectResults);
-
-  // Use a Set to track the displayed parts of translations to avoid
-  // duplicates — pre-seeded with the correct answer's own displayed part
-  // (see comment above) so a distractor can't silently match it.
-  const displayedTranslationsSet = new Set([correctDisplayedTranslation]);
-  const incorrectTranslations = [];
-
-  // First, try to collect translations from the same CEFR level
-  for (
-    let i = 0;
-    i < incorrectResults.length && incorrectTranslations.length < 3;
-    i++
-  ) {
-    const displayedTranslation = incorrectResults[i].engelsk
-      .split(",")[0]
-      .trim();
-    if (!displayedTranslationsSet.has(displayedTranslation)) {
-      incorrectTranslations.push(incorrectResults[i].engelsk);
-      displayedTranslationsSet.add(displayedTranslation);
-    }
-  }
-
-  // If we still don't have enough, broaden the search to include words of the same gender but any CEFR level
+  collect(
+    eligible.filter(
+      (entry) =>
+        entry.CEFR === currentCEFR &&
+        WordClass.hasCompatibleGender(gender, entry.gender),
+    ),
+  );
   if (incorrectTranslations.length < 3) {
-    let additionalResults = results.filter((r) => {
-      const isMatchingCase = /^[A-Z]/.test(r.engelsk) === isCapitalized; // Ensure case matches for fallback
-      return (
-        WordClass.hasCompatibleGender(gender, r.gender) &&
-        r.engelsk !== correctTranslation && // Exclude the correct translation
-        isMatchingCase && // Ensure the case matches
-        !noRandom.includes(r.ord.toLowerCase()) &&
-        !displayedTranslationsSet.has(r.engelsk.split(",")[0].trim())
-      ); // Ensure no duplicates
-    });
-
-    for (
-      let i = 0;
-      i < additionalResults.length && incorrectTranslations.length < 3;
-      i++
-    ) {
-      const displayedTranslation = additionalResults[i].engelsk
-        .split(",")[0]
-        .trim();
-      if (!displayedTranslationsSet.has(displayedTranslation)) {
-        incorrectTranslations.push(additionalResults[i].engelsk);
-        displayedTranslationsSet.add(displayedTranslation);
-      }
-    }
+    collect(
+      eligible.filter((entry) =>
+        WordClass.hasCompatibleGender(gender, entry.gender),
+      ),
+    );
   }
-
-  // If we still don't have enough, broaden the search to include any word, ignoring CEFR and gender
   if (incorrectTranslations.length < 3) {
-    let fallbackResults = results.filter((r) => {
-      const isMatchingCase = /^[A-Z]/.test(r.engelsk) === isCapitalized; // Ensure case matches for fallback
-      return (
-        r.engelsk !== correctTranslation && // Exclude the correct translation
-        isMatchingCase && // Ensure the case matches
-        !noRandom.includes(r.ord.toLowerCase()) &&
-        !displayedTranslationsSet.has(r.engelsk.split(",")[0].trim())
-      ); // Ensure no duplicates
-    });
-
-    for (
-      let i = 0;
-      i < fallbackResults.length && incorrectTranslations.length < 3;
-      i++
-    ) {
-      const displayedTranslation = fallbackResults[i].engelsk
-        .split(",")[0]
-        .trim();
-      if (!displayedTranslationsSet.has(displayedTranslation)) {
-        incorrectTranslations.push(fallbackResults[i].engelsk);
-        displayedTranslationsSet.add(displayedTranslation);
-      }
-    }
+    collect(
+      eligible.filter(
+        (entry) => WordClass.getWordClass(entry.gender) === targetWordClass,
+      ),
+    );
   }
+  if (incorrectTranslations.length < 3) collect(eligible);
 
   return incorrectTranslations;
 }
 
 function fetchIncorrectNorwegianWords(correctWord, CEFR, gender) {
-  const baseWord = correctWord.split(",")[0].trim().toLowerCase();
+  const correctDisplay = getPrimaryNorwegianForm(correctWord);
+  const correctIdentity = normalizeGameAnswer(correctDisplay);
+  const correctIsCapitalized = startsWithUppercaseLetter(correctDisplay);
+  const targetWordClass = WordClass.getWordClass(gender);
 
   const collect = (pool, seen, incorrectWords) => {
-    for (let i = 0; i < pool.length && incorrectWords.length < 3; i++) {
-      const word = pool[i].ord.split(",")[0].trim();
-      if (!seen.has(word)) {
-        seen.add(word);
-        incorrectWords.push(word);
-      }
+    for (const entry of shuffleArray([...pool])) {
+      if (incorrectWords.length >= 3) return;
+      const word = getPrimaryNorwegianForm(entry);
+      const identity = normalizeGameAnswer(word);
+      if (!identity || seen.has(identity)) continue;
+      seen.add(identity);
+      incorrectWords.push(word);
     }
   };
 
-  const seen = new Set();
+  const seen = new Set([correctIdentity]);
   const incorrectWords = [];
-
-  let sameLevelResults = results.filter((r) => {
-    const word = r.ord.split(",")[0].trim().toLowerCase();
+  const eligible = results.filter((entry) => {
+    const word = getPrimaryNorwegianForm(entry);
     return (
-      word !== baseWord &&
-      r.CEFR === CEFR &&
-      WordClass.hasCompatibleGender(gender, r.gender) &&
-      !noRandom.includes(r.ord.toLowerCase())
+      word &&
+      normalizeGameAnswer(word) !== correctIdentity &&
+      !noRandom.includes(normalizeGameAnswer(entry.ord))
     );
   });
-  collect(shuffleArray(sameLevelResults), seen, incorrectWords);
 
-  // If the same gender/CEFR pool is too small (rare word classes at some
-  // levels), widen to the same gender across all CEFR levels.
+  collect(
+    eligible.filter(
+      (entry) =>
+        entry.CEFR === CEFR &&
+        WordClass.hasCompatibleGender(gender, entry.gender) &&
+        startsWithUppercaseLetter(getPrimaryNorwegianForm(entry)) ===
+          correctIsCapitalized,
+    ),
+    seen,
+    incorrectWords,
+  );
   if (incorrectWords.length < 3) {
-    let sameGenderResults = results.filter((r) => {
-      const word = r.ord.split(",")[0].trim();
-      return (
-        word.toLowerCase() !== baseWord &&
-        WordClass.hasCompatibleGender(gender, r.gender) &&
-        !noRandom.includes(r.ord.toLowerCase()) &&
-        !seen.has(word)
-      );
-    });
-    collect(shuffleArray(sameGenderResults), seen, incorrectWords);
+    collect(
+      eligible.filter(
+        (entry) =>
+          WordClass.hasCompatibleGender(gender, entry.gender) &&
+          startsWithUppercaseLetter(getPrimaryNorwegianForm(entry)) ===
+            correctIsCapitalized,
+      ),
+      seen,
+      incorrectWords,
+    );
   }
-
-  // Last resort: any word at all.
   if (incorrectWords.length < 3) {
-    let fallbackResults = results.filter((r) => {
-      const word = r.ord.split(",")[0].trim();
-      return (
-        word.toLowerCase() !== baseWord &&
-        !noRandom.includes(r.ord.toLowerCase()) &&
-        !seen.has(word)
-      );
-    });
-    collect(shuffleArray(fallbackResults), seen, incorrectWords);
+    collect(
+      eligible.filter((entry) =>
+        WordClass.hasCompatibleGender(gender, entry.gender),
+      ),
+      seen,
+      incorrectWords,
+    );
   }
+  if (incorrectWords.length < 3) {
+    collect(
+      eligible.filter(
+        (entry) => WordClass.getWordClass(entry.gender) === targetWordClass,
+      ),
+      seen,
+      incorrectWords,
+    );
+  }
+  if (incorrectWords.length < 3) collect(eligible, seen, incorrectWords);
 
   return incorrectWords;
 }
@@ -1780,15 +2060,15 @@ function renderWordGameUI(
   // this same global to the clozed Norwegian form. Listening's correct
   // answer is English, same as forward, so it needs no reassignment here.
   if (isReverse) {
-    correctTranslation = wordObj.ord.split(",")[0].trim();
+    correctTranslation = getPrimaryNorwegianForm(wordObj);
   }
 
   // Split the word at the comma and use the first part. Listening shows
   // no word text at all pre-answer (see the prompt markup below) — this
   // is only used post-answer once revealListeningWordText swaps it in.
   let displayedWord = isReverse
-    ? String(wordObj.engelsk ?? "").split(",")[0].trim()
-    : wordObj.ord.split(",")[0].trim();
+    ? getDisplayedAnswer(wordObj.engelsk)
+    : getPrimaryNorwegianForm(wordObj);
   const displayedGender = getGameGenderLabel(wordObj.gender);
 
   // Check if CEFR is selected; if not, add a label based on wordObj.CEFR
@@ -1839,14 +2119,14 @@ function renderWordGameUI(
                   ? ""
                   : `role="button"
               tabindex="0"
-              aria-label="${isListening ? "Play word audio" : `Play pronunciation of ${displayedWord}`}"
+              aria-label="${escapeGameHTML(isListening ? "Play word audio" : `Play pronunciation of ${displayedWord}`)}"
               title="${isListening ? "Play word audio" : "Play pronunciation"}"`
               }
             >
                 ${
                   isListening
                     ? '<i class="fas fa-volume-up game-listening-icon" aria-hidden="true"></i>'
-                    : `<h2>${displayedWord}</h2>`
+                    : `<h2>${escapeGameHTML(displayedWord)}</h2>`
                 }
             </div>
             <div class="game-cefr-spacer"></div>
@@ -1858,7 +2138,7 @@ function renderWordGameUI(
               .map(
                 (translation, index) => `
                 <div class="game-translation-card" lang="${isReverse ? "nb" : "en"}" data-id="${wordId}" data-index="${index}">
-                    ${translation.split(",")[0].trim()}
+                    ${escapeGameHTML(getDisplayedAnswer(translation))}
                 </div>
             `,
               )
@@ -2009,7 +2289,7 @@ function renderClozeGameUI(
         </div>
 
       <div class="game-word">
-      <h2 id="cloze-sentence">${sentenceWithBlank}</h2>
+      <h2 id="cloze-sentence">${escapeGameHTML(sentenceWithBlank)}</h2>
       </div>
   
       <div class="game-cefr-spacer"></div>
@@ -2021,7 +2301,7 @@ function renderClozeGameUI(
         .map(
           (translation, index) => `
           <div class="game-translation-card" lang="nb" data-id="${wordId}" data-index="${index}">
-            ${translation}
+            ${escapeGameHTML(translation)}
           </div>
         `,
         )
@@ -2143,9 +2423,7 @@ function revealReverseWordAudio(wordObj) {
     return;
   }
 
-  const displayedWord = String(wordObj?.ord ?? "")
-    .split(",")[0]
-    .trim();
+  const displayedWord = getPrimaryNorwegianForm(wordObj);
 
   makeAudioReplayable(
     correctCardElement,
@@ -2168,11 +2446,9 @@ function revealListeningWordText(wordObj) {
   const promptElement = document.querySelector(".game-word");
   if (!promptElement) return;
 
-  const displayedWord = String(wordObj?.ord ?? "")
-    .split(",")[0]
-    .trim();
+  const displayedWord = getPrimaryNorwegianForm(wordObj);
 
-  promptElement.innerHTML = `<h2>${displayedWord}</h2>`;
+  promptElement.innerHTML = `<h2>${escapeGameHTML(displayedWord)}</h2>`;
   promptElement.setAttribute(
     "aria-label",
     `Play pronunciation of ${displayedWord}`,
@@ -2217,9 +2493,16 @@ async function handleTranslationClick(
     );
   });
 
-  // Extract the part before the comma for both correct and selected translations
-  const correctTranslationPart = correctTranslation.split(",")[0].trim();
-  const selectedTranslationPart = selectedTranslation.split(",")[0].trim();
+  // Forward/reverse cards deliberately display only the first comma-separated
+  // dictionary alternative. A cloze answer, however, may itself contain a
+  // comma (for example a wildcard expression spanning a clause), so preserve
+  // the complete surface form there.
+  const correctTranslationPart = isCloze
+    ? normalizeGameWhitespace(correctTranslation)
+    : getDisplayedAnswer(correctTranslation);
+  const selectedTranslationPart = isCloze
+    ? normalizeGameWhitespace(selectedTranslation)
+    : getDisplayedAnswer(selectedTranslation);
 
   totalQuestions++; // Increment total questions for this level
   questionsAtCurrentLevel++; // Increment questions at this level
@@ -2232,7 +2515,9 @@ async function handleTranslationClick(
     goodChime.play(); // Play the chime sound when correct
     // Mark the selected card as green (correct)
     cards.forEach((card) => {
-      const cardText = card.innerText.trim();
+      const cardText = isCloze
+        ? normalizeGameWhitespace(card.innerText)
+        : getDisplayedAnswer(card.innerText);
       if (cardText === selectedTranslationPart) {
         card.classList.add("game-correct-card");
       } else if (cardText !== correctTranslationPart) {
@@ -2264,7 +2549,7 @@ async function handleTranslationClick(
     // If the word was in the review queue and the user answered it correctly, remove it
     const indexInQueue = incorrectWordQueue.findIndex(
       (incorrectWord) =>
-        incorrectWord.wordObj.ord === wordObj.ord && incorrectWord.shown,
+        incorrectWord.wordObj === wordObj && incorrectWord.shown,
     );
     if (indexInQueue !== -1) {
       incorrectWordQueue.splice(indexInQueue, 1); // Remove from review queue once answered correctly
@@ -2287,7 +2572,9 @@ async function handleTranslationClick(
     badChime.play(); // Play the chime sound when incorrect
     // Mark the incorrect card as red
     cards.forEach((card) => {
-      const cardText = card.innerText.trim();
+      const cardText = isCloze
+        ? normalizeGameWhitespace(card.innerText)
+        : getDisplayedAnswer(card.innerText);
 
       if (cardText === selectedTranslationPart) {
         card.classList.add("game-incorrect-card");
@@ -2328,7 +2615,7 @@ async function handleTranslationClick(
     // below, just now measured in review-phase turns rather than raw
     // round turns.
     const existingQueueEntry = incorrectWordQueue.find(
-      (incorrectWord) => incorrectWord.wordObj.ord === wordObj.ord,
+      (incorrectWord) => incorrectWord.wordObj === wordObj,
     );
     if (existingQueueEntry) {
       existingQueueEntry.counter = 0;
@@ -2500,7 +2787,7 @@ function getEligibleGameWords(selectedPOS, cefrLevel) {
       return false;
     }
 
-    if (noRandom.includes(norwegianWord.toLowerCase())) {
+    if (noRandom.includes(normalizeGameAnswer(norwegianWord))) {
       return false;
     }
 
@@ -2529,10 +2816,7 @@ function getEligibleGameWords(selectedPOS, cefrLevel) {
     const normalizedGender = gender.toLowerCase();
 
     if (selectedPOS === "noun") {
-      const isNoun =
-        normalizedGender.startsWith("en") ||
-        normalizedGender.startsWith("et") ||
-        normalizedGender.startsWith("ei");
+      const isNoun = WordClass.isNounGender(normalizedGender);
 
       if (!isNoun || normalizedGender === "pronoun") {
         return false;
@@ -2545,12 +2829,13 @@ function getEligibleGameWords(selectedPOS, cefrLevel) {
      * Do not ask questions where the displayed Norwegian and English
      * answers are identical.
      */
-    const displayedNorwegian = norwegianWord.split(",")[0].trim().toLowerCase();
+    const displayedNorwegian = normalizeGameAnswer(
+      getPrimaryNorwegianForm(norwegianWord),
+    );
 
-    const displayedEnglish = englishTranslation
-      .split(",")[0]
-      .trim()
-      .toLowerCase();
+    const displayedEnglish = normalizeGameAnswer(
+      getDisplayedAnswer(englishTranslation),
+    );
 
     return displayedNorwegian !== displayedEnglish;
   });
@@ -2846,59 +3131,198 @@ function shuffleArray(array) {
   return array;
 }
 
-function matchesInflectedForm(base, token, wordClassOrGender) {
-  if (!base || !token) return false;
-
-  const normalizedBase = base
-    .normalize("NFC")
-    .toLocaleLowerCase("nb-NO");
-  const normalizedToken = token
-    .normalize("NFC")
-    .toLocaleLowerCase("nb-NO");
-  const wordClass = ["noun", "adjective", "verb"].includes(wordClassOrGender)
-    ? wordClassOrGender
-    : WordClass.getWordClass(wordClassOrGender);
-  const paradigm = window.Inflections?.getParadigmForLemma(
-    normalizedBase,
-    wordClass,
-    wordClass === "noun" && wordClassOrGender !== "noun"
-      ? wordClassOrGender
-      : "",
-  );
-
-  // The dictionary lemma itself is always safe. Every additional accepted
-  // surface must occupy an exact official paradigm slot; prefixes, compounds,
-  // and guessed suffixes are never treated as inflections.
-  return (
-    normalizedToken === normalizedBase ||
-    Boolean(paradigm?.slots.some((forms) => forms.includes(normalizedToken)))
-  );
-}
-
 // hasCompatibleGender lives in wordClass.js (window.WordClass), shared
 // with scripts.js/wordList.js — see that file for its rationale.
 
-function generateClozeDistractors(wordObj, clozeTarget) {
-  const slotIndex = clozeTarget?.slotIndexes?.[0];
-  if (!Number.isInteger(slotIndex)) return [];
+function getPhraseChoiceDisplay(value) {
+  return getPrimaryNorwegianForm(value).replace(/[.!?]+$/u, "").trim();
+}
 
-  const normalize = (value) =>
-    String(value ?? "")
-      .normalize("NFC")
-      .toLocaleLowerCase("nb-NO")
-      .trim();
-  const baseExpression = normalize(String(wordObj?.ord ?? "").split(",")[0]);
+function getPhraseCandidateTemplates(entry) {
+  return [
+    ...new Set(
+      getNorwegianEntryVariants(entry)
+        .map(getPhraseChoiceDisplay)
+        .filter(
+          (choice) =>
+            choice && !getClozePatternTokens(choice).includes("..."),
+        ),
+    ),
+  ];
+}
+
+function getPhraseShape(value) {
+  const tokens = getClozePatternTokens(value);
+  return {
+    tokenCount: tokens.filter((token) => token !== "...").length,
+    wildcardCount: tokens.filter((token) => token === "...").length,
+  };
+}
+
+function generatePhraseClozeDistractors(wordObj, clozeTarget) {
+  if (clozeTarget.requiresInflectionAgreement && !clozeTarget.phraseSlot) {
+    return [];
+  }
+
+  const correctAnswer = normalizeGameAnswer(clozeTarget.surfaceForm);
+  const targetTemplate = clozeTarget.template || getPrimaryNorwegianForm(wordObj);
+  const targetShape = getPhraseShape(
+    clozeTarget.surfaceForm || targetTemplate,
+  );
+  const targetWordClass = WordClass.getWordClass(wordObj.gender);
+  const targetCapitalized = startsWithUppercaseLetter(targetTemplate);
+  const seen = new Set([
+    correctAnswer,
+    normalizeGameAnswer(getPhraseChoiceDisplay(targetTemplate)),
+  ]);
+  const distractors = [];
+
+  const candidateChoices = (entry) => {
+    const templates = getPhraseCandidateTemplates(entry);
+    if (!clozeTarget.phraseSlot) return templates;
+
+    const descriptor = clozeTarget.phraseSlot;
+    return templates.flatMap((choice) => {
+      const tokens = getClozePatternTokens(choice);
+      const componentIndex =
+        descriptor.position === "first"
+          ? 0
+          : descriptor.position === "last"
+            ? tokens.length - 1
+            : descriptor.componentIndex;
+      if (componentIndex < 0 || componentIndex >= tokens.length) return [];
+
+      const candidateWordClass = WordClass.getWordClass(entry.gender);
+      const nounGender =
+        descriptor.wordClass === "noun" && candidateWordClass === "noun"
+          ? entry.gender
+          : "";
+      const paradigm = window.Inflections?.getParadigmForLemma(
+        normalizeGameAnswer(tokens[componentIndex]),
+        descriptor.wordClass,
+        nounGender,
+      );
+      if (!paradigm) return [];
+
+      const compatibleForms = descriptor.slotIndexes.reduce(
+        (accepted, slotIndex) => {
+          const slotForms = paradigm.slots[slotIndex] || [];
+          if (accepted === null) return [...slotForms];
+          const currentSlot = new Set(slotForms);
+          return accepted.filter((form) => currentSlot.has(form));
+        },
+        null,
+      );
+
+      return (compatibleForms || []).map((form) => {
+        const inflectedTokens = [...tokens];
+        inflectedTokens[componentIndex] = restoreDictionaryCase(
+          form,
+          tokens[componentIndex],
+        );
+        return inflectedTokens.join(" ");
+      });
+    });
+  };
+
+  const eligible = results.filter((entry) => {
+    const templates = getPhraseCandidateTemplates(entry);
+    const candidateWordClass = WordClass.getWordClass(entry.gender);
+    return (
+      entry !== wordObj &&
+      templates.length > 0 &&
+      candidateWordClass === targetWordClass &&
+      (targetWordClass !== "noun" ||
+        WordClass.hasCompatibleGender(wordObj.gender, entry.gender)) &&
+      (templates.some((choice) => getPhraseShape(choice).tokenCount > 1) ||
+        !["noun", "adjective", "verb"].includes(
+          candidateWordClass,
+        )) &&
+      !noRandom.includes(normalizeGameAnswer(entry.ord))
+    );
+  });
+
+  const hasSimilarShape = (entry) => {
+    const tolerance = Math.max(2, Math.ceil(targetShape.tokenCount * 0.4));
+    return getPhraseCandidateTemplates(entry).some(
+      (choice) => {
+        const shape = getPhraseShape(choice);
+        return (
+          shape.wildcardCount === targetShape.wildcardCount &&
+          Math.abs(shape.tokenCount - targetShape.tokenCount) <= tolerance
+        );
+      },
+    );
+  };
+
+  const collect = (entries) => {
+    for (const entry of shuffleArray([...entries])) {
+      if (distractors.length >= 3) return;
+      for (const choice of shuffleArray(candidateChoices(entry))) {
+        const identity = normalizeGameAnswer(choice);
+        if (!identity || seen.has(identity)) continue;
+        seen.add(identity);
+        distractors.push(choice);
+        break;
+      }
+    }
+  };
+
+  const sameCapitalization = (entry) =>
+    startsWithUppercaseLetter(getPhraseChoiceDisplay(entry)) ===
+    targetCapitalized;
+
+  collect(
+    eligible.filter(
+      (entry) =>
+        entry.CEFR === wordObj.CEFR &&
+        sameCapitalization(entry) &&
+        hasSimilarShape(entry),
+    ),
+  );
+  if (distractors.length < 3) {
+    collect(
+      eligible.filter(
+        (entry) =>
+          sameCapitalization(entry) &&
+          hasSimilarShape(entry),
+      ),
+    );
+  }
+  if (distractors.length < 3) {
+    collect(eligible.filter(hasSimilarShape));
+  }
+  if (distractors.length < 3) collect(eligible);
+
+  return distractors;
+}
+
+function generateClozeDistractors(wordObj, clozeTarget) {
+  if (clozeTarget?.kind === "phrase") {
+    return generatePhraseClozeDistractors(wordObj, clozeTarget);
+  }
+
+  const slotIndexes = [...new Set(clozeTarget?.slotIndexes || [])].filter(
+    Number.isInteger,
+  );
+  if (slotIndexes.length === 0) return [];
+  const baseExpression = normalizeGameAnswer(getPrimaryNorwegianForm(wordObj));
   const targetWordClass = clozeTarget.wordClass;
-  const targetWordCount = clozeTarget.wordCount || 1;
-  const correctAnswer = normalize(clozeTarget.surfaceForm);
+  const correctAnswer = normalizeGameAnswer(clozeTarget.surfaceForm);
+  const targetCapitalized = startsWithUppercaseLetter(
+    getPrimaryNorwegianForm(wordObj),
+  );
   const seen = new Set([correctAnswer]);
   const distractors = [];
 
   const candidateForms = (entry) => {
-    const expression = normalize(String(entry?.ord ?? "").split(",")[0]);
-    if (!expression || expression === baseExpression) return [];
-    const parts = expression.split(/\s+/);
-    if (parts.length !== targetWordCount) return [];
+    const displayExpression = getPrimaryNorwegianForm(entry);
+    const expression = normalizeGameAnswer(displayExpression);
+    if (!expression || expression === baseExpression || entry === wordObj) {
+      return [];
+    }
+    const parts = getClozePatternTokens(expression);
+    if (parts.length !== 1 || parts[0] === "...") return [];
     if (WordClass.getWordClass(entry.gender) !== targetWordClass) return [];
 
     const paradigm = window.Inflections?.getParadigmForLemma(
@@ -2906,14 +3330,19 @@ function generateClozeDistractors(wordObj, clozeTarget) {
       targetWordClass,
       entry.gender,
     );
-    const officialSlotForms = paradigm?.slots[slotIndex] || [];
-    const fixedTail = parts.slice(1).join(" ");
-    return officialSlotForms
-      .map((form) => (fixedTail ? `${form} ${fixedTail}` : form))
+    if (!paradigm) return [];
+    const compatibleForms = slotIndexes.reduce((accepted, slotIndex) => {
+      const slotForms = paradigm.slots[slotIndex] || [];
+      if (accepted === null) return [...slotForms];
+      const currentSlot = new Set(slotForms);
+      return accepted.filter((form) => currentSlot.has(form));
+    }, null);
+    return (compatibleForms || [])
+      .map((form) => restoreDictionaryCase(form, displayExpression))
       .filter(
         (form) =>
-          form !== correctAnswer &&
-          /^[\p{L}]+(?:[-\s][\p{L}]+)*$/u.test(form),
+          normalizeGameAnswer(form) !== correctAnswer &&
+          /^[\p{L}\p{N}]+(?:[-'’][\p{L}\p{N}]+)*$/u.test(form),
       );
   };
 
@@ -2921,8 +3350,9 @@ function generateClozeDistractors(wordObj, clozeTarget) {
     for (const entry of shuffleArray([...entries])) {
       for (const form of shuffleArray(candidateForms(entry))) {
         if (distractors.length >= 3) return;
-        if (seen.has(form)) continue;
-        seen.add(form);
+        const identity = normalizeGameAnswer(form);
+        if (seen.has(identity)) continue;
+        seen.add(identity);
         distractors.push(form);
         break; // At most one displayed alternative per dictionary entry.
       }
@@ -2935,20 +3365,27 @@ function generateClozeDistractors(wordObj, clozeTarget) {
       !BANNED_WORD_CLASSES.some((banned) =>
         entry.gender?.toLowerCase().startsWith(banned),
       ) &&
-      WordClass.getWordClass(entry.gender) === targetWordClass,
+      WordClass.getWordClass(entry.gender) === targetWordClass &&
+      (targetWordClass !== "noun" ||
+        WordClass.hasCompatibleGender(wordObj.gender, entry.gender)),
   );
 
   collect(
     eligible.filter(
       (entry) =>
         entry.CEFR === wordObj.CEFR &&
-        WordClass.hasCompatibleGender(wordObj.gender, entry.gender),
+        WordClass.hasCompatibleGender(wordObj.gender, entry.gender) &&
+        startsWithUppercaseLetter(getPrimaryNorwegianForm(entry)) ===
+          targetCapitalized,
     ),
   );
   if (distractors.length < 3) {
     collect(
-      eligible.filter((entry) =>
-        WordClass.hasCompatibleGender(wordObj.gender, entry.gender),
+      eligible.filter(
+        (entry) =>
+          WordClass.hasCompatibleGender(wordObj.gender, entry.gender) &&
+          startsWithUppercaseLetter(getPrimaryNorwegianForm(entry)) ===
+            targetCapitalized,
       ),
     );
   }

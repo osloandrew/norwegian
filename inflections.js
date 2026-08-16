@@ -556,15 +556,36 @@
     if (acceptedForms.length === 0) return [];
 
     const selectedLemmas = new Set(extractLemmas(entry).map(normalizeLemma));
+    const homographs = (dictionaryEntries || []).filter((competitor) =>
+      extractLemmas(competitor)
+        .map(normalizeLemma)
+        .some((lemma) => selectedLemmas.has(lemma)),
+    );
+    const cefrRank = (candidate) => {
+      const rank = ["A1", "A2", "B1", "B2", "C"].indexOf(
+        String(candidate?.CEFR || "").toUpperCase(),
+      );
+      return rank < 0 ? Number.MAX_SAFE_INTEGER : rank;
+    };
+    const primarySense = homographs.reduce(
+      (primary, candidate) =>
+        !primary || cefrRank(candidate) < cefrRank(primary)
+          ? candidate
+          : primary,
+      null,
+    );
+
+    // Shared morphology belongs to the dictionary's earliest-taught sense.
+    // This keeps productive common forms such as bare/plural "ting" on the
+    // A1 en-sense, while a later specialized homograph such as et "ting"
+    // still searches its exclusive form "tinget". Competing entries' own
+    // examples are separately excluded by collectExamples.
+    if (primarySense === entry) return acceptedForms;
+
     const formsUsedByCompetingSenses = new Set();
 
-    for (const competitor of dictionaryEntries || []) {
+    for (const competitor of homographs) {
       if (!competitor?.ord || competitor === entry) continue;
-      const sharesDictionaryLemma = extractLemmas(competitor)
-        .map(normalizeLemma)
-        .some((lemma) => selectedLemmas.has(lemma));
-      if (!sharesDictionaryLemma) continue;
-
       for (const form of collectSentenceForms(competitor)) {
         formsUsedByCompetingSenses.add(form);
       }

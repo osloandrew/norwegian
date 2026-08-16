@@ -2626,9 +2626,10 @@ function getHomographEntries(entry) {
   ];
 }
 
-// Fetch and render sentences for one exact dictionary sense. Supplemental
-// examples use only forms not shared by another homograph; the selected
-// entry's own example is always inserted first.
+// Fetch and render sentences for one exact dictionary sense. Shared forms
+// belong to the earliest-taught homograph (so common senses such as ting-en
+// keep their useful recall); later senses use only exclusive forms. The
+// selected entry's own example is always inserted first.
 async function fetchAndRenderSentences(
   matchingWordEntry,
   dictionaryEntryDomKey,
@@ -2670,9 +2671,10 @@ async function fetchAndRenderSentences(
 
   sentenceContainer.innerHTML = ""; // Clear previous sentences
 
+  const homographEntries = getHomographEntries(matchingWordEntry);
   const sentenceForms = await window.Inflections.getSupplementalSentenceForms(
     matchingWordEntry,
-    getHomographEntries(matchingWordEntry),
+    homographEntries,
   );
   if (!sentenceContainer.isConnected) return;
   const formMatcher = window.SentenceFormMatching.createMatcher(sentenceForms);
@@ -2681,6 +2683,8 @@ async function fetchAndRenderSentences(
       matchingWordEntry,
       results,
       formMatcher,
+      100,
+      homographEntries.filter((entry) => entry !== matchingWordEntry),
     );
 
   // Rank supplemental examples without allowing them to move ahead of the
