@@ -16,76 +16,6 @@ audio {
   width: 100%;
 }
 
-/* --- Pronunciation Button (blue theme) --- */
-.audio-button {
-  position: relative;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  width: 88px;
-  height: 88px;
-  background: radial-gradient(circle at 30% 30%, #4ea3f7, #1c68b5);
-  border-radius: 50%;
-  box-shadow: 0 6px 20px rgba(28, 104, 181, 0.35);
-  cursor: pointer;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.25s ease,
-    background 0.25s ease;
-}
-
-.audio-button:hover {
-  transform: scale(1.08);
-  box-shadow: 0 8px 28px rgba(28, 104, 181, 0.45);
-  background: radial-gradient(circle at 30% 30%, #5ab0ff, #1c68b5);
-}
-
-.audio-button:active {
-  transform: scale(0.95);
-  box-shadow: 0 4px 12px rgba(28, 104, 181, 0.3);
-}
-
-/* Soft pulsing ring */
-.audio-button::after {
-  content: "";
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 3px solid rgba(76, 148, 228, 0.35);
-  animation: pulse-ring-blue 2s infinite ease-out;
-}
-
-@keyframes pulse-ring-blue {
-  0% {
-    transform: scale(1);
-    opacity: 0.6;
-  }
-  100% {
-    transform: scale(1.6);
-    opacity: 0;
-  }
-}
-
-/* Icon styling */
-.audio-button img {
-  width: 48px;
-  height: 48px;
-  filter: invert(1) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
-  z-index: 2;
-  transition: transform 0.2s ease;
-}
-
-.audio-button:hover img {
-  transform: scale(1.15);
-}
-
-/* Optional click feedback */
-.audio-button.clicked {
-  transform: scale(0.9);
-  box-shadow: 0 0 0 10px rgba(76, 148, 228, 0.25);
-}
-
 #back-button,
 #speed-btn,
 #toggle-english-btn {
@@ -204,23 +134,6 @@ button:disabled i {
   flex-direction: column; /* stack vertically */
   align-items: flex-start; /* left-align both items */
   gap: 10px; /* small vertical gap between CEFR and icon */
-}
-
-.cefr-badge {
-  text-align: center !important;
-  display: inline-block;
-  padding: 3px 7px;
-  border-radius: 4px;
-  min-width: 17.5px;
-}
-
-.cefr-label {
-  display: inline-flex;
-  align-items: center;
-}
-
-.cefr-label i {
-  margin-right: 5px;
 }
 
 .cefr-value {
@@ -377,15 +290,6 @@ button:disabled i {
   gap: 5px;
 }
 
-.definition-label {
-  color: #951b1b;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.04rem;
-  text-transform: uppercase;
-}
-
 .definition p,
 li {
   color: #333;
@@ -488,7 +392,6 @@ footer .copyright {
   padding: 0px 6px !important; /* Smaller padding for a more compact banner */
   border-radius: 5px;
   font-size: 16px !important; /* Smaller font size to fit the text on one line */
-  font-weight: normal; /* Adjusted to normal to avoid boldness */
   font-family: "Noto Serif", serif; /* Using Noto Sans, sans-serif */
   margin: 0 1px; /* Reduced spacing between banner and the rest */
   margin-bottom: 5px;
@@ -642,17 +545,6 @@ footer .copyright {
 .game-english-translation {
   color: gray !important;
   cursor: default;
-}
-
-.game-fade {
-  opacity: 1;
-  transition: opacity 0.35s ease-in-out;
-}
-.game-fade.fade-out {
-  opacity: 0;
-}
-.game-fade.fade-in {
-  opacity: 1;
 }
 
 .game-gender {
@@ -1444,7 +1336,6 @@ footer .copyright {
   background-color: #f0f0f0;
   color: #6a6a6a !important;
   font-family: "Noto Sans", sans-serif;
-  text-transform: uppercase;
   padding: 3px 4px; /* Smaller padding */
   font-size: 10px; /* Smaller font size */
   font-weight: 500 !important;
@@ -2254,8 +2145,6 @@ html.landing #landing-card {
   display: flex;
   align-items: center;
   flex-grow: 1;
-  border-radius: 10px;
-  overflow: hidden;
   position: relative;
 }
 
@@ -2517,23 +2406,6 @@ ul {
 .my-words-nav-btn:hover {
   background-color: #3c88d4;
   box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
-}
-
-.return-btn {
-  background-color: #f1f1f1;
-  color: #333;
-  padding: 10px 20px;
-  border: none;
-  cursor: pointer;
-  margin-top: 20px;
-  display: block;
-  width: 100%;
-  text-align: left;
-  font-size: 16px;
-}
-
-.return-btn:hover {
-  background-color: #e1e1e1;
 }
 
 .result-header {
@@ -2846,11 +2718,6 @@ ul {
 #waveform,
 #user-waveform {
   margin-bottom: 0.5rem;
-}
-
-.recording-controls {
-  margin-top: 15px;
-  text-align: center; /* center under the row */
 }
 
 .sentence-audio-icon {
@@ -3231,14 +3098,6 @@ ul {
   z-index: 1000; /* Ensure it stays on top */
 }
 
-.sticky-header-content {
-  align-items: center;
-  display: flex;
-  justify-content: center; /* Center titles horizontally */
-  position: relative;
-  width: 100%; /* Allow flex to distribute space evenly */
-}
-
 .sticky-row {
   display: flex;
   gap: 5px; /* Space between genre and CEFR */
@@ -3284,70 +3143,6 @@ ul {
   grid-template-columns: 1fr 1fr;
 }
 
-.stories-back-btn {
-  color: #951b1b;
-  margin-left: 20px;
-  margin-right: 190px;
-  font-size: 1.5em;
-  cursor: pointer;
-  transition:
-    color 0.3s ease,
-    text-shadow 0.3s ease;
-}
-
-.stories-back-btn:hover {
-  color: #b32424; /* Slightly lighter shade for a subtle effect */
-}
-
-.stories-english-btn {
-  background-color: #f0f0f0; /* Subtle, lighter background */
-  border: 1px solid #a0a0a0; /* Light gray border */
-  border-radius: 6px; /* Slightly rounded corners */
-  color: #4a4a4a; /* Soft gray text */
-  cursor: pointer; /* Pointer on hover */
-  display: block; /* Block-level element to allow centering */
-  padding: 6px 12px; /* Smaller padding for a more compact feel */
-  font-family: "Noto Sans", sans-serif; /* Clean, modern font */
-  font-size: 12px; /* Smaller font size for subtlety */
-  font-weight: 400; /* Normal font weight for less boldness */
-  text-transform: uppercase; /* Uppercase for consistency */
-  letter-spacing: 0.03em; /* Slight letter spacing */
-  margin: 0 auto; /* Centering with smaller vertical margins */
-  min-width: 100px;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease; /* Subtle transitions */
-  touch-action: manipulation; /* Helps reduce delay on mobile */
-  box-shadow:
-    0 4px 8px rgba(135, 135, 135, 0.2),
-    0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.stories-english-btn:hover {
-  background-color: #e8e8e8; /* Slightly darker on hover */
-}
-
-.stories-english-btn .mobile-text {
-  display: none;
-}
-
-.stories-english-btn .desktop-text {
-  display: inline;
-}
-
-.stories-content {
-  display: flex;
-  flex-direction: column; /* Stack the title and genre vertically */
-  justify-content: flex-start;
-  align-items: flex-start;
-}
-
-.stories-content h2 {
-  font-size: 1.5rem;
-  margin: 0; /* Remove extra margins around the title */
-}
-
 .stories-detail-container {
   display: flex; /* Use flexbox layout */
   gap: 5px;
@@ -3362,7 +3157,6 @@ ul {
   font-size: 12px; /* Smaller font size */
   color: #4f4f4f;
   font-weight: bold;
-  border-radius: 4px;
   text-align: center;
   text-transform: uppercase;
   font-family: "Noto Sans", sans-serif;
@@ -3455,112 +3249,6 @@ ul {
   line-height: 1.4;
 }
 
-.stories-rating {
-  background-color: #ffffff; /* Subtle, lighter background */
-  margin: 0 auto;
-  text-align: center;
-  border-radius: 6px; /* Slightly rounded corners */
-  box-shadow:
-    0 4px 8px rgba(135, 135, 135, 0.2),
-    0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 8px 14px; /* Larger padding for a more clickable feel */
-  font-family: "Noto Sans", sans-serif; /* Clean, modern font */
-  font-size: 12px; /* Smaller font size for subtlety */
-  font-weight: 500; /* Slightly bolder text */
-  text-transform: uppercase; /* Uppercase for consistency */
-  letter-spacing: 0.05em; /* Slight letter spacing */
-  width: fit-content;
-}
-
-.stories-rating p {
-  margin: 5px 0px 5px 0px;
-}
-
-.stories-rating .stories-star-rating .star {
-  font-size: 24px; /* Size of stars */
-  cursor: pointer; /* Show pointer cursor */
-  color: gray; /* Default color for stars */
-  padding: 0 5px; /* Space between stars */
-  transition:
-    transform 0.2s,
-    color 0.2s; /* Animation for hover effect */
-}
-
-.stories-rating .stories-star-rating .star:hover,
-.stories-rating .stories-star-rating .star.clicked {
-  color: gold; /* Gold color for hovered/clicked stars */
-}
-
-.stories-rating .stories-star-rating .star:hover ~ .star {
-  color: gray; /* Keep remaining stars gray on hover */
-}
-
-.stories-result-header {
-  align-content: center;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  padding: 25px;
-  margin-bottom: 10px;
-  justify-content: center; /* Center the title */
-  align-items: center;
-  position: relative; /* Set relative position for positioning the icon */
-}
-
-.stories-result-header h2 {
-  margin: 0; /* Reset margin for the title */
-  color: #951b1b;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 1.3em;
-  font-weight: 400;
-  white-space: normal; /* Allow the text to wrap into multiple lines */
-  overflow-wrap: break-word; /* Ensure the text breaks into a new line if needed */
-  text-align: center; /* Center align the header text */
-}
-
-.stories-result-header i {
-  color: #951b1b;
-  position: absolute;
-  left: 15px; /* Position the icon on the far left */
-  cursor: pointer;
-  font-size: 1.3rem; /* Adjust the size as needed */
-  line-height: inherit;
-}
-
-.stories-rightward-div {
-  display: flex;
-  gap: 10px; /* Adds space between the elements */
-  align-items: center;
-  margin-right: 20px;
-}
-
-.stories-sentence-box-english,
-.stories-sentence-box-norwegian {
-  background-color: #ffffff;
-  border-radius: 12px;
-  margin-bottom: 10px;
-  padding: 10px 15px 10px 15px;
-  width: 100%;
-  display: flex;
-  align-items: center; /* Align items vertically in the center */
-}
-
-.stories-sentence-box-english p,
-.stories-sentence-box-norwegian p {
-  margin: 5px 0 5px 0;
-}
-
-.stories-sentence-box-english {
-  color: gray;
-  border-radius: 0 12px 12px 0; /* Rounded corners on bottom */
-  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.stories-sentence-box-norwegian {
-  border-radius: 12px 0 0 12px; /* Rounded corners on top */
-  box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.1);
-}
-
 .stories-subtitle {
   display: -webkit-box; /* Creates a block-level flex container */
   font-family: "Noto Sans", sans;
@@ -3592,15 +3280,6 @@ ul {
   white-space: normal; /* Allow the text to wrap into multiple lines */
   overflow-wrap: break-word; /* Ensure the text breaks into a new line if needed */
   text-align: center; /* Center align the header text */
-}
-
-.stories-title-container {
-  align-items: center;
-  flex-grow: 1; /* Keeps the middle div centered */
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  row-gap: 2.5px;
 }
 
 .story-card-link {
@@ -3643,7 +3322,6 @@ ul {
 
 /* Story list and story content */
 
-#story-list,
 #story-viewer {
   max-width: 800px; /* Limit the width */
   margin: 0 auto; /* Center align */
@@ -3766,6 +3444,7 @@ ul {
   width: 100%;
   max-height: 70vh;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 0 10px;
   box-sizing: border-box;
 }
@@ -3775,6 +3454,7 @@ ul {
   border-collapse: separate;
   border-spacing: 0 12px;
   text-align: left;
+  table-layout: auto;
 }
 
 /*
@@ -3838,6 +3518,7 @@ ul {
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
+  width: 100%;
 }
 
 .word-list-export-controls .word-list-export-button {
@@ -3867,11 +3548,14 @@ ul {
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.03em;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   padding: 10px 16px;
   text-transform: uppercase;
   transition:
     background-color 0.2s ease,
     box-shadow 0.2s ease;
+  white-space: normal;
 }
 
 .word-list-export-button:hover {
@@ -4011,6 +3695,11 @@ ul {
   font-size: 10px !important;
   line-height: 1.2;
   margin: 0 !important;
+  max-width: none;
+  min-width: max-content;
+  overflow-wrap: normal;
+  white-space: nowrap;
+  word-break: normal;
 }
 
 /*
@@ -4092,16 +3781,6 @@ ul {
   box-shadow: 0 2px 5px rgba(13, 58, 105, 0.22);
 }
 
-.word-list-table-container {
-  overflow-x: hidden;
-  overflow-y: auto;
-  width: 100%;
-}
-
-.word-list-table {
-  width: 100%;
-}
-
 .word-list-row td,
 .word-list-norwegian,
 .word-list-english,
@@ -4121,29 +3800,6 @@ ul {
   white-space: normal;
   word-break: normal;
   width: 50%;
-}
-
-.word-list-class-badge {
-  max-width: none;
-  min-width: max-content;
-  overflow-wrap: normal;
-  white-space: nowrap;
-  word-break: normal;
-}
-
-.word-list-control-group {
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.word-list-export-button {
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  white-space: normal;
-}
-
-.word-list-table {
-  table-layout: auto;
 }
 
 /* Shrink these columns to their contents */
@@ -4606,59 +4262,12 @@ ul {
     grid-template-columns: 1fr;
   }
 
-  .stories-back-btn {
-    margin-left: 10px;
-    margin-right: 10px;
-  }
-
   .stories-detail-container {
     margin-top: 0px !important;
   }
 
-  .stories-english-btn {
-    min-width: 40px;
-  }
-
-  .stories-english-btn .mobile-text {
-    display: inline;
-  }
-
-  .stories-english-btn .desktop-text {
-    display: none;
-  }
-
   .stories-list-item {
     margin-bottom: 10px;
-  }
-
-  .stories-result-header {
-    padding: 20px;
-  }
-
-  .stories-rightward-div {
-    align-items: center;
-    flex-direction: column; /* Stack elements vertically */
-    gap: 0px;
-    margin-right: 0px;
-  }
-
-  .stories-sentence-box-english,
-  .stories-sentence-box-norwegian {
-    font-size: 15px;
-    margin-bottom: 2px !important;
-    width: auto;
-  }
-
-  .stories-sentence-box-english {
-    border-radius: 0 0 12px 12px; /* Rounded corners on bottom */
-    padding: 5px 10px 5px 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-
-  .stories-sentence-box-norwegian {
-    border-radius: 12px 12px 0 0; /* Rounded corners on top */
-    padding: 5px 10px 5px 10px;
-    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
   }
 
   .stories-story-header h2 {
@@ -4667,10 +4276,6 @@ ul {
 
   .stories-subtitle {
     font-size: 14px !important;
-  }
-
-  .stories-title-container {
-    row-gap: 0px;
   }
 
   #story-content {
