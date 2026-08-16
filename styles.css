@@ -436,11 +436,14 @@ footer .copyright {
    getGameInstructionText() in wordGame.js). Sits above the gender/CEFR
    row inside .game-word-card, so it reads first. */
 .game-instruction {
-  color: #3f5b7a;
+  color: #4d6883; /* Softer than the original #3f5b7a (7.0:1 contrast) —
+     5.8:1 against white, comfortably clear of the 4.5:1 AA minimum for
+     this text size, just less attention-grabbing so the Norwegian word/
+     sentence in the card below reads as the main event. */
   font-family: "Noto Sans", sans-serif;
   font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   margin: 4px 0 8px;
   overflow: hidden;
   text-align: center;
@@ -728,7 +731,11 @@ footer .copyright {
 
 /* Stats Card Styling */
 .game-stats-content {
-  align-items: flex-start;
+  align-items: center; /* Keeps the two side boxes and the middle progress
+     bar/button column on one visual row regardless of their differing
+     heights — flex-start (the previous value) top-aligned them instead,
+     which left the middle column looking offset whenever it was shorter
+     (or taller, e.g. with Quit & see stats above it) than the side boxes. */
   display: flex;
   width: 100%; /* Ensure the content takes up full width */
   gap: 10px; /* Adjust the space between boxes */
@@ -737,7 +744,11 @@ footer .copyright {
 
 /* Correct box styling */
 .game-stats-correct-box {
-  background-color: #c7e3b6; /* Lighter olive green */
+  background-color: #d7ecc9; /* Softer/lighter than the original #c7e3b6 —
+     less saturated so the stats row doesn't compete with the Norwegian
+     word/sentence card below it; contrast against the text below only
+     improves as the background lightens, so this stays well within
+     WCAG AA. */
   border-radius: 10px;
   box-sizing: border-box;
   padding: 6px 10px;
@@ -759,7 +770,8 @@ footer .copyright {
 
 /* Incorrect box styling */
 .game-stats-incorrect-box {
-  background-color: #e9a895; /* Lighter clay red */
+  background-color: #f0c1b3; /* Softer/lighter than the original #e9a895,
+     matching .game-stats-correct-box's tone-down above. */
   border-radius: 10px;
   box-sizing: border-box;
   padding: 6px 10px;
@@ -783,7 +795,7 @@ footer .copyright {
   color: #254a1d !important;
   font-family: "Noto Sans", sans-serif;
   font-size: 18px; /* Bigger font for numbers */
-  font-weight: 500;
+  font-weight: 400;
   margin: 0;
   user-select: none; /* Prevent text selection */
 }
@@ -792,7 +804,7 @@ footer .copyright {
   color: #6b2814 !important;
   font-family: "Noto Sans", sans-serif;
   font-size: 18px; /* Bigger font for numbers */
-  font-weight: 500;
+  font-weight: 400;
   margin: 0;
   user-select: none; /* Prevent text selection */
 }
@@ -804,7 +816,7 @@ footer .copyright {
 .game-stat-label {
   font-family: "Noto Sans", sans-serif;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1.3;
   margin: 0 0 3px;
