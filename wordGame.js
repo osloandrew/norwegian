@@ -131,11 +131,7 @@ function getGameCefrLabelHTML(cefrLevel) {
 
 // Shared by renderWordGameUI and renderClozeGameUI's gender/word-class badge.
 function getGameGenderLabel(gender) {
-  if (
-    gender.startsWith("en") ||
-    gender.startsWith("et") ||
-    gender.startsWith("ei")
-  ) {
+  if (WordClass.isNounGender(gender)) {
     return "N - " + gender;
   }
   if (gender.startsWith("adjective")) return "Adj";
@@ -1360,7 +1356,7 @@ function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
   let incorrectResults = results.filter((r) => {
     const isMatchingCase = /^[A-Z]/.test(r.engelsk) === isCapitalized; // Check if the word's case matches
     return (
-      r.gender === gender &&
+      WordClass.hasCompatibleGender(gender, r.gender) &&
       r.engelsk !== correctTranslation &&
       r.CEFR === currentCEFR && // Ensure CEFR matches
       isMatchingCase && // Ensure the case matches
@@ -1397,7 +1393,7 @@ function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
     let additionalResults = results.filter((r) => {
       const isMatchingCase = /^[A-Z]/.test(r.engelsk) === isCapitalized; // Ensure case matches for fallback
       return (
-        r.gender === gender &&
+        WordClass.hasCompatibleGender(gender, r.gender) &&
         r.engelsk !== correctTranslation && // Exclude the correct translation
         isMatchingCase && // Ensure the case matches
         !noRandom.includes(r.ord.toLowerCase()) &&
@@ -1471,7 +1467,7 @@ function fetchIncorrectNorwegianWords(correctWord, CEFR, gender) {
     return (
       word !== baseWord &&
       r.CEFR === CEFR &&
-      r.gender === gender &&
+      WordClass.hasCompatibleGender(gender, r.gender) &&
       !noRandom.includes(r.ord.toLowerCase())
     );
   });
@@ -1484,7 +1480,7 @@ function fetchIncorrectNorwegianWords(correctWord, CEFR, gender) {
       const word = r.ord.split(",")[0].trim();
       return (
         word.toLowerCase() !== baseWord &&
-        r.gender === gender &&
+        WordClass.hasCompatibleGender(gender, r.gender) &&
         !noRandom.includes(r.ord.toLowerCase()) &&
         !seen.has(word)
       );
@@ -2763,6 +2759,18 @@ function getEndingPattern(form) {
   return new RegExp(form.slice(-1) + "$", "i"); // fallback
 }
 
+// A Norwegian inflectional ending is always short (-en, -et, -ene, -ere,
+// -est, -ende, -dde, etc. — at most 4 characters). A token that starts
+// with the base word but leaves a much longer remainder is almost always
+// a different, unrelated word that merely happens to share a prefix —
+// very common in a heavily-compounding language like Norwegian (e.g. the
+// verb "ape", to ape/mimic, is a real prefix of "apekatten", the monkey,
+// a wholly different, unrelated noun). Without this cap, findClozeTarget
+// below could blank out "Apekatten" instead of the real target "ape"
+// later in the same sentence — confirmed against the shipped dictionary,
+// this happened for dozens of real entries.
+const MAX_INFLECTION_SUFFIX_LENGTH = 4;
+
 function matchesInflectedForm(base, token, gender) {
   if (!base || !token) return false;
 
@@ -2772,13 +2780,24 @@ function matchesInflectedForm(base, token, gender) {
   // ✅ Exact match
   if (lowerToken === lowerBase) return true;
 
-  // ✅ Token starts with base
-  if (lowerToken.startsWith(lowerBase)) return true;
+  // ✅ Token starts with base, and the leftover looks like an inflectional
+  // ending rather than the start of an unrelated (often compound) word.
+  if (
+    lowerToken.startsWith(lowerBase) &&
+    lowerToken.length - lowerBase.length <= MAX_INFLECTION_SUFFIX_LENGTH
+  ) {
+    return true;
+  }
 
   // ✅ Special feminine noun trick: "jente" → "jenta"
   if (lowerBase.endsWith("e")) {
     const baseWithoutE = lowerBase.slice(0, -1);
-    if (lowerToken.startsWith(baseWithoutE)) return true;
+    if (
+      lowerToken.startsWith(baseWithoutE) &&
+      lowerToken.length - baseWithoutE.length <= MAX_INFLECTION_SUFFIX_LENGTH
+    ) {
+      return true;
+    }
   }
 
   return false;
@@ -2838,14 +2857,11 @@ function applyInflection(base, clozedForm, gender) {
     }
   }
 
-  // ✅ Noun inflection (en/et/ei nouns)
-  if (
-    gender.startsWith("en") ||
-    gender.startsWith("et") ||
-    gender.startsWith("ei") ||
-    gender.startsWith("noun") ||
-    gender.startsWith("substantiv")
-  ) {
+  // ✅ Noun inflection (en/et/ei nouns). Also treats a bare "noun" gender
+  // value (a handful of entries with no specific article on file) as a
+  // noun, matching this function's pre-existing, wider-than-usual
+  // convention — WordClass.isNounGender itself is deliberately stricter.
+  if (WordClass.isNounGender(gender) || gender.startsWith("noun")) {
     if (lowerClozed.endsWith("en")) {
       return endsWith("e") ? base + "n" : base + "en"; // bok → boken
     }
@@ -2876,19 +2892,8 @@ function applyInflection(base, clozedForm, gender) {
   return base;
 }
 
-// Word class ("gender" in the CSV) is either a single POS token
-// (e.g. "adjective", "preposition") or, for nouns, one or more grammatical
-// genders joined by hyphens (e.g. "en", "en-et"). Comparing by shared prefix
-// used to conflate "adjective"/"adverb" and "preposition"/"pronoun" (both
-// pairs share their first two letters), offering distractors of the wrong
-// grammatical class. Comparing token sets instead fixes that while still
-// treating a compound noun gender like "en-et" as compatible with "en".
-function hasCompatibleGender(targetGender, candidateGender) {
-  if (!candidateGender) return false;
-  const targetTokens = targetGender.toLowerCase().split("-");
-  const candidateTokens = candidateGender.toLowerCase().split("-");
-  return targetTokens.some((token) => candidateTokens.includes(token));
-}
+// hasCompatibleGender lives in wordClass.js (window.WordClass), shared
+// with scripts.js/wordList.js — see that file for its rationale.
 
 function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
   const formattedClozed = clozedForm.toLowerCase();
@@ -2932,7 +2937,7 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
     if (!ord || ord === formattedBase) return false;
     if (ord.includes(" ")) return false;
     if (ord.length < 3 || ord.length > 12) return false;
-    if (r.gender && !hasCompatibleGender(gender, r.gender)) return false;
+    if (r.gender && !WordClass.hasCompatibleGender(gender, r.gender)) return false;
     if (r.CEFR !== CEFR) return false;
     if (BANNED_WORD_CLASSES.some((b) => r.gender?.toLowerCase().startsWith(b)))
       return false;
@@ -2961,7 +2966,7 @@ function generateClozeDistractors(baseWord, clozedForm, CEFR, gender) {
         const raw = r.ord.split(",")[0].trim().toLowerCase();
         return (
           raw !== formattedBase &&
-          hasCompatibleGender(gender, r.gender) &&
+          WordClass.hasCompatibleGender(gender, r.gender) &&
           !BANNED_WORD_CLASSES.some((b) => r.gender?.toLowerCase().startsWith(b))
         );
       })

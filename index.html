@@ -859,6 +859,16 @@
       never use.
     -->
 
+    <!--
+      Not deferred, and first: defines window.WordClass, the shared
+      grammatical-category classifier used by scripts.js/wordGame.js/
+      wordList.js below. pronunciation.js/wordList.js/myWordsAuth.js are
+      also not deferred and run synchronously during parsing — before any
+      deferred script — so this has to be plain and earlier still for its
+      globals to exist in time for them.
+    -->
+    <script src="wordClass.js"></script>
+
     <script src="noRandom.js" defer></script>
     <script src="scripts.js" defer></script>
     <script src="wordGame.js" defer></script>

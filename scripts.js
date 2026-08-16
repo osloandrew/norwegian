@@ -283,28 +283,17 @@ function findClosestSearchTerms(query, limit = 5) {
     .map(({ term }) => term);
 }
 
-// All grammatical-gender values a noun's `gender` field can take, including
-// entries that list more than one article (e.g. "en-et"). Used both for
-// exact-match POS checks (below) and, via isNounGenderValue, for substring
-// checks against raw/unnormalized gender strings elsewhere in this file.
-const NOUN_GENDER_FORMS = ["en", "et", "ei", "en-et", "en-ei", "ei-et", "en-ei-et"];
-
-function isNounGenderValue(genderValue = "") {
-  const normalized = String(genderValue).toLowerCase();
-  return NOUN_GENDER_FORMS.some((form) => normalized.includes(form));
-}
-
-function normalizeWordMetadataPOS(pos = "") {
-  return String(pos)
-    .trim()
-    .toLowerCase()
-    .replace(/^noun\s*-\s*/i, "");
-}
-
+// Grammatical-category classification (noun/verb/adjective/... from the
+// CSV `gender` field) lives in wordClass.js, loaded before this file — see
+// window.WordClass. getWordClassForMetadata treats a bare "noun" value
+// (used by a handful of entries with no specific article on file) as a
+// noun too; that's a wider definition than WordClass.isNounGender's own,
+// deliberately strict one, and was already the convention at this
+// specific call site before this file's classifiers were consolidated.
 function getWordClassForMetadata(pos = "") {
-  const normalizedPOS = normalizeWordMetadataPOS(pos);
+  const normalizedPOS = WordClass.stripNounPrefix(pos);
 
-  return [...NOUN_GENDER_FORMS, "noun"].includes(normalizedPOS)
+  return WordClass.isNounGender(normalizedPOS) || normalizedPOS === "noun"
     ? "noun"
     : normalizedPOS;
 }
@@ -312,9 +301,7 @@ function getWordClassForMetadata(pos = "") {
 function findWordEntryForMetadata(word, selectedPOS = "") {
   const normalizedWord = String(word).trim().toLowerCase();
 
-  const normalizedSelectedPOS = normalizeWordMetadataPOS(selectedPOS);
-
-  const nounForms = NOUN_GENDER_FORMS;
+  const normalizedSelectedPOS = WordClass.stripNounPrefix(selectedPOS);
 
   const wordMatches = results.filter((entry) =>
     String(entry.ord || "")
@@ -329,10 +316,10 @@ function findWordEntryForMetadata(word, selectedPOS = "") {
   }
 
   const preciseMatch = wordMatches.find((entry) => {
-    const entryPOS = normalizeWordMetadataPOS(entry.gender);
+    const entryPOS = WordClass.stripNounPrefix(entry.gender);
 
     if (normalizedSelectedPOS === "noun") {
-      return nounForms.includes(entryPOS);
+      return WordClass.isNounGender(entryPOS);
     }
 
     return entryPOS === normalizedSelectedPOS;
@@ -376,7 +363,7 @@ function updateWordMetadata(entry) {
     .split(",")[0]
     .trim();
 
-  const canonicalPOS = normalizeWordMetadataPOS(entry.gender);
+  const canonicalPOS = WordClass.stripNounPrefix(entry.gender);
 
   const wordClass = getWordClassForMetadata(entry.gender);
 
@@ -522,25 +509,7 @@ function togglePronunciationGuide() {
 function filterResultsByPOS(results, selectedPOS) {
   if (!selectedPOS) return results;
 
-  return results.filter((r) => {
-    // Handle nouns based on gender
-    if (selectedPOS === "noun") {
-      return r.gender && isNounGenderValue(r.gender);
-    }
-
-    // Handle all other POS types like "verb," "adjective," etc.
-    return (
-      r.gender && r.gender.toLowerCase().startsWith(selectedPOS.toLowerCase())
-    );
-  });
-}
-
-// Helper function to format 'gender' (grammatical gender) based on its value
-function formatGender(gender) {
-  return gender &&
-    ["en", "et", "ei"].includes(gender.substring(0, 2).toLowerCase())
-    ? "noun - " + gender
-    : gender;
+  return results.filter((r) => WordClass.matchesWordClass(r.gender, selectedPOS));
 }
 
 // Clear the search input field
@@ -1517,12 +1486,10 @@ async function search(queryOverride = null) {
         return wordMatch || englishMatch;
       });
 
-      // Handle POS filtering for nouns and other parts of speech
+      // Handle POS filtering for nouns and other parts of speech.
       return (
         matchesQuery &&
-        (!selectedPOS ||
-          (selectedPOS === "noun" && isNounGenderValue(r.gender)) ||
-          r.gender.toLowerCase().includes(selectedPOS)) &&
+        WordClass.matchesWordClass(r.gender, selectedPOS) &&
         (!selectedCEFR || r.CEFR === selectedCEFR)
       );
     });
@@ -1568,9 +1535,7 @@ async function search(queryOverride = null) {
         );
         return (
           matchesInexact &&
-          (!selectedPOS ||
-            (selectedPOS === "noun" && isNounGenderValue(r.gender)) ||
-            r.gender.toLowerCase().includes(selectedPOS)) &&
+          WordClass.matchesWordClass(r.gender, selectedPOS) &&
           (!selectedCEFR || r.CEFR === selectedCEFR)
         );
       });
@@ -2102,11 +2067,9 @@ function displaySearchResults(results, query = "") {
 
   // Limit to a maximum of 10 results
   results.slice(0, 10).forEach((result) => {
-    result.gender = formatGender(result.gender);
+    result.gender = WordClass.formatWordClassLabel(result.gender);
     // Directly handle the POS based on the gender field
-    result.pos = isNounGenderValue(result.gender)
-      ? "noun"
-      : result.gender.toLowerCase();
+    result.pos = WordClass.getWordClass(result.gender);
 
     // Convert the word to lowercase and trim spaces when generating the ID
     const normalizedWord = result.ord.toLowerCase().trim();
@@ -2659,9 +2622,7 @@ function highlightQuery(sentence, query) {
     normalizeSearchText(result.ord).includes(normalizedQuery),
   );
   const pos = matchingWordEntry
-    ? isNounGenderValue(matchingWordEntry.gender)
-      ? "noun"
-      : matchingWordEntry.gender.toLowerCase()
+    ? WordClass.getWordClass(matchingWordEntry.gender)
     : "";
 
   // Generate word variations using the external function
@@ -2689,9 +2650,7 @@ function renderWordDefinition(word, selectedPOS = "") {
   posFilterContainer.classList.remove("disabled"); // Remove the 'disabled' class for visual effect
 
   // Filter results based on both word and selected POS if provided.
-  const normalizedSelectedPOS = normalizeWordMetadataPOS(selectedPOS);
-
-  const nounForms = [...NOUN_GENDER_FORMS, "noun"];
+  const normalizedSelectedPOS = WordClass.stripNounPrefix(selectedPOS);
 
   const matchingResults = results.filter((entry) => {
     /*
@@ -2704,11 +2663,14 @@ function renderWordDefinition(word, selectedPOS = "") {
       .map((form) => form.trim())
       .includes(trimmedWord);
 
-    const entryPOS = normalizeWordMetadataPOS(entry.gender);
+    const entryPOS = WordClass.stripNounPrefix(entry.gender);
 
+    // A bare "noun" gender value (a handful of entries with no specific
+    // article on file) counts as a noun match here, matching this
+    // function's pre-existing, wider-than-usual convention.
     const posMatch =
       normalizedSelectedPOS === "noun"
-        ? nounForms.includes(entryPOS)
+        ? WordClass.isNounGender(entryPOS) || entryPOS === "noun"
         : normalizedSelectedPOS
           ? entryPOS === normalizedSelectedPOS
           : true;
@@ -2766,12 +2728,14 @@ function fetchAndRenderSentences(word, pos, showEnglish = true) {
 
   sentenceContainer.innerHTML = ""; // Clear previous sentences
 
-  // Find the part of speech (POS) of the word
+  // Find the part of speech (POS) of the word — needed to disambiguate a
+  // homograph (e.g. a word with both a noun and a verb sense) into the
+  // right entry.
   const matchingWordEntry = results.find(
     (result) =>
       result.ord.toLowerCase() === trimmedWord &&
       pos &&
-      result.gender.toLowerCase().includes(pos.toLowerCase()),
+      WordClass.matchesWordClass(result.gender, pos),
   );
   if (!matchingWordEntry) {
     console.error(`No matching word found for "${trimmedWord}".`);

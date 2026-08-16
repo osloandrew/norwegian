@@ -39,37 +39,13 @@
   }
 
   /**
-   * Determine whether a CSV gender value represents a noun.
-   *
-   * Nouns in norwegianWords.csv use articles such as:
-   * en
-   * ei
-   * et
-   * en-et
-   * en-ei-et
-   */
-  function isWordListNoun(genderValue) {
-    const normalizedGender = normalizeWordListText(genderValue);
-
-    return /^(en|ei|et)(?:$|[-/,\s])/.test(normalizedGender);
-  }
-
-  /**
    * Determine whether an entry matches the selected Word Class.
+   * Grammatical-category classification lives in wordClass.js (loaded
+   * before this file — see window.WordClass), shared with scripts.js and
+   * wordGame.js.
    */
   function wordListEntryMatchesPOS(entry, selectedPOS) {
-    if (!selectedPOS) {
-      return true;
-    }
-
-    const normalizedPOS = normalizeWordListText(selectedPOS);
-    const normalizedGender = normalizeWordListText(entry.gender);
-
-    if (normalizedPOS === "noun") {
-      return isWordListNoun(normalizedGender);
-    }
-
-    return normalizedGender.startsWith(normalizedPOS);
+    return WordClass.matchesWordClass(entry.gender, selectedPOS);
   }
 
   /**
@@ -82,26 +58,14 @@
       return "—";
     }
 
-    if (isWordListNoun(originalGender)) {
-      /*
-       * Remove an existing "noun -" prefix so it is not duplicated
-       * after the Words renderer has previously handled this entry.
-       */
-      const nounGender = originalGender
-        .toLocaleLowerCase("nb-NO")
-        .replace(/^noun\s*-\s*/, "");
-
-      return `noun - ${nounGender}`;
-    }
-
-    return originalGender;
+    return WordClass.formatWordClassLabel(originalGender);
   }
 
   /**
    * Return the URL-compatible word class for an entry.
    */
   function getWordListEntryPOS(entry) {
-    return normalizeWordListText(entry.gender).replace(/^noun\s*-\s*/, "");
+    return WordClass.stripNounPrefix(entry.gender);
   }
 
   /**
