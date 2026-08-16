@@ -36,6 +36,11 @@ let wordGameSessionQuestionsAnswered = 0;
 let wordGameSessionCorrectAnswers = 0;
 let wordGameSessionIncorrectAnswers = 0;
 let wordGameSessionStartedAt = 0;
+// Distinct words answered incorrectly at least once this round — shown in
+// the "Words to review" list on the round summary screen. A word stays
+// listed even if later answered correctly, since it was still worth a
+// second look.
+let wordGameSessionMissedWords = new Set();
 let incorrectCount = 0; // Tracks the total number of incorrect answers
 let incorrectWordQueue = []; // Queue for storing incorrect words with counters
 const levelThresholds = {
@@ -855,6 +860,7 @@ function beginWordGameRound(mode, targetWords = 0) {
   wordGameSessionTarget = mode === "session" ? targetWords : 0;
   wordGameSessionCorrectWords = new Set();
   wordGameSessionIntroducedWords = new Set();
+  wordGameSessionMissedWords = new Set();
   wordGameSessionQuestionsAnswered = 0;
   wordGameSessionCorrectAnswers = 0;
   wordGameSessionIncorrectAnswers = 0;
@@ -920,6 +926,39 @@ function showWordGameRoundSummary() {
   `
       : "";
 
+  const missedWords = Array.from(wordGameSessionMissedWords);
+  const MAX_MISSED_WORDS_SHOWN = 20;
+  const missedWordsHTML =
+    missedWords.length > 0
+      ? `
+    <div class="game-summary-missed">
+      <h3 class="game-summary-missed-heading">Words to review</h3>
+      <ul class="game-summary-missed-list">
+        ${missedWords
+          .slice(0, MAX_MISSED_WORDS_SHOWN)
+          .map((wordObj) => {
+            const norwegian = escapeHTML(wordObj.ord.split(",")[0].trim());
+            const english = escapeHTML(
+              wordObj.engelsk.split(",")[0].trim(),
+            );
+            return `
+          <li class="game-summary-missed-item">
+            <span class="game-summary-missed-word">${norwegian}</span>
+            <span class="game-summary-missed-translation">${english}</span>
+          </li>
+        `;
+          })
+          .join("")}
+      </ul>
+      ${
+        missedWords.length > MAX_MISSED_WORDS_SHOWN
+          ? `<p class="game-summary-missed-more">+ ${missedWords.length - MAX_MISSED_WORDS_SHOWN} more</p>`
+          : ""
+      }
+    </div>
+  `
+      : "";
+
   setGameContainerHTML(`
     <div class="game-summary-card">
       <div class="game-summary-icon"><i class="fas fa-trophy" aria-hidden="true"></i></div>
@@ -943,6 +982,7 @@ function showWordGameRoundSummary() {
           <p class="game-summary-stat-label">Time</p>
         </div>
       </div>
+      ${missedWordsHTML}
       <button type="button" class="game-summary-primary-btn" id="game-summary-restart-btn">
         Start a new round
       </button>
@@ -2210,6 +2250,7 @@ async function handleTranslationClick(
     if (wordGameRoundActive) {
       wordGameSessionQuestionsAnswered++;
       wordGameSessionIncorrectAnswers++;
+      wordGameSessionMissedWords.add(wordObj);
     }
 
     if (isCloze) {
