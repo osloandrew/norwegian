@@ -1,5 +1,16 @@
 let pronunciationLibrariesPromise = null;
-const PRONUNCIATION_AUDIO_BASE_PATH = "/norwegian"; // works both locally and on GitHub
+
+function buildAudioResourceUrl(directory, fileName) {
+  // Resolve from the directory that actually contains index.html. Locally
+  // that is usually `/`, while GitHub Pages serves this repository from
+  // `/norwegian/`. A hard-coded deployment prefix makes one of those two
+  // environments fail. Encoding the filename also keeps spaces, Norwegian
+  // letters, `#`, and other path-sensitive characters inside one file name.
+  return new URL(
+    `Resources/${directory}/${encodeURIComponent(fileName)}.m4a`,
+    document.baseURI,
+  ).href;
+}
 
 function loadPronunciationLibrary(src, globalName) {
   if (window[globalName]) {
@@ -37,13 +48,14 @@ function ensurePronunciationLibraries() {
 }
 
 function buildPronAudioUrl(sentenceText) {
-  return `${PRONUNCIATION_AUDIO_BASE_PATH}/Resources/Sentences/${sentenceText
+  const fileName = sentenceText
     .trim()
-    .replace(/\?$/, "")}.m4a`;
+    .replace(/\?$/, "");
+  return buildAudioResourceUrl("Sentences", fileName);
 }
 
 function buildWordAudioUrl(wordText) {
-  return `${PRONUNCIATION_AUDIO_BASE_PATH}/Resources/Words/${wordText.trim()}.m4a`;
+  return buildAudioResourceUrl("Words", wordText.trim());
 }
 
 async function computeSimilarity(nativeUrl, userUrl) {
