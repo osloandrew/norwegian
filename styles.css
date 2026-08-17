@@ -844,6 +844,7 @@ footer .copyright {
 }
 
 .game-translation-card {
+  appearance: none;
   background-color: white; /* Same as the word card */
   border: 1px solid #ccc; /* Same border */
   border-radius: 10px; /* Same rounded corners */
@@ -863,6 +864,7 @@ footer .copyright {
   height: auto;
   min-height: 60px; /* Ensure the cards remain the same height */
   min-width: 0;
+  margin: 0;
   line-height: 1.3em; /* Reduce line spacing slightly */
   /* Long words (Norwegian compounds especially, e.g. "salgsrepresentanten")
      wrap at real syllable boundaries with a hyphen instead of getting cut
@@ -877,6 +879,148 @@ footer .copyright {
 
 .game-translation-card:hover {
   background-color: #e6f7ff; /* Hover effect same as word card */
+}
+
+.game-translation-card:focus-visible {
+  outline: 3px solid #3c88d4;
+  outline-offset: 3px;
+}
+
+/* Typed recall occupies the same answer area and uses the same type, border,
+   radius, shadow, and primary blue as the existing cards/buttons. It is a
+   new interaction, but not a new visual language. */
+.game-grid.game-typed-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.game-typed-answer-form {
+  width: 100%;
+}
+
+.game-typed-answer-row {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.game-typed-answer-input {
+  appearance: none;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  color: #333;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1.2em;
+  min-height: 60px;
+  min-width: 0;
+  padding: 10px 15px;
+  text-align: center;
+  width: 100%;
+}
+
+.game-typed-answer-input:focus-visible {
+  border-color: #3c88d4;
+  outline: 3px solid rgba(60, 136, 212, 0.3);
+  outline-offset: 1px;
+}
+
+.game-typed-submit {
+  background-color: #0d3a69;
+  border: 1px solid #0d3a69;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  padding: 10px 28px;
+  text-transform: uppercase;
+}
+
+.game-typed-submit:hover {
+  background-color: #4a99ff;
+  border-color: #4a99ff;
+}
+
+.game-typed-submit:focus-visible {
+  outline: 3px solid #3c88d4;
+  outline-offset: 3px;
+}
+
+.game-typed-submit:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.game-typed-answer-form.is-correct .game-typed-answer-input {
+  background-color: #edf7e7;
+  border-color: #7cab62;
+}
+
+.game-typed-answer-form.is-incorrect .game-typed-answer-input {
+  background-color: #fbede9;
+  border-color: #c97861;
+}
+
+.game-typed-answer-feedback {
+  color: #555;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 8px 0 0;
+  min-height: 1.4em;
+  text-align: center;
+}
+
+.game-typed-answer-feedback:empty {
+  display: none;
+}
+
+.game-typed-answer-feedback.is-correct {
+  color: #315e25;
+}
+
+.game-typed-answer-feedback.is-incorrect {
+  color: #7a321f;
+}
+
+.game-typed-correct-answer {
+  appearance: none;
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: default;
+  font: inherit;
+  font-weight: 600;
+  margin: 0;
+  padding: 0;
+}
+
+.game-typed-correct-answer.game-word-audio {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.game-typed-correct-answer:focus-visible {
+  outline: 3px solid #3c88d4;
+  outline-offset: 3px;
+}
+
+/* Answer feedback is announced to assistive technology without introducing
+   a new visible message; the existing green/red treatment remains the sole
+   visual feedback. */
+.game-answer-status {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
 }
 
 .game-word {

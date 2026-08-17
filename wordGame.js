@@ -87,6 +87,17 @@ const LISTENING_PROBABILITY = {
   B2: 0.35,
   C: 0.4,
 };
+// Productive recall is introduced as a ladder, not as a sudden replacement
+// for recognition practice. Sentence-scaffolded typing begins first; fully
+// unaided English-to-Norwegian recall follows only once a word is stronger.
+// A missed typed answer is already reintroduced by the existing relearning
+// queue as a multiple-choice question, giving the learner an automatic step
+// back down the ladder instead of repeatedly demanding an answer they do not
+// yet know.
+const TYPED_RECALL_PROBABILITY = Object.freeze({
+  cloze: Object.freeze({ 2: 0.25, 3: 0.5, 4: 0.75, 5: 1 }),
+  reverse: Object.freeze({ 3: 0.35, 4: 0.65, 5: 0.9 }),
+});
 let previousWord = null;
 let recentAnswers = []; // Track the last X answers, 1 for correct, 0 for incorrect
 let reintroduceThreshold = 10; // Intervening answers before an Endless retry
@@ -166,7 +177,7 @@ function setGameContainerHTML(html) {
   // Starting from 0.15 rather than 0 keeps content from ever going fully
   // blank, which is most of what made the full-screen version feel jarring.
   const fadeTargets = gameContainer.querySelectorAll(
-    ".game-word-card, .game-translation-card",
+    ".game-word-card, .game-translation-card, .game-typed-answer-form",
   );
 
   fadeTargets.forEach((el) => {
@@ -596,6 +607,67 @@ function getNorwegianEntryVariants(entry) {
         .filter(Boolean),
     ),
   ];
+}
+
+function getTypedRecallProbability(wordObj, mode) {
+  const probabilities = TYPED_RECALL_PROBABILITY[mode];
+  if (!probabilities) return 0;
+
+  const snapshot = window.WordStrengthAPI?.getSnapshot?.(wordObj);
+  // New and relearning words stay supported by choices. This also makes the
+  // feature a no-op when durable study data is unavailable.
+  if (!snapshot || snapshot.queue === "new" || snapshot.queue === "relearning") {
+    return 0;
+  }
+
+  return probabilities[snapshot.strength] ?? 0;
+}
+
+function shouldUseTypedRecall(wordObj, mode, randomValue = Math.random()) {
+  return randomValue < getTypedRecallProbability(wordObj, mode);
+}
+
+function getTypedAcceptedAnswers(wordObj, isCloze, correctAnswer) {
+  if (isCloze) return [normalizeGameWhitespace(correctAnswer)];
+
+  const acceptedAnswers = new Set(getNorwegianEntryVariants(wordObj));
+  const targetEnglish = normalizeGameAnswer(
+    getDisplayedAnswer(wordObj?.engelsk),
+  );
+  if (!targetEnglish || typeof results === "undefined") {
+    return [...acceptedAnswers];
+  }
+
+  // The English prompt can legitimately have more than one Norwegian answer
+  // (bad/baderom for "bathroom"). Accept only synonyms the user's dictionary
+  // itself presents with that same displayed sense and compatible grammatical
+  // category. Gender compatibility is especially important for nouns: an
+  // answer has to support one of the articles shown on the question card.
+  for (const candidate of results) {
+    if (
+      normalizeGameAnswer(getDisplayedAnswer(candidate?.engelsk)) !==
+        targetEnglish ||
+      !WordClass.hasCompatibleGender(wordObj?.gender, candidate?.gender)
+    ) {
+      continue;
+    }
+    getNorwegianEntryVariants(candidate).forEach((variant) =>
+      acceptedAnswers.add(variant),
+    );
+  }
+
+  return [...acceptedAnswers];
+}
+
+function getGameSentenceTranslations(wordObj) {
+  return String(wordObj?.sentenceTranslation ?? "")
+    .split(/(?<=[.!?])\s+/)
+    .map(normalizeGameWhitespace)
+    .filter(Boolean);
+}
+
+function getGameSentenceTranslation(wordObj, sentenceIndex = 0) {
+  return getGameSentenceTranslations(wordObj)[sentenceIndex] || "";
 }
 
 function uppercaseFirstNorwegian(value) {
@@ -1857,6 +1929,21 @@ async function startWordGame() {
       return;
     }
 
+    if (
+      getGameSentenceTranslation(randomWordObj, clozeTarget.sentenceIndex) &&
+      shouldUseTypedRecall(randomWordObj, "cloze")
+    ) {
+      renderClozeGameUI(
+        randomWordObj,
+        [],
+        formatCorrectClozeChoice(randomWordObj, clozeTarget),
+        false,
+        clozeTarget,
+        true,
+      );
+      return;
+    }
+
     const distractors = generateClozeDistractors(randomWordObj, clozeTarget);
     if (distractors.length < 3) {
       console.warn(
@@ -1885,6 +1972,14 @@ async function startWordGame() {
       clozeTarget,
     );
   } else if (isReverseQuestion) {
+    if (
+      getGameSentenceTranslation(randomWordObj, 0) &&
+      shouldUseTypedRecall(randomWordObj, "reverse")
+    ) {
+      renderWordGameUI(randomWordObj, [], false, "typed-reverse");
+      return;
+    }
+
     const incorrectNorwegianWords = fetchIncorrectNorwegianWords(
       randomWordObj.ord,
       currentCEFR,
@@ -2210,6 +2305,10 @@ function enableGameControls() {
 // four choices didn't say what to do with them.
 function getGameInstructionText(mode) {
   switch (mode) {
+    case "typed-reverse":
+      return "Type the Norwegian word";
+    case "typed-cloze":
+      return "Type the word that completes the sentence";
     case "reverse":
       return "Choose the Norwegian word";
     case "listening":
@@ -2219,6 +2318,86 @@ function getGameInstructionText(mode) {
     default:
       return "Choose the English meaning";
   }
+}
+
+function getTypedAnswerMarkup(wordId) {
+  return `
+    <div class="game-grid game-typed-grid">
+      <form class="game-typed-answer-form" data-id="${wordId}">
+        <div class="game-typed-answer-row">
+          <input
+            id="game-typed-answer-input"
+            class="game-typed-answer-input"
+            type="text"
+            lang="nb"
+            aria-label="Your answer in Norwegian"
+            aria-describedby="game-typed-answer-feedback"
+            autocomplete="off"
+            autocapitalize="sentences"
+            autocorrect="off"
+            spellcheck="false"
+            enterkeyhint="done"
+            placeholder="Type in Norwegian"
+          >
+          <button class="game-typed-submit" type="submit">Check</button>
+        </div>
+        <p
+          id="game-typed-answer-feedback"
+          class="game-typed-answer-feedback"
+        ></p>
+      </form>
+    </div>
+  `;
+}
+
+function getGameAnswerStatusMarkup() {
+  return '<p id="game-answer-status" class="game-answer-status" role="status" aria-live="polite"></p>';
+}
+
+function attachTypedAnswerForm(
+  wordObj,
+  {
+    isCloze = false,
+    clozeSentence = "",
+    isReverse = false,
+    exampleSentenceIndex = null,
+  } = {},
+) {
+  const form = document.querySelector(".game-typed-answer-form");
+  const input = document.getElementById("game-typed-answer-input");
+  if (!form || !input) return;
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const selectedAnswer = normalizeGameWhitespace(input.value);
+    if (!selectedAnswer || !gameActive) {
+      input.focus();
+      return;
+    }
+
+    handleTranslationClick(
+      selectedAnswer,
+      wordObj,
+      isCloze,
+      clozeSentence,
+      isReverse,
+      false,
+      getTypedAcceptedAnswers(wordObj, isCloze, correctTranslation),
+      exampleSentenceIndex,
+    );
+  });
+
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.isComposing) {
+      event.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  // This is the only control needed to answer a typed question. Focusing it
+  // avoids an otherwise unnecessary click while preventScroll keeps the page
+  // visually still as questions change.
+  requestAnimationFrame(() => input.focus({ preventScroll: true }));
 }
 
 // mode: "forward" (Norwegian shown, recognize English — the default),
@@ -2231,8 +2410,12 @@ function renderWordGameUI(
   isReintroduced = false,
   mode = "forward",
 ) {
-  const isReverse = mode === "reverse";
+  const isTyped = mode === "typed-reverse";
+  const isReverse = mode === "reverse" || isTyped;
   const isListening = mode === "listening";
+  const typedEnglishSentence = isTyped
+    ? getGameSentenceTranslation(wordObj, 0)
+    : "";
 
   // Each render replaces the previous question entirely, so nothing still
   // references earlier entries — reset instead of growing forever.
@@ -2315,21 +2498,32 @@ function renderWordGameUI(
                     : `<h2>${escapeGameHTML(displayedWord)}</h2>`
                 }
             </div>
-            <div class="game-cefr-spacer"></div>
+            <div class="game-cefr-spacer">
+              ${
+                typedEnglishSentence
+                  ? `<p class="game-english-translation game-typed-prompt-translation">${escapeGameHTML(typedEnglishSentence)}</p>`
+                  : ""
+              }
+            </div>
         </div>
 
-        <!-- Translations Grid Section -->
-        <div class="game-grid">
+        <!-- Answer Section -->
+        ${
+          isTyped
+            ? getTypedAnswerMarkup(wordId)
+            : `<div class="game-grid">
             ${translations
               .map(
                 (translation, index) => `
-                <div class="game-translation-card" lang="${isReverse ? "nb" : "en"}" data-id="${wordId}" data-index="${index}">
+                <button type="button" class="game-translation-card" lang="${isReverse ? "nb" : "en"}" data-id="${wordId}" data-index="${index}" aria-keyshortcuts="${index + 1}">
                     ${escapeGameHTML(getDisplayedAnswer(translation))}
-                </div>
+                </button>
             `,
               )
               .join("")}
-        </div>
+        </div>`
+        }
+        ${getGameAnswerStatusMarkup()}
 <div class="game-next-button-container">
   <button
     type="button"
@@ -2341,23 +2535,31 @@ function renderWordGameUI(
 </div>
     `);
 
-  // Add event listeners for translation cards
-  document.querySelectorAll(".game-translation-card").forEach((card) => {
-    card.addEventListener("click", function () {
-      const wordId = this.getAttribute("data-id"); // Retrieve the word ID
-      const selectedTranslation = this.innerText.trim();
-      const wordObj = wordDataStore[wordId]; // Get the word object from the data store
-
-      handleTranslationClick(
-        selectedTranslation,
-        wordObj,
-        false,
-        "",
-        isReverse,
-        isListening,
-      );
+  if (isTyped) {
+    attachTypedAnswerForm(wordObj, {
+      isReverse: true,
+      exampleSentenceIndex: 0,
     });
-  });
+  } else {
+    // Native buttons preserve the exact card presentation while adding Tab,
+    // Enter, Space, and screen-reader behavior without custom key emulation.
+    document.querySelectorAll(".game-translation-card").forEach((card) => {
+      card.addEventListener("click", function () {
+        const wordId = this.getAttribute("data-id"); // Retrieve the word ID
+        const selectedTranslation = this.innerText.trim();
+        const wordObj = wordDataStore[wordId]; // Get the word object from the data store
+
+        handleTranslationClick(
+          selectedTranslation,
+          wordObj,
+          false,
+          "",
+          isReverse,
+          isListening,
+        );
+      });
+    });
+  }
 
   // Forward flashcards: let the user replay the word's pronunciation by
   // clicking it, whether they've answered yet or not — seeing and hearing
@@ -2399,6 +2601,7 @@ function renderClozeGameUI(
   clozedWordForm,
   isReintroduced = false,
   clozeTarget = null,
+  useTypedRecall = false,
 ) {
   const blank = "___";
   // Each render replaces the previous question entirely, so nothing still
@@ -2439,6 +2642,9 @@ function renderClozeGameUI(
     clozeTarget.sentence.slice(0, clozeTarget.startIndex) +
     blank +
     clozeTarget.sentence.slice(clozeTarget.endIndex);
+  const typedEnglishSentence = useTypedRecall
+    ? getGameSentenceTranslation(wordObj, clozeTarget.sentenceIndex)
+    : "";
 
   setGameContainerHTML(`
     <!-- Session Stats Section -->
@@ -2446,7 +2652,7 @@ function renderClozeGameUI(
       <!-- Stats will be updated dynamically in renderStats() -->
     </div>
   
-    <p class="game-instruction">${getGameInstructionText("cloze")}</p>
+    <p class="game-instruction">${getGameInstructionText(useTypedRecall ? "typed-cloze" : "cloze")}</p>
     <div class="game-word-card">
       <div class="game-labels-container">
         <div class="game-label-subgroup">
@@ -2478,21 +2684,32 @@ function renderClozeGameUI(
       <h2 id="cloze-sentence">${escapeGameHTML(sentenceWithBlank)}</h2>
       </div>
   
-      <div class="game-cefr-spacer"></div>
+      <div class="game-cefr-spacer">
+        ${
+          typedEnglishSentence
+            ? `<p class="game-english-translation game-typed-prompt-translation">${escapeGameHTML(typedEnglishSentence)}</p>`
+            : ""
+        }
+      </div>
     </div>
   
-    <!-- Translations Grid Section -->
-    <div class="game-grid">
+    <!-- Answer Section -->
+    ${
+      useTypedRecall
+        ? getTypedAnswerMarkup(wordId)
+        : `<div class="game-grid">
       ${translations
         .map(
           (translation, index) => `
-          <div class="game-translation-card" lang="nb" data-id="${wordId}" data-index="${index}">
+          <button type="button" class="game-translation-card" lang="nb" data-id="${wordId}" data-index="${index}" aria-keyshortcuts="${index + 1}">
             ${escapeGameHTML(translation)}
-          </div>
+          </button>
         `,
         )
         .join("")}
-    </div>
+    </div>`
+    }
+    ${getGameAnswerStatusMarkup()}
   <div class="game-next-button-container">
   <button
     type="button"
@@ -2504,19 +2721,31 @@ function renderClozeGameUI(
 </div>
   `);
 
-  document.querySelectorAll(".game-translation-card").forEach((card) => {
-    card.addEventListener("click", function () {
-      const wordId = this.getAttribute("data-id");
-      const selectedTranslation = this.innerText.trim();
-      const wordObj = wordDataStore[wordId];
-      handleTranslationClick(
-        selectedTranslation,
-        wordObj,
-        true,
-        clozeTarget.sentence,
-      );
+  if (useTypedRecall) {
+    attachTypedAnswerForm(wordObj, {
+      isCloze: true,
+      clozeSentence: clozeTarget.sentence,
+      exampleSentenceIndex: clozeTarget.sentenceIndex,
     });
-  });
+  } else {
+    document.querySelectorAll(".game-translation-card").forEach((card) => {
+      card.addEventListener("click", function () {
+        const wordId = this.getAttribute("data-id");
+        const selectedTranslation = this.innerText.trim();
+        const wordObj = wordDataStore[wordId];
+        handleTranslationClick(
+          selectedTranslation,
+          wordObj,
+          true,
+          clozeTarget.sentence,
+          false,
+          false,
+          [],
+          clozeTarget.sentenceIndex,
+        );
+      });
+    });
+  }
 
   // Deliberately NOT clickable yet: the sentence still has its blank, and
   // letting someone hear the complete sentence before answering would let
@@ -2559,6 +2788,11 @@ function makeAudioReplayable(element, label, replay) {
   if (!element) return;
 
   element.classList.add("game-word-audio");
+  // Answer choices are disabled as soon as they are graded. Re-enable just
+  // the correct reverse-answer button when it becomes an audio control.
+  if (element instanceof HTMLButtonElement) {
+    element.disabled = false;
+  }
   element.setAttribute("role", "button");
   element.setAttribute("tabindex", "0");
   element.setAttribute("aria-label", label);
@@ -2601,7 +2835,9 @@ function makeSentenceClickable(element, sentenceText) {
 // prompt — the prompt is English text with no English audio behind it,
 // so making it look clickable would promise a sound that doesn't exist.
 function revealReverseWordAudio(wordObj) {
-  const correctCardElement = document.querySelector(".game-correct-card");
+  const correctCardElement = document.querySelector(
+    ".game-correct-card, .game-typed-correct-answer",
+  );
   if (
     !correctCardElement ||
     correctCardElement.classList.contains("game-word-audio")
@@ -2619,6 +2855,38 @@ function revealReverseWordAudio(wordObj) {
       playWordAudio(wordObj);
     },
   );
+}
+
+function updateTypedAnswerFeedback(isCorrect, correctAnswer, isReverse) {
+  const form = document.querySelector(".game-typed-answer-form");
+  const input = document.getElementById("game-typed-answer-input");
+  const submit = form?.querySelector(".game-typed-submit");
+  const feedback = document.getElementById("game-typed-answer-feedback");
+  if (!form || !input || !feedback) return;
+
+  input.disabled = true;
+  if (submit) submit.disabled = true;
+  input.setAttribute("aria-invalid", String(!isCorrect));
+  form.classList.toggle("is-correct", isCorrect);
+  form.classList.toggle("is-incorrect", !isCorrect);
+  feedback.classList.toggle("is-correct", isCorrect);
+  feedback.classList.toggle("is-incorrect", !isCorrect);
+  if (isCorrect) {
+    feedback.replaceChildren();
+    return;
+  }
+  const answerMarkup = isReverse
+    ? `<button type="button" class="game-typed-correct-answer">${escapeGameHTML(correctAnswer)}</button>`
+    : `<span class="game-typed-correct-answer">${escapeGameHTML(correctAnswer)}</span>`;
+  feedback.innerHTML = `Correct answer: ${answerMarkup}`;
+}
+
+function announceGameAnswer(isCorrect, correctAnswer) {
+  const status = document.getElementById("game-answer-status");
+  if (!status) return;
+  status.textContent = isCorrect
+    ? "Correct"
+    : `Incorrect. Correct answer: ${correctAnswer}`;
 }
 
 // Listening questions hide the Norwegian word's text (only its audio,
@@ -2663,6 +2931,8 @@ async function handleTranslationClick(
   clozeSentence = "",
   isReverse = false,
   isListening = false,
+  acceptedAnswers = [],
+  exampleSentenceIndex = null,
 ) {
   if (!gameActive) return; // Prevent further clicks if the game is not active
 
@@ -2677,6 +2947,7 @@ async function handleTranslationClick(
       "game-incorrect-card",
       "distractor-muted",
     );
+    card.disabled = true;
   });
 
   // Forward/reverse cards deliberately display only the first comma-separated
@@ -2689,13 +2960,21 @@ async function handleTranslationClick(
   const selectedTranslationPart = isCloze
     ? normalizeGameWhitespace(selectedTranslation)
     : getDisplayedAnswer(selectedTranslation);
+  const acceptedAnswerIdentities = new Set(
+    acceptedAnswers.map(normalizeGameAnswer).filter(Boolean),
+  );
+  const answerWasCorrect =
+    acceptedAnswerIdentities.size > 0
+      ? acceptedAnswerIdentities.has(normalizeGameAnswer(selectedTranslationPart))
+      : selectedTranslationPart === correctTranslationPart;
 
   totalQuestions++; // Increment total questions for this level
   questionsAtCurrentLevel++; // Increment questions at this level
   const { exampleSentence, sentenceTranslation } =
-    await fetchExampleSentence(wordObj);
+    await fetchExampleSentence(wordObj, exampleSentenceIndex);
+  announceGameAnswer(answerWasCorrect, correctTranslationPart);
 
-  if (selectedTranslationPart === correctTranslationPart) {
+  if (answerWasCorrect) {
     playSentenceAudio(exampleSentence);
     goodChime.currentTime = 0; // Reset audio to the beginning
     goodChime.play(); // Play the chime sound when correct
@@ -2729,6 +3008,7 @@ async function handleTranslationClick(
     if (isCloze) {
       completeClozeSentence(clozeSentence);
     }
+    updateTypedAnswerFeedback(true, correctTranslationPart, isReverse);
     if (isReverse) {
       revealReverseWordAudio(wordObj);
     }
@@ -2787,6 +3067,7 @@ async function handleTranslationClick(
     if (isCloze) {
       completeClozeSentence(clozeSentence);
     }
+    updateTypedAnswerFeedback(false, correctTranslationPart, isReverse);
     if (isReverse) {
       revealReverseWordAudio(wordObj);
     }
@@ -2887,7 +3168,7 @@ async function handleTranslationClick(
   }
 }
 
-async function fetchExampleSentence(wordObj) {
+async function fetchExampleSentence(wordObj, preferredIndex = null) {
   if (!wordObj || !wordObj.ord) {
     console.warn("Missing required fields for search:", wordObj);
     return null;
@@ -2930,6 +3211,17 @@ async function fetchExampleSentence(wordObj) {
         .split(/(?<=[.!?])\s+/)
         .filter((translation) => translation.trim() !== "")
     : [];
+
+  if (
+    Number.isInteger(preferredIndex) &&
+    preferredIndex >= 0 &&
+    preferredIndex < exampleSentences.length
+  ) {
+    return {
+      exampleSentence: exampleSentences[preferredIndex],
+      sentenceTranslation: translations[preferredIndex] || "",
+    };
+  }
 
   // If there is only one sentence, return it with its translation if available
   if (exampleSentences.length === 1) {
@@ -3742,19 +4034,40 @@ document.getElementById("cefr-select").addEventListener("change", function () {
 });
 
 document.addEventListener("keydown", function (event) {
-  if (
-    event.key === "Enter" &&
-    document.getElementById("type-select").value === "word-game"
-  ) {
-    const nextWordButton = document.getElementById("game-next-word-button");
+  if (document.getElementById("type-select").value !== "word-game") return;
+  if (event.altKey || event.ctrlKey || event.metaKey) return;
 
-    // Check if the button exists and is visible using computed styles
-    if (
-      nextWordButton &&
-      window.getComputedStyle(nextWordButton).display !== "none"
-    ) {
-      nextWordButton.click(); // Simulate a click on the next word button
+  const target = event.target;
+  const isTextEntry =
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target?.isContentEditable;
+  if (isTextEntry) return;
+
+  // Number keys select the same four cards without adding any visible chrome
+  // or changing the established layout. The buttons themselves remain fully
+  // usable with Tab, Enter, and Space.
+  if (gameActive && /^[1-4]$/.test(event.key)) {
+    const card = document.querySelectorAll(".game-translation-card")[
+      Number(event.key) - 1
+    ];
+    if (card && !card.disabled) {
+      event.preventDefault();
+      card.click();
     }
+    return;
+  }
+
+  if (event.key !== "Enter" || target instanceof HTMLButtonElement) return;
+
+  const nextWordButton = document.getElementById("game-next-word-button");
+  if (
+    nextWordButton &&
+    !nextWordButton.disabled &&
+    window.getComputedStyle(nextWordButton).display !== "none"
+  ) {
+    event.preventDefault();
+    nextWordButton.click();
   }
 });
 
@@ -3773,6 +4086,9 @@ window.WordGameHelpers = Object.freeze({
   playWordAudio,
   stopAllAudio,
   fetchIncorrectTranslations,
+  getTypedRecallProbability,
+  shouldUseTypedRecall,
+  getTypedAcceptedAnswers,
   shuffleArray,
   getCurrentLevel: () => currentCEFR,
   getLevelOrder: () => CEFR_LEVEL_ORDER.slice(),
