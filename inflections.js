@@ -5,7 +5,7 @@
 (function () {
   "use strict";
 
-  const DATA_VERSION = 9;
+  const DATA_VERSION = 10;
   const DATA_URL = `inflections-data.json?v=${DATA_VERSION}`;
   const MAX_PENDING_ENTRIES = 100;
   const CLASS_PREFIX = {
@@ -15,6 +15,7 @@
     adverb: "d",
     possessive: "p",
     determiner: "t",
+    numeral: "m",
   };
   const PREFIX_CLASS = {
     n: "noun",
@@ -23,6 +24,7 @@
     d: "adverb",
     p: "possessive",
     t: "determiner",
+    m: "numeral",
   };
 
   let snapshot = window.__BOKMAL_INFLECTIONS_DATA__ || null;
@@ -523,7 +525,16 @@
     else if (wordClass === "adjective") result = createAdjectiveForms(record);
     else if (wordClass === "verb") result = createVerbForms(record);
     else if (wordClass === "adverb") result = createAdverbForms(record);
-    else if (wordClass === "possessive" || wordClass === "determiner") {
+    else if (
+      wordClass === "possessive" ||
+      wordClass === "determiner" ||
+      wordClass === "numeral"
+    ) {
+      // Norsk Ordbank has no separate numeral category — a quantifier the
+      // dictionary calls "numeral" (all/ingen/hver/noen/ni/to/tre/...)
+      // declines exactly like a determiner, right down to a plain cardinal
+      // number's plural-agreement form. See the matching comment in
+      // build-inflections.py's DET branch.
       result = createDeterminerForms(wordClass, record);
     } else return null; // unreachable given the CLASS_PREFIX gate above
 

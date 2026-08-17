@@ -31,6 +31,7 @@ CLASS_PREFIX = {
     "adverb": "d",
     "possessive": "p",
     "determiner": "t",
+    "numeral": "m",
 }
 # Record length (including the lemma/base-form slot) per word class, used to
 # size a dictionary-only fallback record when no exact Ordbank match exists.
@@ -41,10 +42,11 @@ RECORD_LENGTHS = {
     "adverb": 3,
     "possessive": 5,
     "determiner": 5,
+    "numeral": 5,
 }
 FIELD_SEPARATOR = "|"
 ALTERNATIVE_SEPARATOR = "/"
-DATA_VERSION = 9
+DATA_VERSION = 10
 NOUN_GENDER_ORDER = ("en", "ei", "et")
 EXPRESSION_TOKEN_RE = re.compile(r"[^\W_]+(?:[-'’][^\W_]+)*", re.UNICODE)
 
@@ -83,7 +85,14 @@ def word_class(gender: str) -> str | None:
     tokens = set(normalized.split("-"))
     if tokens & NOUN_GENDERS:
         return "noun"
-    if normalized in {"adjective", "verb", "adverb", "possessive", "determiner"}:
+    if normalized in {
+        "adjective",
+        "verb",
+        "adverb",
+        "possessive",
+        "determiner",
+        "numeral",
+    }:
         return normalized
     return None
 
@@ -414,23 +423,29 @@ def build_records(
                 add(record, 1, str(paradigm[0]))
                 add(record, 2, str(paradigm[1]))
 
-        # DET covers possessives (min/sin/din/vår) and other determiners
-        # (annen/dette/sådan/halvannen/selv). The dictionary's `gender`
-        # column keeps these as two distinct word classes even though Norsk
-        # Ordbank encodes both the same way. Two different inflection
-        # groups occur: DET_regular is a 3-field [feminine/di-form, neuter,
-        # plural] paradigm (min/sin/din/vår/sådan); DET_adj is the same
-        # 7-field [feminine, neuter, definite, plural, +3 unused] shape
-        # already used for ADJ_masc/fem_fem adjectives (annen/selv/sjøl).
-        # record[0] is always the lemma itself, i.e. the masculine/common
-        # form — also the whole record for DET_simple entries such as
-        # "hans"/"hennes"/"deres"/"dette", which are invariant and carry an
-        # empty paradigm.
+        # DET covers possessives (min/sin/din/vår), other determiners
+        # (annen/dette/sådan/halvannen/selv), and quantifier/number words
+        # the dictionary classifies as "numeral" (all/ingen/hver/noen/ni/
+        # to/tre/...) — Norsk Ordbank has no separate numeral category and
+        # grammatically treats these the same way, right down to a plain
+        # cardinal number's plural-agreement form ("ni" -> "['', '', 'ni']",
+        # since a number always modifies a plural noun). The dictionary's
+        # `gender` column keeps these three as distinct word classes even
+        # though Norsk Ordbank encodes them all identically. Two different
+        # inflection groups occur: DET_regular is a 3-field [feminine/
+        # di-form, neuter, plural] paradigm (min/sin/din/vår/sådan/ni/to);
+        # DET_adj is the same 7-field [feminine, neuter, definite, plural,
+        # +3 unused] shape already used for ADJ_masc/fem_fem adjectives
+        # (annen/selv/sjøl). record[0] is always the lemma itself, i.e. the
+        # masculine/common form — also the whole record for DET_simple
+        # entries such as "hans"/"hennes"/"deres"/"dette"/"litt", which are
+        # invariant and carry an empty paradigm.
         elif source_class == "DET" and (
             lemma in targets.get("possessive", set())
             or lemma in targets.get("determiner", set())
+            or lemma in targets.get("numeral", set())
         ):
-            for current_class in ("possessive", "determiner"):
+            for current_class in ("possessive", "determiner", "numeral"):
                 if lemma not in targets.get(current_class, set()):
                     continue
                 key = f"{CLASS_PREFIX[current_class]}:{lemma}"
