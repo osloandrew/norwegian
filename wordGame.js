@@ -2320,6 +2320,13 @@ function getGameInstructionText(mode) {
   }
 }
 
+function getGamePromptLengthClass(value) {
+  const length = Array.from(normalizeGameWhitespace(value)).length;
+  if (length >= 160) return "game-prompt-extra-long";
+  if (length >= 90) return "game-prompt-long";
+  return "";
+}
+
 function getTypedAnswerMarkup(wordId) {
   return `
     <div class="game-grid game-typed-grid">
@@ -2438,6 +2445,7 @@ function renderWordGameUI(
   let displayedWord = isReverse
     ? getDisplayedAnswer(wordObj.engelsk)
     : getPrimaryNorwegianForm(wordObj);
+  const promptLengthClass = getGamePromptLengthClass(displayedWord);
   const displayedGender = getGameGenderLabel(wordObj.gender);
 
   // Check if CEFR is selected; if not, add a label based on wordObj.CEFR
@@ -2482,7 +2490,7 @@ function renderWordGameUI(
 </div>
             </div>
             <div
-              class="game-word${isReverse ? "" : " game-word-audio"}"
+              class="game-word${isReverse ? "" : " game-word-audio"}${promptLengthClass ? ` ${promptLengthClass}` : ""}"
               ${
                 isReverse
                   ? ""
@@ -2645,6 +2653,7 @@ function renderClozeGameUI(
   const typedEnglishSentence = useTypedRecall
     ? getGameSentenceTranslation(wordObj, clozeTarget.sentenceIndex)
     : "";
+  const promptLengthClass = getGamePromptLengthClass(sentenceWithBlank);
 
   setGameContainerHTML(`
     <!-- Session Stats Section -->
@@ -2680,7 +2689,7 @@ function renderClozeGameUI(
 
         </div>
 
-      <div class="game-word">
+      <div class="game-word${promptLengthClass ? ` ${promptLengthClass}` : ""}">
       <h2 id="cloze-sentence">${escapeGameHTML(sentenceWithBlank)}</h2>
       </div>
   

@@ -429,6 +429,7 @@ footer .copyright {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-gap: 15px; /* Slightly increase space between the cards */
+  min-height: 159px;
 }
 
 /* Says what a question is actually asking for — previously the word/
@@ -492,12 +493,16 @@ footer .copyright {
 }
 
 .game-cefr-spacer {
-  align-items: flex-end;
+  align-items: safe flex-end;
   display: flex;
+  flex: 0 0 70px;
   gap: 5px; /* Optional: Space between the elements */
+  height: 70px;
+  max-height: 70px;
+  min-height: 70px;
+  overflow-y: auto;
   text-align: center;
   flex-direction: row;
-  min-height: 70px;
   width: 100%;
 }
 
@@ -522,7 +527,6 @@ footer .copyright {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 80px; /* Consistent height with the other cards */
   animation: game-card-pop 0.35s ease-out;
 }
 
@@ -573,7 +577,6 @@ footer .copyright {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 80px; /* Consistent height with the other cards */
   animation: game-card-shake 0.4s ease-in-out;
 }
 
@@ -861,8 +864,9 @@ footer .copyright {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: auto;
-  min-height: 60px; /* Ensure the cards remain the same height */
+  height: 72px;
+  max-height: 72px;
+  min-height: 72px;
   min-width: 0;
   margin: 0;
   line-height: 1.3em; /* Reduce line spacing slightly */
@@ -875,6 +879,7 @@ footer .copyright {
      dictionary doesn't cover. */
   hyphens: auto;
   overflow-wrap: break-word;
+  overflow-y: auto;
 }
 
 .game-translation-card:hover {
@@ -890,10 +895,13 @@ footer .copyright {
    radius, shadow, and primary blue as the existing cards/buttons. It is a
    new interaction, but not a new visual language. */
 .game-grid.game-typed-grid {
+  align-content: start;
   grid-template-columns: minmax(0, 1fr);
 }
 
 .game-typed-answer-form {
+  height: 159px;
+  overflow-y: auto;
   width: 100%;
 }
 
@@ -1024,14 +1032,29 @@ footer .copyright {
 }
 
 .game-word {
-  align-items: center; /* Center the word vertically */
+  align-items: safe center; /* Center short prompts; start long overflow safely. */
   display: flex;
-  justify-content: center; /* Center the word horizontally */
-  flex-grow: 1; /* Allow the word to take up remaining space */
+  flex: 0 0 8rem;
+  height: 8rem;
+  justify-content: safe center;
+  max-height: 8rem;
   min-height: 8rem;
+  overflow-x: hidden;
+  overflow-y: auto;
   text-align: center;
   cursor: default;
   user-select: none;
+  width: 100%;
+}
+
+.game-word.game-prompt-long h2 {
+  font-size: clamp(19px, 2.2vw, 26px) !important;
+  line-height: 1.25;
+}
+
+.game-word.game-prompt-extra-long h2 {
+  font-size: clamp(16px, 1.75vw, 21px) !important;
+  line-height: 1.25;
 }
 
 .game-word-audio {
@@ -1532,16 +1555,20 @@ footer .copyright {
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 10px;
+  box-sizing: border-box;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
   color: #333;
   display: flex;
   flex-direction: column; /* Stack the label and word vertically */
   font-size: 1.2em;
+  height: 290px;
   justify-content: center; /* Center the content vertically */
   margin-bottom: 15px !important;
   overflow: hidden; /* Prevent overflowing content from changing layout */
   padding: 10px; /* Reduce padding at the top, add more below */
   position: relative; /* Allow for flexible layout */
+  max-height: 290px;
+  min-height: 290px;
 }
 
 .gender {
@@ -4172,6 +4199,11 @@ ul {
 
   .game-grid {
     grid-gap: 10px; /* Slightly increase space between the cards */
+    min-height: 154px;
+  }
+
+  .game-typed-answer-form {
+    height: 154px;
   }
 
   .game-cleared-practice-banner,
@@ -4850,7 +4882,30 @@ ul {
     }
 
     body.word-game-mode .game-cefr-spacer {
+      flex-basis: 48px;
+      height: 48px;
+      max-height: 48px;
       min-height: 48px;
+    }
+
+    body.word-game-mode .game-word-card {
+      height: 268px;
+      max-height: 268px;
+      min-height: 268px;
+    }
+
+    body.word-game-mode .game-grid {
+      min-height: 138px;
+    }
+
+    body.word-game-mode .game-translation-card {
+      height: 64px;
+      max-height: 64px;
+      min-height: 64px;
+    }
+
+    body.word-game-mode .game-typed-answer-form {
+      height: 138px;
     }
 
     body.word-game-mode #game-next-word-button {
@@ -4943,8 +4998,10 @@ ul {
   }
 
   .game-translation-card {
-    box-sizing: content-box;
-    height: 60px;
+    box-sizing: border-box;
+    height: 72px;
+    max-height: 72px;
+    min-height: 72px;
     min-width: auto;
     overflow-wrap: normal;
     padding: 15px;

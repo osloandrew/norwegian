@@ -29,6 +29,7 @@ const runSection = (startMarker, endMarker) => {
 
 runSection("const TYPED_RECALL_PROBABILITY", "let previousWord");
 runSection("function normalizeGameWhitespace", "function uppercaseFirstNorwegian");
+runSection("function getGamePromptLengthClass", "function getTypedAnswerMarkup");
 runSection("function getTypedAnswerMarkup", "// mode:");
 
 const word = { ord: "fremtid, framtid" };
@@ -88,6 +89,15 @@ assert.equal(
 assert.equal(
   context.getGameSentenceTranslation({ sentenceTranslation: "" }, 0),
   "",
+);
+assert.equal(context.getGamePromptLengthClass("A short prompt."), "");
+assert.equal(
+  context.getGamePromptLengthClass("x".repeat(90)),
+  "game-prompt-long",
+);
+assert.equal(
+  context.getGamePromptLengthClass("x".repeat(160)),
+  "game-prompt-extra-long",
 );
 
 const typedMarkup = context.getTypedAnswerMarkup(0);
