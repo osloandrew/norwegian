@@ -1145,6 +1145,304 @@ footer .copyright {
   text-align: center;
 }
 
+.game-today-practice {
+  background: #f6f9fd;
+  border: 1px solid #cbd9e8;
+  border-radius: 12px;
+  box-sizing: border-box;
+  margin-bottom: 18px;
+  padding: 18px;
+  text-align: left;
+  width: 100%;
+}
+
+.game-today-practice-heading-row,
+.game-daily-quests-heading-row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.game-today-practice-eyebrow {
+  color: #52708f;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 2px;
+  text-transform: uppercase;
+}
+
+.game-today-practice .game-intro-heading {
+  margin-bottom: 0;
+  text-align: left;
+}
+
+.game-today-practice-count {
+  color: #0d3a69;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1.1em;
+  white-space: nowrap;
+}
+
+.game-today-practice-note {
+  color: #5d6874;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.82em;
+  margin: 9px 0 10px;
+}
+
+.game-today-practice-progress {
+  background-color: #dfe7ef;
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.game-today-practice-progress span {
+  background-color: #6b9e5e;
+  display: block;
+  height: 100%;
+  transition: width 0.25s ease;
+}
+
+.game-today-practice--emerald {
+  border-color: #b9d9ca;
+}
+
+.game-today-practice--ruby {
+  border-color: #e2bbc3;
+}
+
+.game-today-practice--ruby .game-today-practice-progress span {
+  background-color: #b94b5b;
+}
+
+.game-today-practice--sapphire {
+  border-color: #b9cfe5;
+}
+
+.game-today-practice--sapphire .game-today-practice-progress span {
+  background-color: #3478b9;
+}
+
+.game-today-practice-btn {
+  align-items: center;
+  background-color: #0d3a69;
+  border: 1px solid #0d3a69;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 7px;
+  justify-content: center;
+  margin-top: 14px;
+  min-height: 44px;
+  padding: 10px 16px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  width: 100%;
+}
+
+.game-today-practice-btn:hover {
+  background-color: #4a99ff;
+  border-color: #4a99ff;
+}
+
+.game-today-practice-btn.is-complete {
+  background-color: #365f36;
+  border-color: #365f36;
+}
+
+.game-daily-quests {
+  text-align: left;
+  width: 100%;
+}
+
+.game-daily-quests-heading-row h3 {
+  color: #0d3a69;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.95em;
+  margin: 0;
+}
+
+.game-daily-quests-heading-row > span {
+  color: #777;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.72em;
+}
+
+.game-daily-quest-list {
+  display: grid;
+  gap: 9px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.game-daily-quest {
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #d6dce2;
+  border-radius: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 178px;
+  padding: 15px 10px 12px;
+  text-align: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.game-daily-quest--active {
+  background-color: #f8fbff;
+  border-color: #8daac7;
+  box-shadow: 0 5px 16px rgba(13, 58, 105, 0.1);
+  transform: translateY(-2px);
+}
+
+.game-daily-quest--locked {
+  background-color: #f5f5f5;
+  color: #777;
+}
+
+.game-daily-quest--complete {
+  background-color: #f4f9f1;
+  border-color: #aac9a1;
+}
+
+.game-daily-quest-gem {
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  border-radius: 50%;
+  box-shadow:
+    0 7px 16px rgba(28, 42, 58, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -5px 12px rgba(25, 45, 64, 0.1);
+  display: inline-flex;
+  flex: 0 0 68px;
+  font-size: 32px;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  width: 68px;
+}
+
+.game-daily-quest-gem::before {
+  background: rgba(255, 255, 255, 0.48);
+  border-radius: 50%;
+  content: "";
+  height: 24px;
+  left: 10px;
+  position: absolute;
+  top: 7px;
+  transform: rotate(-28deg);
+  width: 10px;
+}
+
+.game-daily-quest-gem::after {
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: 50%;
+  content: "";
+  inset: 5px;
+  position: absolute;
+}
+
+.game-daily-quest-gem i {
+  filter: drop-shadow(0 2px 2px rgba(15, 35, 50, 0.24));
+  position: relative;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  z-index: 1;
+}
+
+.game-daily-quest-gem--emerald {
+  background: radial-gradient(circle at 34% 28%, #ebfff5 0 12%, #92ddbd 34%, #3a9f76 72%, #207253 100%);
+  color: #0d6849;
+}
+
+.game-daily-quest-gem--ruby {
+  background: radial-gradient(circle at 34% 28%, #fff0f3 0 12%, #f2a5b2 34%, #c94e63 72%, #8f263d 100%);
+  color: #8f1f38;
+}
+
+.game-daily-quest-gem--ruby i {
+  transform: rotate(-7deg) scale(0.96);
+}
+
+.game-daily-quest-gem--sapphire {
+  background: radial-gradient(circle at 34% 28%, #eef8ff 0 12%, #98c9f2 34%, #3d83c6 72%, #24558d 100%);
+  color: #1e5489;
+}
+
+.game-daily-quest-gem--sapphire i {
+  transform: scale(1.04);
+}
+
+.game-daily-quest--locked .game-daily-quest-gem {
+  filter: saturate(0.58);
+  opacity: 0.72;
+}
+
+.game-daily-quest-copy {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.game-daily-quest-title {
+  color: #31465b;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.78em;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.game-daily-quest-target,
+.game-daily-quest-status {
+  color: #69737e;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.66em;
+  line-height: 1.25;
+}
+
+.game-daily-quest-status {
+  font-weight: 700;
+  margin-top: auto;
+  text-transform: uppercase;
+}
+
+.game-daily-quest--complete .game-daily-quest-status {
+  color: #477340;
+}
+
+.game-intro-divider {
+  align-items: center;
+  color: #777;
+  display: flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.72em;
+  gap: 10px;
+  letter-spacing: 0.04em;
+  margin: 22px 0 8px;
+  text-transform: uppercase;
+  width: 100%;
+}
+
+.game-intro-divider::before,
+.game-intro-divider::after {
+  background-color: #d9dde2;
+  content: "";
+  flex: 1;
+  height: 1px;
+}
+
 .game-intro-heading {
   color: #0d3a69;
   font-family: "Noto Sans", sans-serif;
@@ -1157,7 +1455,7 @@ footer .copyright {
   color: #666;
   font-family: "Noto Sans", sans-serif;
   font-size: 0.95em;
-  margin: 0 0 25px 0;
+  margin: 0 0 18px 0;
 }
 
 .game-intro-options {
@@ -1224,6 +1522,40 @@ footer .copyright {
   font-size: 1.3em;
 }
 
+@media (max-width: 600px) {
+  .game-intro-card {
+    padding: 20px 12px;
+  }
+
+  .game-today-practice {
+    padding: 14px;
+  }
+
+  .game-daily-quest-list {
+    gap: 6px;
+  }
+
+  .game-daily-quest {
+    min-height: 166px;
+    padding: 11px 5px 9px;
+  }
+
+  .game-daily-quest-gem {
+    flex-basis: 54px;
+    font-size: 25px;
+    width: 54px;
+  }
+
+  .game-daily-quest-title {
+    font-size: 0.7em;
+  }
+
+  .game-daily-quest-target,
+  .game-daily-quest-status {
+    font-size: 0.58em;
+  }
+}
+
 /* Word Game round-summary screen — shown when a bounded round finishes or
    an infinite round is manually ended (see #game-end-session-btn below). */
 .game-summary-card {
@@ -1251,6 +1583,34 @@ footer .copyright {
   font-size: 1.4em;
   font-weight: 600;
   margin: 0 0 20px 0;
+}
+
+.game-summary-gems {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: -6px 0 20px;
+  width: 100%;
+}
+
+.game-summary-gem {
+  align-items: center;
+  background-color: #f7f9fc;
+  border: 1px solid #d8dee5;
+  border-radius: 8px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.7em;
+  font-weight: 700;
+  gap: 4px;
+  max-width: 110px;
+  padding: 9px 6px;
+}
+
+.game-summary-gem i {
+  font-size: 20px;
 }
 
 /* Shown when recordStreakActivity() (streak.js) reports an active streak
