@@ -1305,93 +1305,28 @@ footer .copyright {
 }
 
 .game-daily-quest-gem {
-  align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.86);
-  border-radius: 50%;
-  box-shadow:
-    0 7px 16px rgba(28, 42, 58, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 -5px 12px rgba(25, 45, 64, 0.1);
-  display: inline-flex;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: drop-shadow(0 4px 8px rgba(28, 42, 58, 0.3));
   flex: 0 0 68px;
-  font-size: 32px;
-  justify-content: center;
-  overflow: hidden;
-  position: relative;
   width: 68px;
 }
 
-.game-daily-quest-gem::before {
-  background: rgba(255, 255, 255, 0.48);
-  border-radius: 50%;
-  content: "";
-  height: 24px;
-  left: 10px;
-  position: absolute;
-  top: 7px;
-  transform: rotate(-28deg);
-  width: 10px;
-}
-
-.game-daily-quest-gem::after {
-  border: 1px solid rgba(255, 255, 255, 0.62);
-  border-radius: 50%;
-  content: "";
-  inset: 5px;
-  position: absolute;
-}
-
-.game-daily-quest-gem i {
-  filter: drop-shadow(0 2px 2px rgba(15, 35, 50, 0.24));
-  position: relative;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
-  z-index: 1;
-}
-
 .game-daily-quest-gem--emerald {
-  background: radial-gradient(
-    circle at 34% 28%,
-    #ebfff5 0 12%,
-    #92ddbd 34%,
-    #3a9f76 72%,
-    #207253 100%
-  );
-  color: #0d6849;
+  background-image: url("Resources/Photos/emerald.png");
 }
 
 .game-daily-quest-gem--ruby {
-  background: radial-gradient(
-    circle at 34% 28%,
-    #fff0f3 0 12%,
-    #f2a5b2 34%,
-    #c94e63 72%,
-    #8f263d 100%
-  );
-  color: #8f1f38;
-}
-
-.game-daily-quest-gem--ruby i {
-  transform: rotate(-7deg) scale(0.96);
+  background-image: url("Resources/Photos/ruby.png");
 }
 
 .game-daily-quest-gem--sapphire {
-  background: radial-gradient(
-    circle at 34% 28%,
-    #eef8ff 0 12%,
-    #98c9f2 34%,
-    #3d83c6 72%,
-    #24558d 100%
-  );
-  color: #1e5489;
-}
-
-.game-daily-quest-gem--sapphire i {
-  transform: scale(1.04);
+  background-image: url("Resources/Photos/sapphire.png");
 }
 
 .game-daily-quest--locked .game-daily-quest-gem {
-  filter: saturate(0.58);
-  opacity: 0.72;
+  filter: drop-shadow(0 4px 8px rgba(28, 42, 58, 0.15)) saturate(0.45) opacity(0.6);
 }
 
 .game-daily-quest-copy {
@@ -1547,7 +1482,6 @@ footer .copyright {
 
   .game-daily-quest-gem {
     flex-basis: 54px;
-    font-size: 25px;
     width: 54px;
   }
 
@@ -1612,10 +1546,6 @@ footer .copyright {
   gap: 4px;
   max-width: 110px;
   padding: 9px 6px;
-}
-
-.game-summary-gem i {
-  font-size: 20px;
 }
 
 /* Shown when recordStreakActivity() (streak.js) reports an active streak
@@ -2868,18 +2798,7 @@ html.landing #landing-card {
   grid-template-columns: repeat(3, 54px);
   justify-content: center;
   margin: 16px auto;
-  position: relative;
   width: fit-content;
-}
-
-.landing-daily-quest-track::before {
-  background-color: #cad5df;
-  content: "";
-  height: 2px;
-  left: 36px;
-  position: absolute;
-  right: 36px;
-  top: 25px;
 }
 
 .landing-daily-quest-step {
@@ -2891,27 +2810,21 @@ html.landing #landing-card {
   font-size: 10px;
   font-weight: 700;
   gap: 5px;
-  position: relative;
   text-align: center;
-  z-index: 1;
 }
 
 .landing-daily-quest-gem {
   flex-basis: 52px;
-  font-size: 24px;
   width: 52px;
 }
 
 .landing-daily-quest-step--locked .landing-daily-quest-gem {
-  filter: saturate(0.58);
-  opacity: 0.7;
+  filter: drop-shadow(0 4px 8px rgba(28, 42, 58, 0.15)) saturate(0.45) opacity(0.6);
 }
 
 .landing-daily-quest-step--complete .landing-daily-quest-gem {
-  box-shadow:
-    0 7px 16px rgba(28, 42, 58, 0.18),
-    0 0 0 3px #fff,
-    0 0 0 5px #a9c69f;
+  filter: drop-shadow(0 4px 8px rgba(28, 42, 58, 0.3))
+    drop-shadow(0 0 5px rgba(169, 201, 161, 0.9));
 }
 
 .landing-daily-quests-action {
@@ -3007,14 +2920,7 @@ html.landing #landing-card {
 
   .landing-daily-quest-gem {
     flex-basis: 46px;
-    font-size: 21px;
     width: 46px;
-  }
-
-  .landing-daily-quest-track::before {
-    left: 31px;
-    right: 31px;
-    top: 22px;
   }
 
   .landing-daily-quests-action {

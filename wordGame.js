@@ -1589,9 +1589,7 @@ function getDailyQuestMarkup(state) {
 
       return `
         <li class="game-daily-quest game-daily-quest--${status} game-daily-quest--${quest.reward}">
-          <span class="game-daily-quest-gem game-daily-quest-gem--${quest.reward}" aria-hidden="true">
-            <i class="fas fa-gem"></i>
-          </span>
+          <span class="game-daily-quest-gem game-daily-quest-gem--${quest.reward}" aria-hidden="true"></span>
           <span class="game-daily-quest-copy">
             <span class="game-daily-quest-title">${quest.title}</span>
             <span class="game-daily-quest-target">${quest.description}</span>
@@ -1639,9 +1637,7 @@ function renderLandingDailyQuests() {
             : "locked";
         return `
           <span class="landing-daily-quest-step landing-daily-quest-step--${status}">
-            <span class="game-daily-quest-gem landing-daily-quest-gem game-daily-quest-gem--${quest.reward}" aria-hidden="true">
-              <i class="fas fa-gem"></i>
-            </span>
+            <span class="game-daily-quest-gem landing-daily-quest-gem game-daily-quest-gem--${quest.reward}" aria-hidden="true"></span>
             <span>${uppercaseFirstNorwegian(quest.reward)}</span>
           </span>
         `;
@@ -2036,7 +2032,7 @@ function showWordGameRoundSummary() {
         earnedDailyQuest
           ? `<div class="game-summary-gems" aria-label="Daily quests complete">
               <span class="game-summary-gem">
-                <span class="game-daily-quest-gem game-daily-quest-gem--${earnedDailyQuest.reward}"><i class="fas fa-gem" aria-hidden="true"></i></span>
+                <span class="game-daily-quest-gem game-daily-quest-gem--${earnedDailyQuest.reward}" aria-hidden="true"></span>
                 <span>${uppercaseFirstNorwegian(earnedDailyQuest.reward)}</span>
               </span>
             </div>`
