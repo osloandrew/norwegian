@@ -312,7 +312,7 @@ const statsContainer = document.getElementById("game-session-stats"); // New con
 function getGameCefrLabelHTML(cefrLevel) {
   const cefrClass = getCefrClass(cefrLevel);
   return cefrClass
-    ? `<div class="game-cefr-label ${cefrClass}">${cefrLevel}</div>`
+    ? `<div class="game-cefr-label ${cefrClass}" title="${getCefrTooltip(cefrLevel)}">${cefrLevel}</div>`
     : "";
 }
 
@@ -457,11 +457,17 @@ function showBanner(type, level) {
     const randomIndex = Math.floor(
       Math.random() * congratulationsMessages.length,
     );
-    message = congratulationsMessages[randomIndex].replace("{X}", level);
+    message = congratulationsMessages[randomIndex].replace(
+      "{X}",
+      getCefrLabel(level) || level,
+    );
     bannerHTML = `<div class="game-congratulations-banner"><p>${message}</p></div>`;
   } else if (type === "fallback") {
     const randomIndex = Math.floor(Math.random() * fallbackMessages.length);
-    message = fallbackMessages[randomIndex].replace("{X}", level);
+    message = fallbackMessages[randomIndex].replace(
+      "{X}",
+      getCefrLabel(level) || level,
+    );
     bannerHTML = `<div class="game-fallback-banner"><p>${message}</p></div>`;
   } else if (type === "streak") {
     const randomIndex = Math.floor(Math.random() * streakMessages.length);

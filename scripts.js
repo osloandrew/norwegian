@@ -2060,6 +2060,30 @@ function handleCEFRChange() {
   }
 }
 
+// The multi-result summary definition renders inside a flex-item <p> (see
+// multipleResultsDefinitionText below) that participates in the card's row
+// layout. makeDefinitionClickable's <ul>/<li> output can't be nested inside
+// a <p> - browsers silently close the <p> right before the <ul>, popping the
+// list out of the flex row and breaking its alignment with the word/POS
+// column. This produces the same semicolon-separated "one sense per line"
+// look with inline-safe markup instead, and deliberately isn't clickable:
+// unlike the single-result view, clicking anywhere on this card already
+// opens that single-result view, so per-word click targets here would only
+// conflict with it.
+function formatMultiResultDefinition(defText) {
+  if (!defText) return "";
+  if (!defText.includes(";")) return defText;
+
+  const items = defText
+    .split(";")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return items
+    .map((item) => `<span class="multiple-results-definition-item">${item}</span>`)
+    .join("");
+}
+
 function makeDefinitionClickable(defText) {
   if (!defText) return "";
 
@@ -2363,11 +2387,17 @@ function displaySearchResults(results, query = "") {
 
     const escapedGender = result.gender.replace(/'/g, "\\'").trim();
     const escapedEngelsk = result.engelsk.replace(/'/g, "\\'").trim();
-    const handleCardClickArgs = `'${escapedWord}', '${escapedGender}', '${escapedEngelsk}', ${
-      multipleResultsDefinitionText
-        ? `this.querySelector('.${multipleResultsDefinitionText}')?.textContent?.trim() || ''`
-        : "''"
-    }`;
+    // Embedded directly rather than read back from the rendered DOM via
+    // .textContent: the multi-result summary now renders semicolon-separated
+    // senses as separate <span> elements (see formatMultiResultDefinition),
+    // and .textContent concatenates them with no separator, which no longer
+    // matches result.definisjon and silently breaks handleCardClick's exact
+    // string match below.
+    const escapedDefinisjon = (result.definisjon || "")
+      .replace(/'/g, "\\'")
+      .replace(/"/g, "&quot;")
+      .replace(/\r?\n|\r/g, " ");
+    const handleCardClickArgs = `'${escapedWord}', '${escapedGender}', '${escapedEngelsk}', '${escapedDefinisjon}'`;
 
     htmlString += `
 <div
@@ -2408,7 +2438,7 @@ function displaySearchResults(results, query = "") {
                       result.CEFR
                         ? `<div class="game-cefr-label ${multipleResultsExposedContent} ${getCefrClass(
                             result.CEFR,
-                          )}">${result.CEFR}</div>`
+                          )}" title="${getCefrTooltip(result.CEFR)}">${result.CEFR}</div>`
                         : ""
                     } 
                 </h2>
@@ -2417,7 +2447,7 @@ function displaySearchResults(results, query = "") {
                     ? `<p class="${multipleResultsDefinitionText}">${
                         defaultResult
                           ? makeDefinitionClickable(result.definisjon)
-                          : result.definisjon
+                          : formatMultiResultDefinition(result.definisjon)
                       }</p>`
                     : ""
                 }
@@ -2451,7 +2481,9 @@ function displaySearchResults(results, query = "") {
                       result.CEFR
                         ? `<p style="display: inline-flex; align-items: center; font-family: 'Noto Sans', sans-serif; font-weight: bold; text-transform: uppercase; font-size: 12px; color: #4F4F4F;"><i class="fa-solid fa-signal" style="margin-right: 5px;"></i><span style="text-align: center; min-width: 15px; display: inline-block; padding: 3px 7px; border-radius: 4px; background-color: ${getCefrColor(
                             result.CEFR,
-                          )};">${result.CEFR}</span></p>`
+                          )};">${result.CEFR}</span><span class="etymology" style="text-transform: none; margin-left: 6px; font-family: 'Noto Serif', serif;">${getCefrLabel(
+                            result.CEFR,
+                          )}</span></p>`
                         : ""
                     }
                     <div class="definition-actions-row">
@@ -2560,6 +2592,29 @@ function toggleEnglishTranslations(wordId = null) {
   });
 }
 
+// Plain-English glosses for each CEFR level. This app is not aimed at
+// linguists, so a bare code like "B2" shouldn't be the only thing a user
+// ever sees — every place a level is shown should be able to reach for a
+// real label and/or a one-line description via these helpers.
+const CEFR_LEVEL_INFO = {
+  A1: { label: "Beginner", description: "Basic words and phrases for everyday needs" },
+  A2: { label: "Elementary", description: "Simple, familiar topics and routine information" },
+  B1: { label: "Intermediate", description: "Everyday topics, opinions, and plans" },
+  B2: { label: "Upper-Intermediate", description: "Complex topics and more abstract ideas" },
+  C: { label: "Advanced", description: "Nuanced, precise, and specialized language" },
+};
+
+function getCefrLabel(cefrLevel) {
+  return CEFR_LEVEL_INFO[cefrLevel]?.label || "";
+}
+
+// "Label (Code): description" — for use as a title tooltip on compact badges
+// that don't have room to show the plain label directly.
+function getCefrTooltip(cefrLevel) {
+  const info = CEFR_LEVEL_INFO[cefrLevel];
+  return info ? `${info.label} (${cefrLevel}): ${info.description}` : "";
+}
+
 function getCefrClass(cefrLevel) {
   if (cefrLevel === "A1" || cefrLevel === "A2") {
     return "easy";
@@ -2574,7 +2629,7 @@ function getCefrClass(cefrLevel) {
 function getSentenceCefrLabelHTML(cefrLevel) {
   const cefrClass = getCefrClass(cefrLevel);
   return cefrClass
-    ? `<div class="sentence-cefr-label ${cefrClass}">${cefrLevel}</div>`
+    ? `<div class="sentence-cefr-label ${cefrClass}" title="${getCefrTooltip(cefrLevel)}">${cefrLevel}</div>`
     : "";
 }
 

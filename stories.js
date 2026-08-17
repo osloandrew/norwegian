@@ -375,6 +375,7 @@ function createStoryCardLink(story) {
   const cefrDiv = document.createElement("div");
   cefrDiv.classList.add("cefr-value", getStoryCefrClass(story.CEFR));
   cefrDiv.textContent = story.CEFR || "N/A";
+  if (story.CEFR) cefrDiv.title = getCefrTooltip(story.CEFR);
 
   detailContainer.appendChild(genreDiv);
   detailContainer.appendChild(cefrDiv);
@@ -395,7 +396,10 @@ function createStoryRecommendationElement(story, level) {
 
   const label = document.createElement("div");
   label.className = "story-recommendation-label";
-  label.innerHTML = `<i class="fas fa-star" aria-hidden="true"></i> Recommended for your level (${level})`;
+  const levelText = getCefrLabel(level)
+    ? `${getCefrLabel(level)} (${level})`
+    : level;
+  label.innerHTML = `<i class="fas fa-star" aria-hidden="true"></i> Recommended for your level: ${levelText}`;
 
   const storyLink = createStoryCardLink(story);
   storyLink.classList.add("story-recommendation-link");
@@ -619,7 +623,7 @@ function displayStory(titleNorwegian) {
   <div class="sticky-detail-container">
     <div class="sticky-row">
       <div class="sticky-genre" id="sticky-genre-slot"></div>
-      <div class="sticky-cefr-label ${cefrClass}" id="sticky-cefr-slot">
+      <div class="sticky-cefr-label ${cefrClass}" id="sticky-cefr-slot" title="${selectedStory.CEFR ? getCefrTooltip(selectedStory.CEFR) : ""}">
         ${selectedStory.CEFR || "N/A"}
       </div>
     </div>
