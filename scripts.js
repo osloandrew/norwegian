@@ -428,19 +428,23 @@ function returnToLandingPage() {
 }
 
 // Debounce function to limit how often search is triggered
+let searchDebounceTimer = null;
 function debounceSearchTrigger(func, delay) {
-  clearTimeout(this.debounceTimer);
-  this.debounceTimer = setTimeout(func, delay);
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(func, delay);
 }
 
-// Handle the key input, performing a search on 'Enter' or debouncing otherwise
+// Handle the key input: 'Enter' searches immediately (no reason to make a
+// deliberate submit wait out the same delay meant for live-typing);
+// anything else debounces so search doesn't re-run on every keystroke.
 function handleKey(event) {
-  // Call search function when 'Enter' is pressed or debounce it otherwise
-  debounceSearchTrigger(() => {
-    if (event.key === "Enter") {
-      search();
-    }
-  }, 300); // Delay of 300ms before calling search()
+  if (event.key === "Enter") {
+    clearTimeout(searchDebounceTimer);
+    search();
+    return;
+  }
+
+  debounceSearchTrigger(search, 300); // Delay of 300ms before calling search()
 }
 
 function clearContainer() {

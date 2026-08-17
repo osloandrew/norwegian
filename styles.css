@@ -4179,6 +4179,13 @@ ul {
   margin-bottom: 20px; /* Margin for each sentence couplet */
 }
 
+/* Reserves the image's display height before it loads, so the sentences
+   below don't visibly jump down once it arrives. Slightly over-reserves for
+   images whose aspect ratio would otherwise render shorter than 250px. */
+#story-image-slot {
+  min-height: 250px;
+}
+
 .story-image {
   border-radius: 10px; /* Rounds the corners for a soft photograph effect */
   box-shadow:
