@@ -649,11 +649,20 @@
       // Yield between compact batches in a real browser. This keeps the
       // background index warm-up from creating one noticeable main-thread
       // pause on slower phones while preserving a synchronous test fallback.
+      // Batch size and idle-callback timeout are both deliberately generous
+      // (a batch this size is still comfortably sub-frame-budget per chunk)
+      // — with ~27k form keys, the previous 150-key/1000ms-timeout pairing
+      // meant up to ~180 separate yield points, each individually allowed
+      // to wait a full second for idle time that a busy or backgrounded tab
+      // may not offer promptly, compounding into a warm-up that could take
+      // tens of seconds to over a minute in practice. 2000/150 keeps the
+      // same non-blocking intent with far less worst-case exposure (~14
+      // yields, ~2.1s ceiling instead of ~180 yields, ~180s).
       processed++;
-      if (processed % 150 === 0 && typeof setTimeout === "function") {
+      if (processed % 2000 === 0 && typeof setTimeout === "function") {
         await new Promise((resolve) => {
           if (typeof window.requestIdleCallback === "function") {
-            window.requestIdleCallback(resolve, { timeout: 1000 });
+            window.requestIdleCallback(resolve, { timeout: 150 });
           } else {
             setTimeout(resolve, 0);
           }

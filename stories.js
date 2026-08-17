@@ -808,10 +808,7 @@ function displayStory(titleNorwegian) {
       listEl.style.display = "none"; // hide the list while reading
     }
     hideSpinner(); // Hide spinner after story content is displayed
-    // Expression spans must be merged before the My Words highlight pass
-    // runs over them, or it would just see (and correctly, but
-    // pointlessly) evaluate their since-replaced individual word spans.
-    upgradeStoryExpressionSpans().then(() => highlightKnownStoryWords());
+    scheduleStoryUpgrades();
   };
 
   // Process story text into sentences
@@ -1121,6 +1118,18 @@ function applyToLastWord(gloss, transform) {
   return [...words, transform(lastWord)].join(" ");
 }
 
+// English noun phrases are head-final ("wedding day" -> the day, so
+// applyToLastWord is right for pluralizing), but English verb phrases are
+// not — phrasal verbs put the conjugatable verb first and the particle(s)
+// after ("give up", "look forward to", "be able to"). Conjugating the last
+// word of "be able to" gives "be able toes"; conjugating the first word
+// gives the correct "is able to".
+function applyToFirstWord(gloss, transform) {
+  const words = gloss.split(" ");
+  const firstWord = words.shift();
+  return [transform(firstWord), ...words].join(" ");
+}
+
 // Covers the highest-frequency irregular nouns — not exhaustive (a rarer
 // one like "die"/"dice" is still a known gap), but "man"/"woman"/"child"
 // etc. are common enough in any A1-C vocabulary that the regular "+s" rule
@@ -1141,14 +1150,13 @@ const IRREGULAR_NOUN_PLURALS = {
 
 // Covers ~100 of the most common English irregular verbs — enough for
 // typical A1-B2 vocabulary, not an exhaustive list of the several hundred
-// that exist. `present` is set only where the regular "+s"/"+es" rule
-// would be wrong ("be"/"have"/"do"/"go"); every other verb's present tense
-// is handled fine by presentTenseEnglishGloss's regular suffix rule.
+// that exist. Present tense isn't conjugated at all (see
+// VERB_SLOT_GLOSS_TRANSFORMS), so only past/participle are ever read here.
 const IRREGULAR_VERBS = {
-  be: { past: "was", participle: "been", present: "is" },
-  have: { past: "had", participle: "had", present: "has" },
-  do: { past: "did", participle: "done", present: "does" },
-  go: { past: "went", participle: "gone", present: "goes" },
+  be: { past: "was", participle: "been" },
+  have: { past: "had", participle: "had" },
+  do: { past: "did", participle: "done" },
+  go: { past: "went", participle: "gone" },
   get: { past: "got", participle: "gotten" },
   make: { past: "made", participle: "made" },
   know: { past: "knew", participle: "known" },
@@ -1289,16 +1297,6 @@ function pluralizeEnglishGloss(gloss) {
   });
 }
 
-function presentTenseEnglishGloss(gloss) {
-  return applyToLastWord(gloss, (word) => {
-    const irregular = IRREGULAR_VERBS[word.toLowerCase()]?.present;
-    if (irregular) return irregular;
-    if (/(?:s|x|z|ch|sh|o)$/i.test(word)) return `${word}es`;
-    if (/[^aeiou]y$/i.test(word)) return `${word.slice(0, -1)}ies`;
-    return `${word}s`;
-  });
-}
-
 function regularPastSuffix(word) {
   if (/e$/i.test(word)) return `${word}d`;
   if (/^[^aeiou]*[aeiou][^aeiouwxy]$/i.test(word)) return `${word}${word.slice(-1)}ed`;
@@ -1307,7 +1305,7 @@ function regularPastSuffix(word) {
 }
 
 function pastTenseEnglishGloss(gloss) {
-  return applyToLastWord(gloss, (word) => {
+  return applyToFirstWord(gloss, (word) => {
     const irregular = IRREGULAR_VERBS[word.toLowerCase()]?.past;
     return irregular || regularPastSuffix(word);
   });
@@ -1318,7 +1316,7 @@ function pastTenseEnglishGloss(gloss) {
 // past vs. "gone" participle) — this is why present perfect uses this
 // rather than reusing pastTenseEnglishGloss.
 function pastParticipleEnglishGloss(gloss) {
-  return applyToLastWord(gloss, (word) => {
+  return applyToFirstWord(gloss, (word) => {
     const irregular = IRREGULAR_VERBS[word.toLowerCase()]?.participle;
     return irregular || regularPastSuffix(word);
   });
@@ -1363,15 +1361,25 @@ const NOUN_SLOT_GLOSS_TRANSFORMS = [
 ];
 
 // Verb slots: [infinitive, present, past, present perfect, imperative].
-// Present perfect is shown as "has helped" — a representative single form,
-// since Norwegian's perfektum doesn't distinguish "has"/"have" by subject
-// the way English does — using the participle rather than the past tense,
-// since for irregular verbs those differ ("has gone", not "has went").
+// Present tense uses the same bare base form as the infinitive rather than
+// a 3rd-person-singular "-s" conjugation ("forstår" -> "understand", not
+// "understands") — Norwegian present tense doesn't mark person at all
+// (jeg/du/han/vi/dere/de forstår are all identical), so singling out a
+// 3rd-person English reading would be an arbitrary, unearned choice, not a
+// more accurate one. Present perfect is shown as the bare participle
+// ("erfart" -> "experienced", not "has experienced") for the same
+// reason — the participle itself is what's actually in the text; "has"
+// presumes a specific "har X" construction around the clicked word that
+// isn't always there (a past participle also stands alone adjectivally/
+// statively in Norwegian, same as in English), and unlike the noun/
+// adjective slots, there's no single word in the surface form itself that
+// signals which reading applies. Uses the participle rather than the past
+// tense, since for irregular verbs those differ ("gone", not "went").
 const VERB_SLOT_GLOSS_TRANSFORMS = [
   (gloss) => gloss,
-  (gloss) => presentTenseEnglishGloss(gloss),
+  (gloss) => gloss,
   (gloss) => pastTenseEnglishGloss(gloss),
-  (gloss) => `has ${pastParticipleEnglishGloss(gloss)}`,
+  (gloss) => pastParticipleEnglishGloss(gloss),
   (gloss) => `${gloss}!`,
 ];
 
@@ -1397,6 +1405,61 @@ function getAdjectiveSlotGloss(baseGloss, slotIndex) {
   return bySlot[slotIndex] ?? baseGloss;
 }
 
+// Verb paradigm slots 5 and 11 are the s-passive present ("brukes" = "is
+// used") and present participle ("brukende" = "using" — also how
+// adjectives formed from a verb, like "pulserende"/pulsating, are
+// reached, since they're not separate dictionary entries) — confirmed
+// empirically (getParadigm has no documented index-to-label mapping
+// beyond the 5 learner-facing slots) by checking several verbs:
+// bruke/kalle/lage/se/finne/gjøre all put these at the same two indices.
+// The remaining hidden slots (6-10) are mostly duplicate/alternate forms
+// of slots already handled elsewhere (participle gender variants,
+// alternate pasts) and are left as the unchanged base gloss.
+const VERB_PASSIVE_PRESENT_SLOT = 5;
+const VERB_PRESENT_PARTICIPLE_SLOT = 11;
+
+// "pulse" -> "pulsing", not "pulseing"; "die" -> "dying"; "stop" ->
+// "stopping" (only single-word glosses get the CVC-doubling check — same
+// reasoning as comparativeAndSuperlative for why that's skipped on
+// anything longer).
+function ingFormEnglishGloss(gloss) {
+  return applyToFirstWord(gloss, (word) => {
+    if (/ie$/i.test(word)) return `${word.slice(0, -2)}ying`;
+    if (/[^aeiou]e$/i.test(word)) return `${word.slice(0, -1)}ing`;
+    if (/^[^aeiou]*[aeiou][^aeiouwxy]$/i.test(word)) {
+      return `${word}${word.slice(-1)}ing`;
+    }
+    return `${word}ing`;
+  });
+}
+
+// A possessive ("bordets", "mannens") isn't one of a noun's own 4 paradigm
+// forms — inflections.js derives it separately, by appending -s (or just
+// an apostrophe, for a base already ending in s/x/z) to any of them — see
+// createNounPossessiveForms in inflections.js. This reverses that: strip
+// the same suffix and see which of the entry's own forms is left, to know
+// whether the result should be "a table's", "the table's", "tables'", or
+// "the tables'".
+function getNounPossessiveMatchSlot(entry, surfaceWord) {
+  const candidates = [];
+  if (/['’]$/.test(surfaceWord)) candidates.push(surfaceWord.slice(0, -1));
+  if (/s$/i.test(surfaceWord)) candidates.push(surfaceWord.slice(0, -1));
+
+  for (const candidate of candidates) {
+    const slots = window.Inflections?.getMatchingSlots?.(entry, candidate) || [];
+    if (slots.length > 0) return slots[0];
+  }
+  return null;
+}
+
+function possessiveEnglishGloss(baseGloss, underlyingSlotIndex) {
+  const isPlural = underlyingSlotIndex === 2 || underlyingSlotIndex === 3;
+  const isDefinite = underlyingSlotIndex === 1 || underlyingSlotIndex === 3;
+  const noun = isPlural ? pluralizeEnglishGloss(baseGloss) : baseGloss;
+  const apostropheForm = /s$/i.test(noun) ? `${noun}'` : `${noun}'s`;
+  return isDefinite ? `the ${apostropheForm}` : apostropheForm;
+}
+
 function getStoryWordGloss(entry, surfaceWord) {
   const baseGloss = getDisplayedAnswer(entry.engelsk);
   const wordClass = WordClass.getWordClass(entry.gender);
@@ -1404,12 +1467,25 @@ function getStoryWordGloss(entry, surfaceWord) {
     window.Inflections?.getMatchingSlots?.(entry, surfaceWord) || [];
   const slotIndex = matchingSlots[0];
 
-  if (slotIndex === undefined) return baseGloss;
+  if (slotIndex === undefined) {
+    if (wordClass === "noun") {
+      const possessiveSlot = getNounPossessiveMatchSlot(entry, surfaceWord);
+      if (possessiveSlot !== null) {
+        return possessiveEnglishGloss(baseGloss, possessiveSlot);
+      }
+    }
+    return baseGloss;
+  }
+
   if (wordClass === "adjective") return getAdjectiveSlotGloss(baseGloss, slotIndex);
 
-  // Verb paradigms carry 7 additional hidden passive/participial slots
-  // (index 5+) with no learner-facing label — fall back to the base gloss
-  // for those rather than guessing at an unlabeled form.
+  if (wordClass === "verb" && slotIndex === VERB_PASSIVE_PRESENT_SLOT) {
+    return `be ${pastParticipleEnglishGloss(baseGloss)}`;
+  }
+  if (wordClass === "verb" && slotIndex === VERB_PRESENT_PARTICIPLE_SLOT) {
+    return ingFormEnglishGloss(baseGloss);
+  }
+
   const transformsBySlot =
     wordClass === "noun"
       ? NOUN_SLOT_GLOSS_TRANSFORMS
@@ -1496,18 +1572,43 @@ async function buildExpressionComponentIndex() {
   if (expressionComponentIndex) return expressionComponentIndex;
   if (results.length === 0) return new Map();
 
-  const index = new Map();
+  // First pass: each expression's own non-stopword component words, plus
+  // a running count of how many *other* expressions share each word.
+  const expressionWords = [];
+  const wordFrequency = new Map();
+
   for (const entry of results) {
     if (WordClass.getWordClass(entry.gender) !== "expression") continue;
 
     const citation = String(entry.ord || "").split(",")[0];
-    const words = citation.match(STORY_WORD_TOKEN_REGEX) || [];
-    for (const word of words) {
-      const normalized = normalizeSearchText(word);
-      if (!normalized || EXPRESSION_INDEX_STOPWORDS.has(normalized)) continue;
-      if (!index.has(normalized)) index.set(normalized, []);
-      index.get(normalized).push(entry);
-    }
+    const words = [
+      ...new Set(
+        (citation.match(STORY_WORD_TOKEN_REGEX) || [])
+          .map(normalizeSearchText)
+          .filter((word) => word && !EXPRESSION_INDEX_STOPWORDS.has(word)),
+      ),
+    ];
+    if (words.length === 0) continue;
+
+    expressionWords.push({ entry, words });
+    words.forEach((word) => wordFrequency.set(word, (wordFrequency.get(word) || 0) + 1));
+  }
+
+  // Second pass: index each expression under only its rarest component,
+  // not every one of them. A handful of extremely common verbs ("være",
+  // "gå", "ta" — each a component of 90-100+ expressions) would otherwise
+  // turn nearly every sentence into 100+ compile() calls, since those
+  // verbs show up in almost every sentence a story has. The full pattern
+  // match still requires all of an expression's own words to be present
+  // regardless of which one indexed it, so this only narrows *candidates*
+  // — it can't cause a real match to be missed.
+  const index = new Map();
+  for (const { entry, words } of expressionWords) {
+    const rarestWord = words.reduce((rarest, word) =>
+      wordFrequency.get(word) < wordFrequency.get(rarest) ? word : rarest,
+    );
+    if (!index.has(rarestWord)) index.set(rarestWord, []);
+    index.get(rarestWord).push(entry);
   }
 
   expressionComponentIndex = index;
@@ -1537,6 +1638,24 @@ function waitForDictionaryData() {
 function isReasonableExpressionMatchLength(matchedText, citationWordCount) {
   const matchedWordCount = (matchedText.match(STORY_WORD_TOKEN_REGEX) || []).length;
   return matchedWordCount > 0 && matchedWordCount <= citationWordCount + 3;
+}
+
+// The matcher's wildcard/placeholder support is meant for expressions that
+// really do have a variable slot ("gjøre noe for [noen]"), but it also lets
+// match.start..match.end span two of the expression's own words with
+// completely unrelated text in between — e.g. matching "være ... på" across
+// "er et symbol på", where "et symbol" has nothing to do with the
+// expression. match.spans holds each individually-matched word's own
+// range, so a real word (not just whitespace/punctuation) sitting in the
+// gap between two consecutive spans means this occurrence shouldn't be
+// treated as one clickable phrase.
+function hasUnrelatedWordsBetweenSpans(matchSpans, text) {
+  const sorted = [...(matchSpans || [])].sort((a, b) => a.start - b.start);
+  for (let i = 1; i < sorted.length; i++) {
+    const gapText = text.slice(sorted[i - 1].end, sorted[i].start);
+    if (/[\p{L}\p{N}]/u.test(gapText)) return true;
+  }
+  return false;
 }
 
 async function findExpressionMatchesInSentence(sentenceText) {
@@ -1580,7 +1699,10 @@ async function findExpressionMatchesInSentence(sentenceText) {
       const start = match.start + cursor;
       const end = match.end + cursor;
       const matchedText = sentenceText.slice(start, end);
-      if (isReasonableExpressionMatchLength(matchedText, citationWordCount)) {
+      if (
+        isReasonableExpressionMatchLength(matchedText, citationWordCount) &&
+        !hasUnrelatedWordsBetweenSpans(match.spans, remaining)
+      ) {
         spans.push({ start, end, entry });
       }
       cursor += Math.max(match.end, 1);
@@ -1660,6 +1782,31 @@ async function upgradeStoryExpressionSpans() {
   }
 }
 
+// Kicks off the expression-merging and My-Words-highlight passes on genuine
+// browser idle time rather than in the same tick the story becomes
+// visible. Both passes can trigger Inflections' one-time-per-page-load
+// reverse-index warm-up (see buildReverseIndexes in inflections.js), which
+// is real, if background-safe, CPU work — starting it immediately competed
+// with whatever else was settling right as a story opened, making the
+// story feel slow to load even though its content was already on screen.
+// Individual word clicks don't wait on any of this (see
+// getExactMatchEntries in showStoryWordPopover), so nothing about reading
+// or looking up a word depends on how quickly this finishes.
+function scheduleStoryUpgrades() {
+  const run = () => {
+    // Expression spans must be merged before the My Words highlight pass
+    // runs over them, or it would just see (and correctly, but
+    // pointlessly) evaluate their since-replaced individual word spans.
+    upgradeStoryExpressionSpans().then(() => highlightKnownStoryWords());
+  };
+
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(run, { timeout: 3000 });
+  } else {
+    setTimeout(run, 300);
+  }
+}
+
 // A word can resolve to more than one dictionary entry — either a single
 // spelling with multiple senses (homonyms), or, like "hjelper", two
 // entirely different lemmas (the verb "hjelpe" present tense vs. the noun
@@ -1667,32 +1814,31 @@ async function upgradeStoryExpressionSpans() {
 // as its own row.
 const MAX_STORY_WORD_POPOVER_SENSES = 4;
 
-async function showStoryWordPopover(wordSpan) {
-  const surfaceWord = wordSpan.dataset.word || wordSpan.textContent;
-  const normalizedWord = normalizeSearchText(surfaceWord);
+function getExactMatchEntries(normalizedWord) {
+  return wordSearchIndex.norwegianExact.get(normalizedWord) || [];
+}
 
-  closeStoryWordPopover();
-  if (!normalizedWord) return;
+// state: "dictionary-loading" | "loading" | "empty" | "ready". Split out
+// from showStoryWordPopover so it can be called twice: once synchronously
+// with whatever's instantly available, and again if a slower follow-up
+// lookup finds more.
+function renderStoryWordPopoverContent(popover, entries, surfaceWord, normalizedWord, state) {
+  popover.innerHTML = "";
+  popover.classList.remove("story-word-popover-empty");
 
-  await window.Inflections?.preload();
-
-  const popover = document.createElement("div");
-  popover.className = "story-word-popover";
-  popover.setAttribute("role", "dialog");
-  popover.setAttribute("aria-label", `Definition of ${surfaceWord}`);
-
-  // A story reached directly by URL loads its own data first and only
-  // fetches the ~29k-row dictionary a second later (see the
-  // initialStoryRoute delay in scripts.js) — without this, a click in that
-  // window would wrongly report "No definition found" instead of just
-  // not being ready yet.
-  const entries =
-    results.length === 0 ? [] : await getStoryWordSpanEntries(wordSpan);
-
-  if (results.length === 0) {
+  if (state === "dictionary-loading") {
     popover.classList.add("story-word-popover-empty");
     popover.textContent = "Loading dictionary…";
-  } else if (entries.length === 0) {
+    return;
+  }
+
+  if (state === "loading") {
+    popover.classList.add("story-word-popover-empty");
+    popover.textContent = "Looking up…";
+    return;
+  }
+
+  if (state === "empty") {
     // Fails without erroring — proper nouns, names, and words outside the
     // dictionary are expected to turn up nothing. The flag link reuses the
     // exact same "missing word" feedback channel as the main search page's
@@ -1714,51 +1860,98 @@ async function showStoryWordPopover(wordSpan) {
     });
 
     popover.append(emptyText, flagButton);
-  } else {
-    const seenGlosses = new Set();
+    return;
+  }
 
-    // Easiest sense first — someone at A1 hitting an ambiguous word
-    // usually wants the common everyday reading before a rarer C-level one.
-    const orderedEntries = [...entries].sort(
-      (a, b) =>
-        (CEFR_ORDER[String(a.CEFR).toUpperCase()] || 99) -
-        (CEFR_ORDER[String(b.CEFR).toUpperCase()] || 99),
+  const seenGlosses = new Set();
+
+  // Easiest sense first — someone at A1 hitting an ambiguous word usually
+  // wants the common everyday reading before a rarer C-level one.
+  const orderedEntries = [...entries].sort(
+    (a, b) =>
+      (CEFR_ORDER[String(a.CEFR).toUpperCase()] || 99) -
+      (CEFR_ORDER[String(b.CEFR).toUpperCase()] || 99),
+  );
+
+  orderedEntries.slice(0, MAX_STORY_WORD_POPOVER_SENSES).forEach((entry) => {
+    const gloss = getStoryWordGloss(entry, normalizedWord);
+    const glossKey = gloss.toLowerCase();
+    if (seenGlosses.has(glossKey)) return;
+    seenGlosses.add(glossKey);
+
+    const row = document.createElement("div");
+    row.className = "story-word-popover-row";
+
+    const translationEl = document.createElement("span");
+    translationEl.className = "story-word-popover-translation";
+    translationEl.textContent = gloss;
+
+    const starButton = document.createElement("button");
+    starButton.type = "button";
+    starButton.className = "word-list-favorite-button story-word-popover-star";
+    starButton.innerHTML = '<i aria-hidden="true"></i>';
+    updateStoryWordPopoverStar(
+      starButton,
+      entry,
+      window.MyWordsAPI?.isSaved?.(entry) ?? false,
     );
 
-    orderedEntries.slice(0, MAX_STORY_WORD_POPOVER_SENSES).forEach((entry) => {
-      const gloss = getStoryWordGloss(entry, normalizedWord);
-      const glossKey = gloss.toLowerCase();
-      if (seenGlosses.has(glossKey)) return;
-      seenGlosses.add(glossKey);
-
-      const row = document.createElement("div");
-      row.className = "story-word-popover-row";
-
-      const translationEl = document.createElement("span");
-      translationEl.className = "story-word-popover-translation";
-      translationEl.textContent = gloss;
-
-      const starButton = document.createElement("button");
-      starButton.type = "button";
-      starButton.className =
-        "word-list-favorite-button story-word-popover-star";
-      starButton.innerHTML = '<i aria-hidden="true"></i>';
-      updateStoryWordPopoverStar(
-        starButton,
-        entry,
-        window.MyWordsAPI?.isSaved?.(entry) ?? false,
-      );
-
-      starButton.addEventListener("click", (event) => {
-        event.stopPropagation();
-        const nowSaved = Boolean(window.MyWordsAPI?.toggle?.(entry));
-        updateStoryWordPopoverStar(starButton, entry, nowSaved);
-      });
-
-      row.append(translationEl, starButton);
-      popover.appendChild(row);
+    starButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const nowSaved = Boolean(window.MyWordsAPI?.toggle?.(entry));
+      updateStoryWordPopoverStar(starButton, entry, nowSaved);
     });
-  }
+
+    row.append(translationEl, starButton);
+    popover.appendChild(row);
+  });
+}
+
+async function showStoryWordPopover(wordSpan) {
+  const surfaceWord = wordSpan.dataset.word || wordSpan.textContent;
+  const normalizedWord = normalizeSearchText(surfaceWord);
+
+  closeStoryWordPopover();
+  if (!normalizedWord) return;
+
+  const popover = document.createElement("div");
+  popover.className = "story-word-popover";
+  popover.setAttribute("role", "dialog");
+  popover.setAttribute("aria-label", `Definition of ${surfaceWord}`);
+
+  const isExpression = wordSpan.classList.contains("story-word-expression");
+
+  // Render instantly with whatever's available synchronously, without
+  // waiting on Inflections — an expression's entry is already resolved
+  // (via the registry, from when its span was built), and most Norwegian
+  // text isn't inflected on every single word, so a plain exact-index hit
+  // is common too. Only a genuinely inflected surface form (e.g.
+  // "bryllupet") needs the slower lookup below, which can be very slow
+  // the first time it runs on a given page load (see buildReverseIndexes
+  // in inflections.js) — blocking every click on it made even
+  // already-known words feel broken.
+  const instantEntries = isExpression
+    ? [expressionEntryRegistry.get(wordSpan.dataset.exprId)].filter(Boolean)
+    : results.length > 0
+      ? getExactMatchEntries(normalizedWord)
+      : [];
+  const instantState = isExpression
+    ? instantEntries.length > 0
+      ? "ready"
+      : "empty"
+    : results.length === 0
+      ? "dictionary-loading"
+      : instantEntries.length > 0
+        ? "ready"
+        : "loading";
+
+  renderStoryWordPopoverContent(
+    popover,
+    instantEntries,
+    surfaceWord,
+    normalizedWord,
+    instantState,
+  );
 
   document.body.appendChild(popover);
   positionStoryWordPopover(popover, wordSpan);
@@ -1766,6 +1959,47 @@ async function showStoryWordPopover(wordSpan) {
 
   window.addEventListener("scroll", closeStoryWordPopover, true);
   window.addEventListener("resize", closeStoryWordPopover);
+
+  // An expression's entry is already resolved via the registry — nothing
+  // slower left to check.
+  if (isExpression) return;
+
+  // Either the dictionary itself hasn't finished loading yet (a click can
+  // land here on a direct story link, before the ~29k-row CSV parse
+  // completes), or — the common case — it has, but this surface form
+  // needed the slower inflection-aware lookup. Previously only the second
+  // case was ever followed up on, so a click during that dictionary-load
+  // window got stuck showing "Loading dictionary…" forever instead of
+  // ever resolving.
+  await waitForDictionaryData();
+  await window.Inflections?.preload();
+  const fullEntries = await getStoryWordSpanEntries(wordSpan);
+
+  // The user may have closed this popover, or opened a different one,
+  // while the fuller (inflection-aware) lookup was still in flight — don't
+  // resurrect or overwrite whatever's showing now.
+  if (activeStoryWordPopover !== popover) return;
+  // instantEntries is always a subset of fullEntries by construction (the
+  // exact-match lemma is included in resolveStoryWordEntries' own lookup
+  // too), so an equal count normally means nothing new was found — except
+  // when instantState was "loading" (not yet a final state, just "found
+  // nothing *yet*"). A word the fuller lookup also fails to resolve — as
+  // happens for a handful of genuinely irregular forms the inflection data
+  // doesn't cover, e.g. "tennene" — must still surface a final "No
+  // definition found" instead of being left stuck on "Looking up…" forever
+  // just because the count (0) happened not to change.
+  if (instantState !== "loading" && fullEntries.length === instantEntries.length) {
+    return;
+  }
+
+  renderStoryWordPopoverContent(
+    popover,
+    fullEntries,
+    surfaceWord,
+    normalizedWord,
+    fullEntries.length > 0 ? "ready" : "empty",
+  );
+  positionStoryWordPopover(popover, wordSpan);
 }
 
 // Colors a word in the story text the same gold as a filled My Words star

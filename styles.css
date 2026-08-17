@@ -2457,11 +2457,17 @@ input[type="text"]:not(:placeholder-shown) + label {
 }
 
 /* One row per resolved sense — most words show just one, but e.g.
-   "hjelper" (verb "helps" vs. noun "helper") shows both, stacked. */
+   "hjelper" (verb "helps" vs. noun "helper") shows both, stacked.
+   justify-content: space-between keeps every row's star pinned to the
+   same right edge regardless of how long that row's own gloss text is —
+   without it, a short gloss ("help") would leave its star sitting right
+   next to the text instead of lined up under a longer row's star
+   ("helper"). */
 .story-word-popover-row {
   align-items: center;
   display: flex;
   gap: 8px;
+  justify-content: space-between;
   padding: 6px 8px 6px 14px;
 }
 
