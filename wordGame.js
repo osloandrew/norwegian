@@ -47,9 +47,22 @@ const DAILY_QUESTS = Object.freeze([
     exercise: "recall",
   }),
 ]);
+const BONUS_ROUND_SEQUENCE = Object.freeze([
+  "cloze",
+  "listening",
+  "typed-reverse",
+  "cloze",
+  "typed-reverse",
+  "listening",
+  "cloze",
+  "typed-reverse",
+  "listening",
+  "typed-reverse",
+]);
 let wordGameRoundActive = false; // false until the intro screen's mode is chosen
 let wordGameMode = null; // "session" | "infinite"
 let wordGameIsTodayPracticeRound = false;
+let wordGameIsBonusRound = false;
 let wordGameTodayPracticeDate = null;
 let wordGameDailyQuestIndex = null;
 let wordGameEarnedDailyQuest = null;
@@ -150,6 +163,18 @@ function getDailyQuestQuestionMode(
     return hasAudio && questionsAnswered % 2 === 1 ? "listening" : "reverse";
   }
   return null;
+}
+
+// Once all three gems are earned, the optional ten-word bonus round should
+// feel like a genuine step up rather than an unlabeled generic session. Its
+// exercise sequence is deterministic so every bonus round contains the same
+// intentional balance: three context questions, three listening questions,
+// and four typed English-to-Norwegian recall questions. Vocabulary difficulty
+// still comes from the learner's saved CEFR level and the adaptive scheduler.
+function getBonusRoundQuestionMode(questionsAnswered = 0, hasAudio = false) {
+  const index = Math.max(0, Math.floor(Number(questionsAnswered) || 0));
+  const mode = BONUS_ROUND_SEQUENCE[index % BONUS_ROUND_SEQUENCE.length];
+  return mode === "listening" && !hasAudio ? "typed-reverse" : mode;
 }
 
 function completeDailyQuestRound() {
@@ -1552,11 +1577,76 @@ function getDailyQuestMarkup(state) {
     .join("");
 }
 
+function renderLandingDailyQuests() {
+  const container = document.getElementById("landing-daily-quests");
+  if (!container) return;
+
+  const state = loadDailyPracticeState();
+  const progress = getDailyPracticeProgress(state);
+  const complete = progress >= DAILY_QUESTS.length;
+  const activeQuest = DAILY_QUESTS[progress] || null;
+  const actionLabel = complete
+    ? "Start bonus round"
+    : `Start ${activeQuest.reward} round`;
+  const nextHeading = complete
+    ? "Bonus round"
+    : `Next: ${activeQuest.title}`;
+  const nextDescription = complete
+    ? `A harder mix of context, listening, and typed recall · ${DAILY_QUEST_ROUND_TARGET} words`
+    : `${activeQuest.description} · ${DAILY_QUEST_ROUND_TARGET} words`;
+
+  container.innerHTML = `
+    <div class="landing-daily-quests-header">
+      <div>
+        <p class="landing-daily-quests-eyebrow">Daily vocabulary challenge</p>
+        <h3 id="landing-daily-quests-heading">Today’s quests</h3>
+        <p class="landing-daily-quests-intro">Complete three increasingly challenging vocabulary rounds to earn an emerald, ruby, and sapphire.</p>
+      </div>
+      <strong class="landing-daily-quests-count">${progress} of ${DAILY_QUESTS.length}</strong>
+    </div>
+    <div class="landing-daily-quest-track" aria-label="Daily quest progress">
+      ${DAILY_QUESTS.map((quest, index) => {
+        const status = index < progress
+          ? "complete"
+          : index === progress
+            ? "active"
+            : "locked";
+        return `
+          <span class="landing-daily-quest-step landing-daily-quest-step--${status}">
+            <span class="game-daily-quest-gem landing-daily-quest-gem game-daily-quest-gem--${quest.reward}" aria-hidden="true">
+              <i class="fas fa-gem"></i>
+            </span>
+            <span>${uppercaseFirstNorwegian(quest.reward)}</span>
+          </span>
+        `;
+      }).join("")}
+    </div>
+    <div class="landing-daily-quests-action">
+      <div>
+        <strong>${nextHeading}</strong>
+        <span>${nextDescription}</span>
+      </div>
+      <button type="button" id="landing-daily-quests-start"${complete ? ' class="is-bonus"' : ""}>${complete ? '<i class="fas fa-star" aria-hidden="true"></i>' : ""}${actionLabel}</button>
+    </div>
+  `;
+
+  document
+    .getElementById("landing-daily-quests-start")
+    ?.addEventListener("click", startDailyQuestFromLanding);
+}
+
+function startDailyQuestFromLanding() {
+  selectType("word-game");
+  beginTodayPracticeRound();
+}
+
 function beginTodayPracticeRound() {
   const progress = getDailyPracticeProgress();
 
   if (progress >= DAILY_QUESTS.length) {
-    beginWordGameRound("session", DAILY_QUEST_ROUND_TARGET);
+    beginWordGameRound("session", DAILY_QUEST_ROUND_TARGET, {
+      bonusRound: true,
+    });
     return;
   }
 
@@ -1586,7 +1676,7 @@ function renderWordGameIntro() {
         ? "You’re caught up · new words are ready"
         : "You’re caught up · review your nearest words";
   const dailyButtonLabel = dailyComplete
-    ? "Practice again"
+    ? "Start bonus round"
     : `Start ${activeQuest.reward} round`;
 
   setGameContainerHTML(`
@@ -1610,8 +1700,8 @@ function renderWordGameIntro() {
         >
           <span style="width: ${dailyProgressPercent}%"></span>
         </div>
-        <button type="button" class="game-today-practice-btn${dailyComplete ? " is-complete" : ""}" id="game-today-practice-btn">
-          ${dailyComplete ? '<i class="fas fa-check" aria-hidden="true"></i>' : ""}
+        <button type="button" class="game-today-practice-btn${dailyComplete ? " is-bonus" : ""}" id="game-today-practice-btn">
+          ${dailyComplete ? '<i class="fas fa-star" aria-hidden="true"></i>' : ""}
           ${dailyButtonLabel}
         </button>
       </section>
@@ -1704,6 +1794,14 @@ function getWordGameSessionProgressLabel() {
     return `${questName}: Word ${correctSoFar} of ${wordGameSessionTarget}`;
   }
 
+  if (wordGameIsBonusRound) {
+    if (correctSoFar >= wordGameSessionTarget && pendingReview > 0) {
+      const word = pendingReview === 1 ? "word" : "words";
+      return `Bonus: ${wordGameSessionTarget} of ${wordGameSessionTarget} — ${pendingReview} ${word} to review`;
+    }
+    return `Bonus: Word ${correctSoFar} of ${wordGameSessionTarget}`;
+  }
+
   if (correctSoFar >= wordGameSessionTarget && pendingReview > 0) {
     const word = pendingReview === 1 ? "word" : "words";
     return `${wordGameSessionTarget} of ${wordGameSessionTarget} — ${pendingReview} ${word} to review`;
@@ -1754,6 +1852,8 @@ function updateEndSessionToolbarButtonVisibility() {
 function beginWordGameRound(mode, targetWords = 0, options = {}) {
   wordGameMode = mode;
   wordGameIsTodayPracticeRound = Boolean(options.todayPractice);
+  wordGameIsBonusRound =
+    !wordGameIsTodayPracticeRound && Boolean(options.bonusRound);
   wordGameTodayPracticeDate = wordGameIsTodayPracticeRound
     ? getDailyPracticeDateKey()
     : null;
@@ -1827,6 +1927,7 @@ function showWordGameRoundSummary() {
       : 0;
   const wasBoundedRound = wordGameMode === "session";
   const wasTodayPractice = wordGameIsTodayPracticeRound;
+  const wasBonusRound = wordGameIsBonusRound;
   const roundWasComplete = isWordGameRoundComplete();
   const earnedDailyQuest =
     wasTodayPractice && roundWasComplete
@@ -1835,6 +1936,7 @@ function showWordGameRoundSummary() {
 
   wordGameRoundActive = false;
   wordGameIsTodayPracticeRound = false;
+  wordGameIsBonusRound = false;
   wordGameTodayPracticeDate = null;
   wordGameDailyQuestIndex = null;
   wordGameEarnedDailyQuest = null;
@@ -1905,6 +2007,8 @@ function showWordGameRoundSummary() {
       <h2 class="game-summary-heading">${
         earnedDailyQuest
           ? `${uppercaseFirstNorwegian(earnedDailyQuest.reward)} earned!`
+          : wasBonusRound && roundWasComplete
+            ? "Bonus round complete!"
           : wasBoundedRound && roundWasComplete
             ? "Round complete!"
             : "Nice work!"
@@ -2209,16 +2313,22 @@ async function startWordGame() {
   currentWord = randomWordObj;
   correctTranslation = randomWordObj.engelsk;
 
-  const dailyQuestionMode = wordGameIsTodayPracticeRound
+  const structuredQuestionMode = wordGameIsTodayPracticeRound
     ? getDailyQuestQuestionMode(
         wordGameDailyQuestIndex,
         wordGameSessionQuestionsAnswered,
         randomWordObj.wordAudio === "X",
       )
-    : null;
+    : wordGameIsBonusRound
+      ? getBonusRoundQuestionMode(
+          Math.max(0, wordGameSessionIntroducedWords.size - 1),
+          randomWordObj.wordAudio === "X",
+        )
+      : null;
+  const forceTypedReverse = structuredQuestionMode === "typed-reverse";
   const isClozeQuestion =
-    dailyQuestionMode === "cloze" ||
-    (dailyQuestionMode === null && Math.random() < 0.5);
+    structuredQuestionMode === "cloze" ||
+    (structuredQuestionMode === null && Math.random() < 0.5);
   // Decided ahead of isReverseQuestion so the two don't compete for the
   // same slot — see LISTENING_PROBABILITY above for why this scales more
   // gently than the reverse-flashcard ramp. Requires the word to actually
@@ -2229,8 +2339,8 @@ async function startWordGame() {
   const isListeningQuestion =
     !isClozeQuestion &&
     randomWordObj.wordAudio === "X" &&
-    (dailyQuestionMode === "listening" ||
-      (dailyQuestionMode === null &&
+    (structuredQuestionMode === "listening" ||
+      (structuredQuestionMode === null &&
         Math.random() < (LISTENING_PROBABILITY[currentCEFR] ?? 0.25)));
   // Only applies to the non-cloze, non-listening remainder — see
   // REVERSE_FLASHCARD_PROBABILITY above for why this scales with level
@@ -2238,8 +2348,9 @@ async function startWordGame() {
   const isReverseQuestion =
     !isClozeQuestion &&
     !isListeningQuestion &&
-    (dailyQuestionMode === "reverse" ||
-      (dailyQuestionMode === null &&
+    (structuredQuestionMode === "reverse" ||
+      forceTypedReverse ||
+      (structuredQuestionMode === null &&
         Math.random() < (REVERSE_FLASHCARD_PROBABILITY[currentCEFR] ?? 0.25)));
 
   // Fetch incorrect translations with the same gender
@@ -2328,7 +2439,7 @@ async function startWordGame() {
   } else if (isReverseQuestion) {
     if (
       getGameSentenceTranslation(randomWordObj, 0) &&
-      shouldUseTypedRecall(randomWordObj, "reverse")
+      (forceTypedReverse || shouldUseTypedRecall(randomWordObj, "reverse"))
     ) {
       renderWordGameUI(randomWordObj, [], false, "typed-reverse");
       return;
@@ -2692,7 +2803,6 @@ function getTypedAnswerMarkup(wordId) {
             type="text"
             lang="nb"
             aria-label="Your answer in Norwegian"
-            aria-describedby="game-typed-answer-feedback"
             autocomplete="off"
             autocapitalize="sentences"
             autocorrect="off"
@@ -2702,10 +2812,6 @@ function getTypedAnswerMarkup(wordId) {
           >
           <button class="game-typed-submit" type="submit">Check</button>
         </div>
-        <p
-          id="game-typed-answer-feedback"
-          class="game-typed-answer-feedback"
-        ></p>
       </form>
     </div>
   `;
@@ -2752,6 +2858,13 @@ function attachTypedAnswerForm(
   input.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && !event.isComposing) {
       event.preventDefault();
+      if (form.classList.contains("is-answered")) {
+        const nextButton = document.getElementById("game-next-word-button");
+        if (nextButton && !nextButton.disabled) {
+          nextButton.click();
+        }
+        return;
+      }
       form.requestSubmit();
     }
   });
@@ -3169,6 +3282,10 @@ function makeAudioReplayable(element, label, replay) {
 
   element.addEventListener("click", replayWithFeedback);
   element.addEventListener("keydown", (event) => {
+    // A typed-answer field owns Enter after grading so it can advance to the
+    // next question. Its earlier keydown handler prevents the event; respect
+    // that instead of also replaying pronunciation from this audio control.
+    if (event.defaultPrevented) return;
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       replayWithFeedback();
@@ -3200,7 +3317,7 @@ function makeSentenceClickable(element, sentenceText) {
 // so making it look clickable would promise a sound that doesn't exist.
 function revealReverseWordAudio(wordObj) {
   const correctCardElement = document.querySelector(
-    ".game-correct-card, .game-typed-correct-answer",
+    ".game-correct-card, .game-typed-answer-form.is-answered .game-typed-answer-input",
   );
   if (
     !correctCardElement ||
@@ -3210,6 +3327,15 @@ function revealReverseWordAudio(wordObj) {
   }
 
   const displayedWord = getPrimaryNorwegianForm(wordObj);
+  if (correctCardElement instanceof HTMLInputElement) {
+    const displayedAnswer = normalizeGameAnswer(correctCardElement.value);
+    const entryForms = new Set(
+      getNorwegianEntryVariants(wordObj).map(normalizeGameAnswer),
+    );
+    // A same-gender dictionary synonym can be accepted for typed recall.
+    // Do not make that synonym field play the target lemma's different audio.
+    if (!entryForms.has(displayedAnswer)) return;
+  }
 
   makeAudioReplayable(
     correctCardElement,
@@ -3221,28 +3347,28 @@ function revealReverseWordAudio(wordObj) {
   );
 }
 
-function updateTypedAnswerFeedback(isCorrect, correctAnswer, isReverse) {
+function updateTypedAnswerFeedback(isCorrect, correctAnswer) {
   const form = document.querySelector(".game-typed-answer-form");
   const input = document.getElementById("game-typed-answer-input");
   const submit = form?.querySelector(".game-typed-submit");
-  const feedback = document.getElementById("game-typed-answer-feedback");
-  if (!form || !input || !feedback) return;
+  if (!form || !input) return;
 
-  input.disabled = true;
+  // Keep the answer in the same visual card the learner typed into. On a
+  // miss, replace their text with the correction instead of growing a second
+  // "Correct answer" row underneath and shifting the Next button downward.
+  if (!isCorrect) {
+    input.value = correctAnswer;
+  }
+  input.readOnly = true;
   if (submit) submit.disabled = true;
   input.setAttribute("aria-invalid", String(!isCorrect));
+  input.setAttribute(
+    "aria-label",
+    isCorrect ? "Correct answer" : `Correct answer: ${correctAnswer}`,
+  );
+  form.classList.add("is-answered");
   form.classList.toggle("is-correct", isCorrect);
   form.classList.toggle("is-incorrect", !isCorrect);
-  feedback.classList.toggle("is-correct", isCorrect);
-  feedback.classList.toggle("is-incorrect", !isCorrect);
-  if (isCorrect) {
-    feedback.replaceChildren();
-    return;
-  }
-  const answerMarkup = isReverse
-    ? `<button type="button" class="game-typed-correct-answer">${escapeGameHTML(correctAnswer)}</button>`
-    : `<span class="game-typed-correct-answer">${escapeGameHTML(correctAnswer)}</span>`;
-  feedback.innerHTML = `Correct answer: ${answerMarkup}`;
 }
 
 function announceGameAnswer(isCorrect, correctAnswer) {
@@ -3377,7 +3503,7 @@ async function handleTranslationClick(
     if (isCloze) {
       completeClozeSentence(clozeSentence);
     }
-    updateTypedAnswerFeedback(true, correctTranslationPart, isReverse);
+    updateTypedAnswerFeedback(true, correctTranslationPart);
     if (isReverse) {
       revealReverseWordAudio(wordObj);
     }
@@ -3442,7 +3568,7 @@ async function handleTranslationClick(
     if (isCloze) {
       completeClozeSentence(clozeSentence);
     }
-    updateTypedAnswerFeedback(false, correctTranslationPart, isReverse);
+    updateTypedAnswerFeedback(false, correctTranslationPart);
     if (isReverse) {
       revealReverseWordAudio(wordObj);
     }
@@ -3641,6 +3767,9 @@ function getEligibleGameWords(
   const dailyExercise = wordGameIsTodayPracticeRound
     ? DAILY_QUESTS[wordGameDailyQuestIndex]?.exercise
     : null;
+  const bonusExercise = wordGameIsBonusRound
+    ? getBonusRoundQuestionMode(wordGameSessionIntroducedWords.size, true)
+    : null;
 
   return results.filter((entry) => {
     const norwegianWord = String(entry?.ord ?? "").trim();
@@ -3676,11 +3805,25 @@ function getEligibleGameWords(
     }
 
     if (
-      dailyExercise === "context" &&
+      (dailyExercise === "context" || bonusExercise === "cloze") &&
       (!String(entry?.eksempel ?? "").trim() ||
         BANNED_WORD_CLASSES.some((wordClass) =>
           gender.toLowerCase().startsWith(wordClass),
         ))
+    ) {
+      return false;
+    }
+
+    if (bonusExercise === "listening" && entry.wordAudio !== "X") {
+      return false;
+    }
+
+    // Typed bonus questions always include the English sentence, matching
+    // ordinary productive-recall questions. Do not select an entry that
+    // would have to degrade into a context-free typing prompt.
+    if (
+      bonusExercise === "typed-reverse" &&
+      !getGameSentenceTranslation(entry, 0)
     ) {
       return false;
     }
@@ -4435,10 +4578,12 @@ document.getElementById("cefr-select").addEventListener("change", function () {
       // into what's supposed to be one coherent "N words at this level"
       // round — restart fresh instead, same mode/size, at the new level.
       const todayPracticeWasActive = wordGameIsTodayPracticeRound;
+      const bonusRoundWasActive = wordGameIsBonusRound;
       const nextTarget = todayPracticeWasActive
         ? DAILY_QUEST_ROUND_TARGET
         : wordGameSessionTarget;
       beginWordGameRound(wordGameMode, nextTarget, {
+        bonusRound: bonusRoundWasActive,
         dailyQuestIndex: wordGameDailyQuestIndex,
         todayPractice: todayPracticeWasActive,
       });
@@ -4498,6 +4643,10 @@ document.getElementById("game-end-session-btn-header")?.addEventListener("click"
 });
 
 window.toggleLevelLock = toggleLevelLock;
+window.DailyQuestAPI = Object.freeze({
+  renderLanding: renderLandingDailyQuests,
+  start: startDailyQuestFromLanding,
+});
 window.WordGameHelpers = Object.freeze({
   playWordAudio,
   stopAllAudio,
@@ -4510,3 +4659,5 @@ window.WordGameHelpers = Object.freeze({
   getLevelOrder: () => CEFR_LEVEL_ORDER.slice(),
   replaceLevel: replaceGameLevel,
 });
+
+renderLandingDailyQuests();

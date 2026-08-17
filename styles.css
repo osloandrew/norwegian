@@ -688,6 +688,12 @@ footer .copyright {
     transform 0.2s ease; /* Subtle transitions */
 }
 
+/* Typed recall has one full-width answer card rather than a two-row choice
+   grid. Keep just a small separation before the primary action. */
+.game-typed-grid ~ .game-next-button-container #game-next-word-button {
+  margin-top: 15px;
+}
+
 #game-next-word-button:hover {
   background-color: #4a99ff; /* Same hover treatment as the search button */
   border-color: #4a99ff;
@@ -886,6 +892,15 @@ footer .copyright {
   background-color: #e6f7ff; /* Hover effect same as word card */
 }
 
+/* Grading disables every answer card to prevent a second response. Keep the
+   answer text at its normal readable color instead of inheriting the global
+   pale-gray disabled-button treatment; color and animation already explain
+   which answer was right. */
+.game-translation-card:disabled {
+  color: #333;
+  cursor: default;
+}
+
 .game-translation-card:focus-visible {
   outline: 3px solid #3c88d4;
   outline-offset: 3px;
@@ -897,11 +912,12 @@ footer .copyright {
 .game-grid.game-typed-grid {
   align-content: start;
   grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
 }
 
 .game-typed-answer-form {
-  height: 159px;
-  overflow-y: auto;
+  height: auto;
+  overflow: visible;
   width: 100%;
 }
 
@@ -914,6 +930,7 @@ footer .copyright {
 .game-typed-answer-input {
   appearance: none;
   background-color: #fff;
+  /* Match the prompt card directly above it. */
   border: 1px solid #ccc;
   border-radius: 10px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
@@ -928,10 +945,11 @@ footer .copyright {
   width: 100%;
 }
 
+.game-typed-answer-input:focus,
 .game-typed-answer-input:focus-visible {
-  border-color: #3c88d4;
-  outline: 3px solid rgba(60, 136, 212, 0.3);
-  outline-offset: 1px;
+  border-color: #ccc;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  outline: none;
 }
 
 .game-typed-submit {
@@ -962,6 +980,14 @@ footer .copyright {
   opacity: 0.4;
 }
 
+.game-typed-answer-form.is-answered .game-typed-answer-row {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.game-typed-answer-form.is-answered .game-typed-submit {
+  display: none;
+}
+
 .game-typed-answer-form.is-correct .game-typed-answer-input {
   background-color: #edf7e7;
   border-color: #7cab62;
@@ -970,52 +996,6 @@ footer .copyright {
 .game-typed-answer-form.is-incorrect .game-typed-answer-input {
   background-color: #fbede9;
   border-color: #c97861;
-}
-
-.game-typed-answer-feedback {
-  color: #555;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 14px;
-  line-height: 1.4;
-  margin: 8px 0 0;
-  min-height: 1.4em;
-  text-align: center;
-}
-
-.game-typed-answer-feedback:empty {
-  display: none;
-}
-
-.game-typed-answer-feedback.is-correct {
-  color: #315e25;
-}
-
-.game-typed-answer-feedback.is-incorrect {
-  color: #7a321f;
-}
-
-.game-typed-correct-answer {
-  appearance: none;
-  background: none;
-  border: 0;
-  color: inherit;
-  cursor: default;
-  font: inherit;
-  font-weight: 600;
-  margin: 0;
-  padding: 0;
-}
-
-.game-typed-correct-answer.game-word-audio {
-  cursor: pointer;
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-underline-offset: 3px;
-}
-
-.game-typed-correct-answer:focus-visible {
-  outline: 3px solid #3c88d4;
-  outline-offset: 3px;
 }
 
 /* Answer feedback is announced to assistive technology without introducing
@@ -1244,7 +1224,9 @@ footer .copyright {
   margin-top: 14px;
   min-height: 44px;
   padding: 10px 16px;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
   width: 100%;
 }
 
@@ -1256,6 +1238,16 @@ footer .copyright {
 .game-today-practice-btn.is-complete {
   background-color: #365f36;
   border-color: #365f36;
+}
+
+.game-today-practice-btn.is-bonus {
+  background-color: #5a3d82;
+  border-color: #5a3d82;
+}
+
+.game-today-practice-btn.is-bonus:hover {
+  background-color: #72529d;
+  border-color: #72529d;
 }
 
 .game-daily-quests {
@@ -1297,7 +1289,10 @@ footer .copyright {
   min-height: 178px;
   padding: 15px 10px 12px;
   text-align: center;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .game-daily-quest--active {
@@ -1362,12 +1357,24 @@ footer .copyright {
 }
 
 .game-daily-quest-gem--emerald {
-  background: radial-gradient(circle at 34% 28%, #ebfff5 0 12%, #92ddbd 34%, #3a9f76 72%, #207253 100%);
+  background: radial-gradient(
+    circle at 34% 28%,
+    #ebfff5 0 12%,
+    #92ddbd 34%,
+    #3a9f76 72%,
+    #207253 100%
+  );
   color: #0d6849;
 }
 
 .game-daily-quest-gem--ruby {
-  background: radial-gradient(circle at 34% 28%, #fff0f3 0 12%, #f2a5b2 34%, #c94e63 72%, #8f263d 100%);
+  background: radial-gradient(
+    circle at 34% 28%,
+    #fff0f3 0 12%,
+    #f2a5b2 34%,
+    #c94e63 72%,
+    #8f263d 100%
+  );
   color: #8f1f38;
 }
 
@@ -1376,7 +1383,13 @@ footer .copyright {
 }
 
 .game-daily-quest-gem--sapphire {
-  background: radial-gradient(circle at 34% 28%, #eef8ff 0 12%, #98c9f2 34%, #3d83c6 72%, #24558d 100%);
+  background: radial-gradient(
+    circle at 34% 28%,
+    #eef8ff 0 12%,
+    #98c9f2 34%,
+    #3d83c6 72%,
+    #24558d 100%
+  );
   color: #1e5489;
 }
 
@@ -2735,6 +2748,228 @@ html.landing #landing-card {
   margin: 8px auto 0;
   padding: 6px 14px;
   text-align: center;
+}
+
+/* Returning-user shortcut: a compact preview of the same three gem rounds
+   shown inside Word Game. It spans the landing card above the feature grid,
+   so the day's most useful action is visible without displacing a tool tile. */
+.landing-daily-quests {
+  background: linear-gradient(145deg, #f8fbff 0%, #f4f7fb 100%);
+  border: 1px solid #cbd9e8;
+  border-radius: 14px;
+  box-sizing: border-box;
+  margin-top: 22px;
+  padding: 18px;
+  text-align: left;
+  width: 100%;
+}
+
+.landing-daily-quests-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+#landing-card p.landing-daily-quests-eyebrow {
+  color: #52708f;
+  font-size: 10px !important;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  margin: 0 0 3px;
+  text-transform: uppercase;
+}
+
+#landing-card .landing-daily-quests h3 {
+  color: #0d3a69;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 19px;
+  margin: 0;
+}
+
+#landing-card p.landing-daily-quests-intro {
+  color: #5d6874;
+  font-size: 12px !important;
+  line-height: 1.45;
+  margin: 5px 0 0;
+  max-width: 510px;
+}
+
+.landing-daily-quests-count {
+  background-color: #e8eff7;
+  border-radius: 999px;
+  color: #0d3a69;
+  flex: 0 0 auto;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.landing-daily-quest-track {
+  display: grid;
+  gap: 35px;
+  grid-template-columns: repeat(3, 54px);
+  justify-content: center;
+  margin: 16px auto;
+  position: relative;
+  width: fit-content;
+}
+
+.landing-daily-quest-track::before {
+  background-color: #cad5df;
+  content: "";
+  height: 2px;
+  left: 36px;
+  position: absolute;
+  right: 36px;
+  top: 25px;
+}
+
+.landing-daily-quest-step {
+  align-items: center;
+  color: #41566b;
+  display: flex;
+  flex-direction: column;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  gap: 5px;
+  position: relative;
+  text-align: center;
+  z-index: 1;
+}
+
+.landing-daily-quest-gem {
+  flex-basis: 52px;
+  font-size: 24px;
+  width: 52px;
+}
+
+.landing-daily-quest-step--locked .landing-daily-quest-gem {
+  filter: saturate(0.58);
+  opacity: 0.7;
+}
+
+.landing-daily-quest-step--complete .landing-daily-quest-gem {
+  box-shadow:
+    0 7px 16px rgba(28, 42, 58, 0.18),
+    0 0 0 3px #fff,
+    0 0 0 5px #a9c69f;
+}
+
+.landing-daily-quests-action {
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #d9e1e9;
+  border-radius: 10px;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 11px 12px 11px 14px;
+}
+
+.landing-daily-quests-action > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.landing-daily-quests-action strong {
+  color: #243f5a;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
+}
+
+.landing-daily-quests-action span {
+  color: #69737e;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.landing-daily-quests-action button {
+  align-items: center;
+  background-color: #0d3a69;
+  border: 1px solid #0d3a69;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  flex: 0 0 auto;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  gap: 6px;
+  justify-content: center;
+  min-height: 40px;
+  padding: 9px 13px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.landing-daily-quests-action button:hover {
+  background-color: #4a99ff;
+  border-color: #4a99ff;
+}
+
+.landing-daily-quests-action button.is-bonus {
+  background-color: #5a3d82;
+  border-color: #5a3d82;
+}
+
+.landing-daily-quests-action button.is-bonus:hover {
+  background-color: #72529d;
+  border-color: #72529d;
+}
+
+.landing-daily-quests-action button:focus-visible {
+  outline: 2px solid #0d3a69;
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .landing-daily-quests {
+    margin-top: 16px;
+    padding: 14px;
+  }
+
+  .landing-daily-quests-header {
+    gap: 10px;
+  }
+
+  .landing-daily-quests-count {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+
+  .landing-daily-quest-track {
+    gap: 22px;
+    grid-template-columns: repeat(3, 48px);
+  }
+
+  .landing-daily-quest-gem {
+    flex-basis: 46px;
+    font-size: 21px;
+    width: 46px;
+  }
+
+  .landing-daily-quest-track::before {
+    left: 31px;
+    right: 31px;
+    top: 22px;
+  }
+
+  .landing-daily-quests-action {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .landing-daily-quests-action button {
+    width: 100%;
+  }
 }
 
 /* Progress bar container and fill */
@@ -4563,7 +4798,7 @@ ul {
   }
 
   .game-typed-answer-form {
-    height: 154px;
+    height: auto;
   }
 
   .game-cleared-practice-banner,
@@ -4609,6 +4844,16 @@ ul {
   .game-stats-correct-box #streak-count,
   .game-stats-incorrect-box #review-count {
     font-size: 16px;
+  }
+
+  .game-typed-answer-row {
+    gap: 10px;
+  }
+
+  /* Typed recall has one full-width answer card rather than a two-row choice
+   grid. Keep just a small separation before the primary action. */
+  .game-typed-grid ~ .game-next-button-container #game-next-word-button {
+    margin-top: 10px;
   }
 
   .game-word-card {
@@ -5264,8 +5509,12 @@ ul {
       min-height: 64px;
     }
 
+    body.word-game-mode .game-grid.game-typed-grid {
+      min-height: 0;
+    }
+
     body.word-game-mode .game-typed-answer-form {
-      height: 138px;
+      height: auto;
     }
 
     body.word-game-mode #game-next-word-button {

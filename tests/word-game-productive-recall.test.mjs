@@ -104,6 +104,12 @@ const typedMarkup = context.getTypedAnswerMarkup(0);
 assert.match(typedMarkup, /<form class="game-typed-answer-form"/);
 assert.match(typedMarkup, /<input[\s\S]+lang="nb"/);
 assert.match(typedMarkup, /<button class="game-typed-submit" type="submit">/);
+assert.doesNotMatch(typedMarkup, /game-typed-answer-feedback/);
+assert.match(source, /input\.value = correctAnswer/);
+assert.match(source, /input\.readOnly = true/);
+assert.match(source, /form\.classList\.contains\("is-answered"\)/);
+assert.match(source, /if \(event\.defaultPrevented\) return/);
+assert.doesNotMatch(source, /feedback\.innerHTML = `Correct answer:/);
 
 const answerButtonMatches = source.match(
   /<button type="button" class="game-translation-card"/g,

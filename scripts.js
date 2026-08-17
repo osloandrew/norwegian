@@ -413,6 +413,7 @@ function showLandingCard(show) {
       );
     }
     landingCard.style.display = "block";
+    window.DailyQuestAPI?.renderLanding?.();
   } else {
     landingCard.style.display = "none";
   }

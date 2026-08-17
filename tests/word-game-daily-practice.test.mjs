@@ -61,4 +61,24 @@ assert.equal(context.getDailyQuestQuestionMode(2, 0, true), "reverse");
 assert.equal(context.getDailyQuestQuestionMode(2, 1, true), "listening");
 assert.equal(context.getDailyQuestQuestionMode(2, 1, false), "reverse");
 
+assert.deepEqual(
+  Array.from({ length: 10 }, (_, index) =>
+    context.getBonusRoundQuestionMode(index, true),
+  ),
+  [
+    "cloze",
+    "listening",
+    "typed-reverse",
+    "cloze",
+    "typed-reverse",
+    "listening",
+    "cloze",
+    "typed-reverse",
+    "listening",
+    "typed-reverse",
+  ],
+);
+assert.equal(context.getBonusRoundQuestionMode(1, false), "typed-reverse");
+assert.equal(context.getBonusRoundQuestionMode(11, true), "listening");
+
 console.log("word-game daily practice tests passed");
