@@ -582,14 +582,35 @@
 
   async function buildPattern(display, example, includeReverse = false) {
     const rawTokens = tokenize(display);
+    // "noen"/"noe" normally mark a genuine variable slot ("gi noen noe" =
+    // "give someone something") and are compiled as optional placeholders
+    // (minWords: 0) below. But a citation that OPENS with one and has no
+    // other placeholder/wildcard elsewhere ("noen få" = "a few", "noen
+    // gang" = "ever") is a fixed idiom, not a template — that word isn't
+    // optional there. Leaving it optional let the pattern collapse to just
+    // its trailing lexeme, so a bare inflected form of an unrelated word
+    // class (e.g. "får", a verb form of "få") could satisfy the whole
+    // "noen få" pattern on its own and hijack unrelated story text.
+    const openingVariableTokenIsLiteral =
+      rawTokens.length > 0 &&
+      VARIABLE_TOKENS.has(rawTokens[0].normalized) &&
+      !rawTokens.some(
+        (token, index) =>
+          index > 0 &&
+          (token.normalized === "..." ||
+            VARIABLE_TOKENS.has(token.normalized) ||
+            VARIABLE_POSSESSIVES.has(token.normalized)),
+      );
     const nodes = [];
     for (let index = 0; index < rawTokens.length; index++) {
       const token = rawTokens[index];
+      const isLiteralOpeningVariable = index === 0 && openingVariableTokenIsLiteral;
       if (token.normalized === "...") {
         nodes.push({ type: "wildcard", text: "...", normalized: "..." });
       } else if (
-        VARIABLE_TOKENS.has(token.normalized) ||
-        VARIABLE_POSSESSIVES.has(token.normalized)
+        !isLiteralOpeningVariable &&
+        (VARIABLE_TOKENS.has(token.normalized) ||
+          VARIABLE_POSSESSIVES.has(token.normalized))
       ) {
         nodes.push({
           type: "placeholder",
@@ -606,10 +627,12 @@
           // Closed-class possessives are lexical material in dictionary
           // expressions.  Looking them up as open-class homographs can turn
           // "min" into a form of the verb "mine" and manufacture nonsense
-          // such as "du store miner/minte".
-          candidates: POSSESSIVE_FORMS.has(token.normalized)
-            ? []
-            : await getCandidates(token, index, includeReverse),
+          // such as "du store miner/minte". A literal opening "noen"/"noe"
+          // gets the same treatment for the same reason.
+          candidates:
+            POSSESSIVE_FORMS.has(token.normalized) || isLiteralOpeningVariable
+              ? []
+              : await getCandidates(token, index, includeReverse),
           maxGapBefore: 0,
         });
       }

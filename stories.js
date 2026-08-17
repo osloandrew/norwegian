@@ -1460,9 +1460,23 @@ function possessiveEnglishGloss(baseGloss, underlyingSlotIndex) {
   return isDefinite ? `the ${apostropheForm}` : apostropheForm;
 }
 
-function getStoryWordGloss(entry, surfaceWord) {
+function getStoryWordGloss(entry, surfaceWord, expressionVerbSlot) {
   const baseGloss = getDisplayedAnswer(entry.engelsk);
   const wordClass = WordClass.getWordClass(entry.gender);
+
+  // Expressions have no single-lemma paradigm for getMatchingSlots to check
+  // below (that's built for individual noun/verb/adjective entries), so a
+  // verb-headed expression's matched tense — found while locating its
+  // occurrence in the story text, see findExpressionMatchesInSentence —
+  // is threaded in directly instead. Without this, every occurrence showed
+  // the bare infinitive gloss ("enter") even when the text actually had
+  // "trådte inn" (entered).
+  if (wordClass === "expression") {
+    if (expressionVerbSlot === undefined) return baseGloss;
+    const transform = VERB_SLOT_GLOSS_TRANSFORMS[expressionVerbSlot];
+    return transform ? transform(baseGloss) : baseGloss;
+  }
+
   const matchingSlots =
     window.Inflections?.getMatchingSlots?.(entry, surfaceWord) || [];
   const slotIndex = matchingSlots[0];
@@ -1703,7 +1717,19 @@ async function findExpressionMatchesInSentence(sentenceText) {
         isReasonableExpressionMatchLength(matchedText, citationWordCount) &&
         !hasUnrelatedWordsBetweenSpans(match.spans, remaining)
       ) {
-        spans.push({ start, end, entry });
+        // Same "which node is the (finite) verb" check
+        // createVerbExpressionForms uses to build the Word Forms table —
+        // reused here so a story occurrence's gloss can reflect the tense
+        // actually matched ("trådte inn" -> "entered") instead of always
+        // the infinitive. node.infinitiveOnly nodes (a verb governed by an
+        // authored "å", not independently inflected) are skipped so a
+        // modal/infinitive pair doesn't pick the wrong one.
+        const verbSpan = match.spans.find(
+          (span) =>
+            span.node?.selected?.wordClass === "verb" &&
+            !span.node?.infinitiveOnly,
+        );
+        spans.push({ start, end, entry, verbSlotIndex: verbSpan?.slotIndexes?.[0] });
       }
       cursor += Math.max(match.end, 1);
     }
@@ -1727,11 +1753,17 @@ async function findExpressionMatchesInSentence(sentenceText) {
 // dataset attribute, so matched expression entries are kept here and
 // referenced from their span by a small numeric id instead.
 const expressionEntryRegistry = new Map();
+// Parallel map, same ids: which verb slot (if any) this specific
+// occurrence matched — see findExpressionMatchesInSentence. Kept separate
+// from expressionEntryRegistry rather than wrapping its values, since My
+// Words / star-toggle code elsewhere expects the raw dictionary entry.
+const expressionVerbSlotRegistry = new Map();
 let nextExpressionEntryId = 0;
 
-function registerExpressionEntry(entry) {
+function registerExpressionEntry(entry, verbSlotIndex) {
   const id = String(nextExpressionEntryId++);
   expressionEntryRegistry.set(id, entry);
+  if (verbSlotIndex !== undefined) expressionVerbSlotRegistry.set(id, verbSlotIndex);
   return id;
 }
 
@@ -1742,7 +1774,7 @@ function registerExpressionEntry(entry) {
 // (rather than trusting stale numbers) — since the replacement swaps nodes
 // for a single span of identical combined text, total length never
 // changes, so processing order doesn't matter.
-function replaceStoryWordSpanWithExpression(container, span, entry) {
+function replaceStoryWordSpanWithExpression(container, span, entry, verbSlotIndex) {
   let offset = 0;
   const nodesToReplace = [];
 
@@ -1761,7 +1793,7 @@ function replaceStoryWordSpanWithExpression(container, span, entry) {
   const newSpan = document.createElement("span");
   newSpan.className = "story-word story-word-expression";
   newSpan.dataset.word = matchedText;
-  newSpan.dataset.exprId = registerExpressionEntry(entry);
+  newSpan.dataset.exprId = registerExpressionEntry(entry, verbSlotIndex);
   newSpan.textContent = matchedText;
 
   nodesToReplace[0].parentNode.insertBefore(newSpan, nodesToReplace[0]);
@@ -1777,7 +1809,12 @@ async function upgradeStoryExpressionSpans() {
     const rawText = sentenceEl.dataset.rawText;
     const matches = await findExpressionMatchesInSentence(rawText);
     matches.forEach((match) =>
-      replaceStoryWordSpanWithExpression(sentenceEl, match, match.entry),
+      replaceStoryWordSpanWithExpression(
+        sentenceEl,
+        match,
+        match.entry,
+        match.verbSlotIndex,
+      ),
     );
   }
 }
@@ -1822,7 +1859,14 @@ function getExactMatchEntries(normalizedWord) {
 // from showStoryWordPopover so it can be called twice: once synchronously
 // with whatever's instantly available, and again if a slower follow-up
 // lookup finds more.
-function renderStoryWordPopoverContent(popover, entries, surfaceWord, normalizedWord, state) {
+function renderStoryWordPopoverContent(
+  popover,
+  entries,
+  surfaceWord,
+  normalizedWord,
+  state,
+  expressionVerbSlot,
+) {
   popover.innerHTML = "";
   popover.classList.remove("story-word-popover-empty");
 
@@ -1874,7 +1918,7 @@ function renderStoryWordPopoverContent(popover, entries, surfaceWord, normalized
   );
 
   orderedEntries.slice(0, MAX_STORY_WORD_POPOVER_SENSES).forEach((entry) => {
-    const gloss = getStoryWordGloss(entry, normalizedWord);
+    const gloss = getStoryWordGloss(entry, normalizedWord, expressionVerbSlot);
     const glossKey = gloss.toLowerCase();
     if (seenGlosses.has(glossKey)) return;
     seenGlosses.add(glossKey);
@@ -1944,6 +1988,9 @@ async function showStoryWordPopover(wordSpan) {
       : instantEntries.length > 0
         ? "ready"
         : "loading";
+  const expressionVerbSlot = isExpression
+    ? expressionVerbSlotRegistry.get(wordSpan.dataset.exprId)
+    : undefined;
 
   renderStoryWordPopoverContent(
     popover,
@@ -1951,6 +1998,7 @@ async function showStoryWordPopover(wordSpan) {
     surfaceWord,
     normalizedWord,
     instantState,
+    expressionVerbSlot,
   );
 
   document.body.appendChild(popover);
