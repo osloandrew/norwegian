@@ -1,5 +1,79 @@
+/*
+ * Colors that repeat across this file (2+ uses), extracted into custom
+ * properties so each one has a single source of truth instead of a hex
+ * literal copy-pasted at every call site. Names describe the color's role,
+ * not its value, so a future dark theme can retarget these without hunting
+ * down every occurrence individually.
+ *
+ * Colors used only once are left as literals for now — extracting a value
+ * with no reuse doesn't reduce duplication, only completeness for a future
+ * dark-mode pass would justify it.
+ */
+:root {
+  /* Brand blues */
+  --color-primary: #0d3a69;
+  --color-primary-active: #092c50;
+  --color-heading: #293a78;
+  --color-heading-accent: #1c68b5;
+  --color-link: #3c88d4;
+  --color-accent: #4a99ff;
+  /* Text */
+  --color-text: #333333;
+  --color-text-strong: #4a4a4a;
+  --color-text-secondary: #555555;
+  --color-text-muted: #666666;
+  --color-text-icon-muted: #6a6a6a;
+  --color-text-slate: #69737e;
+  --color-text-slate-soft: #5d6874;
+  --color-text-blue-muted: #52708f;
+  --color-text-faint: #777777;
+  --color-text-alt-title: #3c3c3c;
+  --color-badge-text: #4f4f4f;
+  /* Neutral / borders / backgrounds */
+  --color-white: #ffffff;
+  --color-border: #cccccc;
+  --color-border-light: #dddddd;
+  --color-border-neutral: #bbbbbb;
+  --color-border-input: #a0a0a0;
+  --color-progress-track: #eeeeee;
+  --color-bg-subtle: #f0f0f0;
+  --color-bg-light: #f4f4f4;
+  --color-table-header-bg: #f5f5f5;
+  --color-bg-hover: #f7f7f7;
+  --color-bg-hover-strong: #e0e0e0;
+  --color-text-on-light-btn: #2a3a2f;
+  /* Status (danger, success, streak, favorite) */
+  --color-danger: #951b1b;
+  --color-danger-dark: #5a1a1a;
+  --color-danger-text: #6b2814;
+  --color-danger-bg: #e9a895;
+  --color-success-bg: #c7e3b6;
+  --color-success-text: #254a1d;
+  --color-success: #365f36;
+  --color-streak-bg: #fff3e0;
+  --color-streak-border: #f0c896;
+  --color-streak-text: #b3541e;
+  --color-streak-icon: #f2994a;
+  --color-favorite: #a66c00;
+  --color-level-mid: #f2d96b;
+  /* Feature-specific accents (bonus quests, pale-blue hover states) */
+  --color-bonus: #5a3d82;
+  --color-bonus-hover: #72529d;
+  --color-bg-hover-blue: #eaf1fb;
+  --color-bg-row-hover: #f2f9fd;
+  --color-bg-quest-active: #f8fbff;
+  --color-bg-stat: #f7f9fc;
+  --color-bg-blue-active: #d9e8ff;
+  --color-border-blue-soft: #cbd9e8;
+  --color-bg-chrome: #d2dce5;
+  /* Third-party brand colors */
+  --color-linkedin: #0a66c2;
+  --color-border-google: #dadce0;
+  --color-google-text: #3c4043;
+}
+
 a {
-  color: #3c88d4;
+  color: var(--color-link);
 }
 
 .alt-spelling {
@@ -19,11 +93,11 @@ audio {
 #back-button,
 #speed-btn,
 #toggle-english-btn {
-  background-color: #f4f4f4; /* Neutral light gray */
-  border: #bbb 1px solid;
+  background-color: var(--color-bg-light); /* Neutral light gray */
+  border: var(--color-border-neutral) 1px solid;
   border-radius: 5px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  color: #2a3a2f;
+  color: var(--color-text-on-light-btn);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
   font-weight: 500;
@@ -49,8 +123,8 @@ audio {
   line-height: 30px; /* Matches height for vertical centering */
   margin: 0 0 10px 0; /* Remove auto margin and set bottom margin only */
   margin-bottom: 10px;
-  background-color: #ffffff; /* Subtle, lighter background */
-  color: #5a1a1a; /* Subtle maroon text */
+  background-color: var(--color-white); /* Subtle, lighter background */
+  color: var(--color-danger-dark); /* Subtle maroon text */
   border-radius: 6px; /* Slightly rounded corners */
   padding: 8px 14px; /* Larger padding for a more clickable feel */
   font-family: "Noto Sans", sans-serif; /* Clean, modern font */
@@ -72,14 +146,14 @@ audio {
 }
 
 .back-navigation:hover {
-  background-color: #f7f7f7; /* Slightly darker background on hover */
+  background-color: var(--color-bg-hover); /* Slightly darker background on hover */
   box-shadow:
     0 6px 12px rgba(135, 135, 135, 0.3),
     0 3px 6px rgba(0, 0, 0, 0.15); /* Slightly larger shadow */
 }
 
 body {
-  background-color: #f4f4f4;
+  background-color: var(--color-bg-light);
   display: flex;
   flex-direction: column;
   font-family: "Noto Serif", serif;
@@ -91,7 +165,7 @@ body {
 }
 
 button:disabled {
-  color: #ccc;
+  color: var(--color-border);
   cursor: not-allowed;
 }
 
@@ -101,21 +175,21 @@ button:disabled:hover {
 }
 
 button:disabled i {
-  color: #ccc;
+  color: var(--color-border);
   cursor: not-allowed;
 }
 
 .button-container i {
-  color: #0d3a69;
+  color: var(--color-primary);
   margin-bottom: 10px;
 }
 
 .button-pron {
-  background-color: #f4f4f4; /* Neutral light gray */
-  border: #bbb 1px solid;
+  background-color: var(--color-bg-light); /* Neutral light gray */
+  border: var(--color-border-neutral) 1px solid;
   border-radius: 5px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  color: #2a3a2f;
+  color: var(--color-text-on-light-btn);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
   font-weight: 500;
@@ -138,7 +212,7 @@ button:disabled i {
 
 .cefr-value {
   border-radius: 4px;
-  color: #4f4f4f; /* Default text color */
+  color: var(--color-badge-text); /* Default text color */
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
   font-weight: bold;
@@ -188,7 +262,7 @@ button:disabled i {
 
 .cefr-value.cefr-unknown,
 .sticky-cefr-label.cefr-unknown {
-  background-color: #e0e0e0; /* Gray for unknown levels */
+  background-color: var(--color-bg-hover-strong); /* Gray for unknown levels */
   color: #444444; /* Dark charcoal gray for readability */
 }
 
@@ -196,7 +270,7 @@ button:disabled i {
   align-items: center;
   background-color: white;
   border: none;
-  color: #666;
+  color: var(--color-text-muted);
   cursor: pointer;
   display: flex;
   font-size: 18px;
@@ -204,7 +278,7 @@ button:disabled i {
 }
 
 .clear-btn i {
-  color: #666;
+  color: var(--color-text-muted);
   font-size: 18px;
   transition:
     color 0.3s ease,
@@ -212,12 +286,12 @@ button:disabled i {
 }
 
 .clear-btn:hover i {
-  color: #666; /* Slightly darker shade for hover */
+  color: var(--color-text-muted); /* Slightly darker shade for hover */
 }
 
 .clickable-definition-word {
   cursor: pointer;
-  color: #3c88d4;
+  color: var(--color-link);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
@@ -260,7 +334,7 @@ button:disabled i {
 }
 
 .definition {
-  background-color: #ffffff;
+  background-color: var(--color-white);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
@@ -275,7 +349,7 @@ button:disabled i {
 
 .definition-content i {
   margin-right: 8px;
-  color: #951b1b; /* Dark red color */
+  color: var(--color-danger); /* Dark red color */
   font-size: 18px; /* Slightly larger than the text */
   width: 24px; /* Fixed width for uniformity */
   text-align: center; /* Centers the icons within their block */
@@ -284,7 +358,7 @@ button:disabled i {
 }
 
 .definition-content p {
-  color: #951b1b; /* Ensure text is also dark red */
+  color: var(--color-danger); /* Ensure text is also dark red */
   display: flex;
   align-items: center;
   gap: 5px;
@@ -292,7 +366,7 @@ button:disabled i {
 
 .definition p,
 li {
-  color: #333;
+  color: var(--color-text);
   font-size: 20px;
   line-height: 1.4;
   margin: 10px 0 10px 0;
@@ -301,7 +375,7 @@ li {
 .english,
 .etymology,
 .pronunciation {
-  color: #555 !important;
+  color: var(--color-text-secondary) !important;
   font-size: 16px !important;
   font-weight: 500;
 }
@@ -317,7 +391,7 @@ li {
 }
 
 .english-title {
-  color: #666;
+  color: var(--color-text-muted);
   font-family: "Noto Sans", sans-serif; /* English-specific font */
   font-size: 12.5px;
   -webkit-box-orient: vertical; /* Specifies vertical stacking of lines */
@@ -326,24 +400,24 @@ li {
 
 .error-message {
   align-content: center;
-  background-color: #ffffff;
+  background-color: var(--color-white);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   padding: 25px;
-  color: #951b1b; /* Error type in a similar error color */
+  color: var(--color-danger); /* Error type in a similar error color */
   font-size: 16px;
   font-weight: 600;
 }
 
 /* Specific styling for the error message */
 .error-message h2 {
-  color: #951b1b; /* Error title in a distinct color */
+  color: var(--color-danger); /* Error title in a distinct color */
   font-size: 24px;
 }
 
 .error-message p {
-  color: #555;
+  color: var(--color-text-secondary);
   font-size: 16px;
   line-height: 1.6;
 }
@@ -353,9 +427,9 @@ li {
 }
 
 footer {
-  background-color: #d2dce5;
+  background-color: var(--color-bg-chrome);
   bottom: 0;
-  color: #0d3a69;
+  color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   padding: 20px 0;
   position: relative;
@@ -369,25 +443,25 @@ footer p {
 }
 
 footer p a {
-  color: #3c88d4;
+  color: var(--color-link);
   font-weight: bold;
   text-decoration: none;
 }
 
 footer p a:hover {
-  color: #0d3a69;
+  color: var(--color-primary);
   text-decoration: underline;
 }
 
 footer .copyright {
-  color: #555;
+  color: var(--color-text-secondary);
   font-size: 12px;
 }
 
 #game-banner-placeholder {
   align-self: baseline;
   background-color: #f8f8f8;
-  color: #4f4f4f; /* Gray color, matching the scorecard */
+  color: var(--color-badge-text); /* Gray color, matching the scorecard */
   text-align: center;
   padding: 0px 6px !important; /* Smaller padding for a more compact banner */
   border-radius: 5px;
@@ -462,7 +536,7 @@ footer .copyright {
   align-self: flex-start; /* Align the label to the left */
   padding: 3px 7px; /* Smaller padding */
   font-size: 12px; /* Smaller font size */
-  color: #4f4f4f;
+  color: var(--color-badge-text);
   font-weight: bold;
   border-radius: 4px;
   text-align: center;
@@ -476,13 +550,13 @@ footer .copyright {
 .game-cefr-label.easy,
 .game-cefr-label.a1,
 .game-cefr-label.a2 {
-  background-color: #c7e3b6; /* Green for 'A1, A2' */
+  background-color: var(--color-success-bg); /* Green for 'A1, A2' */
 }
 
 .game-cefr-label.medium,
 .game-cefr-label.b1,
 .game-cefr-label.b2 {
-  background-color: #f2d96b; /* Yellow for 'B1, B2' */
+  background-color: var(--color-level-mid); /* Yellow for 'B1, B2' */
 }
 
 .game-cefr-label.hard,
@@ -522,7 +596,7 @@ footer .copyright {
 }
 
 .game-correct-card {
-  background-color: #c7e3b6 !important; /* Lighter olive green for correct */
+  background-color: var(--color-success-bg) !important; /* Lighter olive green for correct */
   color: white;
   display: flex;
   justify-content: center;
@@ -556,9 +630,9 @@ footer .copyright {
 
 .game-gender {
   align-self: flex-start; /* Align the label to the left */
-  background-color: #f0f0f0;
+  background-color: var(--color-bg-subtle);
   border-radius: 4px;
-  color: #4f4f4f !important;
+  color: var(--color-badge-text) !important;
   font-family: "Noto Sans", sans-serif;
   padding: 3px 7px;
   font-size: 12px; /* Smaller font size */
@@ -572,7 +646,7 @@ footer .copyright {
 }
 
 .game-incorrect-card {
-  background-color: #e9a895 !important; /* Lighter clay red for incorrect */
+  background-color: var(--color-danger-bg) !important; /* Lighter clay red for incorrect */
   color: white;
   display: flex;
   justify-content: center;
@@ -669,9 +743,9 @@ footer .copyright {
 #game-next-word-button {
   margin-top: 15px;
   width: 100%;
-  background-color: #0d3a69; /* Match the site's primary action color */
-  color: #ffffff;
-  border: 1px solid #0d3a69;
+  background-color: var(--color-primary); /* Match the site's primary action color */
+  color: var(--color-white);
+  border: 1px solid var(--color-primary);
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* More prominent shadow */
   border-radius: 6px; /* Slightly rounded corners */
   padding: 20px 15px;
@@ -695,19 +769,19 @@ footer .copyright {
 }
 
 #game-next-word-button:hover {
-  background-color: #4a99ff; /* Same hover treatment as the search button */
-  border-color: #4a99ff;
+  background-color: var(--color-accent); /* Same hover treatment as the search button */
+  border-color: var(--color-accent);
 }
 
 #game-next-word-button:active {
-  background-color: #092c50; /* Darker background on click */
-  border-color: #092c50;
+  background-color: var(--color-primary-active); /* Darker background on click */
+  border-color: var(--color-primary-active);
 }
 
 #game-next-word-button:disabled {
-  background-color: #0d3a69;
-  color: #ffffff;
-  border-color: #0d3a69;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border-color: var(--color-primary);
   cursor: not-allowed; /* Disabled cursor */
   box-shadow: none; /* No shadow when disabled */
   opacity: 0.4;
@@ -724,7 +798,7 @@ footer .copyright {
   align-self: flex-end; /* Align to the top */
   padding: 3px 7px; /* Same padding as CEFR label */
   font-size: 12px; /* Same font size as CEFR label */
-  color: #4f4f4f;
+  color: var(--color-badge-text);
   font-weight: bold;
   border-radius: 4px;
   text-transform: uppercase;
@@ -801,7 +875,7 @@ footer .copyright {
    box backgrounds, well under WCAG AA's 4.5:1 minimum for this size/
    weight of text) to #254a1d/#6b2814 (7.3:1 / 5.4:1). */
 .game-stats-correct-box #streak-count {
-  color: #254a1d !important;
+  color: var(--color-success-text) !important;
   font-family: "Noto Sans", sans-serif;
   font-size: 18px; /* Bigger font for numbers */
   font-weight: 400;
@@ -810,7 +884,7 @@ footer .copyright {
 }
 
 .game-stats-incorrect-box #review-count {
-  color: #6b2814 !important;
+  color: var(--color-danger-text) !important;
   font-family: "Noto Sans", sans-serif;
   font-size: 18px; /* Bigger font for numbers */
   font-weight: 400;
@@ -849,13 +923,13 @@ footer .copyright {
 }
 
 .game-stats-progress-wrapper .game-stat-label {
-  color: #666;
+  color: var(--color-text-muted);
 }
 
 .game-translation-card {
   appearance: none;
   background-color: white; /* Same as the word card */
-  border: 1px solid #ccc; /* Same border */
+  border: 1px solid var(--color-border); /* Same border */
   border-radius: 10px; /* Same rounded corners */
   box-sizing: border-box;
   padding: 10px;
@@ -863,7 +937,7 @@ footer .copyright {
   text-align: center; /* Centered text */
   font-family: "Noto Sans", sans-serif;
   font-size: 1.2em !important; /* Consistent font size */
-  color: #333; /* Same text color */
+  color: var(--color-text); /* Same text color */
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Same shadow */
   transition: background-color 0.3s ease; /* Smooth hover effect */
   cursor: pointer; /* Make it clickable */
@@ -897,12 +971,12 @@ footer .copyright {
    pale-gray disabled-button treatment; color and animation already explain
    which answer was right. */
 .game-translation-card:disabled {
-  color: #333;
+  color: var(--color-text);
   cursor: default;
 }
 
 .game-translation-card:focus-visible {
-  outline: 3px solid #3c88d4;
+  outline: 3px solid var(--color-link);
   outline-offset: 3px;
 }
 
@@ -929,13 +1003,13 @@ footer .copyright {
 
 .game-typed-answer-input {
   appearance: none;
-  background-color: #fff;
+  background-color: var(--color-white);
   /* Match the prompt card directly above it. */
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
-  color: #333;
+  color: var(--color-text);
   font-family: "Noto Sans", sans-serif;
   font-size: 1.2em;
   min-height: 60px;
@@ -947,16 +1021,16 @@ footer .copyright {
 
 .game-typed-answer-input:focus,
 .game-typed-answer-input:focus-visible {
-  border-color: #ccc;
+  border-color: var(--color-border);
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
   outline: none;
 }
 
 .game-typed-submit {
-  background-color: #0d3a69;
-  border: 1px solid #0d3a69;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
   border-radius: 10px;
-  color: #fff;
+  color: var(--color-white);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
   font-size: 14px;
@@ -966,12 +1040,12 @@ footer .copyright {
 }
 
 .game-typed-submit:hover {
-  background-color: #4a99ff;
-  border-color: #4a99ff;
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .game-typed-submit:focus-visible {
-  outline: 3px solid #3c88d4;
+  outline: 3px solid var(--color-link);
   outline-offset: 3px;
 }
 
@@ -1045,10 +1119,10 @@ footer .copyright {
    decoration, with a slow pulse to draw the eye to it on first render. */
 .game-listening-icon {
   align-items: center;
-  background-color: #0d3a69;
+  background-color: var(--color-primary);
   border-radius: 50%;
   box-shadow: 0 4px 10px rgba(13, 58, 105, 0.35);
-  color: #fff;
+  color: var(--color-white);
   /* Font Awesome's own base rule (.fas/.fa-solid) was winning the cascade
      and resolving this to display:block, which silently made
      align-items/justify-content inert (they only affect flex/grid
@@ -1090,7 +1164,7 @@ footer .copyright {
 }
 
 .game-word-audio:hover .game-listening-icon {
-  background-color: #3c88d4;
+  background-color: var(--color-link);
   box-shadow: 0 6px 14px rgba(13, 58, 105, 0.45);
 }
 
@@ -1099,7 +1173,7 @@ footer .copyright {
 }
 
 .game-word-audio:focus-visible .game-listening-icon {
-  outline: 3px solid #3c88d4;
+  outline: 3px solid var(--color-link);
   outline-offset: 3px;
 }
 
@@ -1107,10 +1181,10 @@ footer .copyright {
 .game-intro-card {
   align-items: center;
   background-color: white;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-  color: #333;
+  color: var(--color-text);
   display: flex;
   flex-direction: column;
   padding: 30px 20px;
@@ -1119,7 +1193,7 @@ footer .copyright {
 
 .game-today-practice {
   background: #f6f9fd;
-  border: 1px solid #cbd9e8;
+  border: 1px solid var(--color-border-blue-soft);
   border-radius: 12px;
   box-sizing: border-box;
   margin-bottom: 18px;
@@ -1137,7 +1211,7 @@ footer .copyright {
 }
 
 .game-today-practice-eyebrow {
-  color: #52708f;
+  color: var(--color-text-blue-muted);
   font-family: "Noto Sans", sans-serif;
   font-size: 10px;
   font-weight: 700;
@@ -1152,14 +1226,14 @@ footer .copyright {
 }
 
 .game-today-practice-count {
-  color: #0d3a69;
+  color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   font-size: 1.1em;
   white-space: nowrap;
 }
 
 .game-today-practice-note {
-  color: #5d6874;
+  color: var(--color-text-slate-soft);
   font-family: "Noto Sans", sans-serif;
   font-size: 0.82em;
   margin: 9px 0 10px;
@@ -1202,10 +1276,10 @@ footer .copyright {
 
 .game-today-practice-btn {
   align-items: center;
-  background-color: #0d3a69;
-  border: 1px solid #0d3a69;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
   border-radius: 8px;
-  color: #fff;
+  color: var(--color-white);
   cursor: pointer;
   display: flex;
   font-family: "Noto Sans", sans-serif;
@@ -1223,23 +1297,23 @@ footer .copyright {
 }
 
 .game-today-practice-btn:hover {
-  background-color: #4a99ff;
-  border-color: #4a99ff;
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .game-today-practice-btn.is-complete {
-  background-color: #365f36;
-  border-color: #365f36;
+  background-color: var(--color-success);
+  border-color: var(--color-success);
 }
 
 .game-today-practice-btn.is-bonus {
-  background-color: #5a3d82;
-  border-color: #5a3d82;
+  background-color: var(--color-bonus);
+  border-color: var(--color-bonus);
 }
 
 .game-today-practice-btn.is-bonus:hover {
-  background-color: #72529d;
-  border-color: #72529d;
+  background-color: var(--color-bonus-hover);
+  border-color: var(--color-bonus-hover);
 }
 
 .game-daily-quests {
@@ -1248,14 +1322,14 @@ footer .copyright {
 }
 
 .game-daily-quests-heading-row h3 {
-  color: #0d3a69;
+  color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   font-size: 0.95em;
   margin: 0;
 }
 
 .game-daily-quests-heading-row > span {
-  color: #777;
+  color: var(--color-text-faint);
   font-family: "Noto Sans", sans-serif;
   font-size: 0.72em;
 }
@@ -1271,7 +1345,7 @@ footer .copyright {
 
 .game-daily-quest {
   align-items: center;
-  background-color: #fff;
+  background-color: var(--color-white);
   border: 1px solid #d6dce2;
   border-radius: 12px;
   box-sizing: border-box;
@@ -1288,15 +1362,15 @@ footer .copyright {
 }
 
 .game-daily-quest--active {
-  background-color: #f8fbff;
+  background-color: var(--color-bg-quest-active);
   border-color: #8daac7;
   box-shadow: 0 5px 16px rgba(13, 58, 105, 0.1);
   transform: translateY(-2px);
 }
 
 .game-daily-quest--locked {
-  background-color: #f5f5f5;
-  color: #777;
+  background-color: var(--color-table-header-bg);
+  color: var(--color-text-faint);
 }
 
 .game-daily-quest--complete {
@@ -1346,7 +1420,7 @@ footer .copyright {
 
 .game-daily-quest-target,
 .game-daily-quest-status {
-  color: #69737e;
+  color: var(--color-text-slate);
   font-family: "Noto Sans", sans-serif;
   font-size: 0.66em;
   line-height: 1.25;
@@ -1364,7 +1438,7 @@ footer .copyright {
 
 .game-intro-divider {
   align-items: center;
-  color: #777;
+  color: var(--color-text-faint);
   display: flex;
   font-family: "Noto Sans", sans-serif;
   font-size: 0.72em;
@@ -1384,7 +1458,7 @@ footer .copyright {
 }
 
 .game-intro-heading {
-  color: #0d3a69;
+  color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   font-size: 1.4em;
   font-weight: 600;
@@ -1392,7 +1466,7 @@ footer .copyright {
 }
 
 .game-intro-subheading {
-  color: #666;
+  color: var(--color-text-muted);
   font-family: "Noto Sans", sans-serif;
   font-size: 0.95em;
   margin: 0 0 18px 0;
@@ -1408,10 +1482,10 @@ footer .copyright {
 .game-intro-option {
   align-items: center;
   background-color: white;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-  color: #0d3a69;
+  color: var(--color-primary);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -1428,7 +1502,7 @@ footer .copyright {
 
 .game-intro-option:hover {
   background-color: #f0f6ff;
-  border-color: #4a99ff;
+  border-color: var(--color-accent);
 }
 
 .game-intro-option:active {
@@ -1447,15 +1521,15 @@ footer .copyright {
 }
 
 .game-intro-option-infinite {
-  background-color: #0d3a69;
-  color: #ffffff;
+  background-color: var(--color-primary);
+  color: var(--color-white);
   flex-direction: row;
   gap: 10px;
 }
 
 .game-intro-option-infinite:hover {
-  background-color: #4a99ff;
-  border-color: #4a99ff;
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .game-intro-option-infinite i {
@@ -1500,10 +1574,10 @@ footer .copyright {
 .game-summary-card {
   align-items: center;
   background-color: white;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-  color: #333;
+  color: var(--color-text);
   display: flex;
   flex-direction: column;
   padding: 30px 20px;
@@ -1511,13 +1585,13 @@ footer .copyright {
 }
 
 .game-summary-icon {
-  color: #f2d96b;
+  color: var(--color-level-mid);
   font-size: 2.2em;
   margin-bottom: 10px;
 }
 
 .game-summary-heading {
-  color: #0d3a69;
+  color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   font-size: 1.4em;
   font-weight: 600;
@@ -1534,7 +1608,7 @@ footer .copyright {
 
 .game-summary-gem {
   align-items: center;
-  background-color: #f7f9fc;
+  background-color: var(--color-bg-stat);
   border: 1px solid #d8dee5;
   border-radius: 8px;
   display: flex;
@@ -1552,9 +1626,9 @@ footer .copyright {
    after this round — see showWordGameRoundSummary() in wordGame.js. */
 .game-summary-streak {
   align-items: center;
-  background-color: #fff3e0;
+  background-color: var(--color-streak-bg);
   border-radius: 8px;
-  color: #b3541e;
+  color: var(--color-streak-text);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -1570,7 +1644,7 @@ footer .copyright {
 }
 
 .game-summary-streak .fa-fire {
-  color: #f2994a;
+  color: var(--color-streak-icon);
   margin-right: 4px;
 }
 
@@ -1589,13 +1663,13 @@ footer .copyright {
 }
 
 .game-summary-stat {
-  background-color: #f7f9fc;
+  background-color: var(--color-bg-stat);
   border-radius: 10px;
   padding: 14px 10px;
 }
 
 .game-summary-stat-value {
-  color: #0d3a69;
+  color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   font-size: 1.5em;
   font-weight: 700;
@@ -1603,7 +1677,7 @@ footer .copyright {
 }
 
 .game-summary-stat-label {
-  color: #666;
+  color: var(--color-text-muted);
   font-family: "Noto Sans", sans-serif;
   font-size: 0.8em;
   letter-spacing: 0.03em;
@@ -1612,11 +1686,11 @@ footer .copyright {
 }
 
 .game-summary-primary-btn {
-  background-color: #0d3a69;
-  border: 1px solid #0d3a69;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
   border-radius: 6px;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-  color: #ffffff;
+  color: var(--color-white);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
   font-size: 14px;
@@ -1632,13 +1706,13 @@ footer .copyright {
 }
 
 .game-summary-primary-btn:hover {
-  background-color: #4a99ff;
-  border-color: #4a99ff;
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .game-summary-primary-btn:active {
-  background-color: #092c50;
-  border-color: #092c50;
+  background-color: var(--color-primary-active);
+  border-color: var(--color-primary-active);
 }
 
 /* Lists the specific words missed during the round — populated from
@@ -1654,7 +1728,7 @@ footer .copyright {
 }
 
 .game-summary-missed-heading {
-  color: #666;
+  color: var(--color-text-muted);
   font-family: "Noto Sans", sans-serif;
   font-size: 0.8em;
   font-weight: 600;
@@ -1669,7 +1743,7 @@ footer .copyright {
 }
 
 .game-summary-missed-more {
-  color: #666;
+  color: var(--color-text-muted);
   font-size: 0.8em;
   margin: 8px 0 0 0;
   text-align: center;
@@ -1689,7 +1763,7 @@ footer .copyright {
    wordGame.js). Mirrors .level-progress-bar-bg/-fill's colors so the two
    read as the same component in different modes. */
 .game-session-progress-bg {
-  background-color: #eee;
+  background-color: var(--color-progress-track);
   border-radius: 10px;
   flex-grow: 1;
   overflow: hidden;
@@ -1697,7 +1771,7 @@ footer .copyright {
 }
 
 .game-session-progress-fill {
-  background-color: #c7e3b6;
+  background-color: var(--color-success-bg);
   transition: width 0.3s ease;
 }
 
@@ -1752,10 +1826,10 @@ footer .copyright {
      so this is harmless there. */
   align-self: center;
   align-items: center;
-  background-color: #fff;
-  border: 1.5px solid #0d3a69;
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-primary);
   border-radius: 8px;
-  color: #0d3a69;
+  color: var(--color-primary);
   cursor: pointer;
   display: flex;
   flex-shrink: 0;
@@ -1771,11 +1845,11 @@ footer .copyright {
 }
 
 .game-end-session-btn:hover {
-  background-color: #eaf1fb;
+  background-color: var(--color-bg-hover-blue);
 }
 
 .game-end-session-btn:active {
-  background-color: #d9e8ff;
+  background-color: var(--color-bg-blue-active);
 }
 
 /* Hidden by default — .hidden (index.html) covers the "no round active"
@@ -1825,11 +1899,11 @@ footer .copyright {
 .game-word-card {
   align-items: center; /* Center the content horizontally */
   background-color: white;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   box-sizing: border-box;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-  color: #333;
+  color: var(--color-text);
   display: flex;
   flex-direction: column; /* Stack the label and word vertically */
   font-size: 1.2em;
@@ -1845,8 +1919,8 @@ footer .copyright {
 
 .gender {
   align-self: flex-start; /* Align the label to the left */
-  background-color: #f0f0f0;
-  color: #6a6a6a !important;
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-icon-muted) !important;
   font-family: "Noto Sans", sans-serif;
   padding: 3px 4px; /* Smaller padding */
   font-size: 10px; /* Smaller font size */
@@ -1864,14 +1938,14 @@ footer .copyright {
 }
 
 h1 {
-  color: #293a78;
+  color: var(--color-heading);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 h2 {
-  color: #1c68b5;
+  color: var(--color-heading-accent);
   font-size: 30px;
   font-weight: bold;
   margin: -5px 0 -5px 0;
@@ -1888,8 +1962,8 @@ h4 {
 }
 
 header {
-  background-color: #d2dce5;
-  color: #0d3a69;
+  background-color: var(--color-bg-chrome);
+  color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   letter-spacing: 0.05rem;
   padding: 20px;
@@ -1928,10 +2002,10 @@ header p {
    actual streak — see updateStreakBadge() in streak.js. */
 .streak-badge {
   align-items: center;
-  background-color: #fff3e0;
-  border: 0.5px solid #f0c896;
+  background-color: var(--color-streak-bg);
+  border: 0.5px solid var(--color-streak-border);
   border-radius: 6px;
-  color: #b3541e;
+  color: var(--color-streak-text);
   display: flex;
   font-size: 13px;
   font-weight: 700;
@@ -1941,7 +2015,7 @@ header p {
 }
 
 .streak-badge .fa-fire {
-  color: #f2994a;
+  color: var(--color-streak-icon);
 }
 
 /* Mirrors .auth-container's positioning on the opposite corner, and
@@ -1951,10 +2025,10 @@ header p {
    since "an issue" isn't scoped to any one story there. */
 .story-report-issue-btn {
   align-items: center;
-  background-color: #fff;
-  border: 0.5px solid #a0a0a0;
+  background-color: var(--color-white);
+  border: 0.5px solid var(--color-border-input);
   border-radius: 6px;
-  color: #4a4a4a;
+  color: var(--color-text-strong);
   cursor: pointer;
   display: none;
   font-family: "Noto Sans", sans-serif;
@@ -1980,17 +2054,17 @@ html.reading .story-report-issue-btn {
 }
 
 .story-report-issue-btn i {
-  color: #951b1b;
+  color: var(--color-danger);
   font-size: 12px;
 }
 
 .story-report-issue-btn:hover {
-  background-color: #f0f0f0;
-  border-color: #6a6a6a;
+  background-color: var(--color-bg-subtle);
+  border-color: var(--color-text-icon-muted);
 }
 
 .story-report-issue-btn:focus-visible {
-  outline: 2px solid #4a4a4a;
+  outline: 2px solid var(--color-text-strong);
   outline-offset: 2px;
 }
 
@@ -2000,9 +2074,9 @@ html.reading .story-report-issue-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: #fff;
-  color: #3c4043;
-  border: 1px solid #dadce0;
+  background-color: var(--color-white);
+  color: var(--color-google-text);
+  border: 1px solid var(--color-border-google);
   border-radius: 6px;
   padding: 7px 12px;
   font-family: "Noto Sans", sans-serif;
@@ -2050,8 +2124,8 @@ html.reading .story-report-issue-btn {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: #f2994a;
-  border: 1.5px solid #fff;
+  background-color: var(--color-streak-icon);
+  border: 1.5px solid var(--color-white);
 }
 
 .google-signin-btn:disabled::after {
@@ -2063,11 +2137,11 @@ html.reading .story-report-issue-btn {
    same way regardless of which page/scroll position triggered it. */
 .signin-nudge-banner {
   align-items: center;
-  background-color: #0d3a69;
+  background-color: var(--color-primary);
   border-radius: 10px;
   bottom: 20px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  color: #fff;
+  color: var(--color-white);
   display: flex;
   font-family: "Noto Sans", sans-serif;
   gap: 12px;
@@ -2093,10 +2167,10 @@ html.reading .story-report-issue-btn {
 }
 
 .signin-nudge-signin-btn {
-  background-color: #fff;
+  background-color: var(--color-white);
   border: none;
   border-radius: 6px;
-  color: #0d3a69;
+  color: var(--color-primary);
   cursor: pointer;
   flex-shrink: 0;
   font-family: "Noto Sans", sans-serif;
@@ -2107,7 +2181,7 @@ html.reading .story-report-issue-btn {
 }
 
 .signin-nudge-signin-btn:hover {
-  background-color: #d9e8ff;
+  background-color: var(--color-bg-blue-active);
 }
 
 .signin-nudge-signin-btn:disabled {
@@ -2126,7 +2200,7 @@ html.reading .story-report-issue-btn {
 }
 
 .signin-nudge-dismiss-btn:hover {
-  color: #fff;
+  color: var(--color-white);
 }
 
 @media (max-width: 600px) {
@@ -2206,13 +2280,13 @@ html.reading .story-report-issue-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: #fff;
-  border: 1px solid #dadce0;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border-google);
   border-radius: 6px;
   padding: 5px 10px 5px 5px;
   font-size: 13px;
   font-weight: 500;
-  color: #3c4043;
+  color: var(--color-google-text);
   box-shadow: 0 1px 2px rgba(60, 64, 67, 0.12);
 }
 
@@ -2220,7 +2294,7 @@ html.reading .story-report-issue-btn {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 1px solid #dadce0;
+  border: 1px solid var(--color-border-google);
 }
 
 .auth-user-name {
@@ -2344,7 +2418,7 @@ input[type="text"] {
 
 input[type="text"]:focus + label,
 input[type="text"]:not(:placeholder-shown) + label {
-  color: #293a78;
+  color: var(--color-heading);
   font-size: 12px;
   top: -10px;
 }
@@ -2368,7 +2442,7 @@ input[type="text"]:not(:placeholder-shown) + label {
 /* Matches the gold of a filled My Words star (.is-saved below) — a word
    already saved stands out while reading without needing to be clicked. */
 .story-word-known {
-  color: #a66c00;
+  color: var(--color-favorite);
   font-weight: 600;
 }
 
@@ -2376,7 +2450,7 @@ input[type="text"]:not(:placeholder-shown) + label {
    positionStoryWordPopover in stories.js). Deliberately minimal: a gloss
    and a My Words star per sense, nothing else. */
 .story-word-popover {
-  background-color: #ffffff;
+  background-color: var(--color-white);
   border-radius: 10px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
   display: flex;
@@ -2407,7 +2481,7 @@ input[type="text"]:not(:placeholder-shown) + label {
 
 .story-word-popover-empty {
   align-items: flex-start;
-  color: #777777;
+  color: var(--color-text-faint);
   display: flex;
   flex-direction: column;
   font-family: "Noto Sans", sans-serif;
@@ -2421,7 +2495,7 @@ input[type="text"]:not(:placeholder-shown) + label {
   appearance: none;
   background: none;
   border: none;
-  color: #1c68b5;
+  color: var(--color-heading-accent);
   cursor: pointer;
   font-size: 12px;
   font-style: normal;
@@ -2430,18 +2504,18 @@ input[type="text"]:not(:placeholder-shown) + label {
 }
 
 .story-word-popover-flag-btn:hover {
-  color: #0d3a69;
+  color: var(--color-primary);
 }
 
 .story-word-popover-translation {
-  color: #333333;
+  color: var(--color-text);
   font-family: "Noto Serif", serif;
   font-size: 15px;
   white-space: nowrap;
 }
 
 .japanese-title {
-  color: #3c3c3c;
+  color: var(--color-text-alt-title);
   display: -webkit-box; /* Creates a block-level flex container */
   font-family: "Noto Serif", serif; /* Japanese-specific font */
   font-weight: 350;
@@ -2455,7 +2529,7 @@ input[type="text"]:not(:placeholder-shown) + label {
 }
 
 label {
-  color: #555;
+  color: var(--color-text-secondary);
   left: 10px;
   pointer-events: none;
   position: absolute;
@@ -2464,7 +2538,7 @@ label {
 }
 
 #landing-card {
-  background-color: #ffffff;
+  background-color: var(--color-white);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   margin: 20px auto;
@@ -2504,7 +2578,7 @@ html.landing #landing-card {
 
 /* Adjust the heading size and color to match the word titles in definition cards */
 #landing-card h2 {
-  color: #0d3a69; /* Matches the heading color of definition cards */
+  color: var(--color-primary); /* Matches the heading color of definition cards */
   font-family: "Grenze Gotisch", serif;
   font-size: 38px !important; /* Matches the font size of definition card headings */
   margin-bottom: 10px;
@@ -2517,7 +2591,7 @@ html.landing #landing-card {
 #landing-card p {
   font-family: "Noto Sans", sans-serif;
   font-size: 14px !important; /* Matches the font size of other definition content */
-  color: #555; /* Similar color to definition content */
+  color: var(--color-text-secondary); /* Similar color to definition content */
   line-height: 1.6; /* Increase line height for readability */
   text-align: left;
   user-select: none;
@@ -2531,8 +2605,8 @@ html.landing #landing-card {
   margin: 0 auto; /* Centering with smaller vertical margins */
   margin-bottom: 15px;
   margin-top: 15px;
-  background-color: #fff;
-  color: #0d3a69; /* Brand navy, matching the header/filters/badges rather
+  background-color: var(--color-white);
+  color: var(--color-primary); /* Brand navy, matching the header/filters/badges rather
                       than a disconnected neutral gray */
   border: 1px solid #b7c9e2; /* Soft navy-tinted border instead of gray */
   border-radius: 6px; /* Slightly rounded corners */
@@ -2556,14 +2630,14 @@ html.landing #landing-card {
 }
 
 .landing-card-btn:hover {
-  background-color: #eaf1fb; /* Same navy tint as the icon chip/word-count
+  background-color: var(--color-bg-hover-blue); /* Same navy tint as the icon chip/word-count
                                  badge, so hover reads as part of the same
                                  color family instead of a plain gray */
-  border-color: #0d3a69;
+  border-color: var(--color-primary);
 }
 
 .landing-card-btn i {
-  color: #5a1a1a;
+  color: var(--color-danger-dark);
   margin-right: 8px; /* Adds space between the icon and text */
 }
 
@@ -2611,7 +2685,7 @@ html.landing #landing-card {
 }
 
 .button-container:focus-visible {
-  outline: 2px solid #0d3a69;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -2623,7 +2697,7 @@ html.landing #landing-card {
 /* The tile's name — plain typography now that the card itself is the
    click target, rather than a bordered pill button nested inside it. */
 .landing-card-title {
-  color: #0d3a69;
+  color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   font-size: 15px;
   font-weight: 700;
@@ -2695,9 +2769,9 @@ html.landing #landing-card {
 }
 
 .landing-feature-tag--streak {
-  background-color: #fff3e0;
-  border: 1px solid #f0c896;
-  color: #b3541e;
+  background-color: var(--color-streak-bg);
+  border: 1px solid var(--color-streak-border);
+  color: var(--color-streak-text);
 }
 
 .landing-feature-tag--narrated {
@@ -2725,9 +2799,9 @@ html.landing #landing-card {
    type selector to outweigh the base #landing-card p rule (text-align:
    left, color:#555) regardless of source order. */
 #landing-card p.landing-word-count-badge {
-  background-color: #eaf1fb;
+  background-color: var(--color-bg-hover-blue);
   border-radius: 6px;
-  color: #0d3a69;
+  color: var(--color-primary);
   display: inline-block;
   font-weight: 600;
   margin: 8px auto 0;
@@ -2739,8 +2813,8 @@ html.landing #landing-card {
    shown inside Word Game. It spans the landing card above the feature grid,
    so the day's most useful action is visible without displacing a tool tile. */
 .landing-daily-quests {
-  background: linear-gradient(145deg, #f8fbff 0%, #f4f7fb 100%);
-  border: 1px solid #cbd9e8;
+  background: linear-gradient(145deg, var(--color-bg-quest-active) 0%, #f4f7fb 100%);
+  border: 1px solid var(--color-border-blue-soft);
   border-radius: 14px;
   box-sizing: border-box;
   margin-top: 22px;
@@ -2757,7 +2831,7 @@ html.landing #landing-card {
 }
 
 #landing-card p.landing-daily-quests-eyebrow {
-  color: #52708f;
+  color: var(--color-text-blue-muted);
   font-size: 10px !important;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -2767,14 +2841,14 @@ html.landing #landing-card {
 }
 
 #landing-card .landing-daily-quests h3 {
-  color: #0d3a69;
+  color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   font-size: 19px;
   margin: 0;
 }
 
 #landing-card p.landing-daily-quests-intro {
-  color: #5d6874;
+  color: var(--color-text-slate-soft);
   font-size: 12px !important;
   line-height: 1.45;
   margin: 5px 0 0;
@@ -2784,7 +2858,7 @@ html.landing #landing-card {
 .landing-daily-quests-count {
   background-color: #e8eff7;
   border-radius: 999px;
-  color: #0d3a69;
+  color: var(--color-primary);
   flex: 0 0 auto;
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
@@ -2829,7 +2903,7 @@ html.landing #landing-card {
 
 .landing-daily-quests-action {
   align-items: center;
-  background-color: #fff;
+  background-color: var(--color-white);
   border: 1px solid #d9e1e9;
   border-radius: 10px;
   display: flex;
@@ -2851,7 +2925,7 @@ html.landing #landing-card {
 }
 
 .landing-daily-quests-action span {
-  color: #69737e;
+  color: var(--color-text-slate);
   font-family: "Noto Sans", sans-serif;
   font-size: 11px;
   margin-top: 2px;
@@ -2859,10 +2933,10 @@ html.landing #landing-card {
 
 .landing-daily-quests-action button {
   align-items: center;
-  background-color: #0d3a69;
-  border: 1px solid #0d3a69;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
   border-radius: 8px;
-  color: #fff;
+  color: var(--color-white);
   cursor: pointer;
   display: flex;
   flex: 0 0 auto;
@@ -2879,22 +2953,22 @@ html.landing #landing-card {
 }
 
 .landing-daily-quests-action button:hover {
-  background-color: #4a99ff;
-  border-color: #4a99ff;
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .landing-daily-quests-action button.is-bonus {
-  background-color: #5a3d82;
-  border-color: #5a3d82;
+  background-color: var(--color-bonus);
+  border-color: var(--color-bonus);
 }
 
 .landing-daily-quests-action button.is-bonus:hover {
-  background-color: #72529d;
-  border-color: #72529d;
+  background-color: var(--color-bonus-hover);
+  border-color: var(--color-bonus-hover);
 }
 
 .landing-daily-quests-action button:focus-visible {
-  outline: 2px solid #0d3a69;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -2935,7 +3009,7 @@ html.landing #landing-card {
 
 /* Progress bar container and fill */
 .level-progress-bar-bg {
-  background-color: #eee;
+  background-color: var(--color-progress-track);
   border-radius: 10px;
   overflow: hidden;
   display: flex;
@@ -2945,13 +3019,13 @@ html.landing #landing-card {
 }
 
 .level-progress-bar-fill {
-  background-color: #c7e3b6;
+  background-color: var(--color-success-bg);
   height: 100%;
   transition: width 0.3s ease;
 }
 
 li {
-  color: #1c68b5;
+  color: var(--color-heading-accent);
 }
 
 .links {
@@ -2966,9 +3040,9 @@ li {
 .linkedin-btn {
   align-items: center;
   background-color: white;
-  border: 1px solid #0a66c2;
+  border: 1px solid var(--color-linkedin);
   border-radius: 4px;
-  color: #0a66c2;
+  color: var(--color-linkedin);
   cursor: pointer;
   display: inline-flex;
   font-family: "Noto Sans", sans-serif;
@@ -2982,15 +3056,15 @@ li {
 }
 
 .linkedin-btn:hover {
-  background-color: #f0f0f0;
-  color: #0a66c2;
+  background-color: var(--color-bg-subtle);
+  color: var(--color-linkedin);
 }
 
 .linkedin-btn:focus-visible,
 .coffee-btn:focus-visible,
 .feedback-footer-btn:focus-visible,
 .site-switcher-select:focus-visible {
-  outline: 2px solid #0d3a69;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -3006,9 +3080,9 @@ li {
 .feedback-footer-btn {
   align-items: center;
   background-color: white;
-  border: 1px solid #0d3a69;
+  border: 1px solid var(--color-primary);
   border-radius: 4px;
-  color: #0d3a69;
+  color: var(--color-primary);
   cursor: pointer;
   display: inline-flex;
   font-family: "Noto Sans", sans-serif;
@@ -3022,7 +3096,7 @@ li {
 }
 
 .feedback-footer-btn:hover {
-  background-color: #f0f0f0;
+  background-color: var(--color-bg-subtle);
 }
 
 .feedback-footer-btn i {
@@ -3030,7 +3104,7 @@ li {
 }
 
 .site-switcher-select {
-  background: #fff;
+  background: var(--color-white);
   border: 1px solid #052242;
   border-radius: 6px;
   cursor: pointer;
@@ -3054,7 +3128,7 @@ li {
 }
 
 #lock-icon.locked {
-  color: #c7e3b6; /* light green for locked */
+  color: var(--color-success-bg); /* light green for locked */
   transform: scale(1.1);
 }
 
@@ -3080,7 +3154,7 @@ main {
 }
 
 .multiple-results-definition:hover {
-  background-color: #f2f9fd; /* Hover effect same as word card */
+  background-color: var(--color-bg-row-hover); /* Hover effect same as word card */
 }
 
 /* The word, gender and definition */
@@ -3171,18 +3245,18 @@ ul {
 
 .pronunciation-table th,
 .pronunciation-table td {
-  border: 1px solid #dddddd;
+  border: 1px solid var(--color-border-light);
   padding: 10px;
 }
 
 .pronunciation-table th {
-  background-color: #f5f5f5;
+  background-color: var(--color-table-header-bg);
   font-weight: bold;
 }
 
 .my-words-nav-btn {
   align-items: center;
-  background-color: #0d3a69;
+  background-color: var(--color-primary);
   border: none;
   border-radius: 15px;
   color: white;
@@ -3200,13 +3274,13 @@ ul {
 }
 
 .my-words-nav-btn:hover {
-  background-color: #3c88d4;
+  background-color: var(--color-link);
   box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
 }
 
 .result-header {
   align-content: center;
-  background-color: #ffffff;
+  background-color: var(--color-white);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding: 25px;
@@ -3217,7 +3291,7 @@ ul {
 
 .result-header h2 {
   margin: 0; /* Reset margin for the title */
-  color: #951b1b;
+  color: var(--color-danger);
   font-family: "Noto Sans", sans-serif;
   font-size: 1.3em;
   font-weight: 400;
@@ -3227,7 +3301,7 @@ ul {
 }
 
 .result-header i {
-  color: #951b1b;
+  color: var(--color-danger);
   position: absolute;
   left: 15px; /* Position the icon on the far left */
   cursor: pointer;
@@ -3266,7 +3340,7 @@ ul {
 .genre-filter,
 .game-english-filter {
   align-items: center;
-  background-color: #0d3a69;
+  background-color: var(--color-primary);
   border-radius: 15px;
   box-sizing: border-box;
   display: flex;
@@ -3295,7 +3369,7 @@ ul {
 .cefr-filter:not(.disabled):hover,
 .genre-filter:not(.disabled):hover,
 .game-english-filter:not(.disabled):hover {
-  background-color: #3c88d4;
+  background-color: var(--color-link);
   box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
 }
 
@@ -3312,7 +3386,7 @@ ul {
 .cefr-filter select:focus-visible,
 .genre-filter select:focus-visible,
 .game-english-filter select:focus-visible {
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--color-white);
   outline-offset: 2px;
 }
 
@@ -3341,10 +3415,10 @@ ul {
    definition card) rather than blending into the dark blue toolbar. */
 .toolbar-report-issue-btn {
   align-items: center;
-  background-color: #f0f0f0;
+  background-color: var(--color-bg-subtle);
   border: none;
   border-radius: 8px;
-  color: #951b1b;
+  color: var(--color-danger);
   cursor: pointer;
   display: none;
   flex: 0 0 auto;
@@ -3362,18 +3436,18 @@ ul {
 }
 
 .toolbar-report-issue-btn:hover {
-  background-color: #e0e0e0;
+  background-color: var(--color-bg-hover-strong);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
 }
 
 .toolbar-report-issue-btn:focus-visible {
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--color-white);
   outline-offset: 2px;
 }
 
 .search-btn {
   align-items: center;
-  background-color: #0d3a69;
+  background-color: var(--color-primary);
   border: none;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 15px;
@@ -3388,7 +3462,7 @@ ul {
 }
 
 .search-btn:hover {
-  background-color: #4a99ff;
+  background-color: var(--color-accent);
   box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
 }
 
@@ -3421,13 +3495,13 @@ ul {
 .search-bar-wrapper:has(input:focus-visible) {
   box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.1),
-    0 0 0 2px #0d3a69;
+    0 0 0 2px var(--color-primary);
 }
 
 #search-container {
   display: flex;
   background-color: white;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--color-border);
   font-family: "Noto Sans", sans-serif;
   margin: auto;
   padding: 10px 0;
@@ -3476,7 +3550,7 @@ ul {
 
 #search-container-inner.word-game-active.game-lock-visible
   .cefr-filter:focus-within {
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--color-white);
   outline-offset: 2px;
 }
 
@@ -3530,8 +3604,8 @@ ul {
   padding: 10px; /* Enlarged for a more comfortable tap target */
   font-size: 14px !important; /* Icon size inside */
   border-radius: 4px; /* Same rounded corners */
-  background-color: #f0f0f0; /* Matches the default CEFR look */
-  color: #4f4f4f !important; /* Icon color */
+  background-color: var(--color-bg-subtle); /* Matches the default CEFR look */
+  color: var(--color-badge-text) !important; /* Icon color */
   user-select: none; /* Same no-selection behavior */
   cursor: pointer;
   width: auto !important; /* Clickable */
@@ -3544,14 +3618,14 @@ ul {
 }
 
 .sentence-audio-icon:hover {
-  background-color: #e0e0e0;
+  background-color: var(--color-bg-hover-strong);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* stronger shadow on hover */
   transform: translateY(-1px); /* tiny lift */
 }
 
 .sentence-box-practice {
   align-content: center;
-  background-color: #ffffff;
+  background-color: var(--color-white);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding: 25px;
@@ -3561,13 +3635,13 @@ ul {
 }
 
 .sentence-btn {
-  background-color: #ffffff; /* Subtle, lighter background */
+  background-color: var(--color-white); /* Subtle, lighter background */
   border: none !important; /* Thin maroon border */
   border-radius: 9px; /* Slightly rounded corners */
   box-shadow:
     0 4px 8px rgba(135, 135, 135, 0.2),
     0 2px 4px rgba(0, 0, 0, 0.1);
-  color: #5a1a1a; /* Subtle maroon text */
+  color: var(--color-danger-dark); /* Subtle maroon text */
   cursor: pointer; /* Pointer on hover */
   display: block; /* Block-level element to allow centering */
   font-family: "Noto Sans", sans-serif; /* Clean, modern font */
@@ -3588,7 +3662,7 @@ ul {
 }
 
 .sentence-btn:hover {
-  background-color: #f7f7f7; /* Slightly darker background on hover */
+  background-color: var(--color-bg-hover); /* Slightly darker background on hover */
   box-shadow:
     0 6px 12px rgba(135, 135, 135, 0.3),
     0 3px 6px rgba(0, 0, 0, 0.15); /* Slightly larger shadow */
@@ -3597,7 +3671,7 @@ ul {
 .sentence-cefr-label {
   padding: 3px 7px; /* Smaller padding */
   font-size: 12px; /* Smaller font size */
-  color: #4f4f4f;
+  color: var(--color-badge-text);
   display: inline-block; /* Ensure the label takes up only the space it needs */
   font-weight: bold;
   border-radius: 4px;
@@ -3615,20 +3689,20 @@ ul {
 }
 
 .sentence-cefr-label.easy {
-  background-color: #c7e3b6; /* Green for 'A1, A2' */
+  background-color: var(--color-success-bg); /* Green for 'A1, A2' */
 }
 
 .sentence-cefr-label.medium {
-  background-color: #f2d96b; /* Yellow for 'B1, B2' */
+  background-color: var(--color-level-mid); /* Yellow for 'B1, B2' */
 }
 
 .sentence-cefr-label.hard {
-  background-color: #e9a895; /* Red for 'C' */
+  background-color: var(--color-danger-bg); /* Red for 'C' */
 }
 
 .sentence-box-english,
 .sentence-box-norwegian {
-  background-color: #ffffff;
+  background-color: var(--color-white);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 12.5px;
@@ -3764,10 +3838,10 @@ ul {
 .report-issue-btn,
 .inflections-toggle-btn {
   align-items: center;
-  background-color: #f0f0f0;
+  background-color: var(--color-bg-subtle);
   border: none;
   border-radius: 6px;
-  color: #666;
+  color: var(--color-text-muted);
   cursor: pointer;
   display: inline-flex;
   font-family: "Noto Sans", sans-serif;
@@ -3788,7 +3862,7 @@ ul {
 }
 
 .definition-content .report-issue-btn i {
-  color: #951b1b;
+  color: var(--color-danger);
   font-size: 12px;
   margin-right: 0;
   width: auto;
@@ -3802,12 +3876,12 @@ ul {
 
 .report-issue-btn:focus-visible,
 .inflections-toggle-btn:focus-visible {
-  outline: 2px solid #666;
+  outline: 2px solid var(--color-text-muted);
   outline-offset: 2px;
 }
 
 .inflections-toggle-btn i {
-  color: #666;
+  color: var(--color-text-muted);
   font-size: 12px;
   margin-right: 0;
   transition: transform 0.2s ease;
@@ -3831,13 +3905,13 @@ ul {
 
 .inflections-table th,
 .inflections-table td {
-  border: 1px solid #dddddd;
+  border: 1px solid var(--color-border-light);
   padding: 8px 10px;
 }
 
 .inflections-table th {
-  background-color: #f5f5f5;
-  color: #777;
+  background-color: var(--color-table-header-bg);
+  color: var(--color-text-faint);
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -3875,7 +3949,7 @@ ul {
 }
 
 #site-title {
-  color: #293a78;
+  color: var(--color-heading);
   cursor: pointer;
   margin: -5px 0px 10px 0px;
   transition:
@@ -3895,10 +3969,10 @@ ul {
 
 .sticky-cefr-label {
   align-items: center; /* Center vertically */
-  border: 1px solid #ddd; /* Lighter gray for a subtler border */
+  border: 1px solid var(--color-border-light); /* Lighter gray for a subtler border */
   border-radius: 4px;
   box-sizing: border-box; /* Includes padding and border in the width calculation */
-  color: #4f4f4f;
+  color: var(--color-badge-text);
   display: flex; /* Add Flexbox */
   flex: 1; /* Allows the children to take up equal and maximum space */
   font-family: "Noto Sans", sans-serif;
@@ -3927,11 +4001,11 @@ ul {
 .sticky-genre {
   align-items: center; /* Center vertically */
   align-self: flex-start;
-  background-color: #f0f0f0; /* Light background for genre badge */
-  border: 1px solid #ddd; /* Lighter gray for a subtler border */
+  background-color: var(--color-bg-subtle); /* Light background for genre badge */
+  border: 1px solid var(--color-border-light); /* Lighter gray for a subtler border */
   border-radius: 4px;
   box-sizing: border-box; /* Includes padding and border in the width calculation */
-  color: #4f4f4f;
+  color: var(--color-badge-text);
   display: flex; /* Add Flexbox */
   flex: 1; /* Allows the children to take up equal and maximum space */
   font-family: "Noto Sans", sans-serif;
@@ -3949,13 +4023,13 @@ ul {
 }
 
 .sticky-genre i {
-  color: #333; /* Icon color */
+  color: var(--color-text); /* Icon color */
 }
 
 #sticky-header {
   align-items: center;
   background-color: white;
-  border-top: 1px solid #ccc; /* Subtle gray border at the top */
+  border-top: 1px solid var(--color-border); /* Subtle gray border at the top */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   color: black;
   display: flex;
@@ -3987,7 +4061,7 @@ ul {
 }
 
 .sticky-title-japanese {
-  color: #3c3c3c;
+  color: var(--color-text-alt-title);
   font-size: 1.5em;
   font-family: "Noto Serif", serif; /* Adjust to the appropriate English font */
   font-weight: 400;
@@ -3997,7 +4071,7 @@ ul {
 }
 
 .sticky-title-english {
-  color: #666;
+  color: var(--color-text-muted);
   font-family: "Noto Sans", sans;
   font-size: 1em;
   font-weight: 400;
@@ -4022,11 +4096,11 @@ ul {
 
 .stories-genre {
   align-self: flex-start; /* Align the label to the left */
-  background-color: #f0f0f0; /* Green for 'A1, A2' */
+  background-color: var(--color-bg-subtle); /* Green for 'A1, A2' */
   border-radius: 4px;
   padding: 3px 7px; /* Smaller padding */
   font-size: 12px; /* Smaller font size */
-  color: #4f4f4f;
+  color: var(--color-badge-text);
   font-weight: bold;
   text-align: center;
   text-transform: uppercase;
@@ -4037,7 +4111,7 @@ ul {
 }
 
 .stories-genre i {
-  color: #333; /* Dark icon color for visibility */
+  color: var(--color-text); /* Dark icon color for visibility */
 }
 
 .stories-list {
@@ -4045,7 +4119,7 @@ ul {
 }
 
 .stories-list-item {
-  background-color: #ffffff;
+  background-color: var(--color-white);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   margin: 0 0 15px 0;
@@ -4068,7 +4142,7 @@ ul {
 .story-recommendation {
   background-color: #eaf3fc;
   border: 1px solid #b7d8f5;
-  border-left: 5px solid #0d3a69;
+  border-left: 5px solid var(--color-primary);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   margin: 0 0 10px 0;
@@ -4085,7 +4159,7 @@ ul {
 
 .story-recommendation-label {
   align-items: center;
-  color: #0d3a69;
+  color: var(--color-primary);
   display: flex;
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
@@ -4106,14 +4180,14 @@ ul {
 }
 
 .stories-list-item p {
-  color: #333;
+  color: var(--color-text);
   font-size: 20px;
   line-height: 1.6;
   margin: 10px 0 10px 0;
 }
 
 .stories-list-item h2 {
-  color: #0d3a69 !important;
+  color: var(--color-primary) !important;
   font-family: "Noto Sans", sans-serif !important;
   font-size: 16px;
   font-weight: 400;
@@ -4126,7 +4200,7 @@ ul {
   font-size: 12px !important;
   font-weight: 350;
   overflow: hidden; /* Hides the overflowing text */
-  color: #666 !important;
+  color: var(--color-text-muted) !important;
   letter-spacing: 0.25px;
   margin: 0 !important;
   text-transform: uppercase;
@@ -4144,7 +4218,7 @@ ul {
 
 .stories-story-header h2 {
   margin: 0; /* Reset margin for the title */
-  color: #951b1b;
+  color: var(--color-danger);
   font-family: "Noto Sans", sans-serif;
   font-size: 1.3em;
   font-weight: 400;
@@ -4166,8 +4240,8 @@ ul {
 }
 
 #story-content {
-  background: #fff; /* Same white background as story list items */
-  border: 1px solid #ddd; /* Light border for separation */
+  background: var(--color-white); /* Same white background as story list items */
+  border: 1px solid var(--color-border-light); /* Light border for separation */
   border-radius: 12px;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 10px;
   font-family: "Noto Serif", serif;
@@ -4206,7 +4280,7 @@ ul {
 }
 
 .spinner {
-  color: #293a78;
+  color: var(--color-heading);
   display: none;
   font-size: 20px;
   margin: 20px;
@@ -4217,7 +4291,7 @@ ul {
   animation: spin 0.8s linear infinite;
   border: 3px solid rgba(0, 0, 0, 0.3);
   border-radius: 50%;
-  border-top-color: #293a78;
+  border-top-color: var(--color-heading);
   content: "";
   display: inline-block;
   height: 40px;
@@ -4231,7 +4305,7 @@ ul {
 .pos-filter.disabled select,
 .genre-filter.disabled select,
 .game-english-filter.disabled select {
-  color: #ccc;
+  color: var(--color-border);
   cursor: not-allowed;
 }
 
@@ -4240,7 +4314,7 @@ ul {
 .pos-filter.disabled i,
 .genre-filter.disabled i,
 .game-english-filter.disabled i {
-  color: #ccc; /* Gray out the arrow */
+  color: var(--color-border); /* Gray out the arrow */
   pointer-events: none; /* Prevent interaction with the arrow */
 }
 
@@ -4290,7 +4364,7 @@ ul {
 }
 
 .word-gender .gender {
-  color: #951b1b;
+  color: var(--color-danger);
   font-size: 14px;
   font-weight: 400;
   text-transform: uppercase;
@@ -4315,7 +4389,7 @@ ul {
 }
 
 .word-list-header:hover {
-  background-color: #ffffff;
+  background-color: var(--color-white);
 }
 
 .word-list-table-container {
@@ -4354,12 +4428,12 @@ ul {
 
 .word-list-row:focus-visible {
   box-shadow:
-    0 0 0 3px #3c88d4,
+    0 0 0 3px var(--color-link),
     0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .word-list-row td {
-  background-color: #ffffff;
+  background-color: var(--color-white);
   padding: 15px 25px;
   transition: background-color 0.2s ease;
 }
@@ -4380,7 +4454,7 @@ ul {
 }
 
 .word-list-row:hover td {
-  background-color: #f2f9fd;
+  background-color: var(--color-bg-row-hover);
 }
 
 .word-list-controls {
@@ -4408,19 +4482,19 @@ ul {
 }
 
 .word-list-export-controls .word-list-export-button:hover {
-  background-color: #f7f7f7;
+  background-color: var(--color-bg-hover);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .word-list-export-button {
   appearance: none;
-  background-color: #ffffff;
+  background-color: var(--color-white);
   border: none;
   border-radius: 6px;
   box-shadow:
     0 4px 8px rgba(135, 135, 135, 0.2),
     0 2px 4px rgba(0, 0, 0, 0.1);
-  color: #5a1a1a;
+  color: var(--color-danger-dark);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
@@ -4437,32 +4511,32 @@ ul {
 }
 
 .word-list-export-button:hover {
-  background-color: #f2f9fd;
+  background-color: var(--color-bg-row-hover);
   box-shadow:
     0 6px 12px rgba(135, 135, 135, 0.3),
     0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
 .word-list-export-button:focus-visible {
-  outline: 2px solid #3c88d4;
+  outline: 2px solid var(--color-link);
   outline-offset: 2px;
 }
 
 .word-list-export-button.is-active {
-  background-color: #0d3a69;
-  color: #ffffff;
+  background-color: var(--color-primary);
+  color: var(--color-white);
   box-shadow:
     0 4px 8px rgba(13, 58, 105, 0.25),
     0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .word-list-export-button.is-active:hover {
-  background-color: #1c68b5;
+  background-color: var(--color-heading-accent);
 }
 
 .word-list-export-button.is-danger {
   background-color: #fff5f5;
-  color: #951b1b;
+  color: var(--color-danger);
 }
 
 .word-list-export-button.is-danger:not(:disabled):hover {
@@ -4476,7 +4550,7 @@ ul {
 }
 
 .word-list-export-button:disabled:hover {
-  background-color: #ffffff;
+  background-color: var(--color-white);
   box-shadow: none;
 }
 
@@ -4496,7 +4570,7 @@ ul {
   background-color: transparent;
   border: none;
   border-radius: 50%;
-  color: #6a6a6a;
+  color: var(--color-text-icon-muted);
   cursor: pointer;
   display: inline-flex;
   font-size: 20px;
@@ -4520,12 +4594,12 @@ ul {
 }
 
 .word-list-favorite-button:focus-visible {
-  outline: 2px solid #3c88d4;
+  outline: 2px solid var(--color-link);
   outline-offset: 2px;
 }
 
 .word-list-favorite-button.is-saved {
-  color: #a66c00;
+  color: var(--color-favorite);
 }
 
 .word-list-favorite-button i {
@@ -4536,7 +4610,7 @@ ul {
  * Match the Norwegian heading in a Words multiple-result card.
  */
 .word-list-norwegian {
-  color: #1c68b5;
+  color: var(--color-heading-accent);
   font-family: "Noto Serif", serif;
   font-size: 20px;
   font-weight: 700;
@@ -4550,14 +4624,14 @@ ul {
 
 .word-list-word-link:focus-visible {
   border-radius: 4px;
-  outline: 3px solid #3c88d4;
+  outline: 3px solid var(--color-link);
   outline-offset: 3px;
 }
 /*
  * Match .english and .multiple-results-english.
  */
 .word-list-english {
-  color: #555555;
+  color: var(--color-text-secondary);
   font-family: "Noto Serif", serif;
   font-size: 16px;
   font-weight: 500;
@@ -4585,7 +4659,7 @@ ul {
  * The colored CEFR badge will be placed inside it.
  */
 .word-list-level {
-  color: #4f4f4f;
+  color: var(--color-badge-text);
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
   font-weight: 700;
@@ -4597,7 +4671,7 @@ ul {
 }
 
 .word-list-strength {
-  color: #4f4f4f;
+  color: var(--color-badge-text);
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
   text-align: center;
@@ -4610,7 +4684,7 @@ ul {
 }
 
 .word-strength-dot {
-  color: #0d3a69;
+  color: var(--color-primary);
   font-size: 8px;
 }
 
@@ -4654,8 +4728,8 @@ ul {
 }
 
 .word-list-view-controls .word-list-export-button.is-active {
-  background-color: #0d3a69;
-  color: #ffffff;
+  background-color: var(--color-primary);
+  color: var(--color-white);
   box-shadow: 0 2px 5px rgba(13, 58, 105, 0.22);
 }
 
@@ -4982,7 +5056,7 @@ ul {
 
   .pronunciation-table tr {
     margin-bottom: 12px;
-    border-bottom: 1px solid #dddddd;
+    border-bottom: 1px solid var(--color-border-light);
   }
 
   .pronunciation-table td {
@@ -5194,7 +5268,7 @@ ul {
   .genre-filter,
   .game-english-filter {
     box-sizing: border-box !important;
-    background-color: #0d3a69; /* Consistent background for all filters */
+    background-color: var(--color-primary); /* Consistent background for all filters */
     border-radius: 15px;
     padding: 0;
     min-width: 0px;
@@ -5600,7 +5674,7 @@ ul {
 }
 
 .feedback-dialog {
-  background-color: #ffffff;
+  background-color: var(--color-white);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
@@ -5611,7 +5685,7 @@ ul {
 }
 
 .feedback-dialog h3 {
-  color: #0d3a69;
+  color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   font-size: 16px;
   margin: 0 0 15px;
@@ -5622,7 +5696,7 @@ ul {
   /* Overrides the site-wide floating-label `label` rule (position:
      absolute, centered over an input) — this label sits in normal flow
      above its field instead. */
-  color: #4a4a4a;
+  color: var(--color-text-strong);
   display: block;
   font-family: "Noto Sans", sans-serif;
   font-size: 13px;
@@ -5637,7 +5711,7 @@ ul {
 
 .feedback-dialog select,
 .feedback-dialog textarea {
-  border: 1px solid #a0a0a0;
+  border: 1px solid var(--color-border-input);
   border-radius: 6px;
   box-sizing: border-box;
   font-family: "Noto Sans", sans-serif;
@@ -5652,12 +5726,12 @@ ul {
 
 .feedback-dialog select:focus-visible,
 .feedback-dialog textarea:focus-visible {
-  outline: 2px solid #0d3a69;
+  outline: 2px solid var(--color-primary);
   outline-offset: 1px;
 }
 
 .feedback-dialog-status {
-  color: #4a4a4a;
+  color: var(--color-text-strong);
   font-size: 13px;
   margin: 12px 0 0;
   min-height: 1.2em;
@@ -5685,19 +5759,19 @@ ul {
 }
 
 .feedback-dialog-cancel {
-  background-color: #ffffff;
-  border: 1px solid #a0a0a0;
-  color: #4a4a4a;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border-input);
+  color: var(--color-text-strong);
 }
 
 .feedback-dialog-cancel:hover {
-  background-color: #f0f0f0;
+  background-color: var(--color-bg-subtle);
 }
 
 .feedback-dialog-submit {
-  background-color: #0d3a69;
-  border: 1px solid #0d3a69;
-  color: #ffffff;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  color: var(--color-white);
 }
 
 .feedback-dialog-submit:hover {
