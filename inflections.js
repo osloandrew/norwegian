@@ -743,7 +743,7 @@
 
   async function findLemmas(surface, wordClass = "") {
     if (!(await ensureReverseIndexes())) {
-      return { lemmas: [], matchType: "none" };
+      return { lemmas: [], matches: [], matchType: "none" };
     }
 
     let keys = readReverseMappings(reverseIndex, surface);
@@ -762,13 +762,34 @@
     }
 
     const prefix = CLASS_PREFIX[wordClass] || "";
-    const lemmas = unique(
-      keys
-        .filter((key) => !prefix || key.startsWith(`${prefix}:`))
-        .map((key) => parseRecordKey(key)?.lemma)
-        .filter(Boolean),
-    ).sort((a, b) => a.localeCompare(b, "nb"));
-    return { lemmas, matchType: lemmas.length ? matchType : "none" };
+    const parsedKeys = keys
+      .filter((key) => !prefix || key.startsWith(`${prefix}:`))
+      .map((key) => parseRecordKey(key))
+      .filter((parsed) => parsed?.lemma);
+
+    const lemmas = unique(parsedKeys.map((parsed) => parsed.lemma)).sort(
+      (a, b) => a.localeCompare(b, "nb"),
+    );
+    // Same lemmas as above, but keeping which specific word class each one
+    // was actually matched under. A caller resolving an exact inflected
+    // surface form back to dictionary entries (e.g. a story's
+    // click-to-define) needs this: looking entries up by bare lemma string
+    // alone conflates homographs that merely share a spelling — "skolen"
+    // only inflects from the noun "skole" (school), but "skole" is ALSO a
+    // separate, unrelated verb entry ("to teach") that has no form
+    // "skolen" at all, and would otherwise be surfaced as a false second
+    // hint. `lemmas` is kept as-is for existing callers (e.g. the search
+    // box, where showing every same-spelling sense is normal).
+    const seenMatches = new Set();
+    const matches = [];
+    for (const parsed of parsedKeys) {
+      const dedupeKey = `${parsed.wordClass}:${parsed.lemma}`;
+      if (seenMatches.has(dedupeKey)) continue;
+      seenMatches.add(dedupeKey);
+      matches.push({ lemma: parsed.lemma, wordClass: parsed.wordClass });
+    }
+
+    return { lemmas, matches, matchType: lemmas.length ? matchType : "none" };
   }
 
   function getExpressionComponentParadigms(surface, wordClass = "") {

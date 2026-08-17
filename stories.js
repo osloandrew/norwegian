@@ -1533,22 +1533,33 @@ function resolveStoryWordEntries(normalizedWord) {
     // the verb "hjelpe" ("helps"); resolveWordSearchQuery would only ever
     // surface the former. Checking findLemmas independently, in addition
     // to the exact match, catches both.
-    const lemmas = new Set();
-    if (wordSearchIndex.norwegianExact.has(normalizedWord)) {
-      lemmas.add(normalizedWord);
+    const entries = [];
+    const addEntry = (entry) => {
+      if (!entries.includes(entry)) entries.push(entry);
+    };
+
+    // The clicked surface form is itself a headword ("hjelper") — every
+    // sense spelled that way is fair game regardless of class, since no
+    // lemma-inference is involved here at all.
+    for (const entry of wordSearchIndex.norwegianExact.get(normalizedWord) || []) {
+      addEntry(entry);
     }
+
+    // The clicked form is an inflected form of some OTHER lemma. Matching
+    // by word class (not just the bare lemma string) matters here: looking
+    // entries up by spelling alone would also surface an unrelated
+    // homograph that merely shares that spelling — "skolen" only inflects
+    // from the noun "skole" (school), but "skole" is ALSO a separate verb
+    // entry ("to teach") with no form "skolen" at all, and would otherwise
+    // show up as a bogus second hint.
     const officialResolution =
       await window.Inflections?.findLemmas(normalizedWord);
-    (officialResolution?.lemmas || []).forEach((lemma) => {
-      if (wordSearchIndex.norwegianExact.has(lemma)) lemmas.add(lemma);
+    (officialResolution?.matches || []).forEach(({ lemma, wordClass }) => {
+      for (const entry of wordSearchIndex.norwegianExact.get(lemma) || []) {
+        if (WordClass.getWordClass(entry.gender) === wordClass) addEntry(entry);
+      }
     });
 
-    const entries = [];
-    for (const lemma of lemmas) {
-      for (const entry of wordSearchIndex.norwegianExact.get(lemma) || []) {
-        if (!entries.includes(entry)) entries.push(entry);
-      }
-    }
     return entries;
   })();
 
