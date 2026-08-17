@@ -1779,4 +1779,10 @@
         now,
       ),
   });
+  // Lets other views (e.g. the word game's round summary) render a word
+  // entry in the exact same row style as the Word List / My Words tables,
+  // rather than duplicating that markup.
+  window.WordListAPI = Object.freeze({
+    createRow: createWordListRow,
+  });
 })();

@@ -980,14 +980,6 @@ footer .copyright {
   opacity: 0.4;
 }
 
-.game-typed-answer-form.is-answered .game-typed-answer-row {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.game-typed-answer-form.is-answered .game-typed-submit {
-  display: none;
-}
-
 .game-typed-answer-form.is-correct .game-typed-answer-input {
   background-color: #edf7e7;
   border-color: #7cab62;
@@ -1720,7 +1712,11 @@ footer .copyright {
 }
 
 /* Lists the specific words missed during the round — populated from
-   wordGameSessionMissedWords in showWordGameRoundSummary() (wordGame.js). */
+   wordGameSessionMissedWords in showWordGameRoundSummary() (wordGame.js).
+   Rows themselves are real .word-list-row rows (built via WordListAPI, see
+   wordGame.js) so they match the Word List / My Words pages exactly; this
+   just gives the wrapping table a shorter cap than the page-wide 70vh on
+   .word-list-table-container, since it sits inside a summary card. */
 .game-summary-missed {
   margin-bottom: 20px;
   text-align: left;
@@ -1737,36 +1733,9 @@ footer .copyright {
   text-transform: uppercase;
 }
 
-.game-summary-missed-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  list-style: none;
-  margin: 0;
-  max-height: 220px;
-  overflow-y: auto;
+.game-summary-missed-table-container {
+  max-height: 260px;
   padding: 0;
-}
-
-.game-summary-missed-item {
-  align-items: baseline;
-  background-color: #f7f9fc;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 12px;
-}
-
-.game-summary-missed-word {
-  color: #0d3a69;
-  font-weight: 600;
-}
-
-.game-summary-missed-translation {
-  color: #666;
-  font-size: 0.9em;
-  text-align: right;
 }
 
 .game-summary-missed-more {

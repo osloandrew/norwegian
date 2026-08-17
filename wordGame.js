@@ -1996,28 +1996,20 @@ function showWordGameRoundSummary() {
 
   const missedWords = Array.from(wordGameSessionMissedWords);
   const MAX_MISSED_WORDS_SHOWN = 20;
+  // The rows themselves are real Word List / My Words table rows (built by
+  // window.WordListAPI.createRow after this markup is inserted, see below)
+  // so missed words look and behave exactly like they do on those pages —
+  // same word-class/CEFR badges, strength meter, and My Words star.
   const missedWordsHTML =
     missedWords.length > 0
       ? `
     <div class="game-summary-missed">
       <h3 class="game-summary-missed-heading">Words to review</h3>
-      <ul class="game-summary-missed-list">
-        ${missedWords
-          .slice(0, MAX_MISSED_WORDS_SHOWN)
-          .map((wordObj) => {
-            const norwegian = escapeHTML(wordObj.ord.split(",")[0].trim());
-            const english = escapeHTML(
-              wordObj.engelsk.split(",")[0].trim(),
-            );
-            return `
-          <li class="game-summary-missed-item">
-            <span class="game-summary-missed-word">${norwegian}</span>
-            <span class="game-summary-missed-translation">${english}</span>
-          </li>
-        `;
-          })
-          .join("")}
-      </ul>
+      <div class="word-list-table-container game-summary-missed-table-container">
+        <table class="word-list-table" aria-label="Words to review">
+          <tbody id="game-summary-missed-table-body"></tbody>
+        </table>
+      </div>
       ${
         missedWords.length > MAX_MISSED_WORDS_SHOWN
           ? `<p class="game-summary-missed-more">+ ${missedWords.length - MAX_MISSED_WORDS_SHOWN} more</p>`
@@ -2074,6 +2066,20 @@ function showWordGameRoundSummary() {
       </button>
     </div>
   `);
+
+  // Built as real DOM rows via WordListAPI rather than a template string,
+  // since createWordListRow() returns <tr> elements (with click-to-open
+  // and My Words star listeners already wired up), not HTML text.
+  const missedWordsTableBody = document.getElementById(
+    "game-summary-missed-table-body",
+  );
+  if (missedWordsTableBody && window.WordListAPI?.createRow) {
+    const fragment = document.createDocumentFragment();
+    missedWords.slice(0, MAX_MISSED_WORDS_SHOWN).forEach((wordObj) => {
+      fragment.appendChild(window.WordListAPI.createRow(wordObj));
+    });
+    missedWordsTableBody.appendChild(fragment);
+  }
 
   document
     .getElementById("game-summary-restart-btn")
@@ -2914,9 +2920,6 @@ function renderWordGameUI(
   const isTyped = mode === "typed-reverse";
   const isReverse = mode === "reverse" || isTyped;
   const isListening = mode === "listening";
-  const typedEnglishSentence = isTyped
-    ? getGameSentenceTranslation(wordObj, 0)
-    : "";
 
   // Each render replaces the previous question entirely, so nothing still
   // references earlier entries — reset instead of growing forever.
@@ -3000,13 +3003,7 @@ function renderWordGameUI(
                     : `<h2>${escapeGameHTML(displayedWord)}</h2>`
                 }
             </div>
-            <div class="game-cefr-spacer">
-              ${
-                typedEnglishSentence
-                  ? `<p class="game-english-translation game-typed-prompt-translation">${escapeGameHTML(typedEnglishSentence)}</p>`
-                  : ""
-              }
-            </div>
+            <div class="game-cefr-spacer"></div>
         </div>
 
         <!-- Answer Section -->
@@ -3144,9 +3141,6 @@ function renderClozeGameUI(
     clozeTarget.sentence.slice(0, clozeTarget.startIndex) +
     blank +
     clozeTarget.sentence.slice(clozeTarget.endIndex);
-  const typedEnglishSentence = useTypedRecall
-    ? getGameSentenceTranslation(wordObj, clozeTarget.sentenceIndex)
-    : "";
   const promptLengthClass = getGamePromptLengthClass(sentenceWithBlank);
 
   setGameContainerHTML(`
@@ -3187,15 +3181,9 @@ function renderClozeGameUI(
       <h2 id="cloze-sentence">${escapeGameHTML(sentenceWithBlank)}</h2>
       </div>
   
-      <div class="game-cefr-spacer">
-        ${
-          typedEnglishSentence
-            ? `<p class="game-english-translation game-typed-prompt-translation">${escapeGameHTML(typedEnglishSentence)}</p>`
-            : ""
-        }
-      </div>
+      <div class="game-cefr-spacer"></div>
     </div>
-  
+
     <!-- Answer Section -->
     ${
       useTypedRecall
