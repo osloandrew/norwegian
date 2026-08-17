@@ -66,6 +66,7 @@
   let strengthPushTimeoutId = null;
   let levelPushTimeoutId = null;
   let streakPushTimeoutId = null;
+  let dailyQuestPushTimeoutId = null;
 
   function loadFirebaseScripts() {
     return FIREBASE_SCRIPT_URLS.reduce(
@@ -232,6 +233,22 @@
       });
   }
 
+  function pushDailyQuestNow(userId, dailyPractice) {
+    getUserDocRef(userId)
+      .set(
+        {
+          dailyPractice,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      )
+      .then(clearSyncStatusError)
+      .catch((error) => {
+        console.warn("Daily quests could not be synced.", error);
+        showSyncStatusError();
+      });
+  }
+
   // Debounced writes need their latest pending value kept around outside
   // the setTimeout closure, so a flush (tab hidden/closed before the 800ms
   // fires) can push it immediately instead of losing it.
@@ -239,6 +256,7 @@
   let pendingStrengths = null;
   let pendingLevel = null;
   let pendingStreak = null;
+  let pendingDailyQuest = null;
 
   function schedulePush(entryIds) {
     if (!currentUserId) {
@@ -296,6 +314,20 @@
     }, PUSH_DEBOUNCE_MS);
   }
 
+  function scheduleDailyQuestPush(dailyPractice) {
+    if (!currentUserId) {
+      return;
+    }
+
+    pendingDailyQuest = dailyPractice;
+    window.clearTimeout(dailyQuestPushTimeoutId);
+    dailyQuestPushTimeoutId = window.setTimeout(() => {
+      dailyQuestPushTimeoutId = null;
+      pendingDailyQuest = null;
+      pushDailyQuestNow(currentUserId, dailyPractice);
+    }, PUSH_DEBOUNCE_MS);
+  }
+
   // Fires when the tab is backgrounded, closed, or navigated away from —
   // pushes anything still waiting out its debounce instead of risking it
   // being silently dropped if the page never becomes active again.
@@ -330,6 +362,13 @@
       streakPushTimeoutId = null;
       pushStreakNow(currentUserId, pendingStreak);
       pendingStreak = null;
+    }
+
+    if (dailyQuestPushTimeoutId !== null) {
+      window.clearTimeout(dailyQuestPushTimeoutId);
+      dailyQuestPushTimeoutId = null;
+      pushDailyQuestNow(currentUserId, pendingDailyQuest);
+      pendingDailyQuest = null;
     }
   }
 
@@ -383,6 +422,10 @@
 
         if (data.streak && typeof data.streak === "object") {
           window.StreakAPI?.replaceState?.(data.streak);
+        }
+
+        if (data.dailyPractice && typeof data.dailyPractice === "object") {
+          window.DailyQuestAPI?.replaceState?.(data.dailyPractice);
         }
       },
       (error) => {
@@ -480,15 +523,44 @@
         mergedStreak.count,
       );
 
+      // Daily quests reset every calendar day, so unlike streak's
+      // lastActiveDate comparison, remote progress only counts when it's
+      // for *today* — DailyQuestAPI.normalize resets completedRounds to 0
+      // for any other date, same as a stale local read would. Within
+      // today, completed rounds are earned in order, so the higher count
+      // is strictly more progress and always safe to take.
+      const remoteDailyPractice =
+        remoteData.dailyPractice && typeof remoteData.dailyPractice === "object"
+          ? remoteData.dailyPractice
+          : {};
+      const localDailyPractice = window.DailyQuestAPI?.getState?.() ?? {
+        date: null,
+        completedRounds: 0,
+      };
+      const normalizedRemoteDailyPractice =
+        window.DailyQuestAPI?.normalize?.(remoteDailyPractice) ?? {
+          completedRounds: 0,
+        };
+      const mergedDailyPractice =
+        window.DailyQuestAPI?.normalize?.({
+          date: localDailyPractice.date,
+          completedRounds: Math.max(
+            localDailyPractice.completedRounds ?? 0,
+            normalizedRemoteDailyPractice.completedRounds ?? 0,
+          ),
+        }) ?? localDailyPractice;
+
       window.MyWordsAPI?.replaceEntryIds?.(mergedEntryIds);
       window.WordStrengthAPI?.replaceAll?.(mergedStrengths);
       window.WordGameHelpers?.replaceLevel?.(mergedLevel);
       window.StreakAPI?.replaceState?.(mergedStreak);
+      window.DailyQuestAPI?.replaceState?.(mergedDailyPractice);
 
       pushEntryIdsNow(userId, mergedEntryIds);
       pushWordStrengthsNow(userId, mergedStrengths);
       pushGameLevelNow(userId, mergedLevel);
       pushStreakNow(userId, mergedStreak);
+      pushDailyQuestNow(userId, mergedDailyPractice);
     } catch (error) {
       console.warn("Your saved words could not be loaded from your account.", error);
     }
@@ -626,6 +698,16 @@
     }
 
     scheduleStreakPush(event.detail?.streak ?? {});
+  });
+
+  // Fired by wordGame.js's saveDailyPracticeState() whenever quest progress
+  // changes.
+  window.addEventListener("daily-quest:updated", (event) => {
+    if (event.detail?.syncRemote === false) {
+      return;
+    }
+
+    scheduleDailyQuestPush(event.detail?.dailyPractice ?? {});
   });
 
   signInNudgeDismissButton?.addEventListener("click", () => {

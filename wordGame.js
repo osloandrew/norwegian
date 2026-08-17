@@ -121,7 +121,7 @@ function loadDailyPracticeState() {
   }
 }
 
-function saveDailyPracticeState(state) {
+function saveDailyPracticeState(state, { syncRemote = true } = {}) {
   const normalized = normalizeDailyPracticeState(state);
   try {
     window.localStorage?.setItem(
@@ -131,6 +131,32 @@ function saveDailyPracticeState(state) {
   } catch (_error) {
     // Private browsing/storage restrictions should not block the game.
   }
+
+  // Let myWordsAuth.js know quest progress changed, so it can sync to
+  // Firestore when a user is signed in. syncRemote is false when the
+  // change came from a remote merge, to avoid immediately writing it back.
+  window.dispatchEvent(
+    new CustomEvent("daily-quest:updated", {
+      detail: { dailyPractice: normalized, syncRemote },
+    }),
+  );
+
+  return normalized;
+}
+
+// Applied when a remote (Firestore) value should become the local truth —
+// a fresh sign-in merge, or a live update from another signed-in device.
+// normalizeDailyPracticeState resets completedRounds to 0 if the remote
+// value's date doesn't match today, same as any other stale local read.
+function replaceDailyPracticeState(remoteState) {
+  const normalized = saveDailyPracticeState(remoteState, { syncRemote: false });
+
+  // renderLandingDailyQuests() is a no-op unless the landing view's quest
+  // widget is actually in the DOM, so it's safe to call unconditionally
+  // here (unlike replaceGameLevel's CEFR dropdown, this container isn't
+  // shared with any other view).
+  renderLandingDailyQuests();
+
   return normalized;
 }
 
@@ -4646,6 +4672,9 @@ window.toggleLevelLock = toggleLevelLock;
 window.DailyQuestAPI = Object.freeze({
   renderLanding: renderLandingDailyQuests,
   start: startDailyQuestFromLanding,
+  getState: loadDailyPracticeState,
+  replaceState: replaceDailyPracticeState,
+  normalize: normalizeDailyPracticeState,
 });
 window.WordGameHelpers = Object.freeze({
   playWordAudio,
