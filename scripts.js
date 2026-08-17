@@ -532,45 +532,81 @@ function handleSearchButtonClick() {
 }
 
 // Prefixed: all language-site forks share one origin (osloandrew.github.io),
-// so localStorage is shared across them too — an unprefixed key here would
-// let a visit to another language site overwrite this one's cached data.
-const WORD_CSV_CACHE_KEY = "wordDataCsvNorwegianV2";
-const WORD_CSV_CACHE_TIME_KEY = "wordDataCsvTimestampNorwegianV2";
+// so IndexedDB is shared across them too — an unprefixed name here would let
+// a visit to another language site overwrite this one's cached data.
+const WORD_CSV_DB_NAME = "wordDataCsvNorwegianV2";
+const WORD_CSV_DB_STORE = "csv";
+const WORD_CSV_DB_KEY = "wordDataCsv";
 const WORD_CSV_CACHE_MAX_AGE = 6 * 60 * 60 * 1000; // 6 hours, matching stories.js
+
+// Legacy localStorage keys from before the cache moved to IndexedDB. The CSV
+// (now several MB) risked silently exceeding localStorage's much smaller
+// quota, so the cache moved somewhere with no realistic size cap. Clear any
+// leftover entry once so it doesn't sit around wasting quota that stories.js
+// and other features share on this origin.
+try {
+  localStorage.removeItem("wordDataCsvNorwegianV2");
+  localStorage.removeItem("wordDataCsvTimestampNorwegianV2");
+} catch (cleanupError) {
+  // Ignore — best-effort cleanup only.
+}
+
+function openWordCSVDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(WORD_CSV_DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore(WORD_CSV_DB_STORE);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
 
 // Read the cached raw CSV text (not parsed entries — a parsed copy of the
 // ~29,000-row dictionary would run several MB larger than the CSV itself
-// purely from repeated JSON key names, risking localStorage's quota).
-// Returns null on a cache miss, a parse error, or if the cache is stale.
-function readCachedWordCSV() {
+// purely from repeated JSON key names).
+// Returns null on a cache miss, a read error, or if the cache is stale.
+async function readCachedWordCSV() {
+  if (!("indexedDB" in window)) return null;
+
   try {
-    const cachedText = localStorage.getItem(WORD_CSV_CACHE_KEY);
-    if (!cachedText) return null;
+    const db = await openWordCSVDB();
+    const cached = await new Promise((resolve, reject) => {
+      const tx = db.transaction(WORD_CSV_DB_STORE, "readonly");
+      const request = tx.objectStore(WORD_CSV_DB_STORE).get(WORD_CSV_DB_KEY);
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+    });
+    db.close();
 
-    const timestamp = Number(localStorage.getItem(WORD_CSV_CACHE_TIME_KEY)) || 0;
-    if (Date.now() - timestamp > WORD_CSV_CACHE_MAX_AGE) return null;
+    if (!cached) return null;
+    if (Date.now() - cached.timestamp > WORD_CSV_CACHE_MAX_AGE) return null;
 
-    return cachedText;
+    return cached.text;
   } catch (error) {
     console.warn("Cached word data could not be read.", error);
     return null;
   }
 }
 
-// Best-effort only: if this fails (quota exceeded, private browsing, etc.)
+// Best-effort only: if this fails (private browsing, disabled storage, etc.)
 // the app keeps working, it just re-fetches next time instead of caching.
-function cacheWordCSV(csvText) {
+async function cacheWordCSV(csvText) {
+  if (!("indexedDB" in window)) return;
+
   try {
-    localStorage.setItem(WORD_CSV_CACHE_KEY, csvText);
-    localStorage.setItem(WORD_CSV_CACHE_TIME_KEY, String(Date.now()));
+    const db = await openWordCSVDB();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(WORD_CSV_DB_STORE, "readwrite");
+      tx.objectStore(WORD_CSV_DB_STORE).put(
+        { text: csvText, timestamp: Date.now() },
+        WORD_CSV_DB_KEY,
+      );
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
   } catch (error) {
-    // Don't leave a stale/partial entry occupying quota for next time.
-    try {
-      localStorage.removeItem(WORD_CSV_CACHE_KEY);
-      localStorage.removeItem(WORD_CSV_CACHE_TIME_KEY);
-    } catch (cleanupError) {
-      // Ignore — best-effort cleanup only.
-    }
     console.warn("Word data could not be cached.", error);
   }
 }
@@ -602,7 +638,7 @@ function showDictionaryLoadError() {
 async function fetchAndLoadDictionaryData() {
   dictionaryLoadFailed = false;
 
-  const cachedCSV = readCachedWordCSV();
+  const cachedCSV = await readCachedWordCSV();
 
   if (cachedCSV) {
     parseCSVData(cachedCSV);
@@ -614,7 +650,7 @@ async function fetchAndLoadDictionaryData() {
     if (!localResponse.ok)
       throw new Error(`HTTP error! Status: ${localResponse.status}`);
     const localData = await localResponse.text();
-    cacheWordCSV(localData);
+    await cacheWordCSV(localData);
     parseCSVData(localData);
   } catch (localError) {
     console.error(
@@ -2323,7 +2359,11 @@ function displaySearchResults(results, query = "") {
 
     const escapedGender = result.gender.replace(/'/g, "\\'").trim();
     const escapedEngelsk = result.engelsk.replace(/'/g, "\\'").trim();
-    const handleCardClickArgs = `'${escapedWord}', '${escapedGender}', '${escapedEngelsk}', this.querySelector('.${multipleResultsDefinitionText}')?.textContent?.trim() || ''`;
+    const handleCardClickArgs = `'${escapedWord}', '${escapedGender}', '${escapedEngelsk}', ${
+      multipleResultsDefinitionText
+        ? `this.querySelector('.${multipleResultsDefinitionText}')?.textContent?.trim() || ''`
+        : "''"
+    }`;
 
     htmlString += `
 <div
