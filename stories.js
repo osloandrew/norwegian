@@ -1,5 +1,10 @@
 let storyResults = []; // Global variable to store the stories
 let currentSpeed = 1.0; // default speed
+// Deliberately a separate flag from scripts.js's isEnglishVisible (used by
+// Sentence Search) rather than sharing it — defaults to hidden now that
+// click-to-define gives a per-word hint, without changing Sentence
+// Search's own default.
+let isStoryEnglishVisible = false;
 
 /*
  * Cache of the current "recommended for your level" pick, keyed by CEFR
@@ -286,7 +291,7 @@ function updateStoriesListMetadata() {
 function updateEnglishVisibility() {
   const englishSentences = document.querySelectorAll(".english-sentence");
   const toggleEnglishBtn = document.getElementById("toggle-english-btn"); // Dynamically find the button
-  if (isEnglishVisible) {
+  if (isStoryEnglishVisible) {
     englishSentences.forEach((sentence) => {
       sentence.style.display = "block";
     });
@@ -533,6 +538,30 @@ async function displayStoryList(filteredStories = storyResults) {
   hideSpinner();
 }
 
+// Matches runs of letters (with combining marks), allowing an internal
+// hyphen/apostrophe so compounds like "Nord-Norge" stay one clickable unit
+// instead of splitting into two. Everything else (spaces, punctuation) is
+// left as plain text between spans, so the rendered sentence is visually
+// identical to before — just with each word individually clickable.
+const STORY_WORD_TOKEN_REGEX = /[\p{L}\p{M}]+(?:['’-][\p{L}\p{M}]+)*/gu;
+
+function renderClickableNorwegianSentence(sentenceText) {
+  let html = "";
+  let lastIndex = 0;
+  let match;
+
+  STORY_WORD_TOKEN_REGEX.lastIndex = 0;
+  while ((match = STORY_WORD_TOKEN_REGEX.exec(sentenceText)) !== null) {
+    html += escapeHTML(sentenceText.slice(lastIndex, match.index));
+    const word = match[0];
+    html += `<span class="story-word" data-word="${escapeHTML(word)}">${escapeHTML(word)}</span>`;
+    lastIndex = STORY_WORD_TOKEN_REGEX.lastIndex;
+  }
+  html += escapeHTML(sentenceText.slice(lastIndex));
+
+  return html;
+}
+
 function displayStory(titleNorwegian) {
   document.documentElement.classList.add("reading");
   showSpinner(); // Show spinner at the start of story loading
@@ -630,7 +659,7 @@ function displayStory(titleNorwegian) {
   if (rc) {
     rc.innerHTML = `
     <button id="toggle-english-btn" class="toggle-english-btn">
-      ${isEnglishVisible ? "Hide English" : "Show English"}
+      ${isStoryEnglishVisible ? "Hide English" : "Show English"}
     </button>
   `;
   }
@@ -692,10 +721,10 @@ function displayStory(titleNorwegian) {
   document
     .getElementById("toggle-english-btn")
     ?.addEventListener("click", () => {
-      isEnglishVisible = !isEnglishVisible;
+      isStoryEnglishVisible = !isStoryEnglishVisible;
       updateEnglishVisibility();
       const b = document.getElementById("toggle-english-btn");
-      if (b) b.textContent = isEnglishVisible ? "Hide English" : "Show English";
+      if (b) b.textContent = isStoryEnglishVisible ? "Hide English" : "Show English";
     });
 
   // DIAG 2: force a visible audio control even if the real file is missing
@@ -745,8 +774,8 @@ function displayStory(titleNorwegian) {
 
       contentHTML += `
     <div class="couplet">
-      <div class="japanese-sentence">${norwegianSentence}</div>
-      <div class="english-sentence">${englishSentence}</div>
+      <div class="japanese-sentence" data-raw-text="${escapeHTML(norwegianSentence)}">${renderClickableNorwegianSentence(norwegianSentence)}</div>
+      <div class="english-sentence">${escapeHTML(englishSentence)}</div>
     </div>
   `;
     }
@@ -779,6 +808,10 @@ function displayStory(titleNorwegian) {
       listEl.style.display = "none"; // hide the list while reading
     }
     hideSpinner(); // Hide spinner after story content is displayed
+    // Expression spans must be merged before the My Words highlight pass
+    // runs over them, or it would just see (and correctly, but
+    // pointlessly) evaluate their since-replaced individual word spans.
+    upgradeStoryExpressionSpans().then(() => highlightKnownStoryWords());
   };
 
   // Process story text into sentences
@@ -1032,5 +1065,762 @@ window.addEventListener("DOMContentLoaded", async () => {
         displayStoryList();
       }
     });
+  }
+});
+
+// Click-to-define: tapping a word in the Norwegian text of a story looks it
+// up (going through the same inflection resolution as the main dictionary
+// search, so "bryllupet"/"bryllupene" resolve to the "bryllup" entry same as
+// typing any of them into search would) and shows a small popover with the
+// English gloss and a My Words star, without leaving the story.
+let activeStoryWordPopover = null;
+
+function closeStoryWordPopover() {
+  if (!activeStoryWordPopover) return;
+  activeStoryWordPopover.remove();
+  activeStoryWordPopover = null;
+  window.removeEventListener("scroll", closeStoryWordPopover, true);
+  window.removeEventListener("resize", closeStoryWordPopover);
+}
+
+function positionStoryWordPopover(popover, wordSpan) {
+  const wordRect = wordSpan.getBoundingClientRect();
+  const popoverRect = popover.getBoundingClientRect();
+  const gap = 8;
+
+  let top = wordRect.top - popoverRect.height - gap;
+  if (top < 8) {
+    top = wordRect.bottom + gap; // Not enough room above — show below instead.
+  }
+
+  const maxLeft = window.innerWidth - popoverRect.width - 8;
+  const left = Math.max(8, Math.min(wordRect.left, maxLeft));
+
+  popover.style.top = `${Math.round(top)}px`;
+  popover.style.left = `${Math.round(left)}px`;
+}
+
+function updateStoryWordPopoverStar(button, entry, isSaved) {
+  const word = getDisplayedAnswer(entry.ord);
+  const action = isSaved ? "Remove" : "Add";
+  const destination = isSaved ? "from My Words" : "to My Words";
+
+  button.classList.toggle("is-saved", isSaved);
+  button.setAttribute("aria-pressed", String(isSaved));
+  button.setAttribute("aria-label", `${action} ${word} ${destination}`);
+  button.title = `${action} ${word} ${destination}`;
+  button.querySelector("i").className = `${isSaved ? "fas" : "far"} fa-star`;
+}
+
+// Applies a suffix-rule transform to only the last word of a (possibly
+// multi-word) gloss — "wedding day" -> "wedding days", not "wedding
+// daydays" or a transform blindly applied across the whole phrase.
+function applyToLastWord(gloss, transform) {
+  const words = gloss.split(" ");
+  const lastWord = words.pop();
+  return [...words, transform(lastWord)].join(" ");
+}
+
+// Covers the highest-frequency irregular nouns — not exhaustive (a rarer
+// one like "die"/"dice" is still a known gap), but "man"/"woman"/"child"
+// etc. are common enough in any A1-C vocabulary that the regular "+s" rule
+// would visibly misfire ("womans") on them constantly otherwise.
+const IRREGULAR_NOUN_PLURALS = {
+  man: "men",
+  woman: "women",
+  child: "children",
+  person: "people",
+  foot: "feet",
+  tooth: "teeth",
+  mouse: "mice",
+  goose: "geese",
+  ox: "oxen",
+  louse: "lice",
+  die: "dice",
+};
+
+// Covers ~100 of the most common English irregular verbs — enough for
+// typical A1-B2 vocabulary, not an exhaustive list of the several hundred
+// that exist. `present` is set only where the regular "+s"/"+es" rule
+// would be wrong ("be"/"have"/"do"/"go"); every other verb's present tense
+// is handled fine by presentTenseEnglishGloss's regular suffix rule.
+const IRREGULAR_VERBS = {
+  be: { past: "was", participle: "been", present: "is" },
+  have: { past: "had", participle: "had", present: "has" },
+  do: { past: "did", participle: "done", present: "does" },
+  go: { past: "went", participle: "gone", present: "goes" },
+  get: { past: "got", participle: "gotten" },
+  make: { past: "made", participle: "made" },
+  know: { past: "knew", participle: "known" },
+  think: { past: "thought", participle: "thought" },
+  take: { past: "took", participle: "taken" },
+  see: { past: "saw", participle: "seen" },
+  come: { past: "came", participle: "come" },
+  give: { past: "gave", participle: "given" },
+  find: { past: "found", participle: "found" },
+  tell: { past: "told", participle: "told" },
+  become: { past: "became", participle: "become" },
+  leave: { past: "left", participle: "left" },
+  feel: { past: "felt", participle: "felt" },
+  bring: { past: "brought", participle: "brought" },
+  begin: { past: "began", participle: "begun" },
+  keep: { past: "kept", participle: "kept" },
+  hold: { past: "held", participle: "held" },
+  write: { past: "wrote", participle: "written" },
+  stand: { past: "stood", participle: "stood" },
+  hear: { past: "heard", participle: "heard" },
+  let: { past: "let", participle: "let" },
+  mean: { past: "meant", participle: "meant" },
+  set: { past: "set", participle: "set" },
+  meet: { past: "met", participle: "met" },
+  run: { past: "ran", participle: "run" },
+  pay: { past: "paid", participle: "paid" },
+  sit: { past: "sat", participle: "sat" },
+  speak: { past: "spoke", participle: "spoken" },
+  lie: { past: "lay", participle: "lain" },
+  lay: { past: "laid", participle: "laid" },
+  lead: { past: "led", participle: "led" },
+  read: { past: "read", participle: "read" },
+  grow: { past: "grew", participle: "grown" },
+  lose: { past: "lost", participle: "lost" },
+  fall: { past: "fell", participle: "fallen" },
+  send: { past: "sent", participle: "sent" },
+  build: { past: "built", participle: "built" },
+  understand: { past: "understood", participle: "understood" },
+  draw: { past: "drew", participle: "drawn" },
+  break: { past: "broke", participle: "broken" },
+  spend: { past: "spent", participle: "spent" },
+  cut: { past: "cut", participle: "cut" },
+  rise: { past: "rose", participle: "risen" },
+  drive: { past: "drove", participle: "driven" },
+  buy: { past: "bought", participle: "bought" },
+  wear: { past: "wore", participle: "worn" },
+  choose: { past: "chose", participle: "chosen" },
+  eat: { past: "ate", participle: "eaten" },
+  drink: { past: "drank", participle: "drunk" },
+  sing: { past: "sang", participle: "sung" },
+  ring: { past: "rang", participle: "rung" },
+  swim: { past: "swam", participle: "swum" },
+  fly: { past: "flew", participle: "flown" },
+  fight: { past: "fought", participle: "fought" },
+  win: { past: "won", participle: "won" },
+  sleep: { past: "slept", participle: "slept" },
+  wake: { past: "woke", participle: "woken" },
+  sell: { past: "sold", participle: "sold" },
+  teach: { past: "taught", participle: "taught" },
+  catch: { past: "caught", participle: "caught" },
+  cost: { past: "cost", participle: "cost" },
+  put: { past: "put", participle: "put" },
+  hit: { past: "hit", participle: "hit" },
+  hurt: { past: "hurt", participle: "hurt" },
+  shut: { past: "shut", participle: "shut" },
+  forget: { past: "forgot", participle: "forgotten" },
+  forgive: { past: "forgave", participle: "forgiven" },
+  hide: { past: "hid", participle: "hidden" },
+  ride: { past: "rode", participle: "ridden" },
+  shoot: { past: "shot", participle: "shot" },
+  show: { past: "showed", participle: "shown" },
+  shine: { past: "shone", participle: "shone" },
+  steal: { past: "stole", participle: "stolen" },
+  strike: { past: "struck", participle: "struck" },
+  swear: { past: "swore", participle: "sworn" },
+  sweep: { past: "swept", participle: "swept" },
+  throw: { past: "threw", participle: "thrown" },
+  weep: { past: "wept", participle: "wept" },
+  bear: { past: "bore", participle: "borne" },
+  bend: { past: "bent", participle: "bent" },
+  bind: { past: "bound", participle: "bound" },
+  bite: { past: "bit", participle: "bitten" },
+  bleed: { past: "bled", participle: "bled" },
+  blow: { past: "blew", participle: "blown" },
+  breed: { past: "bred", participle: "bred" },
+  deal: { past: "dealt", participle: "dealt" },
+  dig: { past: "dug", participle: "dug" },
+  feed: { past: "fed", participle: "fed" },
+  freeze: { past: "froze", participle: "frozen" },
+  hang: { past: "hung", participle: "hung" },
+  kneel: { past: "knelt", participle: "knelt" },
+  lend: { past: "lent", participle: "lent" },
+  light: { past: "lit", participle: "lit" },
+  quit: { past: "quit", participle: "quit" },
+  seek: { past: "sought", participle: "sought" },
+  shake: { past: "shook", participle: "shaken" },
+  shrink: { past: "shrank", participle: "shrunk" },
+  sink: { past: "sank", participle: "sunk" },
+  slide: { past: "slid", participle: "slid" },
+  spin: { past: "spun", participle: "spun" },
+  split: { past: "split", participle: "split" },
+  spread: { past: "spread", participle: "spread" },
+  spring: { past: "sprang", participle: "sprung" },
+  stick: { past: "stuck", participle: "stuck" },
+  sting: { past: "stung", participle: "stung" },
+  swing: { past: "swung", participle: "swung" },
+  tear: { past: "tore", participle: "torn" },
+  wind: { past: "wound", participle: "wound" },
+  withdraw: { past: "withdrew", participle: "withdrawn" },
+};
+
+// Covers the handful of adjectives whose comparative/superlative are
+// entirely different words rather than a suffix or "more"/"most" — the
+// common gap otherwise ("good" -> "gooder").
+const IRREGULAR_ADJECTIVES = {
+  good: { comparative: "better", superlative: "best" },
+  bad: { comparative: "worse", superlative: "worst" },
+  far: { comparative: "further", superlative: "furthest" },
+  little: { comparative: "less", superlative: "least" },
+  many: { comparative: "more", superlative: "most" },
+  much: { comparative: "more", superlative: "most" },
+};
+
+// Naive English suffix rules layered under the irregular-form tables above
+// — enough for common regular forms, not a full grammar engine. A rarer
+// irregular not in those tables is a known remaining gap; a multi-word or
+// otherwise irregular-looking gloss is left alone rather than mangled (see
+// the length/shape guard in comparativeAndSuperlative, which the others
+// don't need since a wrong-but-plausible "-s"/"-ed" guess on a long word
+// is far less visibly broken than a wrong "-er"/"-est" guess would be).
+function pluralizeEnglishGloss(gloss) {
+  return applyToLastWord(gloss, (word) => {
+    const irregular = IRREGULAR_NOUN_PLURALS[word.toLowerCase()];
+    if (irregular) return irregular;
+    if (/(?:s|x|z|ch|sh)$/i.test(word)) return `${word}es`;
+    if (/[^aeiou]y$/i.test(word)) return `${word.slice(0, -1)}ies`;
+    return `${word}s`;
+  });
+}
+
+function presentTenseEnglishGloss(gloss) {
+  return applyToLastWord(gloss, (word) => {
+    const irregular = IRREGULAR_VERBS[word.toLowerCase()]?.present;
+    if (irregular) return irregular;
+    if (/(?:s|x|z|ch|sh|o)$/i.test(word)) return `${word}es`;
+    if (/[^aeiou]y$/i.test(word)) return `${word.slice(0, -1)}ies`;
+    return `${word}s`;
+  });
+}
+
+function regularPastSuffix(word) {
+  if (/e$/i.test(word)) return `${word}d`;
+  if (/^[^aeiou]*[aeiou][^aeiouwxy]$/i.test(word)) return `${word}${word.slice(-1)}ed`;
+  if (/[^aeiou]y$/i.test(word)) return `${word.slice(0, -1)}ied`;
+  return `${word}ed`;
+}
+
+function pastTenseEnglishGloss(gloss) {
+  return applyToLastWord(gloss, (word) => {
+    const irregular = IRREGULAR_VERBS[word.toLowerCase()]?.past;
+    return irregular || regularPastSuffix(word);
+  });
+}
+
+// Regular participles share their form with the regular past tense
+// ("helped"/"helped"), but irregulars very often don't ("go" -> "went"
+// past vs. "gone" participle) — this is why present perfect uses this
+// rather than reusing pastTenseEnglishGloss.
+function pastParticipleEnglishGloss(gloss) {
+  return applyToLastWord(gloss, (word) => {
+    const irregular = IRREGULAR_VERBS[word.toLowerCase()]?.participle;
+    return irregular || regularPastSuffix(word);
+  });
+}
+
+// Comparative/superlative only get real "-er"/"-est" morphology for a
+// short single-word gloss — same rule real English follows (compare
+// "bigger"/"biggest" against "more beautiful"/"most beautiful" rather than
+// "beautifuller").
+function comparativeAndSuperlative(gloss) {
+  const irregular = IRREGULAR_ADJECTIVES[gloss.toLowerCase()];
+  if (irregular) return irregular;
+  if (gloss.includes(" ") || gloss.length > 7) {
+    return { comparative: `more ${gloss}`, superlative: `most ${gloss}` };
+  }
+  if (/e$/i.test(gloss)) {
+    return { comparative: `${gloss}r`, superlative: `${gloss}st` };
+  }
+  if (/[^aeiou]y$/i.test(gloss)) {
+    const stem = gloss.slice(0, -1);
+    return { comparative: `${stem}ier`, superlative: `${stem}iest` };
+  }
+  if (/^[^aeiou]*[aeiou][^aeiouwxy]$/i.test(gloss)) {
+    const doubled = gloss + gloss.slice(-1);
+    return { comparative: `${doubled}er`, superlative: `${doubled}est` };
+  }
+  return { comparative: `${gloss}er`, superlative: `${gloss}est` };
+}
+
+// Every paradigm's slots follow a fixed order (see getParadigm in
+// inflections.js) — knowing which slot the clicked surface form matched is
+// enough to turn a base dictionary gloss into the actually-inflected
+// English one, without a second dictionary entry per form.
+//
+// Noun slots: [indefinite singular, definite singular, indefinite plural,
+// definite plural]. English marks these with "the" and a plural suffix.
+const NOUN_SLOT_GLOSS_TRANSFORMS = [
+  (gloss) => gloss,
+  (gloss) => `the ${gloss}`,
+  (gloss) => pluralizeEnglishGloss(gloss),
+  (gloss) => `the ${pluralizeEnglishGloss(gloss)}`,
+];
+
+// Verb slots: [infinitive, present, past, present perfect, imperative].
+// Present perfect is shown as "has helped" — a representative single form,
+// since Norwegian's perfektum doesn't distinguish "has"/"have" by subject
+// the way English does — using the participle rather than the past tense,
+// since for irregular verbs those differ ("has gone", not "has went").
+const VERB_SLOT_GLOSS_TRANSFORMS = [
+  (gloss) => gloss,
+  (gloss) => presentTenseEnglishGloss(gloss),
+  (gloss) => pastTenseEnglishGloss(gloss),
+  (gloss) => `has ${pastParticipleEnglishGloss(gloss)}`,
+  (gloss) => `${gloss}!`,
+];
+
+// Adjective slots: [masculine, feminine, neuter, definite singular,
+// plural, comparative, superlative, definite superlative]. Unlike Norwegian,
+// English adjectives don't inflect for gender/number/definiteness at all
+// ("stor"/"stort"/"store" are all just "big") — only comparative and
+// superlative actually change the English word. Definite superlative
+// ("den største") is the one slot that does add an English article, since
+// it's the form used pronominally ("the biggest").
+function getAdjectiveSlotGloss(baseGloss, slotIndex) {
+  const { comparative, superlative } = comparativeAndSuperlative(baseGloss);
+  const bySlot = [
+    baseGloss,
+    baseGloss,
+    baseGloss,
+    baseGloss,
+    baseGloss,
+    comparative,
+    superlative,
+    `the ${superlative}`,
+  ];
+  return bySlot[slotIndex] ?? baseGloss;
+}
+
+function getStoryWordGloss(entry, surfaceWord) {
+  const baseGloss = getDisplayedAnswer(entry.engelsk);
+  const wordClass = WordClass.getWordClass(entry.gender);
+  const matchingSlots =
+    window.Inflections?.getMatchingSlots?.(entry, surfaceWord) || [];
+  const slotIndex = matchingSlots[0];
+
+  if (slotIndex === undefined) return baseGloss;
+  if (wordClass === "adjective") return getAdjectiveSlotGloss(baseGloss, slotIndex);
+
+  // Verb paradigms carry 7 additional hidden passive/participial slots
+  // (index 5+) with no learner-facing label — fall back to the base gloss
+  // for those rather than guessing at an unlabeled form.
+  const transformsBySlot =
+    wordClass === "noun"
+      ? NOUN_SLOT_GLOSS_TRANSFORMS
+      : wordClass === "verb"
+        ? VERB_SLOT_GLOSS_TRANSFORMS
+        : null;
+  const transform = transformsBySlot?.[slotIndex];
+
+  return transform ? transform(baseGloss) : baseGloss;
+}
+
+// Cache of normalized surface form -> Promise<resolved entries>. Caching the
+// promise itself, not just its eventually-resolved value, matters here: a
+// popover click can land while the initial highlight pass (below) is still
+// mid-flight resolving the very same word, and without this both callers
+// would race independently instead of sharing one computation. A word this
+// cheap to resolve also doesn't need per-story invalidation (the dictionary
+// itself doesn't change at runtime), so one cache serves the whole session.
+const storyWordEntryPromiseCache = new Map();
+
+function resolveStoryWordEntries(normalizedWord) {
+  let promise = storyWordEntryPromiseCache.get(normalizedWord);
+  if (promise) return promise;
+
+  promise = (async () => {
+    // Deliberately not just resolveWordSearchQuery(): that function
+    // short-circuits to the exact match alone whenever the clicked surface
+    // form happens to also be a standalone dictionary word ("exact" reason,
+    // scripts.js) — the right call for a search box, but wrong here.
+    // "hjelper" IS the noun "helper", but it's ALSO the present tense of
+    // the verb "hjelpe" ("helps"); resolveWordSearchQuery would only ever
+    // surface the former. Checking findLemmas independently, in addition
+    // to the exact match, catches both.
+    const lemmas = new Set();
+    if (wordSearchIndex.norwegianExact.has(normalizedWord)) {
+      lemmas.add(normalizedWord);
+    }
+    const officialResolution =
+      await window.Inflections?.findLemmas(normalizedWord);
+    (officialResolution?.lemmas || []).forEach((lemma) => {
+      if (wordSearchIndex.norwegianExact.has(lemma)) lemmas.add(lemma);
+    });
+
+    const entries = [];
+    for (const lemma of lemmas) {
+      for (const entry of wordSearchIndex.norwegianExact.get(lemma) || []) {
+        if (!entries.includes(entry)) entries.push(entry);
+      }
+    }
+    return entries;
+  })();
+
+  storyWordEntryPromiseCache.set(normalizedWord, promise);
+  return promise;
+}
+
+// Multi-word expressions ("bestemme seg", "gå gjennom ild og vann") need to
+// be treated as one clickable unit rather than their individual words —
+// resolveStoryWordEntries has no way to reassemble "bestemmer" + "seg"
+// back into the expression, since expressions aren't part of the
+// noun/verb/adjective inflection system at all. window.ExpressionPatterns
+// (built for the exact same problem in sentence search — see scripts.js)
+// already knows how to locate an expression's inflected occurrences inside
+// arbitrary text, so this reuses it rather than re-deriving that grammar.
+//
+// ~3,400 expression entries exist — far too many to pattern-match against
+// every sentence directly. This builds a cheap reverse index (component
+// word -> candidate expressions) once, so a given sentence only pays the
+// real matching cost for the small handful of expressions that could
+// plausibly appear in it.
+const EXPRESSION_INDEX_STOPWORDS = new Set([
+  "seg", "meg", "deg", "oss", "dere", "det", "den", "de", "noe", "noen",
+  "nokon", "noko", "en", "ei", "et", "å", "som", "sin", "sitt", "sine",
+]);
+
+// A story reached directly by URL renders before the ~29k-row dictionary
+// has loaded (see the initialStoryRoute delay in scripts.js) — this index
+// is built from `results`, so it must not be memoized off an empty/not-
+// -yet-loaded dictionary, or expression detection would silently never
+// work for the rest of that page's lifetime.
+let expressionComponentIndex = null;
+
+async function buildExpressionComponentIndex() {
+  if (expressionComponentIndex) return expressionComponentIndex;
+  if (results.length === 0) return new Map();
+
+  const index = new Map();
+  for (const entry of results) {
+    if (WordClass.getWordClass(entry.gender) !== "expression") continue;
+
+    const citation = String(entry.ord || "").split(",")[0];
+    const words = citation.match(STORY_WORD_TOKEN_REGEX) || [];
+    for (const word of words) {
+      const normalized = normalizeSearchText(word);
+      if (!normalized || EXPRESSION_INDEX_STOPWORDS.has(normalized)) continue;
+      if (!index.has(normalized)) index.set(normalized, []);
+      index.get(normalized).push(entry);
+    }
+  }
+
+  expressionComponentIndex = index;
+  return index;
+}
+
+// Resolves once the dictionary has either loaded or given up trying —
+// upgradeStoryExpressionSpans needs to wait for this rather than run once
+// and silently find nothing on a direct story-link page load.
+function waitForDictionaryData() {
+  if (results.length > 0 || dictionaryLoadFailed) return Promise.resolve();
+  return new Promise((resolve) => {
+    const interval = setInterval(() => {
+      if (results.length > 0 || dictionaryLoadFailed) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, 200);
+  });
+}
+
+// A wildcard/placeholder slot in an expression pattern (e.g. "gjøre noe
+// for [noen]") could in principle match across a large stretch of a
+// sentence — capped here so one runaway match can't visually swallow half
+// a sentence into one clickable unit. citationWordCount + 3 gives room for
+// a filled placeholder or two without allowing that.
+function isReasonableExpressionMatchLength(matchedText, citationWordCount) {
+  const matchedWordCount = (matchedText.match(STORY_WORD_TOKEN_REGEX) || []).length;
+  return matchedWordCount > 0 && matchedWordCount <= citationWordCount + 3;
+}
+
+async function findExpressionMatchesInSentence(sentenceText) {
+  const index = await buildExpressionComponentIndex();
+  const words = sentenceText.match(STORY_WORD_TOKEN_REGEX) || [];
+  if (words.length === 0) return [];
+
+  const uniqueNormalizedWords = [...new Set(words.map(normalizeSearchText))];
+  const candidateEntries = new Set();
+
+  for (const word of uniqueNormalizedWords) {
+    for (const candidate of index.get(word) || []) candidateEntries.add(candidate);
+
+    const officialResolution = await window.Inflections?.findLemmas(word);
+    for (const lemma of officialResolution?.lemmas || []) {
+      for (const candidate of index.get(lemma) || []) candidateEntries.add(candidate);
+    }
+  }
+
+  if (candidateEntries.size === 0) return [];
+
+  const spans = [];
+  for (const entry of candidateEntries) {
+    const analysis = await window.ExpressionPatterns?.getAnalysis(entry);
+    const matcher = analysis?.matcher;
+    if (!matcher) continue;
+
+    const citationWordCount = (
+      String(entry.ord || "").split(",")[0].match(STORY_WORD_TOKEN_REGEX) || []
+    ).length;
+
+    // Mirrors ExpressionPatterns' own .highlight() cursor loop — walk
+    // forward finding every non-overlapping occurrence in this sentence,
+    // not just the first.
+    let cursor = 0;
+    while (cursor < sentenceText.length) {
+      const remaining = sentenceText.slice(cursor);
+      const match = matcher.find(remaining);
+      if (!match) break;
+
+      const start = match.start + cursor;
+      const end = match.end + cursor;
+      const matchedText = sentenceText.slice(start, end);
+      if (isReasonableExpressionMatchLength(matchedText, citationWordCount)) {
+        spans.push({ start, end, entry });
+      }
+      cursor += Math.max(match.end, 1);
+    }
+  }
+
+  // Longer matches win on overlap (a 3-word expression fully containing a
+  // 2-word one should keep the more specific reading).
+  spans.sort((a, b) => (b.end - b.start) - (a.end - a.start));
+  const accepted = [];
+  for (const span of spans) {
+    const overlaps = accepted.some(
+      (existing) => span.start < existing.end && span.end > existing.start,
+    );
+    if (!overlaps) accepted.push(span);
+  }
+  accepted.sort((a, b) => a.start - b.start);
+  return accepted;
+}
+
+// Object identity can't survive a round trip through an HTML string /
+// dataset attribute, so matched expression entries are kept here and
+// referenced from their span by a small numeric id instead.
+const expressionEntryRegistry = new Map();
+let nextExpressionEntryId = 0;
+
+function registerExpressionEntry(entry) {
+  const id = String(nextExpressionEntryId++);
+  expressionEntryRegistry.set(id, entry);
+  return id;
+}
+
+// Replaces the .story-word span(s) + connecting text covering [span.start,
+// span.end) in `container`'s raw text with a single new span, so the whole
+// expression becomes one clickable unit instead of two/three separate
+// word clicks. Offsets are recomputed from the live DOM on every call
+// (rather than trusting stale numbers) — since the replacement swaps nodes
+// for a single span of identical combined text, total length never
+// changes, so processing order doesn't matter.
+function replaceStoryWordSpanWithExpression(container, span, entry) {
+  let offset = 0;
+  const nodesToReplace = [];
+
+  for (const child of Array.from(container.childNodes)) {
+    const text = child.textContent;
+    const childStart = offset;
+    const childEnd = offset + text.length;
+    if (childEnd > span.start && childStart < span.end) {
+      nodesToReplace.push(child);
+    }
+    offset = childEnd;
+  }
+  if (nodesToReplace.length === 0) return;
+
+  const matchedText = nodesToReplace.map((node) => node.textContent).join("");
+  const newSpan = document.createElement("span");
+  newSpan.className = "story-word story-word-expression";
+  newSpan.dataset.word = matchedText;
+  newSpan.dataset.exprId = registerExpressionEntry(entry);
+  newSpan.textContent = matchedText;
+
+  nodesToReplace[0].parentNode.insertBefore(newSpan, nodesToReplace[0]);
+  nodesToReplace.forEach((node) => node.remove());
+}
+
+async function upgradeStoryExpressionSpans() {
+  await waitForDictionaryData();
+  await window.Inflections?.preload();
+
+  const sentenceEls = document.querySelectorAll(".japanese-sentence[data-raw-text]");
+  for (const sentenceEl of sentenceEls) {
+    const rawText = sentenceEl.dataset.rawText;
+    const matches = await findExpressionMatchesInSentence(rawText);
+    matches.forEach((match) =>
+      replaceStoryWordSpanWithExpression(sentenceEl, match, match.entry),
+    );
+  }
+}
+
+// A word can resolve to more than one dictionary entry — either a single
+// spelling with multiple senses (homonyms), or, like "hjelper", two
+// entirely different lemmas (the verb "hjelpe" present tense vs. the noun
+// "hjelper"). Rather than guess from context, every distinct sense is shown
+// as its own row.
+const MAX_STORY_WORD_POPOVER_SENSES = 4;
+
+async function showStoryWordPopover(wordSpan) {
+  const surfaceWord = wordSpan.dataset.word || wordSpan.textContent;
+  const normalizedWord = normalizeSearchText(surfaceWord);
+
+  closeStoryWordPopover();
+  if (!normalizedWord) return;
+
+  await window.Inflections?.preload();
+
+  const popover = document.createElement("div");
+  popover.className = "story-word-popover";
+  popover.setAttribute("role", "dialog");
+  popover.setAttribute("aria-label", `Definition of ${surfaceWord}`);
+
+  // A story reached directly by URL loads its own data first and only
+  // fetches the ~29k-row dictionary a second later (see the
+  // initialStoryRoute delay in scripts.js) — without this, a click in that
+  // window would wrongly report "No definition found" instead of just
+  // not being ready yet.
+  const entries =
+    results.length === 0 ? [] : await getStoryWordSpanEntries(wordSpan);
+
+  if (results.length === 0) {
+    popover.classList.add("story-word-popover-empty");
+    popover.textContent = "Loading dictionary…";
+  } else if (entries.length === 0) {
+    // Fails without erroring — proper nouns, names, and words outside the
+    // dictionary are expected to turn up nothing. The flag link reuses the
+    // exact same "missing word" feedback channel as the main search page's
+    // no-results state (see flagMissingWordEntry in scripts.js), so both
+    // land in the same reviewable list.
+    popover.classList.add("story-word-popover-empty");
+
+    const emptyText = document.createElement("span");
+    emptyText.textContent = "No definition found";
+
+    const flagButton = document.createElement("button");
+    flagButton.type = "button";
+    flagButton.className = "story-word-popover-flag-btn";
+    flagButton.textContent = "Flag missing word";
+    flagButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      flagMissingWordEntry(surfaceWord);
+      closeStoryWordPopover();
+    });
+
+    popover.append(emptyText, flagButton);
+  } else {
+    const seenGlosses = new Set();
+
+    // Easiest sense first — someone at A1 hitting an ambiguous word
+    // usually wants the common everyday reading before a rarer C-level one.
+    const orderedEntries = [...entries].sort(
+      (a, b) =>
+        (CEFR_ORDER[String(a.CEFR).toUpperCase()] || 99) -
+        (CEFR_ORDER[String(b.CEFR).toUpperCase()] || 99),
+    );
+
+    orderedEntries.slice(0, MAX_STORY_WORD_POPOVER_SENSES).forEach((entry) => {
+      const gloss = getStoryWordGloss(entry, normalizedWord);
+      const glossKey = gloss.toLowerCase();
+      if (seenGlosses.has(glossKey)) return;
+      seenGlosses.add(glossKey);
+
+      const row = document.createElement("div");
+      row.className = "story-word-popover-row";
+
+      const translationEl = document.createElement("span");
+      translationEl.className = "story-word-popover-translation";
+      translationEl.textContent = gloss;
+
+      const starButton = document.createElement("button");
+      starButton.type = "button";
+      starButton.className =
+        "word-list-favorite-button story-word-popover-star";
+      starButton.innerHTML = '<i aria-hidden="true"></i>';
+      updateStoryWordPopoverStar(
+        starButton,
+        entry,
+        window.MyWordsAPI?.isSaved?.(entry) ?? false,
+      );
+
+      starButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const nowSaved = Boolean(window.MyWordsAPI?.toggle?.(entry));
+        updateStoryWordPopoverStar(starButton, entry, nowSaved);
+      });
+
+      row.append(translationEl, starButton);
+      popover.appendChild(row);
+    });
+  }
+
+  document.body.appendChild(popover);
+  positionStoryWordPopover(popover, wordSpan);
+  activeStoryWordPopover = popover;
+
+  window.addEventListener("scroll", closeStoryWordPopover, true);
+  window.addEventListener("resize", closeStoryWordPopover);
+}
+
+// Colors a word in the story text the same gold as a filled My Words star
+// (.is-saved) if it's already saved, so known vocabulary stands out while
+// reading without having to click each word to check. Runs once per story
+// render and again on my-words:updated so starring a word from the
+// popover recolors it immediately.
+async function getStoryWordSpanEntries(span) {
+  if (span.classList.contains("story-word-expression")) {
+    const entry = expressionEntryRegistry.get(span.dataset.exprId);
+    return entry ? [entry] : [];
+  }
+
+  const normalizedWord = normalizeSearchText(span.dataset.word || span.textContent);
+  return normalizedWord ? resolveStoryWordEntries(normalizedWord) : [];
+}
+
+async function highlightKnownStoryWords() {
+  if (!window.MyWordsAPI || !isStoriesTabActive()) return;
+
+  const wordSpans = Array.from(document.querySelectorAll(".story-word"));
+  if (wordSpans.length === 0) return;
+
+  await window.Inflections?.preload();
+
+  const entriesBySpan = await Promise.all(
+    wordSpans.map((span) => getStoryWordSpanEntries(span)),
+  );
+
+  wordSpans.forEach((span, index) => {
+    const isKnown = entriesBySpan[index].some((entry) =>
+      window.MyWordsAPI.isSaved(entry),
+    );
+    span.classList.toggle("story-word-known", isKnown);
+  });
+}
+
+window.addEventListener("my-words:updated", () => {
+  highlightKnownStoryWords();
+});
+
+document.addEventListener("click", (event) => {
+  const wordSpan = event.target.closest(".story-word");
+  if (wordSpan) {
+    showStoryWordPopover(wordSpan);
+    return;
+  }
+
+  if (activeStoryWordPopover && !event.target.closest(".story-word-popover")) {
+    closeStoryWordPopover();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeStoryWordPopover();
   }
 });
