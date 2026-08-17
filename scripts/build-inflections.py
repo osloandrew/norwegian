@@ -24,10 +24,27 @@ from pathlib import Path
 
 SOURCE_URL = "https://ord.uib.no/bm/fil/lemma_expanded.json"
 NOUN_GENDERS = {"en", "et", "ei"}
-CLASS_PREFIX = {"noun": "n", "adjective": "a", "verb": "v"}
+CLASS_PREFIX = {
+    "noun": "n",
+    "adjective": "a",
+    "verb": "v",
+    "adverb": "d",
+    "possessive": "p",
+    "determiner": "t",
+}
+# Record length (including the lemma/base-form slot) per word class, used to
+# size a dictionary-only fallback record when no exact Ordbank match exists.
+RECORD_LENGTHS = {
+    "noun": 3,
+    "adjective": 8,
+    "verb": 12,
+    "adverb": 3,
+    "possessive": 5,
+    "determiner": 5,
+}
 FIELD_SEPARATOR = "|"
 ALTERNATIVE_SEPARATOR = "/"
-DATA_VERSION = 8
+DATA_VERSION = 9
 NOUN_GENDER_ORDER = ("en", "ei", "et")
 EXPRESSION_TOKEN_RE = re.compile(r"[^\W_]+(?:[-'’][^\W_]+)*", re.UNICODE)
 
@@ -66,7 +83,7 @@ def word_class(gender: str) -> str | None:
     tokens = set(normalized.split("-"))
     if tokens & NOUN_GENDERS:
         return "noun"
-    if normalized in {"adjective", "verb"}:
+    if normalized in {"adjective", "verb", "adverb", "possessive", "determiner"}:
         return normalized
     return None
 
@@ -378,6 +395,60 @@ def build_records(
                 add(record, 2, str(paradigm[1]))
                 add(record, 3, str(paradigm[2]))
 
+        # ADV_adj covers degree/frequency adverbs whose citation form takes a
+        # comparative and superlative ("ofte" -> "oftere" -> "oftest"). This
+        # is the same source shape already consumed above for adjectives
+        # used adverbially (see adverbial_adjective_fallbacks); this branch
+        # instead covers the dictionary's own adverb entries directly.
+        elif (
+            source_class == "ADV"
+            and inflection_group == "ADV_adj"
+            and lemma in targets.get("adverb", set())
+        ):
+            key = f"d:{lemma}"
+            record = records.setdefault(key, [set() for _ in range(3)])
+            add(record, 0, str(raw_lemma))
+            for paradigm in paradigms:
+                if not isinstance(paradigm, list) or len(paradigm) != 2:
+                    continue
+                add(record, 1, str(paradigm[0]))
+                add(record, 2, str(paradigm[1]))
+
+        # DET covers possessives (min/sin/din/vår) and other determiners
+        # (annen/dette/sådan/halvannen/selv). The dictionary's `gender`
+        # column keeps these as two distinct word classes even though Norsk
+        # Ordbank encodes both the same way. Two different inflection
+        # groups occur: DET_regular is a 3-field [feminine/di-form, neuter,
+        # plural] paradigm (min/sin/din/vår/sådan); DET_adj is the same
+        # 7-field [feminine, neuter, definite, plural, +3 unused] shape
+        # already used for ADJ_masc/fem_fem adjectives (annen/selv/sjøl).
+        # record[0] is always the lemma itself, i.e. the masculine/common
+        # form — also the whole record for DET_simple entries such as
+        # "hans"/"hennes"/"deres"/"dette", which are invariant and carry an
+        # empty paradigm.
+        elif source_class == "DET" and (
+            lemma in targets.get("possessive", set())
+            or lemma in targets.get("determiner", set())
+        ):
+            for current_class in ("possessive", "determiner"):
+                if lemma not in targets.get(current_class, set()):
+                    continue
+                key = f"{CLASS_PREFIX[current_class]}:{lemma}"
+                record = records.setdefault(key, [set() for _ in range(5)])
+                add(record, 0, str(raw_lemma))
+                for paradigm in paradigms:
+                    if not isinstance(paradigm, list):
+                        continue
+                    if len(paradigm) == 3:
+                        add(record, 1, str(paradigm[0]))
+                        add(record, 2, str(paradigm[1]))
+                        add(record, 4, str(paradigm[2]))
+                    elif len(paradigm) == 7:
+                        add(record, 1, str(paradigm[0]))
+                        add(record, 2, str(paradigm[1]))
+                        add(record, 3, str(paradigm[2]))
+                        add(record, 4, str(paradigm[3]))
+
     for lemma, fallback in adverbial_adjective_fallbacks.items():
         key = f"a:{lemma}"
         if key not in records:
@@ -443,7 +514,7 @@ def add_dictionary_fallback_records(
         else:
             target_entries = [
                 (lemma, f"{prefix}:{lemma}", "")
-                for lemma in sorted(targets[current_class])
+                for lemma in sorted(targets.get(current_class, set()))
             ]
             official_heads = [
                 (key[2:], key, "")
@@ -498,7 +569,10 @@ def add_dictionary_fallback_records(
             elif current_class == "adjective":
                 records[key] = [[lemma], [lemma], [], [], [], [], [], []]
             else:
-                records[key] = [[lemma], *([[]] * 11)]
+                records[key] = [
+                    [lemma],
+                    *([[]] * (RECORD_LENGTHS[current_class] - 1)),
+                ]
             dictionary_only.add(key)
 
     return derived_from, dictionary_only

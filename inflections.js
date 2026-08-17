@@ -5,18 +5,24 @@
 (function () {
   "use strict";
 
-  const DATA_VERSION = 8;
+  const DATA_VERSION = 9;
   const DATA_URL = `inflections-data.json?v=${DATA_VERSION}`;
   const MAX_PENDING_ENTRIES = 100;
   const CLASS_PREFIX = {
     noun: "n",
     adjective: "a",
     verb: "v",
+    adverb: "d",
+    possessive: "p",
+    determiner: "t",
   };
   const PREFIX_CLASS = {
     n: "noun",
     a: "adjective",
     v: "verb",
+    d: "adverb",
+    p: "possessive",
+    t: "determiner",
   };
 
   let snapshot = window.__BOKMAL_INFLECTIONS_DATA__ || null;
@@ -317,6 +323,42 @@
     };
   }
 
+  // Degree/frequency adverbs (ofte/sjelden/lenge/langt/gjerne/snart, ...)
+  // compare like adjectives ("ofte" -> "oftere" -> "oftest") — record[0] is
+  // the lemma itself, populated even when Ordbank has no exact match (see
+  // record shape below), since the positive form is always known.
+  function createAdverbForms(record) {
+    return {
+      wordClass: "adverb",
+      forms: [
+        { label: "Positive", value: displayValue(record[0]) },
+        { label: "Comparative", value: displayValue(record[1]) },
+        { label: "Superlative", value: displayValue(record[2]) },
+      ],
+    };
+  }
+
+  // Shared by both "possessive" (min/sin/din/vår) and "determiner"
+  // (annen/dette/sådan/selv) dictionary word classes — the CSV keeps them
+  // as two labels, but Norsk Ordbank encodes both the same way, and they
+  // decline for gender/number exactly like an adjective. record[0] is the
+  // lemma itself (masculine/common); a word with no separate feminine/
+  // neuter/definite/plural form (e.g. invariant "hans"/"hennes"/"deres")
+  // just shows "–" for those rows via displayValue, the same convention
+  // already used for an invariant adjective like "alene".
+  function createDeterminerForms(wordClass, record) {
+    return {
+      wordClass,
+      forms: [
+        { label: "Masculine", value: displayValue(record[0]) },
+        { label: "Feminine", value: displayValue(record[1]) },
+        { label: "Neuter", value: displayValue(record[2]) },
+        { label: "Definite", value: displayValue(record[3]) },
+        { label: "Plural", value: displayValue(record[4]) },
+      ],
+    };
+  }
+
   function createVerbForms(record) {
     return {
       wordClass: "verb",
@@ -479,7 +521,11 @@
     let result;
     if (wordClass === "noun") result = createNounForms(entry, lemma, record);
     else if (wordClass === "adjective") result = createAdjectiveForms(record);
-    else result = createVerbForms(record);
+    else if (wordClass === "verb") result = createVerbForms(record);
+    else if (wordClass === "adverb") result = createAdverbForms(record);
+    else if (wordClass === "possessive" || wordClass === "determiner") {
+      result = createDeterminerForms(wordClass, record);
+    } else return null; // unreachable given the CLASS_PREFIX gate above
 
     return {
       ...result,
