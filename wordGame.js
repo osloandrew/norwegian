@@ -8,16 +8,54 @@ let currentWordQueueType = null;
 let correctLevelAnswers = 0; // Track correct answers per level
 let correctCount = 0; // Tracks the total number of correct answers
 let correctStreak = 0; // Track the current streak of correct answers
-const GAME_LEVEL_STORAGE_KEY = "norwegian-dictionary-game-level-v1";
+// CEFR labels remain purely descriptive metadata on individual words/stories
+// (see CEFR_DIFFICULTY_ANCHOR below) — the learner's own ability is a
+// continuous, invisible estimate, not an ordinal "level" to climb or fall
+// from. CEFR_LEVEL_ORDER is kept only as the canonical band ordering used to
+// build that anchor table and to interpolate difficulty-scaled constants.
 const CEFR_LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C"];
 // Word classes excluded from cloze/distractor generation — too grammatically
 // constrained (e.g. a numeral rarely substitutes for another numeral in
 // context) to make plausible-but-wrong answer choices.
 const BANNED_WORD_CLASSES = ["numeral", "pronoun", "possessive", "determiner"];
 
-let currentCEFR = loadGameLevel(); // Resumes at the saved level; defaults to A1
-let levelCorrectAnswers = 0;
-let levelTotalQuestions = 0;
+const ABILITY_STORAGE_KEY = "norwegian-dictionary-ability-v1";
+const LEGACY_GAME_LEVEL_STORAGE_KEY = "norwegian-dictionary-game-level-v1";
+const ABILITY_MIN = 0;
+const ABILITY_MAX = 1000;
+// Evenly spaced anchors give every CEFR-tagged word and story a numeric
+// difficulty for proximity-based selection. This is a v1 simplification —
+// it doesn't account for the corpus being much denser in B2/C than A1/A2 —
+// but the wide proximity sigma used everywhere below means adjacent bands
+// overlap generously, so sparse bands still draw from their neighbors
+// rather than starving.
+const CEFR_DIFFICULTY_ANCHOR = Object.freeze({
+  A1: 100,
+  A2: 300,
+  B1: 500,
+  B2: 700,
+  C: 900,
+});
+// How quickly ability-based selection weight falls off with distance from
+// the learner's estimated ability. ~140 means a word one full CEFR band
+// away still gets meaningful practice share; two bands away is effectively
+// excluded without a hard cliff.
+const ABILITY_PROXIMITY_SIGMA = 140;
+// How far a single answer nudges the ability estimate. Small on purpose —
+// this replaces the old batch rise/fall thresholds with a smooth,
+// per-answer drift instead of a discrete "level up" event.
+const ABILITY_K_FACTOR = 24;
+// Spread of the logistic curve used to predict success probability from
+// (word difficulty − ability). Larger = gentler, more forgiving curve.
+const ABILITY_LOGISTIC_SCALE = 220;
+
+function clampAbility(value) {
+  return Math.min(ABILITY_MAX, Math.max(ABILITY_MIN, value));
+}
+
+let abilityState = loadAbilityState();
+let abilityScore = abilityState.score; // null until placement is completed
+let placementCompleted = abilityState.placementCompleted;
 let gameActive = false;
 
 // A "round" is the intro-screen-driven session wrapper around the game:
@@ -153,8 +191,7 @@ function replaceDailyPracticeState(remoteState) {
 
   // renderLandingDailyQuests() is a no-op unless the landing view's quest
   // widget is actually in the DOM, so it's safe to call unconditionally
-  // here (unlike replaceGameLevel's CEFR dropdown, this container isn't
-  // shared with any other view).
+  // here.
   renderLandingDailyQuests();
 
   return normalized;
@@ -216,13 +253,35 @@ let incorrectCount = 0; // Tracks the total number of incorrect answers
 // in WordStrengthAPI; this queue only supplies enough intervening questions
 // before a retry and remembers which exercise form was missed.
 let incorrectWordQueue = [];
-const levelThresholds = {
-  A1: { up: 0.85, down: null }, // Starting level — can't go lower
-  A2: { up: 0.9, down: 0.6 },
-  B1: { up: 0.94, down: 0.7 },
-  B2: { up: 0.975, down: 0.8 },
-  C: { up: null, down: 0.9 }, // Final level — can fall from here, but not climb higher
-};
+// Linearly interpolates a CEFR-band-keyed table (e.g.
+// REVERSE_FLASHCARD_PROBABILITY below) against the continuous ability
+// score, instead of snapping to whichever discrete band the score is
+// nearest to. Keeps the underlying curriculum ramp (more reverse-recall
+// and listening practice as ability grows) continuous rather than
+// stepping abruptly at band boundaries — consistent with there being no
+// user-visible "level" to step between.
+function interpolateByAbility(score, table) {
+  if (!Number.isFinite(score)) return null;
+
+  const points = CEFR_LEVEL_ORDER.map((level) => ({
+    x: CEFR_DIFFICULTY_ANCHOR[level],
+    y: table[level],
+  }));
+
+  if (score <= points[0].x) return points[0].y;
+  if (score >= points[points.length - 1].x) return points[points.length - 1].y;
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    if (score >= a.x && score <= b.x) {
+      const t = (score - a.x) / (b.x - a.x);
+      return a.y + t * (b.y - a.y);
+    }
+  }
+
+  return points[points.length - 1].y;
+}
 // Reverse flashcards (English shown, Norwegian recalled from memory) test
 // productive vocabulary knowledge — meaningfully harder than the forward
 // flashcard's receptive recognition (Norwegian shown, English recognized
@@ -295,7 +354,6 @@ function applyCorrectRelearningResult(queueEntry, wasTyped, answeredQuestions) {
 
 let totalQuestions = 0; // Track total questions per level
 let wordDataStore = [];
-let questionsAtCurrentLevel = 0; // Track questions answered at current level
 let goodChime = new Audio("Resources/Audio/goodChime.wav");
 let badChime = new Audio("Resources/Audio/badChime.wav");
 let popChime = new Audio("Resources/Audio/popChime.wav");
@@ -369,8 +427,6 @@ function setGameContainerHTML(html) {
 
 // Centralized banner handler
 const banners = {
-  congratulations: "game-congratulations-banner",
-  fallback: "game-fallback-banner",
   streak: "game-streak-banner", // New banner for 10-word streak
   clearedPracticeWords: "game-cleared-practice-banner", // New banner for clearing reintroduced words
 };
@@ -387,37 +443,6 @@ const clearedPracticeMessages = [
   "🎯 Target achieved! Practice words cleared.",
   "🧠 Brainpower at its best! Practice complete.",
 ];
-
-const congratulationsMessages = [
-  "🎉 Fantastic work! You've reached level {X}!",
-  "🏅 Congratulations! Level {X} achieved!",
-  "🌟 You're shining bright at level {X}!",
-  "🚀 Level up! Welcome to level {X}!",
-  "👏 Great job! You've advanced to level {X}!",
-  "🎯 Target hit! Now at level {X}!",
-  "🎓 Smart move! Level {X} unlocked!",
-  "🔥 Keep it up! Level {X} is yours!",
-  "💡 Brilliant! You've made it to level {X}!",
-  "🏆 Victory! Level {X} reached!",
-];
-
-const fallbackMessages = [
-  "🔄 Don't worry! You're back at level {X}. Keep going!",
-  "💪 Stay strong! Level {X} is a chance to improve.",
-  "🌱 Growth time! Revisit level {X} and conquer it.",
-  "🎯 Aim steady! Level {X} is your new target.",
-  "🚀 Regroup at level {X} and launch again!",
-  "🔥 Keep the fire alive! Level {X} awaits.",
-  "🧠 Sharpen your skills at level {X}.",
-  "🎓 Learning is a journey. Level {X} is part of it.",
-  "🏗️ Rebuild your streak starting at level {X}.",
-  "💡 Reflect and rise! Level {X} is your step forward.",
-];
-
-const lockToggleMessages = {
-  locked: ["🔒 Level lock enabled. You won’t advance or fall back."],
-  unlocked: ["🚀 Level lock disabled. Progression is active."],
-};
 
 const streakMessages = [
   "🔥 You're on fire with a {X}-word streak!",
@@ -453,23 +478,7 @@ function showBanner(type, level) {
   let bannerHTML = "";
   let message = "";
 
-  if (type === "congratulations") {
-    const randomIndex = Math.floor(
-      Math.random() * congratulationsMessages.length,
-    );
-    message = congratulationsMessages[randomIndex].replace(
-      "{X}",
-      getCefrLabel(level) || level,
-    );
-    bannerHTML = `<div class="game-congratulations-banner"><p>${message}</p></div>`;
-  } else if (type === "fallback") {
-    const randomIndex = Math.floor(Math.random() * fallbackMessages.length);
-    message = fallbackMessages[randomIndex].replace(
-      "{X}",
-      getCefrLabel(level) || level,
-    );
-    bannerHTML = `<div class="game-fallback-banner"><p>${message}</p></div>`;
-  } else if (type === "streak") {
+  if (type === "streak") {
     const randomIndex = Math.floor(Math.random() * streakMessages.length);
     message = streakMessages[randomIndex].replace("{X}", level);
     bannerHTML = `<div class="game-streak-banner"><p>${message}</p></div>`;
@@ -499,14 +508,6 @@ function showBanner(type, level) {
         <p>${message}</p>
       </div>
     `;
-  } else if (type === "levelLock") {
-    const messages =
-      level === "locked"
-        ? lockToggleMessages.locked
-        : lockToggleMessages.unlocked;
-    const randomIndex = Math.floor(Math.random() * messages.length);
-    message = messages[randomIndex];
-    bannerHTML = `<div class="game-lock-banner"><p>${message}</p></div>`;
   }
 
   if (bannerPlaceholder) {
@@ -525,13 +526,40 @@ function hideAllBanners() {
   }
 }
 
-// Track correct/incorrect answers for each question
-function updateRecentAnswers(isCorrect) {
+// Track correct/incorrect answers for each question, and nudge the ability
+// estimate from this one data point. This runs after every answer in every
+// mode — there's no batch evaluation window and no discrete "level" event,
+// just a continuous drift toward wherever the evidence points.
+function updateRecentAnswers(isCorrect, wordObj) {
   recentAnswers.push(isCorrect ? 1 : 0);
-  if (isCorrect) {
-    levelCorrectAnswers++;
-  }
-  levelTotalQuestions++;
+  updateAbilityScore(wordObj, isCorrect);
+}
+
+function getWordDifficultyAnchor(entry) {
+  const cefr = String(entry?.CEFR ?? "").trim().toUpperCase();
+  return CEFR_DIFFICULTY_ANCHOR[cefr] ?? CEFR_DIFFICULTY_ANCHOR.B1;
+}
+
+// Elo/logistic-style update: predicts the probability the learner gets a
+// word of this difficulty right given their current ability, then moves
+// ability toward the actual outcome by a small, fixed step. Replaces the
+// old 20-question batch accuracy check with something that adapts after
+// every single answer, in both bounded and endless rounds.
+function getExpectedSuccessProbability(wordDifficulty, ability) {
+  return 1 / (1 + Math.exp((wordDifficulty - ability) / ABILITY_LOGISTIC_SCALE));
+}
+
+function updateAbilityScore(wordObj, isCorrect) {
+  if (abilityScore === null || !wordObj) return;
+
+  const wordDifficulty = getWordDifficultyAnchor(wordObj);
+  const expected = getExpectedSuccessProbability(wordDifficulty, abilityScore);
+  const actual = isCorrect ? 1 : 0;
+
+  abilityScore = clampAbility(
+    abilityScore + ABILITY_K_FACTOR * (actual - expected),
+  );
+  saveAbilityState();
 }
 
 function toggleGameEnglish() {
@@ -586,7 +614,8 @@ function renderStats() {
   const correctPercentage = total > 0 ? (correctCount / total) * 100 : 0;
   const wordsToReview = incorrectWordQueue.length;
 
-  const currentThresholds = levelThresholds[currentCEFR];
+  // Purely descriptive of recent accuracy, not relative to any level
+  // threshold — there's nothing here to rise or fall from.
   let fillColor = "#c7e3b6"; // default green
   let fontColor = "#6b9461";
 
@@ -594,28 +623,20 @@ function renderStats() {
     // Before the user answers any question
     fillColor = "#ddd"; // neutral gray
     fontColor = "#444"; // dark gray text
-  } else if (
-    currentThresholds.down !== null &&
-    correctPercentage < currentThresholds.down * 100
-  ) {
+  } else if (correctPercentage < 60) {
     fillColor = "#e9a895"; // red
     fontColor = "#b5634d";
-  } else if (
-    currentThresholds.up !== null &&
-    correctPercentage < currentThresholds.up * 100
-  ) {
+  } else if (correctPercentage < 85) {
     fillColor = "#f2e29b"; // yellow
     fontColor = "#a0881c";
   }
 
   const isSessionRound = wordGameRoundActive && wordGameMode === "session";
 
-  // Session rounds don't level up/down (see evaluateProgression) — the
-  // threshold-relative % bar has nothing left to communicate there, so it
-  // swaps for a bar filling toward the round's own "Word X of N" progress
-  // instead, so completing a round *feels* like progress the same way the
-  // infinite-mode bar does. Infinite mode keeps the original bar, plus an
-  // optional way to stop and see stats.
+  // Session rounds swap the recent-accuracy bar for one filling toward the
+  // round's own "Word X of N" progress instead, so completing a round
+  // *feels* like progress the same way the infinite-mode bar does. Infinite
+  // mode keeps the accuracy bar, plus an optional way to stop and see stats.
   // Available in every mode now, not just infinite — a learner might just
   // as well want to stop partway through a bounded round and see how
   // they've done so far. Ending early this way is exactly why
@@ -1547,29 +1568,8 @@ function prepareClozeChoices(wordObj, clozeTarget, distractors) {
 // fetched — lets the learner choose a bounded round (a specific number of
 // words to learn, with missed words requeued until answered correctly —
 // see handleTranslationClick) or an unbounded, endless drill.
-// The level lock is only meaningful during actual infinite-mode play —
-// leveling never evaluates in session mode (see evaluateProgression), and
-// the intro/summary screens aren't gameplay at all. Called explicitly from
-// all three places rather than relying on whatever startWordGame() last
-// left it at, since the intro and summary screens don't go through
-// startWordGame().
-function setWordGameLockIconVisible(visible) {
-  const lockIcon = document.getElementById("lock-icon");
-  if (lockIcon) {
-    lockIcon.style.display = visible ? "inline" : "none";
-  }
-
-  // The CEFR pill reserves extra chevron/select space specifically for
-  // the lock icon (see styles.css) — only needed while the icon is
-  // actually shown, otherwise the pill grows a visible empty gap on the
-  // side where the icon would have been.
-  document
-    .getElementById("search-container-inner")
-    ?.classList.toggle("game-lock-visible", visible);
-}
-
 function getTodayPracticeQueueSummary() {
-  const eligibleEntries = getEligibleGameWords("", currentCEFR, {
+  const eligibleEntries = getEligibleGameWords("", {
     ignorePrevious: true,
   });
   const queues = buildGameWordQueues(eligibleEntries);
@@ -1685,7 +1685,6 @@ function beginTodayPracticeRound() {
 }
 
 function renderWordGameIntro() {
-  setWordGameLockIconVisible(false);
   const dailyState = loadDailyPracticeState();
   const dailyProgress = getDailyPracticeProgress(dailyState);
   const dailyComplete = dailyProgress >= DAILY_QUESTS.length;
@@ -1769,12 +1768,21 @@ function renderWordGameIntro() {
           <span class="game-intro-option-label">Endless</span>
         </button>
       </div>
+      <button type="button" id="retake-placement-btn" class="placement-retake-link">
+        Retake placement test
+      </button>
     </div>
   `);
 
   document
     .getElementById("game-today-practice-btn")
     ?.addEventListener("click", beginTodayPracticeRound);
+
+  document
+    .getElementById("retake-placement-btn")
+    ?.addEventListener("click", () => {
+      window.PlacementTestAPI?.start?.();
+    });
 
   document.querySelectorAll(".game-intro-option").forEach((button) => {
     button.addEventListener("click", () => {
@@ -1937,7 +1945,6 @@ function resetTodayPracticeRoundAfterMidnight(wordObj) {
 function showWordGameRoundSummary() {
   stopAllAudio();
   hideAllBanners();
-  setWordGameLockIconVisible(false);
 
   const elapsedSeconds = Math.max(
     1,
@@ -2103,22 +2110,22 @@ async function startWordGame() {
   const searchBarWrapper = document.getElementById("search-bar-wrapper");
   const randomBtn = document.getElementById("my-words-nav-btn");
 
-  // Filter containers for POS, Genre, and CEFR
+  // Filter containers for POS and Genre
   const posFilterContainer = document.querySelector(".pos-filter");
   const genreFilterContainer = document.getElementById("genre-filter"); // Get the Genre filter container
-  const cefrFilterContainer = document.querySelector(".cefr-filter"); // Get the CEFR filter container
+  // The shared CEFR filter/lock control is browse-only in Word List and
+  // Stories — the word game itself has no CEFR control at all, since
+  // ability is an invisible, continuously-adaptive estimate rather than
+  // something the learner sets directly. Hidden here rather than merely
+  // disabled so it isn't shown at all while in this view.
+  const cefrFilterGroup = document.querySelector(".cefr-filter-group");
   const gameEnglishFilterContainer = document.querySelector(
     ".game-english-filter",
   );
 
-  // Filter dropdowns for POS, Genre, and CEFR
+  // Filter dropdowns for POS and Genre
   const posSelect = document.getElementById("pos-select");
-  const cefrSelect = document.getElementById("cefr-select");
   const gameEnglishSelect = document.getElementById("game-english-select");
-
-  // Keep the dropdown in sync with the (possibly persisted/resumed) level
-  // whenever the word-game view is entered or re-entered.
-  updateCEFRSelection();
 
   gameActive = true;
   showLandingCard(false);
@@ -2140,15 +2147,18 @@ async function startWordGame() {
   posSelect.value = ""; // Reset to "Part of Speech" option
   posFilterContainer.style.display = "none";
 
-  cefrSelect.disabled = false;
-  cefrFilterContainer.classList.remove("disabled");
+  if (cefrFilterGroup) cefrFilterGroup.style.display = "none";
 
   // No round chosen yet (fresh entry into the word game, or just finished
   // a round) — show the mode picker instead of fetching a question. Once
   // beginWordGameRound() sets wordGameRoundActive, it calls this function
   // again itself to actually fetch the first question.
   if (!wordGameRoundActive) {
-    renderWordGameIntro();
+    if (!placementCompleted) {
+      window.PlacementTestAPI?.start?.();
+    } else {
+      renderWordGameIntro();
+    }
     return;
   }
 
@@ -2158,10 +2168,6 @@ async function startWordGame() {
   // back to the ordinary flashcard format.
   await window.Inflections?.preload();
   if (!gameActive || !wordGameRoundActive) return;
-
-  // Only meaningful during actual infinite-mode play — leveling never
-  // evaluates in session mode (see evaluateProgression).
-  setWordGameLockIconVisible(wordGameMode === "infinite");
 
   // A miss enters an explicit short-term relearning queue. Its availability
   // is measured in intervening answered questions, while WordStrengthAPI's
@@ -2333,9 +2339,12 @@ async function startWordGame() {
     return;
   }
 
-  // Use the currentCEFR directly, since it's dynamically updated when the user selects a new CEFR level
-  if (!currentCEFR) {
-    setGameLevel("A1"); // Default to A1 if no level is set
+  // Defensive fallback only — startWordGame() routes to the placement test
+  // before any question is ever fetched without an ability estimate.
+  if (abilityScore === null) {
+    abilityScore = CEFR_DIFFICULTY_ANCHOR.A1;
+    placementCompleted = false;
+    saveAbilityState();
   }
 
   // Fetch a random word that respects CEFR and POS filters
@@ -2375,7 +2384,8 @@ async function startWordGame() {
     randomWordObj.wordAudio === "X" &&
     (structuredQuestionMode === "listening" ||
       (structuredQuestionMode === null &&
-        Math.random() < (LISTENING_PROBABILITY[currentCEFR] ?? 0.25)));
+        Math.random() <
+          (interpolateByAbility(abilityScore, LISTENING_PROBABILITY) ?? 0.25)));
   // Only applies to the non-cloze, non-listening remainder — see
   // REVERSE_FLASHCARD_PROBABILITY above for why this scales with level
   // instead of being a flat coin flip.
@@ -2385,13 +2395,19 @@ async function startWordGame() {
     (structuredQuestionMode === "reverse" ||
       forceTypedReverse ||
       (structuredQuestionMode === null &&
-        Math.random() < (REVERSE_FLASHCARD_PROBABILITY[currentCEFR] ?? 0.25)));
+        Math.random() <
+          (interpolateByAbility(abilityScore, REVERSE_FLASHCARD_PROBABILITY) ??
+            0.25)));
 
-  // Fetch incorrect translations with the same gender
+  // Fetch incorrect translations from the same band as the word actually
+  // being asked about (not the learner's own ability) — distractors need to
+  // be plausible peers of the target word, and since word selection is no
+  // longer confined to a single CEFR band, those two are no longer the same
+  // thing.
   const incorrectTranslations = fetchIncorrectTranslations(
     randomWordObj.gender,
     correctTranslation,
-    currentCEFR,
+    randomWordObj.CEFR,
   );
 
   // Shuffle correct and incorrect translations into an array
@@ -2481,7 +2497,7 @@ async function startWordGame() {
 
     const incorrectNorwegianWords = fetchIncorrectNorwegianWords(
       randomWordObj.ord,
-      currentCEFR,
+      randomWordObj.CEFR,
       randomWordObj.gender,
     );
 
@@ -3477,7 +3493,6 @@ async function handleTranslationClick(
 
   resetTodayPracticeRoundAfterMidnight(wordObj);
   totalQuestions++; // Increment total questions for this level
-  questionsAtCurrentLevel++; // Increment questions at this level
   const { exampleSentence, sentenceTranslation } =
     await fetchExampleSentence(wordObj, exampleSentenceIndex);
   announceGameAnswer(answerWasCorrect, correctTranslationPart);
@@ -3503,7 +3518,7 @@ async function handleTranslationClick(
     correctCount++; // Increment correct count globally
     correctStreak++; // Increment the streak
     correctLevelAnswers++; // Increment correct count for this level
-    updateRecentAnswers(true); // Track this correct answer
+    updateRecentAnswers(true, wordObj); // Track this correct answer
     window.WordStrengthAPI?.recordResult?.(wordObj, true, {
       // A bounded-round filler or voluntary early review is not a spaced
       // retrieval and therefore must not lengthen the durable interval.
@@ -3573,7 +3588,7 @@ async function handleTranslationClick(
     });
     incorrectCount++; // Increment incorrect count
     correctStreak = 0; // Reset the streak
-    updateRecentAnswers(false); // Track this correct answer
+    updateRecentAnswers(false, wordObj); // Track this correct answer
     window.WordStrengthAPI?.recordResult?.(wordObj, false);
     if (wordGameRoundActive) {
       wordGameSessionQuestionsAnswered++;
@@ -3658,11 +3673,6 @@ async function handleTranslationClick(
   // Update the stats after the answer
   renderStats();
 
-  // Only evaluate progression if at least 20 questions have been answered at the current level
-  if (questionsAtCurrentLevel >= 20) {
-    evaluateProgression();
-    questionsAtCurrentLevel = 0; // Reset the counter after progression evaluation
-  }
   if (exampleSentence && !isCloze) {
     const completedSentence = exampleSentence;
 
@@ -3774,7 +3784,6 @@ async function fetchExampleSentence(wordObj, preferredIndex = null) {
 
 function getEligibleGameWords(
   selectedPOS,
-  cefrLevel,
   { ignorePrevious = false } = {},
 ) {
   const queuedForReintroduction = new Set(
@@ -3802,12 +3811,10 @@ function getEligibleGameWords(
       return false;
     }
 
-    /*
-     * Only include entries at the user's current CEFR level.
-     */
-    if (entryCEFR !== cefrLevel) {
-      return false;
-    }
+    // No CEFR gate here by design: word selection is a smooth,
+    // ability-proximity-weighted draw (see getGameWordWeight), not a hard
+    // per-level cutoff. A word far from the learner's ability isn't
+    // excluded outright, just made vanishingly unlikely to be drawn.
 
     if (noRandom.includes(normalizeGameAnswer(norwegianWord))) {
       return false;
@@ -3913,10 +3920,27 @@ const MY_WORDS_BOOST = 100;
 // always some chance of practicing a word that hasn't been saved.
 const MY_WORDS_MAX_SHARE = 0.85;
 
+// A Gaussian falloff centered on the learner's ability, in word-difficulty
+// units — this is what stands in for the old hard CEFR-level cutoff. A word
+// right at the estimated ability gets full weight; one further away fades
+// out smoothly rather than being excluded outright.
+function getAbilityProximityWeight(entry) {
+  if (abilityScore === null) return 1;
+
+  const distance = getWordDifficultyAnchor(entry) - abilityScore;
+  return Math.exp(
+    -(distance * distance) / (2 * ABILITY_PROXIMITY_SIGMA * ABILITY_PROXIMITY_SIGMA),
+  );
+}
+
 function getGameWordWeight(entry) {
   const strength = window.WordStrengthAPI?.get?.(entry) ?? 0;
+  const strengthWeight = Math.pow(
+    STRENGTH_WEIGHT_CEILING - strength,
+    STRENGTH_WEIGHT_EXPONENT,
+  );
 
-  return Math.pow(STRENGTH_WEIGHT_CEILING - strength, STRENGTH_WEIGHT_EXPONENT);
+  return strengthWeight * getAbilityProximityWeight(entry);
 }
 
 /*
@@ -4095,18 +4119,16 @@ async function fetchRandomWord() {
     ? document.getElementById("pos-select").value.toLowerCase()
     : "";
 
-  const cefrLevel = String(currentCEFR || "A1").toUpperCase();
-
-  let eligibleEntries = getEligibleGameWords(selectedPOS, cefrLevel);
+  let eligibleEntries = getEligibleGameWords(selectedPOS);
 
   /*
-   * This matters only if a level has one eligible entry.
+   * This matters only if there is exactly one eligible entry.
    * It permits that entry to appear again when no alternative exists.
    */
   if (eligibleEntries.length === 0 && previousWord !== null) {
     previousWord = null;
 
-    eligibleEntries = getEligibleGameWords(selectedPOS, cefrLevel);
+    eligibleEntries = getEligibleGameWords(selectedPOS);
   }
 
   if (eligibleEntries.length === 0) {
@@ -4135,75 +4157,6 @@ async function fetchRandomWord() {
    * Return the original dictionary entry. Do not create a partial copy.
    */
   return selectedEntry;
-}
-
-function advanceToNextLevel() {
-  if (incorrectWordQueue.length > 0) {
-    // Block level advancement if there are still incorrect words
-    return;
-  }
-
-  const nextLevel =
-    CEFR_LEVEL_ORDER[CEFR_LEVEL_ORDER.indexOf(currentCEFR) + 1] || "";
-
-  // Only advance if we are not already at the next level
-  if (currentCEFR !== nextLevel && nextLevel) {
-    setGameLevel(nextLevel);
-    resetGame(false); // Preserve streak when progressing
-    showBanner("congratulations", nextLevel); // Show the banner
-    updateCEFRSelection();
-  }
-}
-
-function fallbackToPreviousLevel() {
-  const previousLevel =
-    CEFR_LEVEL_ORDER[CEFR_LEVEL_ORDER.indexOf(currentCEFR) - 1] || "";
-
-  // Only change the level if it is actually falling back to a previous level
-  if (currentCEFR !== previousLevel && previousLevel) {
-    setGameLevel(previousLevel);
-    resetGame(false); // Preserve streak when progressing
-    incorrectWordQueue = []; // Reset the incorrect word queue on fallback
-    showBanner("fallback", previousLevel); // Show the fallback banner
-    updateCEFRSelection(); // Update the CEFR selection to reflect the new level
-  }
-}
-
-let levelLocked = false;
-
-function toggleLevelLock() {
-  levelLocked = !levelLocked;
-  const icon = document.getElementById("lock-icon");
-  if (icon) {
-    icon.className = levelLocked ? "fas fa-lock" : "fas fa-lock-open";
-    icon.title = levelLocked ? "Level is locked" : "Level is unlocked";
-    icon.setAttribute("aria-pressed", String(levelLocked));
-  }
-  showBanner("levelLock", levelLocked ? "locked" : "unlocked");
-}
-
-// Check if the user can level up or fall back
-function evaluateProgression() {
-  if (levelLocked) return;
-
-  // Level changes are an infinite-mode concept: they rely on a rolling
-  // accuracy window large enough to be reliable (a single miss swings a
-  // 10-word round's accuracy by 10 points, enough to cross most
-  // thresholds on its own), and a bounded round is meant to be a focused
-  // drill at a level the learner already chose, not something that
-  // auto-escalates mid-round.
-  if (wordGameMode === "session") return;
-
-  if (levelTotalQuestions >= 10) {
-    const accuracy = levelCorrectAnswers / levelTotalQuestions;
-    const { up, down } = levelThresholds[currentCEFR];
-    if (accuracy >= up && incorrectWordQueue.length === 0) {
-      advanceToNextLevel();
-    } else if (accuracy < down) {
-      fallbackToPreviousLevel();
-    }
-    resetLevelStats();
-  }
 }
 
 function shuffleArray(array) {
@@ -4488,74 +4441,85 @@ function generateClozeDistractors(wordObj, clozeTarget) {
   return distractors;
 }
 
-function updateCEFRSelection() {
-  const cefrSelect = document.getElementById("cefr-select");
-  // Update the actual selected value in the dropdown to reflect the current CEFR level
-  cefrSelect.value = currentCEFR;
-}
-
-function loadGameLevel() {
+function loadAbilityState() {
   try {
-    const storedValue = window.localStorage.getItem(GAME_LEVEL_STORAGE_KEY);
+    const stored = window.localStorage.getItem(ABILITY_STORAGE_KEY);
 
-    if (!storedValue) {
-      return "A1";
+    if (stored) {
+      const parsed = JSON.parse(stored);
+
+      if (Number.isFinite(parsed?.score)) {
+        return {
+          score: clampAbility(parsed.score),
+          placementCompleted: Boolean(parsed.placementCompleted),
+        };
+      }
     }
-
-    const parsedValue = JSON.parse(storedValue);
-
-    return CEFR_LEVEL_ORDER.includes(parsedValue.level)
-      ? parsedValue.level
-      : "A1";
   } catch (error) {
-    console.warn("Game level could not be loaded.", error);
-    return "A1";
+    console.warn("Ability score could not be loaded.", error);
   }
+
+  // First run after upgrading from the old ordinal CEFR rise/fall system:
+  // silently carry the saved level forward as a starting estimate instead
+  // of sending an existing player through the placement flow.
+  try {
+    const legacy = window.localStorage.getItem(LEGACY_GAME_LEVEL_STORAGE_KEY);
+
+    if (legacy) {
+      const parsedLegacy = JSON.parse(legacy);
+
+      if (CEFR_LEVEL_ORDER.includes(parsedLegacy.level)) {
+        return {
+          score: CEFR_DIFFICULTY_ANCHOR[parsedLegacy.level],
+          placementCompleted: true,
+        };
+      }
+    }
+  } catch (error) {
+    console.warn("Legacy game level could not be migrated.", error);
+  }
+
+  return { score: null, placementCompleted: false };
 }
 
-function saveGameLevel({ syncRemote = true } = {}) {
+function saveAbilityState({ syncRemote = true } = {}) {
   try {
     window.localStorage.setItem(
-      GAME_LEVEL_STORAGE_KEY,
-      JSON.stringify({ version: 1, level: currentCEFR }),
+      ABILITY_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        score: abilityScore,
+        placementCompleted,
+      }),
     );
   } catch (error) {
-    console.warn("Game level could not be saved.", error);
+    console.warn("Ability score could not be saved.", error);
   }
 
-  // Let myWordsAuth.js know the level changed, so it can sync to Firestore
-  // when a user is signed in. syncRemote is false when the change came
-  // from a remote merge, to avoid immediately writing it back.
+  // Let myWordsAuth.js know the ability score changed, so it can sync to
+  // Firestore when a user is signed in. syncRemote is false when the
+  // change came from a remote merge, to avoid immediately writing it back.
   window.dispatchEvent(
-    new CustomEvent("game-level:updated", {
-      detail: { level: currentCEFR, syncRemote },
+    new CustomEvent("ability:updated", {
+      detail: { score: abilityScore, placementCompleted, syncRemote },
     }),
   );
 }
 
-// Only level progression persists — streak, the incorrect-word queue, and
-// per-level accuracy counters stay session-only (resetGame() already
-// leaves currentCEFR untouched, and continues to).
-function setGameLevel(newLevel) {
-  currentCEFR = newLevel;
-  saveGameLevel();
+// Used by the placement test to seed/finalize the estimate, and available
+// for a learner to retake later — the only two ways abilityScore is ever
+// set directly, as opposed to the small per-answer drift in
+// updateAbilityScore.
+function completePlacementTest(score) {
+  abilityScore = clampAbility(Math.round(score));
+  placementCompleted = true;
+  saveAbilityState();
 }
 
-function replaceGameLevel(newLevel) {
-  currentCEFR = newLevel;
-  saveGameLevel({ syncRemote: false });
-
-  // Only touch the shared CEFR dropdown if Word Game is the view actually
-  // on screen right now. This runs after an async sign-in merge, which
-  // often resolves while the user is looking at Words/Sentences/etc. —
-  // writing to the dropdown then would visibly hijack whatever filter
-  // they had selected there for a moment, even though it has nothing to
-  // do with the game level.
-  const typeSelect = document.getElementById("type-select");
-
-  if (typeSelect?.value === "word-game") {
-    updateCEFRSelection();
-  }
+function replaceAbilityState(remoteScore, remotePlacementCompleted) {
+  abilityScore = clampAbility(remoteScore);
+  placementCompleted = Boolean(remotePlacementCompleted);
+  saveAbilityState({ syncRemote: false });
 }
 
 function resetGame(resetStreak = true) {
@@ -4566,49 +4530,12 @@ function resetGame(resetStreak = true) {
   if (resetStreak) {
     correctStreak = 0; // Reset the streak if the flag is true
   }
-  levelCorrectAnswers = 0;
   incorrectCount = 0; // Reset incorrect answers count
   incorrectWordQueue = [];
-  levelTotalQuestions = 0; // Reset this here too
-  questionsAtCurrentLevel = 0; // Reset questions counter for the level
   recentAnswers = []; // Clear the recent answers array
   totalQuestions = 0; // Reset total questions for the current level
   renderStats(); // Re-render the stats display to reflect the reset
 }
-
-// Reset level stats after progression or fallback
-function resetLevelStats() {
-  levelCorrectAnswers = 0;
-  levelTotalQuestions = 0;
-}
-
-document.getElementById("cefr-select").addEventListener("change", function () {
-  const typeValue = document.getElementById("type-select").value; // Get the current value of the type selector
-
-  if (typeValue === "word-game") {
-    const selectedCEFR = this.value.toUpperCase(); // Get the newly selected CEFR level
-    setGameLevel(selectedCEFR); // Set and persist the new CEFR level
-
-    if (wordGameRoundActive && wordGameMode === "session") {
-      // Changing level mid-round would otherwise mix two levels' words
-      // into what's supposed to be one coherent "N words at this level"
-      // round — restart fresh instead, same mode/size, at the new level.
-      const todayPracticeWasActive = wordGameIsTodayPracticeRound;
-      const bonusRoundWasActive = wordGameIsBonusRound;
-      const nextTarget = todayPracticeWasActive
-        ? DAILY_QUEST_ROUND_TARGET
-        : wordGameSessionTarget;
-      beginWordGameRound(wordGameMode, nextTarget, {
-        bonusRound: bonusRoundWasActive,
-        dailyQuestIndex: wordGameDailyQuestIndex,
-        todayPractice: todayPracticeWasActive,
-      });
-    } else {
-      resetGame(); // Reset the game stats
-      startWordGame(); // Start the game with the new CEFR level
-    }
-  }
-});
 
 document.addEventListener("keydown", function (event) {
   if (document.getElementById("type-select").value !== "word-game") return;
@@ -4658,7 +4585,6 @@ document.getElementById("game-end-session-btn-header")?.addEventListener("click"
   showWordGameRoundSummary();
 });
 
-window.toggleLevelLock = toggleLevelLock;
 window.DailyQuestAPI = Object.freeze({
   renderLanding: renderLandingDailyQuests,
   start: startDailyQuestFromLanding,
@@ -4674,9 +4600,13 @@ window.WordGameHelpers = Object.freeze({
   shouldUseTypedRecall,
   getTypedAcceptedAnswers,
   shuffleArray,
-  getCurrentLevel: () => currentCEFR,
-  getLevelOrder: () => CEFR_LEVEL_ORDER.slice(),
-  replaceLevel: replaceGameLevel,
+  getAbilityScore: () => abilityScore,
+  isPlacementCompleted: () => placementCompleted,
+  getCefrAnchors: () => ({ ...CEFR_DIFFICULTY_ANCHOR }),
+  getWordDifficulty: getWordDifficultyAnchor,
+  completePlacement: completePlacementTest,
+  replaceAbility: replaceAbilityState,
+  startWordGame,
 });
 
 renderLandingDailyQuests();

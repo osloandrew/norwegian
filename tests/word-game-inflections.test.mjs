@@ -34,7 +34,7 @@ const runSection = (start, end) => {
 runSection("function getGameGenderLabel", "// Getting a CSS transition");
 runSection("function normalizeGameWhitespace", "// Shown every time the word game");
 runSection("function shuffleArray", "// hasCompatibleGender lives");
-runSection("function getPhraseChoiceDisplay", "function updateCEFRSelection");
+runSection("function getPhraseChoiceDisplay", "function loadAbilityState");
 runSection("function ensureUniqueDisplayedValues", "function displayPronunciation");
 
 assert.equal(context.getGameGenderLabel("noun - en-et"), "N - en-et");

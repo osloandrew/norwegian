@@ -64,7 +64,7 @@
   let currentUserId = null;
   let pushTimeoutId = null;
   let strengthPushTimeoutId = null;
-  let levelPushTimeoutId = null;
+  let abilityPushTimeoutId = null;
   let streakPushTimeoutId = null;
   let dailyQuestPushTimeoutId = null;
 
@@ -201,18 +201,19 @@
       });
   }
 
-  function pushGameLevelNow(userId, level) {
+  function pushAbilityNow(userId, score, placementCompleted) {
     getUserDocRef(userId)
       .set(
         {
-          gameLevel: level,
+          abilityScore: score,
+          placementCompleted,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true },
       )
       .then(clearSyncStatusError)
       .catch((error) => {
-        console.warn("Game level could not be synced.", error);
+        console.warn("Ability score could not be synced.", error);
         showSyncStatusError();
       });
   }
@@ -254,7 +255,7 @@
   // fires) can push it immediately instead of losing it.
   let pendingEntryIds = null;
   let pendingStrengths = null;
-  let pendingLevel = null;
+  let pendingAbility = null;
   let pendingStreak = null;
   let pendingDailyQuest = null;
 
@@ -286,17 +287,17 @@
     }, PUSH_DEBOUNCE_MS);
   }
 
-  function scheduleLevelPush(level) {
+  function scheduleAbilityPush(score, placementCompleted) {
     if (!currentUserId) {
       return;
     }
 
-    pendingLevel = level;
-    window.clearTimeout(levelPushTimeoutId);
-    levelPushTimeoutId = window.setTimeout(() => {
-      levelPushTimeoutId = null;
-      pendingLevel = null;
-      pushGameLevelNow(currentUserId, level);
+    pendingAbility = { score, placementCompleted };
+    window.clearTimeout(abilityPushTimeoutId);
+    abilityPushTimeoutId = window.setTimeout(() => {
+      abilityPushTimeoutId = null;
+      pendingAbility = null;
+      pushAbilityNow(currentUserId, score, placementCompleted);
     }, PUSH_DEBOUNCE_MS);
   }
 
@@ -350,11 +351,15 @@
       pendingStrengths = null;
     }
 
-    if (levelPushTimeoutId !== null) {
-      window.clearTimeout(levelPushTimeoutId);
-      levelPushTimeoutId = null;
-      pushGameLevelNow(currentUserId, pendingLevel);
-      pendingLevel = null;
+    if (abilityPushTimeoutId !== null) {
+      window.clearTimeout(abilityPushTimeoutId);
+      abilityPushTimeoutId = null;
+      pushAbilityNow(
+        currentUserId,
+        pendingAbility?.score,
+        pendingAbility?.placementCompleted,
+      );
+      pendingAbility = null;
     }
 
     if (streakPushTimeoutId !== null) {
@@ -416,8 +421,11 @@
           window.WordStrengthAPI?.mergeAll?.(data.wordStrengths);
         }
 
-        if (typeof data.gameLevel === "string") {
-          window.WordGameHelpers?.replaceLevel?.(data.gameLevel);
+        if (Number.isFinite(data.abilityScore)) {
+          window.WordGameHelpers?.replaceAbility?.(
+            data.abilityScore,
+            data.placementCompleted,
+          );
         }
 
         if (data.streak && typeof data.streak === "object") {
@@ -463,22 +471,35 @@
           remoteStrengths,
         ) ?? localStrengths;
 
-      // Level is a single ordinal value, not a set or a per-word map — merge
-      // by taking whichever of local/remote represents more progress.
-      const levelOrder = window.WordGameHelpers?.getLevelOrder?.() ?? [
-        "A1",
-        "A2",
-        "B1",
-        "B2",
-        "C",
-      ];
-      const localLevel = window.WordGameHelpers?.getCurrentLevel?.() ?? "A1";
-      const remoteLevel =
-        typeof remoteData.gameLevel === "string" ? remoteData.gameLevel : "A1";
-      const mergedLevel =
-        levelOrder.indexOf(remoteLevel) > levelOrder.indexOf(localLevel)
-          ? remoteLevel
-          : localLevel;
+      // Ability is a single continuous value, not a set or a per-word map.
+      // Prefer whichever side actually has a completed placement over a
+      // raw unplaced default; once both are placed (or neither is), take
+      // the higher estimate, the same "more progress wins" spirit the old
+      // ordinal-level merge used.
+      const localAbility = window.WordGameHelpers?.getAbilityScore?.();
+      const localPlacementCompleted =
+        window.WordGameHelpers?.isPlacementCompleted?.() ?? false;
+      const remoteAbility = Number.isFinite(remoteData.abilityScore)
+        ? remoteData.abilityScore
+        : null;
+      const remotePlacementCompleted = Boolean(remoteData.placementCompleted);
+
+      let mergedAbility;
+      let mergedPlacementCompleted;
+
+      if (remoteAbility === null) {
+        mergedAbility = localAbility;
+        mergedPlacementCompleted = localPlacementCompleted;
+      } else if (localAbility === null) {
+        mergedAbility = remoteAbility;
+        mergedPlacementCompleted = remotePlacementCompleted;
+      } else if (localPlacementCompleted !== remotePlacementCompleted) {
+        mergedAbility = localPlacementCompleted ? localAbility : remoteAbility;
+        mergedPlacementCompleted = true;
+      } else {
+        mergedAbility = Math.max(localAbility, remoteAbility);
+        mergedPlacementCompleted = localPlacementCompleted;
+      }
 
       // Streak isn't a set or a max-per-key map either — it's a single
       // running count tied to a specific last-active date, so the side with
@@ -552,13 +573,20 @@
 
       window.MyWordsAPI?.replaceEntryIds?.(mergedEntryIds);
       window.WordStrengthAPI?.replaceAll?.(mergedStrengths);
-      window.WordGameHelpers?.replaceLevel?.(mergedLevel);
+      if (mergedAbility !== null && mergedAbility !== undefined) {
+        window.WordGameHelpers?.replaceAbility?.(
+          mergedAbility,
+          mergedPlacementCompleted,
+        );
+      }
       window.StreakAPI?.replaceState?.(mergedStreak);
       window.DailyQuestAPI?.replaceState?.(mergedDailyPractice);
 
       pushEntryIdsNow(userId, mergedEntryIds);
       pushWordStrengthsNow(userId, mergedStrengths);
-      pushGameLevelNow(userId, mergedLevel);
+      if (mergedAbility !== null && mergedAbility !== undefined) {
+        pushAbilityNow(userId, mergedAbility, mergedPlacementCompleted);
+      }
       pushStreakNow(userId, mergedStreak);
       pushDailyQuestNow(userId, mergedDailyPractice);
     } catch (error) {
@@ -682,13 +710,18 @@
     scheduleStrengthPush(event.detail?.strengths ?? {});
   });
 
-  // Fired by wordGame.js's saveGameLevel() whenever the CEFR level changes.
-  window.addEventListener("game-level:updated", (event) => {
+  // Fired by wordGame.js's saveAbilityState() whenever the ability score
+  // (or placement-completed flag) changes.
+  window.addEventListener("ability:updated", (event) => {
     if (event.detail?.syncRemote === false) {
       return;
     }
 
-    scheduleLevelPush(event.detail?.level ?? "A1");
+    if (!Number.isFinite(event.detail?.score)) {
+      return;
+    }
+
+    scheduleAbilityPush(event.detail.score, Boolean(event.detail.placementCompleted));
   });
 
   // Fired by streak.js's saveStreakState() whenever the streak changes.

@@ -353,17 +353,12 @@
                   <option value="C">C · Advanced</option>
                 </select>
                 <i class="fas fa-chevron-down"></i>
-                <i
-                  id="lock-icon"
-                  class="fas fa-lock-open"
-                  title="Toggle level lock"
-                  aria-label="Toggle level lock"
-                  role="button"
-                  tabindex="0"
-                  aria-pressed="false"
-                  onclick="toggleLevelLock()"
-                  onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleLevelLock() }"
-                ></i>
+                <!-- Inert placeholder: several view-switch code paths in
+                     scripts.js unconditionally set this element's display
+                     style, a leftover from the old rise/fall level-lock
+                     feature (now removed). Kept in the DOM so those lookups
+                     don't throw; never shown. -->
+                <i id="lock-icon" style="display: none"></i>
               </div>
               <!-- Only shown mid-round, in any Word Game mode — see
                    updateEndSessionToolbarButtonVisibility() in wordGame.js,
@@ -890,6 +885,7 @@
     <script src="noRandom.js" defer></script>
     <script src="scripts.js" defer></script>
     <script src="wordGame.js" defer></script>
+    <script src="placementTest.js" defer></script>
     <script src="streak.js" defer></script>
     <script src="stories.js" defer></script>
     <script src="pronunciation.js"></script>

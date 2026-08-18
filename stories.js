@@ -7,12 +7,14 @@ let currentSpeed = 1.0; // default speed
 let isStoryEnglishVisible = false;
 
 /*
- * Cache of the current "recommended for your level" pick, keyed by CEFR
- * level. Reused across re-renders (e.g. changing the genre filter) so the
- * suggestion doesn't reshuffle on every unrelated interaction - it only
- * changes on a fresh page load or when the user's Word Game level changes.
+ * Cache of the current story recommendation, keyed by a coarse bucket of
+ * the learner's ability score (see getStoryRecommendationCacheKey).
+ * Reused across re-renders (e.g. changing the genre filter) so the
+ * suggestion doesn't reshuffle on every unrelated interaction or on the
+ * small per-answer ability drift from Word Game play — only once ability
+ * has moved enough to matter.
  */
-let cachedStoryRecommendation = null; // { level, story }
+let cachedStoryRecommendation = null; // { cacheKey, story }
 
 // Define an object mapping genres to Font Awesome icons
 const genreIcons = {
@@ -304,34 +306,77 @@ function updateEnglishVisibility() {
   }
 }
 
+// How tightly the story recommendation clusters around the learner's
+// ability. Wider than the word-selection sigma in wordGame.js — there are
+// far fewer stories than words per CEFR band, so a tighter radius would
+// leave many learners with nothing nearby.
+const STORY_RECOMMENDATION_SIGMA = 150;
+
+// Ability drifts by a point or two after almost every word-game answer;
+// caching on its exact value would reshuffle the recommendation on nearly
+// every render. Bucketing to the nearest 25 keeps it stable across that
+// noise while still updating once ability has genuinely moved.
+function getStoryRecommendationCacheKey(ability) {
+  return Math.round(ability / 25) * 25;
+}
+
 /*
- * Picks (and caches) a random story matching the user's saved Word Game
- * level. Returns null if that level isn't available yet, or no story at
- * that level exists.
+ * Picks (and caches) a story weighted toward the learner's estimated
+ * ability — a soft proximity draw, not an exact CEFR match, so a thin
+ * band still surfaces its nearest neighbors instead of coming up empty.
+ * Returns null only if no ability estimate exists yet (placement not
+ * completed) or there are no stories at all.
  */
 function getRecommendedStory() {
-  const level = window.WordGameHelpers?.getCurrentLevel?.();
+  const ability = window.WordGameHelpers?.getAbilityScore?.();
 
-  if (!level) {
+  if (!Number.isFinite(ability)) {
     return null;
   }
 
-  if (cachedStoryRecommendation && cachedStoryRecommendation.level === level) {
+  const cacheKey = getStoryRecommendationCacheKey(ability);
+
+  if (cachedStoryRecommendation && cachedStoryRecommendation.cacheKey === cacheKey) {
     return cachedStoryRecommendation.story;
   }
 
   const candidates = storyResults.filter(
-    (story) =>
-      story.CEFR &&
-      story.CEFR.trim().toUpperCase() === level &&
-      story.titleNorwegian,
+    (story) => story.CEFR && story.titleNorwegian,
   );
 
-  const story = candidates.length
-    ? candidates[Math.floor(Math.random() * candidates.length)]
-    : null;
+  if (!candidates.length) {
+    cachedStoryRecommendation = { cacheKey, story: null };
+    return null;
+  }
 
-  cachedStoryRecommendation = { level, story };
+  const anchors = window.WordGameHelpers?.getCefrAnchors?.() ?? {};
+  // A small floor keeps every story in the running, however faintly, so a
+  // learner whose ability sits far from every available story still gets
+  // a recommendation instead of none.
+  const weights = candidates.map((story) => {
+    const anchor = anchors[story.CEFR.trim().toUpperCase()] ?? 500;
+    const distance = anchor - ability;
+    return (
+      Math.exp(
+        -(distance * distance) /
+          (2 * STORY_RECOMMENDATION_SIGMA * STORY_RECOMMENDATION_SIGMA),
+      ) + 0.001
+    );
+  });
+
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  let target = Math.random() * totalWeight;
+  let story = candidates[candidates.length - 1];
+
+  for (let i = 0; i < candidates.length; i++) {
+    target -= weights[i];
+    if (target < 0) {
+      story = candidates[i];
+      break;
+    }
+  }
+
+  cachedStoryRecommendation = { cacheKey, story };
 
   return story;
 }
@@ -390,16 +435,16 @@ function createStoryCardLink(story) {
  * Build the highlighted "recommended for your level" banner shown at the
  * top of the Stories page.
  */
-function createStoryRecommendationElement(story, level) {
+function createStoryRecommendationElement(story) {
   const wrapper = document.createElement("div");
   wrapper.className = "story-recommendation";
 
+  // No "your level: X" claim here — the story's own CEFR badge (rendered
+  // by createStoryCardLink below) already carries that as descriptive
+  // metadata. The learner's ability estimate is otherwise invisible.
   const label = document.createElement("div");
   label.className = "story-recommendation-label";
-  const levelText = getCefrLabel(level)
-    ? `${getCefrLabel(level)} (${level})`
-    : level;
-  label.innerHTML = `<i class="fas fa-star" aria-hidden="true"></i> Recommended for your level: ${levelText}`;
+  label.innerHTML = `<i class="fas fa-star" aria-hidden="true"></i> Recommended for you`;
 
   const storyLink = createStoryCardLink(story);
   storyLink.classList.add("story-recommendation-link");
@@ -472,9 +517,9 @@ async function displayStoryList(filteredStories = storyResults) {
     return genreMatch && cefrMatch && hasNorwegian && matchesSearch;
   });
 
-  // Recommend a story at the user's saved Word Game level, elevated above
-  // the regular list, and excluded from it so it isn't shown twice.
-  const recommendedLevel = window.WordGameHelpers?.getCurrentLevel?.();
+  // Recommend a story weighted toward the learner's estimated ability,
+  // elevated above the regular list, and excluded from it so it isn't
+  // shown twice.
   const recommendedStory = getRecommendedStory();
 
   if (recommendedStory) {
@@ -522,9 +567,7 @@ async function displayStoryList(filteredStories = storyResults) {
   storyList.appendChild(storyItems);
 
   if (recommendedStory) {
-    container.appendChild(
-      createStoryRecommendationElement(recommendedStory, recommendedLevel),
-    );
+    container.appendChild(createStoryRecommendationElement(recommendedStory));
   }
 
   container.appendChild(storyList);

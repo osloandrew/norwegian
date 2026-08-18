@@ -1549,6 +1549,58 @@ footer .copyright {
   font-size: 1.3em;
 }
 
+.placement-card {
+  gap: 10px;
+}
+
+.placement-option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.placement-option-btn {
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.95em;
+  padding: 14px 16px;
+  text-align: left;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.placement-option-btn:hover {
+  background-color: #f0f6ff;
+  border-color: var(--color-accent);
+}
+
+.placement-progress {
+  color: var(--color-text-slate-soft);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.82em;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.placement-retake-link {
+  background: none;
+  border: none;
+  color: var(--color-link);
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.85em;
+  margin-top: 16px;
+  text-decoration: underline;
+}
+
 @media (max-width: 600px) {
   .game-intro-card {
     padding: 20px 12px;
