@@ -471,10 +471,6 @@ function splitIntoSentences(text) {
   const arr = text.match(/[^.!?]+[.!?]*/g);
   return arr ? arr.map((s) => s.trim()) : [text.trim()];
 }
-function togglePronunciationGuide() {
-  const pronunciationWrapper = document.querySelector(".pronunciation-wrapper"); // Target the wrapper div
-  pronunciationWrapper.classList.toggle("hidden"); // Toggle hidden class
-}
 
 // Filter results based on selected part of speech (POS)
 function filterResultsByPOS(results, selectedPOS) {
@@ -1960,6 +1956,30 @@ function handleTypeChange(type, options = {}) {
     disableSearchControls();
     // Now call the pronunciation module
     initPronunciation();
+  } else if (type === "my-stats") {
+    // My Stats has nothing to search or filter — it's a personal report,
+    // not a browsable list — so every shared filter control is hidden
+    // entirely, same treatment as Word Game's intro screen.
+    genreFilterContainer.style.display = "none";
+    randomBtn.style.display = "block"; // My Words is still a useful jump from here
+
+    searchBarWrapper.style.display = "none";
+    disableSearchControls();
+
+    searchContainerInner.classList.remove("word-game-active");
+    gameActive = false;
+
+    posFilterContainer.style.display = "none";
+    cefrFilterContainer.style.display = "none";
+    cefrLock.style.display = "none";
+
+    if (typeof initMyStats === "function") {
+      initMyStats();
+    } else {
+      showLandingCard(false);
+      console.warn("initMyStats() is not available yet.");
+      resultsContainer.innerHTML = "<p>My Stats is not ready yet.</p>";
+    }
   } else if (type === "word-list") {
     // Hide controls that Word List does not use.
     genreFilterContainer.style.display = "none";
@@ -1990,6 +2010,15 @@ function handleTypeChange(type, options = {}) {
 
     // Hide the landing page and start the Word List module.
     showLandingCard(false);
+
+    // The menu entry for this type reads "My Words" (see #type-select in
+    // index.html), so reaching it this way — the dropdown, a bookmarked
+    // ?type=word-list link, browser back/forward — should default to that
+    // tab, not the underlying "All Words" table. openWordList() (used by
+    // the landing page's separate Word List / My Words cards, which are
+    // unambiguous on their own) passes an explicit override here instead,
+    // so it isn't affected by this default.
+    window.WordListAPI?.setActiveView?.(options.wordListView ?? "my");
 
     if (typeof initWordList === "function") {
       initWordList();
@@ -3215,6 +3244,10 @@ function capitalizeType(type) {
       return "Stories";
     case "pronunciation":
       return "Pronunciation";
+    case "my-stats":
+      return "My Stats";
+    case "word-list":
+      return "My Words";
 
     default:
       return type.charAt(0).toUpperCase() + type.slice(1);

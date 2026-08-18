@@ -1643,6 +1643,208 @@ function renderLandingDailyQuests() {
   document
     .getElementById("landing-daily-quests-start")
     ?.addEventListener("click", startDailyQuestFromLanding);
+
+  renderLandingProgressSummary();
+}
+
+// Consolidated classification of a word's progress — the single source of
+// truth shared by the landing dashboard and the Word List's strength
+// filter (wordList.js). This intentionally is NOT just a five-way split of
+// the raw 0-5 strength number (see createWordStrengthCell in wordList.js,
+// the SpacedRepetition-computed strength value shown per row). Two things
+// make that unsafe as the sole basis for a "New -> Mastered" ladder:
+//
+// 1. A word's first-ever correct answer already scores strength 1, not 0
+//    (see scheduleCorrect's null-record branch in spacedRepetition.js —
+//    stabilityDays starts at 1, not 0). Strength 0 is reachable almost
+//    exclusively in the moments right after a MISS (relearning), which is
+//    a transient "just failed" state, not a starting point — so a bucket
+//    literally labeled "New" pinned to strength 0 sits empty in ordinary
+//    play, which is exactly the bug this replaced.
+// 2. Strength alone can't tell "just started" apart from "recently
+//    slipped": missing a long-mastered word shrinks its interval
+//    (scheduleIncorrect multiplies stabilityDays by 0.35, not to zero) but
+//    can still leave its strength reading high, even while the scheduler
+//    has it queued for an immediate short-term retry.
+//
+// So this instead builds on the same queue/state concept the scheduler
+// itself already uses (WordStrengthAPI/SpacedRepetition's due/relearning
+// bookkeeping — see buildGameWordQueues below) to split off "unpracticed"
+// and "relearning" as their own explicit states, and only applies the 1-5
+// ladder to words that have actually graduated past their first correct
+// answer.
+const VOCAB_LADDER_TIERS = Object.freeze([
+  Object.freeze({ id: "learning", label: "Learning" }),
+  Object.freeze({ id: "developing", label: "Developing" }),
+  Object.freeze({ id: "strengthening", label: "Strengthening" }),
+  Object.freeze({ id: "strong", label: "Strong" }),
+  Object.freeze({ id: "mastered", label: "Mastered" }),
+]);
+// No record at all — WordStrengthAPI only has a strength value once a
+// word's been answered at least once. The landing dashboard never needs
+// this bucket (it only ever iterates existing records), but the Word
+// List's filter does: almost every entry in the ~29k-word All Words view
+// has never been asked.
+const VOCAB_UNPRACTICED_TIER_ID = "unpracticed";
+// Missed at least once and still awaiting its short-term retry — see
+// scheduleIncorrect in spacedRepetition.js. Kept off the 1-5 ladder
+// entirely (see the block comment above) since strength alone can't be
+// trusted to flag this state.
+const VOCAB_RELEARNING_TIER_ID = "relearning";
+// Dashboard order: relearning first (it's what the word game's own
+// scheduler treats as highest priority — see getNextGameQueueName below),
+// then the ladder low to high.
+const VOCAB_DASHBOARD_TIERS = Object.freeze([
+  Object.freeze({ id: VOCAB_RELEARNING_TIER_ID, label: "Relearning" }),
+  ...VOCAB_LADDER_TIERS,
+]);
+
+// snapshot: the object returned by SpacedRepetition.getSnapshot() /
+// WordStrengthAPI.getSnapshot() — { record, queue, isDue, retrievability,
+// strength }.
+function getWordProgressTierId(snapshot) {
+  if (!snapshot || snapshot.strength === null) return VOCAB_UNPRACTICED_TIER_ID;
+  if (snapshot.record?.state === "relearning") return VOCAB_RELEARNING_TIER_ID;
+
+  // A word that's graduated past its first correct answer effectively
+  // never reads 0 here in ordinary play (see the block comment above) —
+  // the only way to see 0 outside relearning is a "review"-state word left
+  // unopened for months, decayed far past its short original interval.
+  // That belongs at the bottom rung of the ladder, not off it.
+  const ladderIndex = Math.max(1, snapshot.strength) - 1;
+  return VOCAB_LADDER_TIERS[ladderIndex]?.id ?? VOCAB_LADDER_TIERS[0].id;
+}
+
+// Entry-based (not record-based) sibling of getWordProgressTierId,
+// mirroring WordStrengthAPI.getSnapshot's own entry-based lookup — this is
+// what wordList.js's strength filter calls per dictionary entry.
+function getWordStrengthFilterId(entry, now = Date.now()) {
+  return getWordProgressTierId(window.WordStrengthAPI?.getSnapshot?.(entry, now));
+}
+
+// The full option list for wordList.js's strength filter dropdown: the
+// unpracticed bucket first (the common case in All Words), then relearning,
+// then the same five ladder tiers and labels the landing dashboard uses, so
+// a learner only has to learn this vocabulary once.
+function getVocabStrengthFilterOptions() {
+  return [
+    { id: VOCAB_UNPRACTICED_TIER_ID, label: "Not practiced yet" },
+    { id: VOCAB_RELEARNING_TIER_ID, label: "Relearning" },
+    ...VOCAB_LADDER_TIERS.map(({ id, label }) => ({ id, label })),
+  ];
+}
+
+function getVocabProgressSummary(now = Date.now()) {
+  const records = Object.values(window.WordStrengthAPI?.getAll?.() ?? {});
+  const counts = VOCAB_DASHBOARD_TIERS.map(() => 0);
+  let dueCount = 0;
+
+  for (const record of records) {
+    const snapshot = window.SpacedRepetition?.getSnapshot?.(record, now);
+    if (!snapshot || snapshot.strength === null) continue;
+
+    if (snapshot.isDue) dueCount++;
+
+    const tierId = getWordProgressTierId(snapshot);
+    const tierIndex = VOCAB_DASHBOARD_TIERS.findIndex((tier) => tier.id === tierId);
+    if (tierIndex !== -1) counts[tierIndex]++;
+  }
+
+  return { total: records.length, counts, dueCount };
+}
+
+// Landing-page rollup of every word the learner has ever answered at least
+// once, grouped into the same strength tiers shown per-row elsewhere.
+// Deliberately distinct from the ability score (abilityScore/CEFR anchors
+// above) — ability is an intentionally invisible difficulty dial, not
+// something to show the learner (see CEFR_DIFFICULTY_ANCHOR's comment).
+// This widget instead surfaces durable retention count, closer to a
+// savings balance than a grade, so it doesn't reintroduce a level to
+// climb or fall from.
+// Builds just the bar-and-legend markup for a vocab-progress breakdown —
+// shared by the landing page's compact widget and the full My Stats page
+// (myStats.js), so the two can never drift apart on tier order, labels, or
+// colors. counts must be in the same order as VOCAB_DASHBOARD_TIERS (see
+// getVocabProgressSummary).
+function buildVocabProgressBarMarkup(counts, total) {
+  const barSegmentsHTML = VOCAB_DASHBOARD_TIERS.map((tier, index) => {
+    const count = counts[index];
+    if (count === 0) return "";
+    const percent = (count / total) * 100;
+    return `<span class="landing-progress-segment landing-progress-segment--${index}" style="width: ${percent}%;" title="${tier.label}: ${count}"></span>`;
+  }).join("");
+
+  const legendHTML = VOCAB_DASHBOARD_TIERS.map(
+    (tier, index) => `
+      <span class="landing-progress-legend-item">
+        <span class="landing-progress-legend-dot landing-progress-legend-dot--${index}" aria-hidden="true"></span>
+        ${tier.label}
+        <strong>${counts[index]}</strong>
+      </span>
+    `,
+  ).join("");
+
+  const barLabel = VOCAB_DASHBOARD_TIERS.map(
+    (tier, index) => `${tier.label}: ${counts[index]}`,
+  ).join(", ");
+
+  return `
+    <div class="landing-progress-bar" role="img" aria-label="${escapeGameHTML(barLabel)}">
+      ${barSegmentsHTML}
+    </div>
+    <div class="landing-progress-legend">
+      ${legendHTML}
+    </div>
+  `;
+}
+
+function getVocabDueLabel(dueCount) {
+  if (dueCount === 0) return "You're caught up on reviews";
+  return dueCount === 1
+    ? "1 word due for review"
+    : `${dueCount} words due for review`;
+}
+
+function renderLandingProgressSummary() {
+  const container = document.getElementById("landing-progress-summary");
+  if (!container) return;
+
+  const { total, counts, dueCount } = getVocabProgressSummary();
+
+  if (total === 0) {
+    container.innerHTML = `
+      <div class="landing-progress-summary-header">
+        <div>
+          <p class="landing-progress-summary-eyebrow">Your progress</p>
+          <h3 id="landing-progress-summary-heading">Vocabulary profile</h3>
+        </div>
+      </div>
+      <p class="landing-progress-summary-empty">Play the Word Game to start building your vocabulary profile — words you practice will show up here, grouped by how well you know them.</p>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="landing-progress-summary-header">
+      <div>
+        <p class="landing-progress-summary-eyebrow">Your progress</p>
+        <h3 id="landing-progress-summary-heading">Vocabulary profile</h3>
+      </div>
+      <strong class="landing-progress-summary-count">${total.toLocaleString("en-US")} word${total === 1 ? "" : "s"}</strong>
+    </div>
+    <p class="landing-progress-summary-intro">Words you’ve practiced, grouped by how well you know them.</p>
+    ${buildVocabProgressBarMarkup(counts, total)}
+    <div class="landing-progress-summary-action">
+      <span>${getVocabDueLabel(dueCount)}</span>
+      <button type="button" id="landing-progress-summary-btn">See full stats</button>
+    </div>
+  `;
+
+  document
+    .getElementById("landing-progress-summary-btn")
+    ?.addEventListener("click", () => {
+      selectType("my-stats");
+    });
 }
 
 function startDailyQuestFromLanding() {
@@ -4591,6 +4793,19 @@ window.WordGameHelpers = Object.freeze({
   completePlacement: completePlacementTest,
   replaceAbility: replaceAbilityState,
   startWordGame,
+  getVocabStrengthFilterOptions,
+  getWordStrengthFilterId,
+  getVocabProgressSummary,
+  buildVocabProgressBarMarkup,
+  getVocabDueLabel,
+});
+
+// Keeps the vocabulary profile widget live if strength records change while
+// the learner is already sitting on the landing page (e.g. a remote merge
+// on sign-in) — renderLandingDailyQuests() only re-renders it on the paths
+// that already touch daily-quest state, which word-strength updates don't.
+window.addEventListener("word-strength:updated", () => {
+  renderLandingProgressSummary();
 });
 
 renderLandingDailyQuests();

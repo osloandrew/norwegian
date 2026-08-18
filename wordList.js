@@ -28,6 +28,14 @@
   let myWordsEntryIds = loadMyWordsEntryIds();
   let wordStrengths = loadWordStrengths();
   let activeWordListView = "all";
+  // "" (any), "unpracticed", or one of the ids from
+  // WordGameHelpers.getVocabStrengthFilterOptions() — same taxonomy the
+  // landing-page vocabulary dashboard uses. Kept as a module variable
+  // rather than read from the DOM, since the <select> itself (built in
+  // createWordStrengthFilterGroup) is recreated on every renderWordList()
+  // call, same as why activeWordListView above isn't read from a button's
+  // state either.
+  let activeWordListStrengthFilter = "";
 
   /**
    * Convert a value into normalized searchable text.
@@ -425,8 +433,6 @@
       return;
     }
 
-    activeWordListView = view === "my" ? "my" : "all";
-
     if (searchInput) {
       searchInput.value = "";
     }
@@ -440,7 +446,12 @@
     }
 
     typeSelect.value = "word-list";
-    handleTypeChange("word-list");
+    // Passed explicitly rather than set here and left for
+    // handleTypeChange's word-list branch to pick up — that branch
+    // defaults to "my" on its own for every other entry point (dropdown,
+    // bookmarked links), and these two landing cards need to stay exactly
+    // "all" / "my" regardless of what that default is.
+    handleTypeChange("word-list", { wordListView: view === "my" ? "my" : "all" });
 
     window.scrollTo({
       top: 0,
@@ -987,6 +998,14 @@
           return false;
         }
 
+        if (
+          activeWordListStrengthFilter &&
+          window.WordGameHelpers?.getWordStrengthFilterId?.(entry) !==
+            activeWordListStrengthFilter
+        ) {
+          return false;
+        }
+
         // An empty search displays all entries matching the filters.
         if (!searchText) {
           return true;
@@ -1310,6 +1329,60 @@
     return button;
   }
 
+  // A dropdown for the same 0-5 strength value already shown per-row by
+  // createWordStrengthCell — filters both All Words and My Words down to a
+  // single tier from the landing page's vocabulary dashboard (see
+  // VOCAB_PROGRESS_TIERS in wordGame.js), plus an explicit "Not practiced
+  // yet" option. That last one matters more than it might look: almost
+  // every entry in the ~29k-word All Words view has no strength record at
+  // all, so without a dedicated bucket for that, picking "New" there would
+  // silently hide nearly the whole dictionary instead of showing it.
+  function createWordStrengthFilterGroup() {
+    const group = createControlGroup(
+      "word-list-strength-controls",
+      "Filter by word strength",
+    );
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "word-list-strength-select-wrapper";
+
+    const select = document.createElement("select");
+    select.id = "word-list-strength-select";
+    select.className = "word-list-strength-select";
+    select.setAttribute("aria-label", "Filter by word strength");
+
+    const anyOption = document.createElement("option");
+    anyOption.value = "";
+    anyOption.textContent = "Any strength";
+    select.appendChild(anyOption);
+
+    const strengthOptions =
+      window.WordGameHelpers?.getVocabStrengthFilterOptions?.() ?? [];
+
+    strengthOptions.forEach(({ id, label }) => {
+      const option = document.createElement("option");
+      option.value = id;
+      option.textContent = label;
+      select.appendChild(option);
+    });
+
+    select.value = activeWordListStrengthFilter;
+
+    select.addEventListener("change", () => {
+      activeWordListStrengthFilter = select.value;
+      renderWordList();
+    });
+
+    const chevron = document.createElement("i");
+    chevron.className = "fas fa-chevron-down";
+    chevron.setAttribute("aria-hidden", "true");
+
+    wrapper.append(select, chevron);
+    group.appendChild(wrapper);
+
+    return group;
+  }
+
   function createWordListControls(visibleCount) {
     const controls = document.createElement("div");
     controls.className = "word-list-controls";
@@ -1354,8 +1427,11 @@
       String(activeWordListView === "my"),
     );
 
-    viewControls.append(allWordsButton, myWordsButton);
+    // My Words leads now that it's the default landing tab for this page
+    // (see handleTypeChange's word-list branch in scripts.js).
+    viewControls.append(myWordsButton, allWordsButton);
     controls.appendChild(viewControls);
+    controls.appendChild(createWordStrengthFilterGroup());
 
     /*
      * My Words actions
@@ -1784,5 +1860,20 @@
   // rather than duplicating that markup.
   window.WordListAPI = Object.freeze({
     createRow: createWordListRow,
+    // Resolves a WordStrengthAPI entryId back to its dictionary entry —
+    // used by myStats.js, which only has entryIds (from iterating
+    // WordStrengthAPI.getAll()) and needs the full entry to render a row
+    // or look up its strength. Reuses the same cached id->entry index
+    // getSavedWordStudyEntries() already relies on for My Words.
+    getEntryById: (entryId) => getEntriesByIdIndex().get(entryId) ?? null,
+    // Sets which of the All Words / My Words tabs the next renderWordList()
+    // call shows, without any of openWordList()'s other side effects
+    // (clearing search/filters, scrolling) — used by scripts.js's
+    // handleTypeChange to default the plain "My Words" menu entry to the
+    // My Words tab. See the comment at that call site for why this is a
+    // separate function rather than openWordList itself.
+    setActiveView: (view) => {
+      activeWordListView = view === "my" ? "my" : "all";
+    },
   });
 })();
