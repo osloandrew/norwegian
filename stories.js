@@ -1464,6 +1464,11 @@ function getAdjectiveSlotGloss(baseGloss, slotIndex) {
 // alternate pasts) and are left as the unchanged base gloss.
 const VERB_PASSIVE_PRESENT_SLOT = 5;
 const VERB_PRESENT_PARTICIPLE_SLOT = 11;
+// The "-ering"/"-ing" verbal noun slot deriveVerbalNounForms adds after the
+// twelve official Ordbank-shaped slots (see inflections.js) — e.g.
+// "fermentering" for "fermentere". Reads the same as the present participle
+// in English ("fermenting"), so it shares that transform.
+const VERB_VERBAL_NOUN_SLOT = 12;
 
 // "pulse" -> "pulsing", not "pulseing"; "die" -> "dying"; "stop" ->
 // "stopping" (only single-word glosses get the CVC-doubling check — same
@@ -1543,7 +1548,11 @@ function getStoryWordGloss(entry, surfaceWord, expressionVerbSlot) {
   if (wordClass === "verb" && slotIndex === VERB_PASSIVE_PRESENT_SLOT) {
     return `be ${pastParticipleEnglishGloss(baseGloss)}`;
   }
-  if (wordClass === "verb" && slotIndex === VERB_PRESENT_PARTICIPLE_SLOT) {
+  if (
+    wordClass === "verb" &&
+    (slotIndex === VERB_PRESENT_PARTICIPLE_SLOT ||
+      slotIndex === VERB_VERBAL_NOUN_SLOT)
+  ) {
     return ingFormEnglishGloss(baseGloss);
   }
 
@@ -1622,6 +1631,9 @@ function resolveStoryWordEntries(normalizedWord) {
 // (built for the exact same problem in sentence search — see scripts.js)
 // already knows how to locate an expression's inflected occurrences inside
 // arbitrary text, so this reuses it rather than re-deriving that grammar.
+// ExpressionPatterns.isPhraseEntry also covers multi-word conjunctions
+// ("selv om", "så lenge") that are genuinely conjunctions, not expressions,
+// but are still a fixed multi-word citation that should read as one hint.
 //
 // ~3,400 expression entries exist — far too many to pattern-match against
 // every sentence directly. This builds a cheap reverse index (component
@@ -1650,7 +1662,7 @@ async function buildExpressionComponentIndex() {
   const wordFrequency = new Map();
 
   for (const entry of results) {
-    if (WordClass.getWordClass(entry.gender) !== "expression") continue;
+    if (!window.ExpressionPatterns?.isPhraseEntry(entry)) continue;
 
     const citation = String(entry.ord || "").split(",")[0];
     const words = [

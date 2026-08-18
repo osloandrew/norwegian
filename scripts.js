@@ -712,6 +712,14 @@ function parseCSVData(data, options = {}) {
           );
         }
 
+        // Must run before anything can trigger Inflections' reverse-index
+        // build (highlighting, story hints, sentence search) — that index
+        // is only ever built once and cached, so a dictionary word with no
+        // Norsk Ordbank record needs to be known up front to get an
+        // estimated paradigm there too, not just in its own Word Forms
+        // table lookup.
+        window.Inflections?.registerDictionaryEntries(results);
+
         buildWordSearchIndex();
         updateLandingWordCount();
 

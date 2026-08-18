@@ -57,6 +57,28 @@
     "de",
   ]);
 
+  // Word classes outside "expression" that can still cite a fixed
+  // multi-word phrase ("selv om", "så lenge", "slik at") rather than a
+  // single inflectable word — none of these ever inflect, so they can go
+  // through the same literal-token pattern matching as "expression"
+  // entries. Kept narrow (just conjunction today) rather than opening this
+  // up to every word class, since most non-expression entries genuinely
+  // are single words and don't need phrase-pattern compilation.
+  const MULTI_WORD_PHRASE_CLASSES = new Set(["conjunction"]);
+
+  // True for any entry that should be treated as a fixed multi-word phrase
+  // for pattern-matching purposes: every "expression" entry, plus a
+  // MULTI_WORD_PHRASE_CLASSES entry whose citation form is actually more
+  // than one word (a plain single-word conjunction like "og" still isn't a
+  // phrase).
+  function isPhraseEntry(entry) {
+    const wordClass = WordClass.getWordClass(entry?.gender);
+    if (wordClass === "expression") return true;
+    if (!MULTI_WORD_PHRASE_CLASSES.has(wordClass)) return false;
+    const firstVariant = String(entry?.ord ?? "").split(",")[0].trim();
+    return /\s/.test(firstVariant);
+  }
+
   function isAcceptableVariableTokenFiller(nodeNormalized, surfaceNormalized) {
     if (surfaceNormalized === nodeNormalized) return true;
     if (nodeNormalized === "noen" || nodeNormalized === "nokon") {
@@ -1394,7 +1416,7 @@
   }
 
   function getAnalysis(entry) {
-    if (!entry?.ord || WordClass.getWordClass(entry.gender) !== "expression") {
+    if (!entry?.ord || !isPhraseEntry(entry)) {
       return Promise.resolve(null);
     }
     if (typeof entry === "object") {
@@ -1419,6 +1441,7 @@
     getAnalysis,
     getForms,
     getVariants,
+    isPhraseEntry,
     tokenize,
   });
 })();
