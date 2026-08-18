@@ -38,6 +38,17 @@
   let nextRequestId = 1;
   const pendingEntries = new Map();
 
+  // Record keys for every inflectable dictionary entry, keyed by the same
+  // record key createRecordKey produces — set once the full CSV dictionary
+  // has loaded (see registerDictionaryEntries below). buildReverseIndexes
+  // consults this for any key the compact Ordbank snapshot itself has
+  // nothing for at all (not even a lemma-only fallback record) — e.g. a
+  // dictionary word added after the snapshot was last regenerated — so a
+  // fully estimated paradigm still reaches highlighting, story hints, and
+  // sentence search, not only the Word Forms table (which already falls
+  // back to an estimate per-entry in createFormsForLemma).
+  let dictionaryOnlyLemmaKeys = null;
+
   function extractLemma(entry) {
     return String(entry.ord ?? "")
       .split(",")[0]
@@ -169,14 +180,25 @@
 
   function createParadigmFromKey(key) {
     if (!snapshot?.forms || !key) return null;
-    const encodedRecord = snapshot.forms[key];
-    if (!encodedRecord) return null;
-    let record = decodeRecord(encodedRecord);
-    if (!record) return null;
-
     const parsedKey = parseRecordKey(key);
     if (!parsedKey) return null;
     const { lemma, wordClass, gender } = parsedKey;
+
+    const encodedRecord = snapshot.forms[key];
+    if (!encodedRecord) {
+      // No Ordbank match, and the compact snapshot doesn't even carry a
+      // lemma-only fallback record for this key — e.g. a dictionary word
+      // added after the snapshot was last built. Fall back to the same
+      // estimated paradigm createFormsForLemma already uses for the Word
+      // Forms table, so this key behaves identically for every consumer of
+      // createParadigmFromKey (reverse-index lookups, sentence search,
+      // expression component matching) instead of silently returning
+      // nothing everywhere except the table.
+      return getEstimatedParadigmForLemma(lemma, wordClass, gender);
+    }
+    let record = decodeRecord(encodedRecord);
+    if (!record) return null;
+
     const sourceMetadata = getSourceMetadata(key);
     if (sourceMetadata.sourceType === "dictionary-only") {
       record = fillMissingRecord(
@@ -195,6 +217,7 @@
       // the five learner-facing fields. Empty arrays preserve stable slot
       // numbers for verbs whose paradigm does not define a particular form.
       slots = Array.from({ length: 12 }, (_, index) => record[index] || []);
+      if (wordClass === "verb") slots.push(deriveVerbalNounForms(lemma));
     }
 
     return {
@@ -361,7 +384,7 @@
     };
   }
 
-  function createVerbForms(record) {
+  function createVerbForms(record, lemma) {
     return {
       wordClass: "verb",
       forms: [
@@ -378,6 +401,10 @@
         {
           label: "Imperative",
           value: displayValue(record[4], (value) => `${value}!`),
+        },
+        {
+          label: "Verbal noun",
+          value: displayValue(deriveVerbalNounForms(lemma)),
         },
       ],
     };
@@ -440,6 +467,21 @@
     ];
   }
 
+  // A "-ering" nominal ("fermentere" -> "fermentering") is grammatically
+  // regular for the productive -ere loan-verb class (organisere, regulere,
+  // diskutere, fermentere, ...), but Norsk Ordbank's verb paradigms cover
+  // conjugation only and never include it. Derived here as a pure function
+  // of the lemma, independent of whether the rest of the verb's paradigm is
+  // Ordbank-authoritative or estimated, and applied as an extra runtime-only
+  // slot so it reaches the Word Forms table, the reverse index, and
+  // sentence-form matching identically. Deliberately narrow (only the
+  // -ere class) rather than every verb: -ing nominalization is far less
+  // reliably idiomatic off an arbitrary/irregular stem ("være" -> "væring"
+  // is not a real word), while every -ere verb takes it regularly.
+  function deriveVerbalNounForms(lemma) {
+    return lemma.endsWith("ere") ? [`${lemma.slice(0, -1)}ing`] : [];
+  }
+
   function createEstimatedVerbRecord(lemma) {
     const stem = lemma.endsWith("e") ? lemma.slice(0, -1) : lemma;
     const pastParticiple = `${stem}et`;
@@ -474,6 +516,7 @@
         : wordClass === "adjective"
           ? record.slice(0, 8)
           : Array.from({ length: 12 }, (_, index) => record[index] || []);
+    if (wordClass === "verb") slots.push(deriveVerbalNounForms(normalizedLemma));
     return {
       gender: wordClass === "noun" ? canonicalNounGender(gender) : "",
       isAuthoritative: false,
@@ -523,7 +566,7 @@
     let result;
     if (wordClass === "noun") result = createNounForms(entry, lemma, record);
     else if (wordClass === "adjective") result = createAdjectiveForms(record);
-    else if (wordClass === "verb") result = createVerbForms(record);
+    else if (wordClass === "verb") result = createVerbForms(record, lemma);
     else if (wordClass === "adverb") result = createAdverbForms(record);
     else if (
       wordClass === "possessive" ||
@@ -688,20 +731,44 @@
     );
   }
 
+  // Called once the full CSV dictionary has loaded (see scripts.js), so
+  // buildReverseIndexes can also cover entries the compact Ordbank snapshot
+  // has no record for at all. Safe to call again later (e.g. a retry after
+  // a failed dictionary fetch) — it only replaces the lookup table used the
+  // *next* time buildReverseIndexes actually runs; it does not retroactively
+  // fix an index already built without it.
+  function registerDictionaryEntries(entries) {
+    const keys = new Map();
+    for (const entry of entries || []) {
+      const wordClass = WordClass.getWordClass(entry?.gender);
+      if (!CLASS_PREFIX[wordClass]) continue;
+      for (const lemma of extractLemmas(entry)) {
+        if (isProperNoun(lemma)) continue;
+        const key = createRecordKey(lemma, wordClass, entry.gender);
+        if (!key || keys.has(key)) continue;
+        keys.set(key, { lemma, wordClass, gender: entry.gender });
+      }
+    }
+    dictionaryOnlyLemmaKeys = keys;
+  }
+
   async function buildReverseIndexes() {
     if (reverseIndex && keyboardReverseIndex) return;
     const exact = new Map();
     const keyboard = new Map();
     let processed = 0;
 
-    for (const key of Object.keys(snapshot?.forms || {})) {
-      const paradigm = createParadigmFromKey(key);
+    const indexParadigm = (key, paradigm) => {
       for (const form of flattenParadigmForms(paradigm)) {
         addReverseMapping(exact, form, key);
         for (const variant of getNorwegianKeyboardVariants(form)) {
           addReverseMapping(keyboard, variant, key);
         }
       }
+    };
+
+    for (const key of Object.keys(snapshot?.forms || {})) {
+      indexParadigm(key, createParadigmFromKey(key));
 
       // Yield between compact batches in a real browser. This keeps the
       // background index warm-up from creating one noticeable main-thread
@@ -715,6 +782,27 @@
       // tens of seconds to over a minute in practice. 2000/150 keeps the
       // same non-blocking intent with far less worst-case exposure (~14
       // yields, ~2.1s ceiling instead of ~180 yields, ~180s).
+      processed++;
+      if (processed % 2000 === 0 && typeof setTimeout === "function") {
+        await new Promise((resolve) => {
+          if (typeof window.requestIdleCallback === "function") {
+            window.requestIdleCallback(resolve, { timeout: 150 });
+          } else {
+            setTimeout(resolve, 0);
+          }
+        });
+      }
+    }
+
+    // Dictionary lemmas the snapshot has no record for at all (see
+    // registerDictionaryEntries) — skip any key already covered above so a
+    // real Ordbank or lemma-only-fallback record is never overridden by a
+    // cruder runtime estimate.
+    for (const [key, { lemma, wordClass, gender }] of dictionaryOnlyLemmaKeys ||
+      []) {
+      if (snapshot?.forms?.[key]) continue;
+      indexParadigm(key, getEstimatedParadigmForLemma(lemma, wordClass, gender));
+
       processed++;
       if (processed % 2000 === 0 && typeof setTimeout === "function") {
         await new Promise((resolve) => {
@@ -1020,6 +1108,7 @@
     getSupplementalSentenceForms,
     preload: loadSnapshot,
     prepareSearchIndex: ensureReverseIndexes,
+    registerDictionaryEntries,
     resolvePending,
     isReady: () => Boolean(snapshot),
   });
