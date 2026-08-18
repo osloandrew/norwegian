@@ -3244,6 +3244,10 @@ function loadStateFromURL() {
         // this as a fresh entry (e.g. via browser back/forward) and show
         // the mode-picker intro again rather than resuming silently.
         wordGameRoundActive = false;
+        // handleTypeChange isn't called on this direct-URL path, so mirror
+        // its body class toggle here too (styles.css scopes mobile rules
+        // to body.word-game-mode).
+        document.body.classList.toggle("word-game-mode", true);
         startWordGame();
       } else if (type === "pronunciation") {
         handleTypeChange("pronunciation"); // 👈 ensure pronunciation tab is restored
