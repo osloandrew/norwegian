@@ -385,29 +385,31 @@
   }
 
   function createVerbForms(record, lemma) {
-    return {
-      wordClass: "verb",
-      forms: [
-        {
-          label: "Infinitive",
-          value: displayValue(record[0], (value) => `å ${value}`),
-        },
-        { label: "Present", value: displayValue(record[1]) },
-        { label: "Past", value: displayValue(record[2]) },
-        {
-          label: "Present perfect",
-          value: displayValue(record[3], (value) => `har ${value}`),
-        },
-        {
-          label: "Imperative",
-          value: displayValue(record[4], (value) => `${value}!`),
-        },
-        {
-          label: "Verbal noun",
-          value: displayValue(deriveVerbalNounForms(lemma)),
-        },
-      ],
-    };
+    const verbalNounForms = deriveVerbalNounForms(lemma);
+    const forms = [
+      {
+        label: "Infinitive",
+        value: displayValue(record[0], (value) => `å ${value}`),
+      },
+      { label: "Present", value: displayValue(record[1]) },
+      { label: "Past", value: displayValue(record[2]) },
+      {
+        label: "Present perfect",
+        value: displayValue(record[3], (value) => `har ${value}`),
+      },
+      {
+        label: "Imperative",
+        value: displayValue(record[4], (value) => `${value}!`),
+      },
+    ];
+    // Unlike the other rows, an empty result here means the form doesn't
+    // apply to this lemma at all (see deriveVerbalNounForms) rather than a
+    // known gap in an otherwise-official paradigm, so the row is omitted
+    // instead of showing "–".
+    if (verbalNounForms.length > 0) {
+      forms.push({ label: "Verbal noun", value: displayValue(verbalNounForms) });
+    }
+    return { wordClass: "verb", forms };
   }
 
   function createEstimatedNounRecord(lemma, gender) {
