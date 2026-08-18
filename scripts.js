@@ -1986,7 +1986,12 @@ function handleTypeChange(type, options = {}) {
   } else if (type === "word-list") {
     // Hide controls that Word List does not use.
     genreFilterContainer.style.display = "none";
-    randomBtn.style.display = "block";
+    // Unlike every other type above, the "My Words" jump button is a
+    // no-op here — Word List (whose menu entry reads "My Words") is
+    // already the destination it links to. search-bar-wrapper's own
+    // flex-grow fills the freed space, same as it already does whenever
+    // this button is hidden elsewhere (e.g. Word Game).
+    randomBtn.style.display = "none";
 
     // Keep the shared search field visible.
     searchBarWrapper.style.display = "inline-flex";
