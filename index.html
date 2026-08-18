@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Norwegian Dictionary | Search in Norwegian or English</title>
+
+    <!-- Meta Description -->
+    <meta
+      name="description"
+      content="Norwegian Dictionary is your resource for finding words in both Norwegian and English. Search, filter by part of speech, and discover new words."
+    />
+
+    <!-- Meta Keywords -->
+    <meta
+      name="keywords"
+      content="Norwegian dictionary, Norwegian to English, English to Norwegian, word search, language learning, part of speech filter, random words"
+    />
+
+    <!-- Open Graph for Social Media Sharing -->
+    <meta
+      property="og:title"
+      content="Norwegian Dictionary | Search in Norwegian or English"
+    />
+    <meta
+      property="og:description"
+      content="Use the Norwegian Dictionary to find translations and definitions for words in Norwegian and English."
+    />
+    <meta
+      property="og:image"
+      content="https://osloandrew.github.io/norwegian/Resources/Icons/android-chrome-512x512.png"
+    />
+    <meta property="og:url" content="https://osloandrew.github.io/norwegian/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://osloandrew.github.io/norwegian/" />
+
+    <!-- PWA: installable to a home screen, see manifest.json and sw.js -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#0d3a69" />
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles.css?v=20260816" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="Resources/Icons/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="Resources/Icons/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="Resources/Icons/favicon-16x16.png"
+    />
+
+    <!--
+      Google Fonts, loaded without blocking first paint: the stylesheet is
+      requested as media="print" (so the browser fetches it but doesn't wait
+      on it to render) and switched to media="all" once it's actually
+      loaded. The `display=swap` in the URL already means text renders in a
+      fallback font immediately either way; this just stops the request
+      itself from delaying that first render.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Noto+Serif:wght@100..900&amp;display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Noto+Serif:wght@100..900&amp;display=swap"
+      />
+    </noscript>
+
+    <!-- External Scripts -->
+    <!--
+      Self-hosted (not the cdnjs CDN) so that Papa.parse's worker:true mode
+      constructs its Web Worker from a same-origin script. A cross-origin
+      worker's success depends on the CDN's CORS headers and isn't
+      guaranteed, and a failed worker construction here would otherwise
+      leave the whole dictionary silently stuck at "loading" forever.
+    -->
+    <script defer src="vendor/papaparse.min.js"></script>
+    <!-- Font Awesome CDN -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+
+    <!-- Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-M5H81RF3DT"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-M5H81RF3DT");
+
+      // Minimal client-side error visibility: a JS exception in production
+      // previously produced no signal at all. Beacon uncaught errors and
+      // unhandled promise rejections to GA as events (message + location
+      // only — no user data) so at least something is discoverable.
+      window.addEventListener("error", (event) => {
+        gtag("event", "js_error", {
+          event_category: "error",
+          event_label: `${event.message} @ ${event.filename}:${event.lineno}`,
+        });
+      });
+      window.addEventListener("unhandledrejection", (event) => {
+        gtag("event", "js_unhandled_rejection", {
+          event_category: "error",
+          event_label: String(event.reason).slice(0, 150),
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <header>
+      <!-- Only shown while reading an individual story, via html.reading in styles.css -->
+      <button
+        type="button"
+        id="story-report-issue"
+        class="story-report-issue-btn"
+        aria-label="Report an issue with this story"
+        title="Report an issue"
+      >
+        <i class="fas fa-flag" aria-hidden="true"></i>
+        <span class="story-report-issue-btn-label">Report an issue</span>
+      </button>
+
+      <!-- Mobile-only home for "Quit & see stats" (index.html's other
+           copies: #game-end-session-btn in the toolbar for desktop/tablet,
+           #game-end-session-btn-compact in the stats row for very short
+           phones). Wrapping it with #auth-container here — rather than
+           somewhere positioned separately — is what lets it sit in normal
+           document flow at the same height as the streak badge/Google
+           sign-in pill on the opposite side of this row, and means the
+           header just grows to fit it like any other content instead of
+           needing manual space reserved for it. -->
+      <div class="header-top-row">
+        <button
+          type="button"
+          id="game-end-session-btn-header"
+          class="game-end-session-btn hidden"
+          aria-label="Quit this round early and see your stats"
+        >
+          Quit &amp; see stats
+        </button>
+
+        <div id="auth-container" class="auth-container">
+          <!-- Hidden until there's an actual streak to show — see
+               updateStreakBadge() in streak.js. Lives inside #auth-container
+               (rather than floating separately) purely for layout: it's
+               meaningful whether or not the visitor is signed in, since
+               streak state lives in localStorage either way. -->
+          <div id="streak-badge" class="streak-badge hidden" title="Day streak">
+          <i class="fas fa-fire" aria-hidden="true"></i>
+          <span id="streak-badge-count">0</span>
+        </div>
+
+        <button
+          id="google-signin-btn"
+          type="button"
+          class="google-signin-btn"
+          title="Sign in with Google to sync My Words across devices"
+        >
+          <svg
+            class="google-signin-btn-logo"
+            viewBox="0 0 18 18"
+            aria-hidden="true"
+          >
+            <path
+              fill="#4285F4"
+              d="M17.64 9.2045c0-.6381-.0573-1.2518-.1636-1.8409H9v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2582h2.9087c1.7018-1.5668 2.6836-3.874 2.6836-6.6151z"
+            />
+            <path
+              fill="#34A853"
+              d="M9 18c2.43 0 4.4673-.806 5.9564-2.1805l-2.9087-2.2582c-.8064.54-1.8368.859-3.0477.859-2.3436 0-4.3282-1.5831-5.036-3.7104H.9573v2.3318C2.4382 15.9832 5.4818 18 9 18z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M3.964 10.71c-.18-.54-.2827-1.1168-.2827-1.71s.1027-1.17.2827-1.71V4.9582H.9573C.3477 6.1732 0 7.5477 0 9s.3477 2.8268.9573 4.0418L3.964 10.71z"
+            />
+            <path
+              fill="#EA4335"
+              d="M9 3.5795c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5813C13.4632.8918 11.4259 0 9 0 5.4818 0 2.4382 2.0168.9573 4.9582L3.964 7.29C4.6718 5.1627 6.6564 3.5795 9 3.5795z"
+            />
+          </svg>
+          Sign in
+        </button>
+
+        <div id="auth-user-info" class="auth-user-info hidden">
+          <img id="auth-user-avatar" class="auth-user-avatar" alt="" />
+          <span id="auth-user-name" class="auth-user-name"></span>
+          <span
+            id="sync-status"
+            class="sync-status hidden"
+            role="status"
+            title="Your changes are saved on this device but haven't synced to your account yet. We'll keep trying."
+          >
+            <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+          </span>
+          <button
+            id="google-signout-btn"
+            type="button"
+            class="google-signout-btn"
+            title="Sign out"
+          >
+            Sign out
+          </button>
+        </div>
+        </div>
+      </div>
+
+      <h1
+        id="site-title"
+        tabindex="0"
+        role="link"
+        aria-label="Norwegian Dictionary, return to home"
+        onclick="returnToLandingPage()"
+        onkeydown="if (event.key === 'Enter') { returnToLandingPage() }"
+      >
+        Norwegian Dictionary
+      </h1>
+      <p id="site-subtitle">Search in Norwegian or English</p>
+    </header>
+
+    <div id="sticky-header" class="hidden">
+      <button id="back-button">← Back to Stories</button>
+      <button id="toggle-english-btn" class="toggle-btn">Show English</button>
+    </div>
+
+    <main>
+      <!-- Search container with full-width background -->
+      <section id="search-container">
+        <div id="search-container-inner">
+          <!-- Grouped Selectors (Type and POS) -->
+          <div class="selectors-wrapper">
+            <!-- Words/Sentences Selector -->
+            <div class="type-filter">
+              <select
+                id="type-select"
+                aria-label="Search by words or sentences"
+                onchange="handleTypeChange(this.value)"
+              >
+                <option value="words">Words</option>
+                <option value="sentences">Sentences</option>
+                <option value="stories">Stories</option>
+                <option value="word-game">Word Game</option>
+                <option value="word-list">Word List</option>
+              </select>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+
+            <!-- POS Selector -->
+            <div class="pos-filter">
+              <select
+                id="pos-select"
+                onchange="search()"
+                aria-label="Filter by part of speech"
+              >
+                <option value="">Word Class</option>
+                <option value="noun">Noun</option>
+                <option value="adjective">Adjective</option>
+                <option value="verb">Verb</option>
+                <option value="expression">Expression</option>
+                <option value="adverb">Adverb</option>
+                <option value="preposition">Preposition</option>
+                <option value="numeral">Numeral</option>
+                <option value="conjunction">Conjunction</option>
+                <option value="interjection">Interjection</option>
+                <option value="pronoun">Pronoun</option>
+              </select>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+
+            <!-- Genre Selector -->
+            <div
+              class="genre-filter"
+              id="genre-filter"
+              aria-label="Filter by genre"
+              style="display: none"
+            >
+              <select id="genre-select" onchange="handleGenreChange()">
+                <option value="">Genre</option>
+                <option value="biography">Biography</option>
+                <option value="culture">Culture</option>
+                <option value="dialogue">Dialogue</option>
+                <option value="drama">Drama</option>
+                <option value="fantasy">Fantasy</option>
+                <option value="food">Food</option>
+                <option value="health">Health</option>
+                <option value="history">History</option>
+                <option value="horror">Horror</option>
+                <option value="language">Language</option>
+                <option value="monologue">Monologue</option>
+                <option value="philosophy">Philosophy</option>
+                <option value="politics">Politics</option>
+                <option value="psychology">Psychology</option>
+                <option value="science">Science</option>
+                <option value="science fiction">Science Fiction</option>
+                <option value="technology">Technology</option>
+                <option value="travel">Travel</option>
+              </select>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+
+            <!-- Game-English Selector -->
+            <div
+              class="game-english-filter"
+              id="game-english-filter"
+              aria-label="Show or hide English"
+              style="display: none"
+            >
+              <select id="game-english-select" onchange="toggleGameEnglish()">
+                <option value="show-english">Show English</option>
+                <option value="hide-english">Hide English</option>
+              </select>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+
+            <!-- CEFR Level Selector -->
+            <div class="cefr-filter-group">
+              <div class="cefr-filter">
+                <select
+                  id="cefr-select"
+                  onchange="search()"
+                  aria-label="Filter by level: A1 Beginner, A2 Elementary, B1 Intermediate, B2 Upper-Intermediate, C Advanced"
+                  title="A1 Beginner · A2 Elementary · B1 Intermediate · B2 Upper-Intermediate · C Advanced"
+                >
+                  <option value="">Level</option>
+                  <option value="A1">A1 · Beginner</option>
+                  <option value="A2">A2 · Elementary</option>
+                  <option value="B1">B1 · Intermediate</option>
+                  <option value="B2">B2 · Upper-Intermediate</option>
+                  <option value="C">C · Advanced</option>
+                </select>
+                <i class="fas fa-chevron-down"></i>
+                <!-- Inert placeholder: several view-switch code paths in
+                     scripts.js unconditionally set this element's display
+                     style, a leftover from the old rise/fall level-lock
+                     feature (now removed). Kept in the DOM so those lookups
+                     don't throw; never shown. -->
+                <i id="lock-icon" style="display: none"></i>
+              </div>
+              <!-- Only shown mid-round, in any Word Game mode — see
+                   updateEndSessionToolbarButtonVisibility() in wordGame.js,
+                   which toggles the "hidden" class below, and the
+                   word-game-active scoping in styles.css. On mobile this
+                   moves to the header's top-left corner (the same spot
+                   .story-report-issue-btn uses during story reading); on
+                   very short phones it's hidden entirely in favor of
+                   #game-end-session-btn-compact, which stays in the stats
+                   row instead. -->
+              <button
+                type="button"
+                id="game-end-session-btn"
+                class="game-end-session-btn hidden"
+                aria-label="Quit this round early and see your stats"
+              >
+                Quit &amp; see stats
+              </button>
+              <!-- Only shown in Word Game mode, via #search-container-inner.word-game-active in styles.css -->
+              <button
+                type="button"
+                id="game-report-issue"
+                class="toolbar-report-issue-btn"
+                aria-label="Report an issue with this question"
+                title="Report an issue"
+              >
+                <i class="fas fa-flag" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Grouped Search Bar and Random Button -->
+          <div class="search-and-random-wrapper">
+            <!-- Search Bar -->
+            <div id="search-bar-wrapper" class="search-bar-wrapper">
+              <input
+                type="text"
+                id="search-bar"
+                placeholder=" "
+                aria-label="Search for Norwegian or English words"
+              />
+              <button
+                id="clear-btn"
+                class="clear-btn"
+                aria-label="Clear search field"
+                onclick="clearInput()"
+              >
+                <i class="fas fa-xmark"></i>
+              </button>
+              <button
+                id="search-btn"
+                class="search-btn"
+                aria-label="Search, or generate a random word/sentence/story if the search field is empty"
+                onclick="handleSearchButtonClick()"
+              >
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+
+            <!-- My Words Button -->
+            <button
+              id="my-words-nav-btn"
+              class="my-words-nav-btn"
+              aria-label="Go to My Words"
+              onclick="goToMyWords()"
+              title="Go to My Words"
+            >
+              <i class="fas fa-star"></i>
+              <span class="my-words-nav-btn-label">My Words</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div id="loading-spinner" class="spinner" style="display: none"></div>
+      <!-- Moved outside the results-container -->
+      <div id="landing-card" class="definition">
+        <h2>
+          Welcome to the <br />
+          Norwegian Dictionary
+        </h2>
+        <p style="text-align: center">
+          Search for a word above, or explore by feature below.
+        </p>
+        <p id="landing-word-count" class="landing-word-count-badge">
+          📖 29,000+ Norwegian words, definitions, and example sentences.
+        </p>
+
+        <section
+          id="landing-daily-quests"
+          class="landing-daily-quests"
+          aria-labelledby="landing-daily-quests-heading"
+        ></section>
+
+        <div class="landing-card-button-grid">
+          <!-- Row 1: reference/lookup tools -->
+
+          <!-- Word List: the whole card is the click target (not a nested
+               button) — see .button-container in styles.css. -->
+          <a
+            class="button-container"
+            href="?type=word-list"
+            onclick="
+              event.preventDefault();
+              goToAllWords();
+            "
+          >
+            <div class="landing-card-icon-chip">
+              <img
+                class="landing-card-image"
+                src="Resources/Photos/list.svg"
+                alt=""
+              />
+            </div>
+            <h3 class="landing-card-title">Word List</h3>
+            <p>Browse and filter the Norwegian vocabulary collection.</p>
+            <span class="landing-feature-tag landing-feature-tag--filter"
+              >🔍 Filter by level &amp; type</span
+            >
+          </a>
+
+          <!-- Sentence Search -->
+          <a
+            class="button-container"
+            href="?type=sentences"
+            onclick="
+              event.preventDefault();
+              selectType('sentences');
+            "
+          >
+            <div class="landing-card-icon-chip">
+              <img
+                class="landing-card-image"
+                src="Resources/Photos/sentences.svg"
+                alt=""
+              />
+            </div>
+            <h3 class="landing-card-title">Sentence Search</h3>
+            <p>Explore real sentences in context using your chosen words.</p>
+            <span class="landing-feature-tag landing-feature-tag--audio"
+              >🔊 Audio for each sentence</span
+            >
+          </a>
+
+          <!-- Row 2: practice/engagement tools -->
+
+          <!-- Word Game -->
+          <a
+            class="button-container"
+            href="?type=word-game"
+            onclick="
+              event.preventDefault();
+              selectType('word-game');
+            "
+          >
+            <div class="landing-card-icon-chip">
+              <img
+                class="landing-card-image"
+                src="Resources/Photos/word-game.svg"
+                alt=""
+              />
+            </div>
+            <h3 class="landing-card-title">Word Game</h3>
+            <p>
+              Practice vocabulary with a game that adapts to your
+              level, from Beginner to Advanced.
+            </p>
+            <span class="landing-feature-tag landing-feature-tag--streak"
+              >🔥 Daily streak</span
+            >
+          </a>
+
+          <!-- Norwegian Stories -->
+          <a class="button-container" href="?type=stories">
+            <div class="landing-card-icon-chip">
+              <img
+                class="landing-card-image"
+                src="Resources/Photos/stories.svg"
+                alt=""
+              />
+            </div>
+            <h3 class="landing-card-title">Norwegian Stories</h3>
+            <p>
+              Immerse yourself in fiction and non-fiction to deepen your
+              language skills.
+            </p>
+            <span class="landing-feature-tag landing-feature-tag--narrated"
+              >🎧 Narrated with audio</span
+            >
+          </a>
+
+          <!-- My Words -->
+          <button type="button" class="button-container" onclick="goToMyWords()">
+            <div class="landing-card-icon-chip">
+              <img
+                class="landing-card-image"
+                src="Resources/Photos/bookmark.svg"
+                alt=""
+              />
+            </div>
+            <h3 class="landing-card-title">My Words</h3>
+            <p>
+              Save words as you go, then review, practice, or export them.
+            </p>
+            <span class="landing-feature-tag landing-feature-tag--sync"
+              >☁ Synced across devices</span
+            >
+          </button>
+
+          <!-- Pronunciation Guide: last, since it expands into a long table
+               directly below the grid rather than navigating away -->
+          <button
+            type="button"
+            class="button-container"
+            id="toggle-pronunciation"
+            onclick="togglePronunciationGuide()"
+          >
+            <div class="landing-card-icon-chip">
+              <img
+                class="landing-card-image"
+                src="Resources/Photos/pronunciation.svg"
+                alt=""
+              />
+            </div>
+            <h3 class="landing-card-title">Pronunciation Guide</h3>
+            <p>Practice your pronunciation by learning Norwegian sounds.</p>
+            <span class="landing-feature-tag landing-feature-tag--speak"
+              >🔤 Sounds &amp; symbols</span
+            >
+          </button>
+        </div>
+
+        <div class="pronunciation-wrapper hidden">
+          <!-- Changed this class -->
+          <h3>Norwegian Pronunciation Guide for English Speakers</h3>
+          <p>
+            Norwegian pronunciation can be tricky for English speakers. The
+            table below outlines common Norwegian sounds, with their
+            pronunciation symbols and examples.
+          </p>
+
+          <table class="pronunciation-table">
+            <thead>
+              <tr>
+                <th>Norwegian Sound</th>
+                <th>Pronunciation Symbol</th>
+                <th>Example (Norwegian)</th>
+                <th>Similar English Sound</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Norwegian Sound">kj-lyd</td>
+                <td data-label="Pronunciation Symbol">ç</td>
+                <td data-label="Example (Norwegian)">kiste – [çi`stə]</td>
+                <td data-label="Similar English Sound">
+                  Like the "h" sound in "huge", but younger generations
+                  increasingly use [ʃ] instead
+                </td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">Stemt sj</td>
+                <td data-label="Pronunciation Symbol">dʒ</td>
+                <td data-label="Example (Norwegian)">emoji – [emo:´dʒi]</td>
+                <td data-label="Similar English Sound">Like "j" in "juice"</td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">Stavelsesdannende l</td>
+                <td data-label="Pronunciation Symbol">(ə)l</td>
+                <td data-label="Example (Norwegian)">aksel – [a`ks(ə)l]</td>
+                <td data-label="Similar English Sound">
+                  Similar to "l" in "bottle" (syllable-forming)
+                </td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">Stavelsesdannende n</td>
+                <td data-label="Pronunciation Symbol">(ə)n</td>
+                <td data-label="Example (Norwegian)">voksen – [vå`ks(ə)n]</td>
+                <td data-label="Similar English Sound">
+                  Similar to "n" in "button" (syllable-forming)
+                </td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">Tykk l</td>
+                <td data-label="Pronunciation Symbol">L</td>
+                <td data-label="Example (Norwegian)">pælme – [pæ`Lmə]</td>
+                <td data-label="Similar English Sound">
+                  A thicker "l" sound, common in Eastern Norwegian
+                </td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">ng-lyd</td>
+                <td data-label="Pronunciation Symbol">ŋ</td>
+                <td data-label="Example (Norwegian)">sang – [saŋ:]</td>
+                <td data-label="Similar English Sound">Like "ng" in "song"</td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">sj-lyd</td>
+                <td data-label="Pronunciation Symbol">ʃ</td>
+                <td data-label="Example (Norwegian)">sjakk – [ʃak:]</td>
+                <td data-label="Similar English Sound">Like "sh" in "shack"</td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">th-lyd</td>
+                <td data-label="Pronunciation Symbol">þ</td>
+                <td data-label="Example (Norwegian)">bluetooth – [blu:´tuþ]</td>
+                <td data-label="Similar English Sound">Like "th" in "thin"</td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">ch-lyd</td>
+                <td data-label="Pronunciation Symbol">x</td>
+                <td data-label="Example (Norwegian)">nachspiel – [na´xʃpil]</td>
+                <td data-label="Similar English Sound">
+                  Like "ch" in Scottish "loch"
+                </td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">rd, rl, rn, rt (bound)</td>
+                <td data-label="Pronunciation Symbol">-</td>
+                <td data-label="Example (Norwegian)">
+                  leopard – [leopa´r-d], barn – [ba:rn]
+                </td>
+                <td data-label="Similar English Sound">
+                  Split articulation of "r" sounds in some words
+                </td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">Pregløs e-lignende vokal</td>
+                <td data-label="Pronunciation Symbol">ə</td>
+                <td data-label="Example (Norwegian)">kube – [ku:`bə]</td>
+                <td data-label="Similar English Sound">
+                  Like the second vowel sound in "sofa"
+                </td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">Diphthong æi</td>
+                <td data-label="Pronunciation Symbol">æi</td>
+                <td data-label="Example (Norwegian)">stein – [stæin]</td>
+                <td data-label="Similar English Sound">Like "ai" in "aisle"</td>
+              </tr>
+              <tr>
+                <td data-label="Norwegian Sound">Diphthong æu</td>
+                <td data-label="Pronunciation Symbol">æu</td>
+                <td data-label="Example (Norwegian)">sau – [sæu]</td>
+                <td data-label="Similar English Sound">Like "ow" in "cow"</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h4>Tonem 1 and Tonem 2 in Norwegian</h4>
+          <p>
+            Norwegian has two tones, called <strong>Tonem 1</strong> and
+            <strong>Tonem 2</strong>, which help distinguish between words that
+            are spelled the same but have different meanings. These tones are
+            most noticeable in Eastern Norwegian dialects like those spoken in
+            Oslo.
+          </p>
+
+          <p>
+            - <strong>Tonem 1</strong>: This is a flatter tone that starts low
+            and rises slightly. It's often used in monosyllabic words or words
+            with endings like -el and -en. For example, in Eastern Norwegian,
+            the word <em>ånden</em> (the spirit) uses Tonem 1.<br />
+            - <strong>Tonem 2</strong>: This is a more dynamic tone, starting
+            high, dipping, and then rising again. It typically occurs in
+            polysyllabic words, like <em>ånden</em> (the breath). It can change
+            the meaning of a word entirely.
+          </p>
+          <p>
+            Think of Tonem 1 as a simple, steady tone, while Tonem 2 has more
+            pitch movement, making it sound more expressive.
+          </p>
+
+          <h4>Additional Pronunciation Symbols and Rules</h4>
+          <p>
+            - ´ represents stress with Tonem 1, as in <strong>betale</strong> –
+            [beta:´lə]<br />
+            - ` represents stress with Tonem 2, as in <strong>tale</strong> –
+            [ta:`lə]<br />
+            - Long vowels are marked with a colon after them, as in
+            <strong>bile</strong> – [bi:`lə]<br />
+            - Long consonants are also marked with a colon after them, as in
+            <strong>bille</strong> – [bi`l:ə]
+          </p>
+        </div>
+      </div>
+
+      <section id="story-viewer" style="display: none">
+        <div id="story-content"></div>
+      </section>
+      <section id="results-container">
+        <ul id="stories" class="stories-list"></ul>
+      </section>
+    </main>
+
+    <audio id="audio-player" style="display: none" controls></audio>
+
+    <footer>
+      <div class="links">
+        <a
+          href="https://www.linkedin.com/in/afeinberg1/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="linkedin-btn"
+        >
+          <img
+            src="Resources/Icons/linkedin-icon.png"
+            alt="LinkedIn Logo"
+            class="linkedin-icon"
+          /><span>Connect with me on LinkedIn</span>
+        </a>
+        <a href="https://www.buymeacoffee.com/afeinberg4l" class="coffee-btn">
+          <img
+            src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=afeinberg4l&button_colour=0d3a69&font_colour=ffffff&font_family=Lato&outline_colour=ffffff&coffee_colour=FFDD00"
+            class="coffee-img"
+            alt="Buy me a coffee"
+          />
+        </a>
+        <button
+          type="button"
+          id="general-feedback-btn"
+          class="feedback-footer-btn"
+          onclick="openGeneralFeedbackDialog(this)"
+        >
+          <i class="fas fa-comment-dots" aria-hidden="true"></i>
+          <span>Feedback</span>
+        </button>
+
+        <!-- Site switcher -->
+        <select id="site-switcher" class="site-switcher-select" aria-label="Go to another site">
+          <option value="">Other Languages</option>
+          <option value="croatian">Croatian</option>
+          <option value="german">German</option>
+          <option value="hebrew">Hebrew</option>
+          <option value="italian">Italian</option>
+          <option value="japanese">Japanese</option>
+          <option value="latin">Latin</option>
+          <option value="norwegian">Norwegian</option>
+          <option value="persian">Persian</option>
+          <option value="spanish">Spanish</option>
+          <option value="thai">Thai</option>
+        </select>
+      </div>
+      <p class="copyright">
+        © 2026 Norwegian Dictionary, with input from Språkrådet, Universitetet i
+        Bergen, and Det Norske Akademi for Språk og Litteratur
+      </p>
+    </footer>
+
+    <!-- Shown at most once per visitor, after their first completed word-game
+         round, if they're not signed in — see maybeShowSignInNudge() in
+         myWordsAuth.js. Fixed so it appears the same way regardless of which
+         page/scroll position triggered it. -->
+    <div
+      id="signin-nudge-banner"
+      class="signin-nudge-banner hidden"
+      role="status"
+    >
+      <i class="fas fa-cloud-arrow-up" aria-hidden="true"></i>
+      <p>
+        Your words and streak are only saved on this device. Sign in to keep
+        them safe if you ever clear your browser data.
+      </p>
+      <button type="button" id="signin-nudge-signin-btn" class="signin-nudge-signin-btn">
+        Sign in
+      </button>
+      <button
+        type="button"
+        id="signin-nudge-dismiss-btn"
+        class="signin-nudge-dismiss-btn"
+        aria-label="Dismiss"
+      >
+        <i class="fas fa-xmark" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <script>
+      // Language site switcher -> navigates to https://osloandrew.github.io/{slug}/
+      document.addEventListener("DOMContentLoaded", () => {
+        const switcher = document.getElementById("site-switcher");
+        if (!switcher) return;
+
+        // Always start on the default (blank) option
+        switcher.value = "";
+
+        switcher.addEventListener("change", () => {
+          const slug = switcher.value;
+          if (!slug) return;
+          // Always go to the root-level language folder
+          location.href = `${location.origin}/${slug}/`;
+        });
+      });
+    </script>
+
+    <!--
+      Firebase (Google sign-in + My Words sync) is no longer loaded here.
+      It's fetched lazily by myWordsAuth.js — on first click of "Sign in,"
+      or immediately if this browser has signed in before — instead of
+      blocking every pageview's initial paint for a feature most visitors
+      never use.
+    -->
+
+    <!--
+      Not deferred, and first: defines window.WordClass, the shared
+      grammatical-category classifier used by scripts.js/wordGame.js/
+      wordList.js below. pronunciation.js/wordList.js/myWordsAuth.js are
+      also not deferred and run synchronously during parsing — before any
+      deferred script — so this has to be plain and earlier still for its
+      globals to exist in time for them.
+    -->
+    <script src="wordClass.js"></script>
+
+    <!--
+      Also not deferred, same load-order reasoning as wordClass.js above:
+      defines the tiny window.Inflections lookup/loader used by the "Word
+      forms" section. Its larger Norsk Ordbank snapshot is fetched later,
+      after the main dictionary is usable, so this script remains cheap.
+    -->
+    <script src="inflections.js"></script>
+    <script src="expressionPatterns.js"></script>
+    <script src="sentenceFormMatching.js"></script>
+    <script src="spacedRepetition.js"></script>
+
+    <script src="noRandom.js" defer></script>
+    <script src="scripts.js" defer></script>
+    <script src="wordGame.js" defer></script>
+    <script src="placementTest.js" defer></script>
+    <script src="streak.js" defer></script>
+    <script src="stories.js" defer></script>
+    <script src="pronunciation.js"></script>
+    <script src="wordList.js"></script>
+    <script src="myWordsAuth.js"></script>
+
+    <!--
+      Registered after "load" (not deferred alongside the app scripts
+      above) so it never competes with them for bandwidth/CPU during
+      initial page load — installability doesn't need to happen
+      immediately, just eventually.
+    -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("sw.js").catch((error) => {
+            console.warn("Service worker registration failed.", error);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

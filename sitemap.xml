@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://osloandrew.github.io/norwegian/</loc>
+  </url>
+  <url>
+    <loc>https://osloandrew.github.io/norwegian/?type=word-list</loc>
+  </url>
+  <url>
+    <loc>https://osloandrew.github.io/norwegian/?type=sentences</loc>
+  </url>
+  <url>
+    <loc>https://osloandrew.github.io/norwegian/?type=stories</loc>
+  </url>
+  <url>
+    <loc>https://osloandrew.github.io/norwegian/?type=word-game</loc>
+  </url>
+  <url>
+    <loc>https://osloandrew.github.io/norwegian/?type=pronunciation</loc>
+  </url>
+</urlset>
