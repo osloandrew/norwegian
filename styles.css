@@ -89,7 +89,7 @@
 
 .skip-link {
   position: absolute;
-  top: -40px;
+  top: 8px;
   left: 8px;
   z-index: 10000;
   padding: 10px 16px;
@@ -97,10 +97,16 @@
   color: #ffffff;
   border-radius: 4px;
   text-decoration: none;
+  /* Off-screen by a multiple of the link's own rendered height, rather
+     than a guessed fixed pixel offset (the previous top:-40px left part
+     of it visibly poking into the corner, since the real rendered height
+     was ~46px). A transform relative to the element's own size stays
+     fully off-screen regardless of font size, padding, or zoom. */
+  transform: translateY(-250%);
 }
 
 .skip-link:focus {
-  top: 8px;
+  transform: translateY(0);
 }
 
 a {
