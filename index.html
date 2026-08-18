@@ -145,25 +145,7 @@
         <span class="story-report-issue-btn-label">Report an issue</span>
       </button>
 
-      <!-- Mobile-only home for "Quit & see stats" (index.html's other
-           copies: #game-end-session-btn in the toolbar for desktop/tablet,
-           #game-end-session-btn-compact in the stats row for very short
-           phones). Wrapping it with #auth-container here — rather than
-           somewhere positioned separately — is what lets it sit in normal
-           document flow at the same height as the streak badge/Google
-           sign-in pill on the opposite side of this row, and means the
-           header just grows to fit it like any other content instead of
-           needing manual space reserved for it. -->
       <div class="header-top-row">
-        <button
-          type="button"
-          id="game-end-session-btn-header"
-          class="game-end-session-btn hidden"
-          aria-label="Quit this round early and see your stats"
-        >
-          Quit &amp; see stats
-        </button>
-
         <div id="auth-container" class="auth-container">
           <!-- Hidden until there's an actual streak to show — see
                updateStreakBadge() in streak.js. Lives inside #auth-container
@@ -363,12 +345,10 @@
               <!-- Only shown mid-round, in any Word Game mode — see
                    updateEndSessionToolbarButtonVisibility() in wordGame.js,
                    which toggles the "hidden" class below, and the
-                   word-game-active scoping in styles.css. On mobile this
-                   moves to the header's top-left corner (the same spot
-                   .story-report-issue-btn uses during story reading); on
-                   very short phones it's hidden entirely in favor of
-                   #game-end-session-btn-compact, which stays in the stats
-                   row instead. -->
+                   word-game-active scoping in styles.css. Sits where the
+                   CEFR filter (.cefr-filter, above) would otherwise be —
+                   the word game hides that dropdown entirely, so this has
+                   the room to live here on every screen size. -->
               <button
                 type="button"
                 id="game-end-session-btn"
