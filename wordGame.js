@@ -644,23 +644,12 @@ function renderStats() {
   // 10 words correct: without that floor, tapping this the instant a
   // round starts would count as a full day's practice.
   //
-  // This compact copy is a fallback for very short phones only (see the
-  // max-height:700px block in styles.css) — everywhere else the real
-  // control is #game-end-session-btn, a static button in the toolbar
-  // (index.html, between the CEFR filter and the report-issue flag) shown
-  // and wired once via updateEndSessionToolbarButtonVisibility() below,
-  // not re-rendered per question like this one is.
-  const endSessionButtonCompactHTML = `<button type="button" id="game-end-session-btn-compact" class="game-end-session-btn">Quit &amp; see stats</button>`;
-
-  // The compact button comes first, above the label — see the
-  // max-height:700px block in styles.css, the only place it's ever
-  // shown. Its own height is trimmed there too, so pulling it out of
-  // .game-stats-accuracy-row (which used to sit below the bar) actually
-  // saves vertical space overall on these short screens, rather than
-  // just relocating the same footprint.
+  // The control itself is #game-end-session-btn, a static button in the
+  // toolbar (index.html, in .cefr-filter-group) shown and wired once via
+  // updateEndSessionToolbarButtonVisibility() below, not re-rendered per
+  // question like the rest of this stats row is.
   const middleContentHTML = isSessionRound
     ? `<div class="game-stats-progress-wrapper" style="flex-grow: 1;">
-         ${endSessionButtonCompactHTML}
          <p class="game-stat-label">Round progress</p>
          <div class="game-stats-accuracy-row">
            <div class="game-session-progress-bg" style="border-radius: 10px; overflow: hidden; position: relative; display: flex; align-items: center;">
@@ -676,7 +665,6 @@ function renderStats() {
          </div>
        </div>`
     : `<div class="game-stats-progress-wrapper" style="flex-grow: 1;">
-         ${endSessionButtonCompactHTML}
          <p class="game-stat-label">Recent accuracy</p>
          <div class="game-stats-accuracy-row">
            <div class="level-progress-bar-bg" style="border-radius: 10px; overflow: hidden; position: relative;">
@@ -716,12 +704,6 @@ function renderStats() {
         </div>
       </div>
     `;
-
-    document
-      .getElementById("game-end-session-btn-compact")
-      ?.addEventListener("click", () => {
-        showWordGameRoundSummary();
-      });
   }
 
   // Update existing elements only
@@ -1860,25 +1842,15 @@ function getWordGameSessionProgressPercent() {
   return (correctSoFar / wordGameSessionTarget) * 100;
 }
 
-// Shows/hides the two static copies of Quit & see stats — index.html has
-// three total: #game-end-session-btn in the toolbar (desktop/tablet,
-// between the CEFR filter and the report-issue flag), and
-// #game-end-session-btn-header in the header's auth row (non-tiny
-// mobile — real document flow there, right alongside the streak badge/
-// Google sign-in pill, so it shares their height and pushes the title
-// down on its own instead of needing a fixed position plus manually
-// reserved space). The third, #game-end-session-btn-compact, is rendered
-// fresh per question inside renderStats() (very short phones only), so
-// it doesn't need this — but these two are only ever created once, so
-// their visibility has to be toggled explicitly wherever
-// wordGameRoundActive changes, rather than just following whether they
-// got rendered this time.
+// Shows/hides the single static "Quit & see stats" control — sits in the
+// toolbar (index.html, in .cefr-filter-group, the same spot the CEFR
+// filter used to occupy before the word game hid it) on every screen size.
+// It's only ever created once, so its visibility has to be toggled
+// explicitly wherever wordGameRoundActive changes, rather than just
+// following whether it got rendered this time.
 function updateEndSessionToolbarButtonVisibility() {
   document
     .getElementById("game-end-session-btn")
-    ?.classList.toggle("hidden", !wordGameRoundActive);
-  document
-    .getElementById("game-end-session-btn-header")
     ?.classList.toggle("hidden", !wordGameRoundActive);
 }
 
@@ -2117,8 +2089,13 @@ async function startWordGame() {
   // Stories — the word game itself has no CEFR control at all, since
   // ability is an invisible, continuously-adaptive estimate rather than
   // something the learner sets directly. Hidden here rather than merely
-  // disabled so it isn't shown at all while in this view.
-  const cefrFilterGroup = document.querySelector(".cefr-filter-group");
+  // disabled so it isn't shown at all while in this view. Note: this
+  // targets .cefr-filter itself, NOT its parent .cefr-filter-group — the
+  // group also contains #game-end-session-btn and #game-report-issue,
+  // which the word game does need and manages via their own visibility
+  // logic (updateEndSessionToolbarButtonVisibility() and the
+  // word-game-active CSS rule respectively).
+  const cefrFilter = document.querySelector(".cefr-filter");
   const gameEnglishFilterContainer = document.querySelector(
     ".game-english-filter",
   );
@@ -2147,7 +2124,7 @@ async function startWordGame() {
   posSelect.value = ""; // Reset to "Part of Speech" option
   posFilterContainer.style.display = "none";
 
-  if (cefrFilterGroup) cefrFilterGroup.style.display = "none";
+  if (cefrFilter) cefrFilter.style.display = "none";
 
   // No round chosen yet (fresh entry into the word game, or just finished
   // a round) — show the mode picker instead of fetching a question. Once
@@ -2839,6 +2816,10 @@ function getGamePromptLengthClass(value) {
   const length = Array.from(normalizeGameWhitespace(value)).length;
   if (length >= 160) return "game-prompt-extra-long";
   if (length >= 90) return "game-prompt-long";
+  // Cloze sentences routinely land well under the 90-char "long" cutoff
+  // above (full words/phrases, not just single vocab words) but still
+  // overflowed the card at the default size — this tier catches them.
+  if (length >= 45) return "game-prompt-medium";
   return "";
 }
 
@@ -4575,13 +4556,10 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-// Static (not re-rendered per question, unlike #game-end-session-btn-compact
-// in renderStats()), so they only need wiring once, here at load time —
-// visibility is handled separately by updateEndSessionToolbarButtonVisibility().
+// Static (not re-rendered per question), so it only needs wiring once, here
+// at load time — visibility is handled separately by
+// updateEndSessionToolbarButtonVisibility().
 document.getElementById("game-end-session-btn")?.addEventListener("click", () => {
-  showWordGameRoundSummary();
-});
-document.getElementById("game-end-session-btn-header")?.addEventListener("click", () => {
   showWordGameRoundSummary();
 });
 

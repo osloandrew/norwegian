@@ -506,6 +506,13 @@ footer .copyright {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-gap: 15px; /* Slightly increase space between the cards */
   min-height: 159px;
+  /* Without this, a grid container defaults to hugging its content's width
+     rather than filling its parent — invisible in the word game's own
+     layout (a plain block parent, where that's the same thing), but the
+     placement test reuses .game-intro-card as its wrapper, whose
+     align-items:center centers flex children at their content width
+     instead of stretching them, collapsing this to two cramped columns. */
+  width: 100%;
 }
 
 /* Says what a question is actually asking for — previously the word/
@@ -948,7 +955,9 @@ footer .copyright {
   position: relative; /* Anchors the correct/incorrect ::after badge */
   text-align: center; /* Centered text */
   font-family: "Noto Sans", sans-serif;
-  font-size: 1.2em !important; /* Consistent font size */
+  /* Smaller than the card's 1.2em original so a 2-3 word phrase still
+     clears the fixed card height below without needing to scroll. */
+  font-size: 1.05em !important;
   color: var(--color-text); /* Same text color */
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Same shadow */
   transition: background-color 0.3s ease; /* Smooth hover effect */
@@ -961,7 +970,7 @@ footer .copyright {
   min-height: 72px;
   min-width: 0;
   margin: 0;
-  line-height: 1.3em; /* Reduce line spacing slightly */
+  line-height: 1.25em; /* Reduce line spacing slightly */
   /* Long words (Norwegian compounds especially, e.g. "salgsrepresentanten")
      wrap at real syllable boundaries with a hyphen instead of getting cut
      at an arbitrary character — needs each card's lang attribute (set per
@@ -1105,14 +1114,22 @@ footer .copyright {
   width: 100%;
 }
 
+/* Sentences (cloze) land in this tier far more often than single vocab
+   words do — a smaller step down from the default than "long" so a
+   typical short sentence doesn't still read at near-heading size. */
+.game-word.game-prompt-medium h2 {
+  font-size: clamp(18px, 2.6vw, 23px) !important;
+  line-height: 1.3;
+}
+
 .game-word.game-prompt-long h2 {
-  font-size: clamp(19px, 2.2vw, 26px) !important;
-  line-height: 1.25;
+  font-size: clamp(17px, 2.1vw, 21px) !important;
+  line-height: 1.3;
 }
 
 .game-word.game-prompt-extra-long h2 {
-  font-size: clamp(16px, 1.75vw, 21px) !important;
-  line-height: 1.25;
+  font-size: clamp(15px, 1.7vw, 18px) !important;
+  line-height: 1.3;
 }
 
 .game-word-audio {
@@ -1120,6 +1137,11 @@ footer .copyright {
 }
 
 .game-word h2 {
+  /* Higher specificity than the shared h2{font-size:30px} rule, so this
+     wins without needing !important — the tiers above still take over via
+     their extra class the moment a prompt stops being a short word. */
+  font-size: clamp(20px, 3.4vw, 28px);
+  line-height: 1.25;
   margin: 0;
   font-family: "Noto Sans", sans-serif;
   font-weight: 400 !important;
@@ -1565,6 +1587,7 @@ footer .copyright {
   background-color: white;
   border: 1px solid var(--color-border);
   border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.06);
   color: var(--color-text);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
@@ -1581,6 +1604,11 @@ footer .copyright {
   border-color: var(--color-accent);
 }
 
+.placement-option-btn:focus-visible {
+  outline: 3px solid var(--color-link);
+  outline-offset: 2px;
+}
+
 .placement-progress {
   color: var(--color-text-slate-soft);
   font-family: "Noto Sans", sans-serif;
@@ -1592,13 +1620,29 @@ footer .copyright {
 
 .placement-retake-link {
   background: none;
-  border: none;
-  color: var(--color-link);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text-muted);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
   font-size: 0.85em;
-  margin-top: 16px;
-  text-decoration: underline;
+  margin-top: 18px;
+  padding: 9px 18px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.placement-retake-link:hover {
+  background-color: var(--color-bg-subtle);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.placement-retake-link:focus-visible {
+  outline: 3px solid var(--color-link);
+  outline-offset: 2px;
 }
 
 @media (max-width: 600px) {
@@ -1864,32 +1908,21 @@ footer .copyright {
   height: 30px;
 }
 
-/* The "end early" control's shared look, now available in every mode.
-   Uppercase/letter-spaced to match the filter pills' (.type-filter select
-   etc.) "suave" button language, and given enough padding to read as a
-   real button rather than a thin strip — but deliberately outlined rather
-   than solid-filled, and sized modestly: this is an "opt out early"
-   action, not one worth visually competing with Next Word or the answer
-   cards for attention.
+/* The "end early" control. Uppercase/letter-spaced to match the filter
+   pills' (.type-filter select etc.) "suave" button language, and given
+   enough padding to read as a real button rather than a thin strip — but
+   deliberately outlined rather than solid-filled, and sized modestly:
+   this is an "opt out early" action, not one worth visually competing
+   with Next Word or the answer cards for attention.
 
-   Two elements share this class: #game-end-session-btn is the real one, a
-   static button in the toolbar (index.html, between the CEFR filter and
-   the report-issue flag) shown only mid-round via
-   updateEndSessionToolbarButtonVisibility() (wordGame.js). It moves to
-   the header's top-left corner on mobile (see the max-width:600px rule
-   below) — the same spot .story-report-issue-btn uses during story
-   reading — since the compact toolbar has no room for it inline there.
-   #game-end-session-btn-compact is a fallback rendered inside the stats
-   row (renderStats()) for very short phones only, where even that corner
-   spot would crowd an already tight layout — see the
-   max-width:600px-and-max-height:700px rule further below, which is the
-   only place it's ever shown. */
+   #game-end-session-btn is a static button in the toolbar (index.html, in
+   .cefr-filter-group — the same spot the CEFR filter occupies outside
+   Word Game mode) shown only mid-round via
+   updateEndSessionToolbarButtonVisibility() (wordGame.js), on every
+   screen size: the word game hides .cefr-filter entirely, which is what
+   leaves the room for this button to sit there instead of needing to
+   relocate on mobile. */
 .game-end-session-btn {
-  /* Centered with its own natural width when this class is used inside a
-     flex column (the compact instance, inside .game-stats-accuracy-row)
-     — irrelevant for the toolbar instance, which isn't in a flex column,
-     so this is harmless there. */
-  align-self: center;
   align-items: center;
   background-color: var(--color-white);
   border: 1.5px solid var(--color-primary);
@@ -1930,33 +1963,12 @@ footer .copyright {
   /* Matches the 42px height of its toolbar neighbors (.cefr-filter,
      .type-filter, etc. — see the shared height:42px rule) instead of the
      shorter, content-driven height .game-end-session-btn gets on its
-     own. Only meaningful here, in the default (desktop/tablet) inline
-     layout — the mobile rule below switches this to a fixed corner
-     button instead, where matching row-mates no longer applies. */
+     own. The mobile rule further below matches it to the row's shorter
+     38px height instead. */
   height: 42px;
   padding: 0 14px;
 }
 
-/* The compact stats-row fallback is hidden everywhere by default — shown
-   only within the tiny-phone media query near the bottom of this file. */
-#game-end-session-btn-compact {
-  display: none;
-}
-
-/* The header-row copy (index.html, wrapping #auth-container) is hidden
-   everywhere by default — shown only within the max-width:600px block
-   below, for non-tiny mobile. */
-#game-end-session-btn-header {
-  display: none;
-}
-
-/* Plain wrapper around #game-end-session-btn-header and #auth-container.
-   A no-op on desktop/tablet: the button stays display:none there, and
-   #auth-container's own position:absolute already takes it out of flow
-   regardless of what this parent does, so this element never actually
-   renders any content of its own to give it flow-height. The
-   max-width:600px rule below is what actually turns it into a real flex
-   row. */
 .header-top-row {
   align-items: center;
 }
@@ -1977,6 +1989,13 @@ footer .copyright {
   margin-bottom: 15px !important;
   overflow: hidden; /* Prevent overflowing content from changing layout */
   padding: 10px; /* Reduce padding at the top, add more below */
+  /* Without this, a block-level box like this one would still default to
+     filling its parent's width — true in the word game's own layout, a
+     plain block parent. But the placement test wraps this in
+     .game-intro-card instead, whose align-items:center centers flex
+     children at their own content width rather than stretching them,
+     which otherwise collapsed this into a tall, narrow sliver. */
+  width: 100%;
   position: relative; /* Allow for flexible layout */
   max-height: 290px;
   min-height: 290px;
@@ -2280,45 +2299,14 @@ html.reading .story-report-issue-btn {
     font-size: 13px;
   }
 
-  /* The toolbar copy has no room here without crowding the CEFR select/
-     lock icon and the flag button next to it — #game-end-session-btn-header
-     (in the header's auth row, opposite corner) takes over instead. */
-  #search-container-inner.word-game-active #game-end-session-btn {
-    display: none !important;
-  }
-
-  /* Turns .header-top-row into a real flex row so
-     #game-end-session-btn-header sits in normal document flow beside
-     #auth-container — same height as the streak badge/Google sign-in
-     pill inside it (both size from their own content/padding, no
-     explicit height needed), and pushing the title down on its own by
-     however tall this row actually is, rather than needing a manually
-     calculated margin/padding to reserve space for a fixed-position
-     element that doesn't otherwise participate in layout.
-
-     justify-content:flex-end (not space-between) deliberately: this row
-     exists on every mobile page, not just mid-round, and the button is
-     hidden the rest of the time (see the display:flex override below).
-     With space-between, #auth-container — as the only remaining flex
-     item whenever the button is hidden — would snap to the row's start
-     (left) instead of staying put on the right, moving the streak badge/
-     sign-in pill to the wrong side site-wide. flex-end keeps
-     #auth-container pinned right regardless; the button (when visible)
-     is pushed to the opposite end by its own margin-right:auto instead
-     of relying on the row's own justification. */
+  /* #auth-container's own position:static + justify-content:right (see
+     its dedicated mobile rule below) keeps the streak badge/Google
+     sign-in pill pinned to the right on its own — no need for this row
+     itself to be a flex container now that the "Quit & see stats" button
+     that used to share it lives in the toolbar (.cefr-filter-group) on
+     every screen size instead. Just the spacing before the title. */
   .header-top-row {
-    display: flex;
-    justify-content: flex-end;
     margin-bottom: 8px;
-  }
-
-  /* Scoped to body.word-game-mode, not #search-container-inner.word-game-active
-     like the toolbar copy above — this button lives in <header>, a
-     different subtree entirely, so it needs the page-wide flag instead
-     of one scoped to the search toolbar. */
-  body.word-game-mode #game-end-session-btn-header {
-    display: flex;
-    margin-right: auto;
   }
 
   .signin-nudge-banner {
@@ -4954,7 +4942,7 @@ ul {
   }
 
   .game-translation-card {
-    font-size: 1.1em !important; /* Slightly smaller font size for mobile */
+    font-size: 1em !important; /* Slightly smaller font size for mobile */
   }
 
   /* Stats Card Styling */
@@ -5507,13 +5495,21 @@ ul {
     display: none;
   }
 
-  /* Keep all three game selectors fluid, with slightly more room for CEFR. */
+  /* The third column used to reserve extra room (1.5fr) for the CEFR
+     dropdown it once held. The word game hides that dropdown entirely now
+     (see .cefr-filter in startWordGame(), wordGame.js) — .cefr-filter-group
+     holds only "Quit & see stats" and the report-issue flag here, so a
+     fixed fr share leaves a large dead gap after them at wider widths in
+     this range (768-1024px) where the row itself is wide but their
+     combined content isn't. max-content instead sizes the column to that
+     content exactly, whatever it is; the freed space goes to the other
+     two (still 1fr each) columns. */
   body.word-game-mode .selectors-wrapper {
     display: grid;
     grid-template-columns:
       minmax(0, 1fr)
       minmax(0, 1fr)
-      minmax(0, 1.5fr);
+      max-content;
     gap: 5px;
     width: 100%;
   }
@@ -5574,6 +5570,26 @@ ul {
     flex: 0 0 auto;
     font-size: 12px;
     height: auto;
+    /* Wider horizontal padding than vertical so the button reads as a
+       (slightly wide) square against the row's 38px height, rather than
+       the tall, narrow sliver the old 6px-a-side padding produced. */
+    padding: 4px 13px;
+  }
+
+  /* Overrides the desktop rule's fixed 42px, and stretches to fill the
+     shared 38px row (align-items:center on .cefr-filter-group otherwise
+     leaves it at its own small content height) so it matches its
+     .cefr-filter-group row-mates instead of looking short next to them.
+     Trimmed font/padding/letter-spacing (vs. the flag button's own 12px)
+     because this column has to fit both the flag button and this text
+     label — without the trim, "Quit & see stats" alone was wide enough
+     to push the flag button off the edge of the row on narrow phones. */
+  #search-container-inner.word-game-active #game-end-session-btn {
+    align-self: stretch;
+    flex: 0 0 auto;
+    font-size: 10px;
+    height: auto;
+    letter-spacing: 0.01em;
     padding: 4px 6px;
   }
 
@@ -5701,31 +5717,6 @@ ul {
 
   .game-word-card {
     padding: 8px;
-  }
-
-  /* Keep it in the stats column on the very shortest screens rather than
-     also floating a header button on top of an already-tight layout —
-     #game-end-session-btn-compact (rendered by renderStats(), wordGame.js)
-     takes over here instead. ID specificity beats the other two copies'
-     own display:flex rules regardless of source order. */
-  #game-end-session-btn {
-    display: none !important;
-  }
-
-  #game-end-session-btn-header {
-    display: none !important;
-  }
-
-  /* Sits above the Recent Accuracy/Round Progress label now (see
-     middleContentHTML in renderStats()), not below the bar — and trimmed
-     down from the shared .game-end-session-btn look so it actually saves
-     height overall rather than just relocating the same footprint,
-     letting the card and answer choices below start a bit higher. */
-  #game-end-session-btn-compact {
-    display: flex;
-    font-size: 9px;
-    margin: 0 0 4px;
-    padding: 5px 10px;
   }
 
   /* Flatten the progress bar and drop its in-bar text ("Word 5 of 20" /

@@ -1838,12 +1838,16 @@ function handleTypeChange(type, options = {}) {
   gameEnglishFilterContainer.style.display = "none";
   gameEnglishSelect.style.display = "none"; // Hide random button
 
-  // Reset the shared CEFR filter group to its default visible state before
-  // any type-specific branch runs. Only the word-game branch (in
-  // wordGame.js's startWordGame()) hides it — CEFR is a pure browse filter
-  // everywhere else, never a control the word game exposes.
+  // Reset the shared CEFR filter (and its wrapping group) to their default
+  // visible state before any type-specific branch runs. Only the word-game
+  // branch (in wordGame.js's startWordGame()) hides .cefr-filter — CEFR is
+  // a pure browse filter everywhere else, never a control the word game
+  // exposes. The group itself is never hidden (it also holds the "Quit &
+  // see stats" and "Report an issue" buttons the word game does use), but
+  // is reset here too for safety.
   const cefrFilterGroup = document.querySelector(".cefr-filter-group");
   if (cefrFilterGroup) cefrFilterGroup.style.display = "";
+  if (cefrFilterContainer) cefrFilterContainer.style.display = "";
 
   // Update the URL with the selected type, query, and POS
   updateURL(query, type, selectedPOS); // This ensures the type is reflected in the URL
