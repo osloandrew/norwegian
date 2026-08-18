@@ -1815,6 +1815,11 @@ function handleTypeChange(type, options = {}) {
   const shouldRenderInitialContent = options.renderInitialContent !== false;
   // Give the page a dedicated class while Word Game is selected.
   document.body.classList.toggle("word-game-mode", type === "word-game");
+  // Same idea for My Stats — styles.css uses this to keep the My Words
+  // button as a labeled pill beside the type dropdown at ≤1024px instead
+  // of the icon-only circle meant to share a row with the search bar,
+  // which My Stats hides entirely.
+  document.body.classList.toggle("my-stats-mode", type === "my-stats");
   const query = document
     .getElementById("search-bar")
     .value.toLowerCase()
