@@ -1259,7 +1259,7 @@ async function randomWord() {
                 ${isEnglishVisible ? "Hide English" : "Show English"}
             </button>
             <div class="sentence-container">
-                <div class="sentence-box-norwegian ${
+                <div lang="nb" class="sentence-box-norwegian ${
                   !isEnglishVisible ? "sentence-box-norwegian-hidden" : ""
                 }">
             <div class="sentence-content">
@@ -1281,7 +1281,7 @@ async function randomWord() {
 
     if (selectedTranslation) {
       sentenceHTML += `
-        <div class="sentence-box-english ${isEnglishVisible ? "" : "hidden"}">
+        <div lang="en" class="sentence-box-english ${isEnglishVisible ? "" : "hidden"}">
                     <p class="sentence">${selectedTranslation}</p>
                 </div>
             `;
@@ -2473,7 +2473,7 @@ function displaySearchResults(results, query = "") {
   onkeydown="if ((event.key === 'Enter' || event.key === ' ') && !window.getSelection().toString()) { event.preventDefault(); handleCardClick(event, ${handleCardClickArgs}) }">
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-gender ${multipleResultsWordgender}">
-                  <div class="word-text-block">
+                  <div lang="nb" class="word-text-block">
                     ${
                       result.ord.includes(",")
                         ? (() => {
@@ -2754,7 +2754,7 @@ function renderSentenceMatchesFromCorpus(
 
     html += `
       <div class="sentence-container">
-        <div class="sentence-box-norwegian ${
+        <div lang="nb" class="sentence-box-norwegian ${
           !isEnglishVisible ? "sentence-box-norwegian-hidden" : ""
         }">
           <div class="sentence-content">
@@ -2774,7 +2774,7 @@ function renderSentenceMatchesFromCorpus(
         ${
           row.en
             ? `
-          <div class="sentence-box-english ${isEnglishVisible ? "" : "hidden"}">
+          <div lang="en" class="sentence-box-english ${isEnglishVisible ? "" : "hidden"}">
             <p class="sentence">${enHTML}</p>
           </div>`
             : ""
@@ -2836,7 +2836,7 @@ function renderWordDefinition(word, selectedPOS = "") {
                 <h2 class="word-gender">
                     Error <span class="gender">No Definition Found</span>
                 </h2>
-                <p>No definition found for "${trimmedWord}".</p>
+                <p>No definition found for "${escapeHTML(trimmedWord)}".</p>
             </div>
         `;
   }
@@ -3032,7 +3032,7 @@ async function fetchAndRenderSentences(
         .map(
           (sentence, index) => `
             <div class="sentence-container">
-                <div class="sentence-box-norwegian ${
+                <div lang="nb" class="sentence-box-norwegian ${
                   !showEnglish ? "sentence-box-norwegian-hidden" : ""
                 }">
                   <div class="sentence-content">
@@ -3054,7 +3054,7 @@ async function fetchAndRenderSentences(
                 ${
                   translations[index]
                     ? `
-                <div class="sentence-box-english ${
+                <div lang="en" class="sentence-box-english ${
                   showEnglish ? "" : "hidden"
                 }">
                     <p class="sentence-translation">${translations[index]}</p>

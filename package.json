@@ -1,0 +1,12 @@
+{
+  "name": "norwegian-dictionary",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Norwegian Dictionary — vanilla JS/HTML/CSS static site, no build step.",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

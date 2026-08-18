@@ -18,10 +18,26 @@
   // either on the first click of "Sign in" or, for someone who has signed in
   // on this browser before, immediately on load so their session still
   // restores silently like it used to.
+  // SRI hashes pin these to the exact bytes served for 10.14.1 at the time
+  // they were added, so a compromised/altered CDN response fails to load
+  // rather than running unverified code. Bump both the version in the URL
+  // and its hash together if this ever gets upgraded.
   const FIREBASE_SCRIPT_URLS = [
-    "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js",
-    "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js",
-    "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js",
+    {
+      src: "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js",
+      integrity:
+        "sha384-ZaR6mWzmJtrRibZ1Vm7SoHFr8OXjyAuGAXalGDKqbxFT18oi/z+oZLIRFkpeNor1",
+    },
+    {
+      src: "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js",
+      integrity:
+        "sha384-I1LYojsZ5RM1cOda44Z2h42Qa6YfsQ1XkXxREnhp4ueYBR/4d1pG1K+NZM537Vsj",
+    },
+    {
+      src: "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js",
+      integrity:
+        "sha384-Ke0FJhH7LyRqDxZ0wt+/OXV38yfQVu7g9VPEEGjYmB4RVOY/ta04uecRhsMwT7V3",
+    },
   ];
   const WAS_SIGNED_IN_KEY = "norwegian-dictionary-was-signed-in-v1";
   const SIGNIN_NUDGE_SHOWN_KEY = "norwegian-dictionary-signin-nudge-shown-v1";
@@ -67,15 +83,46 @@
   let abilityPushTimeoutId = null;
   let streakPushTimeoutId = null;
   let dailyQuestPushTimeoutId = null;
+  let wasSignedInThisSession = false;
+
+  // Words/streak/ability data saved locally must not leak into whichever
+  // account signs in next on a shared device — mergeRemoteData() below
+  // unions local state into the new account's cloud doc on next sign-in,
+  // so a stale local cache here would silently attribute one person's
+  // words/streak to someone else. Cleared only on an actual sign-out
+  // (wasSignedInThisSession guards against wiping a guest's local-only
+  // progress on a page load where no session was ever established), then
+  // the page reloads so every module's in-memory state — streak badge,
+  // word list, ability/daily-practice caches — starts clean rather than
+  // continuing to display data that's no longer stored.
+  const LOCAL_USER_DATA_KEYS = [
+    "norwegian-dictionary-my-words-v1",
+    "norwegian-dictionary-word-strength-v1",
+    "norwegian-dictionary-streak-v1",
+    "norwegian-dictionary-ability-v1",
+    "norwegian-dictionary-game-level-v1",
+    "norwegian-dictionary-daily-practice-v2",
+  ];
+
+  function clearLocalUserDataAndReload() {
+    try {
+      LOCAL_USER_DATA_KEYS.forEach((key) => localStorage.removeItem(key));
+    } catch (error) {
+      // Best-effort only — if storage is unavailable there's nothing to clear.
+    }
+    window.location.reload();
+  }
 
   function loadFirebaseScripts() {
     return FIREBASE_SCRIPT_URLS.reduce(
-      (chain, src) =>
+      (chain, { src, integrity }) =>
         chain.then(
           () =>
             new Promise((resolve, reject) => {
               const script = document.createElement("script");
               script.src = src;
+              script.integrity = integrity;
+              script.crossOrigin = "anonymous";
               script.onload = resolve;
               script.onerror = () =>
                 reject(new Error(`Failed to load ${src}`));
@@ -656,11 +703,17 @@
       rememberSignedInState(Boolean(user));
 
       if (user) {
+        wasSignedInThisSession = true;
         mergeRemoteData(user.uid);
         attachRealtimeSync(user.uid);
       } else {
         unsubscribeRealtimeSync?.();
         unsubscribeRealtimeSync = null;
+
+        if (wasSignedInThisSession) {
+          wasSignedInThisSession = false;
+          clearLocalUserDataAndReload();
+        }
       }
     });
   }

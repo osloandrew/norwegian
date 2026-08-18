@@ -37,12 +37,40 @@
     <!-- Canonical URL -->
     <link rel="canonical" href="https://osloandrew.github.io/norwegian/" />
 
+    <!--
+      Structured data: WebSite + SearchAction only, not Dictionary/
+      DefinedTerm entries — this is an unprerendered SPA with no
+      individual per-word URLs a crawler could index directly (see
+      make-sitemap.py's INCLUDE_INDIVIDUAL_PAGES comment), so per-term
+      schema would describe pages that don't really exist to a crawler.
+      SearchAction's target mirrors what the on-page search bar actually
+      does: ?type=words&query={term} runs search() on load.
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Norwegian Dictionary",
+        "url": "https://osloandrew.github.io/norwegian/",
+        "description": "Norwegian Dictionary is your resource for finding words in both Norwegian and English. Search, filter by part of speech, and discover new words.",
+        "inLanguage": ["en", "nb"],
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://osloandrew.github.io/norwegian/?type=words&query={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+
     <!-- PWA: installable to a home screen, see manifest.json and sw.js -->
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#0d3a69" />
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="styles.css?v=20260816" />
+    <link rel="stylesheet" href="styles.css?v=20260818" />
     <link
       rel="apple-touch-icon"
       sizes="180x180"
@@ -93,11 +121,25 @@
       leave the whole dictionary silently stuck at "loading" forever.
     -->
     <script defer src="vendor/papaparse.min.js"></script>
-    <!-- Font Awesome CDN -->
+    <!-- Font Awesome CDN, loaded non-blocking with the same media="print" ->
+         onload="all" swap used for Google Fonts above, plus a pinned SRI
+         hash since this is a third-party CDN serving executable CSS. -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI"
+      crossorigin="anonymous"
+      media="print"
+      onload="this.media = 'all'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI"
+        crossorigin="anonymous"
+      />
+    </noscript>
 
     <!-- Google Analytics -->
     <script
@@ -116,22 +158,31 @@
       // previously produced no signal at all. Beacon uncaught errors and
       // unhandled promise rejections to GA as events (message + location
       // only — no user data) so at least something is discoverable.
+      //
+      // Truncated to a short length: an error message can embed whatever
+      // string triggered it (e.g. a search query or URL parameter), so
+      // this caps how much of that ever reaches GA rather than assuming
+      // error text is always safe to forward in full.
+      function sanitizeForBeacon(value) {
+        return String(value ?? "").slice(0, 120);
+      }
       window.addEventListener("error", (event) => {
         gtag("event", "js_error", {
           event_category: "error",
-          event_label: `${event.message} @ ${event.filename}:${event.lineno}`,
+          event_label: `${sanitizeForBeacon(event.message)} @ ${sanitizeForBeacon(event.filename)}:${event.lineno}`,
         });
       });
       window.addEventListener("unhandledrejection", (event) => {
         gtag("event", "js_unhandled_rejection", {
           event_category: "error",
-          event_label: String(event.reason).slice(0, 150),
+          event_label: sanitizeForBeacon(event.reason),
         });
       });
     </script>
   </head>
 
   <body>
+    <a href="#main-content" class="skip-link">Skip to content</a>
     <header>
       <!-- Only shown while reading an individual story, via html.reading in styles.css -->
       <button
@@ -233,7 +284,7 @@
       <button id="toggle-english-btn" class="toggle-btn">Show English</button>
     </div>
 
-    <main>
+    <main id="main-content">
       <!-- Search container with full-width background -->
       <section id="search-container">
         <div id="search-container-inner">
@@ -384,6 +435,9 @@
           <div class="search-and-random-wrapper">
             <!-- Search Bar -->
             <div id="search-bar-wrapper" class="search-bar-wrapper">
+              <label for="search-bar" class="sr-only"
+                >Search for Norwegian or English words</label
+              >
               <input
                 type="text"
                 id="search-bar"
@@ -730,7 +784,7 @@
       deferred script — so this has to be plain and earlier still for its
       globals to exist in time for them.
     -->
-    <script src="wordClass.js"></script>
+    <script src="wordClass.js?v=20260818"></script>
 
     <!--
       Also not deferred, same load-order reasoning as wordClass.js above:
@@ -738,21 +792,21 @@
       forms" section. Its larger Norsk Ordbank snapshot is fetched later,
       after the main dictionary is usable, so this script remains cheap.
     -->
-    <script src="inflections.js"></script>
-    <script src="expressionPatterns.js"></script>
-    <script src="sentenceFormMatching.js"></script>
-    <script src="spacedRepetition.js"></script>
+    <script src="inflections.js?v=20260818"></script>
+    <script src="expressionPatterns.js?v=20260818"></script>
+    <script src="sentenceFormMatching.js?v=20260818"></script>
+    <script src="spacedRepetition.js?v=20260818"></script>
 
-    <script src="noRandom.js" defer></script>
-    <script src="scripts.js" defer></script>
-    <script src="wordGame.js" defer></script>
-    <script src="placementTest.js" defer></script>
-    <script src="streak.js" defer></script>
-    <script src="stories.js" defer></script>
-    <script src="pronunciation.js"></script>
-    <script src="wordList.js"></script>
-    <script src="myStats.js" defer></script>
-    <script src="myWordsAuth.js"></script>
+    <script src="noRandom.js?v=20260818" defer></script>
+    <script src="scripts.js?v=20260818" defer></script>
+    <script src="wordGame.js?v=20260818" defer></script>
+    <script src="placementTest.js?v=20260818" defer></script>
+    <script src="streak.js?v=20260818" defer></script>
+    <script src="stories.js?v=20260818" defer></script>
+    <script src="pronunciation.js?v=20260818"></script>
+    <script src="wordList.js?v=20260818"></script>
+    <script src="myStats.js?v=20260818" defer></script>
+    <script src="myWordsAuth.js?v=20260818"></script>
 
     <!--
       Registered after "load" (not deferred alongside the app scripts

@@ -72,6 +72,37 @@
   --color-google-text: #3c4043;
 }
 
+/* Visually hides content while keeping it in the accessibility tree —
+   e.g. a <label> that duplicates a control's aria-label for sighted users
+   who don't use assistive tech, or the skip-link below before it's focused. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 8px;
+  z-index: 10000;
+  padding: 10px 16px;
+  background: var(--color-primary);
+  color: #ffffff;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 8px;
+}
+
 a {
   color: var(--color-link);
 }
@@ -5401,10 +5432,6 @@ ul {
     padding: 10px 10px;
   }
 
-  label[for="search-bar"] {
-    display: none;
-  }
-
   /* Adjust landing card width for mobile */
   #landing-card {
     width: 85%; /* Ensure it takes up more space on mobile */
@@ -5542,10 +5569,6 @@ ul {
 
   .search-bar-wrapper {
     min-width: 0px;
-  }
-
-  .search-bar-wrapper label {
-    font-size: 12px;
   }
 
   .search-btn {

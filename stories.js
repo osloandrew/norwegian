@@ -821,8 +821,8 @@ function displayStory(titleNorwegian) {
 
       contentHTML += `
     <div class="couplet">
-      <div class="japanese-sentence" data-raw-text="${escapeHTML(norwegianSentence)}">${renderClickableNorwegianSentence(norwegianSentence)}</div>
-      <div class="english-sentence">${escapeHTML(englishSentence)}</div>
+      <div lang="nb" class="japanese-sentence" data-raw-text="${escapeHTML(norwegianSentence)}">${renderClickableNorwegianSentence(norwegianSentence)}</div>
+      <div lang="en" class="english-sentence">${escapeHTML(englishSentence)}</div>
     </div>
   `;
     }
@@ -837,10 +837,10 @@ function displayStory(titleNorwegian) {
       const titleNode = document.createElement("div");
       titleNode.className = "sticky-title-container";
       titleNode.innerHTML = `
-  <h2 class="sticky-title-japanese">${selectedStory.titleNorwegian}</h2>
+  <h2 lang="nb" class="sticky-title-japanese">${selectedStory.titleNorwegian}</h2>
   ${
     selectedStory.titleNorwegian !== selectedStory.titleEnglish
-      ? `<p class="sticky-title-english">${selectedStory.titleEnglish}</p>`
+      ? `<p lang="en" class="sticky-title-english">${selectedStory.titleEnglish}</p>`
       : ""
   }
 `;

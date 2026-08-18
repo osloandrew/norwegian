@@ -208,7 +208,7 @@ function showRandomPronunciation() {
     ${isEnglishVisible ? "Hide English" : "Show English"}
   </button>
   <div class="sentence-container">
-    <div class="sentence-box-norwegian ${
+    <div lang="nb" class="sentence-box-norwegian ${
       !isEnglishVisible ? "sentence-box-norwegian-hidden" : ""
     }">
       <div class="sentence-content">
@@ -221,7 +221,7 @@ function showRandomPronunciation() {
   // English translation box if available
   if (selectedTranslation) {
     sentenceHTML += `
-    <div class="sentence-box-english ${isEnglishVisible ? "" : "hidden"}">
+    <div lang="en" class="sentence-box-english ${isEnglishVisible ? "" : "hidden"}">
       <p class="sentence">${selectedTranslation}</p>
     </div>
   `;
