@@ -2062,10 +2062,32 @@ function updateEndSessionToolbarButtonVisibility() {
     ?.classList.toggle("hidden", !wordGameRoundActive);
 }
 
+// The dictionary CSV (several MB) is still fetching/parsing for the first
+// few seconds after page load. Word Game's own entry screen (the mode
+// picker rendered by renderWordGameIntro) needs no dictionary data, so a
+// visitor can reach it immediately — but actually starting a round needs
+// `results` populated to pick words/distractors from. Mirrors the
+// "Loading vocabulary" guard wordList.js and myStats.js already show in
+// the same situation, rather than proceeding into selection logic that
+// assumes data is there and silently producing an empty/broken round.
+function renderWordGameLoadingMessage() {
+  setGameContainerHTML(`
+    <div class="game-intro-card">
+      <h2 class="game-intro-heading">Loading vocabulary</h2>
+      <p class="game-today-practice-note">The vocabulary data hasn't finished loading yet — try again in a moment.</p>
+    </div>
+  `);
+}
+
 // Resets round-scoped state (distinct from CEFR level progression, which
 // is untouched here and keeps working the same within whichever round is
 // active) and kicks off the first question.
 function beginWordGameRound(mode, targetWords = 0, options = {}) {
+  if (!Array.isArray(results) || results.length === 0) {
+    renderWordGameLoadingMessage();
+    return;
+  }
+
   wordGameMode = mode;
   wordGameIsTodayPracticeRound = Boolean(options.todayPractice);
   wordGameIsBonusRound =
