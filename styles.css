@@ -1857,7 +1857,14 @@ footer .copyright {
   padding: 14px 10px;
 }
 
-.game-summary-stat-value {
+/* The "p." tag qualifier isn't decorative — both are always literally
+   <p> tags (see wordGame.js's round summary and myStats.js's
+   createStatTile), and My Stats now nests them inside a .definition card
+   (for its own single-paper redesign). .definition p, li's global 20px
+   otherwise wins on specificity over these classes' 1.5em/0.8em alone,
+   flattening value and label to the same size and losing the
+   big-number/small-label hierarchy entirely. */
+p.game-summary-stat-value {
   color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   font-size: 1.5em;
@@ -1865,7 +1872,7 @@ footer .copyright {
   margin: 0;
 }
 
-.game-summary-stat-label {
+p.game-summary-stat-label {
   color: var(--color-text-muted);
   font-family: "Noto Sans", sans-serif;
   font-size: 0.8em;
@@ -3380,18 +3387,18 @@ html.landing #landing-card {
   }
 }
 
-/* My Stats page (myStats.js) — a stack of separate .definition cards, one
-   per section, same base card chrome as every other page (Word List's
-   header, search results). Every text element below sets "Noto Sans"
-   explicitly, matching how the rest of the app's UI/prose text does it —
-   body's own default is "Noto Serif" (see body{} above), and it only ever
-   gets overridden per-element, not inherited from a container, so a class
-   that skips it silently renders in the serif body font instead. That gap
-   (on the subheading/intro/empty paragraphs) was the actual "out of sync"
-   bug — not the card layout, which stays as separate boxes throughout. */
-/* 14px / 10px (mobile) matches the landing page's own stacked-card gap
+/* My Stats page (myStats.js) — one single .definition "paper" (same as
+   #landing-card) containing a plain-text header plus one light-blue
+   .my-stats-box per section, mirroring the landing page's own
+   .landing-daily-quests / .landing-progress-summary boxes exactly rather
+   than stacking separate white cards. Every text element below sets
+   "Noto Sans" explicitly, matching how the rest of the app's UI/prose text
+   does it — body's own default is "Noto Serif" (see body{} above), and it
+   only ever gets overridden per-element, not inherited from a container, so
+   a class that skips it silently renders in the serif body font instead. */
+/* 14px / 10px (mobile) matches the landing page's own stacked-box gap
    between .landing-daily-quests and .landing-progress-summary — the
-   closest precedent for one dashboard-style card sitting directly under
+   closest precedent for one dashboard-style box sitting directly under
    another, tighter than the 20px .definition falls back to when it's used
    for an unrelated list (e.g. stacked search results). */
 .my-stats {
@@ -3400,17 +3407,27 @@ html.landing #landing-card {
   gap: 14px;
 }
 
-/* .definition's own margin-bottom (20px, meant for a plain stacked list —
-   see the .multiple-results-definition search results) would otherwise
-   add on top of the gap above instead of being replaced by it. */
-.my-stats > .definition {
-  margin-bottom: 0;
-}
-
 @media (max-width: 600px) {
   .my-stats {
     gap: 10px;
   }
+}
+
+/* Shared light-blue box treatment for each section — identical to
+   .landing-daily-quests / .landing-progress-summary on the landing page,
+   which the .my-stats paper is deliberately mirroring. */
+.my-stats-box {
+  background: linear-gradient(
+    145deg,
+    var(--color-bg-quest-active) 0%,
+    #f4f7fb 100%
+  );
+  border: 1px solid var(--color-border-blue-soft);
+  border-radius: 14px;
+  box-sizing: border-box;
+  padding: 18px;
+  text-align: left;
+  width: 100%;
 }
 
 .my-stats-heading {
@@ -3458,7 +3475,10 @@ html.landing #landing-card {
   margin: 0 0 14px;
 }
 
-.my-stats-empty {
+/* "p." here for the same reason as p.game-summary-stat-value above: this
+   is always a <p> tag, and .definition p's global 20px otherwise beats
+   this class's own 13px on specificity alone. */
+p.my-stats-empty {
   color: var(--color-text-slate-soft);
   font-family: "Noto Sans", sans-serif;
   font-size: 13px;
@@ -5786,6 +5806,59 @@ ul {
     display: none;
   }
 
+  /* My Stats hides the search bar entirely — it's a personal report, not
+     a browsable list (see handleTypeChange's "my-stats" branch in
+     scripts.js) — so .my-words-nav-btn isn't sharing the row with a
+     flex-grow search bar the way it is everywhere else above. Without
+     this override it still shrank to the icon-only circle meant for that
+     shared row, and #search-container-inner's flex-wrap above dropped it
+     onto its own line under the type dropdown: an unlabeled circle
+     stranded below, instead of one intentional-looking row.
+     word-game-mode's own two mobile pills (WORD GAME / SHOW ENGLISH,
+     see .selectors-wrapper's grid-template-columns further down) are the
+     reference here: an even 1fr/1fr split that fills the whole row edge
+     to edge. My Stats' two controls live in separate wrapper divs
+     (.selectors-wrapper for the dropdown, .search-and-random-wrapper for
+     the button — word-game-mode hides the button and never needs the
+     second wrapper at all), so matching that result means giving both
+     wrappers an equal flex share of #search-container-inner instead of
+     each shrinking to its own content and leaving the row centered with
+     dead space on both sides. */
+  body.my-stats-mode #search-container-inner {
+    flex-wrap: nowrap;
+    /* min-width stays 100% (the unscoped rule above) — that's what
+       stretches the row edge to edge in word-game-mode too. Overriding
+       it to 0 here was the bug: #search-container-inner then had nothing
+       to distribute, so both flex:1 wrappers below just shrank to their
+       content and left the row shrink-wrapped and centered instead of
+       full-width. */
+  }
+
+  body.my-stats-mode .selectors-wrapper,
+  body.my-stats-mode .search-and-random-wrapper {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+  }
+
+  body.my-stats-mode .type-filter {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+  }
+
+  body.my-stats-mode .my-words-nav-btn {
+    width: 100%;
+    height: 42px;
+    padding: 10px 16px;
+    border-radius: 15px;
+    gap: 8px;
+  }
+
+  body.my-stats-mode .my-words-nav-btn-label {
+    display: inline;
+  }
+
   .type-filter i,
   .pos-filter i,
   .cefr-filter i,
@@ -5838,11 +5911,40 @@ ul {
   .word-list-class,
   .word-list-level,
   .word-list-strength {
-    padding: 4px !important;
+    padding: 2px !important;
   }
 
   .word-strength-dot {
     font-size: 6px;
+  }
+
+  /* These four columns are already shrink-to-content (see
+     .word-list-row .word-list-class/.word-list-level/.word-list-strength/
+     .word-list-favorite's width: 1% in the unscoped rules), but a long POS
+     label like "EXPRESSION" plus a 40px favorite-star touch target were
+     together outweighing the Norwegian and English columns combined on a
+     375px screen. Tightening the badges/button themselves (not just their
+     cell padding, already reduced above) gives the two word columns their
+     width back. */
+  .word-list-class-badge {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+  }
+
+  .word-list-level .game-cefr-label {
+    font-size: 10px;
+    min-width: 14px;
+    padding: 2px 5px;
+  }
+
+  .word-list-row .word-list-favorite {
+    padding: 2px !important;
+  }
+
+  .word-list-favorite-button {
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
   }
 
   .word-list-export-controls .word-list-export-button {

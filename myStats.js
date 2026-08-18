@@ -2,12 +2,15 @@
 // its own top-level type (alongside Word Game / Word List) rather than a
 // tab bolted onto Word List's All Words/My Words switcher: those two share
 // one table renderer for a filtered slice of the dictionary, while this
-// page is a stack of summary cards, a fundamentally different shape.
+// page is a single summary card, a fundamentally different shape.
 //
-// Rendered as a stack of separate .definition cards, one per section — the
-// same base card chrome as the Word List header and every search result.
-// Every text element explicitly sets "Noto Sans" (see the comment above
-// .my-stats in styles.css for why that has to be explicit, not inherited).
+// Rendered as one .definition "paper" (the same card chrome the landing
+// page's own #landing-card uses) containing a plain-text header plus one
+// light-blue .my-stats-box per section — mirroring the landing page's
+// .landing-daily-quests / .landing-progress-summary boxes exactly, rather
+// than stacking separate white cards. Every text element explicitly sets
+// "Noto Sans" (see the comment above .my-stats in styles.css for why that
+// has to be explicit, not inherited).
 //
 // Every number here already exists somewhere in WordStrengthAPI or
 // StreakAPI — this file is pure aggregation/rendering, no new tracking.
@@ -67,7 +70,7 @@
 
   function createHeaderCard() {
     const card = document.createElement("section");
-    card.className = "definition my-stats-header";
+    card.className = "my-stats-header";
     card.innerHTML = `
       <h2 class="my-stats-heading">My Stats</h2>
       <p class="my-stats-subheading">A closer look at your vocabulary and practice history.</p>
@@ -84,7 +87,7 @@
     const dueThisWeek = getUpcomingDueCount(7);
 
     const card = document.createElement("section");
-    card.className = "definition my-stats-overview";
+    card.className = "my-stats-box my-stats-overview";
 
     const heading = document.createElement("h3");
     heading.className = "my-stats-section-heading";
@@ -125,7 +128,7 @@
     };
 
     const card = document.createElement("section");
-    card.className = "definition my-stats-vocabulary";
+    card.className = "my-stats-box my-stats-vocabulary";
 
     if (total === 0) {
       card.innerHTML = `
@@ -159,7 +162,7 @@
     const troubleEntries = getTroubleEntries();
 
     const card = document.createElement("section");
-    card.className = "definition my-stats-trouble";
+    card.className = "my-stats-box my-stats-trouble";
 
     const heading = document.createElement("h3");
     heading.className = "my-stats-section-heading";
@@ -218,7 +221,7 @@
 
     const section = document.createElement("section");
     section.id = "my-stats";
-    section.className = "my-stats";
+    section.className = "definition my-stats";
     section.append(
       createHeaderCard(),
       createOverviewCard(),
