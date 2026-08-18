@@ -212,6 +212,23 @@ button:disabled i {
   cursor: not-allowed;
 }
 
+/* .search-btn, .clear-btn, and .my-words-nav-btn each set their own
+   color/cursor (and .search-btn/.clear-btn their own icon color) in their
+   base rule below, so the generic button:disabled above isn't guaranteed
+   to win over them — these give each one an explicit disabled override
+   instead of leaving that to a specificity tie-break. */
+.search-btn:disabled,
+.clear-btn:disabled,
+.my-words-nav-btn:disabled {
+  color: var(--color-border);
+  cursor: not-allowed;
+}
+
+.search-btn:disabled i,
+.clear-btn:disabled i {
+  color: var(--color-border);
+}
+
 .button-container i {
   color: var(--color-primary);
   margin-bottom: 10px;
@@ -2524,6 +2541,14 @@ input[type="text"] {
   font-size: 16px;
   outline: none;
   padding: 12px 16px;
+}
+
+/* Covers what button:disabled (above) can't reach — text inputs aren't
+   buttons. Mirrors it with the same --color-border token rather than a
+   separate hardcoded gray, so the two stay in sync. */
+input[type="text"]:disabled {
+  color: var(--color-border);
+  cursor: not-allowed;
 }
 
 input[type="text"]:focus + label,

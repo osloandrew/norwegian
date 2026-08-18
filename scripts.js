@@ -717,7 +717,6 @@ function parseCSVData(data, options = {}) {
         window.Inflections?.registerDictionaryEntries(results);
 
         buildWordSearchIndex();
-        updateLandingWordCount();
 
         /*
          * Sentence Search already builds these structures on demand.
@@ -752,15 +751,6 @@ function parseCSVData(data, options = {}) {
       parseCSVData(data, { useWorker: false });
     }
   }
-}
-
-// Swaps the landing page's static "29,000+" placeholder for the real,
-// exact count once the dictionary has actually loaded.
-function updateLandingWordCount() {
-  const el = document.getElementById("landing-word-count");
-  if (!el || !results.length) return;
-
-  el.textContent = `${results.length.toLocaleString("en-US")} Norwegian words, definitions, and example sentences.`;
 }
 
 function buildSentenceCorpus() {
@@ -1325,6 +1315,24 @@ async function search(queryOverride = null) {
     return;
   }
 
+  // The search toolbar now only looks disabled after a short grace period
+  // (see LOADING_STATE_DELAY_MS in window.onload), so a fast enough
+  // interaction — a paste, an Enter key, a very quick typist — can reach
+  // here before the dictionary CSV actually finishes loading. Sentences
+  // also read from `results`; only Stories has its own independent
+  // dataset, so it's excluded here. Without this, an early search would
+  // wrongly report "no matches" for a word that just hasn't loaded yet.
+  if (selector !== "stories" && (!Array.isArray(results) || results.length === 0)) {
+    showLandingCard(false);
+    document.getElementById("results-container").innerHTML = `
+      <div class="definition">
+        <h2>Loading vocabulary</h2>
+        <p>The vocabulary data hasn't finished loading yet — try again in a moment.</p>
+      </div>
+    `;
+    return;
+  }
+
   const selectedPOS = document.getElementById("pos-select")
     ? document.getElementById("pos-select").value.toLowerCase()
     : "";
@@ -1771,6 +1779,10 @@ function selectType(type) {
   handleTypeChange(type);
 }
 
+// Visual disabled/enabled styling (grayed text, not-allowed cursor) comes
+// entirely from CSS — button:disabled and input[type="text"]:disabled in
+// styles.css — the instant .disabled flips below, so there's nothing left
+// to set here beyond that flag.
 function enableSearchControls() {
   const searchBar = document.getElementById("search-bar");
   const searchBtn = document.getElementById("search-btn");
@@ -1781,13 +1793,6 @@ function enableSearchControls() {
   searchBar.disabled = false;
   searchBtn.disabled = false;
   clearBtn.disabled = false;
-
-  searchBar.style.color = "";
-  searchBar.style.cursor = "text";
-  searchBtn.style.color = "";
-  searchBtn.style.cursor = "pointer";
-  clearBtn.style.color = "";
-  clearBtn.style.cursor = "pointer";
 }
 
 function disableSearchControls() {
@@ -1800,13 +1805,6 @@ function disableSearchControls() {
   searchBar.disabled = true;
   searchBtn.disabled = true;
   clearBtn.disabled = true;
-
-  searchBar.style.color = "#ccc";
-  searchBar.style.cursor = "not-allowed";
-  searchBtn.style.color = "#ccc";
-  searchBtn.style.cursor = "not-allowed";
-  clearBtn.style.color = "#ccc";
-  clearBtn.style.cursor = "not-allowed";
 }
 
 // Handle change in search type (words/sentences)
@@ -3431,6 +3429,18 @@ window.onload = function () {
   const posFilterContainer = document.querySelector(".pos-filter");
   const cefrFilterContainer = document.querySelector(".cefr-filter");
 
+  // Most loads finish well under a second — the dictionary CSV is cached
+  // in IndexedDB after the first visit, and even a fresh fetch is often
+  // fast. Disabling the toolbar immediately, only to re-enable it a
+  // moment later, reads as a flash of flicker across several elements at
+  // once rather than a deliberate loading state. Delaying it behind a
+  // short grace period — and skipping it entirely if data arrives first,
+  // via the clearTimeout below — means a fast load shows no loading UI at
+  // all, while a genuinely slow one still gets a clear, stable signal
+  // instead of a flash.
+  const LOADING_STATE_DELAY_MS = 300;
+  let loadingStateTimeoutId = null;
+
   if (
     searchBtn &&
     randomBtn &&
@@ -3439,29 +3449,35 @@ window.onload = function () {
     posSelect &&
     cefrSelect
   ) {
-    disableSearchControls();
-    randomBtn.disabled = true;
-    posSelect.disabled = true;
-    cefrSelect.disabled = true;
-    typeSelect.disabled = true;
+    loadingStateTimeoutId = window.setTimeout(() => {
+      disableSearchControls();
+      // Explains the disabled state rather than leaving it silently greyed
+      // out — restored (to the floating-label blank) once loaded below, or
+      // immediately for the stories route, which doesn't need this data.
+      searchBar.placeholder = "Loading dictionary…";
+      randomBtn.disabled = true;
+      posSelect.disabled = true;
+      cefrSelect.disabled = true;
+      typeSelect.disabled = true;
 
-    // Apply the disabled styling
-    randomBtn.style.color = "#ccc";
-    randomBtn.style.cursor = "not-allowed";
-    typeFilterContainer.classList.add("disabled");
-    posFilterContainer.classList.add("disabled"); // Add the 'disabled' class to visually disable POS filter
-    cefrFilterContainer.classList.add("disabled"); // Add the 'disabled' class to visually disable CEFR filter
+      // randomBtn's own grayed/not-allowed styling comes from the global
+      // button:disabled rule in styles.css, same as searchBtn/clearBtn above.
+      typeFilterContainer.classList.add("disabled");
+      posFilterContainer.classList.add("disabled"); // Add the 'disabled' class to visually disable POS filter
+      cefrFilterContainer.classList.add("disabled"); // Add the 'disabled' class to visually disable CEFR filter
 
-    /*
-     * Stories have their own data and can be searched or filtered before the
-     * much larger dictionary finishes loading. Keep the type switch disabled
-     * briefly so another section cannot be opened without its data.
-     */
-    if (initialStoryRoute) {
-      enableSearchControls();
-      cefrSelect.disabled = false;
-      cefrFilterContainer.classList.remove("disabled");
-    }
+      /*
+       * Stories have their own data and can be searched or filtered before the
+       * much larger dictionary finishes loading. Keep the type switch disabled
+       * briefly so another section cannot be opened without its data.
+       */
+      if (initialStoryRoute) {
+        enableSearchControls();
+        searchBar.placeholder = " ";
+        cefrSelect.disabled = false;
+        cefrFilterContainer.classList.remove("disabled");
+      }
+    }, LOADING_STATE_DELAY_MS);
   }
 
   const loadDictionaryData = () => fetchAndLoadDictionaryData();
@@ -3484,6 +3500,14 @@ window.onload = function () {
       // Ensure results are loaded
       clearInterval(checkDataLoaded);
 
+      // Data arrived before the grace period elapsed — cancel the pending
+      // disabled-state timeout so it never gets a chance to flash in. The
+      // enable calls below are a harmless no-op if it never fired anyway.
+      if (loadingStateTimeoutId !== null) {
+        window.clearTimeout(loadingStateTimeoutId);
+        loadingStateTimeoutId = null;
+      }
+
       // The verified word-form snapshot is deliberately lower priority than
       // the main dictionary. Warm it only after the dictionary is usable; a
       // learner who opens a table first will reuse the same in-flight request.
@@ -3500,14 +3524,12 @@ window.onload = function () {
       // Enable the buttons once data is fully loaded
       // Enable the buttons and filters once data is fully loaded
       enableSearchControls();
+      searchBar.placeholder = " ";
       randomBtn.disabled = false;
       typeSelect.disabled = false;
       posSelect.disabled = false;
       cefrSelect.disabled = false;
 
-      // Restore original styling
-      randomBtn.style.color = "";
-      randomBtn.style.cursor = "pointer";
       typeFilterContainer.classList.remove("disabled"); // Remove 'disabled' class for POS filter
       posFilterContainer.classList.remove("disabled"); // Remove 'disabled' class for POS filter
       cefrFilterContainer.classList.remove("disabled"); // Remove 'disabled' class for CEFR filter
