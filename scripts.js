@@ -693,10 +693,24 @@ function parseCSVData(data, options = {}) {
       skipEmptyLines: true,
       worker: useWorker,
       complete: function (resultsFromParse) {
-        results = resultsFromParse.data.map((entry) => {
-          entry.ord = entry.ord.trim(); // Ensure the word is trimmed
-          return entry;
-        });
+        const skippedWords = [];
+        results = resultsFromParse.data
+          .map((entry) => {
+            entry.ord = entry.ord.trim(); // Ensure the word is trimmed
+            return entry;
+          })
+          .filter((entry) => {
+            if (entry.engelsk && entry.engelsk.trim()) return true;
+            skippedWords.push(entry.ord || "(blank)");
+            return false;
+          });
+
+        if (skippedWords.length) {
+          console.warn(
+            `Skipped ${skippedWords.length} CSV row(s) with no English translation:`,
+            skippedWords,
+          );
+        }
 
         buildWordSearchIndex();
         updateLandingWordCount();
