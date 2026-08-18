@@ -202,7 +202,32 @@
     const finalScore = quiz?.estimate ?? 500;
     quiz = null;
     window.WordGameHelpers?.completePlacement?.(finalScore);
-    window.WordGameHelpers?.startWordGame?.();
+    renderPlacementSummary();
+  }
+
+  // A quiet stop between the quiz and real play — the learner just answered
+  // 13 rapid-fire questions with no feedback on how it went; dropping them
+  // straight into the game with zero acknowledgment read as if nothing had
+  // happened. Deliberately doesn't surface a CEFR letter or score: ability
+  // here is a continuous, invisible estimate the game keeps adjusting, not
+  // a grade to report (see CEFR_DIFFICULTY_ANCHOR's comment in wordGame.js).
+  function renderPlacementSummary() {
+    const container = getResultsContainer();
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="game-intro-card placement-card">
+        <h2 class="game-intro-heading">You're all set!</h2>
+        <p class="game-intro-subheading">We've used your answers to set a starting point. The game will keep fine-tuning it as you play, so don't worry about getting every word right.</p>
+        <button type="button" class="placement-start-btn" id="placement-start-btn">Start practicing</button>
+      </div>
+    `;
+
+    document
+      .getElementById("placement-start-btn")
+      ?.addEventListener("click", () => {
+        window.WordGameHelpers?.startWordGame?.();
+      });
   }
 
   window.PlacementTestAPI = Object.freeze({

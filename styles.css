@@ -1609,6 +1609,32 @@ footer .copyright {
   outline-offset: 2px;
 }
 
+.placement-start-btn {
+  align-items: center;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: 8px;
+  color: var(--color-white);
+  cursor: pointer;
+  display: flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  justify-content: center;
+  margin-top: 6px;
+  min-height: 44px;
+  padding: 10px 16px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  width: 100%;
+}
+
+.placement-start-btn:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
 .placement-progress {
   color: var(--color-text-slate-soft);
   font-family: "Noto Sans", sans-serif;

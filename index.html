@@ -361,11 +361,16 @@
               >
                 Quit &amp; see stats
               </button>
-              <!-- Only shown in Word Game mode, via #search-container-inner.word-game-active in styles.css -->
+              <!-- Only shown mid-round, in any Word Game mode — see
+                   updateEndSessionToolbarButtonVisibility() in wordGame.js,
+                   which toggles the "hidden" class below, and the
+                   word-game-active scoping in styles.css. There's no
+                   question in front of the learner to report on the
+                   landing screen, daily quest picker, or placement test. -->
               <button
                 type="button"
                 id="game-report-issue"
-                class="toolbar-report-issue-btn"
+                class="toolbar-report-issue-btn hidden"
                 aria-label="Report an issue with this question"
                 title="Report an issue"
               >

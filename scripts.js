@@ -2514,7 +2514,7 @@ function displaySearchResults(results, query = "") {
                       result.CEFR
                         ? `<p style="display: inline-flex; align-items: center; font-family: 'Noto Sans', sans-serif; font-weight: bold; text-transform: uppercase; font-size: 12px; color: #4F4F4F;"><i class="fa-solid fa-signal" style="margin-right: 5px;"></i><span style="text-align: center; min-width: 15px; display: inline-block; padding: 3px 7px; border-radius: 4px; background-color: ${getCefrColor(
                             result.CEFR,
-                          )};">${result.CEFR}</span><span class="etymology" style="text-transform: none; margin-left: 6px; font-family: 'Noto Serif', serif;">${getCefrLabel(
+                          )};">${result.CEFR}</span><span style="margin-left: 6px; font-family: 'Noto Sans', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; color: var(--color-text-muted);">${getCefrLabel(
                             result.CEFR,
                           )}</span></p>`
                         : ""

@@ -1842,15 +1842,21 @@ function getWordGameSessionProgressPercent() {
   return (correctSoFar / wordGameSessionTarget) * 100;
 }
 
-// Shows/hides the single static "Quit & see stats" control — sits in the
-// toolbar (index.html, in .cefr-filter-group, the same spot the CEFR
-// filter used to occupy before the word game hid it) on every screen size.
-// It's only ever created once, so its visibility has to be toggled
-// explicitly wherever wordGameRoundActive changes, rather than just
-// following whether it got rendered this time.
+// Shows/hides the two static toolbar controls that only make sense while
+// an actual question is on screen — "Quit & see stats" and "Report an
+// issue" (in .cefr-filter-group, the same spot the CEFR filter used to
+// occupy before the word game hid it) — on every screen size. Both are
+// only ever created once, so their visibility has to be toggled explicitly
+// wherever wordGameRoundActive changes, rather than just following whether
+// they got rendered this time. The report button in particular has no
+// question to report on outside a round (landing screen, daily quest
+// picker, placement test), so it follows the exact same lifecycle.
 function updateEndSessionToolbarButtonVisibility() {
   document
     .getElementById("game-end-session-btn")
+    ?.classList.toggle("hidden", !wordGameRoundActive);
+  document
+    .getElementById("game-report-issue")
     ?.classList.toggle("hidden", !wordGameRoundActive);
 }
 
