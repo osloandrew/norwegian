@@ -523,7 +523,14 @@ function clearInput(refreshCurrentView = true) {
     if (cefrEl) cefrEl.value = "";
     if (genreEl) genreEl.value = "";
 
-    if (refreshCurrentView) displayStoryList();
+    if (refreshCurrentView) {
+      // Clearing filters/search on the Stories tab is the deliberate
+      // "give me a fresh draw" gesture (see handleSearchButtonClick below),
+      // so it's the one place that should actually reroll the weighted
+      // ordering rather than just re-filtering the existing one.
+      reshuffleStoryOrder();
+      displayStoryList();
+    }
   } else if (typeSelect && typeSelect.value === "word-list") {
     renderWordList();
   }
