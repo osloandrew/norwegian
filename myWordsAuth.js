@@ -216,11 +216,12 @@
   // wordStrengths are pushed independently (different events, different
   // debounce timers), and without merge each write would silently wipe
   // out whichever field it doesn't mention.
-  function pushEntryIdsNow(userId, entryIds) {
+  function pushEntryIdsNow(userId, entryIds, entryTimestamps) {
     getUserDocRef(userId)
       .set(
         {
           entryIds,
+          entryTimestamps: entryTimestamps ?? {},
           updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true },
@@ -301,22 +302,25 @@
   // the setTimeout closure, so a flush (tab hidden/closed before the 800ms
   // fires) can push it immediately instead of losing it.
   let pendingEntryIds = null;
+  let pendingEntryTimestamps = null;
   let pendingStrengths = null;
   let pendingAbility = null;
   let pendingStreak = null;
   let pendingDailyQuest = null;
 
-  function schedulePush(entryIds) {
+  function schedulePush(entryIds, entryTimestamps) {
     if (!currentUserId) {
       return;
     }
 
     pendingEntryIds = entryIds;
+    pendingEntryTimestamps = entryTimestamps;
     window.clearTimeout(pushTimeoutId);
     pushTimeoutId = window.setTimeout(() => {
       pushTimeoutId = null;
       pendingEntryIds = null;
-      pushEntryIdsNow(currentUserId, entryIds);
+      pendingEntryTimestamps = null;
+      pushEntryIdsNow(currentUserId, entryIds, entryTimestamps);
     }, PUSH_DEBOUNCE_MS);
   }
 
@@ -387,8 +391,9 @@
     if (pushTimeoutId !== null) {
       window.clearTimeout(pushTimeoutId);
       pushTimeoutId = null;
-      pushEntryIdsNow(currentUserId, pendingEntryIds);
+      pushEntryIdsNow(currentUserId, pendingEntryIds, pendingEntryTimestamps);
       pendingEntryIds = null;
+      pendingEntryTimestamps = null;
     }
 
     if (strengthPushTimeoutId !== null) {
@@ -442,6 +447,15 @@
   // just-confirmed write back to local state is a harmless no-op since the
   // values already match — no extra "is this really a remote change"
   // bookkeeping needed on top of that.
+  //
+  // entryIds/wordStrengths/abilityScore/streak/dailyPractice are each
+  // pushed independently on their own debounce timer, so a snapshot can be
+  // server-confirmed for (say) a wordStrengths write while an entryIds
+  // change made moments earlier is still sitting unsent in its own 300ms
+  // window — that snapshot's entryIds would then be stale. reconcileEntryIds
+  // resolves this the same way it resolves the sign-in merge: per-word
+  // last-write-wins, so a stale remote snapshot can't stomp a newer local
+  // change (and a genuinely newer remote change still wins).
   function attachRealtimeSync(userId) {
     unsubscribeRealtimeSync?.();
 
@@ -458,7 +472,10 @@
         const data = snapshot.data();
 
         if (Array.isArray(data.entryIds)) {
-          window.MyWordsAPI?.replaceEntryIds?.(data.entryIds);
+          window.MyWordsAPI?.reconcileEntryIds?.(
+            data.entryIds,
+            data.entryTimestamps,
+          );
         }
 
         if (data.wordStrengths && typeof data.wordStrengths === "object") {
@@ -489,11 +506,19 @@
     );
   }
 
-  // Union the words already saved on this device with whatever is saved
-  // under the signed-in account, then treat that union as the new truth
-  // both locally and remotely. Review records merge by their latest answer
-  // timestamp; unlike the old Math.max strength merge, this preserves a
-  // newer lapse instead of reviving an obsolete mastery score.
+  // Reconcile the words already saved on this device with whatever is saved
+  // under the signed-in account, using per-word last-write-wins (see
+  // reconcileEntryIds in wordList.js) rather than a flat union — a plain
+  // union of two id arrays can only ever grow, so it can't represent "this
+  // word was removed" and will silently resurrect a word removed on one
+  // side just before the other side's stale copy gets merged in. This also
+  // runs unconditionally on every sign-in (including a returning user's
+  // silent session restore, not just an explicit sign-in click), so it
+  // doubles as the retry for any local change made in the brief window
+  // before auth finished restoring and schedulePush had a user to push to.
+  // Review records merge by their latest answer timestamp; unlike the old
+  // Math.max strength merge, this preserves a newer lapse instead of
+  // reviving an obsolete mastery score.
   async function mergeRemoteData(userId) {
     try {
       const snapshot = await getUserDocRef(userId).get();
@@ -502,10 +527,18 @@
       const remoteEntryIds = Array.isArray(remoteData.entryIds)
         ? remoteData.entryIds
         : [];
-      const localEntryIds = window.MyWordsAPI?.getEntryIds?.() ?? [];
-      const mergedEntryIds = Array.from(
-        new Set([...remoteEntryIds, ...localEntryIds]),
-      );
+      const remoteEntryTimestamps =
+        remoteData.entryTimestamps &&
+        typeof remoteData.entryTimestamps === "object"
+          ? remoteData.entryTimestamps
+          : {};
+      const reconciledEntries = window.MyWordsAPI?.reconcileEntryIds?.(
+        remoteEntryIds,
+        remoteEntryTimestamps,
+      ) ?? {
+        entryIds: window.MyWordsAPI?.getEntryIds?.() ?? [],
+        entryTimestamps: window.MyWordsAPI?.getEntryTimestamps?.() ?? {},
+      };
 
       const remoteStrengths =
         remoteData.wordStrengths && typeof remoteData.wordStrengths === "object"
@@ -635,7 +668,8 @@
           gemCounts: mergedGemCounts,
         }) ?? localDailyPractice;
 
-      window.MyWordsAPI?.replaceEntryIds?.(mergedEntryIds);
+      // entryIds/entryTimestamps were already reconciled and saved above,
+      // via reconcileEntryIds — nothing further to apply here.
       window.WordStrengthAPI?.replaceAll?.(mergedStrengths);
       if (mergedAbility !== null && mergedAbility !== undefined) {
         window.WordGameHelpers?.replaceAbility?.(
@@ -646,7 +680,11 @@
       window.StreakAPI?.replaceState?.(mergedStreak);
       window.DailyQuestAPI?.replaceState?.(mergedDailyPractice);
 
-      pushEntryIdsNow(userId, mergedEntryIds);
+      pushEntryIdsNow(
+        userId,
+        reconciledEntries.entryIds,
+        reconciledEntries.entryTimestamps,
+      );
       pushWordStrengthsNow(userId, mergedStrengths);
       if (mergedAbility !== null && mergedAbility !== undefined) {
         pushAbilityNow(userId, mergedAbility, mergedPlacementCompleted);
@@ -768,7 +806,7 @@
       return;
     }
 
-    schedulePush(event.detail?.entryIds ?? []);
+    schedulePush(event.detail?.entryIds ?? [], event.detail?.entryTimestamps ?? {});
   });
 
   // Fired by wordList.js's saveWordStrengths() whenever word strength changes.

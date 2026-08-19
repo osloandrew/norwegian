@@ -25,7 +25,9 @@
   let renderedWordListCount = 0;
   let wordListBatchIsLoading = false;
   let wordListReturnState = null;
-  let myWordsEntryIds = loadMyWordsEntryIds();
+  const myWordsInitialState = loadMyWordsState();
+  let myWordsEntryIds = myWordsInitialState.entryIds;
+  let myWordsEntryTimestamps = myWordsInitialState.entryTimestamps;
   let wordStrengths = loadWordStrengths();
   let activeWordListView = "all";
   // "" (any), "unpracticed", or one of the ids from
@@ -137,23 +139,28 @@
       .join("\u001f");
   }
 
-  function loadMyWordsEntryIds() {
+  function loadMyWordsState() {
     try {
       const storedValue = window.localStorage.getItem(MY_WORDS_STORAGE_KEY);
 
       if (!storedValue) {
-        return new Set();
+        return { entryIds: new Set(), entryTimestamps: {} };
       }
 
       const parsedValue = JSON.parse(storedValue);
       const entryIds = Array.isArray(parsedValue.entryIds)
         ? parsedValue.entryIds
         : [];
+      const entryTimestamps =
+        parsedValue.entryTimestamps &&
+        typeof parsedValue.entryTimestamps === "object"
+          ? parsedValue.entryTimestamps
+          : {};
 
-      return new Set(entryIds);
+      return { entryIds: new Set(entryIds), entryTimestamps };
     } catch (error) {
       console.warn("My Words could not be loaded.", error);
-      return new Set();
+      return { entryIds: new Set(), entryTimestamps: {} };
     }
   }
 
@@ -162,8 +169,9 @@
       window.localStorage.setItem(
         MY_WORDS_STORAGE_KEY,
         JSON.stringify({
-          version: 1,
+          version: 2,
           entryIds: Array.from(myWordsEntryIds),
+          entryTimestamps: myWordsEntryTimestamps,
         }),
       );
     } catch (error) {
@@ -175,18 +183,117 @@
     // from a remote merge, to avoid immediately writing it back.
     window.dispatchEvent(
       new CustomEvent("my-words:updated", {
-        detail: { entryIds: Array.from(myWordsEntryIds), syncRemote },
+        detail: {
+          entryIds: Array.from(myWordsEntryIds),
+          entryTimestamps: myWordsEntryTimestamps,
+          syncRemote,
+        },
       }),
     );
   }
 
-  function replaceMyWordsEntryIds(entryIds) {
-    myWordsEntryIds = new Set(entryIds);
+  // Last-write-wins merge, keyed per word rather than a flat array union.
+  // A flat union of two entryId arrays can only ever grow, so it silently
+  // resurrects a word removed on one side (e.g. locally, just before the
+  // remote side's stale copy gets merged in) because nothing about a plain
+  // array can express "this word was deliberately removed." Tracking a
+  // per-word updatedAt timestamp (bumped on every add/remove, local or
+  // remote) lets a removal beat a stale remote "present" the same way a
+  // remote removal correctly beats a stale local "present."
+  //
+  // Entries neither side has ever timestamped (pre-upgrade local storage,
+  // or a pre-upgrade Firestore document) are treated as though they were
+  // just touched locally / long ago remotely, so upgrading never loses a
+  // word that's actually saved on either side.
+  function getMergedMyWordsState(remoteEntryIds, remoteEntryTimestamps) {
+    const remoteIdSet = new Set(
+      Array.isArray(remoteEntryIds) ? remoteEntryIds : [],
+    );
+    const remoteTimestamps =
+      remoteEntryTimestamps && typeof remoteEntryTimestamps === "object"
+        ? remoteEntryTimestamps
+        : {};
+
+    const now = Date.now();
+    const allIds = new Set([
+      ...myWordsEntryIds,
+      ...Object.keys(myWordsEntryTimestamps),
+      ...remoteIdSet,
+      ...Object.keys(remoteTimestamps),
+    ]);
+
+    const mergedIds = new Set();
+    const mergedTimestamps = {};
+
+    allIds.forEach((entryId) => {
+      const localPresent = myWordsEntryIds.has(entryId);
+      const localTimestamp = Object.prototype.hasOwnProperty.call(
+        myWordsEntryTimestamps,
+        entryId,
+      )
+        ? myWordsEntryTimestamps[entryId]
+        : localPresent
+          ? now
+          : null;
+
+      const remotePresent = remoteIdSet.has(entryId);
+      const remoteTimestamp = Object.prototype.hasOwnProperty.call(
+        remoteTimestamps,
+        entryId,
+      )
+        ? remoteTimestamps[entryId]
+        : remotePresent
+          ? 0
+          : null;
+
+      let present;
+      let timestamp;
+
+      if (remoteTimestamp === null) {
+        present = localPresent;
+        timestamp = localTimestamp;
+      } else if (localTimestamp === null) {
+        present = remotePresent;
+        timestamp = remoteTimestamp;
+      } else if (remoteTimestamp > localTimestamp) {
+        present = remotePresent;
+        timestamp = remoteTimestamp;
+      } else {
+        present = localPresent;
+        timestamp = localTimestamp;
+      }
+
+      mergedTimestamps[entryId] = timestamp;
+
+      if (present) {
+        mergedIds.add(entryId);
+      }
+    });
+
+    return { entryIds: mergedIds, entryTimestamps: mergedTimestamps };
+  }
+
+  // Reconciles local My Words state against a remote copy (a Firestore
+  // merge on sign-in, or a live snapshot from another device) using
+  // last-write-wins per word, then persists and re-renders. Returns the
+  // reconciled state so callers that pushed a merge can push the actual
+  // merged result back rather than re-deriving it.
+  function reconcileMyWordsEntryIds(remoteEntryIds, remoteEntryTimestamps) {
+    const merged = getMergedMyWordsState(remoteEntryIds, remoteEntryTimestamps);
+
+    myWordsEntryIds = merged.entryIds;
+    myWordsEntryTimestamps = merged.entryTimestamps;
+
     saveMyWordsEntryIds({ syncRemote: false });
 
     if (activeWordListView === "my") {
       renderWordList();
     }
+
+    return {
+      entryIds: Array.from(myWordsEntryIds),
+      entryTimestamps: myWordsEntryTimestamps,
+    };
   }
 
   function loadWordStrengths() {
@@ -317,6 +424,8 @@
     } else {
       myWordsEntryIds.add(entryId);
     }
+
+    myWordsEntryTimestamps[entryId] = Date.now();
 
     saveMyWordsEntryIds();
 
@@ -1471,6 +1580,10 @@
           return;
         }
 
+        const removalTimestamp = Date.now();
+        myWordsEntryIds.forEach((entryId) => {
+          myWordsEntryTimestamps[entryId] = removalTimestamp;
+        });
         myWordsEntryIds.clear();
         saveMyWordsEntryIds();
         renderWordList();
@@ -1829,7 +1942,8 @@
     isSaved: isMyWordsEntrySaved,
     toggle: toggleResolvedMyWordsEntry,
     getEntryIds: () => Array.from(myWordsEntryIds),
-    replaceEntryIds: replaceMyWordsEntryIds,
+    getEntryTimestamps: () => ({ ...myWordsEntryTimestamps }),
+    reconcileEntryIds: reconcileMyWordsEntryIds,
   });
   window.WordStrengthAPI = Object.freeze({
     recordResult: recordWordStrengthResult,
