@@ -27,7 +27,10 @@
     m: "numeral",
   };
 
-  let snapshot = window.__BOKMAL_INFLECTIONS_DATA__ || null;
+  // `self` rather than `window` so this module also runs unmodified inside
+  // inflectionsWorker.js (no `window` exists in a worker) — see the note by
+  // the `self.Inflections` export below.
+  let snapshot = self.__BOKMAL_INFLECTIONS_DATA__ || null;
   let snapshotPromise = snapshot ? Promise.resolve(snapshot) : null;
   let loadFailed = false;
   let reverseIndex = null;
@@ -754,8 +757,139 @@
     dictionaryOnlyLemmaKeys = keys;
   }
 
+  // The actual index-building work, shared by both the worker path and the
+  // main-thread fallback below. Pure — reads only `snapshot` (already
+  // loaded by the caller) and the dictionary-only keys passed in, returns
+  // fresh Maps rather than touching `reverseIndex`/`keyboardReverseIndex`
+  // itself. No yielding here: inside inflectionsWorker.js this runs off the
+  // main thread, so blocking its own (worker) thread for ~1-2s is harmless;
+  // the main-thread fallback below wraps this same logic with the yielding
+  // the main thread still needs.
+  function indexReverseForms(dictionaryOnlyLemmaKeysEntries) {
+    const exact = new Map();
+    const keyboard = new Map();
+
+    const indexParadigm = (key, paradigm) => {
+      for (const form of flattenParadigmForms(paradigm)) {
+        addReverseMapping(exact, form, key);
+        for (const variant of getNorwegianKeyboardVariants(form)) {
+          addReverseMapping(keyboard, variant, key);
+        }
+      }
+    };
+
+    for (const key of Object.keys(snapshot?.forms || {})) {
+      indexParadigm(key, createParadigmFromKey(key));
+    }
+
+    // Dictionary lemmas the snapshot has no record for at all (see
+    // registerDictionaryEntries) — skip any key already covered above so a
+    // real Ordbank or lemma-only-fallback record is never overridden by a
+    // cruder runtime estimate.
+    for (const [key, { lemma, wordClass, gender }] of dictionaryOnlyLemmaKeysEntries ||
+      []) {
+      if (snapshot?.forms?.[key]) continue;
+      indexParadigm(key, getEstimatedParadigmForLemma(lemma, wordClass, gender));
+    }
+
+    return { exact, keyboard };
+  }
+
+  // Called from inflectionsWorker.js (via self.Inflections, see the export
+  // below) — the worker has its own module-level `snapshot`, populated by
+  // its own loadSnapshot() call here, independent of the main thread's copy.
+  async function computeReverseIndexData(dictionaryOnlyLemmaKeysEntries) {
+    if (!(await loadSnapshot())) return { exact: new Map(), keyboard: new Map() };
+    return indexReverseForms(dictionaryOnlyLemmaKeysEntries);
+  }
+
+  let inflectionsWorker = null;
+  let inflectionsWorkerFailed = false;
+
+  function getInflectionsWorker() {
+    if (inflectionsWorkerFailed) return null;
+    if (inflectionsWorker) return inflectionsWorker;
+    if (typeof Worker !== "function") {
+      inflectionsWorkerFailed = true;
+      return null;
+    }
+    try {
+      inflectionsWorker = new Worker("inflectionsWorker.js");
+    } catch (error) {
+      inflectionsWorkerFailed = true;
+      inflectionsWorker = null;
+    }
+    return inflectionsWorker;
+  }
+
+  // Builds the reverse index on a background thread so opening a story
+  // (highlightKnownStoryWords resolves every word on the page, see
+  // stories.js) or typing a dictionary search query can never be blocked by
+  // this ~27k-key build, regardless of when it happens to run. Rejects
+  // (letting buildReverseIndexes fall back to the main-thread path below)
+  // if a worker can't be created or fails.
+  function buildReverseIndexesOffMainThread() {
+    return new Promise((resolve, reject) => {
+      const worker = getInflectionsWorker();
+      if (!worker) {
+        reject(new Error("Web Worker unavailable"));
+        return;
+      }
+
+      const cleanup = () => {
+        worker.removeEventListener("message", handleMessage);
+        worker.removeEventListener("error", handleError);
+      };
+      const handleMessage = (event) => {
+        cleanup();
+        if (event.data?.error) {
+          reject(new Error(event.data.error));
+        } else {
+          resolve(event.data);
+        }
+      };
+      const handleError = (event) => {
+        cleanup();
+        // A worker that has thrown is left in an unknown state — discard it
+        // so the next attempt (if any) starts a fresh one instead of
+        // reusing something broken.
+        inflectionsWorkerFailed = true;
+        inflectionsWorker = null;
+        reject((event && event.error) || new Error("Reverse-index worker failed"));
+      };
+
+      worker.addEventListener("message", handleMessage);
+      worker.addEventListener("error", handleError);
+      worker.postMessage({ dictionaryOnlyLemmaKeys });
+    });
+  }
+
   async function buildReverseIndexes() {
     if (reverseIndex && keyboardReverseIndex) return;
+
+    try {
+      const { exact, keyboard } = await buildReverseIndexesOffMainThread();
+      reverseIndex = exact;
+      keyboardReverseIndex = keyboard;
+      return;
+    } catch (error) {
+      console.warn(
+        "Reverse-index worker unavailable, building on the main thread instead.",
+        error,
+      );
+    }
+
+    // Fallback for browsers where the worker can't run: the same build,
+    // inline, yielding between batches so it still can't create one long
+    // main-thread pause. Batch size and idle-callback timeout are both
+    // deliberately generous (a batch this size is still comfortably
+    // sub-frame-budget per chunk) — with ~27k form keys, the previous
+    // 150-key/1000ms-timeout pairing meant up to ~180 separate yield points,
+    // each individually allowed to wait a full second for idle time that a
+    // busy or backgrounded tab may not offer promptly, compounding into a
+    // warm-up that could take tens of seconds to over a minute in practice.
+    // 2000/150 keeps the same non-blocking intent with far less worst-case
+    // exposure (~14 yields, ~2.1s ceiling instead of ~180 yields, ~180s).
     const exact = new Map();
     const keyboard = new Map();
     let processed = 0;
@@ -772,23 +906,11 @@
     for (const key of Object.keys(snapshot?.forms || {})) {
       indexParadigm(key, createParadigmFromKey(key));
 
-      // Yield between compact batches in a real browser. This keeps the
-      // background index warm-up from creating one noticeable main-thread
-      // pause on slower phones while preserving a synchronous test fallback.
-      // Batch size and idle-callback timeout are both deliberately generous
-      // (a batch this size is still comfortably sub-frame-budget per chunk)
-      // — with ~27k form keys, the previous 150-key/1000ms-timeout pairing
-      // meant up to ~180 separate yield points, each individually allowed
-      // to wait a full second for idle time that a busy or backgrounded tab
-      // may not offer promptly, compounding into a warm-up that could take
-      // tens of seconds to over a minute in practice. 2000/150 keeps the
-      // same non-blocking intent with far less worst-case exposure (~14
-      // yields, ~2.1s ceiling instead of ~180 yields, ~180s).
       processed++;
       if (processed % 2000 === 0 && typeof setTimeout === "function") {
         await new Promise((resolve) => {
-          if (typeof window.requestIdleCallback === "function") {
-            window.requestIdleCallback(resolve, { timeout: 150 });
+          if (typeof self.requestIdleCallback === "function") {
+            self.requestIdleCallback(resolve, { timeout: 150 });
           } else {
             setTimeout(resolve, 0);
           }
@@ -796,10 +918,6 @@
       }
     }
 
-    // Dictionary lemmas the snapshot has no record for at all (see
-    // registerDictionaryEntries) — skip any key already covered above so a
-    // real Ordbank or lemma-only-fallback record is never overridden by a
-    // cruder runtime estimate.
     for (const [key, { lemma, wordClass, gender }] of dictionaryOnlyLemmaKeys ||
       []) {
       if (snapshot?.forms?.[key]) continue;
@@ -808,8 +926,8 @@
       processed++;
       if (processed % 2000 === 0 && typeof setTimeout === "function") {
         await new Promise((resolve) => {
-          if (typeof window.requestIdleCallback === "function") {
-            window.requestIdleCallback(resolve, { timeout: 150 });
+          if (typeof self.requestIdleCallback === "function") {
+            self.requestIdleCallback(resolve, { timeout: 150 });
           } else {
             setTimeout(resolve, 0);
           }
@@ -1097,7 +1215,14 @@
     );
   }
 
-  window.Inflections = Object.freeze({
+  // `self` rather than `window` — identical to window in a normal page, but
+  // this also lets inflectionsWorker.js importScripts() this same file to
+  // run computeReverseIndexData() off the main thread. computeReverseIndexData
+  // is only ever called from there (see buildReverseIndexesOffMainThread
+  // above); it's harmless, just unused, if read as `window.Inflections` on
+  // the main thread instead.
+  self.Inflections = Object.freeze({
+    computeReverseIndexData,
     expandSearchTerm,
     findLemmas,
     getEstimatedParadigmForLemma,
