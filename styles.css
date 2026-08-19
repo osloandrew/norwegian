@@ -10,6 +10,17 @@
  * dark-mode pass would justify it.
  */
 :root {
+  /* Uppercase section headers & buttons (landing page, word-game intro,
+     My Stats -- see .landing-daily-quests h3, .game-intro-heading,
+     .my-stats-heading, #landing-daily-quests-start, etc.), split into two
+     tokens rather than one shared value: letter-spacing in em scales with
+     font-size, so the same value reads noticeably wider on a ~19-22px
+     heading than on ~11-13px button text. Button value matches the
+     0.03-0.04em already used elsewhere (#game-next-word-button,
+     .game-typed-submit, .sentence-btn); heading value is tighter so
+     larger caps text doesn't read as loud/overspaced. */
+  --letter-spacing-caps: 0.04em;
+  --letter-spacing-caps-heading: 0.02em;
   /* Brand blues */
   --color-primary: #0d3a69;
   --color-primary-active: #092c50;
@@ -1403,9 +1414,11 @@ footer .copyright {
   font-weight: 600;
   gap: 7px;
   justify-content: center;
+  letter-spacing: var(--letter-spacing-caps);
   margin-top: 14px;
   min-height: 44px;
   padding: 10px 16px;
+  text-transform: uppercase;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease;
@@ -1441,7 +1454,10 @@ footer .copyright {
   color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   font-size: 0.95em;
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-caps-heading);
   margin: 0;
+  text-transform: uppercase;
 }
 
 .game-daily-quests-heading-row > span {
@@ -1579,7 +1595,9 @@ footer .copyright {
   font-family: "Noto Sans", sans-serif;
   font-size: 1.4em;
   font-weight: 600;
+  letter-spacing: var(--letter-spacing-caps-heading);
   margin: 0 0 8px 0;
+  text-transform: uppercase;
 }
 
 .game-intro-subheading {
@@ -1734,8 +1752,10 @@ footer .copyright {
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
   font-size: 0.85em;
+  letter-spacing: var(--letter-spacing-caps);
   margin-top: 18px;
   padding: 9px 18px;
+  text-transform: uppercase;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
@@ -2842,6 +2862,13 @@ html.landing #landing-card {
   background-color: #fbfcfe;
   border: 1px solid #e3e8f0;
   border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(13, 58, 105, 0.06); /* Resting affordance --
+     most clickable elements in the app carry a shadow at rest (see e.g.
+     #game-next-word-button, .game-translation-card), not just on hover,
+     since hover is never shown to a touch/mobile visitor at all. Same
+     blue-tinted color as this card's own :hover shadow below, just
+     smaller/softer, so hovering reads as an escalation of the same effect
+     rather than an unrelated one appearing from nothing. */
   box-sizing: border-box;
   color: inherit;
   cursor: pointer;
@@ -3028,7 +3055,10 @@ html.landing #landing-card {
   color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   font-size: 19px;
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-caps-heading);
   margin: 0;
+  text-transform: uppercase;
 }
 
 #landing-card p.landing-daily-quests-intro {
@@ -3052,15 +3082,25 @@ html.landing #landing-card {
 
 .landing-daily-quest-track {
   display: grid;
-  gap: 35px;
-  grid-template-columns: repeat(3, 54px);
+  gap: 20px;
+  grid-template-columns: repeat(3, 70px);
   justify-content: center;
   margin: 16px auto;
   width: fit-content;
 }
 
+/* Each step is a mini version of the full .game-daily-quest card on the
+   game-selection screen -- same background/border/lift per state, not
+   just a filter on the gem. A glow on the gem alone (tried first) stayed
+   too subtle at this size to tell "active" (not done) apart from
+   "complete" at a glance; the full card's background+border treatment is
+   what actually reads clearly there, so this reuses it directly rather
+   than reinventing a smaller-scale cue. */
 .landing-daily-quest-step {
   align-items: center;
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
   color: #41566b;
   display: flex;
   flex-direction: column;
@@ -3068,7 +3108,12 @@ html.landing #landing-card {
   font-size: 10px;
   font-weight: 700;
   gap: 5px;
+  padding: 8px 4px 6px;
   text-align: center;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .landing-daily-quest-gem {
@@ -3076,14 +3121,26 @@ html.landing #landing-card {
   width: 52px;
 }
 
+.landing-daily-quest-step--locked {
+  background-color: var(--color-table-header-bg);
+  color: var(--color-text-faint);
+}
+
 .landing-daily-quest-step--locked .landing-daily-quest-gem {
   filter: drop-shadow(0 4px 8px rgba(28, 42, 58, 0.15)) saturate(0.45)
     opacity(0.6);
 }
 
-.landing-daily-quest-step--complete .landing-daily-quest-gem {
-  filter: drop-shadow(0 4px 8px rgba(28, 42, 58, 0.3))
-    drop-shadow(0 0 5px rgba(169, 201, 161, 0.9));
+.landing-daily-quest-step--active {
+  background-color: var(--color-bg-quest-active);
+  border-color: #8daac7;
+  box-shadow: 0 3px 10px rgba(13, 58, 105, 0.12);
+  transform: translateY(-2px);
+}
+
+.landing-daily-quest-step--complete {
+  background-color: #f4f9f1;
+  border-color: #aac9a1;
 }
 
 .landing-daily-quests-action {
@@ -3121,6 +3178,9 @@ html.landing #landing-card {
   background-color: var(--color-primary);
   border: 1px solid var(--color-primary);
   border-radius: 8px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15); /* Resting affordance,
+     matching #game-next-word-button -- solid primary buttons elsewhere in
+     the app carry a shadow at rest too, not just bordered/white cards. */
   color: var(--color-white);
   cursor: pointer;
   display: flex;
@@ -3130,16 +3190,20 @@ html.landing #landing-card {
   font-weight: 700;
   gap: 6px;
   justify-content: center;
+  letter-spacing: var(--letter-spacing-caps);
   min-height: 40px;
   padding: 9px 13px;
+  text-transform: uppercase;
   transition:
     background-color 0.2s ease,
-    border-color 0.2s ease;
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .landing-daily-quests-action button:hover {
   background-color: var(--color-accent);
   border-color: var(--color-accent);
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.22);
 }
 
 .landing-daily-quests-action button.is-bonus {
@@ -3172,15 +3236,12 @@ html.landing #landing-card {
     padding: 5px 8px;
   }
 
-  .landing-daily-quest-track {
-    gap: 22px;
-    grid-template-columns: repeat(3, 48px);
-  }
-
-  .landing-daily-quest-gem {
-    flex-basis: 46px;
-    width: 46px;
-  }
+  /* No mobile-specific narrowing here (previously 48px columns/46px gems)
+     -- the base .landing-daily-quest-track size (70px columns, 52px gems)
+     already fits comfortably within a 375px-wide phone's available width
+     (measured: track needs 250px, ~290px is available inside this card),
+     so shrinking it further just made the gem cards feel cramped for no
+     reason. */
 
   .landing-daily-quests-action {
     align-items: stretch;
@@ -3228,7 +3289,10 @@ html.landing #landing-card {
   color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   font-size: 19px;
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-caps-heading);
   margin: 0;
+  text-transform: uppercase;
 }
 
 .landing-progress-summary-count {
@@ -3372,6 +3436,8 @@ html.landing #landing-card {
   background-color: var(--color-primary);
   border: 1px solid var(--color-primary);
   border-radius: 8px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15); /* Resting affordance,
+     matching .landing-daily-quests-action button / #game-next-word-button. */
   color: var(--color-white);
   cursor: pointer;
   display: flex;
@@ -3380,16 +3446,20 @@ html.landing #landing-card {
   font-size: 11px;
   font-weight: 700;
   justify-content: center;
+  letter-spacing: var(--letter-spacing-caps);
   min-height: 36px;
   padding: 8px 13px;
+  text-transform: uppercase;
   transition:
     background-color 0.2s ease,
-    border-color 0.2s ease;
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .landing-progress-summary-action button:hover {
   background-color: var(--color-accent);
   border-color: var(--color-accent);
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.22);
 }
 
 .landing-progress-summary-action button:focus-visible {
@@ -3461,7 +3531,9 @@ html.landing #landing-card {
   font-family: "Noto Sans", sans-serif;
   font-size: 1.4em;
   font-weight: 600;
+  letter-spacing: var(--letter-spacing-caps-heading);
   margin: 0 0 6px;
+  text-transform: uppercase;
 }
 
 .my-stats-subheading {
@@ -3474,11 +3546,52 @@ html.landing #landing-card {
   color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   font-size: 19px;
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-caps-heading);
   margin: 0 0 14px;
+  text-transform: uppercase;
 }
 
 .my-stats-overview-action {
   margin-top: 16px;
+}
+
+.my-stats-gems-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.my-stats-gems-header .my-stats-section-heading {
+  margin-bottom: 0;
+}
+
+.my-stats-gems-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+}
+
+.my-stats-gems-tile {
+  align-items: center;
+  background-color: var(--color-bg-stat);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 10px;
+  text-align: center;
+}
+
+/* .game-daily-quest-gem's own base size (68px, tuned for the word-game
+   intro screen's full quest cards) is too large for this compact tile --
+   this scales it down to match .game-summary-stat-value's proportions. */
+.my-stats-gems-icon {
+  flex-basis: 40px;
+  width: 40px;
 }
 
 .my-stats-vocabulary-header {

@@ -121,6 +121,44 @@
     return card;
   }
 
+  // Lifetime count of daily-quest gems earned (see completeDailyQuestRound()
+  // in wordGame.js) — a running total that, unlike completedRounds, never
+  // resets when the day rolls over.
+  function createGemsCard() {
+    const gemCounts = window.DailyQuestAPI?.getState?.()?.gemCounts ?? {};
+    // Keyed off gemCounts' own keys (always all three reward types once
+    // normalized -- see normalizeDailyPracticeState in wordGame.js) rather
+    // than reaching into wordGame.js's DAILY_QUESTS directly, so this
+    // keeps to the same "read an *API, don't reach into internals"
+    // convention as the rest of this file.
+    const rewards = Object.keys(gemCounts);
+    const total = rewards.reduce((sum, reward) => sum + (gemCounts[reward] ?? 0), 0);
+
+    const card = document.createElement("section");
+    card.className = "my-stats-box my-stats-gems";
+    card.innerHTML = `
+      <div class="my-stats-gems-header">
+        <h3 class="my-stats-section-heading">Gems earned</h3>
+        <strong class="landing-progress-summary-count">${total.toLocaleString("en-US")} total</strong>
+      </div>
+      <div class="my-stats-gems-row">
+        ${rewards
+          .map(
+            (reward) => `
+          <div class="my-stats-gems-tile">
+            <span class="game-daily-quest-gem game-daily-quest-gem--${reward} my-stats-gems-icon" aria-hidden="true"></span>
+            <p class="game-summary-stat-value">${(gemCounts[reward] ?? 0).toLocaleString("en-US")}</p>
+            <p class="game-summary-stat-label">${reward.charAt(0).toUpperCase()}${reward.slice(1)}</p>
+          </div>
+        `,
+          )
+          .join("")}
+      </div>
+    `;
+
+    return card;
+  }
+
   function createVocabularyCard() {
     const { total, counts } = window.WordGameHelpers?.getVocabProgressSummary?.() ?? {
       total: 0,
@@ -225,6 +263,7 @@
     section.append(
       createHeaderCard(),
       createOverviewCard(),
+      createGemsCard(),
       createVocabularyCard(),
       createTroubleWordsCard(),
     );

@@ -596,7 +596,11 @@
       // for *today* — DailyQuestAPI.normalize resets completedRounds to 0
       // for any other date, same as a stale local read would. Within
       // today, completed rounds are earned in order, so the higher count
-      // is strictly more progress and always safe to take.
+      // is strictly more progress and always safe to take. gemCounts is a
+      // set of lifetime per-gem totals instead (My Stats' "Gems earned"),
+      // not scoped to today at all, but the same max-of-both logic still
+      // applies per gem type — each count only ever goes up, so the higher
+      // of the two devices' counts is always the more complete one.
       const remoteDailyPractice =
         remoteData.dailyPractice && typeof remoteData.dailyPractice === "object"
           ? remoteData.dailyPractice
@@ -604,11 +608,23 @@
       const localDailyPractice = window.DailyQuestAPI?.getState?.() ?? {
         date: null,
         completedRounds: 0,
+        gemCounts: {},
       };
       const normalizedRemoteDailyPractice =
         window.DailyQuestAPI?.normalize?.(remoteDailyPractice) ?? {
           completedRounds: 0,
+          gemCounts: {},
         };
+      const mergedGemCounts = {};
+      for (const reward of new Set([
+        ...Object.keys(localDailyPractice.gemCounts ?? {}),
+        ...Object.keys(normalizedRemoteDailyPractice.gemCounts ?? {}),
+      ])) {
+        mergedGemCounts[reward] = Math.max(
+          localDailyPractice.gemCounts?.[reward] ?? 0,
+          normalizedRemoteDailyPractice.gemCounts?.[reward] ?? 0,
+        );
+      }
       const mergedDailyPractice =
         window.DailyQuestAPI?.normalize?.({
           date: localDailyPractice.date,
@@ -616,6 +632,7 @@
             localDailyPractice.completedRounds ?? 0,
             normalizedRemoteDailyPractice.completedRounds ?? 0,
           ),
+          gemCounts: mergedGemCounts,
         }) ?? localDailyPractice;
 
       window.MyWordsAPI?.replaceEntryIds?.(mergedEntryIds);
