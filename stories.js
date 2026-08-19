@@ -1811,6 +1811,20 @@ function resolveStoryWordEntries(normalizedWord) {
   if (promise) return promise;
 
   promise = (async () => {
+    // This promise is cached forever below, so resolving it before the
+    // dictionary is ready would permanently freeze a false "not found" for
+    // this word (see wordSearchIndex.norwegianExact.get below). The two
+    // callers of getStoryWordSpanEntries both already wait for this
+    // themselves before the normal per-click path reaches here, but
+    // highlightKnownStoryWords also runs directly off "my-words:updated"
+    // (stories.js, near the bottom) with no such gate — that event can
+    // fire early (e.g. a signed-in My Words remote merge completing) on a
+    // direct story link, while the ~29k-row CSV parse this word lookup
+    // depends on is still running. "både"/"og" are common enough to be on
+    // screen — and so swept into that premature pass — in nearly every
+    // story.
+    await waitForDictionaryData();
+
     // Deliberately not just resolveWordSearchQuery(): that function
     // short-circuits to the exact match alone whenever the clicked surface
     // form happens to also be a standalone dictionary word ("exact" reason,
