@@ -2154,6 +2154,78 @@ function formatMultiResultDefinition(defText) {
     .join("");
 }
 
+// Multi-word citation forms (expressions like "med en gang", conjunctions
+// like "etter at") from the full dictionary, indexed so definition text can
+// link the whole phrase in one click instead of splitting it into separate
+// single-word links that don't correspond to any entry. Built lazily and
+// cached against `results`' current length: `results` is assigned exactly
+// once, from [] to the full parsed dataset (see parseCSVData), so a mismatch
+// only ever means "the dictionary just finished loading" — cheap to detect,
+// no need to rebuild on every render.
+let multiWordDefinitionPhraseIndex = { size: -1, phrases: new Set(), maxWords: 0 };
+
+function getMultiWordDefinitionPhrases() {
+  if (multiWordDefinitionPhraseIndex.size === results.length) {
+    return multiWordDefinitionPhraseIndex;
+  }
+  const phrases = new Set();
+  let maxWords = 0;
+  for (const entry of results) {
+    if (!entry?.ord) continue;
+    for (const variant of entry.ord.split(",")) {
+      const words = normalizeSearchText(variant).split(" ").filter(Boolean);
+      if (words.length < 2) continue;
+      phrases.add(words.join(" "));
+      maxWords = Math.max(maxWords, words.length);
+    }
+  }
+  multiWordDefinitionPhraseIndex = { size: results.length, phrases, maxWords };
+  return multiWordDefinitionPhraseIndex;
+}
+
+// Comparable form of a raw definition token: lowercased/whitespace-collapsed
+// the same way the phrase index is, with the outer punctuation a token can
+// pick up from sitting at a clause boundary (a trailing comma/period, a
+// wrapping paren) stripped off, since that punctuation is never part of the
+// dictionary's citation form.
+function definitionTokenCore(token) {
+  return normalizeSearchText(
+    token.replace(/^[(),.:;!?]+/u, "").replace(/[(),.:;!?]+$/u, ""),
+  );
+}
+
+// Greedily groups a definition item's whitespace-split tokens into
+// multi-word phrase runs (longest match first, so "med en gang" wins over
+// any shorter phrase that happens to also be a headword) and single-word
+// leftovers. A token carrying its own internal punctuation (parens, a slash
+// alternation like "en/ei") stays out of phrase matching entirely and falls
+// through to the single-word path, which already knows how to handle it.
+function segmentDefinitionTokens(tokens) {
+  const { phrases, maxWords } = getMultiWordDefinitionPhrases();
+  const segments = [];
+  let index = 0;
+  while (index < tokens.length) {
+    let matchLength = 0;
+    const upperBound = Math.min(maxWords, tokens.length - index);
+    for (let length = upperBound; length >= 2; length--) {
+      const slice = tokens.slice(index, index + length);
+      if (slice.some((token) => /[()\/]/u.test(token))) continue;
+      if (phrases.has(slice.map(definitionTokenCore).join(" "))) {
+        matchLength = length;
+        break;
+      }
+    }
+    if (matchLength >= 2) {
+      segments.push({ type: "phrase", tokens: tokens.slice(index, index + matchLength) });
+      index += matchLength;
+    } else {
+      segments.push({ type: "word", token: tokens[index] });
+      index += 1;
+    }
+  }
+  return segments;
+}
+
 function makeDefinitionClickable(defText) {
   if (!defText) return "";
 
@@ -2221,6 +2293,46 @@ function makeDefinitionClickable(defText) {
     return parts.join("") + punctuation;
   }
 
+  // A matched phrase run's own trailing punctuation (from sitting at a
+  // clause boundary, e.g. "...med en gang." or "...med en gang;") is kept
+  // outside the link, exactly like a single wrapToken() word.
+  function wrapPhrase(tokens) {
+    const last = tokens[tokens.length - 1];
+    const trailingPunctuationMatch = last.match(/[:.,;!?]+$/);
+    const trailingPunctuation = trailingPunctuationMatch
+      ? trailingPunctuationMatch[0]
+      : "";
+    const displayTokens = [
+      ...tokens.slice(0, -1),
+      trailingPunctuation
+        ? last.slice(0, -trailingPunctuation.length)
+        : last,
+    ];
+    const displayText = displayTokens.join(" ");
+    const dataWord = displayTokens.map(definitionTokenCore).join(" ");
+    return `<span class="clickable-definition-word" data-word="${dataWord}">${displayText}</span>${trailingPunctuation}`;
+  }
+
+  function wrapWord(token) {
+    if (token.includes("/") && !token.startsWith("http")) {
+      return token
+        .split("/")
+        .map((subToken) => wrapToken(subToken))
+        .join("/");
+    }
+    return wrapToken(token);
+  }
+
+  function renderTokens(tokens) {
+    return segmentDefinitionTokens(tokens)
+      .map((segment) =>
+        segment.type === "phrase"
+          ? wrapPhrase(segment.tokens)
+          : wrapWord(segment.token),
+      )
+      .join(" ");
+  }
+
   if (defText.includes(";")) {
     const items = defText
       .split(";")
@@ -2229,25 +2341,13 @@ function makeDefinitionClickable(defText) {
     return (
       `<ul class="definition-list">` +
       items
-        .map((item) => `<li>${item.split(/\s+/).map(wrapToken).join(" ")}</li>`)
+        .map((item) => `<li>${renderTokens(item.split(/\s+/))}</li>`)
         .join("") +
       `</ul>`
     );
   }
 
-  return defText
-    .split(/\s+/)
-    .map((token) => {
-      if (token.includes("/") && !token.startsWith("http")) {
-        return token
-          .split("/")
-          .map((subToken) => wrapToken(subToken))
-          .join("/");
-      } else {
-        return wrapToken(token);
-      }
-    })
-    .join(" ");
+  return renderTokens(defText.split(/\s+/));
 }
 
 // Collapsed-by-default "Word forms" toggle, sitting next to the "Report an
