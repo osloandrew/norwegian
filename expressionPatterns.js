@@ -696,6 +696,25 @@
         });
       }
     }
+    // A preposition (this set deliberately excludes the infinitive marker
+    // "å") is never directly followed by a finite verb form -- only by a
+    // noun phrase, or by "å" + infinitive. So a verb candidate surviving
+    // here can only be a spurious homograph: e.g. the indefinite article
+    // "en"/"et"/"ei" is also, by coincidence, the imperative of the verbs
+    // "ene"/"ete"/"eie" (unite/eat/own), which previously let "med en
+    // gang" get read as an imperative "en" and generate a nonsense verb
+    // conjugation table. Dropping the verb reading here mirrors the
+    // POSSESSIVE_FORMS handling above: closed-class words in a fixed
+    // grammatical slot must not be looked up as open-class homographs.
+    for (let index = 1; index < nodes.length; index++) {
+      const node = nodes[index];
+      const previous = nodes[index - 1];
+      if (node?.type !== "lexeme" || previous?.type !== "lexeme") continue;
+      if (!PREPOSITIONS.has(previous.normalized)) continue;
+      node.candidates = (node.candidates || []).filter(
+        (candidate) => candidate.wordClass !== "verb",
+      );
+    }
     if (
       nodes[0]?.normalized === "det" &&
       nodes[1]?.candidates?.some((candidate) => candidate.wordClass === "verb")
