@@ -522,8 +522,23 @@
     return lemmas.size === 1 ? candidates[0] : null;
   }
 
+  // Deliberately does not require pattern.alignment: alignment is learned
+  // by matching this pattern's own words against the *entry's single
+  // shared eksempel sentence*, but a multi-variant citation ("absolutt
+  // flertall, absolutt majoritet") has only one eksempel — written for
+  // just one of the variants. The other variant's own words never appear
+  // in it, so its pattern gets no alignment at all, even though its nodes'
+  // candidates (built independently, before alignment is attempted — see
+  // buildPattern) are perfectly good evidence on their own. Previously
+  // bailing out here whenever alignment was missing meant that second
+  // variant's head noun never got node.selected set, and since matchNode
+  // only checks a word's paradigm slots when node.selected is present,
+  // that variant could only ever match its own bare citation text
+  // literally — never a genuinely inflected occurrence ("sosiale medier"
+  // matched "sosialt medium" fine since its own eksempel demonstrates it,
+  // but "absolutte majoriteter" never matched "absolutt majoritet" at all,
+  // for exactly this reason).
   function inferNominalOrAdjectiveStructure(pattern) {
-    if (!pattern.alignment) return;
     if (pattern.nodes.some((node) => node.selected?.wordClass === "verb")) return;
     const firstPreposition = pattern.nodes.findIndex((node) =>
       PREPOSITIONS.has(node.normalized),
