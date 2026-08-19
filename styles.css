@@ -3906,6 +3906,7 @@ ul {
   gap: 8px;
   height: 42px;
   justify-content: center;
+  min-width: 180px;
   padding: 10px 16px;
   transition: all 0.3s ease;
   white-space: nowrap;
@@ -5962,6 +5963,7 @@ ul {
     height: 42px;
     padding: 0;
     border-radius: 50%;
+    min-width: 0px;
     gap: 0;
   }
 
