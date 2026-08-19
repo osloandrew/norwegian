@@ -6,15 +6,53 @@ let currentSpeed = 1.0; // default speed
 // Search's own default.
 let isStoryEnglishVisible = false;
 
-/*
- * Cache of the current story recommendation, keyed by a coarse bucket of
- * the learner's ability score (see getStoryRecommendationCacheKey).
- * Reused across re-renders (e.g. changing the genre filter) so the
- * suggestion doesn't reshuffle on every unrelated interaction or on the
- * small per-answer ability drift from Word Game play — only once ability
- * has moved enough to matter.
- */
-let cachedStoryRecommendation = null; // { cacheKey, story }
+// Titles (titleNorwegian) the learner has opened before. Used only to
+// softly deprioritize already-seen stories in the weighted list ordering
+// below (see READ_STORY_WEIGHT_PENALTY) — never to hide them, since
+// rereading a story is still a normal thing to want to do.
+const READ_STORIES_STORAGE_KEY = "norwegian-dictionary-read-stories-v1";
+
+function loadReadStoryTitles() {
+  try {
+    const storedValue = window.localStorage.getItem(READ_STORIES_STORAGE_KEY);
+    if (!storedValue) {
+      return new Set();
+    }
+    const parsedValue = JSON.parse(storedValue);
+    return new Set(Array.isArray(parsedValue) ? parsedValue : []);
+  } catch (error) {
+    console.warn("Read stories could not be loaded.", error);
+    return new Set();
+  }
+}
+
+let readStoryTitles = loadReadStoryTitles();
+
+function markStoryAsRead(titleNorwegian) {
+  if (!titleNorwegian || readStoryTitles.has(titleNorwegian)) {
+    return;
+  }
+
+  readStoryTitles.add(titleNorwegian);
+  cachedStoryOrder = null; // Invalidate: the read penalty now applies to it.
+
+  try {
+    window.localStorage.setItem(
+      READ_STORIES_STORAGE_KEY,
+      JSON.stringify(Array.from(readStoryTitles)),
+    );
+  } catch (error) {
+    console.warn("Read stories could not be saved.", error);
+  }
+}
+
+// Cache of the current ability/read-weighted story ordering (see
+// getStoryOrder). Reused across re-renders — typing in the search box,
+// switching CEFR/genre filters, returning from a story to the list — so
+// the list doesn't visibly reshuffle for reasons other than the learner's
+// own choice (the explicit reshuffle gesture; see reshuffleStoryOrder) or
+// a genuine change in ability/read state.
+let cachedStoryOrder = null; // { cacheKey, order: Map<titleNorwegian, rank> }
 
 // Define an object mapping genres to Font Awesome icons
 const genreIcons = {
@@ -306,26 +344,175 @@ function updateEnglishVisibility() {
   }
 }
 
-// How tightly the story recommendation clusters around the learner's
-// ability. Wider than the word-selection sigma in wordGame.js — there are
-// far fewer stories than words per CEFR band, so a tighter radius would
-// leave many learners with nothing nearby.
+// How tightly the story ordering clusters around the learner's ability.
+// Wider than the word-selection sigma in wordGame.js — there are far fewer
+// stories than words per CEFR band, so a tighter radius would leave many
+// learners with nothing nearby.
 const STORY_RECOMMENDATION_SIGMA = 150;
 
 // Ability drifts by a point or two after almost every word-game answer;
-// caching on its exact value would reshuffle the recommendation on nearly
-// every render. Bucketing to the nearest 25 keeps it stable across that
-// noise while still updating once ability has genuinely moved.
+// caching on its exact value would reorder the list on nearly every
+// render. Bucketing to the nearest 25 keeps it stable across that noise
+// while still updating once ability has genuinely moved.
 function getStoryRecommendationCacheKey(ability) {
   return Math.round(ability / 25) * 25;
 }
 
+// Proximity weight of a single story for a given ability estimate — a soft
+// draw, not an exact CEFR match, so a thin band still surfaces its nearest
+// neighbors. A small floor (+0.001) keeps every story in the running,
+// however faintly, so a learner whose ability sits far from every
+// available story still sees something instead of nothing.
+function getStoryDifficultyWeight(story, ability) {
+  if (!Number.isFinite(ability) || !story.CEFR) {
+    return 1;
+  }
+
+  const anchors = window.WordGameHelpers?.getCefrAnchors?.() ?? {};
+  const anchor = anchors[story.CEFR.trim().toUpperCase()] ?? 500;
+  const distance = anchor - ability;
+
+  return (
+    Math.exp(
+      -(distance * distance) /
+        (2 * STORY_RECOMMENDATION_SIGMA * STORY_RECOMMENDATION_SIGMA),
+    ) + 0.001
+  );
+}
+
+// Already-read stories aren't excluded from the list (rereading is a
+// normal thing to want to do) but shouldn't keep competing for the top of
+// a fresh draw once they've been opened.
+const READ_STORY_WEIGHT_PENALTY = 0.15;
+
+const STORY_SHUFFLE_SEED_KEY = "norwegian-dictionary-story-shuffle-seed-v1";
+
+// Deterministic PRNG (mulberry32). The *seed* is what makes a draw random;
+// the function itself always reproduces the same sequence for the same
+// seed, which is what lets getStoryOrder stay stable across re-renders
+// that shouldn't reshuffle anything (see cachedStoryOrder above).
+function createSeededRandom(seed) {
+  let state = seed >>> 0;
+
+  return function seededRandom() {
+    state |= 0;
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function getStoryShuffleSeed() {
+  try {
+    const stored = window.localStorage.getItem(STORY_SHUFFLE_SEED_KEY);
+    const parsed = stored ? Number(stored) : NaN;
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  } catch (error) {
+    // Fall through to drawing a fresh seed below.
+  }
+  return reshuffleStoryOrder();
+}
+
+// The explicit "reshuffle" gesture (magnifying glass / clear button on the
+// Stories tab — see handleSearchButtonClick and clearInput in scripts.js).
+// Every other re-render of the story list reuses the existing seed instead
+// of calling this, so the list only visibly reshuffles when the learner
+// actually asked for a fresh draw.
+function reshuffleStoryOrder() {
+  const seed = Math.floor(Math.random() * 2 ** 31);
+
+  try {
+    window.localStorage.setItem(STORY_SHUFFLE_SEED_KEY, String(seed));
+  } catch (error) {
+    // Best-effort only — the in-memory seed below still applies for the
+    // rest of this session even if it can't be persisted.
+  }
+
+  cachedStoryOrder = null;
+  return seed;
+}
+
+// Builds a full ability-weighted, read-penalized ranking of every story in
+// the corpus for one seed. Uses the Efraimidis-Spirakis exponential-key
+// form of weighted sampling without replacement: each story draws one
+// seeded random tap and gets key = -ln(tap) / weight (lower key = drawn
+// earlier); sorting ascending by that key in one pass is equivalent to
+// repeatedly drawing without replacement with probability proportional to
+// weight. This form scales *linearly* in 1/weight, unlike the more
+// commonly-seen tap^(1/weight) form — that one exponentiates the weight
+// ratio, so for a full-corpus ranking (as opposed to picking a single
+// winner, where it's fine) any story more than ~1.5 sigma from the
+// learner's ability underflows toward the same float-noise floor as every
+// other distant story, collapsing B1/B2/C into an effectively arbitrary
+// order instead of a smooth gradient. The linear form keeps that gradient
+// intact at any weight ratio.
+//
+// Stories are enumerated in a fixed, filter-independent order
+// (alphabetical) so a given story always draws the same tap for a given
+// seed regardless of which filters are applied when the list is rendered —
+// that's what keeps a filtered/searched view's relative ordering
+// consistent with the unfiltered one.
+function buildStoryOrder(seed) {
+  const ability = window.WordGameHelpers?.getAbilityScore?.();
+  const random = createSeededRandom(seed);
+
+  const stableStories = [...storyResults].sort((a, b) =>
+    a.titleNorwegian.localeCompare(b.titleNorwegian),
+  );
+
+  const scored = stableStories.map((story) => {
+    const weight =
+      getStoryDifficultyWeight(story, ability) *
+      (readStoryTitles.has(story.titleNorwegian)
+        ? READ_STORY_WEIGHT_PENALTY
+        : 1);
+    // Clamp away from 0 so a (vanishingly unlikely) tap of exactly 0
+    // can't produce -ln(0) = Infinity.
+    const tap = Math.max(random(), 1e-12);
+    const key = -Math.log(tap) / Math.max(weight, 0.0001);
+    return { titleNorwegian: story.titleNorwegian, key };
+  });
+
+  scored.sort((a, b) => a.key - b.key);
+
+  const order = new Map();
+  scored.forEach(({ titleNorwegian }, index) => {
+    order.set(titleNorwegian, index);
+  });
+  return order;
+}
+
+// Returns (and caches) the current story ordering: a Map from
+// titleNorwegian to rank, lower = drawn earlier. Recomputed only when the
+// seed, the learner's ability bucket, or the read-story count actually
+// changes — anything else re-rendering the list just re-filters this same
+// ranking, which is what keeps it stable (see cachedStoryOrder above).
+function getStoryOrder() {
+  const ability = window.WordGameHelpers?.getAbilityScore?.();
+  const cacheKey = [
+    getStoryShuffleSeed(),
+    getStoryRecommendationCacheKey(Number.isFinite(ability) ? ability : 0),
+    readStoryTitles.size,
+  ].join(":");
+
+  if (cachedStoryOrder && cachedStoryOrder.cacheKey === cacheKey) {
+    return cachedStoryOrder.order;
+  }
+
+  const order = buildStoryOrder(getStoryShuffleSeed());
+  cachedStoryOrder = { cacheKey, order };
+  return order;
+}
+
 /*
- * Picks (and caches) a story weighted toward the learner's estimated
- * ability — a soft proximity draw, not an exact CEFR match, so a thin
- * band still surfaces its nearest neighbors instead of coming up empty.
- * Returns null only if no ability estimate exists yet (placement not
- * completed) or there are no stories at all.
+ * The single best-ranked story for the learner right now — same ordering
+ * that drives the full list below, so the "Recommended for you" banner and
+ * the list it sits above are always consistent with each other. Returns
+ * null only if no ability estimate exists yet (placement not completed) or
+ * there are no CEFR-tagged stories at all.
  */
 function getRecommendedStory() {
   const ability = window.WordGameHelpers?.getAbilityScore?.();
@@ -334,51 +521,22 @@ function getRecommendedStory() {
     return null;
   }
 
-  const cacheKey = getStoryRecommendationCacheKey(ability);
-
-  if (cachedStoryRecommendation && cachedStoryRecommendation.cacheKey === cacheKey) {
-    return cachedStoryRecommendation.story;
-  }
-
   const candidates = storyResults.filter(
     (story) => story.CEFR && story.titleNorwegian,
   );
 
   if (!candidates.length) {
-    cachedStoryRecommendation = { cacheKey, story: null };
     return null;
   }
 
-  const anchors = window.WordGameHelpers?.getCefrAnchors?.() ?? {};
-  // A small floor keeps every story in the running, however faintly, so a
-  // learner whose ability sits far from every available story still gets
-  // a recommendation instead of none.
-  const weights = candidates.map((story) => {
-    const anchor = anchors[story.CEFR.trim().toUpperCase()] ?? 500;
-    const distance = anchor - ability;
-    return (
-      Math.exp(
-        -(distance * distance) /
-          (2 * STORY_RECOMMENDATION_SIGMA * STORY_RECOMMENDATION_SIGMA),
-      ) + 0.001
-    );
-  });
+  const order = getStoryOrder();
+  candidates.sort(
+    (a, b) =>
+      (order.get(a.titleNorwegian) ?? Infinity) -
+      (order.get(b.titleNorwegian) ?? Infinity),
+  );
 
-  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-  let target = Math.random() * totalWeight;
-  let story = candidates[candidates.length - 1];
-
-  for (let i = 0; i < candidates.length; i++) {
-    target -= weights[i];
-    if (target < 0) {
-      story = candidates[i];
-      break;
-    }
-  }
-
-  cachedStoryRecommendation = { cacheKey, story };
-
-  return story;
+  return candidates[0];
 }
 
 /*
@@ -526,9 +684,17 @@ async function displayStoryList(filteredStories = storyResults) {
     filtered = filtered.filter((story) => story !== recommendedStory);
   }
 
-  // shuffleArray (Fisher-Yates) is defined in wordGame.js, which runs
-  // before this file in script load order.
-  filtered = shuffleArray(filtered);
+  // Ability-weighted, read-penalized, deterministic-per-seed ordering (see
+  // getStoryOrder) — not a fresh shuffle on every render. Falls back to
+  // the CSV's own order for any story the ranking doesn't know about,
+  // which can only happen if storyResults changed between building the
+  // order and this render.
+  const storyOrder = getStoryOrder();
+  filtered.sort(
+    (a, b) =>
+      (storyOrder.get(a.titleNorwegian) ?? Infinity) -
+      (storyOrder.get(b.titleNorwegian) ?? Infinity),
+  );
 
   // ▶ NEW: populate <ul id="stories"> with <li> items (JP mirror)
   const container = document.getElementById("results-container");
@@ -625,6 +791,8 @@ function displayStory(titleNorwegian) {
     hideSpinner();
     return;
   }
+
+  markStoryAsRead(selectedStory.titleNorwegian);
 
   document.title = selectedStory.titleNorwegian + " - Norwegian Dictionary";
 
@@ -1656,43 +1824,67 @@ async function buildExpressionComponentIndex() {
   if (expressionComponentIndex) return expressionComponentIndex;
   if (results.length === 0) return new Map();
 
-  // First pass: each expression's own non-stopword component words, plus
-  // a running count of how many *other* expressions share each word.
-  const expressionWords = [];
+  // First pass: each expression's own non-stopword component words, kept
+  // *per spelling variant* (entry.ord's comma-separated alternatives, e.g.
+  // "til sjuende og sist, til syvende og sist") rather than merged — an
+  // alternate spelling's distinctive word ("syvende") doesn't appear in
+  // the other variant ("sjuende") at all, so a story using that spelling
+  // needs its own variant's words available to index under. Also a
+  // running count of how many *other* expressions share each word, across
+  // all variants.
+  const expressionEntries = [];
   const wordFrequency = new Map();
 
   for (const entry of results) {
     if (!window.ExpressionPatterns?.isPhraseEntry(entry)) continue;
 
-    const citation = String(entry.ord || "").split(",")[0];
-    const words = [
-      ...new Set(
-        (citation.match(STORY_WORD_TOKEN_REGEX) || [])
-          .map(normalizeSearchText)
-          .filter((word) => word && !EXPRESSION_INDEX_STOPWORDS.has(word)),
-      ),
-    ];
-    if (words.length === 0) continue;
+    const variants =
+      window.ExpressionPatterns?.getVariants?.(entry) ??
+      String(entry.ord || "")
+        .split(",")
+        .map((variant) => variant.trim());
 
-    expressionWords.push({ entry, words });
-    words.forEach((word) => wordFrequency.set(word, (wordFrequency.get(word) || 0) + 1));
+    const variantWordLists = variants
+      .map((variant) => [
+        ...new Set(
+          (variant.match(STORY_WORD_TOKEN_REGEX) || [])
+            .map(normalizeSearchText)
+            .filter((word) => word && !EXPRESSION_INDEX_STOPWORDS.has(word)),
+        ),
+      ])
+      .filter((words) => words.length > 0);
+    if (variantWordLists.length === 0) continue;
+
+    expressionEntries.push({ entry, variantWordLists });
+    const allWords = new Set(variantWordLists.flat());
+    allWords.forEach((word) => wordFrequency.set(word, (wordFrequency.get(word) || 0) + 1));
   }
 
-  // Second pass: index each expression under only its rarest component,
-  // not every one of them. A handful of extremely common verbs ("være",
-  // "gå", "ta" — each a component of 90-100+ expressions) would otherwise
-  // turn nearly every sentence into 100+ compile() calls, since those
-  // verbs show up in almost every sentence a story has. The full pattern
-  // match still requires all of an expression's own words to be present
-  // regardless of which one indexed it, so this only narrows *candidates*
-  // — it can't cause a real match to be missed.
+  // Second pass: index each expression under the rarest component of
+  // *each* of its spelling variants, not one rarest word overall — picking
+  // a single global rarest word could land on one variant's distinctive
+  // word and leave a story occurrence of a different variant with no
+  // shared index key at all. The full pattern match still requires all of
+  // an expression's own words to be present regardless of which one
+  // indexed it, so this only narrows *candidates* — it can't cause a real
+  // match to be missed. (A handful of extremely common verbs — "være",
+  // "gå", "ta" — are each a component of 90-100+ expressions; indexing
+  // under every component word instead of just the rarest per variant
+  // would turn nearly every sentence into 100+ compile() calls, since
+  // those verbs show up in almost every sentence a story has.)
   const index = new Map();
-  for (const { entry, words } of expressionWords) {
-    const rarestWord = words.reduce((rarest, word) =>
-      wordFrequency.get(word) < wordFrequency.get(rarest) ? word : rarest,
+  for (const { entry, variantWordLists } of expressionEntries) {
+    const rarestWordsPerVariant = new Set(
+      variantWordLists.map((words) =>
+        words.reduce((rarest, word) =>
+          wordFrequency.get(word) < wordFrequency.get(rarest) ? word : rarest,
+        ),
+      ),
     );
-    if (!index.has(rarestWord)) index.set(rarestWord, []);
-    index.get(rarestWord).push(entry);
+    for (const word of rarestWordsPerVariant) {
+      if (!index.has(word)) index.set(word, []);
+      index.get(word).push(entry);
+    }
   }
 
   expressionComponentIndex = index;
@@ -1767,9 +1959,20 @@ async function findExpressionMatchesInSentence(sentenceText) {
     const matcher = analysis?.matcher;
     if (!matcher) continue;
 
-    const citationWordCount = (
-      String(entry.ord || "").split(",")[0].match(STORY_WORD_TOKEN_REGEX) || []
-    ).length;
+    // The longest spelling variant's word count — not just the first
+    // variant's — so a match against a longer alternate spelling isn't
+    // spuriously rejected as "too long" relative to a shorter one.
+    const variants =
+      window.ExpressionPatterns?.getVariants?.(entry) ??
+      String(entry.ord || "")
+        .split(",")
+        .map((variant) => variant.trim());
+    const citationWordCount = Math.max(
+      0,
+      ...variants.map(
+        (variant) => (variant.match(STORY_WORD_TOKEN_REGEX) || []).length,
+      ),
+    );
 
     // Mirrors ExpressionPatterns' own .highlight() cursor loop — walk
     // forward finding every non-overlapping occurrence in this sentence,
