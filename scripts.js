@@ -134,22 +134,35 @@ function hasExactSearchTerm(query) {
 }
 
 async function resolveWordSearchQuery(originalQuery, selectedPOS = "") {
-  if (hasExactSearchTerm(originalQuery)) {
-    return { query: originalQuery, queries: [originalQuery], reason: "exact" };
-  }
-
+  // Resolved unconditionally, even when the query is already a headword in
+  // its own right ("gir" is itself a noun) -- otherwise an entry the query
+  // only reaches through inflection (present-tense "gir" of the verb "gi")
+  // never enters the result set at all, headword or not. Lemmas equal to
+  // the query itself are excluded: that's just the query, not a distinct
+  // inflection match worth surfacing separately.
   const officialResolution = await window.Inflections?.findLemmas(
     originalQuery,
     selectedPOS,
   );
-  const officialLemmas = (officialResolution?.lemmas || []).filter((lemma) =>
-    wordSearchIndex.norwegianExact.has(lemma),
+  const officialLemmas = (officialResolution?.lemmas || []).filter(
+    (lemma) => lemma !== originalQuery && wordSearchIndex.norwegianExact.has(lemma),
   );
+
+  if (hasExactSearchTerm(originalQuery)) {
+    return {
+      query: originalQuery,
+      queries: [originalQuery, ...officialLemmas],
+      reason: "exact",
+      inflectedLemmas: officialLemmas,
+    };
+  }
+
   if (officialLemmas.length > 0) {
     return {
       query: officialLemmas[0],
       queries: officialLemmas,
       reason: "word-form",
+      inflectedLemmas: officialLemmas,
     };
   }
 
@@ -171,23 +184,30 @@ function hasSearchableCharacters(value) {
   return /[\p{L}\p{N}]/u.test(value);
 }
 
-function getSearchMatchRank(entry, query) {
+// `inflectedLemmas`, when given, are lemmas the query is a recognized
+// inflected form of (see resolveWordSearchQuery) -- a genuine grammatical
+// match ("gir" -> the verb "gi"), ranked above generic prefix/substring
+// hits but still below the query being a headword outright, since typing
+// an exact existing word is the strongest possible signal of intent.
+function getSearchMatchRank(entry, query, inflectedLemmas) {
   const norwegianTerms = splitSearchTerms(entry.ord);
   const englishTerms = splitSearchTerms(entry.engelsk);
 
   if (norwegianTerms.includes(query)) return 0;
-  if (englishTerms.includes(query)) return 1;
-  if (norwegianTerms.some((term) => term.startsWith(query))) return 2;
-  if (englishTerms.some((term) => term.startsWith(query))) return 3;
-  if (norwegianTerms.some((term) => term.includes(query))) return 4;
-  if (englishTerms.some((term) => term.includes(query))) return 5;
+  if (inflectedLemmas?.some((lemma) => norwegianTerms.includes(lemma))) return 1;
+  if (englishTerms.includes(query)) return 2;
+  if (norwegianTerms.some((term) => term.startsWith(query))) return 3;
+  if (englishTerms.some((term) => term.startsWith(query))) return 4;
+  if (norwegianTerms.some((term) => term.includes(query))) return 5;
+  if (englishTerms.some((term) => term.includes(query))) return 6;
 
-  return 6;
+  return 7;
 }
 
-function compareWordSearchResults(a, b, query) {
+function compareWordSearchResults(a, b, query, inflectedLemmas) {
   const rankDifference =
-    getSearchMatchRank(a, query) - getSearchMatchRank(b, query);
+    getSearchMatchRank(a, query, inflectedLemmas) -
+    getSearchMatchRank(b, query, inflectedLemmas);
   if (rankDifference) return rankDifference;
 
   const cefrDifference = (CEFR_ORDER[a.CEFR] || 99) - (CEFR_ORDER[b.CEFR] || 99);
@@ -1587,7 +1607,10 @@ async function search(queryOverride = null) {
     // Filter results by query and selected POS for words
     matchingResults = cleanResults.filter((r) => {
       const matchesQuery = normalizedQueries.some((variation) => {
-        if (wordSearchResolution.reason === "word-form") {
+        if (
+          wordSearchResolution.reason === "word-form" ||
+          wordSearchResolution.inflectedLemmas?.includes(variation)
+        ) {
           return splitSearchTerms(r.ord).includes(variation);
         }
 
@@ -1618,7 +1641,9 @@ async function search(queryOverride = null) {
       );
     });
 
-    matchingResults.sort((a, b) => compareWordSearchResults(a, b, query));
+    matchingResults.sort((a, b) =>
+      compareWordSearchResults(a, b, query, wordSearchResolution.inflectedLemmas),
+    );
 
     if (matchingResults.length === 1) {
       // Update URL and title for a single result
@@ -1678,7 +1703,7 @@ async function search(queryOverride = null) {
 
         return (
           getSuggestionRank(a) - getSuggestionRank(b) ||
-          compareWordSearchResults(a, b, query)
+          compareWordSearchResults(a, b, query, wordSearchResolution.inflectedLemmas)
         );
       });
 
@@ -2350,6 +2375,69 @@ function makeDefinitionClickable(defText) {
   return renderTokens(defText.split(/\s+/));
 }
 
+// Replaces whatever nodes cover [match.start, match.end) of `container`'s
+// live text (a run of clickable-definition-word spans, plain text, or
+// both) with a single new span whose data-word is the matched expression's
+// own citation form. From then on this occurrence behaves exactly like any
+// other literal match: the click handler's ordinary exact-match lookup
+// finds it, no special-casing needed there. Mirrors stories.js's
+// replaceStoryWordSpanWithExpression for the same reason that function
+// gives: swapping in one span of identical combined text never changes
+// `container`'s total text length, so this is safe to call repeatedly for
+// several non-overlapping matches in one pass without re-measuring between
+// calls.
+function mergeDefinitionExpressionSpan(container, match) {
+  let offset = 0;
+  const nodesToReplace = [];
+  for (const child of Array.from(container.childNodes)) {
+    const text = child.textContent;
+    const childStart = offset;
+    const childEnd = offset + text.length;
+    if (childEnd > match.start && childStart < match.end) {
+      nodesToReplace.push(child);
+    }
+    offset = childEnd;
+  }
+  if (nodesToReplace.length === 0) return;
+
+  const matchedText = nodesToReplace.map((node) => node.textContent).join("");
+  const newSpan = document.createElement("span");
+  newSpan.className = "clickable-definition-word";
+  newSpan.dataset.word = String(match.entry.ord || "").split(",")[0].trim();
+  newSpan.textContent = matchedText;
+
+  nodesToReplace[0].parentNode.insertBefore(newSpan, nodesToReplace[0]);
+  nodesToReplace.forEach((node) => node.remove());
+}
+
+// makeDefinitionClickable only links a component word's literal citation
+// spelling -- an inflected multi-word expression ("følger med", inflected
+// from "følge med") isn't a headword itself, so each of its words rendered
+// on its own either finds nothing or, worse, matches an unrelated
+// same-spelling entry ("med" the preposition). window.findExpressionMatchesInSentence
+// (stories.js) already solves exactly this for story sentences, complete
+// with a reverse index so a definition only pays the matching cost for the
+// handful of expressions that could plausibly appear in it, not all ~3,400
+// -- reused here rather than re-deriving that grammar. Runs after the
+// initial synchronous render (see displaySearchResults) since resolving an
+// expression's inflected forms depends on data that isn't guaranteed
+// loaded yet, so it can't block the definition's first paint.
+async function upgradeDefinitionExpressionSpans(container, defText) {
+  if (!defText || typeof findExpressionMatchesInSentence !== "function") return;
+
+  const items = container.querySelectorAll("li");
+  const targets = items.length > 0 ? Array.from(items) : [container];
+
+  for (const target of targets) {
+    const text = target.textContent;
+    if (!text) continue;
+    const matches = await findExpressionMatchesInSentence(text);
+    for (const match of matches) {
+      mergeDefinitionExpressionSpan(target, match);
+    }
+  }
+}
+
 // Collapsed-by-default "Word forms" toggle, sitting next to the "Report an
 // issue" button in .definition-actions-row. Returns "" when the word class
 // doesn't inflect, so no empty toggle ever renders.
@@ -2614,7 +2702,7 @@ function displaySearchResults(results, query = "") {
                 </h2>
                 ${
                   result.definisjon
-                    ? `<p class="${multipleResultsDefinitionText}">${
+                    ? `<p class="definition-text ${multipleResultsDefinitionText}">${
                         defaultResult
                           ? makeDefinitionClickable(result.definisjon)
                           : formatMultiResultDefinition(result.definisjon)
@@ -2677,6 +2765,17 @@ function displaySearchResults(results, query = "") {
         `;
   });
   appendToContainer(htmlString);
+
+  if (defaultResult && results[0]?.definisjon) {
+    const definitionEl = resultsContainer.querySelector(".definition-text");
+    if (definitionEl) {
+      upgradeDefinitionExpressionSpans(definitionEl, results[0].definisjon).catch(
+        (error) => {
+          console.error("Could not resolve inflected expressions in definition.", error);
+        },
+      );
+    }
+  }
 
   if (
     defaultResult &&
@@ -3685,46 +3784,86 @@ window.addEventListener("popstate", () => {
   loadStateFromURL(); // Re-load everything based on current URL
 });
 
-document.addEventListener("click", (event) => {
+// Fully emulates the click-to-expand behavior for a single result: shows
+// just that entry and updates the URL/title to match. `canonicalWord` is
+// read for the URL only after displaySearchResults runs, matching this
+// code's previous behavior of reading `.gender` post-mutation (that call
+// formats it, e.g. into "noun - en").
+function openDictionaryEntry(entry, canonicalWord) {
+  latestMultipleResults = null;
+  resultsContainer.innerHTML = ""; // Clear previous results
+  displaySearchResults([entry]);
+  updateURL(null, "words", entry.gender.toLowerCase(), null, canonicalWord);
+}
+
+document.addEventListener("click", async (event) => {
   const target = event.target;
-  if (target.classList.contains("clickable-definition-word")) {
-    let word = target.getAttribute("data-word").toLowerCase();
-    const searchInput = document.getElementById("search-bar");
+  if (!target.classList.contains("clickable-definition-word")) return;
 
-    if (searchInput) {
-      searchInput.value = "";
-      clearInput();
+  const word = target.getAttribute("data-word").toLowerCase();
+  const searchInput = document.getElementById("search-bar");
+  if (!searchInput) return;
 
-      // Find exact matches for the clicked word
-      const exactMatches = results.filter((r) =>
-        r.ord
-          .toLowerCase()
-          .split(",")
-          .map((s) => s.trim())
-          .includes(word),
-      );
+  searchInput.value = "";
+  clearInput();
 
-      if (exactMatches.length === 1) {
-        // Fully emulate the click-to-expand behavior for a single result
-        latestMultipleResults = null;
-        resultsContainer.innerHTML = ""; // Clear previous results
+  // Find exact matches for the clicked word
+  const exactMatches = results.filter((r) =>
+    r.ord
+      .toLowerCase()
+      .split(",")
+      .map((s) => s.trim())
+      .includes(word),
+  );
 
-        // Display only the matched entry
-        displaySearchResults(exactMatches);
+  if (exactMatches.length === 1) {
+    openDictionaryEntry(exactMatches[0], word);
+    return;
+  }
 
-        // Update the URL and page title
-        updateURL(
-          null,
-          "words",
-          exactMatches[0].gender.toLowerCase(),
-          null,
-          word,
-        );
-      } else {
-        search(word); // fallback to regular multi-result search
+  // Zero literal matches only -- when the clicked spelling is ALREADY a
+  // headword in its own right (exactMatches.length > 1, e.g. "ens" is both
+  // an adjective and a possessive), that's a genuine disambiguation the
+  // learner should see via the regular search list, not something an
+  // inflection guess should silently resolve past. Jumping straight to a
+  // same-spelling inflected form of some other, unrelated word (e.g. "ens"
+  // is also the imperative of the rare verb "ense") would bury the two
+  // senses that were actually already known matches.
+  if (exactMatches.length === 0) {
+    // No literal citation match at all. An inflected multi-word expression
+    // ("følger med" -> "følge med") is already handled at render time (see
+    // upgradeDefinitionExpressionSpans), so what's left here is a single
+    // inflected word on its own ("kastet" -> "kaste"). Resolve it through
+    // the same reverse index Stories' click-to-define already relies on
+    // before falling back to a blind full-dictionary search.
+    const officialResolution = await window.Inflections?.findLemmas(word);
+    const inflectedMatches = [];
+    for (const { lemma, wordClass } of officialResolution?.matches || []) {
+      if (lemma === word) continue;
+      for (const candidate of results) {
+        if (
+          WordClass.getWordClass(candidate.gender) === wordClass &&
+          candidate.ord
+            .toLowerCase()
+            .split(",")
+            .map((s) => s.trim())
+            .includes(lemma)
+        ) {
+          inflectedMatches.push(candidate);
+        }
       }
     }
+
+    if (inflectedMatches.length === 1) {
+      openDictionaryEntry(
+        inflectedMatches[0],
+        inflectedMatches[0].ord.split(",")[0].trim().toLowerCase(),
+      );
+      return;
+    }
   }
+
+  search(word); // fallback to regular multi-result search
 });
 
 document.addEventListener("click", (event) => {
