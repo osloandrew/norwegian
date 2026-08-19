@@ -140,11 +140,23 @@ function normalizeDailyPracticeState(value, dateKey = getDailyPracticeDateKey())
   const earnedRewards = DAILY_QUESTS.slice(0, completedRounds).map(
     (quest) => quest.reward,
   );
+  // Lifetime count of quest gems earned, broken down by type (My Stats'
+  // "Gems earned" section) -- unlike completedRounds/earnedRewards above,
+  // these are carried through regardless of date instead of resetting
+  // each day.
+  const gemCounts = {};
+  for (const quest of DAILY_QUESTS) {
+    const raw = value?.gemCounts?.[quest.reward];
+    gemCounts[quest.reward] = Number.isFinite(raw)
+      ? Math.max(0, Math.floor(raw))
+      : 0;
+  }
 
   return {
     date: dateKey,
     completedRounds,
     earnedRewards,
+    gemCounts,
   };
 }
 
@@ -245,6 +257,10 @@ function completeDailyQuestRound() {
   const quest = DAILY_QUESTS[state.completedRounds] || null;
   if (!quest) return null;
   state.completedRounds += 1;
+  state.gemCounts = {
+    ...state.gemCounts,
+    [quest.reward]: (state.gemCounts?.[quest.reward] || 0) + 1,
+  };
   const savedState = saveDailyPracticeState(state);
   return savedState.earnedRewards.includes(quest.reward) ? quest : null;
 }
