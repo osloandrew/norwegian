@@ -204,16 +204,20 @@ function getSearchMatchRank(entry, query, inflectedLemmas) {
   return 7;
 }
 
+function compareByCefrThenHeadword(a, b) {
+  const cefrDifference = (CEFR_ORDER[a.CEFR] || 99) - (CEFR_ORDER[b.CEFR] || 99);
+  if (cefrDifference) return cefrDifference;
+
+  return String(a.ord).localeCompare(String(b.ord), "nb");
+}
+
 function compareWordSearchResults(a, b, query, inflectedLemmas) {
   const rankDifference =
     getSearchMatchRank(a, query, inflectedLemmas) -
     getSearchMatchRank(b, query, inflectedLemmas);
   if (rankDifference) return rankDifference;
 
-  const cefrDifference = (CEFR_ORDER[a.CEFR] || 99) - (CEFR_ORDER[b.CEFR] || 99);
-  if (cefrDifference) return cefrDifference;
-
-  return String(a.ord).localeCompare(String(b.ord), "nb");
+  return compareByCefrThenHeadword(a, b);
 }
 
 function editDistanceWithinLimit(first, second, limit) {
@@ -244,7 +248,10 @@ function editDistanceWithinLimit(first, second, limit) {
 }
 
 function findClosestSearchTerms(query, limit = 5) {
-  if (query.length < 2 || query.length > 32) return [];
+  // Below 3 characters, near-every indexed term is within edit distance 1,
+  // so the scan is both at its most expensive (full pass, few early-outs)
+  // and its least useful (too many, too noisy, to be a real suggestion).
+  if (query.length < 3 || query.length > 32) return [];
 
   const maximumDistance = query.length <= 4 ? 1 : 2;
   const candidates = [];
@@ -1604,34 +1611,50 @@ async function search(queryOverride = null) {
       return;
     }
 
+    // Precompute the match strategy (and, for literal searches, the regexes)
+    // once per query variation rather than once per dictionary row -- these
+    // only depend on `variation`, not on `r`, so rebuilding them ~29k times
+    // (once per row) on every search was pure overhead.
+    const queryVariations = normalizedQueries.map((variation) => {
+      const isInflectedForm =
+        wordSearchResolution.reason === "word-form" ||
+        wordSearchResolution.inflectedLemmas?.includes(variation);
+
+      return isInflectedForm
+        ? { variation, isInflectedForm }
+        : {
+            variation,
+            isInflectedForm,
+            exactRegex: createWholeTermRegex(variation), // Exact match for Unicode words
+            partialRegex: new RegExp(escapeRegExp(variation), "iu"), // Literal partial match for larger words
+          };
+    });
+
     // Filter results by query and selected POS for words
     matchingResults = cleanResults.filter((r) => {
-      const matchesQuery = normalizedQueries.some((variation) => {
-        if (
-          wordSearchResolution.reason === "word-form" ||
-          wordSearchResolution.inflectedLemmas?.includes(variation)
-        ) {
-          return splitSearchTerms(r.ord).includes(variation);
-        }
+      const matchesQuery = queryVariations.some(
+        ({ variation, isInflectedForm, exactRegex, partialRegex }) => {
+          if (isInflectedForm) {
+            return splitSearchTerms(r.ord).includes(variation);
+          }
 
-        // Literal word/translation searches retain their existing exact,
-        // prefix, and substring behavior. Resolved inflections above are
-        // deliberately exact so an inflected form of "bar" cannot also pull
-        // in an unrelated headword such as "barn".
-        const exactRegex = createWholeTermRegex(variation); // Exact match for Unicode words
-        const partialRegex = new RegExp(escapeRegExp(variation), "iu"); // Literal partial match for larger words
-        const wordMatch =
-          exactRegex.test(r.ord.toLowerCase()) ||
-          partialRegex.test(r.ord.toLowerCase());
-        const englishValues = r.engelsk
-          .toLowerCase()
-          .split(",")
-          .map((e) => e.trim());
-        const englishMatch = englishValues.some(
-          (eng) => exactRegex.test(eng) || partialRegex.test(eng),
-        );
-        return wordMatch || englishMatch;
-      });
+          // Literal word/translation searches retain their existing exact,
+          // prefix, and substring behavior. Resolved inflections above are
+          // deliberately exact so an inflected form of "bar" cannot also pull
+          // in an unrelated headword such as "barn".
+          const wordMatch =
+            exactRegex.test(r.ord.toLowerCase()) ||
+            partialRegex.test(r.ord.toLowerCase());
+          const englishValues = r.engelsk
+            .toLowerCase()
+            .split(",")
+            .map((e) => e.trim());
+          const englishMatch = englishValues.some(
+            (eng) => exactRegex.test(eng) || partialRegex.test(eng),
+          );
+          return wordMatch || englishMatch;
+        },
+      );
 
       // Handle POS filtering for nouns and other parts of speech.
       return (
@@ -1641,9 +1664,24 @@ async function search(queryOverride = null) {
       );
     });
 
-    matchingResults.sort((a, b) =>
-      compareWordSearchResults(a, b, query, wordSearchResolution.inflectedLemmas),
+    // getSearchMatchRank re-splits `ord`/`engelsk` on every call, and a
+    // plain `.sort()` comparator calls it twice per comparison -- O(n log n)
+    // times over. For a short, generic query almost the entire dictionary
+    // can match (e.g. "e" matches ~25k of ~29k entries as a substring), so
+    // that redundant recomputation alone took seconds. Rank only depends on
+    // the entry + query, not on what it's being compared against, so
+    // compute it once per entry up front instead.
+    const matchRankByEntry = new Map(
+      matchingResults.map((entry) => [
+        entry,
+        getSearchMatchRank(entry, query, wordSearchResolution.inflectedLemmas),
+      ]),
     );
+
+    matchingResults.sort((a, b) => {
+      const rankDifference = matchRankByEntry.get(a) - matchRankByEntry.get(b);
+      return rankDifference || compareByCefrThenHeadword(a, b);
+    });
 
     if (matchingResults.length === 1) {
       // Update URL and title for a single result
