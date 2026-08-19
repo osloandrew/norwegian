@@ -605,7 +605,12 @@ function stopAllAudio() {
   activeAudio = [];
 }
 
-function renderStats() {
+// `instructionHTML`, when given, is only used the first time this question's
+// stats box is built (see the .game-stats-wrapper guard below) -- every
+// caller that isn't the initial render from renderWordGameUI/
+// renderClozeGameUI omits it, which is fine, since by then the instruction
+// line these two functions render is already in the DOM.
+function renderStats(instructionHTML = "") {
   const statsContainer = document.getElementById("game-session-stats");
   if (!statsContainer) return;
 
@@ -648,6 +653,17 @@ function renderStats() {
   // toolbar (index.html, in .cefr-filter-group) shown and wired once via
   // updateEndSessionToolbarButtonVisibility() below, not re-rendered per
   // question like the rest of this stats row is.
+  // instructionHTML (the question prompt, e.g. "Choose the English
+  // meaning") is nested inside this same column, right under the bar,
+  // rather than being a separate row spanning the whole stats block --
+  // that separate row used to leave a blank gutter beside the (shorter)
+  // correct/incorrect boxes, pushing the word card down for no reason.
+  // Stacking it in here instead means the row's total height is just
+  // whichever column is naturally tallest, with no leftover dead space.
+  const instructionMarkup = instructionHTML
+    ? `<p class="game-instruction">${instructionHTML}</p>`
+    : "";
+
   const middleContentHTML = isSessionRound
     ? `<div class="game-stats-progress-wrapper" style="flex-grow: 1;">
          <p class="game-stat-label">Round progress</p>
@@ -663,6 +679,7 @@ function renderStats() {
              </p>
            </div>
          </div>
+         ${instructionMarkup}
        </div>`
     : `<div class="game-stats-progress-wrapper" style="flex-grow: 1;">
          <p class="game-stat-label">Recent accuracy</p>
@@ -678,6 +695,7 @@ function renderStats() {
              </p>
            </div>
          </div>
+         ${instructionMarkup}
        </div>`;
 
   // Inject HTML only if it hasn't been rendered yet for this question.
@@ -3191,13 +3209,18 @@ function renderWordGameUI(
   // Create placeholder for banners (this will be dynamically updated when banners are shown)
   let bannerPlaceholder = '<div id="game-banner-placeholder"></div>';
 
+  // Rendered by renderStats() below, inside the stats row itself (see
+  // .game-stats-content in styles.css) rather than as a plain line here --
+  // on mobile that lets it sit directly under the progress bar, between
+  // the two colored boxes, instead of adding its own full-width row.
+  const instructionText = getGameInstructionText(mode);
+
   setGameContainerHTML(`
         <!-- Session Stats Section -->
         <div class="game-stats-content" id="game-session-stats">
             <!-- Stats will be updated dynamically in renderStats() -->
         </div>
 
-        <p class="game-instruction">${getGameInstructionText(mode)}</p>
         <div class="game-word-card">
             <div class="game-labels-container">
               <div class="game-label-subgroup">
@@ -3317,7 +3340,7 @@ function renderWordGameUI(
 
   attachGameControls(wordObj, false);
 
-  renderStats(); // Ensure stats are drawn once DOM is fully loaded
+  renderStats(instructionText); // Ensure stats are drawn once DOM is fully loaded
   if (!isReverse) {
     playWordAudio(wordObj);
   }
@@ -3372,13 +3395,18 @@ function renderClozeGameUI(
     clozeTarget.sentence.slice(clozeTarget.endIndex);
   const promptLengthClass = getGamePromptLengthClass(sentenceWithBlank);
 
+  // Rendered by renderStats() below -- see the matching comment in
+  // renderWordGameUI.
+  const instructionText = getGameInstructionText(
+    useTypedRecall ? "typed-cloze" : "cloze",
+  );
+
   setGameContainerHTML(`
     <!-- Session Stats Section -->
     <div class="game-stats-content" id="game-session-stats">
       <!-- Stats will be updated dynamically in renderStats() -->
     </div>
-  
-    <p class="game-instruction">${getGameInstructionText(useTypedRecall ? "typed-cloze" : "cloze")}</p>
+
     <div class="game-word-card">
       <div class="game-labels-container">
         <div class="game-label-subgroup">
@@ -3474,7 +3502,7 @@ function renderClozeGameUI(
 
   attachGameControls(wordObj, true);
 
-  renderStats(); // Ensure stats bar is present after cloze loads too
+  renderStats(instructionText); // Ensure stats bar is present after cloze loads too
 }
 
 // Shared by the cloze sentence and the reverse-flashcard prompt: both

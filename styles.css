@@ -539,6 +539,16 @@ footer .copyright {
   flex: 0 0 40px;
 }
 
+/* .word-list-favorite-button's own height (40px) gets narrowed to 30px
+   under max-width:1024px for the My Words list -- the flex-basis above
+   already re-pins the width back to 40px in that case, but height needs
+   the same explicit override, or the circle renders as a 40x30 oval.
+   Needs the two-class selector (not just .game-my-words-star) to
+   out-specificity that mobile override regardless of source order. */
+.word-list-favorite-button.game-my-words-star {
+  height: 40px;
+}
+
 /* Both empty and filled stars are muted before answering. */
 .game-my-words-star:disabled,
 .game-my-words-star.is-saved:disabled {
@@ -888,7 +898,7 @@ footer .copyright {
 /* Stats Card Styling */
 .game-stats-content {
   align-items: center; /* Keeps the two side boxes and the middle progress
-     bar/button column on one visual row regardless of their differing
+     bar/instruction column on one visual row regardless of their differing
      heights — flex-start (the previous value) top-aligned them instead,
      which left the middle column looking offset whenever it was shorter
      (or taller, e.g. with Quit & see stats above it) than the side boxes. */
@@ -896,6 +906,24 @@ footer .copyright {
   width: 100%; /* Ensure the content takes up full width */
   gap: 10px; /* Adjust the space between boxes */
   margin: 0px 0px 7.5px 0px; /* Center horizontally */
+}
+
+/* .game-instruction (the question prompt, e.g. "Choose the English
+   meaning") is rendered nested inside .game-stats-progress-wrapper (see
+   renderStats(), wordGame.js), stacked directly under the bar rather than
+   as a separate full-width line below the whole stats row. A separate row
+   there sized to the shorter correct/incorrect boxes' own height, but
+   still had to extend for the instruction text anyway -- leaving a blank
+   gutter beside those boxes before the word card. Nesting it here means
+   the row's total height is just whichever column is naturally tallest,
+   with no leftover dead space. Was tuned (font-size, white-space:nowrap)
+   to fit as a single line spanning the full stats row; this column is
+   much narrower, so it needs to wrap instead. */
+.game-stats-progress-wrapper > .game-instruction {
+  margin: 2px 0 0;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 /* Correct box styling */
@@ -2375,13 +2403,11 @@ html.reading .story-report-issue-btn {
 }
 
 @media (max-width: 600px) {
-  /* Sized so the longest current instruction ("Choose the word that
-     completes the sentence") fits the ~366px available width on a 375px
-     viewport without triggering the ellipsis fallback (measured: 346px
-     needed at 13px vs. 373px at the default 14px, which just barely
-     overflowed). white-space:nowrap (see the base .game-instruction rule)
-     is what actually guarantees no wrap; this is what keeps that from
-     visibly truncating text in the common case. */
+  /* Slightly smaller than the 14px default -- .game-instruction now lives
+     inside the narrow .game-stats-progress-wrapper column (see the base
+     rule in styles.css) and wraps across 2-3 lines there rather than
+     needing to fit a single line, but a touch less text per line still
+     keeps that from running unnecessarily tall. */
   .game-instruction {
     font-size: 13px;
   }
@@ -5415,6 +5441,30 @@ ul {
     margin: 0px 0px 5px 0px; /* Center horizontally */
   }
 
+  /* .game-instruction nests inside .game-stats-progress-wrapper at every
+     width (see the base rule above) -- this just tightens its spacing
+     further for the narrower mobile column, on top of the smaller
+     font-size already set for .game-instruction at these widths below. */
+  .game-stats-progress-wrapper > .game-instruction {
+    margin-top: 1px;
+  }
+
+  /* Flatten the progress bar and drop its in-bar text ("Word 5 of 20" /
+     "55%") on every mobile width, not just short-height phones — the
+     label above it (Round progress / Recent accuracy) already says what
+     it is, so the number itself is the only thing worth the extra height.
+     Was previously scoped to max-width:600px and max-height:700px (see
+     that block below); this is now the general mobile look. */
+  .game-stats-accuracy-row .level-progress-bar-bg,
+  .game-stats-accuracy-row .game-session-progress-bg {
+    height: 8px;
+  }
+
+  .game-session-progress-label,
+  .level-progress-label {
+    display: none;
+  }
+
   /* The middle column is too narrow on mobile to fit the accuracy bar and
      the "Quit & see stats" button side by side (see .game-stats-accuracy-row
      in renderStats(), wordGame.js) — stack them instead of letting the bar
@@ -6190,12 +6240,11 @@ ul {
    can otherwise eat most of a 667px-tall viewport before any interactive
    content appears. This trims the vertical rhythm of the stats/
    instruction elements specifically, rather than touching the header or
-   filters shared by the rest of the site. */
+   filters shared by the rest of the site. Flattening the bar and dropping
+   its in-bar text used to live here too, but that's now the general
+   max-width:1024px look (see .game-stats-content there) rather than being
+   gated on a short viewport. */
 @media (max-width: 600px) and (max-height: 700px) {
-  .game-instruction {
-    margin: 2px 0 5px;
-  }
-
   .game-stats-content {
     margin: 0 0 4px 0;
   }
@@ -6215,21 +6264,6 @@ ul {
 
   .game-word-card {
     padding: 8px;
-  }
-
-  /* Flatten the progress bar and drop its in-bar text ("Word 5 of 20" /
-     "55%") — the label above it (Round progress / Recent accuracy)
-     already says what it is, so the number itself is the only thing
-     worth the extra height here. Frees up room for the card and answer
-     choices below to sit a bit higher. */
-  .game-stats-accuracy-row .level-progress-bar-bg,
-  .game-stats-accuracy-row .game-session-progress-bg {
-    height: 8px;
-  }
-
-  .game-session-progress-label,
-  .level-progress-label {
-    display: none;
   }
 }
 
