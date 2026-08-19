@@ -115,7 +115,11 @@
     return isNounGender(raw) ? "noun - " + stripNounPrefix(raw) : raw;
   }
 
-  window.WordClass = Object.freeze({
+  // `self` rather than `window` — identical to window in a normal page (it's
+  // the standard alias for the global object there too), but this also lets
+  // inflectionsWorker.js importScripts() this file to run reverse-index
+  // building off the main thread, where no `window` exists.
+  self.WordClass = Object.freeze({
     NOUN_GENDER_FORMS,
     stripNounPrefix,
     isNounGender,
