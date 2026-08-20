@@ -1,0 +1,325 @@
+Difference Type,Word 1,Word 2,Audio,Are they the same?
+pitch accent,anden,ånden,X,FALSE
+vowel quantity: å,åte,åtte,X,FALSE
+pitch accent,badet,bade,X,FALSE
+vowel quantity: a,bake,bakke,X,FALSE
+vowel quantity: a,bane,banne,X,FALSE
+vowel quality,bar,bår,X,FALSE
+initial consonant,bar,far,X,FALSE
+initial consonant,bar,var,X,FALSE
+initial consonant,bar,tar,X,FALSE
+initial consonant,bar,kar,X,FALSE
+initial consonant,båt,låt,X,FALSE
+initial consonant,båt,våt,X,FALSE
+vowel quantity: y,beskyte,beskytte,X,FALSE
+vowel quantity: i,bil,bille,X,FALSE
+vowel quality,bil,byl,X,FALSE
+vowel quality,bil,bål,X,FALSE
+initial consonant,bil,mil,X,FALSE
+initial consonant,bil,fil,X,FALSE
+initial consonant,bil,sil,X,FALSE
+vowel quantity: i,bit,bitt,X,FALSE
+vowel quantity: e,blek,blekk,X,FALSE
+vowel quantity: ø,bløt,bløtt,X,FALSE
+vowel quantity: o,bod,bodd,X,FALSE
+pitch accent,bønder,bønner,X,FALSE
+vowel quantity: o,bone,bonde,X,FALSE
+vowel quality,bor,byr,X,FALSE
+vowel quality,bor,bår,X,FALSE
+vowel quantity: ø,bøter,bøtter,X,FALSE
+vowel quantity: e,breke,brekke,X,FALSE
+pitch accent,brølet,brøle,X,FALSE
+vowel quantity: u,brud,brudd,X,FALSE
+vowel quality,bur,bor,X,FALSE
+vowel quality,bur,byr,X,FALSE
+vowel quality,bur,bår,X,FALSE
+initial consonant,bur,mur,X,FALSE
+initial consonant,bur,lur,X,FALSE
+vowel quantity: y,byge,bygge,X,FALSE
+vowel quality,byl,bål,X,FALSE
+vowel quality,byr,bår,X,FALSE
+pitch accent,dekket,dekke,X,FALSE
+vowel quantity: ø,død,dødd,X,FALSE
+pitch accent,draget,drage,X,FALSE
+vowel quantity: y,dyp,dypp,X,FALSE
+vowel quality,far,får,X,FALSE
+initial consonant,far,var,X,FALSE
+initial consonant,far,tar,X,FALSE
+initial consonant,far,kar,X,FALSE
+initial consonant,får,vår,X,FALSE
+initial consonant,får,går,X,FALSE
+pitch accent,faret,fare,X,FALSE
+initial consonant,fatt,tatt,X,FALSE
+initial consonant,fatt,datt,X,FALSE
+vowel quantity: e,fele,felle,X,FALSE
+vowel quantity: e,fet,fett,X,FALSE
+initial consonant,fet,vet,X,FALSE
+initial consonant,fet,het,X,FALSE
+initial consonant,fil,sil,X,FALSE
+vowel quantity: i,file,fille,X,FALSE
+initial consonant,fin,vin,X,FALSE
+initial consonant,fin,sin,X,FALSE
+final consonant,fin,fil,X,FALSE
+vowel quantity: i,fine,finne,X,FALSE
+vowel quantity: å,flåten,flåtten,X,FALSE
+vowel quantity: y,flyte,flytte,X,FALSE
+vowel quantity: ø,føl,føll,X,FALSE
+vowel quality,fôr,før,X,FALSE
+vowel quality,fôr,får,X,FALSE
+vowel quality,før,får,X,FALSE
+vowel quality,full,fyll,X,FALSE
+vowel quality,fur,fôr,X,FALSE
+vowel quality,fur,før,X,FALSE
+vowel quality,fur,får,X,FALSE
+vowel quality,fyr,fur,X,FALSE
+vowel quality,fyr,fôr,X,FALSE
+vowel quality,fyr,før,X,FALSE
+vowel quality,fyr,får,X,FALSE
+vowel quantity: i,glipe,glippe,X,FALSE
+pitch accent,gnålet,gnåle,X,FALSE
+vowel quantity: å,gråt,grått,X,FALSE
+pitch accent,grinet,grine,X,FALSE
+vowel quantity: u,gul,gull,X,FALSE
+vowel quantity: a,hake,hakke,X,FALSE
+vowel quantity: å,hån,hånd,X,FALSE
+vowel quality,har,hår,X,FALSE
+final consonant,har,hav,X,FALSE
+initial consonant,hår,lår,X,FALSE
+initial consonant,hår,får,X,FALSE
+initial consonant,hår,vår,X,FALSE
+initial consonant,hår,går,X,FALSE
+vowel quantity: a,hat,hatt,X,FALSE
+final consonant,hat,har,X,FALSE
+final consonant,hat,hav,X,FALSE
+initial consonant,hatt,fatt,X,FALSE
+initial consonant,hatt,tatt,X,FALSE
+initial consonant,hatt,datt,X,FALSE
+vowel quantity: e,hele,helle,X,FALSE
+vowel quantity: e,hete,hette,X,FALSE
+pitch accent,hjemmet,hjemme,X,FALSE
+vowel quality,hus,hos,X,FALSE
+initial consonant,hus,mus,X,FALSE
+initial consonant,hus,lus,X,FALSE
+vowel quantity: y,hyle,hylle,X,FALSE
+vowel quantity: i,ile,ille,X,FALSE
+pitch accent,jaget,jage,X,FALSE
+vowel quantity: a,kake,kakke,X,FALSE
+vowel quality,kar,kår,X,FALSE
+pitch accent,kavet,kave,X,FALSE
+kj/sj contrast,kikk,skikk,X,FALSE
+kj/sj contrast,kinn,skinn,X,FALSE
+kj/sj contrast,kjær,skjær,X,FALSE
+kj/sj contrast,kjære,skjære,X,FALSE
+kj/sj contrast,kjede,skjede,X,FALSE
+kj/sj contrast,kjekk,sjekk,X,FALSE
+kj/sj contrast,kjelen,sjelen,X,FALSE
+kj/sj contrast,Kjell,skjell,X,FALSE
+pitch accent,kjøpet,kjøpe,X,FALSE
+vowel quantity: a,klase,klasse,X,FALSE
+pitch accent,klinet,kline,X,FALSE
+vowel quantity: i,knipe,knippe,X,FALSE
+vowel quality,koll,kull,X,FALSE
+vowel quality,kott,kutt,X,FALSE
+vowel quantity: u,kube,kubbe,X,FALSE
+vowel quantity: u,kul,kull,X,FALSE
+pitch accent,kvinet,kvine,X,FALSE
+initial consonant,lå,gå,X,FALSE
+pitch accent,laget,lage,X,FALSE
+pitch accent,lammet,lamme,X,FALSE
+pitch accent,landet,lande,X,FALSE
+pitch accent,lånet,låne,X,FALSE
+initial consonant,lår,får,X,FALSE
+initial consonant,lår,vår,X,FALSE
+initial consonant,lår,går,X,FALSE
+initial consonant,låt,våt,X,FALSE
+vowel quality,le,li,X,FALSE
+vowel quality,le,ly,X,FALSE
+vowel quality,le,lå,X,FALSE
+vowel quantity: e,lege,legge,X,FALSE
+vowel quantity: e,leke,lekke,X,FALSE
+vowel quantity: e,lese,lesse,X,FALSE
+vowel quantity: e,lete,lette,X,FALSE
+vowel quality,lett,litt,X,FALSE
+vowel quality,lett,lytt,X,FALSE
+vowel quality,lett,lott,X,FALSE
+vowel quality,li,ly,X,FALSE
+vowel quality,li,lå,X,FALSE
+pitch accent,liket,like,X,FALSE
+pitch accent,limet,lime,X,FALSE
+vowel quality,litt,lytt,X,FALSE
+vowel quality,litt,lott,X,FALSE
+pitch accent,livet,live,X,FALSE
+pitch accent,loven,låven,X,FALSE
+pitch accent,løvet,løve,X,FALSE
+vowel quality,lus,los,X,FALSE
+final consonant,lus,lur,X,FALSE
+vowel quantity: u,lut,lutt,X,FALSE
+vowel quality,ly,lå,X,FALSE
+vowel quantity: y,lyne,lynne,X,FALSE
+vowel quantity: y,lyte,lytte,X,FALSE
+vowel quality,lytt,lott,X,FALSE
+initial consonant,må,nå,X,FALSE
+initial consonant,må,lå,X,FALSE
+initial consonant,må,gå,X,FALSE
+final consonant,mål,mår,X,FALSE
+pitch accent,målet,måle,X,FALSE
+vowel quantity: a,mase,masse,X,FALSE
+vowel quantity: a,mat,matt,X,FALSE
+final consonant,mat,mal,X,FALSE
+vowel quantity: a,mate,matte,X,FALSE
+vowel quantity: å,måte,måtte,X,FALSE
+final consonant,mer,mel,X,FALSE
+vowel quality,mett,mitt,X,FALSE
+vowel quality,mett,møtt,X,FALSE
+initial consonant,mil,fil,X,FALSE
+initial consonant,mil,sil,X,FALSE
+vowel quantity: i,mine,minne,X,FALSE
+vowel quality,mitt,møtt,X,FALSE
+vowel quality,mor,myr,X,FALSE
+vowel quality,mor,mår,X,FALSE
+vowel quantity: ø,møte,møtte,X,FALSE
+vowel quality,mur,mor,X,FALSE
+vowel quality,mur,myr,X,FALSE
+vowel quality,mur,mår,X,FALSE
+initial consonant,mur,lur,X,FALSE
+vowel quantity: u,mure,murre,X,FALSE
+vowel quality,mus,mos,X,FALSE
+initial consonant,mus,lus,X,FALSE
+final consonant,mus,mur,X,FALSE
+vowel quality,myr,mår,X,FALSE
+initial consonant,nå,lå,X,FALSE
+initial consonant,nå,gå,X,FALSE
+vowel quantity: å,nåde,nådde,X,FALSE
+pitch accent,naget,nage,X,FALSE
+vowel quantity: a,naken,nakken,X,FALSE
+vowel quality,nett,nytt,X,FALSE
+vowel quality,nett,nøtt,X,FALSE
+vowel quantity: ø,nøt,nøtt,X,FALSE
+vowel quantity: y,nys,nyss,X,FALSE
+vowel quantity: y,nyt,nytt,X,FALSE
+vowel quantity: y,nyte,nytte,X,FALSE
+vowel quality,nytt,nøtt,X,FALSE
+pitch accent,ordet,orde,X,FALSE
+initial consonant,par,bar,X,FALSE
+initial consonant,par,far,X,FALSE
+initial consonant,par,var,X,FALSE
+initial consonant,par,tar,X,FALSE
+initial consonant,par,kar,X,FALSE
+vowel quantity: e,pen,penn,X,FALSE
+initial consonant,pil,bil,X,FALSE
+initial consonant,pil,mil,X,FALSE
+initial consonant,pil,fil,X,FALSE
+initial consonant,pil,sil,X,FALSE
+vowel quantity: i,piler,piller,X,FALSE
+vowel quantity: i,pine,pinne,X,FALSE
+vowel quantity: u,pus,puss,X,FALSE
+vowel quantity: u,pute,putte,X,FALSE
+vowel quality,rad,råd,X,FALSE
+vowel quantity: å,råde,rådde,X,FALSE
+pitch accent,ranet,rane,X,FALSE
+vowel quantity: a,rape,rappe,X,FALSE
+pitch accent,ravet,rave,X,FALSE
+vowel quantity: e,reke,rekke,X,FALSE
+vowel quantity: e,ren,renn,X,FALSE
+vowel quantity: e,rene,renne,X,FALSE
+vowel quality,rett,ritt,X,FALSE
+vowel quality,rett,rått,X,FALSE
+vowel quantity: i,rike,rikke,X,FALSE
+pitch accent,rimet,rime,X,FALSE
+final consonant,ris,rir,X,FALSE
+vowel quality,ritt,rått,X,FALSE
+vowel quantity: u,rus,russ,X,FALSE
+vowel quality,rus,ros,X,FALSE
+vowel quantity: u,rute,rutte,X,FALSE
+vowel quantity: y,ryke,rykke,X,FALSE
+vowel quantity: a,same,samme,X,FALSE
+initial consonant,satt,hatt,X,FALSE
+initial consonant,satt,fatt,X,FALSE
+initial consonant,satt,tatt,X,FALSE
+initial consonant,satt,datt,X,FALSE
+vowel quality,se,si,X,FALSE
+vowel quality,se,sy,X,FALSE
+vowel quality,se,så,X,FALSE
+final consonant,sel,sen,X,FALSE
+final consonant,ser,sel,X,FALSE
+final consonant,ser,sen,X,FALSE
+vowel quantity: e,sete,sette,X,FALSE
+vowel quality,sett,sitt,X,FALSE
+vowel quality,sett,sytt,X,FALSE
+vowel quality,sett,søtt,X,FALSE
+vowel quality,sett,sått,X,FALSE
+vowel quality,si,sy,X,FALSE
+vowel quality,si,så,X,FALSE
+vowel quality,sil,syl,X,FALSE
+vowel quality,sil,sel,X,FALSE
+final consonant,sin,sil,X,FALSE
+vowel quantity: i,sine,sinne,X,FALSE
+vowel quality,sitt,sytt,X,FALSE
+vowel quality,sitt,søtt,X,FALSE
+vowel quality,sitt,sått,X,FALSE
+pitch accent,sivet,sive,X,FALSE
+vowel quantity: e,skrek,skrekk,X,FALSE
+vowel quantity: y,skryt,skrytt,X,FALSE
+vowel quantity: u,skure,skurre,X,FALSE
+vowel quantity: y,skyter,skytter,X,FALSE
+vowel quantity: å,slås,slåss,X,FALSE
+vowel quantity: i,slike,slikke,X,FALSE
+vowel quantity: i,slipe,slippe,X,FALSE
+vowel quantity: i,slite,slitte,X,FALSE
+pitch accent,smilet,smile,X,FALSE
+vowel quantity: ø,snør,snørr,X,FALSE
+pitch accent,sølet,søle,X,FALSE
+vowel quality,sør,sår,X,FALSE
+vowel quantity: ø,søt,søtt,X,FALSE
+vowel quality,søtt,sått,X,FALSE
+vowel quantity: a,spade,spadde,X,FALSE
+vowel quantity: i,spiler,spiller,X,FALSE
+pitch accent,stimen,stime,X,FALSE
+vowel quantity: ø,støt,støtt,X,FALSE
+vowel quantity: ø,støte,støtte,X,FALSE
+pitch accent,støvet,støve,X,FALSE
+vowel quantity: e,strek,strekk,X,FALSE
+vowel quantity: i,stripe,strippe,X,FALSE
+pitch accent,stupet,stupe,X,FALSE
+vowel quantity: u,supe,suppe,X,FALSE
+vowel quantity: u,sur,surr,X,FALSE
+vowel quality,sur,syr,X,FALSE
+vowel quality,sur,sør,X,FALSE
+vowel quality,sur,sår,X,FALSE
+vowel quantity: u,sus,suss,X,FALSE
+vowel quantity: u,suse,susse,X,FALSE
+vowel quality,sy,så,X,FALSE
+vowel quality,syl,sel,X,FALSE
+vowel quantity: y,syn,synd,X,FALSE
+vowel quality,syr,sør,X,FALSE
+vowel quality,syr,sår,X,FALSE
+vowel quality,sytt,søtt,X,FALSE
+vowel quality,sytt,sått,X,FALSE
+vowel quantity: a,tak,takk,X,FALSE
+final consonant,tak,tal,X,FALSE
+final consonant,tak,tar,X,FALSE
+vowel quantity: a,tal,tall,X,FALSE
+final consonant,tal,tar,X,FALSE
+vowel quantity: a,tape,tappe,X,FALSE
+vowel quantity: a,taper,tapper,X,FALSE
+initial consonant,tar,kar,X,FALSE
+initial consonant,tatt,datt,X,FALSE
+vowel quality,te,ti,X,FALSE
+vowel quality,te,tå,X,FALSE
+vowel quality,ti,tå,X,FALSE
+vowel quantity: i,tiger,tigger,X,FALSE
+vowel quality,toll,tull,X,FALSE
+vowel quantity: å,tråd,trådd,X,FALSE
+vowel quantity: y,tyne,tynne,X,FALSE
+vowel quantity: a,vane,vanne,X,FALSE
+vowel quality,var,vår,X,FALSE
+initial consonant,var,tar,X,FALSE
+initial consonant,var,kar,X,FALSE
+initial consonant,vår,går,X,FALSE
+vowel quantity: a,vase,vasse,X,FALSE
+vowel quantity: å,våt,vått,X,FALSE
+vowel quantity: e,vet,vett,X,FALSE
+initial consonant,vet,het,X,FALSE
+vowel quantity: i,vin,vinn,X,FALSE
+initial consonant,vin,sin,X,FALSE
+vowel quantity: i,vise,visse,X,FALSE

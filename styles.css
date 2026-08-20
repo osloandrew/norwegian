@@ -1993,6 +1993,32 @@ p.game-summary-stat-label {
   text-align: center;
 }
 
+.game-minimal-pairs-missed-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.game-minimal-pairs-missed-list li {
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 0.9em;
+  padding: 8px 0;
+}
+
+.game-minimal-pairs-missed-list li:last-child {
+  border-bottom: none;
+}
+
+/* Deliberately not .distractor-muted: that class sets pointer-events:none,
+   right for the regular game's true wrong-distractor cards, wrong here —
+   with only two cards total, the unchosen one is never an irrelevant
+   distractor, just the other word in the pair, and it must stay clickable
+   for audio replay (see handleMinimalPairAnswer). */
+.game-minimal-pairs-unselected {
+  opacity: 0.6;
+}
+
 /* Plain block wrapper so the round-progress row below stacks under the
    stats bar instead of becoming a flex sibling of it (#game-session-stats
    itself is a .game-stats-content flex row). */

@@ -115,7 +115,10 @@ assert.doesNotMatch(source, /feedback\.innerHTML = `Correct answer:/);
 const answerButtonMatches = source.match(
   /<button type="button" class="game-translation-card"/g,
 );
-assert.equal(answerButtonMatches?.length, 2);
+// renderWordGameUI, renderClozeGameUI, and renderMinimalPairQuestion — real
+// <button> elements every time, never the <div> the next assertion guards
+// against.
+assert.equal(answerButtonMatches?.length, 3);
 assert.doesNotMatch(source, /<div class="game-translation-card"/);
 assert.doesNotMatch(source, /Correct:<\/|Correct: \$\{/);
 
