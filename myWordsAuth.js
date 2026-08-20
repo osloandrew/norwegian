@@ -83,6 +83,7 @@
   let abilityPushTimeoutId = null;
   let streakPushTimeoutId = null;
   let dailyQuestPushTimeoutId = null;
+  let showEnglishPushTimeoutId = null;
   let wasSignedInThisSession = false;
 
   // Words/streak/ability data saved locally must not leak into whichever
@@ -298,6 +299,22 @@
       });
   }
 
+  function pushShowEnglishNow(userId, showEnglish) {
+    getUserDocRef(userId)
+      .set(
+        {
+          showEnglish,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      )
+      .then(clearSyncStatusError)
+      .catch((error) => {
+        console.warn("English visibility could not be synced.", error);
+        showSyncStatusError();
+      });
+  }
+
   // Debounced writes need their latest pending value kept around outside
   // the setTimeout closure, so a flush (tab hidden/closed before the 800ms
   // fires) can push it immediately instead of losing it.
@@ -307,6 +324,7 @@
   let pendingAbility = null;
   let pendingStreak = null;
   let pendingDailyQuest = null;
+  let pendingShowEnglish = null;
 
   function schedulePush(entryIds, entryTimestamps) {
     if (!currentUserId) {
@@ -380,6 +398,20 @@
     }, PUSH_DEBOUNCE_MS);
   }
 
+  function scheduleShowEnglishPush(showEnglish) {
+    if (!currentUserId) {
+      return;
+    }
+
+    pendingShowEnglish = showEnglish;
+    window.clearTimeout(showEnglishPushTimeoutId);
+    showEnglishPushTimeoutId = window.setTimeout(() => {
+      showEnglishPushTimeoutId = null;
+      pendingShowEnglish = null;
+      pushShowEnglishNow(currentUserId, showEnglish);
+    }, PUSH_DEBOUNCE_MS);
+  }
+
   // Fires when the tab is backgrounded, closed, or navigated away from —
   // pushes anything still waiting out its debounce instead of risking it
   // being silently dropped if the page never becomes active again.
@@ -426,6 +458,13 @@
       dailyQuestPushTimeoutId = null;
       pushDailyQuestNow(currentUserId, pendingDailyQuest);
       pendingDailyQuest = null;
+    }
+
+    if (showEnglishPushTimeoutId !== null) {
+      window.clearTimeout(showEnglishPushTimeoutId);
+      showEnglishPushTimeoutId = null;
+      pushShowEnglishNow(currentUserId, pendingShowEnglish);
+      pendingShowEnglish = null;
     }
   }
 
@@ -498,6 +537,10 @@
 
         if (data.dailyPractice && typeof data.dailyPractice === "object") {
           window.DailyQuestAPI?.replaceState?.(data.dailyPractice);
+        }
+
+        if (typeof data.showEnglish === "boolean") {
+          window.EnglishVisibilityAPI?.replaceState?.(data.showEnglish);
         }
       },
       (error) => {
@@ -668,6 +711,20 @@
           gemCounts: mergedGemCounts,
         }) ?? localDailyPractice;
 
+      // A plain display preference, not per-word progress, so there's no
+      // "more progress wins" comparison to make — whichever side actually
+      // has a value in the account doc wins (it reflects a real choice made
+      // on some device), falling back to this device's local value only if
+      // the account has never recorded one yet.
+      const remoteShowEnglish =
+        typeof remoteData.showEnglish === "boolean"
+          ? remoteData.showEnglish
+          : null;
+      const mergedShowEnglish =
+        remoteShowEnglish === null
+          ? (window.EnglishVisibilityAPI?.getState?.() ?? false)
+          : remoteShowEnglish;
+
       // entryIds/entryTimestamps were already reconciled and saved above,
       // via reconcileEntryIds — nothing further to apply here.
       window.WordStrengthAPI?.replaceAll?.(mergedStrengths);
@@ -679,6 +736,7 @@
       }
       window.StreakAPI?.replaceState?.(mergedStreak);
       window.DailyQuestAPI?.replaceState?.(mergedDailyPractice);
+      window.EnglishVisibilityAPI?.replaceState?.(mergedShowEnglish);
 
       pushEntryIdsNow(
         userId,
@@ -691,6 +749,7 @@
       }
       pushStreakNow(userId, mergedStreak);
       pushDailyQuestNow(userId, mergedDailyPractice);
+      pushShowEnglishNow(userId, mergedShowEnglish);
     } catch (error) {
       console.warn("Your saved words could not be loaded from your account.", error);
     }
@@ -849,6 +908,16 @@
     }
 
     scheduleDailyQuestPush(event.detail?.dailyPractice ?? {});
+  });
+
+  // Fired by englishVisibility.js's setEnglishVisible() whenever the
+  // show/hide-English preference changes.
+  window.addEventListener("english-visibility:updated", (event) => {
+    if (event.detail?.syncRemote === false) {
+      return;
+    }
+
+    scheduleShowEnglishPush(Boolean(event.detail?.isEnglishVisible));
   });
 
   signInNudgeDismissButton?.addEventListener("click", () => {

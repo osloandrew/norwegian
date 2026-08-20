@@ -1,10 +1,7 @@
 let storyResults = []; // Global variable to store the stories
 let currentSpeed = 1.0; // default speed
-// Deliberately a separate flag from scripts.js's isEnglishVisible (used by
-// Sentence Search) rather than sharing it — defaults to hidden now that
-// click-to-define gives a per-word hint, without changing Sentence
-// Search's own default.
-let isStoryEnglishVisible = false;
+// isEnglishVisible/setEnglishVisible live in englishVisibility.js, shared
+// with Sentence Search and Pronunciation.
 
 // Titles (titleNorwegian) the learner has opened before. Used only to
 // softly deprioritize already-seen stories in the weighted list ordering
@@ -331,7 +328,7 @@ function updateStoriesListMetadata() {
 function updateEnglishVisibility() {
   const englishSentences = document.querySelectorAll(".english-sentence");
   const toggleEnglishBtn = document.getElementById("toggle-english-btn"); // Dynamically find the button
-  if (isStoryEnglishVisible) {
+  if (isEnglishVisible) {
     englishSentences.forEach((sentence) => {
       sentence.style.display = "block";
     });
@@ -874,7 +871,7 @@ function displayStory(titleNorwegian) {
   if (rc) {
     rc.innerHTML = `
     <button id="toggle-english-btn" class="toggle-english-btn">
-      ${isStoryEnglishVisible ? "Hide English" : "Show English"}
+      ${isEnglishVisible ? "Hide English" : "Show English"}
     </button>
   `;
   }
@@ -936,10 +933,10 @@ function displayStory(titleNorwegian) {
   document
     .getElementById("toggle-english-btn")
     ?.addEventListener("click", () => {
-      isStoryEnglishVisible = !isStoryEnglishVisible;
+      setEnglishVisible(!isEnglishVisible);
       updateEnglishVisibility();
       const b = document.getElementById("toggle-english-btn");
-      if (b) b.textContent = isStoryEnglishVisible ? "Hide English" : "Show English";
+      if (b) b.textContent = isEnglishVisible ? "Hide English" : "Show English";
     });
 
   // DIAG 2: force a visible audio control even if the real file is missing
