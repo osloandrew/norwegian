@@ -4179,23 +4179,45 @@ const MY_WORDS_MAX_SHARE = 0.85;
 // units — this is what stands in for the old hard CEFR-level cutoff. A word
 // right at the estimated ability gets full weight; one further away fades
 // out smoothly rather than being excluded outright.
+//
+// The floor keeps that falloff from ever reaching zero. Without it, a word
+// two or more CEFR bands from a learner's ability (e.g. an A1 word for a
+// B2/C learner) gets a weight on the order of 1e-6 relative to an
+// on-level word — not merely unlikely, but never drawn in practice. Real
+// vocabulary gaps at other bands would then never surface again once
+// ability climbs. NEW_WORD_ABILITY_FLOOR is expressed relative to a
+// same-level word's weight of 1, and is only ever applied to the `new`
+// queue (see getGameWordWeight) — words already due for review don't need
+// it, since their turn is earned by scheduling, not by CEFR proximity.
+const NEW_WORD_ABILITY_FLOOR = 0.03;
+
 function getAbilityProximityWeight(entry) {
   if (abilityScore === null) return 1;
 
   const distance = getWordDifficultyAnchor(entry) - abilityScore;
-  return Math.exp(
+  const gaussian = Math.exp(
     -(distance * distance) / (2 * ABILITY_PROXIMITY_SIGMA * ABILITY_PROXIMITY_SIGMA),
   );
+
+  return Math.max(NEW_WORD_ABILITY_FLOOR, gaussian);
 }
 
-function getGameWordWeight(entry) {
+// useAbilityWeight is false for queues built from words the learner has
+// already been exposed to (due, relearning, scheduled): a due word already
+// earned its turn through the SRS schedule, and re-weighting it down for
+// being "off-level" would let it lose out indefinitely to due words closer
+// to current ability, undermining spaced repetition. Ability proximity only
+// applies when choosing what unseen word to introduce next (queue "new").
+function getGameWordWeight(entry, { useAbilityWeight = true } = {}) {
   const strength = window.WordStrengthAPI?.get?.(entry) ?? 0;
   const strengthWeight = Math.pow(
     STRENGTH_WEIGHT_CEILING - strength,
     STRENGTH_WEIGHT_EXPONENT,
   );
 
-  return strengthWeight * getAbilityProximityWeight(entry);
+  return useAbilityWeight
+    ? strengthWeight * getAbilityProximityWeight(entry)
+    : strengthWeight;
 }
 
 /*
@@ -4223,7 +4245,7 @@ function pickWeightedGameWord(entries, weights) {
   return entries[entries.length - 1]; // floating-point rounding fallback
 }
 
-function pickPrioritizedGameWord(eligibleEntries) {
+function pickPrioritizedGameWord(eligibleEntries, { useAbilityWeight = true } = {}) {
   const savedRecords = window.MyWordsAPI?.getSavedEntries?.() ?? [];
 
   /*
@@ -4237,7 +4259,9 @@ function pickPrioritizedGameWord(eligibleEntries) {
   // Each entry's strength weight involves a WordStrengthAPI lookup — worth
   // computing exactly once per entry rather than re-deriving it for the
   // pool totals below and again for the draw itself.
-  const strengthWeights = eligibleEntries.map(getGameWordWeight);
+  const strengthWeights = eligibleEntries.map((entry) =>
+    getGameWordWeight(entry, { useAbilityWeight }),
+  );
 
   if (savedEntries.size === 0) {
     return pickWeightedGameWord(eligibleEntries, strengthWeights);
@@ -4325,7 +4349,21 @@ function pickNearestScheduledGameWord(entries) {
     .slice(0, Math.min(50, entries.length))
     .map(({ entry }) => entry);
 
-  return pickPrioritizedGameWord(nearest);
+  // Already-scheduled words are calibrated review material, same reasoning
+  // as the due/relearning queues in fetchRandomWord — no ability weighting.
+  return pickPrioritizedGameWord(nearest, { useAbilityWeight: false });
+}
+
+// Words already-answered-correctly or already-introduced this round are
+// candidates the filler draw picks between — excludes whichever word was
+// just shown (previousWord), unless that's the only candidate left, since
+// this path bypasses getEligibleGameWords' own same-word guard entirely.
+function excludePreviousFillerWord(entries) {
+  if (entries.length <= 1) return entries;
+
+  const filtered = entries.filter((entry) => entry.ord !== previousWord);
+
+  return filtered.length > 0 ? filtered : entries;
 }
 
 // Once a session round has introduced its full target word count, every
@@ -4339,8 +4377,10 @@ function pickWordGameSessionFillerWord() {
   const queuedWords = new Set(
     incorrectWordQueue.map((entry) => entry.wordObj),
   );
-  const reviewCandidates = Array.from(wordGameSessionCorrectWords).filter(
-    (entry) => !queuedWords.has(entry),
+  const reviewCandidates = excludePreviousFillerWord(
+    Array.from(wordGameSessionCorrectWords).filter(
+      (entry) => !queuedWords.has(entry),
+    ),
   );
 
   if (reviewCandidates.length > 0) {
@@ -4354,7 +4394,9 @@ function pickWordGameSessionFillerWord() {
   // been missed) — pick from all introduced words rather than returning
   // nothing, even if that means showing one slightly ahead of its own
   // scheduled reintroduction.
-  const introduced = Array.from(wordGameSessionIntroducedWords);
+  const introduced = excludePreviousFillerWord(
+    Array.from(wordGameSessionIntroducedWords),
+  );
 
   return introduced.length > 0
     ? introduced[Math.floor(Math.random() * introduced.length)]
@@ -4367,7 +4409,17 @@ async function fetchRandomWord() {
     wordGameSessionIntroducedWords.size >= wordGameSessionTarget
   ) {
     currentWordQueueType = "session-filler";
-    return pickWordGameSessionFillerWord();
+
+    const fillerEntry = pickWordGameSessionFillerWord();
+
+    // getEligibleGameWords' previousWord check is bypassed on this path, so
+    // it's kept in sync here instead — otherwise a later non-filler draw in
+    // the same round wouldn't know a filler question was just shown.
+    if (fillerEntry) {
+      previousWord = fillerEntry.ord;
+    }
+
+    return fillerEntry;
   }
 
   const selectedPOS = document.getElementById("pos-select")
@@ -4393,10 +4445,17 @@ async function fetchRandomWord() {
   const queues = buildGameWordQueues(eligibleEntries);
   const queueName = getNextGameQueueName(queues);
   currentWordQueueType = queueName;
+  // Ability weighting only shapes which unseen word gets introduced next
+  // (queue "new"). Due/relearning words already earned their turn via the
+  // SRS schedule, so they're drawn purely by strength — see
+  // getGameWordWeight for why letting CEFR distance deprioritize a due word
+  // would work against spaced repetition.
   const selectedEntry =
     queueName === "scheduled"
       ? pickNearestScheduledGameWord(queues.scheduled)
-      : pickPrioritizedGameWord(queues[queueName] ?? []);
+      : pickPrioritizedGameWord(queues[queueName] ?? [], {
+          useAbilityWeight: queueName === "new",
+        });
 
   if (!selectedEntry) {
     return null;
