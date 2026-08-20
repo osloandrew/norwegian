@@ -573,6 +573,17 @@ try {
   // Ignore — best-effort cleanup only.
 }
 
+// On a local dev/test server (not the deployed osloandrew.github.io site),
+// always fetch fresh CSV data instead of serving a stale cached copy — the
+// whole point of a local test environment is seeing edits to the CSV files
+// immediately, not up to 24h later. Duplicated in stories.js since each
+// file's cache is otherwise independent.
+function isLocalDevHost() {
+  return (
+    location.hostname === "127.0.0.1" || location.hostname === "localhost"
+  );
+}
+
 function openWordCSVDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(WORD_CSV_DB_NAME, 1);
@@ -590,6 +601,7 @@ function openWordCSVDB() {
 // Returns null on a cache miss, a read error, or if the cache is stale.
 async function readCachedWordCSV() {
   if (!("indexedDB" in window)) return null;
+  if (isLocalDevHost()) return null;
 
   try {
     const db = await openWordCSVDB();

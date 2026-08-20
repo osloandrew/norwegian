@@ -752,13 +752,14 @@ function updateAbilityScore(wordObj, isCorrect) {
 
 function toggleGameEnglish() {
   const englishSelect = document.getElementById("game-english-select");
+  setEnglishVisible(englishSelect.value === "show-english");
+
   const translationElement = document.querySelector(
     ".game-cefr-spacer .game-english-translation",
   );
 
   if (translationElement) {
-    translationElement.style.display =
-      englishSelect.value === "show-english" ? "block" : "none";
+    translationElement.style.display = isEnglishVisible ? "block" : "none";
   }
 }
 
@@ -3065,6 +3066,10 @@ async function startWordGame() {
 
   gameEnglishSelect.style.display = "inline-flex"; // Hide random button
   gameEnglishFilterContainer.style.display = "inline-flex";
+  // Reflect the shared show/hide-English setting (also used by Sentence
+  // Search, Pronunciation, and Stories) instead of always defaulting to
+  // "show-english".
+  gameEnglishSelect.value = isEnglishVisible ? "show-english" : "hide-english";
 
   posSelect.value = ""; // Reset to "Part of Speech" option
   posFilterContainer.style.display = "none";
@@ -4570,9 +4575,7 @@ async function handleTranslationClick(
 
     const translationHTML = `
       <p class="game-english-translation" style="display: ${
-        document.getElementById("game-english-select").value === "show-english"
-          ? "inline-block"
-          : "none"
+        isEnglishVisible ? "inline-block" : "none"
       };">${sentenceTranslation}</p>`;
 
     document.querySelector(".game-cefr-spacer").innerHTML = `
@@ -4589,9 +4592,7 @@ async function handleTranslationClick(
   } else if (exampleSentence && isCloze) {
     const translationHTML = `
       <p class="game-english-translation" style="display: ${
-        document.getElementById("game-english-select").value === "show-english"
-          ? "inline-block"
-          : "none"
+        isEnglishVisible ? "inline-block" : "none"
       };">${sentenceTranslation}</p>`;
 
     document.querySelector(".game-cefr-spacer").innerHTML = `
