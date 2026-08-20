@@ -241,10 +241,21 @@
     // Callers with a dictionary entry always pass its gender. Retain a safe
     // gender-agnostic API for general reverse lookup by combining the distinct
     // noun senses without using that combined view in a learner-facing table.
-    const paradigms = WordClass.NOUN_GENDER_FORMS.map((nounGender) =>
-      createParadigmFromKey(createRecordKey(lemma, wordClass, nounGender)),
-    ).filter(Boolean);
-    const genderlessParadigm = createParadigmFromKey(`n:${normalizeLemma(lemma)}`);
+    // Only keys with an actual snapshot record count as a real sense here —
+    // createParadigmFromKey's per-key fallback estimate would otherwise
+    // "succeed" for every one of NOUN_GENDER_FORMS on any lemma, making every
+    // noun look like it has every gender at once and erasing the real one.
+    const paradigms = WordClass.NOUN_GENDER_FORMS.filter((nounGender) =>
+      snapshot?.forms?.[createRecordKey(lemma, wordClass, nounGender)],
+    )
+      .map((nounGender) =>
+        createParadigmFromKey(createRecordKey(lemma, wordClass, nounGender)),
+      )
+      .filter(Boolean);
+    const genderlessKey = `n:${normalizeLemma(lemma)}`;
+    const genderlessParadigm = snapshot?.forms?.[genderlessKey]
+      ? createParadigmFromKey(genderlessKey)
+      : null;
     if (genderlessParadigm) paradigms.push(genderlessParadigm);
     if (paradigms.length === 0) return null;
     if (paradigms.length === 1) return paradigms[0];

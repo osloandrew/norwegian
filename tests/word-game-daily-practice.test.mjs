@@ -7,8 +7,17 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "wordGame.js"), "utf8");
 const storage = new Map();
-const context = vm.createContext({ Date, JSON, Math, Object, Set, String });
+const context = vm.createContext({
+  Date,
+  JSON,
+  Math,
+  Object,
+  Set,
+  String,
+  CustomEvent,
+});
 context.window = context;
+context.window.dispatchEvent = () => {};
 context.localStorage = {
   getItem: (key) => storage.get(key) ?? null,
   setItem: (key, value) => storage.set(key, value),
