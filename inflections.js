@@ -5,7 +5,7 @@
 (function () {
   "use strict";
 
-  const DATA_VERSION = 10;
+  const DATA_VERSION = 11;
   const DATA_URL = `inflections-data.json?v=${DATA_VERSION}`;
   const MAX_PENDING_ENTRIES = 100;
   const CLASS_PREFIX = {
@@ -321,18 +321,27 @@
         ? [...articles, "en"]
         : articles;
 
-    return {
-      wordClass: "noun",
-      forms: [
+    const forms = [];
+    // Norsk Ordbank encodes a plurale tantum (klær, bompenger, ...) with no
+    // definite singular form at all, rather than an unknown one — record[0]
+    // is empty only when the noun genuinely has no singular. Omit both
+    // singular rows entirely for those, matching ordbokene.no, instead of
+    // showing a fabricated "et klær" article next to a "–" placeholder.
+    if (record[0].length > 0) {
+      forms.push(
         {
           label: "Indefinite singular",
           value: displayValue(indefiniteArticles, (article) => `${article} ${lemma}`),
         },
         { label: "Definite singular", value: displayValue(record[0]) },
-        { label: "Indefinite plural", value: displayValue(record[1]) },
-        { label: "Definite plural", value: displayValue(record[2]) },
-      ],
-    };
+      );
+    }
+    forms.push(
+      { label: "Indefinite plural", value: displayValue(record[1]) },
+      { label: "Definite plural", value: displayValue(record[2]) },
+    );
+
+    return { wordClass: "noun", forms };
   }
 
   function createAdjectiveForms(record) {
