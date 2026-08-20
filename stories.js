@@ -107,7 +107,20 @@ function normalizeStoryEntries(entries) {
   }));
 }
 
+// On a local dev/test server (not the deployed osloandrew.github.io site),
+// always fetch fresh CSV data instead of serving a stale cached copy — the
+// whole point of a local test environment is seeing edits to the CSV files
+// immediately, not up to 24h later. Duplicated in scripts.js since each
+// file's cache is otherwise independent.
+function isLocalDevHost() {
+  return (
+    location.hostname === "127.0.0.1" || location.hostname === "localhost"
+  );
+}
+
 function readCachedStoryData() {
+  if (isLocalDevHost()) return null;
+
   try {
     const cached = localStorage.getItem(STORY_CACHE_KEY);
     if (!cached) return null;
