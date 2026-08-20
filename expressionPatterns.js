@@ -240,6 +240,25 @@
     return candidates;
   }
 
+  // Verb-fronting heuristics below ask "could this node actually be a finite
+  // verb that moved in front of the rest of the expression?" A candidate only
+  // answers that honestly when it is backed by a real dictionary/Ordbank
+  // record (candidate.paradigm.key is non-empty). getParadigmForLemma falls
+  // back to a fully fabricated regular-inflection guess (paradigm.key: "")
+  // for ANY string with no matching record at all -- e.g. it will happily
+  // invent a made-up verb "å med" for the preposition "med" because nothing
+  // rules out a lemma just for being closed-class. Treating that guess as
+  // real previously let "regne med" also accept its reverse, "med regn...",
+  // matching any unrelated sentence about rain ("med regn i lufta").
+  // PREPOSITIONS is excluded outright since a preposition can never be a
+  // finite verb regardless of what any paradigm lookup returns.
+  function hasFrontableVerbCandidate(node) {
+    if (!node || PREPOSITIONS.has(node.normalized)) return false;
+    return (node.candidates || []).some(
+      (candidate) => candidate.wordClass === "verb" && candidate.paradigm?.key,
+    );
+  }
+
   function getSlotsContaining(candidate, surface) {
     const normalizedSurface = normalize(surface);
     const direct = (candidate?.paradigm?.slots || []).flatMap((forms, index) =>
@@ -807,7 +826,7 @@
     }
     if (
       PREVERBAL_ADVERBS.has(nodes[0]?.normalized) &&
-      nodes[1]?.candidates?.some((candidate) => candidate.wordClass === "verb")
+      hasFrontableVerbCandidate(nodes[1])
     ) {
       matchOrders.push([1, 0, ...naturalOrder.slice(2)]);
       if (nodes[2]?.normalized === "seg") {
@@ -816,19 +835,14 @@
     }
     if (
       nodes.length > 2 &&
-      nodes[nodes.length - 1]?.candidates?.some(
-        (candidate) => candidate.wordClass === "verb",
-      )
+      hasFrontableVerbCandidate(nodes[nodes.length - 1])
     ) {
       matchOrders.push([
         nodes.length - 1,
         ...naturalOrder.slice(0, nodes.length - 1),
       ]);
     }
-    if (
-      nodes.length > 1 &&
-      nodes[1]?.candidates?.some((candidate) => candidate.wordClass === "verb")
-    ) {
+    if (nodes.length > 1 && hasFrontableVerbCandidate(nodes[1])) {
       matchOrders.push([1, 0, ...naturalOrder.slice(2)]);
       if (PREVERBAL_ADVERBS.has(nodes[2]?.normalized)) {
         matchOrders.push([1, 2, 0, ...naturalOrder.slice(3)]);

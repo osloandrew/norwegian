@@ -8,6 +8,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "wordGame.js"), "utf8");
 const context = vm.createContext({ Math, Object, Set, String });
 context.window = context;
+context.self = context;
 vm.runInContext(fs.readFileSync(path.join(root, "wordClass.js"), "utf8"), context, {
   filename: "wordClass.js",
 });

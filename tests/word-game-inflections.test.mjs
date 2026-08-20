@@ -10,6 +10,7 @@ const snapshot = JSON.parse(
 );
 const context = vm.createContext({ console, Map, Promise, Set });
 context.window = context;
+context.self = context;
 context.__BOKMAL_INFLECTIONS_DATA__ = snapshot;
 context.BANNED_WORD_CLASSES = [];
 context.noRandom = [];

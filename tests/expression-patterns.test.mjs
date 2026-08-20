@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const context = vm.createContext({ console, Map, Promise, Set, setTimeout });
 context.window = context;
+context.self = context;
 context.__BOKMAL_INFLECTIONS_DATA__ = JSON.parse(
   fs.readFileSync(path.join(root, "inflections-data.json"), "utf8"),
 );
