@@ -339,6 +339,181 @@ const TYPED_RECALL_PROBABILITY = Object.freeze({
   cloze: Object.freeze({ 2: 0.25, 3: 0.5, 4: 0.75, 5: 1 }),
   reverse: Object.freeze({ 3: 0.35, 4: 0.65, 5: 0.9 }),
 });
+
+// --- Game-mode registry ---------------------------------------------------
+// One entry per exercise mode, gradually growing to hold everything that's
+// specific to that mode (today: selection eligibility/odds, instruction
+// text, and top-level rendering dispatch; answer-checking still lives where
+// it always has — see handleTranslationClick()). "forward", "typed-reverse",
+// and "typed-cloze" don't define isEligible/matchesStructuredMode/
+// freePlayProbability: they aren't top-level selection outcomes — forward is
+// selectQuestionMode()'s implicit default, and the two typed variants are
+// sub-decisions made after cloze/reverse are already chosen (see
+// shouldUseTypedRecall) — so those three fields would never be consulted for
+// them. Likewise only cloze/listening/reverse/forward define renderQuestion:
+// those are the only values selectQuestionMode() can actually return: the
+// two typed variants are chosen *inside* renderQuestion for cloze/reverse,
+// not looked up separately.
+const GAME_MODES = Object.freeze({
+  cloze: Object.freeze({
+    // No pre-check here: cloze eligibility (a usable example sentence, a
+    // non-banned word class, enough same-slot distractors) can only be
+    // confirmed by actually attempting to build the question — see
+    // renderQuestion below, which falls back to a forward flashcard on
+    // failure rather than trying a different mode.
+    isEligible: () => true,
+    matchesStructuredMode: (structuredMode) => structuredMode === "cloze",
+    freePlayProbability: () => 0.5,
+    instructionText: () => "Choose the word that completes the sentence",
+    // Moved verbatim from startWordGame's old inline cloze branch — same
+    // fallback-to-forward-flashcard behavior on every failure path,
+    // preserved exactly per the "don't change the fallback quirk" call.
+    async renderQuestion({ wordObj, fallbackTranslations }) {
+      if (
+        BANNED_WORD_CLASSES.some((b) =>
+          wordObj.gender?.toLowerCase().startsWith(b),
+        )
+      ) {
+        renderWordGameUI(wordObj, fallbackTranslations, false);
+        return;
+      }
+
+      const clozeTarget = await findClozeTarget(wordObj);
+      if (!clozeTarget) {
+        console.warn(
+          "No reliable cloze target was found. Falling back to flashcard.",
+          wordObj,
+        );
+        renderWordGameUI(wordObj, fallbackTranslations, false);
+        return;
+      }
+
+      if (
+        getGameSentenceTranslation(wordObj, clozeTarget.sentenceIndex) &&
+        shouldUseTypedRecall(wordObj, "cloze")
+      ) {
+        renderClozeGameUI(
+          wordObj,
+          [],
+          formatCorrectClozeChoice(wordObj, clozeTarget),
+          false,
+          clozeTarget,
+          true,
+        );
+        return;
+      }
+
+      const distractors = generateClozeDistractors(wordObj, clozeTarget);
+      if (distractors.length < 3) {
+        console.warn(
+          "Not enough same-slot official distractors were found. Falling back to flashcard.",
+          wordObj,
+        );
+        renderWordGameUI(wordObj, fallbackTranslations, false);
+        return;
+      }
+
+      const { correctChoice, choices } = prepareClozeChoices(
+        wordObj,
+        clozeTarget,
+        distractors,
+      );
+      if (choices.length < 4) {
+        renderWordGameUI(wordObj, fallbackTranslations, false);
+        return;
+      }
+
+      renderClozeGameUI(wordObj, choices, correctChoice, false, clozeTarget);
+    },
+  }),
+  listening: Object.freeze({
+    isEligible: (ctx) => ctx.hasAudio,
+    matchesStructuredMode: (structuredMode) => structuredMode === "listening",
+    freePlayProbability: (ctx) =>
+      interpolateByAbility(ctx.ability, LISTENING_PROBABILITY) ?? 0.25,
+    instructionText: () => "Listen and choose the meaning",
+    async renderQuestion({ wordObj, fallbackTranslations }) {
+      renderWordGameUI(wordObj, fallbackTranslations, false, "listening");
+    },
+  }),
+  reverse: Object.freeze({
+    isEligible: () => true,
+    matchesStructuredMode: (structuredMode, ctx) =>
+      structuredMode === "reverse" || ctx.forceTypedReverse,
+    freePlayProbability: (ctx) =>
+      interpolateByAbility(ctx.ability, REVERSE_FLASHCARD_PROBABILITY) ?? 0.25,
+    instructionText: () => "Choose the Norwegian word",
+    async renderQuestion({ wordObj, forceTypedReverse }) {
+      if (
+        getGameSentenceTranslation(wordObj, 0) &&
+        (forceTypedReverse || shouldUseTypedRecall(wordObj, "reverse"))
+      ) {
+        renderWordGameUI(wordObj, [], false, "typed-reverse");
+        return;
+      }
+
+      const incorrectNorwegianWords = fetchIncorrectNorwegianWords(
+        wordObj.ord,
+        wordObj.CEFR,
+        wordObj.gender,
+      );
+      const allNorwegianOptions = shuffleArray([
+        wordObj.ord,
+        ...incorrectNorwegianWords,
+      ]);
+      const uniqueNorwegianOptions =
+        ensureUniqueDisplayedValues(allNorwegianOptions);
+
+      renderWordGameUI(wordObj, uniqueNorwegianOptions, false, "reverse");
+    },
+  }),
+  forward: Object.freeze({
+    instructionText: () => "Choose the English meaning",
+    async renderQuestion({ wordObj, fallbackTranslations }) {
+      renderWordGameUI(wordObj, fallbackTranslations, false);
+    },
+  }),
+  "typed-reverse": Object.freeze({
+    instructionText: () => "Type the Norwegian word",
+  }),
+  "typed-cloze": Object.freeze({
+    instructionText: () => "Type the word that completes the sentence",
+  }),
+});
+
+// Fixed priority order for free play — see the mutual-exclusion comment on
+// each probability table above for why cloze goes first, listening second,
+// reverse last. "forward" isn't listed: it's whatever's left once nothing
+// above claims the slot.
+const SELECTION_ORDER = Object.freeze(["cloze", "listening", "reverse"]);
+
+function selectQuestionMode({
+  structuredQuestionMode = null,
+  forceTypedReverse = false,
+  ability = null,
+  hasAudio = false,
+} = {}) {
+  const ctx = { ability, hasAudio, forceTypedReverse };
+
+  for (const modeId of SELECTION_ORDER) {
+    const mode = GAME_MODES[modeId];
+    if (!mode.isEligible(ctx)) continue;
+
+    if (mode.matchesStructuredMode(structuredQuestionMode, ctx)) {
+      return modeId;
+    }
+
+    if (
+      structuredQuestionMode === null &&
+      Math.random() < mode.freePlayProbability(ctx)
+    ) {
+      return modeId;
+    }
+  }
+
+  return "forward";
+}
+
 let previousWord = null;
 let recentAnswers = []; // Track the last X answers, 1 for correct, 0 for incorrect
 let reintroduceThreshold = 10; // Intervening answers before an Endless retry
@@ -2610,159 +2785,60 @@ async function startWordGame() {
         )
       : null;
   const forceTypedReverse = structuredQuestionMode === "typed-reverse";
-  const isClozeQuestion =
-    structuredQuestionMode === "cloze" ||
-    (structuredQuestionMode === null && Math.random() < 0.5);
-  // Decided ahead of isReverseQuestion so the two don't compete for the
-  // same slot — see LISTENING_PROBABILITY above for why this scales more
-  // gently than the reverse-flashcard ramp. Requires the word to actually
-  // have a recorded audio file (nearly all do, but a listening question
-  // with a silent prompt and no visible text would be unanswerable) —
-  // falls through to a forward flashcard for the rare word that lacks
-  // one, same as the cloze fallbacks above.
-  const isListeningQuestion =
-    !isClozeQuestion &&
-    randomWordObj.wordAudio === "X" &&
-    (structuredQuestionMode === "listening" ||
-      (structuredQuestionMode === null &&
-        Math.random() <
-          (interpolateByAbility(abilityScore, LISTENING_PROBABILITY) ?? 0.25)));
-  // Only applies to the non-cloze, non-listening remainder — see
-  // REVERSE_FLASHCARD_PROBABILITY above for why this scales with level
-  // instead of being a flat coin flip.
-  const isReverseQuestion =
-    !isClozeQuestion &&
-    !isListeningQuestion &&
-    (structuredQuestionMode === "reverse" ||
-      forceTypedReverse ||
-      (structuredQuestionMode === null &&
-        Math.random() <
-          (interpolateByAbility(abilityScore, REVERSE_FLASHCARD_PROBABILITY) ??
-            0.25)));
+  // See SELECTION_MODES/selectQuestionMode above for the actual priority
+  // and probability logic this consumes — cloze, then listening, then
+  // reverse, each either named by a structured round or drawn from its own
+  // ability-scaled coin flip in free play, with forward as the default.
+  const questionMode = selectQuestionMode({
+    structuredQuestionMode,
+    forceTypedReverse,
+    ability: abilityScore,
+    hasAudio: randomWordObj.wordAudio === "X",
+  });
+  const isClozeQuestion = questionMode === "cloze";
+  const isListeningQuestion = questionMode === "listening";
+  const isReverseQuestion = questionMode === "reverse";
 
   // Fetch incorrect translations from the same band as the word actually
   // being asked about (not the learner's own ability) — distractors need to
   // be plausible peers of the target word, and since word selection is no
   // longer confined to a single CEFR band, those two are no longer the same
-  // thing.
+  // thing. Shared prep for whichever mode ends up rendering an
+  // English-options question (forward, listening, or cloze's own
+  // fallback-to-forward) — reverse/typed-reverse build Norwegian-word
+  // options instead (see GAME_MODES.reverse.renderQuestion) and never touch
+  // this.
   const incorrectTranslations = fetchIncorrectTranslations(
     randomWordObj.gender,
     correctTranslation,
     randomWordObj.CEFR,
   );
-
-  // Shuffle correct and incorrect translations into an array
   const allTranslations = shuffleArray([
     correctTranslation,
     ...incorrectTranslations,
   ]);
+  const fallbackTranslations = ensureUniqueDisplayedValues(allTranslations);
 
-  // Ensure no duplicate displayed values
-  const uniqueDisplayedTranslations =
-    ensureUniqueDisplayedValues(allTranslations);
-  // Skip cloze if the selected word is in a banned class
-  if (
-    isClozeQuestion &&
-    BANNED_WORD_CLASSES.some((b) =>
-      randomWordObj.gender?.toLowerCase().startsWith(b),
-    )
-  ) {
-    renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
-    return;
-  }
+  // See GAME_MODES above for each mode's actual rendering logic, including
+  // cloze's own multi-step fallback-to-forward-flashcard chain (banned word
+  // class, no cloze target, too few distractors). A renderQuestion may
+  // render a *different* mode's markup than questionMode says (that
+  // fallback) without questionMode/isClozeQuestion below changing to match
+  // — they stay tied to what was actually selected, which is what the
+  // displayPronunciation guard needs.
+  await GAME_MODES[questionMode].renderQuestion({
+    wordObj: randomWordObj,
+    fallbackTranslations,
+    forceTypedReverse,
+  });
 
-  if (isClozeQuestion) {
-    const clozeTarget = await findClozeTarget(randomWordObj);
-
-    if (!clozeTarget) {
-      console.warn(
-        "No reliable cloze target was found. Falling back to flashcard.",
-        randomWordObj,
-      );
-
-      renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
-
-      return;
-    }
-
-    if (
-      getGameSentenceTranslation(randomWordObj, clozeTarget.sentenceIndex) &&
-      shouldUseTypedRecall(randomWordObj, "cloze")
-    ) {
-      renderClozeGameUI(
-        randomWordObj,
-        [],
-        formatCorrectClozeChoice(randomWordObj, clozeTarget),
-        false,
-        clozeTarget,
-        true,
-      );
-      return;
-    }
-
-    const distractors = generateClozeDistractors(randomWordObj, clozeTarget);
-    if (distractors.length < 3) {
-      console.warn(
-        "Not enough same-slot official distractors were found. Falling back to flashcard.",
-        randomWordObj,
-      );
-      renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
-      return;
-    }
-
-    const { correctChoice, choices } = prepareClozeChoices(
-      randomWordObj,
-      clozeTarget,
-      distractors,
-    );
-    if (choices.length < 4) {
-      renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
-      return;
-    }
-
-    renderClozeGameUI(
-      randomWordObj,
-      choices,
-      correctChoice,
-      false,
-      clozeTarget,
-    );
-  } else if (isReverseQuestion) {
-    if (
-      getGameSentenceTranslation(randomWordObj, 0) &&
-      (forceTypedReverse || shouldUseTypedRecall(randomWordObj, "reverse"))
-    ) {
-      renderWordGameUI(randomWordObj, [], false, "typed-reverse");
-      return;
-    }
-
-    const incorrectNorwegianWords = fetchIncorrectNorwegianWords(
-      randomWordObj.ord,
-      randomWordObj.CEFR,
-      randomWordObj.gender,
-    );
-
-    const allNorwegianOptions = shuffleArray([
-      randomWordObj.ord,
-      ...incorrectNorwegianWords,
-    ]);
-
-    const uniqueNorwegianOptions =
-      ensureUniqueDisplayedValues(allNorwegianOptions);
-
-    renderWordGameUI(randomWordObj, uniqueNorwegianOptions, false, "reverse");
-  } else if (isListeningQuestion) {
-    renderWordGameUI(
-      randomWordObj,
-      uniqueDisplayedTranslations,
-      false,
-      "listening",
-    );
-  } else {
-    renderWordGameUI(randomWordObj, uniqueDisplayedTranslations, false);
-  }
-
-  // Render the updated stats box
+  // Render the updated stats box. Safe to call unconditionally even though
+  // renderQuestion's own renderWordGameUI/renderClozeGameUI call already
+  // did this once: renderStats() only fully (re)builds the stats markup the
+  // first time per question, guarded by .game-stats-wrapper's presence —
+  // every call after that just refreshes the numeric bits (streak, review
+  // count, progress bar), which is exactly what belongs here regardless of
+  // which branch rendered the question.
   renderStats();
   // Skipped for reverse and listening questions: this shows the
   // Norwegian word's own phonetic transcription, which would hint at
@@ -3060,20 +3136,7 @@ function enableGameControls() {
 // States what a question is asking for, since a bare word/sentence plus
 // four choices didn't say what to do with them.
 function getGameInstructionText(mode) {
-  switch (mode) {
-    case "typed-reverse":
-      return "Type the Norwegian word";
-    case "typed-cloze":
-      return "Type the word that completes the sentence";
-    case "reverse":
-      return "Choose the Norwegian word";
-    case "listening":
-      return "Listen and choose the meaning";
-    case "cloze":
-      return "Choose the word that completes the sentence";
-    default:
-      return "Choose the English meaning";
-  }
+  return (GAME_MODES[mode] ?? GAME_MODES.forward).instructionText();
 }
 
 function getGamePromptLengthClass(value) {
@@ -3701,6 +3764,31 @@ function completeClozeSentence(clozeSentence) {
   makeSentenceClickable(wordElement, clozeSentence);
 }
 
+// Runs the instant a learner submits an answer — the single highest-stakes
+// moment in the game: right/wrong feedback, SRS scheduling, ability-score
+// updates, and relearning-queue bookkeeping all happen here. The four mode
+// flags below aren't a single dispatch step at the top; each is checked
+// separately, in whichever spot needs it, scattered through the function
+// rather than organized by mode. A map of what each one actually controls,
+// since that's easy to lose track of otherwise:
+//   isCloze     — which sentence-blank gets filled in on answer
+//                 (completeClozeSentence), and whether comparisons keep the
+//                 full comma-containing surface form instead of just the
+//                 first dictionary alternative (correctTranslationPart /
+//                 selectedTranslationPart below).
+//   isReverse   — unlocks replaying the Norwegian word's audio on the
+//                 now-visible correct card (revealReverseWordAudio).
+//   isListening — reveals the Norwegian word's text, previously hidden
+//                 behind just its audio (revealListeningWordText).
+//   wasTyped    — whether a typed-mastery requirement on this word (see
+//                 requiresTypedMastery below, and shouldUseTypedRecall
+//                 elsewhere) has now actually been satisfied — gates both
+//                 SRS credit and whether the relearning queue lets this
+//                 word go.
+// All four are also saved onto the relearning-queue entry on a miss
+// (wasCloze/wasReverse/wasListening below), purely so a later
+// reintroduction can show the word in the same mode it was missed in — see
+// the reintroduction branch near the top of startWordGame().
 async function handleTranslationClick(
   selectedTranslation,
   wordObj,
@@ -3777,6 +3865,9 @@ async function handleTranslationClick(
     window.WordStrengthAPI?.recordResult?.(wordObj, true, {
       // A bounded-round filler or voluntary early review is not a spaced
       // retrieval and therefore must not lengthen the durable interval.
+      // The second clause is wasTyped from the flag map above: a word that
+      // still requires typed mastery doesn't earn SRS credit for a
+      // multiple-choice-only correct answer.
       credit: !["session-filler", "scheduled"].includes(
         currentWordQueueType,
       ) && !(activeQueueEntry?.requiresTypedMastery && !wasTyped),
@@ -3787,14 +3878,17 @@ async function handleTranslationClick(
       wordGameSessionCorrectWords.add(wordObj);
     }
     if (isCloze) {
-      completeClozeSentence(clozeSentence);
+      completeClozeSentence(clozeSentence); // see isCloze in the flag map above
     }
+    // Not gated by wasTyped: this is a no-op when there's no typed-answer
+    // form in the DOM (see its own definition), so it's safe to call
+    // unconditionally on every mode, typed or not.
     updateTypedAnswerFeedback(true, correctTranslationPart);
     if (isReverse) {
-      revealReverseWordAudio(wordObj);
+      revealReverseWordAudio(wordObj); // see isReverse in the flag map above
     }
     if (isListening) {
-      revealListeningWordText(wordObj);
+      revealListeningWordText(wordObj); // see isListening in the flag map above
     }
 
     // If the word was in the review queue and the user answered it correctly, remove it
@@ -3851,6 +3945,8 @@ async function handleTranslationClick(
       wordGameSessionMissedWords.add(wordObj);
     }
 
+    // Same four checks as the correct-answer branch above, same reasons —
+    // see the flag map at the top of this function.
     if (isCloze) {
       completeClozeSentence(clozeSentence);
     }
@@ -3876,6 +3972,8 @@ async function handleTranslationClick(
         wordGameSessionQuestionsAnswered +
         baseGap * Math.min(2, existingQueueEntry.reviewAttempts);
       existingQueueEntry.shown = false;
+      // wasCloze/wasReverse/wasListening/clozedForm: not used here, only
+      // read later — see the flag map at the top of this function.
       existingQueueEntry.wasCloze = isCloze;
       existingQueueEntry.wasReverse = isReverse;
       existingQueueEntry.wasListening = isListening;
@@ -3928,6 +4026,11 @@ async function handleTranslationClick(
   // Update the stats after the answer
   renderStats();
 
+  // isCloze again: a cloze question already showed its example sentence
+  // as the question itself (now completed by completeClozeSentence above),
+  // so only forward/reverse/listening need the sentence text and
+  // click-to-replay wiring added here after the fact — cloze only needs
+  // the English translation revealed alongside it.
   if (exampleSentence && !isCloze) {
     const completedSentence = exampleSentence;
 
