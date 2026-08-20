@@ -46,7 +46,7 @@ RECORD_LENGTHS = {
 }
 FIELD_SEPARATOR = "|"
 ALTERNATIVE_SEPARATOR = "/"
-DATA_VERSION = 10
+DATA_VERSION = 11
 NOUN_GENDER_ORDER = ("en", "ei", "et")
 EXPRESSION_TOKEN_RE = re.compile(r"[^\W_]+(?:[-'’][^\W_]+)*", re.UNICODE)
 
@@ -189,17 +189,28 @@ def noun_gender_articles(gender: str) -> set[str]:
     return articles
 
 
-def noun_paradigm_article(paradigm: list[object]) -> str:
+def noun_paradigm_article(paradigm: list[object]) -> str | None:
+    """Infer a paradigm's article from its definite singular form.
+
+    Returns ``None`` when the paradigm gives no basis to infer one — either
+    because it's malformed, or (notably) because the noun is a plurale
+    tantum such as ``klær``/``bompenger``, which Norsk Ordbank records with
+    an empty definite-singular field since no singular form exists. ``None``
+    is distinct from a *conflicting* article: callers must not reject a
+    dictionary-declared gender just because there was nothing to infer from.
+    """
     if len(paradigm) != 3:
-        return ""
+        return None
     definite_singular = normalize(str(paradigm[0]))
+    if not definite_singular:
+        return None
     if definite_singular.endswith("a"):
         return "ei"
     if definite_singular.endswith("t"):
         return "et"
     if definite_singular.endswith("n"):
         return "en"
-    return ""
+    return None
 
 
 def read_noun_articles(dictionary_path: Path) -> dict[str, set[str]]:
@@ -301,9 +312,13 @@ def build_records(
                     continue
                 article = noun_paradigm_article(paradigm)
                 dictionary_genders = (noun_genders or {}).get(lemma)
-                inferred_article = noun_paradigm_article(paradigm)
-                for gender in dictionary_genders or {inferred_article}:
-                    if gender and article not in noun_gender_articles(gender):
+                for gender in dictionary_genders or {article}:
+                    # A paradigm with no inferable article (e.g. a plurale
+                    # tantum like klær/bompenger, whose Ordbank definite
+                    # singular field is empty) has nothing to conflict with
+                    # a dictionary-declared gender, so it is accepted as-is
+                    # rather than rejected as a mismatch.
+                    if gender and article is not None and article not in noun_gender_articles(gender):
                         continue
                     key = noun_record_key(lemma, gender) if gender else f"n:{lemma}"
                     record = records.setdefault(key, [set() for _ in range(3)])
