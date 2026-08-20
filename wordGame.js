@@ -2161,6 +2161,37 @@ function renderWordGameIntro() {
           <span class="game-intro-option-label">Endless</span>
         </button>
       </div>
+
+      <!-- Deliberately separate from the rest of the word game: no ability
+           score, no SRS/relearning queue, no My Words, nothing saved after
+           the round ends — see startMinimalPairsGame() below. -->
+      <div class="game-intro-divider"><span>Practice sound distinctions</span></div>
+      <p class="game-intro-subheading">Hear a word, then pick which of two similar-sounding words you heard.</p>
+      <!-- .game-today-practice-btn, not .game-intro-option: this is meant
+           to read as a primary action the same weight as "Start emerald
+           round" above, not another small round-size pill alongside
+           10/20/50/Endless. That button sits inset inside .game-today-
+           practice's own 18px padding + 1px border, which this card
+           doesn't otherwise have — wrapping in the same class (colors and
+           shadow stripped via inline style, so it doesn't look like a
+           second nested card) reuses its exact box geometry rather than
+           guessing the inset as a hardcoded margin that could drift out of
+           sync with it later. -->
+      <div
+        class="game-today-practice"
+        style="background: transparent; border-color: transparent; box-shadow: none; margin-bottom: 0;"
+      >
+        <button
+          type="button"
+          class="game-today-practice-btn"
+          id="game-minimal-pairs-btn"
+          style="margin-top: 0;"
+        >
+          <i class="fas fa-headphones" aria-hidden="true"></i>
+          Minimal Pairs
+        </button>
+      </div>
+
       <button type="button" id="retake-placement-btn" class="placement-retake-link">
         Retake placement test
       </button>
@@ -2177,7 +2208,13 @@ function renderWordGameIntro() {
       window.PlacementTestAPI?.start?.();
     });
 
-  document.querySelectorAll(".game-intro-option").forEach((button) => {
+  document
+    .getElementById("game-minimal-pairs-btn")
+    ?.addEventListener("click", startMinimalPairsGame);
+
+  // Scoped to [data-mode], the attribute this handler actually needs — the
+  // only .game-intro-option elements are the round-size/Endless buttons.
+  document.querySelectorAll(".game-intro-option[data-mode]").forEach((button) => {
     button.addEventListener("click", () => {
       const mode = button.dataset.mode;
       const targetWords =
@@ -2186,6 +2223,429 @@ function renderWordGameIntro() {
       beginWordGameRound(mode, targetWords);
     });
   });
+}
+
+// --- Minimal Pairs -------------------------------------------------------
+// A small, deliberately separate listening-discrimination game: hear a
+// word, pick which of two similar-sounding words it was. Unlike the rest of
+// the word game, this has no ability score, no SRS/relearning queue, and no
+// My Words — right/wrong only matters for the current 10-question round,
+// discarded the moment it ends. Reuses the main game's shared rendering,
+// audio, and card-styling helpers wherever they're generic enough to fit
+// (setGameContainerHTML, playTrackedAudio, shuffleArray, escapeGameHTML,
+// announceGameAnswer, goodChime/badChime, the .game-word-card/
+// .game-translation-card markup and CSS), but owns its own small, separate
+// state instead of touching wordGameMode/wordGameRoundActive/etc.
+
+const MINIMAL_PAIRS_ROUND_LENGTH = 10;
+
+// Mirrors the STORY_FEEDBACK_CATEGORIES pattern in scripts.js (a dedicated
+// list for a content type FEEDBACK_CATEGORIES' defaults don't fit) — most
+// of that default list (CEFR level, word inflections, translations, example
+// sentences) has no equivalent here, since a minimal pair is just two
+// spellings and a recording, not a dictionary entry.
+const MINIMAL_PAIRS_FEEDBACK_CATEGORIES = [
+  "Audio doesn't match either word",
+  "Audio quality issue",
+  "Word spelling looks wrong",
+  "Sound-difference category seems wrong",
+  "Something else",
+];
+
+let minimalPairsDataPromise = null;
+// A FIFO queue of pairs not yet answered correctly, not a fixed list — a
+// miss pushes its pair back onto the end (see handleMinimalPairAnswer)
+// instead of just moving on, so the round can't finish until every pair
+// has been gotten right at least once. minimalPairsCurrentPair holds
+// whichever one is on screen, taken off the queue while it's being asked.
+let minimalPairsQueue = [];
+let minimalPairsCurrentPair = null;
+let minimalPairsTotalPairs = 0;
+let minimalPairsMasteredCount = 0;
+let minimalPairsQuestionsAnswered = 0;
+let minimalPairsMissed = [];
+// True once the current question has been graded. Both answer cards get an
+// answer-click listener (see renderMinimalPairQuestion), but only one of
+// them is ever actually clicked to answer — the other card's listener
+// stays armed and *will* still fire the first time that card is clicked
+// for audio replay after answering, which is expected. This guard keeps
+// that from grading a second time (double-scoring, or re-coloring cards
+// with a different selectedWord) — handleMinimalPairAnswer becomes a no-op
+// for the rest of the question once this is true.
+let minimalPairsAnswered = false;
+
+// Loaded lazily on first use and cached — this is a separate, much smaller
+// CSV (~300 rows) than the main dictionary, so it doesn't need that
+// corpus's caching/worker/Google-Sheets-fallback machinery (see
+// fetchAndLoadDictionaryData in scripts.js), just a plain fetch.
+function loadMinimalPairsData() {
+  if (minimalPairsDataPromise) return minimalPairsDataPromise;
+
+  minimalPairsDataPromise = fetch("norwegianSounds.csv")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(
+      (csvText) =>
+        new Promise((resolve, reject) => {
+          Papa.parse(csvText, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (parsed) => {
+              const pairs = parsed.data
+                .map((row) => ({
+                  differenceType: String(row["Difference Type"] ?? "").trim(),
+                  word1: String(row["Word 1"] ?? "").trim().normalize("NFC"),
+                  word2: String(row["Word 2"] ?? "").trim().normalize("NFC"),
+                }))
+                .filter((pair) => pair.word1 && pair.word2);
+              resolve(pairs);
+            },
+            error: reject,
+          });
+        }),
+    )
+    .catch((error) => {
+      console.error("Error loading minimal pairs data:", error);
+      minimalPairsDataPromise = null; // allow a later click to retry
+      return [];
+    });
+
+  return minimalPairsDataPromise;
+}
+
+// This game's audio is a separate, newer recording batch from the rest of
+// the app's ~29,000-file word-audio corpus, and — unlike that corpus, which
+// has always been precomposed NFC — some of these files were saved in
+// decomposed NFD form instead (å as "a" + combining ring, rather than one
+// precomposed character): same word, different bytes, so an exact-match
+// fetch for one form 404s against a file saved in the other. Try NFC first
+// (matches the app's existing convention, works for most of these files
+// too) and silently retry once as NFD rather than special-casing this
+// dataset's inconsistency into buildWordAudioUrl itself, which is used
+// everywhere else and has never needed this. Neither normalize() call
+// touches letter case — Kjell stays Kjell, skjell stays skjell — so a
+// capitalized word and its lowercase counterpart are never conflated here.
+function playMinimalPairWordAudio(word) {
+  const audio = playTrackedAudio(buildWordAudioUrl(word.normalize("NFC")));
+  audio.addEventListener(
+    "error",
+    () => {
+      audio.src = buildWordAudioUrl(word.normalize("NFD"));
+      audio.play().catch((err) => console.warn("Audio playback failed:", err));
+    },
+    { once: true },
+  );
+  return audio;
+}
+
+function renderMinimalPairsMessage(heading, note) {
+  setGameContainerHTML(`
+    <div class="game-intro-card">
+      <h2 class="game-intro-heading">${escapeGameHTML(heading)}</h2>
+      <p class="game-today-practice-note">${escapeGameHTML(note)}</p>
+    </div>
+  `);
+}
+
+async function startMinimalPairsGame() {
+  stopAllAudio();
+  hideAllBanners();
+
+  const allPairs = await loadMinimalPairsData();
+  if (allPairs.length === 0) {
+    renderMinimalPairsMessage(
+      "Couldn't load sound pairs",
+      "There was a problem loading this data — try again in a moment.",
+    );
+    return;
+  }
+
+  minimalPairsQueue = shuffleArray(allPairs).slice(
+    0,
+    Math.min(MINIMAL_PAIRS_ROUND_LENGTH, allPairs.length),
+  );
+  minimalPairsTotalPairs = minimalPairsQueue.length;
+  minimalPairsMasteredCount = 0;
+  minimalPairsQuestionsAnswered = 0;
+  minimalPairsMissed = [];
+
+  advanceToNextMinimalPair();
+}
+
+// The only place a question actually advances: pulls the next pair off the
+// front of the queue, or ends the round once nothing's left in it. A pair
+// only ever leaves the queue for good by being answered correctly — see
+// handleMinimalPairAnswer, which pushes a miss right back onto the end
+// rather than dropping it, so this is also what enforces "can't finish
+// without getting everything right."
+function advanceToNextMinimalPair() {
+  if (minimalPairsQueue.length === 0) {
+    showMinimalPairsResults();
+    return;
+  }
+
+  minimalPairsCurrentPair = minimalPairsQueue.shift();
+  renderMinimalPairQuestion();
+}
+
+function renderMinimalPairQuestion() {
+  minimalPairsAnswered = false;
+  const pair = minimalPairsCurrentPair;
+  const targetWord = Math.random() < 0.5 ? pair.word1 : pair.word2;
+  const choices = shuffleArray([pair.word1, pair.word2]);
+
+  setGameContainerHTML(`
+    <p class="game-intro-subheading" style="text-align: center;">
+      Mastered ${minimalPairsMasteredCount} of ${minimalPairsTotalPairs}
+    </p>
+    <div class="game-word-card">
+      <div
+        class="game-word game-word-audio"
+        role="button"
+        tabindex="0"
+        aria-label="Play word audio"
+        title="Play word audio"
+      >
+        <i class="fas fa-volume-up game-listening-icon" aria-hidden="true"></i>
+      </div>
+    </div>
+    <!-- min-height override: .game-grid's own 159px default assumes the
+         regular game's usual two rows of four choices. Minimal pairs only
+         ever has one row of two, so that reserved height would otherwise
+         sit empty below the buttons, pushing Next visibly far away. -->
+    <div class="game-grid" style="min-height: auto;">
+      ${choices
+        .map(
+          (word, index) => `
+        <button type="button" class="game-translation-card" lang="nb" data-index="${index}" aria-keyshortcuts="${index + 1}">
+          ${escapeGameHTML(word)}
+        </button>
+      `,
+        )
+        .join("")}
+    </div>
+    ${getGameAnswerStatusMarkup()}
+    <div class="game-next-button-container">
+      <!-- Reuses #game-next-word-button's id (not a new class) purely to
+           pick up its existing CSS as-is — this screen and the regular
+           game's never coexist in the DOM, so there's no id collision. -->
+      <button type="button" id="game-next-word-button" disabled>
+        Next
+      </button>
+    </div>
+  `);
+
+  // Shown/wired per question, hidden again on the results screen — mirrors
+  // how the regular game only offers this while an actual question is on
+  // screen. Assigned via .onclick (not addEventListener) since this is a
+  // persistent toolbar button reused across questions, not part of the
+  // markup setGameContainerHTML just replaced — an addEventListener here
+  // would stack a new listener, bound to this question's pair, on top of
+  // every previous question's, every time.
+  const reportButton = document.getElementById("game-report-issue");
+  if (reportButton) {
+    reportButton.classList.remove("hidden");
+    reportButton.onclick = () => {
+      openFeedbackDialog({
+        source: "Word Game · Minimal Pairs",
+        word: `${pair.word1} / ${pair.word2}`,
+        dialogTitle: "Report an issue with this pair",
+        categories: MINIMAL_PAIRS_FEEDBACK_CATEGORIES,
+        categoryQuestion: "What's wrong with this pair?",
+        detailsPlaceholder: "What's wrong with the audio or the words?",
+        triggerElement: reportButton,
+      });
+    };
+  }
+
+  const wordElement = document.querySelector(".game-word-audio");
+  const replay = () => {
+    playAudioTapFeedback(wordElement);
+    stopAllAudio();
+    playMinimalPairWordAudio(targetWord);
+  };
+  wordElement?.addEventListener("click", replay);
+  wordElement?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      replay();
+    }
+  });
+
+  document.querySelectorAll(".game-translation-card").forEach((card, index) => {
+    // { once: true }: this listener's only job is grading the answer, and
+    // it must be gone by the time handleMinimalPairAnswer re-enables these
+    // same buttons for audio replay below — otherwise a second click would
+    // re-score the question instead of just playing a sound.
+    card.addEventListener(
+      "click",
+      () => {
+        handleMinimalPairAnswer(choices[index], targetWord, pair);
+      },
+      { once: true },
+    );
+  });
+
+  document
+    .getElementById("game-next-word-button")
+    ?.addEventListener("click", advanceToNextMinimalPair);
+
+  playMinimalPairWordAudio(targetWord);
+}
+
+function handleMinimalPairAnswer(selectedWord, targetWord, pair) {
+  // See minimalPairsAnswered's own comment: the other card's original
+  // answer-click listener is still armed and will fire this function again
+  // the first time that card is clicked for audio replay. Grading must
+  // happen exactly once per question.
+  if (minimalPairsAnswered) return;
+  minimalPairsAnswered = true;
+
+  const cards = document.querySelectorAll(".game-translation-card");
+  const isCorrect = selectedWord === targetWord;
+
+  cards.forEach((card) => {
+    card.disabled = true;
+    const cardText = card.textContent.trim();
+    if (cardText === targetWord) {
+      card.classList.add("game-correct-card");
+    } else if (cardText === selectedWord) {
+      card.classList.add("game-incorrect-card");
+    } else {
+      // Not .distractor-muted — see that class's own comment in styles.css.
+      card.classList.add("game-minimal-pairs-unselected");
+    }
+    // Once graded, both words become individually replayable — comparing
+    // how each one actually sounds, now that the answer is known, is the
+    // whole point of a minimal-pairs exercise. makeAudioReplayable
+    // re-enables the button itself (see its own definition), which is safe
+    // here only because the answer-choice listener above was attached with
+    // { once: true } and is already gone.
+    makeAudioReplayable(card, `Play pronunciation of ${cardText}`, () => {
+      stopAllAudio();
+      playMinimalPairWordAudio(cardText);
+    });
+  });
+
+  minimalPairsQuestionsAnswered++;
+
+  if (isCorrect) {
+    minimalPairsMasteredCount++;
+    goodChime.currentTime = 0;
+    goodChime.play();
+  } else {
+    // Back of the queue, not dropped — this pair will come up again later
+    // in the round instead of just being logged and moved past. Combined
+    // with advanceToNextMinimalPair only ever ending the round once the
+    // queue is empty, a pair genuinely cannot leave the round any other way
+    // than eventually being answered correctly.
+    minimalPairsQueue.push(pair);
+    // Recorded once per pair even if it's missed more than once before it's
+    // finally mastered — a "pairs to revisit" list showing the same pair
+    // three times would just be noise.
+    const alreadyMissed = minimalPairsMissed.some(
+      (m) => m.word1 === pair.word1 && m.word2 === pair.word2,
+    );
+    if (!alreadyMissed) {
+      minimalPairsMissed.push({ ...pair, targetWord, selectedWord });
+    }
+    badChime.currentTime = 0;
+    badChime.play();
+  }
+
+  announceGameAnswer(isCorrect, targetWord);
+
+  const nextButton = document.getElementById("game-next-word-button");
+  if (nextButton) {
+    if (minimalPairsQueue.length === 0) {
+      nextButton.textContent = "See Results";
+    }
+    nextButton.disabled = false;
+    // Moves focus onto Next the moment it becomes usable, so the browser's
+    // own "Enter/Space activates the focused button" behavior is all that's
+    // needed to advance — no separate keydown listener required. If the
+    // learner clicks a word afterward to hear it again, focus naturally
+    // follows that click instead, which is fine — pressing Enter at that
+    // point re-plays the same word rather than advancing, and clicking
+    // Next directly still always works regardless of focus.
+    nextButton.focus();
+  }
+}
+
+function showMinimalPairsResults() {
+  stopAllAudio();
+  document.getElementById("game-report-issue")?.classList.add("hidden");
+
+  // Only reachable once the queue is empty, which — since a miss requeues
+  // instead of being dropped (see handleMinimalPairAnswer) — means every
+  // pair was eventually answered correctly. "Mastered" is therefore always
+  // minimalPairsTotalPairs/minimalPairsTotalPairs here and not worth its
+  // own stat; accuracy across every attempt it actually took is the number
+  // that varies and says something about how the round went.
+  const accuracy = minimalPairsQuestionsAnswered
+    ? Math.round(
+        (minimalPairsMasteredCount / minimalPairsQuestionsAnswered) * 100,
+      )
+    : 0;
+
+  const missedListHTML = minimalPairsMissed.length
+    ? `
+    <div class="game-summary-missed">
+      <h3 class="game-summary-missed-heading">Pairs to revisit</h3>
+      <ul class="game-minimal-pairs-missed-list">
+        ${minimalPairsMissed
+          .map(
+            (m) => `
+          <li>
+            ${escapeGameHTML(m.word1)} / ${escapeGameHTML(m.word2)} —
+            you heard “${escapeGameHTML(m.targetWord)}”, picked “${escapeGameHTML(m.selectedWord)}”
+          </li>
+        `,
+          )
+          .join("")}
+      </ul>
+    </div>
+  `
+    : "";
+
+  setGameContainerHTML(`
+    <div class="game-summary-card">
+      <div class="game-summary-icon"><i class="fas fa-headphones" aria-hidden="true"></i></div>
+      <h2 class="game-summary-heading">Minimal Pairs complete!</h2>
+      <div class="game-summary-stats">
+        <div class="game-summary-stat">
+          <p class="game-summary-stat-value">${minimalPairsTotalPairs}</p>
+          <p class="game-summary-stat-label">Pairs mastered</p>
+        </div>
+        <div class="game-summary-stat">
+          <p class="game-summary-stat-value">${minimalPairsQuestionsAnswered}</p>
+          <p class="game-summary-stat-label">Questions</p>
+        </div>
+        <div class="game-summary-stat">
+          <p class="game-summary-stat-value">${accuracy}%</p>
+          <p class="game-summary-stat-label">Accuracy</p>
+        </div>
+      </div>
+      ${missedListHTML}
+      <button type="button" class="game-summary-primary-btn" id="game-minimal-pairs-again-btn">
+        Play again
+      </button>
+      <button type="button" class="placement-retake-link" id="game-minimal-pairs-back-btn">
+        Back to Word Game
+      </button>
+    </div>
+  `);
+
+  document
+    .getElementById("game-minimal-pairs-again-btn")
+    ?.addEventListener("click", startMinimalPairsGame);
+  document
+    .getElementById("game-minimal-pairs-back-btn")
+    ?.addEventListener("click", renderWordGameIntro);
 }
 
 // A session round isn't actually done just because N distinct words have
