@@ -10,6 +10,7 @@ const snapshot = JSON.parse(
 );
 const context = vm.createContext({ console, Map, Promise, Set });
 context.window = context;
+context.self = context;
 context.__BOKMAL_INFLECTIONS_DATA__ = snapshot;
 
 for (const file of ["wordClass.js", "inflections.js"]) {
@@ -515,6 +516,7 @@ const lazyContext = vm.createContext({
   }),
 });
 lazyContext.window = lazyContext;
+lazyContext.self = lazyContext;
 for (const file of ["wordClass.js", "inflections.js"]) {
   vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), lazyContext, {
     filename: file,
