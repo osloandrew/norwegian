@@ -2078,6 +2078,14 @@ function beginTodayPracticeRound() {
 }
 
 function renderWordGameIntro() {
+  // The intro screen only ever renders when no round is active (see
+  // startWordGame's early-return gate), so this is the single choke point
+  // to resync the toolbar's Quit/Report buttons to hidden — regardless of
+  // how we got here (a fresh visit, quitting a round, or navigating away to
+  // another top-nav view and back mid-round, which otherwise left them
+  // stuck visible since nothing else on that path ever re-hides them).
+  updateEndSessionToolbarButtonVisibility();
+
   const dailyState = loadDailyPracticeState();
   const dailyProgress = getDailyPracticeProgress(dailyState);
   const dailyComplete = dailyProgress >= DAILY_QUESTS.length;
@@ -2095,6 +2103,8 @@ function renderWordGameIntro() {
       : queueSummary.newWords > 0
         ? "You’re caught up · new words are ready"
         : "You’re caught up · review your nearest words";
+  const hasSavedMyWords =
+    (window.MyWordsAPI?.getSavedEntries?.() ?? []).length > 0;
   const dailyButtonLabel = dailyComplete
     ? "Start bonus round"
     : `Start ${activeQuest.reward} round`;
@@ -2135,6 +2145,30 @@ function renderWordGameIntro() {
           ${getDailyQuestMarkup(dailyState)}
         </ol>
       </section>
+
+      ${
+        hasSavedMyWords
+          ? `
+      <div class="game-intro-divider"><span>My Words mix</span></div>
+      <p class="game-intro-subheading">How often should questions pull from words you've saved?</p>
+      <div class="game-my-words-options">
+        ${MY_WORDS_SHARE_LEVELS.map(
+          (share) => `
+          <button
+            type="button"
+            class="game-my-words-option${share === wordGameMyWordsShare ? " is-selected" : ""}"
+            data-share="${share}"
+            aria-pressed="${share === wordGameMyWordsShare}"
+          >
+            <span class="game-my-words-option-value">${getMyWordsShareValueLabel(share)}</span>
+            <span class="game-my-words-option-label">${getMyWordsShareDescriptionLabel(share)}</span>
+          </button>
+        `,
+        ).join("")}
+      </div>
+      `
+          : ""
+      }
 
       <div class="game-intro-divider"><span>Choose another round</span></div>
       <p class="game-intro-subheading">Pick a goal, or keep going for as long as you like.</p>
@@ -2211,6 +2245,21 @@ function renderWordGameIntro() {
   document
     .getElementById("game-minimal-pairs-btn")
     ?.addEventListener("click", startMinimalPairsGame);
+
+  // A whole-screen re-render on click (rather than just toggling classes)
+  // matches how every other choice on this screen behaves, and keeps the
+  // selected-state bookkeeping in one place (the template above) instead of
+  // duplicating it here.
+  document.querySelectorAll(".game-my-words-option[data-share]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const share = Number(button.dataset.share);
+      if (!MY_WORDS_SHARE_LEVELS.includes(share)) return;
+
+      wordGameMyWordsShare = share;
+      saveMyWordsShare(share);
+      renderWordGameIntro();
+    });
+  });
 
   // Scoped to [data-mode], the attribute this handler actually needs — the
   // only .game-intro-option elements are the round-size/Endless buttons.
@@ -3512,6 +3561,16 @@ function updateGameMyWordsStar(button, wordObj) {
   }
 }
 
+// Only offered when the report follows a graded typed-answer miss (see
+// attachGameControls's reportButton handler below) — multiple-choice
+// questions have no equivalent, since the learner picked from pre-supplied
+// options rather than typing their own.
+const TYPED_ANSWER_MISS_FEEDBACK_CATEGORIES = [
+  ...FEEDBACK_CATEGORIES.slice(0, -1),
+  "My answer should have been accepted",
+  "Something else",
+];
+
 function attachGameControls(wordObj, isCloze = false) {
   const starButton = document.getElementById("game-my-words-star");
   const reportButton = document.getElementById("game-report-issue");
@@ -3553,6 +3612,14 @@ function attachGameControls(wordObj, isCloze = false) {
   // now-stale wordObj.
   if (reportButton) {
     reportButton.onclick = () => {
+      // Read live at click time, not closure time: this handler is bound
+      // once when the question loads, but the typed-answer form (if any)
+      // is only graded — and only carries a stashed userAnswer — after the
+      // learner submits, which happens later.
+      const missedTypedForm = document.querySelector(
+        ".game-typed-answer-form.is-incorrect",
+      );
+
       openFeedbackDialog({
         source: isCloze ? "Word Game · Cloze" : "Word Game · Flashcard",
         word: wordObj.ord,
@@ -3561,6 +3628,10 @@ function attachGameControls(wordObj, isCloze = false) {
         // The cloze sentence hides this exact word until answered —
         // showing it in the dialog title would give away the answer.
         showWordInTitle: false,
+        categories: missedTypedForm
+          ? TYPED_ANSWER_MISS_FEEDBACK_CATEGORIES
+          : FEEDBACK_CATEGORIES,
+        userAnswer: missedTypedForm?.dataset.userAnswer,
         triggerElement: reportButton,
       });
     };
@@ -3659,6 +3730,12 @@ function attachTypedAnswerForm(
       input.focus();
       return;
     }
+
+    // Stashed before grading, since a miss overwrites input.value with the
+    // correct answer (see updateTypedAnswerFeedback) — the report dialog's
+    // "My answer should have been accepted" option needs what the learner
+    // actually typed, not the correction.
+    form.dataset.userAnswer = selectedAnswer;
 
     handleTranslationClick(
       selectedAnswer,
@@ -4720,23 +4797,12 @@ const STRENGTH_WEIGHT_CEILING = 6; // WordStrengthAPI values are 0-5
 const STRENGTH_WEIGHT_EXPONENT = 2; // squared — retune here if the curve needs adjusting
 
 // The scheduler first chooses an explicit queue (relearning, due, new, or
-// scheduled fallback). Strength and My Words then influence only the draw
-// *within that queue*, so an undrilled new word can no longer jump ahead of
-// an overdue review merely because its scalar weight is larger.
-//
-// MY_WORDS_BOOST=100 means saving about 1% of a level's word pool earns
-// roughly half of practice time going to saved words (before strength
-// pulls that back down as they're learned): with N saved words (weight w
-// each) against M other words (weight w each), the saved share works out
-// to N*BOOST / (N*BOOST + M), which is already a small share for a
-// handful of saved words and grows on its own as the list grows — no
-// separate scaling curve needed.
-const MY_WORDS_BOOST = 100;
-
-// Even a large, mostly-untried saved list shouldn't be able to crowd out
-// every other word — cap My Words' combined share of the draw so there's
-// always some chance of practicing a word that hasn't been saved.
-const MY_WORDS_MAX_SHARE = 0.85;
+// scheduled fallback). Strength then influences only the draw *within that
+// queue*, so an undrilled new word can no longer jump ahead of an overdue
+// review merely because its scalar weight is larger. My Words no longer
+// hooks in here — see MY_WORDS_SHARE_LEVELS and pickMyWordsQuotaWord below,
+// which decide *before* a queue is even chosen whether this question comes
+// from the saved list at all.
 
 // A Gaussian falloff centered on the learner's ability, in word-difficulty
 // units — this is what stands in for the old hard CEFR-level cutoff. A word
@@ -4809,67 +4875,107 @@ function pickWeightedGameWord(entries, weights) {
 }
 
 function pickPrioritizedGameWord(eligibleEntries, { useAbilityWeight = true } = {}) {
-  const savedRecords = window.MyWordsAPI?.getSavedEntries?.() ?? [];
+  return pickWeightedGameWord(
+    eligibleEntries,
+    eligibleEntries.map((entry) => getGameWordWeight(entry, { useAbilityWeight })),
+  );
+}
 
-  /*
-   * getSavedEntries() returns objects shaped like:
-   * { entryId, entry }
-   */
+// --- My Words mix ---------------------------------------------------------
+// A user-set share of questions that should come from the learner's saved
+// My Words list this session, chosen on the intro screen (see
+// renderWordGameIntro) and persisted across visits like any other
+// preference. Coarse quarters rather than a continuous slider: fine enough
+// to feel adjustable, coarse enough that the control never implies more
+// precision than a per-question coin-flip against what's often a handful of
+// saved words can actually deliver. The top level stops at 0.75, not 1, so
+// even at max intensity the ordinary spaced-repetition draw still gets a
+// guaranteed turn — a small saved list should never be able to fully starve
+// the rest of the game.
+const MY_WORDS_SHARE_STORAGE_KEY = "norwegian-dictionary-my-words-share-v1";
+const MY_WORDS_SHARE_LEVELS = [0, 0.25, 0.5, 0.75];
+const DEFAULT_MY_WORDS_SHARE = 0;
+
+// Paired with a plain-language frequency ("one in four") rather than the
+// percentage alone on the intro screen's pills — natural-frequency phrasing
+// reads as more concrete than a bare percentage at a glance.
+function getMyWordsShareValueLabel(share) {
+  return share === 0 ? "Off" : `${Math.round(share * 100)}%`;
+}
+
+function getMyWordsShareDescriptionLabel(share) {
+  switch (share) {
+    case 0.25:
+      return "one in four";
+    case 0.5:
+      return "every other";
+    case 0.75:
+      return "three in four";
+    default:
+      return "no boost";
+  }
+}
+
+function loadMyWordsShare() {
+  const stored = Number(
+    window.localStorage?.getItem(MY_WORDS_SHARE_STORAGE_KEY),
+  );
+
+  return MY_WORDS_SHARE_LEVELS.includes(stored)
+    ? stored
+    : DEFAULT_MY_WORDS_SHARE;
+}
+
+function saveMyWordsShare(share) {
+  try {
+    window.localStorage?.setItem(MY_WORDS_SHARE_STORAGE_KEY, String(share));
+  } catch (_error) {
+    // Private browsing, storage quota, etc. — the in-memory value below
+    // still governs this session either way.
+  }
+}
+
+let wordGameMyWordsShare = loadMyWordsShare();
+
+// Rolled independently, once per question, *before* fetchRandomWord's
+// normal relearning/due/new/scheduled queue-priority pipeline ever runs —
+// so a hit here can preempt even an overdue relearning card, by design (the
+// whole point of a user-set share is that it means what it says).
+// candidateEntries is whatever pool this turn would otherwise have drawn
+// from (the full eligible pool normally, or just this round's
+// already-introduced words once a bounded session's word budget is spent —
+// see fetchRandomWord), so a My Words pick can never violate a session
+// round's promise of exactly N distinct words, and still respects the
+// active daily quest's own data requirements (audio, context sentence,
+// etc. — those are what shaped candidateEntries in the first place).
+function pickMyWordsQuotaWord(candidateEntries) {
+  if (wordGameMyWordsShare <= 0 || Math.random() >= wordGameMyWordsShare) {
+    return null;
+  }
+
+  const savedRecords = window.MyWordsAPI?.getSavedEntries?.() ?? [];
+  if (savedRecords.length === 0) return null;
+
   const savedEntries = new Set(
     savedRecords.map((savedRecord) => savedRecord.entry).filter(Boolean),
   );
-
-  // Each entry's strength weight involves a WordStrengthAPI lookup — worth
-  // computing exactly once per entry rather than re-deriving it for the
-  // pool totals below and again for the draw itself.
-  const strengthWeights = eligibleEntries.map((entry) =>
-    getGameWordWeight(entry, { useAbilityWeight }),
+  const eligibleSaved = candidateEntries.filter((entry) =>
+    savedEntries.has(entry),
   );
 
-  if (savedEntries.size === 0) {
-    return pickWeightedGameWord(eligibleEntries, strengthWeights);
-  }
+  if (eligibleSaved.length === 0) return null;
 
-  const isSaved = eligibleEntries.map((entry) => savedEntries.has(entry));
-
-  let myWordsTotal = 0;
-  let otherTotal = 0;
-
-  for (let i = 0; i < eligibleEntries.length; i++) {
-    if (isSaved[i]) {
-      myWordsTotal += strengthWeights[i] * MY_WORDS_BOOST;
-    } else {
-      otherTotal += strengthWeights[i];
-    }
-  }
-
-  // All-saved or all-unsaved eligible pool: nothing to balance against,
-  // so the cap below doesn't apply.
-  if (myWordsTotal === 0 || otherTotal === 0) {
-    const weights = strengthWeights.map((weight, i) =>
-      isSaved[i] ? weight * MY_WORDS_BOOST : weight,
-    );
-
-    return pickWeightedGameWord(eligibleEntries, weights);
-  }
-
-  // If My Words would naturally pull in more than MY_WORDS_MAX_SHARE of
-  // the draw, scale every saved word's weight down by the same factor so
-  // the combined total lands exactly at the cap. This only rebalances
-  // saved vs. not-saved — each saved word's weight *relative to other
-  // saved words* (i.e. its own strength) is unchanged.
-  const uncappedShare = myWordsTotal / (myWordsTotal + otherTotal);
-  const scale =
-    uncappedShare > MY_WORDS_MAX_SHARE
-      ? (MY_WORDS_MAX_SHARE * otherTotal) /
-        ((1 - MY_WORDS_MAX_SHARE) * myWordsTotal)
-      : 1;
-
-  const weights = strengthWeights.map((weight, i) =>
-    isSaved[i] ? weight * MY_WORDS_BOOST * scale : weight,
+  // No ability-proximity weighting here (see getGameWordWeight): the whole
+  // point of this draw is to deliberately override the new/due distinction,
+  // so CEFR-proximity pacing — which only ever makes sense for pacing *new*
+  // introductions — doesn't apply. Strength still does, so a saved word
+  // already mastered doesn't out-compete a saved word still being learned.
+  return pickWeightedGameWord(
+    eligibleSaved,
+    eligibleSaved.map((entry) =>
+      getGameWordWeight(entry, { useAbilityWeight: false }),
+    ),
   );
-
-  return pickWeightedGameWord(eligibleEntries, weights);
 }
 
 function buildGameWordQueues(eligibleEntries, now = Date.now()) {
@@ -4929,6 +5035,24 @@ function excludePreviousFillerWord(entries) {
   return filtered.length > 0 ? filtered : entries;
 }
 
+// The pool a filler draw picks between: already-introduced words this round
+// has answered correctly, excluding whichever word was just shown and
+// anything already queued for its own deliberate reintroduction. Split out
+// from pickWordGameSessionFillerWord so fetchRandomWord's My Words quota
+// check can roll against this same pool before falling back to plain
+// filler logic — see pickMyWordsQuotaWord.
+function getFillerReviewCandidates() {
+  const queuedWords = new Set(
+    incorrectWordQueue.map((entry) => entry.wordObj),
+  );
+
+  return excludePreviousFillerWord(
+    Array.from(wordGameSessionCorrectWords).filter(
+      (entry) => !queuedWords.has(entry),
+    ),
+  );
+}
+
 // Once a session round has introduced its full target word count, every
 // further "new question" slot reviews one already-introduced word instead
 // of pulling a brand-new one from the dictionary — this is what keeps a
@@ -4937,14 +5061,7 @@ function excludePreviousFillerWord(entries) {
 // their own scheduled reintroduction are left to that timing, which is
 // handled separately at the top of startWordGame().
 function pickWordGameSessionFillerWord() {
-  const queuedWords = new Set(
-    incorrectWordQueue.map((entry) => entry.wordObj),
-  );
-  const reviewCandidates = excludePreviousFillerWord(
-    Array.from(wordGameSessionCorrectWords).filter(
-      (entry) => !queuedWords.has(entry),
-    ),
-  );
+  const reviewCandidates = getFillerReviewCandidates();
 
   if (reviewCandidates.length > 0) {
     return pickWeightedGameWord(
@@ -4973,7 +5090,14 @@ async function fetchRandomWord() {
   ) {
     currentWordQueueType = "session-filler";
 
-    const fillerEntry = pickWordGameSessionFillerWord();
+    // The My Words quota is rolled against the same review pool plain
+    // filler logic uses, never the wider dictionary — a bounded round's
+    // word budget is already spent at this point, so even a My Words hit
+    // here must stay within words this round already introduced (see
+    // pickMyWordsQuotaWord's own comment for why that matters).
+    const fillerEntry =
+      pickMyWordsQuotaWord(getFillerReviewCandidates()) ??
+      pickWordGameSessionFillerWord();
 
     // getEligibleGameWords' previousWord check is bypassed on this path, so
     // it's kept in sync here instead — otherwise a later non-filler draw in
@@ -5005,20 +5129,31 @@ async function fetchRandomWord() {
     return null;
   }
 
-  const queues = buildGameWordQueues(eligibleEntries);
-  const queueName = getNextGameQueueName(queues);
-  currentWordQueueType = queueName;
-  // Ability weighting only shapes which unseen word gets introduced next
-  // (queue "new"). Due/relearning words already earned their turn via the
-  // SRS schedule, so they're drawn purely by strength — see
-  // getGameWordWeight for why letting CEFR distance deprioritize a due word
-  // would work against spaced repetition.
-  const selectedEntry =
-    queueName === "scheduled"
-      ? pickNearestScheduledGameWord(queues.scheduled)
-      : pickPrioritizedGameWord(queues[queueName] ?? [], {
-          useAbilityWeight: queueName === "new",
-        });
+  // Rolled before queue priority is even computed — see pickMyWordsQuotaWord
+  // for why a hit here can preempt relearning/due words, not just "new"
+  // ones.
+  const myWordsQuotaEntry = pickMyWordsQuotaWord(eligibleEntries);
+
+  let selectedEntry;
+  if (myWordsQuotaEntry) {
+    currentWordQueueType = "my-words-quota";
+    selectedEntry = myWordsQuotaEntry;
+  } else {
+    const queues = buildGameWordQueues(eligibleEntries);
+    const queueName = getNextGameQueueName(queues);
+    currentWordQueueType = queueName;
+    // Ability weighting only shapes which unseen word gets introduced next
+    // (queue "new"). Due/relearning words already earned their turn via the
+    // SRS schedule, so they're drawn purely by strength — see
+    // getGameWordWeight for why letting CEFR distance deprioritize a due
+    // word would work against spaced repetition.
+    selectedEntry =
+      queueName === "scheduled"
+        ? pickNearestScheduledGameWord(queues.scheduled)
+        : pickPrioritizedGameWord(queues[queueName] ?? [], {
+            useAbilityWeight: queueName === "new",
+          });
+  }
 
   if (!selectedEntry) {
     return null;

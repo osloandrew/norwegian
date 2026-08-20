@@ -889,7 +889,15 @@ function submitUserFeedback(message) {
   });
 }
 
-function buildFeedbackMessage({ source, word, pos, cefr, category, details }) {
+function buildFeedbackMessage({
+  source,
+  word,
+  pos,
+  cefr,
+  category,
+  userAnswer,
+  details,
+}) {
   const parts = [];
 
   if (source) {
@@ -905,6 +913,10 @@ function buildFeedbackMessage({ source, word, pos, cefr, category, details }) {
     // "Category" rather than "Issue" — general feedback covers things
     // like feature requests and compliments, not just problems.
     parts.push(`— Category: ${category}`);
+  }
+
+  if (userAnswer) {
+    parts.push(`— Learner answered: "${userAnswer}"`);
   }
 
   if (details) {
@@ -1016,6 +1028,7 @@ function openFeedbackDialog({
   detailsPlaceholder = "What's wrong, exactly?",
   successMessage = "Thanks — your report was sent.",
   initialCategory,
+  userAnswer,
   triggerElement,
 }) {
   // Only one report dialog should ever be open at a time.
@@ -1107,7 +1120,15 @@ function openFeedbackDialog({
     status.textContent = "Sending…";
 
     submitUserFeedback(
-      buildFeedbackMessage({ source, word, pos, cefr, category, details }),
+      buildFeedbackMessage({
+        source,
+        word,
+        pos,
+        cefr,
+        category,
+        userAnswer,
+        details,
+      }),
     )
       .then(() => {
         status.textContent = successMessage;
