@@ -99,7 +99,7 @@ const CSV_URL = "norwegianStories.csv";
 // let a visit to another language site overwrite this one's cached data.
 const STORY_CACHE_KEY = "storyDataNorwegian";
 const STORY_CACHE_TIME_KEY = "storyDataTimestampNorwegian";
-const STORY_CACHE_MAX_AGE = 6 * 60 * 60 * 1000;
+const STORY_CACHE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours, matching scripts.js
 let storyDataLoadPromise = null;
 const storyImagePathCache = new Map();
 

@@ -558,7 +558,7 @@ function handleSearchButtonClick() {
 const WORD_CSV_DB_NAME = "wordDataCsvNorwegianV2";
 const WORD_CSV_DB_STORE = "csv";
 const WORD_CSV_DB_KEY = "wordDataCsv";
-const WORD_CSV_CACHE_MAX_AGE = 6 * 60 * 60 * 1000; // 6 hours, matching stories.js
+const WORD_CSV_CACHE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours, matching stories.js
 
 // Legacy localStorage keys from before the cache moved to IndexedDB. The CSV
 // (now several MB) risked silently exceeding localStorage's much smaller

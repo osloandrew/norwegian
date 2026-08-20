@@ -707,14 +707,11 @@ function showBanner(type, level) {
 }
 
 function hideAllBanners() {
+  // Called defensively on several screen transitions, including ones that
+  // happen before the word-game screen (and its banner placeholder) has
+  // ever been rendered, so a missing element here is routine, not an error.
   const bannerPlaceholder = document.getElementById("game-banner-placeholder");
-
-  if (bannerPlaceholder) {
-    // Check if the element exists
-    bannerPlaceholder.innerHTML = ""; // Clear the banner placeholder
-  } else {
-    console.warn("Banner placeholder not found in the DOM.");
-  }
+  if (bannerPlaceholder) bannerPlaceholder.innerHTML = "";
 }
 
 // Track correct/incorrect answers for each question, and nudge the ability

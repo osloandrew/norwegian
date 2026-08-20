@@ -70,7 +70,7 @@
     <meta name="theme-color" content="#0d3a69" />
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="styles.css?v=20260819h" />
+    <link rel="stylesheet" href="styles.css?v=24c88ea49b" />
     <link
       rel="apple-touch-icon"
       sizes="180x180"
@@ -779,12 +779,10 @@
     <!--
       Not deferred, and first: defines window.WordClass, the shared
       grammatical-category classifier used by scripts.js/wordGame.js/
-      wordList.js below. pronunciation.js/wordList.js/myWordsAuth.js are
-      also not deferred and run synchronously during parsing — before any
-      deferred script — so this has to be plain and earlier still for its
+      wordList.js below. Has to run before any deferred script for its
       globals to exist in time for them.
     -->
-    <script src="wordClass.js?v=20260819h"></script>
+    <script src="wordClass.js?v=e4029ce236"></script>
 
     <!--
       Also not deferred, same load-order reasoning as wordClass.js above:
@@ -792,21 +790,29 @@
       forms" section. Its larger Norsk Ordbank snapshot is fetched later,
       after the main dictionary is usable, so this script remains cheap.
     -->
-    <script src="inflections.js?v=20260819h"></script>
-    <script src="expressionPatterns.js?v=20260819h"></script>
-    <script src="sentenceFormMatching.js?v=20260819h"></script>
-    <script src="spacedRepetition.js?v=20260819h"></script>
+    <script src="inflections.js?v=e7241b38da"></script>
+    <script src="expressionPatterns.js?v=6976323161"></script>
+    <script src="sentenceFormMatching.js?v=cb56c8a3e2"></script>
+    <script src="spacedRepetition.js?v=814ad80bb9"></script>
 
-    <script src="noRandom.js?v=20260819h" defer></script>
-    <script src="scripts.js?v=20260819h" defer></script>
-    <script src="wordGame.js?v=20260819h" defer></script>
-    <script src="placementTest.js?v=20260819h" defer></script>
-    <script src="streak.js?v=20260819h" defer></script>
-    <script src="stories.js?v=20260819h" defer></script>
-    <script src="pronunciation.js?v=20260819h"></script>
-    <script src="wordList.js?v=20260819h"></script>
-    <script src="myStats.js?v=20260819h" defer></script>
-    <script src="myWordsAuth.js?v=20260819h"></script>
+    <!--
+      Deferred like everything else below. pronunciation.js/wordList.js/
+      myWordsAuth.js need to run before scripts.js/wordGame.js, so they're
+      listed first in this deferred block — deferred scripts execute in
+      document order after parsing finishes, so that ordering is preserved
+      without blocking parsing on their combined ~130KB the way running
+      them un-deferred used to.
+    -->
+    <script src="pronunciation.js?v=c057d68508" defer></script>
+    <script src="wordList.js?v=4c9e33a7ee" defer></script>
+    <script src="myWordsAuth.js?v=cee0e11ceb" defer></script>
+    <script src="noRandom.js?v=44f641d473" defer></script>
+    <script src="scripts.js?v=54e6506c2c" defer></script>
+    <script src="wordGame.js?v=b32d437bd2" defer></script>
+    <script src="placementTest.js?v=34512a65ac" defer></script>
+    <script src="streak.js?v=6889ed4c33" defer></script>
+    <script src="stories.js?v=f70d8bb523" defer></script>
+    <script src="myStats.js?v=39333a17d7" defer></script>
 
     <!--
       Registered after "load" (not deferred alongside the app scripts
