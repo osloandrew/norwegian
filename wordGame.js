@@ -627,27 +627,32 @@ const banners = {
 };
 
 const clearedPracticeMessages = [
-  "🎉 Awesome! You've cleared all practice words!",
+  "🎉 Awesome! You've cleared all your review words!",
   "👏 Great job! Practice makes perfect.",
-  "🌟 Stellar effort! Practice words completed.",
-  "🏆 Victory! Practice session conquered.",
+  "🌟 Stellar effort! Review words completed.",
+  "🏆 Victory! Review words conquered.",
   "🚀 You're ready for the next challenge!",
-  "🎓 Practice complete! Onward to new words.",
-  "🔥 Practice words? Done and dusted!",
-  "💡 Bright work! Practice session finished.",
-  "🎯 Target achieved! Practice words cleared.",
-  "🧠 Brainpower at its best! Practice complete.",
+  "🎓 Review complete! Onward to new words.",
+  "🔥 Review words? Done and dusted!",
+  "💡 Bright work! Review session finished.",
+  "🎯 Target achieved! Review words cleared.",
+  "🧠 Brainpower at its best! Review complete.",
 ];
 
+// Deliberately avoids the bare word "streak" — My Stats' Day Streak /
+// Longest Streak already uses that word for a completely different thing
+// (consecutive calendar days practiced), while this banner is about
+// consecutive correct answers within the current round. "in a row" /
+// "run" phrasing keeps the celebration without the naming collision.
 const streakMessages = [
-  "🔥 You're on fire with a {X}-word streak!",
-  "💪 Power streak! That's {X} in a row!",
+  "🔥 You're on fire — {X} correct answers in a row!",
+  "💪 Power run! That's {X} in a row!",
   "🎯 Precision mode: {X} correct straight!",
-  "🎉 Amazing! You've hit a {X}-word streak!",
+  "🎉 Amazing! {X} correct answers in a row!",
   "👏 Well done! {X} correct answers without a miss!",
   "🌟 Stellar performance! {X} consecutive correct answers!",
   "🚀 You're soaring! {X} right answers in a row!",
-  "🏆 Champion streak! {X} correct answers and counting!",
+  "🏆 Champion run! {X} correct answers and counting!",
   "🎓 Scholar level: {X} correct answers straight!",
   "🧠 Brainpower unleashed! {X} correct answers consecutively!",
 ];
@@ -4615,12 +4620,27 @@ async function handleTranslationClick(
     // in session mode — a 10-streak is barely reachable in a small bounded
     // round (often only hittable by finishing flawlessly, at which point
     // it'd fire in the same instant as "round complete"), so the round
-    // summary is the one celebration moment there instead.
-    if (wordGameMode !== "session" && correctStreak % 10 === 0) {
+    // summary is the one celebration moment there instead. Also suppressed
+    // on a near-miss answer: updateTypedAnswerFeedback just wrote this
+    // answer's "Close enough — correct spelling: X" note into this same
+    // #game-banner-placeholder box, and this correction is the thing the
+    // learner most needs to see for THIS answer — a streak milestone is a
+    // bonus that will happily fire again on its next multiple of 10.
+    if (
+      wordGameMode !== "session" &&
+      correctStreak % 10 === 0 &&
+      !nearMissTypedMatch
+    ) {
       showBanner("streak", correctStreak);
     }
-    // Trigger the cleared practice words banner ONLY if the queue is now empty
-    if (incorrectWordQueue.length === 0 && removedFromQueue) {
+    // Trigger the cleared practice words banner ONLY if the queue is now
+    // empty — same near-miss suppression as the streak banner above, for
+    // the same reason.
+    if (
+      incorrectWordQueue.length === 0 &&
+      removedFromQueue &&
+      !nearMissTypedMatch
+    ) {
       showBanner("clearedPracticeWords"); // Show the cleared practice words banner
     }
   } else {
