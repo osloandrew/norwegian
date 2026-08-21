@@ -58,25 +58,29 @@
   ]);
 
   // Word classes outside "expression" that can still cite a fixed
-  // multi-word phrase ("selv om", "så lenge", "slik at") rather than a
-  // single inflectable word — none of these ever inflect, so they can go
-  // through the same literal-token pattern matching as "expression"
-  // entries. Kept narrow (just conjunction today) rather than opening this
-  // up to every word class, since most non-expression entries genuinely
-  // are single words and don't need phrase-pattern compilation.
-  const MULTI_WORD_PHRASE_CLASSES = new Set(["conjunction"]);
+  // multi-word phrase ("selv om", "så lenge", "slik at", "i stedet for")
+  // rather than a single inflectable word — none of these ever inflect, so
+  // they can go through the same literal-token pattern matching as
+  // "expression" entries. Kept narrow rather than opening this up to every
+  // word class, since most non-expression entries genuinely are single
+  // words and don't need phrase-pattern compilation.
+  const MULTI_WORD_PHRASE_CLASSES = new Set(["conjunction", "preposition"]);
 
   // True for any entry that should be treated as a fixed multi-word phrase
   // for pattern-matching purposes: every "expression" entry, plus a
-  // MULTI_WORD_PHRASE_CLASSES entry whose citation form is actually more
-  // than one word (a plain single-word conjunction like "og" still isn't a
-  // phrase).
+  // MULTI_WORD_PHRASE_CLASSES entry with at least one multi-word spelling
+  // variant (a plain single-word conjunction like "og" still isn't a
+  // phrase). Checking every variant, not just the first, matters here — an
+  // entry like "istedenfor, i stedet for" lists its fused single-word
+  // spelling first and its spaced-out equivalent second, and both need to
+  // resolve to the same phrase pattern.
   function isPhraseEntry(entry) {
     const wordClass = WordClass.getWordClass(entry?.gender);
     if (wordClass === "expression") return true;
     if (!MULTI_WORD_PHRASE_CLASSES.has(wordClass)) return false;
-    const firstVariant = String(entry?.ord ?? "").split(",")[0].trim();
-    return /\s/.test(firstVariant);
+    return String(entry?.ord ?? "")
+      .split(",")
+      .some((variant) => /\s/.test(variant.trim()));
   }
 
   function isAcceptableVariableTokenFiller(nodeNormalized, surfaceNormalized) {
