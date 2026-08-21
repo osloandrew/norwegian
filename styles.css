@@ -5574,9 +5574,13 @@ ul {
   }
 
   /* In the row layout, height (not width) is what needs to line up with
-     .sentence-audio-icon so the two look aligned sitting side by side. */
+     .sentence-audio-icon so the two look aligned sitting side by side.
+     Width still needs its own floor here — dropping it to auto let "C"
+     shrink narrower than "A1"/"B2", so labels no longer lined up with
+     each other from one example sentence to the next. */
   .sentence-cefr-label {
     width: auto;
+    min-width: 38px;
     height: 34px;
     display: inline-flex;
     align-items: center;
