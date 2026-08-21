@@ -3689,6 +3689,48 @@ html.landing #landing-card {
   margin-top: 16px;
 }
 
+/* Four tiles in a row rather than .game-summary-stats' shared 2-column
+   grid (still used as-is by Word Game's own round summary, which this
+   deliberately leaves alone). At 2 columns each tile was wide enough to
+   swallow a lot of dead space to the right of its left-aligned number —
+   there simply isn't enough content (a 1-2 digit number, one short word)
+   to fill a ~380px-wide box. Four narrower, centered tiles use that width
+   instead of wasting it, and read as one cohesive strip rather than four
+   separate cards each mostly empty. */
+.my-stats-overview-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .my-stats-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+
+.my-stats-overview-grid .game-summary-stat {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border-blue-soft);
+  padding: 12px 6px;
+  text-align: center;
+}
+
+/* Scaled down from the shared 1.5em/700 — at 2 columns the number was the
+   loudest thing on the page; at 4 narrower columns it doesn't need to be
+   as large to still read as the tile's headline. */
+.my-stats-overview-grid p.game-summary-stat-value {
+  font-size: 1.2em;
+}
+
+/* The shared label has no font-weight of its own (inherits normal/400),
+   which is legible enough as a single label under a big number but reads
+   as flimsy once four of them sit in a tight row — a heavier weight here
+   gives it enough presence to hold its own against the value above it. */
+.my-stats-overview-grid p.game-summary-stat-label {
+  font-weight: 600;
+}
+
 .my-stats-gems-header {
   align-items: flex-start;
   display: flex;
