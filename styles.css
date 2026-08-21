@@ -4084,6 +4084,23 @@ ul {
   line-height: inherit;
 }
 
+/* Explains what Sentence Search is for, added into the same white
+   .result-header card as its "Sentence Results for ..." h2 — only on the
+   real "apple" results shown on Sentence Search's very first landing (see
+   showSentencesSearchExample, scripts.js). Never added anywhere else:
+   the "give me another one" gesture's own Random Sentence card (a couple
+   hundred lines up, in randomWord()) deliberately does not get this —
+   it's reached only after a deliberate action past the landing page, not
+   the landing page itself. */
+.result-header-subtitle {
+  color: var(--color-text-secondary);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 8px 0 0;
+  text-align: center;
+}
+
 #results-container {
   background-color: rgb(244, 244, 244);
   margin: 10px auto;
