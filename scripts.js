@@ -3915,8 +3915,8 @@ window.onload = function () {
     loadingStateTimeoutId = window.setTimeout(() => {
       disableSearchControls();
       // Explains the disabled state rather than leaving it silently greyed
-      // out — restored (to the floating-label blank) once loaded below, or
-      // immediately for the stories route, which doesn't need this data.
+      // out — restored to the normal search placeholder once loaded below,
+      // or immediately for the stories route, which doesn't need this data.
       searchBar.placeholder = "Loading dictionary…";
       randomBtn.disabled = true;
       posSelect.disabled = true;
@@ -3936,7 +3936,7 @@ window.onload = function () {
        */
       if (initialStoryRoute) {
         enableSearchControls();
-        searchBar.placeholder = " ";
+        searchBar.placeholder = "Search in Norwegian or English";
         cefrSelect.disabled = false;
         cefrFilterContainer.classList.remove("disabled");
       }
@@ -3987,7 +3987,7 @@ window.onload = function () {
       // Enable the buttons once data is fully loaded
       // Enable the buttons and filters once data is fully loaded
       enableSearchControls();
-      searchBar.placeholder = " ";
+      searchBar.placeholder = "Search in Norwegian or English";
       randomBtn.disabled = false;
       typeSelect.disabled = false;
       posSelect.disabled = false;
