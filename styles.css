@@ -4566,7 +4566,8 @@ ul {
 }
 
 .report-issue-btn,
-.inflections-toggle-btn {
+.inflections-toggle-btn,
+.definition-toggle-btn {
   align-items: center;
   background-color: var(--color-bg-subtle);
   border: none;
@@ -4599,26 +4600,57 @@ ul {
 }
 
 .report-issue-btn:hover,
-.inflections-toggle-btn:hover {
+.inflections-toggle-btn:hover,
+.definition-toggle-btn:hover {
   background-color: #e5e5e5;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
 .report-issue-btn:focus-visible,
-.inflections-toggle-btn:focus-visible {
+.inflections-toggle-btn:focus-visible,
+.definition-toggle-btn:focus-visible {
   outline: 2px solid var(--color-text-muted);
   outline-offset: 2px;
 }
 
-.inflections-toggle-btn i {
+.inflections-toggle-btn i,
+.definition-toggle-btn i {
   color: var(--color-text-muted);
   font-size: 12px;
   margin-right: 0;
   transition: transform 0.2s ease;
 }
 
-.inflections-toggle-btn.inflections-toggle-expanded i {
+.inflections-toggle-btn.inflections-toggle-expanded i,
+.definition-toggle-btn.definition-toggle-expanded i {
   transform: rotate(180deg);
+}
+
+/* Collapsed-by-default clamp for a long single-word definition, lifted by
+   .definition-text-expanded when "Expand definition" is clicked. Only
+   applied when the definition exceeds DEFINITION_TRUNCATE_THRESHOLD, so
+   short definitions never get an unnecessary clamp.
+   A multi-sense definition renders as <ul class="definition-list"> instead
+   of plain text in the <p> — a height cap would slice straight through
+   whichever line or list item happened to sit at the cutoff, leaving a
+   sliver of a half-visible row above the button. Clamping each shape on
+   its own terms (whole list items vs. whole text lines) keeps every cut
+   flush against a real boundary. */
+.definition-text-clamped:not(.definition-text-expanded)
+  .definition-list
+  li:nth-child(n + 4) {
+  display: none;
+}
+
+.definition-text-clamped:not(.definition-text-expanded) p.definition-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+.definition-toggle-btn {
+  margin-top: 8px;
 }
 
 .inflections-table-wrapper {
