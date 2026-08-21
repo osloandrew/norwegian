@@ -1546,9 +1546,13 @@
     controls.appendChild(createWordStrengthFilterGroup());
 
     /*
-     * My Words actions
+     * My Words actions — hidden rather than shown disabled when there's
+     * nothing yet for them to act on ("Save at least one word first" was
+     * the only place that ever explained the disabled state, so a
+     * first-time visitor just saw two greyed-out buttons with no
+     * explanation at all).
      */
-    if (activeWordListView === "my") {
+    if (activeWordListView === "my" && myWordsEntryIds.size > 0) {
       const myWordsActions = createControlGroup(
         "word-list-my-words-actions",
         "My Words actions",
@@ -1559,11 +1563,7 @@
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
 
-      learnWordsButton.disabled = myWordsEntryIds.size === 0;
-      learnWordsButton.title =
-        myWordsEntryIds.size === 0
-          ? "Save at least one word first"
-          : "Start the Word Game with My Words prioritized";
+      learnWordsButton.title = "Start the Word Game with My Words prioritized";
 
       const removeAllButton = createControlButton("Remove All Words", () => {
         const savedWordCount = myWordsEntryIds.size;
@@ -1593,7 +1593,6 @@
       });
 
       removeAllButton.classList.add("is-danger");
-      removeAllButton.disabled = myWordsEntryIds.size === 0;
 
       myWordsActions.append(learnWordsButton, removeAllButton);
 
@@ -1601,28 +1600,26 @@
     }
 
     /*
-     * Export actions
+     * Export actions — same "hide, don't disable" treatment as the My
+     * Words actions above, for the same reason: nothing in the currently
+     * visible list to export.
      */
-    const exportControls = createControlGroup(
-      "word-list-export-controls",
-      "Export words",
-    );
+    if (visibleCount > 0) {
+      const exportControls = createControlGroup(
+        "word-list-export-controls",
+        "Export words",
+      );
 
-    const csvButton = createControlButton("Export CSV", exportWordListCSV);
+      const csvButton = createControlButton("Export CSV", exportWordListCSV);
 
-    const tsvButton = createControlButton("Export TSV", exportWordListTSV);
+      const tsvButton = createControlButton("Export TSV", exportWordListTSV);
 
-    const pdfButton = createControlButton("Export PDF", exportWordListPDF);
+      const pdfButton = createControlButton("Export PDF", exportWordListPDF);
 
-    const exportsDisabled = visibleCount === 0;
+      exportControls.append(csvButton, tsvButton, pdfButton);
 
-    csvButton.disabled = exportsDisabled;
-    tsvButton.disabled = exportsDisabled;
-    pdfButton.disabled = exportsDisabled;
-
-    exportControls.append(csvButton, tsvButton, pdfButton);
-
-    controls.appendChild(exportControls);
+      controls.appendChild(exportControls);
+    }
 
     return controls;
   }
