@@ -948,6 +948,7 @@ function buildFeedbackMessage({
   word,
   pos,
   cefr,
+  prompt,
   category,
   userAnswer,
   details,
@@ -961,6 +962,16 @@ function buildFeedbackMessage({
   if (word) {
     const attributes = [pos, cefr].filter(Boolean).join(", ");
     parts.push(attributes ? `"${word}" (${attributes})` : `"${word}"`);
+  }
+
+  if (prompt) {
+    // What the learner actually saw and had to translate/complete — the
+    // English meaning for a reverse-typed question, or the sentence with
+    // its blank for a cloze one. "word" above is the target Norwegian
+    // answer, which for a reverse question isn't itself what was shown, so
+    // a reviewer judging "should this answer have been accepted" needs
+    // this to know what prompted it in the first place.
+    parts.push(`— Shown: "${prompt}"`);
   }
 
   if (category) {
@@ -1075,6 +1086,7 @@ function openFeedbackDialog({
   word,
   pos,
   cefr,
+  prompt,
   showWordInTitle = true,
   categories = FEEDBACK_CATEGORIES,
   dialogTitle,
@@ -1179,6 +1191,7 @@ function openFeedbackDialog({
         word,
         pos,
         cefr,
+        prompt,
         category,
         userAnswer,
         details,
