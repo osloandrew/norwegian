@@ -346,7 +346,7 @@ button:disabled i {
   border-radius: 50%;
   color: var(--color-text-muted);
   cursor: pointer;
-  display: flex;
+  display: none;
   flex-shrink: 0;
   font-size: 16px;
   height: 36px;
@@ -358,19 +358,20 @@ button:disabled i {
     background-color 0.2s ease,
     color 0.2s ease,
     transform 0.2s ease;
-  visibility: hidden;
 }
 
-/* visibility, not display: this button still needs to occupy its layout
-   space while "hidden", or .search-btn — sized purely by flex-shrink
-   competition with its siblings here, not a fixed width — grows wider to
-   fill the freed-up space the moment the field is empty. placeholder=" "
-   on #search-bar (see its markup) means :placeholder-shown is only true
-   when the field is genuinely empty — including after a programmatic
-   clearInput(), not just while the user is typing — so this stays in
-   sync with the field's actual state without any JS. */
+/* display, not visibility: with .search-btn now a fixed width instead of
+   being sized by flex-shrink competition with its siblings, hiding this
+   button's box entirely gives that space back to #search-bar (the only
+   flex-grow item left in the row) instead of it going to waste — real
+   room the placeholder needs when the field is empty, which is exactly
+   when this button isn't shown anyway. placeholder=" " on #search-bar
+   (see its markup) means :placeholder-shown is only true when the field
+   is genuinely empty — including after a programmatic clearInput(), not
+   just while the user is typing — so this stays in sync with the
+   field's actual state without any JS. */
 #search-bar:not(:placeholder-shown) ~ .clear-btn {
-  visibility: visible;
+  display: flex;
 }
 
 .clear-btn:hover {
@@ -2322,14 +2323,6 @@ header h1 {
   user-select: none; /* Prevent text selection */
 }
 
-header p {
-  font-size: 18px;
-  font-weight: 600;
-  margin-top: -20px;
-  text-transform: uppercase;
-  user-select: none; /* Prevent text selection */
-}
-
 .auth-container {
   position: absolute;
   top: 12px;
@@ -2726,6 +2719,18 @@ input[type="text"] {
   font-size: 16px;
   outline: none;
   padding: 12px 16px;
+}
+
+/* Smaller than the typed-text size above -- reads as a hint, not content.
+   #search-bar's own 16px 32px total horizontal padding comes out of its
+   content box (box-sizing: content-box), which was previously left out
+   of account when checking this against the input's rendered width --
+   with that actually subtracted, "Search in Norwegian or English" needs
+   14px or smaller to fit even where .clear-btn's freed-up space (see
+   below) gives it the most room, on a fairly wide desktop window. */
+#search-bar::placeholder {
+  color: var(--color-text-faint);
+  font-size: 14px;
 }
 
 /* Covers what button:disabled (above) can't reach — text inputs aren't
@@ -4221,8 +4226,9 @@ ul {
   border-top-right-radius: 15px;
   cursor: pointer;
   display: flex;
+  flex-shrink: 0;
   height: 100%;
-  width: 100% !important;
+  width: 66px;
   justify-content: center;
   transition: background-color 0.3s ease;
 }
@@ -4751,7 +4757,7 @@ ul {
 #site-title {
   color: var(--color-heading);
   cursor: pointer;
-  margin: -5px 0px 10px 0px;
+  margin: -5px 0px 0px 0px;
   transition:
     color 0.2s ease,
     text-shadow 0.2s ease;
@@ -4759,10 +4765,6 @@ ul {
 
 #site-title:hover {
   color: #4d5c94; /* Choose one of the suggested colors here */
-}
-
-#site-subtitle {
-  margin: 0px;
 }
 
 /* Ensure sticky header CEFR label matches list page */
@@ -6317,10 +6319,6 @@ ul {
     font-size: clamp(28px, 7vw, 38px) !important;
     line-height: 1.1;
     margin: 0;
-  }
-
-  body.word-game-mode #site-subtitle {
-    display: none;
   }
 
   /* The third column used to reserve extra room (1.5fr) for the CEFR
