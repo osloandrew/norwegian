@@ -4013,6 +4013,7 @@ main {
 }
 
 .my-words-nav-btn-label {
+  display: none;
   font-weight: 400;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -4030,20 +4031,21 @@ ul {
   align-items: center;
   background-color: var(--color-primary);
   border: none;
-  border-radius: 15px;
+  border-radius: 50%;
   color: white;
   cursor: pointer;
   display: flex;
+  flex-shrink: 0;
   font-family: "Noto Sans", sans-serif;
   font-size: 13.3333px;
-  gap: 8px;
+  gap: 0;
   height: 42px;
   justify-content: center;
-  min-width: 180px;
-  padding: 10px 16px;
+  min-width: 0px;
+  padding: 0;
   transition: all 0.3s ease;
   white-space: nowrap;
-  width: fit-content;
+  width: 42px;
 }
 
 .my-words-nav-btn:hover {
@@ -4180,6 +4182,17 @@ ul {
      with the spacing everywhere else in the row rather than looking cramped
      against its neighbor. */
   gap: 10px;
+}
+
+/* My Stats never shows a CEFR filter (handleTypeChange's "my-stats" branch,
+   scripts.js, only hides .cefr-filter itself, not this wrapper) — left
+   visible, this empty flex child still claims a trailing gap inside
+   .selectors-wrapper, on top of the row's own gap to the My Words button
+   right after it, doubling the visual space between the type dropdown and
+   that button. Hiding the wrapper too removes the stray gap at every
+   screen size, not just the mobile layout below that first surfaced it. */
+body.my-stats-mode .cefr-filter-group {
+  display: none;
 }
 
 /* Hidden outside Word Game mode — shown only via the same
@@ -6122,56 +6135,36 @@ ul {
     width: 100%;
   }
 
-  /*
-   * Stay small and icon-only so the search bar (flex-grow: 1) keeps the
-   * room it needs, instead of the two of them fighting over 100% each.
-   */
-  .my-words-nav-btn {
-    flex-shrink: 0;
-    width: 42px;
-    height: 42px;
-    padding: 0;
-    border-radius: 50%;
-    min-width: 0px;
-    gap: 0;
-  }
-
-  .my-words-nav-btn-label {
-    display: none;
-  }
-
   /* My Stats hides the search bar entirely — it's a personal report, not
      a browsable list (see handleTypeChange's "my-stats" branch in
-     scripts.js) — so .my-words-nav-btn isn't sharing the row with a
+     scripts.js) — so .my-words-nav-btn (always the small icon-only circle
+     now, on every page and screen size) isn't sharing the row with a
      flex-grow search bar the way it is everywhere else above. Without
-     this override it still shrank to the icon-only circle meant for that
-     shared row, and #search-container-inner's flex-wrap above dropped it
-     onto its own line under the type dropdown: an unlabeled circle
-     stranded below, instead of one intentional-looking row.
-     word-game-mode's own two mobile pills (WORD GAME / SHOW ENGLISH,
-     see .selectors-wrapper's grid-template-columns further down) are the
-     reference here: an even 1fr/1fr split that fills the whole row edge
-     to edge. My Stats' two controls live in separate wrapper divs
-     (.selectors-wrapper for the dropdown, .search-and-random-wrapper for
-     the button — word-game-mode hides the button and never needs the
-     second wrapper at all), so matching that result means giving both
-     wrappers an equal flex share of #search-container-inner instead of
-     each shrinking to its own content and leaving the row centered with
-     dead space on both sides. */
+     this override, #search-container-inner's flex-wrap above dropped it
+     onto its own line under the type dropdown: a lone circle stranded
+     below, instead of sitting at the end of the dropdown's row the way it
+     sits at the end of the search bar everywhere else. Giving the
+     dropdown's wrapper the flex-grow instead (mirroring
+     .search-bar-wrapper's own flex-grow: 1 next to this same button in
+     every other mode) reproduces that same "grows to fill, button stays
+     put" layout with the type dropdown standing in for the search bar. */
   body.my-stats-mode #search-container-inner {
     flex-wrap: nowrap;
     /* min-width stays 100% (the unscoped rule above) — that's what
        stretches the row edge to edge in word-game-mode too. Overriding
        it to 0 here was the bug: #search-container-inner then had nothing
-       to distribute, so both flex:1 wrappers below just shrank to their
-       content and left the row shrink-wrapped and centered instead of
-       full-width. */
+       to distribute, so both wrappers below just shrank to their content
+       and left the row shrink-wrapped and centered instead of full-width. */
   }
 
-  body.my-stats-mode .selectors-wrapper,
-  body.my-stats-mode .search-and-random-wrapper {
-    flex: 1 1 0;
+  body.my-stats-mode .selectors-wrapper {
+    flex: 1 1 auto;
     min-width: 0;
+    width: auto;
+  }
+
+  body.my-stats-mode .search-and-random-wrapper {
+    flex: 0 0 auto;
     width: auto;
   }
 
@@ -6179,18 +6172,6 @@ ul {
     flex: 1 1 auto;
     min-width: 0;
     width: 100%;
-  }
-
-  body.my-stats-mode .my-words-nav-btn {
-    width: 100%;
-    height: 42px;
-    padding: 10px 16px;
-    border-radius: 15px;
-    gap: 8px;
-  }
-
-  body.my-stats-mode .my-words-nav-btn-label {
-    display: inline;
   }
 
   .type-filter i,
