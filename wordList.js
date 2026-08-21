@@ -762,7 +762,7 @@
     renderWordList();
 
     // Restore the Word List URL.
-    updateURL(savedState.search, "word-list", savedState.pos);
+    updateURL(savedState.search, "word-list", savedState.pos, savedState.cefr);
 
     window.scrollTo({
       top: 0,
@@ -920,8 +920,11 @@
       .trim();
 
     const entryPOS = getWordListEntryPOS(entry);
+    const selectedCEFR = document.getElementById("cefr-select")
+      ? document.getElementById("cefr-select").value.toUpperCase()
+      : "";
 
-    updateURL("", "words", entryPOS, null, primaryWord);
+    updateURL("", "words", entryPOS, selectedCEFR, null, primaryWord);
 
     window.scrollTo({
       top: 0,

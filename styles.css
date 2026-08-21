@@ -333,27 +333,65 @@ button:disabled i {
   color: #444444; /* Dark charcoal gray for readability */
 }
 
+/* A round, inset icon button — same footprint/hover language as
+   .word-list-favorite-button elsewhere (soft tinted-blue circle + slight
+   scale on hover, not a flush edge-to-edge rectangle) rather than a
+   bespoke look just for this button. */
 .clear-btn {
   align-items: center;
-  background-color: white;
+  appearance: none;
+  aspect-ratio: 1;
+  background-color: transparent;
   border: none;
+  border-radius: 50%;
   color: var(--color-text-muted);
   cursor: pointer;
   display: flex;
-  font-size: 18px;
-  padding: 0 15px;
+  flex-shrink: 0;
+  font-size: 16px;
+  height: 36px;
+  width: 36px;
+  justify-content: center;
+  margin: 0 4px;
+  padding: 0;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+  visibility: hidden;
+}
+
+/* visibility, not display: this button still needs to occupy its layout
+   space while "hidden", or .search-btn — sized purely by flex-shrink
+   competition with its siblings here, not a fixed width — grows wider to
+   fill the freed-up space the moment the field is empty. placeholder=" "
+   on #search-bar (see its markup) means :placeholder-shown is only true
+   when the field is genuinely empty — including after a programmatic
+   clearInput(), not just while the user is typing — so this stays in
+   sync with the field's actual state without any JS. */
+#search-bar:not(:placeholder-shown) ~ .clear-btn {
+  visibility: visible;
+}
+
+.clear-btn:hover {
+  background-color: rgba(28, 104, 181, 0.1);
+  color: var(--color-link);
+  transform: scale(1.08);
+}
+
+.clear-btn:active {
+  transform: scale(0.92);
+}
+
+.clear-btn:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
 }
 
 .clear-btn i {
-  color: var(--color-text-muted);
-  font-size: 18px;
-  transition:
-    color 0.3s ease,
-    text-shadow 0.3s ease;
-}
-
-.clear-btn:hover i {
-  color: var(--color-text-muted); /* Slightly darker shade for hover */
+  color: inherit;
+  font-size: 16px;
+  pointer-events: none;
 }
 
 .clickable-definition-word {
