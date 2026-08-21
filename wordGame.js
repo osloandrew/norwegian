@@ -954,6 +954,76 @@ function normalizeGameAnswer(value) {
   return normalizeGameWhitespace(value).toLocaleLowerCase("nb-NO");
 }
 
+// Folds the three Norwegian letters a learner is most likely to type without
+// their special character — æ/ø/å typed as ae/o/a on a keyboard that lacks
+// them — plus any other combining diacritic (accented loanwords), so those
+// near-misses fold to the same comparison key as the correctly-spelled
+// answer. Only ever consulted as a fallback after an exact match already
+// failed (see isCloseEnoughTypedAnswer) — never loosens what a correctly
+// spelled wrong word compares equal to.
+function foldGameDiacritics(value) {
+  return String(value ?? "")
+    .toLocaleLowerCase("nb-NO")
+    .replace(/æ/g, "ae")
+    .replace(/ø/g, "o")
+    .replace(/å/g, "a")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+// True once the running edit distance between a and b is certain to exceed
+// maxDistance, so isCloseEnoughTypedAnswer can bail out of a wildly
+// different guess without finishing the full O(len(a)*len(b)) table.
+function levenshteinWithinDistance(a, b, maxDistance) {
+  if (Math.abs(a.length - b.length) > maxDistance) return false;
+
+  let previousRow = Array.from({ length: b.length + 1 }, (_, j) => j);
+
+  for (let i = 1; i <= a.length; i++) {
+    const currentRow = [i];
+    let rowMin = i;
+
+    for (let j = 1; j <= b.length; j++) {
+      const substitutionCost = a[i - 1] === b[j - 1] ? 0 : 1;
+      const value = Math.min(
+        previousRow[j] + 1, // deletion
+        currentRow[j - 1] + 1, // insertion
+        previousRow[j - 1] + substitutionCost, // substitution
+      );
+      currentRow.push(value);
+      rowMin = Math.min(rowMin, value);
+    }
+
+    if (rowMin > maxDistance) return false; // every cell in this row already overshoots
+    previousRow = currentRow;
+  }
+
+  return previousRow[b.length] <= maxDistance;
+}
+
+// A typed recall answer is graded a match if it's exactly right (after the
+// usual whitespace/case normalization, handled by the caller), or if it's a
+// near-miss: the same word missing its æ/ø/å, or within a small edit-distance
+// budget that scales with word length. The game is testing recall of the
+// word, not spelling precision, and an exact-string requirement penalizes
+// learners for keyboard limitations or minor typos rather than not knowing
+// the word. Never applied to multiple-choice answers — a click always
+// reproduces the option's exact displayed text, so a mismatch there always
+// means a different word was chosen, not a typo.
+function isCloseEnoughTypedAnswer(typedAnswer, acceptedAnswer) {
+  if (!typedAnswer || !acceptedAnswer) return false;
+  if (typedAnswer === acceptedAnswer) return true;
+  if (foldGameDiacritics(typedAnswer) === foldGameDiacritics(acceptedAnswer)) {
+    return true;
+  }
+
+  const maxDistance =
+    acceptedAnswer.length <= 4 ? 0 : acceptedAnswer.length <= 8 ? 1 : 2;
+  if (maxDistance === 0) return false;
+
+  return levenshteinWithinDistance(typedAnswer, acceptedAnswer, maxDistance);
+}
+
 function startsWithUppercaseLetter(value) {
   const firstLetter = String(value ?? "").match(/\p{L}/u)?.[0] || "";
   return (
@@ -2887,6 +2957,25 @@ function showWordGameRoundSummary() {
       ? wordGameEarnedDailyQuest || completeDailyQuestRound()
       : null;
 
+  window.trackEvent?.("word_game_round_complete", {
+    mode: wasBonusRound
+      ? "bonus"
+      : wasTodayPractice
+        ? "daily_quest"
+        : wasBoundedRound
+          ? "bounded"
+          : "infinite",
+    round_complete: roundWasComplete,
+    words_practiced: wordGameSessionCorrectWords.size,
+    questions_answered: wordGameSessionQuestionsAnswered,
+    accuracy,
+  });
+  if (earnedDailyQuest) {
+    window.trackEvent?.("daily_quest_complete", {
+      reward: earnedDailyQuest.reward,
+    });
+  }
+
   wordGameRoundActive = false;
   wordGameIsTodayPracticeRound = false;
   wordGameIsBonusRound = false;
@@ -3014,10 +3103,11 @@ function showWordGameRoundSummary() {
       renderWordGameIntro();
     });
 
-  // A completed/ended round is the first moment a signed-out visitor has
-  // something worth protecting (a streak, saved word progress) — see
-  // maybeShowSignInNudge() in myWordsAuth.js, which no-ops after the first
-  // time it's ever shown, or if the visitor is already signed in.
+  // Every completed/ended round is a chance the signed-out visitor now has
+  // more worth protecting (a longer streak, more saved words) than they did
+  // last time — see maybeShowSignInNudge() in myWordsAuth.js, which only
+  // actually shows the banner on a new streak/My-Words milestone (subject to
+  // its own re-show cooldown), or no-ops entirely once signed in.
   window.SignInNudgeAPI?.maybeShow?.();
 }
 
@@ -4236,7 +4326,7 @@ function revealReverseWordAudio(wordObj) {
   );
 }
 
-function updateTypedAnswerFeedback(isCorrect, correctAnswer) {
+function updateTypedAnswerFeedback(isCorrect, correctAnswer, isNearMiss = false) {
   const form = document.querySelector(".game-typed-answer-form");
   const input = document.getElementById("game-typed-answer-input");
   const submit = form?.querySelector(".game-typed-submit");
@@ -4253,11 +4343,29 @@ function updateTypedAnswerFeedback(isCorrect, correctAnswer) {
   input.setAttribute("aria-invalid", String(!isCorrect));
   input.setAttribute(
     "aria-label",
-    isCorrect ? "Correct answer" : `Correct answer: ${correctAnswer}`,
+    isCorrect
+      ? isNearMiss
+        ? `Correct, close enough. Correct spelling: ${correctAnswer}`
+        : "Correct answer"
+      : `Correct answer: ${correctAnswer}`,
   );
   form.classList.add("is-answered");
   form.classList.toggle("is-correct", isCorrect);
   form.classList.toggle("is-incorrect", !isCorrect);
+
+  // A near-miss (right word, wrong spelling — missing æ/ø/å or a small typo,
+  // see isCloseEnoughTypedAnswer) still counts as correct so it doesn't
+  // penalize recall, but silently accepting it without ever showing the real
+  // spelling would let the misspelling go uncorrected. Left as a small note
+  // rather than overwriting the input, so the learner still sees what they
+  // actually typed.
+  form.querySelector(".game-typed-answer-note")?.remove();
+  if (isCorrect && isNearMiss) {
+    const note = document.createElement("p");
+    note.className = "game-typed-answer-note";
+    note.textContent = `Close enough — correct spelling: ${correctAnswer}`;
+    form.appendChild(note);
+  }
 }
 
 function announceGameAnswer(isCorrect, correctAnswer) {
@@ -4368,10 +4476,29 @@ async function handleTranslationClick(
   const acceptedAnswerIdentities = new Set(
     acceptedAnswers.map(normalizeGameAnswer).filter(Boolean),
   );
-  const answerWasCorrect =
+  const normalizedSelected = normalizeGameAnswer(selectedTranslationPart);
+  const exactAnswerMatch =
     acceptedAnswerIdentities.size > 0
-      ? acceptedAnswerIdentities.has(normalizeGameAnswer(selectedTranslationPart))
+      ? acceptedAnswerIdentities.has(normalizedSelected)
       : selectedTranslationPart === correctTranslationPart;
+  // A typed answer that misses on an exact match gets one more, more
+  // forgiving pass — missing æ/ø/å or a small typo shouldn't fail a learner
+  // who actually recalled the word. Multiple-choice picks skip this
+  // entirely: their text always matches an option exactly, so a mismatch
+  // there is always a different word, never a typo. See
+  // isCloseEnoughTypedAnswer for exactly what counts as "close enough".
+  const nearMissTypedMatch =
+    !exactAnswerMatch &&
+    wasTyped &&
+    (acceptedAnswerIdentities.size > 0
+      ? [...acceptedAnswerIdentities].some((accepted) =>
+          isCloseEnoughTypedAnswer(normalizedSelected, accepted),
+        )
+      : isCloseEnoughTypedAnswer(
+          normalizedSelected,
+          normalizeGameAnswer(correctTranslationPart),
+        ));
+  const answerWasCorrect = exactAnswerMatch || nearMissTypedMatch;
 
   resetTodayPracticeRoundAfterMidnight(wordObj);
   totalQuestions++; // Increment total questions for this level
@@ -4422,7 +4549,7 @@ async function handleTranslationClick(
     // Not gated by wasTyped: this is a no-op when there's no typed-answer
     // form in the DOM (see its own definition), so it's safe to call
     // unconditionally on every mode, typed or not.
-    updateTypedAnswerFeedback(true, correctTranslationPart);
+    updateTypedAnswerFeedback(true, correctTranslationPart, nearMissTypedMatch);
     if (isReverse) {
       revealReverseWordAudio(wordObj); // see isReverse in the flag map above
     }

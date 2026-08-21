@@ -40,7 +40,29 @@
     },
   ];
   const WAS_SIGNED_IN_KEY = "norwegian-dictionary-was-signed-in-v1";
+  // Superseded by SIGNIN_NUDGE_STATE_KEY below, which tracks re-nudging by
+  // milestone instead of a single ever-shown flag — read once, at startup,
+  // purely to migrate a visitor who already saw the old one-shot nudge (see
+  // loadSignInNudgeState).
   const SIGNIN_NUDGE_SHOWN_KEY = "norwegian-dictionary-signin-nudge-shown-v1";
+  const SIGNIN_NUDGE_STATE_KEY = "norwegian-dictionary-signin-nudge-state-v1";
+
+  // Re-nudge thresholds: the nudge originally fired once, ever, after the
+  // first completed round. That meant a visitor who dismissed it in their
+  // first five minutes — before they had anything worth losing — was never
+  // asked again, even after building a real streak or word list. Instead,
+  // each dimension has its own milestone ladder; crossing a new rung on
+  // either one is a fresh occasion to ask, since it's a fresh amount of
+  // progress that's now at risk of being lost to a cleared cache. 1 is the
+  // first rung so the original "first completed round" trigger still fires
+  // the same as before.
+  const SIGNIN_NUDGE_STREAK_MILESTONES = [1, 3, 7, 14, 30, 60, 100];
+  const SIGNIN_NUDGE_WORD_COUNT_MILESTONES = [5, 15, 30, 60, 100];
+  // Even a new, higher milestone won't re-show the banner sooner than this
+  // after it was last shown — otherwise a visitor who happens to cross two
+  // thresholds in one sitting (e.g. finishes a round that both extends their
+  // streak past 7 and pushes My Words past 15) would see it twice in a row.
+  const SIGNIN_NUDGE_MIN_RESHOW_GAP_MS = 3 * 24 * 60 * 60 * 1000;
 
   const PUSH_DEBOUNCE_MS = 300;
 
@@ -156,36 +178,123 @@
     return db.collection("myWordsUsers").doc(userId);
   }
 
-  // Shown at most once ever, per browser, the first time it's called after
-  // the visitor has something worth protecting (see maybeShowSignInNudge's
-  // caller in wordGame.js). Uses WAS_SIGNED_IN_KEY rather than currentUserId
-  // to decide "already signed in" — currentUserId is still null for a
-  // moment while a returning user's session silently restores (Firebase
-  // loads async), and this avoids nudging them during that window.
+  function defaultSignInNudgeState() {
+    return {
+      highestStreakMilestoneShown: 0,
+      highestWordCountMilestoneShown: 0,
+      lastShownAt: 0,
+    };
+  }
+
+  // A visitor who already saw the old one-shot nudge shouldn't immediately
+  // see it again just because this shipped — that flag becomes "milestone 1
+  // already shown, as of now" (starting the re-show cooldown fresh) rather
+  // than being ignored.
+  function loadSignInNudgeState() {
+    try {
+      const stored = localStorage.getItem(SIGNIN_NUDGE_STATE_KEY);
+      if (stored) {
+        return { ...defaultSignInNudgeState(), ...JSON.parse(stored) };
+      }
+
+      if (localStorage.getItem(SIGNIN_NUDGE_SHOWN_KEY) === "1") {
+        return {
+          ...defaultSignInNudgeState(),
+          highestStreakMilestoneShown: 1,
+          lastShownAt: Date.now(),
+        };
+      }
+    } catch (error) {
+      // Fall through to the default below.
+    }
+
+    return defaultSignInNudgeState();
+  }
+
+  function saveSignInNudgeState(state) {
+    try {
+      localStorage.setItem(SIGNIN_NUDGE_STATE_KEY, JSON.stringify(state));
+    } catch (error) {
+      // Best-effort only — worst case, it re-shows sooner than intended.
+    }
+  }
+
+  // The highest milestone in `milestones` that `value` has reached, or 0 if
+  // none have.
+  function highestMilestoneReached(value, milestones) {
+    let highest = 0;
+    for (const milestone of milestones) {
+      if (value >= milestone) highest = milestone;
+    }
+    return highest;
+  }
+
+  // Called after every completed/ended word-game round (see this module's
+  // caller in wordGame.js). Shows the "sign in to keep this safe" banner
+  // again each time the visitor crosses a new streak or My Words milestone
+  // — not just once, ever — since each milestone represents a fresh amount
+  // of local-only progress now at risk from a cleared cache. Uses
+  // WAS_SIGNED_IN_KEY rather than currentUserId to decide "already signed
+  // in" — currentUserId is still null for a moment while a returning user's
+  // session silently restores (Firebase loads async), and this avoids
+  // nudging them during that window.
   function maybeShowSignInNudge() {
     if (!signInNudgeBanner) {
       return;
     }
 
-    let alreadyShown = true;
+    let alreadySignedIn = true;
+    let state = defaultSignInNudgeState();
     try {
-      alreadyShown =
-        localStorage.getItem(SIGNIN_NUDGE_SHOWN_KEY) === "1" ||
-        localStorage.getItem(WAS_SIGNED_IN_KEY) === "1";
+      alreadySignedIn = localStorage.getItem(WAS_SIGNED_IN_KEY) === "1";
+      state = loadSignInNudgeState();
     } catch (error) {
       // If localStorage is unavailable, err toward not nagging.
       return;
     }
 
-    if (alreadyShown || currentUserId) {
+    if (alreadySignedIn || currentUserId) {
       return;
     }
 
-    try {
-      localStorage.setItem(SIGNIN_NUDGE_SHOWN_KEY, "1");
-    } catch (error) {
-      // Best-effort only — worst case, it shows again next visit.
+    const streakCount = window.StreakAPI?.getState?.()?.count ?? 0;
+    const wordCount = window.MyWordsAPI?.getEntryIds?.()?.length ?? 0;
+    const streakMilestone = highestMilestoneReached(
+      streakCount,
+      SIGNIN_NUDGE_STREAK_MILESTONES,
+    );
+    const wordCountMilestone = highestMilestoneReached(
+      wordCount,
+      SIGNIN_NUDGE_WORD_COUNT_MILESTONES,
+    );
+    const reachedNewMilestone =
+      streakMilestone > state.highestStreakMilestoneShown ||
+      wordCountMilestone > state.highestWordCountMilestoneShown;
+    const cooldownElapsed =
+      state.lastShownAt === 0 ||
+      Date.now() - state.lastShownAt >= SIGNIN_NUDGE_MIN_RESHOW_GAP_MS;
+
+    if (!reachedNewMilestone || !cooldownElapsed) {
+      return;
     }
+
+    saveSignInNudgeState({
+      highestStreakMilestoneShown: Math.max(
+        state.highestStreakMilestoneShown,
+        streakMilestone,
+      ),
+      highestWordCountMilestoneShown: Math.max(
+        state.highestWordCountMilestoneShown,
+        wordCountMilestone,
+      ),
+      lastShownAt: Date.now(),
+    });
+
+    window.trackEvent?.("sign_in_nudge_shown", {
+      streak_milestone: streakMilestone,
+      word_count_milestone: wordCountMilestone,
+      is_first_time: state.lastShownAt === 0,
+    });
 
     signInNudgeBanner.classList.remove("hidden");
   }
@@ -789,12 +898,24 @@
   }
 
   function triggerSignIn() {
-    return auth.signInWithPopup(provider).catch((error) => {
-      if (error?.code !== "auth/popup-closed-by-user") {
-        console.warn("Google sign-in failed.", error);
-        window.alert("Google sign-in failed. Please try again.");
-      }
-    });
+    return auth
+      .signInWithPopup(provider)
+      .then((result) => {
+        // Only reached by an explicit, successful sign-in click (never by
+        // the silent session-restore path below, which calls
+        // ensureAuthReady() directly without this function) — the actual
+        // funnel conversion moment, as opposed to onAuthStateChanged firing
+        // again for a returning session.
+        window.trackEvent?.("sign_in_completed", {
+          is_new_user: Boolean(result?.additionalUserInfo?.isNewUser),
+        });
+      })
+      .catch((error) => {
+        if (error?.code !== "auth/popup-closed-by-user") {
+          console.warn("Google sign-in failed.", error);
+          window.alert("Google sign-in failed. Please try again.");
+        }
+      });
   }
 
   // Runs once, after the SDK scripts have finished loading.
@@ -806,6 +927,7 @@
     provider = new firebase.auth.GoogleAuthProvider();
 
     signOutButton?.addEventListener("click", () => {
+      window.trackEvent?.("sign_out");
       auth.signOut().catch((error) => {
         console.warn("Sign-out failed.", error);
       });
@@ -833,6 +955,7 @@
   }
 
   signInButton?.addEventListener("click", () => {
+    window.trackEvent?.("sign_in_started", { source: "header" });
     signInButton.disabled = true;
 
     ensureAuthReady()
@@ -921,10 +1044,13 @@
   });
 
   signInNudgeDismissButton?.addEventListener("click", () => {
+    window.trackEvent?.("sign_in_nudge_dismissed");
     dismissSignInNudge();
   });
 
   signInNudgeSignInButton?.addEventListener("click", () => {
+    window.trackEvent?.("sign_in_nudge_clicked");
+    window.trackEvent?.("sign_in_started", { source: "nudge" });
     dismissSignInNudge();
     signInNudgeSignInButton.disabled = true;
 

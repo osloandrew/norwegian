@@ -1178,6 +1178,13 @@ footer .copyright {
   border-color: #c97861;
 }
 
+.game-typed-answer-note {
+  color: #5a7a45;
+  font-size: 0.8em;
+  margin: 8px 0 0;
+  text-align: center;
+}
+
 /* Answer feedback is announced to assistive technology without introducing
    a new visible message; the existing green/red treatment remains the sole
    visual feedback. */
