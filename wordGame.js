@@ -3715,12 +3715,25 @@ function attachGameControls(wordObj, isCloze = false) {
       const missedTypedForm = document.querySelector(
         ".game-typed-answer-form.is-incorrect",
       );
+      // wordObj.ord is the target Norwegian answer, not what was actually
+      // on screen — a reverse question shows the English meaning and a
+      // cloze question shows a sentence with a blank, either of which a
+      // reviewer needs to judge "should this answer have been accepted"
+      // (e.g. the shown English gloss maps to more than one Norwegian
+      // synonym, or the blank's surrounding words support a different
+      // inflection). Only worth capturing for an actual typed miss — every
+      // other report path already has the full question context via the
+      // dialog's own "word" field.
+      const missedPrompt = missedTypedForm
+        ? document.querySelector(".game-word")?.textContent?.trim()
+        : undefined;
 
       openFeedbackDialog({
         source: isCloze ? "Word Game · Cloze" : "Word Game · Flashcard",
         word: wordObj.ord,
         pos: wordObj.gender,
         cefr: wordObj.CEFR,
+        prompt: missedPrompt,
         // The cloze sentence hides this exact word until answered —
         // showing it in the dialog title would give away the answer.
         showWordInTitle: false,
