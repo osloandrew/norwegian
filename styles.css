@@ -144,14 +144,16 @@ audio {
   background-color: var(--color-bg-light); /* Neutral light gray */
   border: var(--color-border-neutral) 1px solid;
   border-radius: 5px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  color: var(--color-text-on-light-btn);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: var(--color-text-muted);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
+  font-size: 11px;
   font-weight: 500;
   min-width: 115px;
   padding: 0.5em 1em;
   position: relative;
+  text-transform: uppercase;
   transition: background-color 0.3s ease;
   z-index: 1;
 }
