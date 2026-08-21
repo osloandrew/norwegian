@@ -505,17 +505,26 @@ function handleKey(event) {
 
 function clearContainer() {
   const landingCard = document.getElementById("landing-card");
-  if (landingCard) {
-    // Temporarily remove the landing card from the container, then clear everything else
-    landingCard.parentNode.removeChild(landingCard);
+  const main = document.querySelector("main");
+
+  // Park the landing card as resultsContainer's sibling in <main> — the
+  // same spot showLandingCard(true) itself puts it — rather than inside
+  // resultsContainer. Parking it inside used to work only as long as every
+  // later render went through appendToContainer's `+=`; the many spots
+  // that instead do a plain `resultsContainer.innerHTML = ...` (error
+  // messages, random-sentence rendering, "not ready yet" placeholders,
+  // ...) replace their *own* children, but a landing card sitting inside
+  // AS one of those children was being replaced right along with them —
+  // silently deleting it from the document for the rest of the session,
+  // with no code path left that ever re-creates it. That's what made
+  // switching to Words after Sentences render blank: randomWord()'s
+  // sentence branch is exactly one of those plain-assignment spots.
+  if (landingCard && main && landingCard.parentNode !== main) {
+    landingCard.remove();
+    main.insertBefore(landingCard, resultsContainer);
   }
 
   resultsContainer.innerHTML = ""; // Clear everything else in the container
-
-  // Restore the landing card
-  if (landingCard) {
-    resultsContainer.appendChild(landingCard);
-  }
 }
 
 function appendToContainer(content) {
@@ -1400,8 +1409,14 @@ async function randomWord() {
   hideSpinner(); // Hide the spinner
 }
 
-// Perform a search based on the input query and selected POS
-async function search(queryOverride = null) {
+// Perform a search based on the input query and selected POS.
+// options.updateHistory (default true) can be set to false to run the
+// search purely for its rendered output — no URL/title change and no
+// "what did you last type" side effects — used by
+// showSentencesSearchExample() below to preview real results for a word
+// nobody actually searched for.
+async function search(queryOverride = null, options = {}) {
+  const { updateHistory = true } = options;
   const searchInput = document.getElementById("search-bar");
   const rawQuery = queryOverride === null ? searchInput.value : queryOverride;
   const originalQuery = normalizeSearchText(rawQuery);
@@ -1477,10 +1492,12 @@ async function search(queryOverride = null) {
     return result;
   });
 
-  cleanURL(type);
+  if (updateHistory) {
+    cleanURL(type);
 
-  // Update the URL with the search parameters
-  updateURL(originalQuery, type, selectedPOS, selectedCEFR); // Preserve what the visitor typed
+    // Update the URL with the search parameters
+    updateURL(originalQuery, type, selectedPOS, selectedCEFR); // Preserve what the visitor typed
+  }
 
   // Show the spinner at the start of the search
   showSpinner();
@@ -1920,6 +1937,29 @@ async function search(queryOverride = null) {
   hideSpinner(); // Hide the spinner
 }
 
+// Sentence Search's empty-state landing (arriving with no query typed):
+// a real search for "apple" — English, so it reads regardless of how much
+// Norwegian the visitor already knows — with a one-line explainer added
+// into the same "Sentence Results for ..." card. Deliberately not the
+// visitor's own search: updateHistory:false keeps the URL, title, and
+// search bar exactly as an untouched landing page, so this reads as
+// "here's what the feature does" rather than something the visitor
+// appears to have typed themselves.
+async function showSentencesSearchExample() {
+  await search("apple", { updateHistory: false });
+
+  const resultHeader = document.querySelector(
+    "#results-container .result-header",
+  );
+  if (!resultHeader) return;
+
+  const subtitle = document.createElement("p");
+  subtitle.className = "result-header-subtitle";
+  subtitle.textContent =
+    "Type any Norwegian or English word to find sentences that use it.";
+  resultHeader.appendChild(subtitle);
+}
+
 // Handle change in part of speech (POS) filter
 function handlePOSChange() {
   const query = document
@@ -2118,7 +2158,7 @@ function handleTypeChange(type, options = {}) {
     if (query) {
       search(); // This will trigger a search for sentences based on the search bar query
     } else {
-      randomWord(); // Generate a random sentence if the search bar is empty
+      showSentencesSearchExample(); // Landing state: real "apple" results, not a random sentence
     }
   } else if (type === "word-game") {
     // Handle "Word Game" type
@@ -2251,7 +2291,14 @@ function handleTypeChange(type, options = {}) {
     } else if (query) {
       search(); // Trigger a word search if the search bar has a value
     } else {
-      randomWord(); // Generate a random word if the search bar is empty
+      // Same landing experience a fresh visit to ?type=words gets (see
+      // loadStateFromURL's own "words" branch below) — welcome message,
+      // daily quests, vocabulary profile, and the mode grid — rather than
+      // dropping straight into an unexplained random word. Switching to
+      // Words from the dropdown used to be the one path that skipped all
+      // of that, so most sessions never saw it.
+      clearContainer();
+      showLandingCard(true);
     }
   }
 }
