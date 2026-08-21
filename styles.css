@@ -5575,12 +5575,15 @@ ul {
 
   /* In the row layout, height (not width) is what needs to line up with
      .sentence-audio-icon so the two look aligned sitting side by side.
-     Width still needs its own floor here — dropping it to auto let "C"
-     shrink narrower than "A1"/"B2", so labels no longer lined up with
-     each other from one example sentence to the next. */
+     Width still needs to be fixed (not just floored) here — "C" is one
+     character narrower than "A1"/"B2", so a min-width alone left it
+     sized to its own content while the two-letter labels sized to
+     theirs, and the two no longer matched. The value itself is the
+     label's own unconstrained (desktop) height, ~29px, not its desktop
+     width (38px) — reusing the wider desktop value here made the badge
+     read as a stretched-out rectangle instead of a compact sticker. */
   .sentence-cefr-label {
-    width: auto;
-    min-width: 38px;
+    width: 29px;
     height: 34px;
     display: inline-flex;
     align-items: center;
