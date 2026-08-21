@@ -1219,11 +1219,12 @@ footer .copyright {
   border-color: #c97861;
 }
 
+/* Rendered inside #game-banner-placeholder (see updateTypedAnswerFeedback,
+   wordGame.js) — the gray box itself is #game-banner-placeholder's own
+   background/padding/radius, same as the streak/cleared-practice banners
+   that also live there, so no box styling is duplicated here. */
 .game-typed-answer-note {
   color: #5a7a45;
-  font-size: 0.8em;
-  margin: 8px 0 0;
-  text-align: center;
 }
 
 /* Answer feedback is announced to assistive technology without introducing
@@ -5783,7 +5784,8 @@ body.my-stats-mode .cefr-filter-group {
   .game-lock-banner,
   .game-removed-word-banner,
   .game-saved-word-banner,
-  .game-streak-banner {
+  .game-streak-banner,
+  .game-typed-answer-note {
     font-size: 0.9em !important;
   }
 

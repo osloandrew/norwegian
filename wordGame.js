@@ -1021,6 +1021,21 @@ function isCloseEnoughTypedAnswer(typedAnswer, acceptedAnswer) {
     return true;
   }
 
+  // Same ASCII-keyboard spellings Word Search already accepts (scripts.js'
+  // getNorwegianKeyboardVariants/resolveWordSearchQuery) — å/æ/ø typed as
+  // aa/ae/oe, not just the single-letter a/o fold above. "aapen" should be
+  // accepted for "åpen" here the same way searching "aapen" already
+  // resolves to it.
+  if (
+    typeof getNorwegianKeyboardVariants === "function" &&
+    typeof normalizeSearchText === "function" &&
+    getNorwegianKeyboardVariants(acceptedAnswer).includes(
+      normalizeSearchText(typedAnswer),
+    )
+  ) {
+    return true;
+  }
+
   const maxDistance =
     acceptedAnswer.length <= 4 ? 0 : acceptedAnswer.length <= 8 ? 1 : 2;
   if (maxDistance === 0) return false;
@@ -4162,7 +4177,7 @@ function renderClozeGameUI(
       <div class="game-word${promptLengthClass ? ` ${promptLengthClass}` : ""}">
       <h2 id="cloze-sentence">${escapeGameHTML(sentenceWithBlank)}</h2>
       </div>
-  
+
       <div class="game-cefr-spacer"></div>
     </div>
 
@@ -4373,15 +4388,23 @@ function updateTypedAnswerFeedback(isCorrect, correctAnswer, isNearMiss = false)
   // A near-miss (right word, wrong spelling — missing æ/ø/å or a small typo,
   // see isCloseEnoughTypedAnswer) still counts as correct so it doesn't
   // penalize recall, but silently accepting it without ever showing the real
-  // spelling would let the misspelling go uncorrected. Left as a small note
-  // rather than overwriting the input, so the learner still sees what they
-  // actually typed.
-  form.querySelector(".game-typed-answer-note")?.remove();
-  if (isCorrect && isNearMiss) {
-    const note = document.createElement("p");
-    note.className = "game-typed-answer-note";
-    note.textContent = `Close enough — correct spelling: ${correctAnswer}`;
-    form.appendChild(note);
+  // spelling would let the misspelling go uncorrected. Shown in
+  // #game-banner-placeholder — the same gray box showBanner() uses for the
+  // streak/cleared-practice congratulation messages — rather than appended
+  // to the form (which sits outside .game-word-card entirely, between the
+  // input and the Next Word button). Typed-reverse and cloze questions
+  // (the only two modes that reach here) never call displayPronunciation,
+  // so this box is always free at this point; the one real overlap is
+  // showBanner("streak"/"clearedPracticeWords", ...) a few lines below in
+  // handleTranslationClick/handleTypedAnswerSubmit, which — being called
+  // after this — wins the shared box on the rare question that's both a
+  // near-miss and a streak milestone.
+  const bannerPlaceholder = document.getElementById("game-banner-placeholder");
+  if (bannerPlaceholder) {
+    bannerPlaceholder.innerHTML =
+      isCorrect && isNearMiss
+        ? `<div class="game-typed-answer-note"><p>Close enough — correct spelling: ${correctAnswer}</p></div>`
+        : "";
   }
 }
 
