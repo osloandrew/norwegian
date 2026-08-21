@@ -545,9 +545,13 @@ function applyCorrectRelearningResult(queueEntry, wasTyped, answeredQuestions) {
 
 let totalQuestions = 0; // Track total questions per level
 let wordDataStore = [];
-let goodChime = new Audio("Resources/Audio/goodChime.wav");
-let badChime = new Audio("Resources/Audio/badChime.wav");
-let popChime = new Audio("Resources/Audio/popChime.wav");
+// MP3s, not the original WAVs — encoded at LAME -V2 (~91% smaller with no
+// audible difference for a short UI chime), since these three are
+// instantiated unconditionally for every visitor on every page, not just
+// word-game players.
+let goodChime = new Audio("Resources/Audio/goodChime.mp3");
+let badChime = new Audio("Resources/Audio/badChime.mp3");
+let popChime = new Audio("Resources/Audio/popChime.mp3");
 
 goodChime.volume = 0.2;
 badChime.volume = 0.2;

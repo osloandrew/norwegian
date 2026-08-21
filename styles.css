@@ -1527,15 +1527,15 @@ footer .copyright {
 }
 
 .game-daily-quest-gem--emerald {
-  background-image: url("Resources/Photos/emerald.png");
+  background-image: url("Resources/Photos/emerald.webp");
 }
 
 .game-daily-quest-gem--ruby {
-  background-image: url("Resources/Photos/ruby.png");
+  background-image: url("Resources/Photos/ruby.webp");
 }
 
 .game-daily-quest-gem--sapphire {
-  background-image: url("Resources/Photos/sapphire.png");
+  background-image: url("Resources/Photos/sapphire.webp");
 }
 
 .game-daily-quest--locked .game-daily-quest-gem {

@@ -276,6 +276,47 @@ function findClosestSearchTerms(query, limit = 5) {
     .map(({ term }) => term);
 }
 
+// Sentence search's own "did you mean" fallback — deliberately a separate
+// index scan from findClosestSearchTerms above, rather than reusing the
+// dictionary's wordSearchIndex, because a dictionary headword and a token
+// that actually appears in the sentence corpus are two different sets: a
+// headword can exist with zero example sentences (a suggestion there would
+// just bounce back to "no sentences found"), and inflected/informal forms
+// show up in real sentences without being a dictionary ord/engelsk entry in
+// their own right. Scanning sentenceIndex's own keys guarantees every
+// suggestion returned actually has at least one sentence behind it.
+function findClosestSentenceTerms(query, limit = 5) {
+  if (!sentenceIndex || query.length < 3 || query.length > 32) return [];
+
+  const maximumDistance = query.length <= 4 ? 1 : 2;
+  const candidates = [];
+  const seenTerms = new Set();
+
+  const scanIndex = (index, languageRank) => {
+    index.forEach((_postings, term) => {
+      if (seenTerms.has(term)) return;
+      const distance = editDistanceWithinLimit(query, term, maximumDistance);
+      if (distance <= maximumDistance) {
+        seenTerms.add(term);
+        candidates.push({ term, distance, languageRank });
+      }
+    });
+  };
+  scanIndex(sentenceIndex.norwegian, 0);
+  scanIndex(sentenceIndex.english, 1);
+
+  return candidates
+    .sort(
+      (a, b) =>
+        a.distance - b.distance ||
+        a.languageRank - b.languageRank ||
+        a.term.length - b.term.length ||
+        a.term.localeCompare(b.term, "nb"),
+    )
+    .slice(0, limit)
+    .map(({ term }) => term);
+}
+
 // Grammatical-category classification (noun/verb/adjective/... from the
 // CSV `gender` field) lives in wordClass.js, loaded before this file — see
 // window.WordClass. getWordClassForMetadata treats a bare "noun" value
@@ -1600,12 +1641,44 @@ async function search(queryOverride = null) {
     }
     combined = combined.slice(0, 10);
 
+    // Parity with word search's "no exact matches — here are inexact
+    // results" fallback (see the type === "words" branch's noExactMatches
+    // handling below): a single-word query with zero sentence hits gets
+    // re-run against the closest term that actually appears in the
+    // sentence corpus, instead of a dead-end "no results" page. Multi-word
+    // queries are left alone — which of several words was the typo is
+    // ambiguous, so guessing wrong would be worse than the plain message.
+    let inexactMatchInfo = null;
+    let englishHighlightTermsForRender = terms;
+    if (combined.length === 0 && terms.length === 1) {
+      const [closestTerm] = findClosestSentenceTerms(terms[0], 1);
+      if (closestTerm) {
+        const inexactIds = new Set([
+          ...(sentenceIndex.norwegian.get(closestTerm) || []),
+          ...(sentenceIndex.english.get(closestTerm) || []),
+        ]);
+        const inexactRowsAll = [...inexactIds].map((sid) => sentenceCorpus[sid]);
+        const inexactRowsFiltered = selectedCEFR
+          ? inexactRowsAll.filter((r) => r.cefr === selectedCEFR)
+          : inexactRowsAll;
+        const inexactRows = sortByCEFR(inexactRowsFiltered).slice(0, 10);
+
+        if (inexactRows.length > 0) {
+          combined = inexactRows;
+          inexactMatchInfo = { originalQuery: query, matchedTerm: closestTerm };
+          norwegianHighlightTerms = [closestTerm];
+          englishHighlightTermsForRender = [closestTerm];
+        }
+      }
+    }
+
     renderSentenceMatchesFromCorpus(
       combined,
       query,
       norwegianHighlightTerms,
-      terms,
-      expressionMatcher,
+      englishHighlightTermsForRender,
+      inexactMatchInfo ? null : expressionMatcher,
+      inexactMatchInfo,
     );
 
     console.timeEnd("[Sentences] query");
@@ -2988,6 +3061,12 @@ function renderSentenceMatchesFromCorpus(
   norwegianHighlightTerms,
   englishHighlightTerms,
   norwegianMatcherOverride = null,
+  // Set only by the inexact-match fallback in the sentences search branch
+  // (see findClosestSentenceTerms) when `query` itself had zero hits but a
+  // nearby corpus term did — `rows` here are already that corrected term's
+  // results, matching the word-search pattern of substituting and showing
+  // results directly rather than a dead-end "no results" page.
+  inexactMatchInfo = null,
 ) {
   clearContainer();
   const safeQuery = escapeHTML(query);
@@ -3007,9 +3086,19 @@ function renderSentenceMatchesFromCorpus(
     return;
   }
 
+  const inexactNoticeHTML = inexactMatchInfo
+    ? `
+    <div class="definition error-message">
+      <h2 class="word-gender">No Exact Matches Found</h2>
+      <p>We couldn't find sentences for "${escapeHTML(inexactMatchInfo.originalQuery)}". Here are inexact results for "${escapeHTML(inexactMatchInfo.matchedTerm)}":</p>
+    </div>
+  `
+    : "";
+
   let html = `
+    ${inexactNoticeHTML}
     <div class="result-header">
-      <h2>Sentence Results for "${safeQuery}"</h2>
+      <h2>Sentence Results for "${inexactMatchInfo ? escapeHTML(inexactMatchInfo.matchedTerm) : safeQuery}"</h2>
     </div>
     <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations()">
       ${isEnglishVisible ? "Hide English" : "Show English"}
