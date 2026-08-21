@@ -111,6 +111,7 @@
     }
 
     let status;
+    const brokenStreakLength = streakState.count;
 
     if (!streakState.lastActiveDate) {
       streakState.count = 1;
@@ -146,6 +147,15 @@
     );
 
     saveStreakState();
+
+    // "reset" is the one status that represents a streak actually breaking
+    // (as opposed to started/extended/grace-used, all forward progress) —
+    // reported with the length it broke at, so the funnel can distinguish a
+    // 1-day dabble from a 40-day streak lapsing.
+    window.trackEvent?.(status === "reset" ? "streak_broken" : "streak_" + status.replace("-", "_"), {
+      streak_count: streakState.count,
+      ...(status === "reset" ? { broken_streak_length: brokenStreakLength } : {}),
+    });
 
     return {
       status,

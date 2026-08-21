@@ -178,6 +178,22 @@
           event_label: sanitizeForBeacon(event.reason),
         });
       });
+
+      // Shared funnel-tracking helper for the app scripts below (sign-in,
+      // word-game rounds, streaks, daily quests) — until now the only
+      // events GA ever saw were js_error/js_unhandled_rejection above, so
+      // there was no visibility into whether any growth/retention feature
+      // actually works. gtag is safe to call as soon as this inline script
+      // has run (it just queues into dataLayer regardless of whether the
+      // gtag.js library has finished loading yet), so every deferred script
+      // below — which all run after this one — can call this directly.
+      window.trackEvent = function trackEvent(name, params) {
+        try {
+          gtag("event", name, params || {});
+        } catch (error) {
+          // Analytics must never break the app it's instrumenting.
+        }
+      };
     </script>
   </head>
 
@@ -719,10 +735,12 @@
       </p>
     </footer>
 
-    <!-- Shown at most once per visitor, after their first completed word-game
-         round, if they're not signed in — see maybeShowSignInNudge() in
-         myWordsAuth.js. Fixed so it appears the same way regardless of which
-         page/scroll position triggered it. -->
+    <!-- Shown after a completed word-game round, if the visitor isn't signed
+         in — first after their first round, then again each time they cross
+         a new streak/My-Words milestone (subject to a re-show cooldown) —
+         see maybeShowSignInNudge() in myWordsAuth.js. Fixed so it appears
+         the same way regardless of which page/scroll position triggered
+         it. -->
     <div
       id="signin-nudge-banner"
       class="signin-nudge-banner hidden"

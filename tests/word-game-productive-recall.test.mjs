@@ -80,6 +80,23 @@ assert.deepEqual(
   [...context.getTypedAcceptedAnswers(bathroomTarget, false, "")],
   ["bad", "baderom"],
 );
+
+// Typed-recall fuzzy matching: near-misses (missing æ/ø/å, a small typo)
+// should be accepted; a genuinely different word should not.
+assert.equal(context.isCloseEnoughTypedAnswer("hus", "hus"), true);
+assert.equal(context.isCloseEnoughTypedAnswer("skole", "skoole"), true); // one extra letter
+assert.equal(context.isCloseEnoughTypedAnswer("gjore", "gjøre"), true); // ø typed as o
+assert.equal(context.isCloseEnoughTypedAnswer("kjaerlighet", "kjærlighet"), true); // æ typed as ae
+assert.equal(context.isCloseEnoughTypedAnswer("bla", "blå"), true); // å typed as a
+assert.equal(context.isCloseEnoughTypedAnswer("hus", "hys"), false); // short word, no tolerance
+assert.equal(context.isCloseEnoughTypedAnswer("bil", "tog"), false); // different word entirely
+assert.equal(
+  context.isCloseEnoughTypedAnswer("nasjonalitet", "nasjonalitett"), // one extra letter, longer word
+  true,
+);
+assert.equal(context.isCloseEnoughTypedAnswer("", "hus"), false);
+assert.equal(context.isCloseEnoughTypedAnswer("hus", ""), false);
+
 assert.equal(
   context.getGameSentenceTranslation(
     { sentenceTranslation: "First sentence. Second sentence!" },
