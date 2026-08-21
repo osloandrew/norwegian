@@ -2588,6 +2588,45 @@ async function upgradeDefinitionExpressionSpans(container, defText) {
   }
 }
 
+// Above this length, a single-word card's definition gets clamped to a few
+// lines with an "Expand definition" toggle rather than shown in full.
+// Chosen well above the ~104-char p90 definition length, so it only kicks
+// in for genuine outliers like "holde" (605 chars / ~24 senses).
+const DEFINITION_TRUNCATE_THRESHOLD = 200;
+
+// Collapsed-by-default "Expand definition" toggle, rendered directly after
+// a clamped .definition-text paragraph so toggleDefinitionText can flip the
+// clamp on its previous sibling. Returns "" when the definition is short
+// enough to show in full already, so no empty toggle ever renders.
+function renderDefinitionToggleButton(definisjon) {
+  if (!definisjon || definisjon.length <= DEFINITION_TRUNCATE_THRESHOLD)
+    return "";
+  return `
+    <button
+      type="button"
+      class="definition-toggle-btn"
+      aria-expanded="false"
+      onclick="event.stopPropagation(); toggleDefinitionText(this)"
+      onkeydown="event.stopPropagation()"
+    ><i class="fas fa-chevron-down"></i> Expand definition</button>`;
+}
+
+// The toggle button is the clamped .definition-text-block's next sibling
+// (unlike Word forms, there's no separate content panel to look up), so we
+// flip the clamp on its previous sibling directly.
+function toggleDefinitionText(button) {
+  const wrapperEl = button.previousElementSibling;
+  if (!wrapperEl) return;
+  const isExpanded = button.getAttribute("aria-expanded") === "true";
+  const nowExpanded = !isExpanded;
+  button.setAttribute("aria-expanded", String(nowExpanded));
+  button.classList.toggle("definition-toggle-expanded", nowExpanded);
+  wrapperEl.classList.toggle("definition-text-expanded", nowExpanded);
+  button.innerHTML = `<i class="fas fa-chevron-down"></i> ${
+    nowExpanded ? "Collapse definition" : "Expand definition"
+  }`;
+}
+
 // Collapsed-by-default "Word forms" toggle, sitting next to the "Report an
 // issue" button in .definition-actions-row. Returns "" when the word class
 // doesn't inflect, so no empty toggle ever renders.
@@ -2852,11 +2891,22 @@ function displaySearchResults(results, query = "") {
                 </h2>
                 ${
                   result.definisjon
-                    ? `<p class="definition-text ${multipleResultsDefinitionText}">${
-                        defaultResult
-                          ? makeDefinitionClickable(result.definisjon)
-                          : formatMultiResultDefinition(result.definisjon)
-                      }</p>`
+                    ? defaultResult
+                      ? // makeDefinitionClickable renders a multi-sense definition as
+                        // <ul class="definition-list">, which a <p> can't contain — the
+                        // browser would auto-close the <p> right before it, leaving the
+                        // clamp on an empty element. Clamping this wrapper div instead
+                        // works for both the plain-text and <ul> shapes it can return.
+                        `<div class="definition-text-block${
+                          result.definisjon.length > DEFINITION_TRUNCATE_THRESHOLD
+                            ? " definition-text-clamped"
+                            : ""
+                        }"><p class="definition-text">${makeDefinitionClickable(
+                          result.definisjon,
+                        )}</p></div>${renderDefinitionToggleButton(result.definisjon)}`
+                      : `<p class="definition-text ${multipleResultsDefinitionText}">${formatMultiResultDefinition(
+                          result.definisjon,
+                        )}</p>`
                     : ""
                 }
                 </div>
