@@ -1393,7 +1393,7 @@ async function randomWord() {
     return; // ✅ stop here, pronunciation handles itself
   } else {
     // Update the URL to include the random word's info
-    updateURL("", type, randomResult.gender, null, randomResult.ord);
+    updateURL("", type, randomResult.gender, selectedCEFR, null, randomResult.ord);
     // If it's a word, render it with highlighting (if needed)
     displaySearchResults([randomResult], randomResult.ord);
   }
@@ -1415,9 +1415,12 @@ async function search(queryOverride = null) {
     const selectedPOS = document.getElementById("pos-select")
       ? document.getElementById("pos-select").value.toLowerCase()
       : "";
+    const selectedCEFR = document.getElementById("cefr-select")
+      ? document.getElementById("cefr-select").value.toUpperCase()
+      : "";
 
     cleanURL("word-list");
-    updateURL(originalQuery, "word-list", selectedPOS);
+    updateURL(originalQuery, "word-list", selectedPOS, selectedCEFR);
     showLandingCard(false);
     renderWordList();
 
@@ -1477,7 +1480,7 @@ async function search(queryOverride = null) {
   cleanURL(type);
 
   // Update the URL with the search parameters
-  updateURL(originalQuery, type, selectedPOS); // Preserve what the visitor typed
+  updateURL(originalQuery, type, selectedPOS, selectedCEFR); // Preserve what the visitor typed
 
   // Show the spinner at the start of the search
   showSpinner();
@@ -1801,7 +1804,7 @@ async function search(queryOverride = null) {
       // Update URL and title for a single result
       const singleResult = matchingResults[0];
       if (wordSearchResolution.reason === "exact") {
-        updateURL(null, type, selectedPOS, null, singleResult.ord);
+        updateURL(null, type, selectedPOS, selectedCEFR, null, singleResult.ord);
       }
       // Display this single result directly
       displaySearchResults([singleResult], query); // Display only this single result
@@ -1925,12 +1928,15 @@ function handlePOSChange() {
     .trim();
 
   const selectedPOS = document.getElementById("pos-select").value.toLowerCase();
+  const selectedCEFR = document.getElementById("cefr-select")
+    ? document.getElementById("cefr-select").value.toUpperCase()
+    : "";
 
   const activeType = document.getElementById("type-select").value;
 
   // Word List uses the selected Word Class to filter its table.
   if (activeType === "word-list") {
-    updateURL(query, "word-list", selectedPOS);
+    updateURL(query, "word-list", selectedPOS, selectedCEFR);
     renderWordList();
 
     return;
@@ -1939,7 +1945,7 @@ function handlePOSChange() {
   if (gameActive && activeType === "word-game") {
     startWordGame();
   } else {
-    updateURL(query, "words", selectedPOS);
+    updateURL(query, "words", selectedPOS, selectedCEFR);
 
     if (!query) {
       randomWord();
@@ -2048,7 +2054,12 @@ function handleTypeChange(type, options = {}) {
   if (cefrFilterContainer) cefrFilterContainer.style.display = "";
 
   // Update the URL with the selected type, query, and POS
-  updateURL(query, type, selectedPOS); // This ensures the type is reflected in the URL
+  updateURL(
+    query,
+    type,
+    selectedPOS,
+    cefrSelect ? cefrSelect.value.toUpperCase() : "",
+  ); // This ensures the type is reflected in the URL
 
   // Add logic for the "Stories" type
   if (type === "stories") {
@@ -3591,7 +3602,14 @@ function prioritizeResults(results, query, key, pos) {
 }
 
 // Update URL based on current search parameters
-function updateURL(query, type, selectedPOS, story = null, word = null) {
+function updateURL(
+  query,
+  type,
+  selectedPOS,
+  selectedCEFR,
+  story = null,
+  word = null,
+) {
   const url = new URL(window.location);
 
   // Set or remove the query parameter
@@ -3613,6 +3631,13 @@ function updateURL(query, type, selectedPOS, story = null, word = null) {
     url.searchParams.set("pos", selectedPOS);
   } else {
     url.searchParams.delete("pos");
+  }
+
+  // Set or remove the CEFR parameter
+  if (selectedCEFR) {
+    url.searchParams.set("cefr", selectedCEFR);
+  } else {
+    url.searchParams.delete("cefr");
   }
 
   // Set or remove the story parameter
@@ -3683,6 +3708,7 @@ function loadStateFromURL() {
   const query = url.searchParams.get("query") || ""; // Default to an empty query if not present
   const type = url.searchParams.get("type") || "words"; // Default to 'words' if not specified
   const selectedPOS = url.searchParams.get("pos") || ""; // Default to empty POS if not present
+  const selectedCEFR = url.searchParams.get("cefr") || ""; // Default to empty CEFR if not present
   const storyTitle = url.searchParams.get("story"); // Check for a specific story parameter
   const word = url.searchParams.get("word"); // Check for a specific word entry
 
@@ -3716,6 +3742,15 @@ function loadStateFromURL() {
       if (selectedPOS) {
         document.getElementById("pos-select").value = selectedPOS;
       }
+      // Mirrors the POS restore above so Level round-trips through the URL
+      // the same way Word Class does. Setting it unconditionally (not just
+      // `if (selectedCEFR)`) is deliberate: this also covers the words-mode
+      // reset below, which used to hardcode "" here specifically to stop a
+      // Word Game level selection from leaking into Words/Sentences.
+      const cefrSelectEl = document.getElementById("cefr-select");
+      if (cefrSelectEl) {
+        cefrSelectEl.value = selectedCEFR;
+      }
 
       if (type === "word-game") {
         // Same reasoning as handleTypeChange's word-game branch: treat
@@ -3733,17 +3768,17 @@ function loadStateFromURL() {
         handleTypeChange(type);
       } else {
         // "words" skips handleTypeChange (its search/landing-page logic is
-        // handled separately below), but the CEFR filter and Word Game's
-        // visual state still need resetting here too — otherwise a level
-        // saved from Word Game (e.g. via the browser back button) leaks
-        // into the Words/Sentences CEFR filter instead of coming up blank.
-        const cefrSelectEl = document.getElementById("cefr-select");
+        // handled separately below), but Word Game's visual state still
+        // needs resetting here too. The CEFR value itself is already
+        // handled above (restored from the URL, or blanked when absent —
+        // same effect the old hardcoded reset had for a Word Game level
+        // leaking back via the browser back button, but without also
+        // wiping out a real saved Level from a Words/Sentences URL).
         const cefrLockEl = document.getElementById("lock-icon");
         const searchContainerInnerEl = document.getElementById(
           "search-container-inner",
         );
 
-        if (cefrSelectEl) cefrSelectEl.value = "";
         if (cefrLockEl) cefrLockEl.style.display = "none";
         searchContainerInnerEl?.classList.remove("word-game-active");
         gameActive = false;
@@ -3832,7 +3867,10 @@ function handleCardClick(event, word, pos, engelsk, definisjon) {
   displaySearchResults(clickedResult); // This ensures only the clicked card remains
 
   // Update the URL to reflect the clicked entry
-  updateURL("", "words", pos, null, word.split(",")[0].trim());
+  const selectedCEFR = document.getElementById("cefr-select")
+    ? document.getElementById("cefr-select").value.toUpperCase()
+    : "";
+  updateURL("", "words", pos, selectedCEFR, null, word.split(",")[0].trim());
 }
 
 // Initialization of the dictionary data and event listeners
@@ -4009,7 +4047,17 @@ function openDictionaryEntry(entry, canonicalWord) {
   latestMultipleResults = null;
   resultsContainer.innerHTML = ""; // Clear previous results
   displaySearchResults([entry]);
-  updateURL(null, "words", entry.gender.toLowerCase(), null, canonicalWord);
+  const selectedCEFR = document.getElementById("cefr-select")
+    ? document.getElementById("cefr-select").value.toUpperCase()
+    : "";
+  updateURL(
+    null,
+    "words",
+    entry.gender.toLowerCase(),
+    selectedCEFR,
+    null,
+    canonicalWord,
+  );
 }
 
 document.addEventListener("click", async (event) => {
@@ -4032,51 +4080,61 @@ document.addEventListener("click", async (event) => {
       .includes(word),
   );
 
-  if (exactMatches.length === 1) {
-    openDictionaryEntry(exactMatches[0], word);
+  // The clicked spelling can *also* be an inflected form of one or more
+  // other, differently-spelled lemmas at the same time as being a headword
+  // in its own right -- e.g. "danser" is itself a headword (dancer, noun),
+  // but is also the plural of "dans" (a dance) and the present tense of
+  // "danse" (to dance). Resolving this always, not only when there's no
+  // literal citation match, is what surfaces that ambiguity instead of
+  // silently jumping to whichever entry happens to be spelled that way.
+  // An inflected multi-word expression ("følger med" -> "følge med") is
+  // already handled separately at render time (see
+  // upgradeDefinitionExpressionSpans); this is only for a single word.
+  const officialResolution = await window.Inflections?.findLemmas(word);
+  const inflectedMatches = [];
+  for (const { lemma, wordClass } of officialResolution?.matches || []) {
+    if (lemma === word) continue;
+    for (const candidate of results) {
+      if (
+        WordClass.getWordClass(candidate.gender) === wordClass &&
+        candidate.ord
+          .toLowerCase()
+          .split(",")
+          .map((s) => s.trim())
+          .includes(lemma)
+      ) {
+        inflectedMatches.push(candidate);
+      }
+    }
+  }
+
+  // Union, not concatenation: a candidate could in principle satisfy both
+  // loops above, and de-duplicating by object identity (these all come
+  // from the same shared `results` array) keeps that from double-counting
+  // into a false "multiple matches" ambiguity.
+  const formMatches = Array.from(new Set([...exactMatches, ...inflectedMatches]));
+
+  if (formMatches.length === 1) {
+    openDictionaryEntry(formMatches[0], word);
     return;
   }
 
-  // Zero literal matches only -- when the clicked spelling is ALREADY a
-  // headword in its own right (exactMatches.length > 1, e.g. "ens" is both
-  // an adjective and a possessive), that's a genuine disambiguation the
-  // learner should see via the regular search list, not something an
-  // inflection guess should silently resolve past. Jumping straight to a
-  // same-spelling inflected form of some other, unrelated word (e.g. "ens"
-  // is also the imperative of the rare verb "ense") would bury the two
-  // senses that were actually already known matches.
-  if (exactMatches.length === 0) {
-    // No literal citation match at all. An inflected multi-word expression
-    // ("følger med" -> "følge med") is already handled at render time (see
-    // upgradeDefinitionExpressionSpans), so what's left here is a single
-    // inflected word on its own ("kastet" -> "kaste"). Resolve it through
-    // the same reverse index Stories' click-to-define already relies on
-    // before falling back to a blind full-dictionary search.
-    const officialResolution = await window.Inflections?.findLemmas(word);
-    const inflectedMatches = [];
-    for (const { lemma, wordClass } of officialResolution?.matches || []) {
-      if (lemma === word) continue;
-      for (const candidate of results) {
-        if (
-          WordClass.getWordClass(candidate.gender) === wordClass &&
-          candidate.ord
-            .toLowerCase()
-            .split(",")
-            .map((s) => s.trim())
-            .includes(lemma)
-        ) {
-          inflectedMatches.push(candidate);
-        }
-      }
-    }
-
-    if (inflectedMatches.length === 1) {
-      openDictionaryEntry(
-        inflectedMatches[0],
-        inflectedMatches[0].ord.split(",")[0].trim().toLowerCase(),
-      );
-      return;
-    }
+  if (formMatches.length > 1) {
+    // Every entry the clicked spelling could actually be a form of -- and
+    // nothing else. A full search(word) here would also pull in unrelated
+    // words/expressions that merely contain "word" as a substring.
+    latestMultipleResults = word;
+    resultsContainer.innerHTML = "";
+    displaySearchResults(formMatches, word);
+    // A click can originate from a single-word definition page (URL has
+    // ?word=...) -- including a word's own definition referencing itself,
+    // e.g. "danser" -> "person som danser". cleanURL clears that stale
+    // `word` param the same way search() does before its own updateURL,
+    // so this multi-result view survives a reload/share instead of
+    // snapping back to the single entry the click started from.
+    cleanURL("words");
+    updateURL(word, "words", "", "");
+    return;
   }
 
   search(word); // fallback to regular multi-result search

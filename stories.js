@@ -806,7 +806,7 @@ function displayStory(titleNorwegian) {
 
   document.title = selectedStory.titleNorwegian + " - Norwegian Dictionary";
 
-  updateURL(null, "story", null, titleNorwegian); // Update URL with story parameter
+  updateURL(null, "story", null, null, titleNorwegian); // Update URL with story parameter
 
   clearContainer();
   window.scrollTo({ top: 0, left: 0, behavior: "auto" });
