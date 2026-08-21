@@ -2867,7 +2867,7 @@ function displaySearchResults(results, query = "") {
                         : ""
                     }
                     ${
-                      result.wordAudio === "X"
+                      result.wordAudio === "X" && !result.ord.includes("...")
                         ? `<p class="pronunciation">
                             <i class="fas fa-volume-up sentence-audio-icon"
                         data-sentence="${result.ord
