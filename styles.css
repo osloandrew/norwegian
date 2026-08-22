@@ -5151,6 +5151,186 @@ body.my-stats-mode .cefr-filter-group {
   max-width: 100%; /* Ensures the image is responsive */
 }
 
+/* Comprehension-check quiz, appended after a story's last couplet. Styled to
+   match the story reader itself (Noto Serif body text in black, the same
+   subtle uppercase Noto Sans chrome buttons as #back-button/#speed-btn)
+   rather than the bolder game-UI look used in the word game/placement test —
+   this section is part of reading a story, not a separate mini-game. */
+.story-quiz-section {
+  border-top: 1px solid var(--color-border-light);
+  margin-top: 1.5em !important;
+  padding-top: 1.5em;
+}
+
+.story-quiz-heading {
+  color: var(--color-heading);
+  font-family: "Noto Serif", serif;
+  font-size: 1.3em;
+  font-weight: 400;
+  margin: 0 0 0.75em 0;
+}
+
+.story-quiz-progress {
+  color: var(--color-text-muted);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.75em;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.6em;
+  text-transform: uppercase;
+}
+
+.story-quiz-prompt {
+  color: black;
+  font-family: "Noto Serif", serif;
+  font-size: 1.1em;
+  margin-bottom: 0.85em;
+}
+
+.story-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.story-quiz-option-btn {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  color: black;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "Noto Serif", serif;
+  font-size: 1em;
+  gap: 10px;
+  padding: 12px 16px;
+  text-align: left;
+  transition: border-color 0.2s ease;
+}
+
+.story-quiz-option-btn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+}
+
+.story-quiz-option-btn:disabled {
+  cursor: default;
+}
+
+.story-quiz-option-btn.story-quiz-correct {
+  border-color: var(--color-success);
+}
+
+.story-quiz-option-btn.story-quiz-incorrect {
+  border-color: var(--color-danger);
+}
+
+.story-quiz-icon {
+  flex: 0 0 auto;
+  font-size: 0.9em;
+}
+
+.story-quiz-icon-correct {
+  color: var(--color-success);
+}
+
+.story-quiz-icon-incorrect {
+  color: var(--color-danger);
+}
+
+.story-quiz-feedback {
+  margin-top: 1em;
+}
+
+.story-quiz-feedback-label {
+  color: black;
+  font-family: "Noto Sans", sans-serif;
+  font-weight: 600;
+  margin: 0 0 0.5em 0;
+}
+
+.story-quiz-feedback-source {
+  color: var(--color-text-muted);
+  font-family: "Noto Serif", serif;
+  margin: 0 0 1.25em 0;
+}
+
+.story-quiz-next-btn,
+.story-quiz-retry-btn {
+  background-color: var(--color-bg-light);
+  border: var(--color-border-neutral) 1px solid;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 0.7em 1.4em;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease;
+}
+
+.story-quiz-next-btn:hover,
+.story-quiz-retry-btn:hover {
+  background-color: gainsboro;
+}
+
+.story-quiz-results {
+  text-align: center;
+}
+
+.story-quiz-results-score {
+  color: black;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1.1em;
+  font-weight: 600;
+  margin-bottom: 1.25em;
+}
+
+.story-quiz-review {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.5em;
+  text-align: left;
+}
+
+.story-quiz-review-item {
+  border-bottom: 1px solid var(--color-border-light);
+  padding: 14px 0;
+}
+
+.story-quiz-review-item:first-child {
+  padding-top: 0;
+}
+
+.story-quiz-review-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.story-quiz-review-prompt {
+  color: black;
+  font-family: "Noto Serif", serif;
+  font-weight: 600;
+  margin: 0 0 0.5em 0;
+}
+
+.story-quiz-review-answer,
+.story-quiz-review-correct-answer {
+  align-items: center;
+  color: black;
+  display: flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.9em;
+  gap: 8px;
+  margin: 0;
+}
+
+.story-quiz-review-correct-answer {
+  margin-top: 0.35em;
+}
+
 /* Story list and story content */
 
 #story-viewer {
