@@ -18,6 +18,46 @@
     return Math.min(maximum, Math.max(minimum, value));
   }
 
+  // How often a word has been missed relative to how often it's actually
+  // been tested — a self-correcting ratio, not a raw lifetime lapse count
+  // (which only ever grows). A word that struggled early but has since
+  // turned around dilutes back below the threshold as successful
+  // repetitions accumulate, with no separate "recovered" bookkeeping
+  // needed. Below CHRONIC_MIN_REPETITIONS, one early miss out of very few
+  // attempts isn't evidence of a real pattern yet.
+  const CHRONIC_MIN_REPETITIONS = 5;
+  const CHRONIC_LAPSE_RATE = 0.34;
+
+  function isChronicallyStruggling(record) {
+    return Boolean(
+      record &&
+        record.repetitions >= CHRONIC_MIN_REPETITIONS &&
+        record.lapses / record.repetitions >= CHRONIC_LAPSE_RATE,
+    );
+  }
+
+  // Multiplies into how far a correct answer is allowed to grow the review
+  // interval. A word at or under the chronic threshold regrows normally
+  // (1); climbing further past it regrows more cautiously, down to a floor
+  // that still lets a genuinely turned-around word recover given enough
+  // consecutive correct answers, just more slowly than an ordinary word
+  // would. This is what actually targets a true chronic-miss pattern:
+  // `difficulty` alone (see scheduleCorrect below) saturates at its max
+  // after only ~6 lapses and stops adding any further resistance, while
+  // this keeps scaling with the word's whole lapse history.
+  function getChronicGrowthDampening(record) {
+    if (!isChronicallyStruggling(record)) return 1;
+
+    const lapseRate = record.lapses / record.repetitions;
+    const excess = clamp(
+      (lapseRate - CHRONIC_LAPSE_RATE) / (1 - CHRONIC_LAPSE_RATE),
+      0,
+      1,
+    );
+
+    return clamp(1 - excess * 0.5, 0.5, 1);
+  }
+
   function finiteNumber(value, fallback) {
     return typeof value === "number" && Number.isFinite(value)
       ? value
@@ -196,6 +236,11 @@
     }
 
     const difficulty = clamp(record.difficulty - 0.15, 1, 10);
+    // See getChronicGrowthDampening's own comment for why this exists
+    // alongside `difficulty`: difficulty saturates at its ceiling after
+    // only ~6 lapses and stops discouraging further growth, while this
+    // keeps responding to the word's whole lapse history.
+    const dampening = getChronicGrowthDampening(record);
     let state;
     let stabilityDays;
 
@@ -206,7 +251,7 @@
       stabilityDays = Math.max(1, record.stabilityDays);
     } else if (record.state === "learning") {
       state = "review";
-      stabilityDays = Math.max(3, record.stabilityDays * 3);
+      stabilityDays = Math.max(3, record.stabilityDays * 3) * dampening;
     } else {
       state = "review";
       const elapsedDays =
@@ -224,7 +269,7 @@
 
       stabilityDays = Math.max(
         record.stabilityDays + 1,
-        record.stabilityDays * growthFactor,
+        record.stabilityDays * growthFactor * dampening,
       );
     }
 
@@ -355,5 +400,6 @@
     recordResult,
     mergeRecordValues,
     mergeCollections,
+    isChronicallyStruggling,
   });
 })();
