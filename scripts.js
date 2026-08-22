@@ -2957,6 +2957,9 @@ function displaySearchResults(
 
   const safeQuery = escapeHTML(query);
   const resultLabel = `${results.length} result${results.length === 1 ? "" : "s"}`;
+  const activeFilterSummary = getSearchResultFilterSummaryHTML({
+    includeWordClass: true,
+  });
   let htmlString = multipleResults
     ? `
       <div class="result-header word-results-header">
@@ -2967,6 +2970,7 @@ function displaySearchResults(
               ? `Results for <span class="word-results-query">"${safeQuery}"</span>`
               : "Matching definitions"
           }</h2>
+          ${activeFilterSummary}
         </div>
         <strong class="word-results-count">${resultLabel}</strong>
       </div>
@@ -3291,6 +3295,44 @@ function getCefrLabel(cefrLevel) {
   return CEFR_LEVEL_INFO[cefrLevel]?.label || "";
 }
 
+function getCefrBadgeClass(cefrLevel) {
+  const normalizedLevel = String(cefrLevel || "").toUpperCase();
+  if (normalizedLevel === "C") return "c1";
+  return ["A1", "A2", "B1", "B2", "C1", "C2"].includes(normalizedLevel)
+    ? normalizedLevel.toLowerCase()
+    : "cefr-unknown";
+}
+
+// Keep active Word Class / Level filters visible in a result header once
+// the search toolbar has scrolled away. This mirrors the Stories header,
+// while remaining an informational summary rather than another control.
+function getSearchResultFilterSummaryHTML({ includeWordClass = false } = {}) {
+  const posSelect = document.getElementById("pos-select");
+  const cefrSelect = document.getElementById("cefr-select");
+  const selectedPOS = includeWordClass
+    ? String(posSelect?.value || "").trim()
+    : "";
+  const selectedCEFR = String(cefrSelect?.value || "").toUpperCase().trim();
+  const selectedPOSLabel = selectedPOS
+    ? posSelect?.selectedOptions?.[0]?.textContent?.trim() || selectedPOS
+    : "";
+
+  const activeFilters = [
+    selectedPOS
+      ? `<span class="search-results-filter-summary search-results-pos-filter" title="Word class: ${escapeHTML(selectedPOSLabel)}"><span class="gender search-results-word-class-badge">${escapeHTML(selectedPOSLabel)}</span></span>`
+      : "",
+    selectedCEFR
+      ? `<span class="search-results-filter-summary search-results-cefr-filter" title="CEFR ${escapeHTML(selectedCEFR)}"><span class="cefr-value ${getCefrBadgeClass(selectedCEFR)}" aria-hidden="true">${escapeHTML(selectedCEFR)}</span><span class="search-results-filter-name">${escapeHTML(getCefrLabel(selectedCEFR) || selectedCEFR)}</span></span>`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("");
+
+  return activeFilters
+    ? `<div class="search-results-filters">${activeFilters}</div>`
+    : "";
+}
+
 // "Label (Code): description" — for use as a title tooltip on compact badges
 // that don't have room to show the plain label directly.
 function getCefrTooltip(cefrLevel) {
@@ -3348,6 +3390,7 @@ function renderSentenceMatchesFromCorpus(
 ) {
   clearContainer();
   const safeQuery = escapeHTML(query);
+  const activeFilterSummary = getSearchResultFilterSummaryHTML();
   const norwegianMatcher =
     norwegianMatcherOverride ||
     window.SentenceFormMatching.createMatcher(norwegianHighlightTerms);
@@ -3384,6 +3427,7 @@ function renderSentenceMatchesFromCorpus(
             ? `<p class="result-header-subtitle">${escapeHTML(sentenceResultSubtitle)}</p>`
             : ""
         }
+        ${activeFilterSummary}
       </div>
       <div class="sentence-results-header-side">
         <strong class="sentence-results-count">${rows.length} example${rows.length === 1 ? "" : "s"}</strong>

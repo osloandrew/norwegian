@@ -3892,6 +3892,178 @@ p.my-stats-empty {
   margin-top: 4px;
 }
 
+/* My Stats refinement
+   -------------------
+   A report needs hierarchy more than decoration: one quiet report surface
+   with restrained internal divisions. These overrides intentionally stay
+   within My Stats so Word Game's shared stats components remain untouched. */
+#my-stats.definition.my-stats {
+  background: var(--color-white);
+  border: 1px solid var(--color-border-blue-soft);
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(13, 58, 105, 0.05);
+  gap: 0;
+  margin: 0 0 24px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.my-stats-header {
+  border-bottom: 1px solid var(--color-border-blue-soft);
+  padding: 24px;
+  text-align: left;
+}
+
+.my-stats-eyebrow {
+  color: var(--color-text-slate-soft);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.my-stats-heading {
+  font-size: 24px;
+  letter-spacing: 0;
+  margin: 0 0 5px;
+  text-transform: none;
+}
+
+.my-stats-subheading {
+  color: var(--color-text-slate-soft);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.my-stats-box {
+  background: var(--color-white);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 22px 24px;
+}
+
+.my-stats-box + .my-stats-box {
+  border-top: 1px solid var(--color-border-blue-soft);
+}
+
+.my-stats-section-heading {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.my-stats-overview-grid {
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.my-stats-overview-grid .game-summary-stat {
+  background-color: #f8fbfd;
+  border: 1px solid var(--color-border-blue-soft);
+  border-radius: 9px;
+  padding: 12px 6px;
+}
+
+.my-stats-overview-grid p.game-summary-stat-value {
+  font-size: 19px;
+}
+
+.my-stats-overview-grid p.game-summary-stat-label,
+.my-stats-gems-tile p.game-summary-stat-label {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.my-stats-overview-action {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 14px;
+}
+
+.my-stats-overview-action .game-summary-primary-btn {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border-blue-soft);
+  border-radius: 8px;
+  box-shadow: none;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px 14px;
+  width: auto;
+}
+
+.my-stats-overview-action .game-summary-primary-btn:hover {
+  background-color: var(--color-bg-hover);
+  border-color: var(--color-border-blue-soft);
+}
+
+.my-stats-gems-header {
+  margin-bottom: 12px;
+}
+
+.my-stats-gems-row {
+  gap: 10px;
+}
+
+.my-stats-gems-tile {
+  background-color: #f8fbfd;
+  border: 1px solid var(--color-border-blue-soft);
+  border-radius: 9px;
+  gap: 4px;
+  padding: 12px 10px;
+}
+
+.my-stats-gems-icon {
+  filter: drop-shadow(0 2px 4px rgba(28, 42, 58, 0.16)) saturate(0.72);
+  flex-basis: 30px;
+  width: 30px;
+}
+
+.my-stats-gems-tile p.game-summary-stat-value {
+  font-size: 18px;
+}
+
+.my-stats-vocabulary-intro {
+  margin-bottom: 16px;
+}
+
+.my-stats-see-all-link {
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-top: 14px;
+  text-decoration-color: var(--color-border-blue-soft);
+  text-underline-offset: 4px;
+}
+
+.my-stats-see-all-link:hover {
+  text-decoration-color: currentColor;
+}
+
+@media (max-width: 480px) {
+  #my-stats.definition.my-stats {
+    margin-bottom: 16px;
+  }
+
+  .my-stats-header,
+  .my-stats-box {
+    padding: 18px 16px;
+  }
+
+  .my-stats-header {
+    padding: 18px 16px;
+  }
+
+  .my-stats-heading {
+    font-size: 22px;
+  }
+
+  .my-stats-overview-action .game-summary-primary-btn {
+    width: 100%;
+  }
+}
+
 /* Progress bar container and fill */
 .level-progress-bar-bg {
   background-color: var(--color-progress-track);
@@ -7293,7 +7465,8 @@ p.word-list-empty-copy {
   min-width: 0;
 }
 
-.story-results-filters {
+.story-results-filters,
+.search-results-filters {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
@@ -7301,7 +7474,8 @@ p.word-list-empty-copy {
   margin-top: 10px;
 }
 
-.story-results-filter-summary {
+.story-results-filter-summary,
+.search-results-filter-summary {
   align-items: center;
   color: var(--color-text-slate-soft);
   cursor: default;
@@ -7314,14 +7488,34 @@ p.word-list-empty-copy {
   min-width: 124px;
 }
 
-.story-results-filters .cefr-value {
+.story-results-filters .cefr-value,
+.search-results-filters .cefr-value {
   flex: 0 0 auto;
   margin: 0;
 }
 
-.story-results-filter-summary + .story-results-filter-summary {
+.story-results-filter-summary + .story-results-filter-summary,
+.search-results-filter-summary + .search-results-filter-summary {
   border-left: 1px solid var(--color-border-blue-soft);
   padding-left: 14px;
+}
+
+.search-results-pos-filter .search-results-word-class-badge {
+  flex: 0 0 auto;
+  margin: 0 !important;
+}
+
+@media (min-width: 481px) {
+  /* Match the 12px multi-result word-class badge below the header. This
+     keeps its height and baseline aligned with the adjacent CEFR badge,
+     without disturbing the already-correct compact mobile treatment. */
+  .word-results-header .search-results-pos-filter {
+    min-width: 0;
+  }
+
+  .word-results-header .search-results-word-class-badge {
+    font-size: 12px !important;
+  }
 }
 
 .story-results-genre-icon {
@@ -7343,7 +7537,8 @@ p.word-list-empty-copy {
   position: static;
 }
 
-.story-results-filter-name {
+.story-results-filter-name,
+.search-results-filter-name {
   white-space: nowrap;
 }
 
@@ -7393,7 +7588,31 @@ p.word-list-empty-copy {
   .result-header.story-results-header {
     align-items: flex-start;
     gap: 10px;
+    margin-bottom: 10px;
     padding: 16px;
+  }
+
+  .result-header.word-results-header,
+  .result-header.sentence-results-header {
+    flex-wrap: wrap;
+  }
+
+  .word-results-header-copy,
+  .sentence-results-header-copy {
+    flex: 1 1 210px;
+  }
+
+  .search-results-filters {
+    gap: 8px 12px;
+    margin-top: 8px;
+  }
+
+  .search-results-filter-summary {
+    min-width: 0;
+  }
+
+  .search-results-filter-summary + .search-results-filter-summary {
+    padding-left: 12px;
   }
 
   .result-header.sentence-results-header h2,
