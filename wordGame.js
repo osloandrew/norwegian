@@ -3201,6 +3201,15 @@ async function startWordGame() {
   const posSelect = document.getElementById("pos-select");
   const gameEnglishSelect = document.getElementById("game-english-select");
 
+  // A direct Word Game link shows scripts.js's route shell while the
+  // dictionary loads. This function is only reached with usable vocabulary,
+  // so remove the page-level busy state as soon as the real game UI takes
+  // over (the placement screen replaces the shell without calling
+  // clearContainer()).
+  if (results.length > 0) {
+    clearVocabularyLoadingState();
+  }
+
   gameActive = true;
   showLandingCard(false);
   hideAllBanners(); // Hide banners before starting the new word

@@ -9,6 +9,86 @@ const resultsContainer = document.getElementById("results-container");
 // Was previously redeclared locally in two different sort comparators.
 const CEFR_ORDER = { A1: 1, A2: 2, B1: 3, B2: 4, C: 5 };
 
+// Vocabulary-powered routes used to leave #results-container completely
+// empty on a first visit while the 29k-entry dictionary was downloading and
+// parsing. That was particularly confusing for direct Word Game / My Stats
+// links: the URL had changed but there was no visual acknowledgement until
+// several seconds later. Keep the loading UI route-specific so it explains
+// what is about to appear rather than looking like a generic broken page.
+const VOCABULARY_LOADING_COPY = {
+  words: {
+    title: "Preparing dictionary results",
+    description: "Loading the vocabulary needed for this lookup…",
+  },
+  sentences: {
+    title: "Preparing sentence search",
+    description: "Loading the vocabulary needed to find examples…",
+  },
+  "word-game": {
+    title: "Preparing Word Game",
+    description: "Loading your vocabulary so practice can begin…",
+  },
+  "word-list": {
+    title: "Preparing My Words",
+    description: "Loading your vocabulary and saved words…",
+  },
+  "my-stats": {
+    title: "Preparing My Stats",
+    description: "Loading your vocabulary and practice history…",
+  },
+  pronunciation: {
+    title: "Preparing pronunciation practice",
+    description: "Loading the vocabulary used for listening practice…",
+  },
+};
+
+function routeNeedsVocabularyLoadingShell(type, url = new URL(window.location)) {
+  if (type !== "words") return Boolean(VOCABULARY_LOADING_COPY[type]);
+
+  // The ordinary dictionary landing page is already useful before the CSV
+  // arrives, so reserve this shell for a direct lookup or shared word link.
+  return Boolean(url.searchParams.get("query") || url.searchParams.get("word"));
+}
+
+function showVocabularyLoadingShell(type) {
+  const copy = VOCABULARY_LOADING_COPY[type] || VOCABULARY_LOADING_COPY.words;
+  const main = document.getElementById("main-content");
+
+  showLandingCard(false);
+  clearContainer();
+
+  const shell = document.createElement("section");
+  shell.id = "vocabulary-loading-shell";
+  shell.className = "definition vocabulary-loading-shell";
+  shell.setAttribute("role", "status");
+  shell.setAttribute("aria-live", "polite");
+  shell.setAttribute("aria-busy", "true");
+
+  const heading = document.createElement("h2");
+  heading.textContent = copy.title;
+
+  const description = document.createElement("p");
+  description.className = "vocabulary-loading-description";
+  description.textContent = copy.description;
+
+  const skeleton = document.createElement("div");
+  skeleton.className = "vocabulary-loading-skeleton";
+  skeleton.setAttribute("aria-hidden", "true");
+  for (let index = 0; index < 3; index += 1) {
+    const line = document.createElement("span");
+    line.className = "vocabulary-loading-skeleton-line";
+    skeleton.appendChild(line);
+  }
+
+  shell.append(heading, description, skeleton);
+  resultsContainer.appendChild(shell);
+  main?.setAttribute("aria-busy", "true");
+}
+
+function clearVocabularyLoadingState() {
+  document.getElementById("main-content")?.removeAttribute("aria-busy");
+}
+
 function normalizeSearchText(value) {
   return String(value ?? "")
     .normalize("NFC")
@@ -525,6 +605,7 @@ function clearContainer() {
   }
 
   resultsContainer.innerHTML = ""; // Clear everything else in the container
+  clearVocabularyLoadingState();
 }
 
 function appendToContainer(content) {
@@ -702,6 +783,11 @@ let dictionaryLoadFailed = false;
 
 function showDictionaryLoadError() {
   if (document.getElementById("dictionary-load-error")) return;
+
+  // Replace a route shell with the actionable error rather than leaving a
+  // "Preparing…" card above an error that says loading has already failed.
+  showLandingCard(false);
+  clearContainer();
 
   const banner = document.createElement("div");
   banner.id = "dictionary-load-error";
@@ -3940,6 +4026,7 @@ function handleCardClick(event, word, pos, engelsk, definisjon) {
 window.onload = function () {
   const initialURL = new URL(window.location.href);
   const initialType = initialURL.searchParams.get("type");
+  const initialVocabularyType = initialType || "words";
   const initialStoryRoute =
     initialType === "stories" || initialURL.searchParams.has("story");
 
@@ -3954,6 +4041,22 @@ window.onload = function () {
   const typeFilterContainer = document.querySelector(".type-filter");
   const posFilterContainer = document.querySelector(".pos-filter");
   const cefrFilterContainer = document.querySelector(".cefr-filter");
+
+  // Show a real destination immediately, before the asynchronous data gate
+  // below calls loadStateFromURL(). The selected menu item makes a direct
+  // link feel like navigation has succeeded even while its data is pending.
+  if (routeNeedsVocabularyLoadingShell(initialVocabularyType, initialURL)) {
+    typeSelect.value = initialVocabularyType;
+    document.body.classList.toggle(
+      "word-game-mode",
+      initialVocabularyType === "word-game",
+    );
+    document.body.classList.toggle(
+      "my-stats-mode",
+      initialVocabularyType === "my-stats",
+    );
+    showVocabularyLoadingShell(initialVocabularyType);
+  }
 
   // Most loads finish well under a second — the dictionary CSV is cached
   // in IndexedDB after the first visit, and even a fresh fetch is often
