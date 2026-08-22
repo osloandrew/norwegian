@@ -148,10 +148,10 @@
       {
         "prompt": "Hva kan skje hvis isen på Mars smelter?",
         "options": [
-          "Vann og karbondioksid kan frigjøres og bidra til en tykkere atmosfære",
-          "Vann kan frigjøres, mens karbondioksidet bindes sterkere til bakken og tynner atmosfæren",
-          "Isen kan fordampe direkte ut i verdensrommet og gjøre planeten tørrere enn før",
-          "Smeltingen kan senke temperaturen fordi mer flytende vann reflekterer sollyset"
+          "Planeten blir kaldere",
+          "Store mengder vann og karbondioksid frigjøres",
+          "Atmosfæren forsvinner helt",
+          "Ingenting endrer seg"
         ],
         "correctIndex": 1,
         "sourceSentence": "Hvis isen smelter, kunne den frigjøre store mengder vann og karbondioksid, noe som kan bidra til en tykkere atmosfære."
@@ -185,10 +185,10 @@
       {
         "prompt": "Hva er et særtrekk ved velferdsstaten utover å være et sikkerhetsnett?",
         "options": [
-          "Den skal også fremme sosial mobilitet og begrense omfattende ulikhet",
-          "Den skal også sikre at inntektsforskjeller mellom alle borgere blir svært små",
-          "Den skal også redusere behovet for utdanning ved å garantere økonomisk trygghet",
-          "Den skal også erstatte privat initiativ med offentlige løsninger på de fleste områder"
+          "Den fungerer også som virkemiddel for sosial mobilitet og hindrer ulikhet",
+          "Den fjerner all konkurranse i arbeidslivet",
+          "Den garanterer at alle tjener like mye",
+          "Den avskaffer behovet for utdanning"
         ],
         "correctIndex": 0,
         "sourceSentence": "Et særtrekk ved velferdsstaten er at den ikke kun fungerer som et sikkerhetsnett for dem som faller utenfor arbeidslivet, men også som et virkemiddel for å skape sosial mobilitet og hindre omfattende ulikhet."
@@ -196,10 +196,10 @@
       {
         "prompt": "Hva er et kritisk argument mot velferdsstaten som nevnes i teksten?",
         "options": [
-          "At en omfattende stat kan skape ineffektivitet, avhengighet og svakere personlig ansvar",
-          "At omfattende velferd nødvendigvis øker ulikheten mellom dem som arbeider og dem som ikke gjør det",
-          "At offentlige tjenester gjør sosial mobilitet vanskeligere fordi staten overtar for mange valg",
-          "At en sterk velferdsstat først og fremst svekker demokratiet ved å redusere politisk deltakelse"
+          "Den kan føre til ineffektivitet, avhengighet og redusert personlig ansvar",
+          "Den gjør befolkningen yngre",
+          "Den øker ulikhet mellom borgerne",
+          "Den fjerner all sosial stabilitet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Kritikere hevder at en så omfattende statlig rolle kan føre til ineffektivitet, avhengighet og redusert personlig ansvar."
@@ -207,10 +207,10 @@
       {
         "prompt": "Hva er fremtidens hovedutfordring for velferdsstaten, ifølge teksten?",
         "options": [
-          "Å forene solidaritet med økonomisk realisme uten å ofre grunnleggende rettferdighet",
-          "Å utvide offentlige ordninger uten å ta hensyn til hvordan de skal finansieres",
-          "Å redusere statens rolle slik at personlig ansvar blir det dominerende prinsippet",
-          "Å bevare dagens ordninger uendret selv om økonomiske og demografiske forhold endrer seg"
+          "Å finne en balanse mellom solidaritet og økonomisk realisme",
+          "Å avskaffe skatt helt",
+          "Å redusere levealderen i befolkningen",
+          "Å stoppe all innvandring"
         ],
         "correctIndex": 0,
         "sourceSentence": "Fremtidens utfordring blir derfor å finne en balansegang der solidaritet og økonomisk realisme kan eksistere side om side, uten at grunnleggende prinsipper om rettferdighet og menneskelig verdighet ofres."
@@ -381,10 +381,10 @@
       {
         "prompt": "What was the book the narrator read about?",
         "options": [
-          "A girl who travels to a new city",
+          "A girl who moves to a new city",
           "A boy who learns to swim",
           "A dog who gets lost",
-          "A family visiting the mountains"
+          "A trip to the mountains"
         ],
         "correctIndex": 0,
         "sourceSentence": "Boka handlet om en jente som reiser til en ny by."
@@ -658,10 +658,10 @@
       {
         "prompt": "Hvordan forholdt Watts seg til dogmatisme, sammenlignet med zenbuddhistiske prinsipper?",
         "options": [
-          "Han så likheter med zen, men avviste rigid dogmatisme og fremhevet nysgjerrig utforskning",
-          "Han brukte zen som et fast trossystem, men tolket enkelte regler friere for et vestlig publikum",
-          "Han distanserte seg fra zen fordi han mente buddhistiske prinsipper var for dogmatiske",
-          "Han ønsket å gjøre zen mer systematisk ved å formulere tydelige regler for personlig utvikling"
+          "Han lignet på zen-prinsipper, men unngikk bevisst dogmatisme og oppmuntret til nysgjerrighet",
+          "Han fulgte strengt de tradisjonelle zen-reglene",
+          "Han avviste all buddhistisk tenkning fullstendig",
+          "Han krevde at tilhengere fulgte et fast trossystem"
         ],
         "correctIndex": 0,
         "sourceSentence": "Hans refleksjoner kan minne om zenbuddhistiske prinsipper, men han var alltid forsiktig med å unngå dogmatisme. I stedet oppfordret han til nysgjerrighet og personlig utforskning, fremfor å blindt følge et bestemt trossystem."
@@ -721,10 +721,10 @@
       {
         "prompt": "Ifølge teksten, hva kan alternativ historie brukes som, i tillegg til å være en lek med fantasien?",
         "options": [
-          "Som et verktøy for å undersøke hvorfor historien utviklet seg som den gjorde",
-          "Som en metode for å avgjøre hvilke historiske hendelser som mest sannsynlig kunne vært unngått",
-          "Som en måte å skille sikre historiske fakta fra kilder som bygger på spekulasjon",
-          "Som et redskap for å forutsi hvilke samfunnsendringer som vil skje i framtiden"
+          "Et verktøy for å forstå hvorfor ting ble som de ble",
+          "En metode for å forutsi fremtiden nøyaktig",
+          "Et bevis på at historien alltid gjentar seg",
+          "En erstatning for historisk forskning"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det kan også brukes som et verktøy for å forstå hvorfor ting ble som de ble, og hva slags valg mennesker og samfunn faktisk hadde."
@@ -732,10 +732,10 @@
       {
         "prompt": "I teksten betyr uttrykket «ta for gitt» omtrent det samme som:",
         "options": [
-          "Regne noe som selvfølgelig uten å undersøke det nærmere",
-          "Holde fast ved en forklaring selv etter at den er motbevist",
-          "Godta en påstand fordi mange andre mennesker mener det samme",
-          "Bestemme seg for noe før man har fått nok informasjon"
+          "Anta at noe er sant uten å tenke over det",
+          "Kjøpe noe billig",
+          "Glemme noe viktig",
+          "Undersøke noe grundig"
         ],
         "correctIndex": 0,
         "sourceSentence": "gir alternativ historie oss muligheten til å stille spørsmål ved det vi tar for gitt"
@@ -780,10 +780,10 @@
       {
         "prompt": "Hva skjer med Stockmann etter folkemøtet, gitt hvordan historien utvikler seg?",
         "options": [
-          "Innbyggerne vender seg mot ham, og han blir stemplet som «en folkefiende»",
-          "Innbyggerne støtter ham, men avisen trekker seg og gjør at saken ikke får noen virkning",
-          "Borgermesteren avviser funnene offentlig, men tilbyr Stockmann en privat løsning",
-          "Folkemøtet ender uten enighet, og Stockmann bestemmer seg for å forlate byen frivillig"
+          "Folket vender seg mot ham, og han blir erklært som «en folkefiende»",
+          "Han blir hyllet som en helt av byens innbyggere",
+          "Borgermesteren ber om unnskyldning",
+          "Avisen fortsetter å støtte ham fullt ut"
         ],
         "correctIndex": 0,
         "sourceSentence": "Stockmann arrangerer et folkemøte for å fortelle innbyggerne sannheten, men folket vender seg også mot ham. I stedet for å bli hyllet som en helt, blir han erklært som \"en folkefiende.\""
@@ -869,10 +869,10 @@
       {
         "prompt": "Hva jobber organisasjonene for, ifølge teksten?",
         "options": [
-          "Bedre forhold for husdyr, forbud mot kosmetisk dyretesting og motstand mot ville dyr i sirkus",
-          "Bedre forhold for kjæledyr, strengere regler for dyrehager og mindre bruk av dyr i forskning",
-          "Forbud mot kjøttproduksjon, avvikling av dyrehager og strengere regler for kjæledyrhold",
-          "Mindre bruk av antibiotika i landbruket, vern av ville dyr og støtte til økologisk matproduksjon"
+          "Bedre levevilkår for husdyr og forbud mot dyretesting",
+          "Å øke kjøttproduksjonen",
+          "Å fjerne alle dyrehager",
+          "Å innføre nye typer sirkus"
         ],
         "correctIndex": 0,
         "sourceSentence": "De kjemper blant annet for bedre levevilkår for husdyr, forbud mot dyretesting av kosmetikk, og mot bruk av ville dyr i sirkus."
@@ -891,10 +891,10 @@
       {
         "prompt": "Hva er forskjellen mellom de to synene på dyrevelferd som nevnes til slutt i teksten?",
         "options": [
-          "Noen godtar bruk av dyr hvis de behandles godt, mens andre avviser bruk av dyr i seg selv",
-          "Noen godtar dyr som mat, mens andre bare godtar bruk av dyr i forskning",
-          "Noen prioriterer husdyr, mens andre mener ville dyr bør ha sterkere vern",
-          "Noen legger mest vekt på levevilkår, mens andre først og fremst vil redusere dyretesting"
+          "Noen mener bruk av dyr er greit hvis de behandles godt, andre mener dyr ikke bør brukes i det hele tatt",
+          "Alle er enige om at dyr aldri bør brukes",
+          "Alle mener kjøttproduksjon bør økes",
+          "Det finnes ingen uenighet om temaet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Noen mener det er greit å bruke dyr så lenge de behandles godt, mens andre mener at dyr ikke bør brukes i det hele tatt."
@@ -907,9 +907,9 @@
         "prompt": "Hva er et eksempel på en antihelt, ifølge teksten?",
         "options": [
           "En politimann som bryter loven for å stoppe en farlig kriminell",
-          "En politimann som følger reglene selv om en kriminell dermed slipper unna",
-          "En kriminell som hjelper politiet bare for å få redusert sin egen straff",
-          "En superhelt som gjør gode handlinger, men skjuler identiteten sin for andre"
+          "En superhelt uten feil",
+          "En konge som alltid følger reglene",
+          "En lærer som aldri tar sjanser"
         ],
         "correctIndex": 0,
         "sourceSentence": "Et kjent eksempel på en antihelt er en politimann som bryter loven for å stoppe en farlig kriminell."
@@ -992,9 +992,9 @@
         "prompt": "Hva har partiets politiske prosjekt tradisjonelt dreid seg om, ifølge teksten?",
         "options": [
           "Å forene kollektiv solidaritet med individets frihet",
-          "Å la kollektiv likhet ha forrang framfor individuell frihet",
-          "Å kombinere markedsfrihet med en svakere offentlig sektor",
-          "Å flytte ansvaret for velferd fra staten til arbeidslivet og familien"
+          "Å avskaffe markedsøkonomien helt",
+          "Å fjerne fagbevegelsens innflytelse",
+          "Å innføre et enpartisystem"
         ],
         "correctIndex": 0,
         "sourceSentence": "Partiets politiske prosjekt har tradisjonelt dreid seg om å forene ideen om kollektiv solidaritet med individets frihet, en kombinasjon som har hatt bred appell i det norske samfunnet."
@@ -1013,10 +1013,10 @@
       {
         "prompt": "I teksten betyr uttrykket «økt velgermobilitet» omtrent:",
         "options": [
-          "At velgere oftere skifter hvilket parti de støtter",
-          "At flere velgere flytter mellom ulike deler av landet",
-          "At flere stemmeberettigede faktisk deltar i valgene",
-          "At sammensetningen av velgerne endres når befolkningen blir eldre"
+          "At velgere i større grad bytter parti de stemmer på",
+          "At flere velgere flytter til utlandet",
+          "At valgdeltakelsen synker kraftig",
+          "At velgerne blir eldre"
         ],
         "correctIndex": 0,
         "sourceSentence": "ikke minst i møte med et mer fragmentert politisk landskap, økt velgermobilitet og nye samfunnsspørsmål knyttet til klima, migrasjon og globalisering."
@@ -1076,10 +1076,10 @@
       {
         "prompt": "Hvordan blir kunstig intelligens ofte fremstilt i fortellinger, ifølge teksten?",
         "options": [
-          "Både som en mulig trussel og som teknologi som kan forbedre verden",
-          "Som nyttig teknologi som først blir farlig når mennesker misbruker den",
-          "Som en trussel først og fremst fordi den mangler menneskelige følelser",
-          "Som en oppfinnelse som vanligvis løser konfliktene menneskene har skapt"
+          "Enten som en trussel eller som en oppfinnelse som forbedrer verden",
+          "Alltid som en fiende uten unntak",
+          "Alltid som en løsning uten problemer",
+          "Som et rent underholdningselement uten dypere mening"
         ],
         "correctIndex": 0,
         "sourceSentence": "I mange fortellinger blir AI fremstilt som enten en trussel mot menneskeheten eller som en banebrytende oppfinnelse som kan forandre verden til det bedre."
@@ -1087,10 +1087,10 @@
       {
         "prompt": "Hva gjør kunstig intelligens i fiksjon spesielt fascinerende, ifølge teksten?",
         "options": [
-          "At skillet mellom fantasi og virkelighet blir stadig mindre tydelig",
-          "At teknologien i slike historier vanligvis ligger langt utenfor det forskere arbeider med",
-          "At fortellingene først og fremst undersøker forskjellen mellom roboter og datamaskiner",
-          "At leseren sjelden kan vite om den kunstige intelligensen er god eller ond"
+          "At grensene mellom fantasi og virkelighet blir stadig mer uklare",
+          "At det alltid har en lykkelig slutt",
+          "At det kun handler om roboter",
+          "At det er lett å forutsi handlingen"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det som gjør kunstig intelligens i fiksjon så fascinerende, er at grensene mellom fantasi og virkelighet stadig blir mer uklare."
@@ -1250,10 +1250,10 @@
       {
         "prompt": "Hva baserer mange ateister sitt verdenssyn på, ifølge teksten?",
         "options": [
-          "Vitenskap, logikk og rasjonell tenkning framfor religiøs tro",
-          "Filosofisk tvil kombinert med religiøse tradisjoner og personlige erfaringer",
-          "Politiske ideologier som avviser alle former for åndelighet",
-          "Historiske tekster som gir alternative forklaringer på religiøs tro"
+          "Vitenskap, logikk og rasjonell tenkning",
+          "Religiøse skrifter",
+          "Filosofiske dogmer",
+          "Politiske ideologier"
         ],
         "correctIndex": 0,
         "sourceSentence": "For mange ateister handler det om å basere sitt verdenssyn på vitenskap, logikk og rasjonell tenkning, i stedet for religiøs tro."
@@ -1361,10 +1361,10 @@
       {
         "prompt": "Hva hevder ledere innen autoritær populisme å representere, ifølge teksten?",
         "options": [
-          "«Folkets vilje» i opposisjon til en elite de fremstiller som korrupt",
-          "En sterk stat som skal megle nøytralt mellom folket og den økonomiske eliten",
-          "Tradisjonelle institusjoners behov for å beskytte samfunnet mot raske endringer",
-          "En bred politisk konsensus mellom etablerte partier og samfunnsgrupper"
+          "“Folkets vilje” mot en påstått korrupt elite",
+          "Vitenskapelig konsensus",
+          "Internasjonale organisasjoners interesser",
+          "Den økonomiske eliten"
         ],
         "correctIndex": 0,
         "sourceSentence": "Fenomenet preges av ledere som hevder å representere “folkets vilje” mot en påstått korrupt elite"
@@ -1394,10 +1394,10 @@
       {
         "prompt": "Hvorfor kan skadene fra autoritær populisme være vanskelige å reversere, ifølge teksten?",
         "options": [
-          "Fordi svekkede demokratiske strukturer og normer kan bestå etter et maktskifte",
-          "Fordi økonomisk usikkerhet som regel varer lenger enn den populistiske bevegelsen",
-          "Fordi polarisering gjør det umulig for tidligere motstandere å samarbeide politisk igjen",
-          "Fordi institusjoner som er svekket av populisme vanligvis må erstattes helt"
+          "Fordi de kan føre til varige skader på demokratiets strukturer og normer",
+          "Fordi lederne aldri mister makten",
+          "Fordi mediene støtter dem for alltid",
+          "Fordi valgene blir avlyst permanent"
         ],
         "correctIndex": 0,
         "sourceSentence": "Imidlertid er faren stor for at slike bevegelser fører til varige skader på demokratiets strukturer og normer – skader som kan være vanskelige å reversere selv etter at populistene mister makten."
@@ -1531,10 +1531,10 @@
       {
         "prompt": "Hva bruker noen teknologiske hjelpemidler til, ifølge teksten?",
         "options": [
-          "Måle søvn og puls eller støtte meditasjon",
-          "Planlegge måltider og bestille kosttilskudd automatisk",
-          "Måle blodtrykk og sende resultater direkte til legen",
-          "Styresette treningsøkter og beregne hvor mye mat man bør spise"
+          "Måle søvn og puls, eller hjelpe med meditasjon",
+          "Bestille mat",
+          "Finne veibeskrivelser",
+          "Kommunisere med leger direkte"
         ],
         "correctIndex": 0,
         "sourceSentence": "Andre bruker teknologiske hjelpemidler, som klokker som måler søvn og puls, eller apper som hjelper med meditasjon."
@@ -1542,10 +1542,10 @@
       {
         "prompt": "Hvorfor er det viktig å være kritisk til de mer avanserte formene for biohacking, ifølge teksten?",
         "options": [
-          "De kan innebære risiko dersom man eksperimenterer uten å vite hva man gjør",
-          "De krever dyr teknologi og kan derfor gi store økonomiske problemer",
-          "De kan gi så raske resultater at det blir vanskelig å vite hvilken metode som virket",
-          "De er lite dokumentert fordi forskere generelt unngår å undersøke biohacking"
+          "Fordi det kan være farlig hvis man ikke vet hva man gjør",
+          "Fordi det er ulovlig i alle land",
+          "Fordi det alltid koster mye penger",
+          "Fordi forskere fraråder all bruk av teknologi"
         ],
         "correctIndex": 0,
         "sourceSentence": "Dette er mer avansert og kan være farlig hvis man ikke vet hva man gjør."
@@ -1616,10 +1616,10 @@
       {
         "prompt": "Hva sier teksten om bevisene bak søskenrekkefølge-teorien?",
         "options": [
-          "At teorien er populær, men at bevisene ikke viser en så sterk og sikker effekt",
-          "At teorien støttes tydelig for førstefødte, men ikke for mellom- eller yngstebarn",
-          "At forskere er enige om hovedmønstrene, men uenige om hvorfor de oppstår",
-          "At teorien er godt dokumentert, men bare i familier med tre eller flere barn"
+          "Det finnes ikke bevis som viser at søskenrekkefølgen alltid har så stor betydning",
+          "Det er vitenskapelig bevist uten tvil",
+          "Forskere er helt enige om teorien",
+          "Teorien er avvist fullstendig av alle forskere"
         ],
         "correctIndex": 0,
         "sourceSentence": "Selv om teorien er populær, finnes det ikke bevis som viser at søskenrekkefølgen alltid har så stor betydning."
@@ -1629,7 +1629,7 @@
   "Dinosaurer": {
     "questions": [
       {
-        "prompt": "According to the text, what did many dinosaurs eat?",
+        "prompt": "According to the text, what did most dinosaurs eat, compared to some?",
         "options": [
           "Plants",
           "Meat",
@@ -1775,10 +1775,10 @@
       {
         "prompt": "I teksten betyr det at vi gjør ville dyr «tamme»:",
         "options": [
-          "At dyrene blir vant til å leve sammen med mennesker og blir mindre ville",
-          "At dyrene lærer enkelte kommandoer uten at forholdet deres til mennesker ellers endres",
-          "At ville dyr flyttes til gårder og får mat av mennesker i stedet for å finne den selv",
-          "At dyr endrer utseende og størrelse slik at de blir lettere for mennesker å bruke"
+          "Vi gjør dyr rolige og vant til å leve sammen med mennesker",
+          "Vi gjør dyr syke",
+          "Vi gjør dyr sterkere",
+          "Vi gjør dyr raskere"
         ],
         "correctIndex": 0,
         "sourceSentence": "Domestisering betyr at vi gjør ville dyr tamme, slik at de kan bo sammen med oss og hjelpe oss i hverdagen."
@@ -1897,10 +1897,10 @@
       {
         "prompt": "Hvorfor kan bruk av drømmer i en fortelling skape usikkerhet hos leseren?",
         "options": [
-          "Fordi det kan være uklart om en hendelse skjer i virkeligheten eller bare i en drøm",
-          "Fordi drømmer kan bryte med kronologien og dermed gjøre det vanskelig å vite når noe skjer",
-          "Fordi drømmer ofte viser symboler som leseren må tolke uten hjelp fra fortelleren",
-          "Fordi fortelleren gjerne husker drømmen annerledes enn de andre personene i historien"
+          "Fordi leseren ikke vet om hendelsen er virkelig eller bare en illusjon",
+          "Fordi drømmer alltid er skumle",
+          "Fordi forfatteren skriver uklart med vilje for å forvirre",
+          "Fordi drømmer aldri har en avslutning"
         ],
         "correctIndex": 0,
         "sourceSentence": "Er dette noe som virkelig skjer, eller er det bare en illusjon?"
@@ -1923,10 +1923,10 @@
       {
         "prompt": "Hva kan gjøre at en litterær karakter virker mer realistisk, ifølge teksten?",
         "options": [
-          "At karakteren kan være trygg utad, men samtidig usikker og sårbar innvendig",
-          "At karakteren endrer personlighet tydelig etter en viktig hendelse i fortellingen",
-          "At karakterens utseende står i kontrast til hvordan andre personer oppfatter vedkommende",
-          "At karakteren handler ulikt overfor venner og fiender uten å oppleve noen indre konflikt"
+          "At karakteren har motstridende sider, som trygghet utad og usikkerhet innvendig",
+          "At karakteren alltid er modig",
+          "At karakteren har et spesielt utseende",
+          "At karakteren snakker mye"
         ],
         "correctIndex": 0,
         "sourceSentence": "En person kan fremstå som trygg og bestemt utad, men samtidig være usikker og sårbar på innsiden."
@@ -1945,10 +1945,10 @@
       {
         "prompt": "Ifølge teksten, hvorfor speiler litterære dualiteter noe ved virkelige mennesker?",
         "options": [
-          "Fordi mennesker også rommer sider som kan stå i konflikt med hverandre",
-          "Fordi litterære personer ofte bygger på flere virkelige mennesker samtidig",
-          "Fordi leseren må tolke en karakter forskjellig i ulike deler av fortellingen",
-          "Fordi realistiske personer først og fremst kjennetegnes av at de forandrer mening"
+          "Fordi vi alle bærer på ulike sider som ofte står i spenning med hverandre",
+          "Fordi bøker er skrevet av flere forfattere",
+          "Fordi lesere liker overraskelser",
+          "Fordi historier må ha en slutt"
         ],
         "correctIndex": 0,
         "sourceSentence": "fordi vi alle bærer på ulike sider som ofte står i spenning med hverandre"
@@ -1956,10 +1956,10 @@
       {
         "prompt": "Hva sier teksten om de fleste mennesker, til slutt?",
         "options": [
-          "At de fleste rommer både gode og mindre gode sider",
-          "At mennesker vanligvis velger én side av personligheten og holder fast ved den",
-          "At motstridende trekk først og fremst finnes hos litterære karakterer, ikke virkelige mennesker",
-          "At gode og onde egenskaper vanligvis kan skilles tydelig fra hverandre"
+          "At de befinner seg et sted midt imellom godt og ondt",
+          "At de er helt gode",
+          "At de er helt onde",
+          "At de aldri forandrer seg"
         ],
         "correctIndex": 0,
         "sourceSentence": "de fleste av oss befinner seg et sted midt imellom"
@@ -2078,10 +2078,10 @@
       {
         "prompt": "Hva innebærer det, ifølge teksten, at misunnelse peker på et gap mellom hvem vi er og hvem vi ønsker å være?",
         "options": [
-          "Den kan vise hva vi verdsetter og bli et utgangspunkt for personlig vekst",
-          "Den viser først og fremst hvilke mennesker vi bør unngå å sammenligne oss med",
-          "Den oppstår når våre mål er urealistiske og bør derfor møtes ved å senke ambisjonene",
-          "Den avslører at vi verdsetter andres anerkjennelse mer enn våre egne behov"
+          "At misunnelsen viser hva vi verdsetter og kan bli en mulighet til å vokse",
+          "At misunnelsen alltid er skadelig og bør undertrykkes helt",
+          "At misunnelsen er umulig å forstå psykologisk",
+          "At misunnelsen kun handler om penger og eiendom"
         ],
         "correctIndex": 0,
         "sourceSentence": "Kanskje ligger den største lærdommen i å innse at misunnelse peker på et gap mellom hvem vi er, og hvem vi ønsker å være – og at denne avstanden ikke nødvendigvis behøver å være en forbannelse, men snarere en mulighet til å vokse."
@@ -2163,10 +2163,10 @@
       {
         "prompt": "Hvordan kan forbrukere, ifølge teksten, påvirke selskaper til å endre praksis?",
         "options": [
-          "Ved å velge bærekraftige alternativer slik at produsentene merker endret etterspørsel",
-          "Ved å prioritere lokale varer uavhengig av hvordan de er produsert",
-          "Ved å kjøpe færre produkter fra små selskaper og heller støtte større produsenter",
-          "Ved å overlate ansvaret for bærekraftige valg til myndigheter og sertifiseringsordninger"
+          "Ved at flere velger bærekraftige alternativer og dermed tvinger selskapene til å endre seg",
+          "Ved å skrive klager til myndighetene",
+          "Ved å slutte å handle helt",
+          "Ved å kjøpe kun importerte varer"
         ],
         "correctIndex": 0,
         "sourceSentence": "når flere velger bærekraftige alternativer, tvinges selskapene til å endre praksis."
@@ -2200,10 +2200,10 @@
       {
         "prompt": "Hva betyr det, ifølge teksten, at «tilværelsen går foran essensen»?",
         "options": [
-          "At mennesker skaper mening gjennom valg og handlinger i stedet for å ha en fastlagt essens",
-          "At menneskets egentlige natur er bestemt før livet begynner, men kan oppdages gradvis",
-          "At frihet først oppstår når individet finner en universell mening som gjelder alle",
-          "At menneskets handlinger først og fremst bestemmes av en skjebne utenfor individet"
+          "At mennesker skaper sin egen mening gjennom handlinger og valg, i stedet for å bli født med en fastlagt mening",
+          "At mennesker er født med en bestemt skjebne",
+          "At essens er viktigere enn tilværelse",
+          "At mening kommer fra religion alene"
         ],
         "correctIndex": 0,
         "sourceSentence": "Dette betyr at mennesker ikke er født med en fastlagt mening eller skjebne; vi skaper vår egen mening gjennom handlinger og valg."
@@ -2270,10 +2270,10 @@
       {
         "prompt": "Hvorfor regnes den beboelige sonen som viktig i letingen etter liv utenfor jorden, ifølge teksten?",
         "options": [
-          "Fordi temperaturen der kan gjøre flytende vann mulig, noe som regnes som viktig for liv",
-          "Fordi planeter i denne sonen vanligvis allerede har både oksygen og metan i atmosfæren",
-          "Fordi planeter i denne sonen ligger nærmest stjernen og derfor er enklest å observere",
-          "Fordi alle steinplaneter befinner seg i denne sonen, mens gasskjemper ligger utenfor"
+          "Fordi flytende vann regnes som en viktig forutsetning for liv slik vi kjenner det",
+          "Fordi alle planeter der har oksygen allerede",
+          "Fordi det er varmest der",
+          "Fordi det er lettest å se med teleskop"
         ],
         "correctIndex": 0,
         "sourceSentence": "Dette regnes som en viktig forutsetning for liv slik vi kjenner det."
@@ -2355,10 +2355,10 @@
       {
         "prompt": "Hva skjer rett etter at fortelleren tar et skritt inn i loftsrommet?",
         "options": [
-          "Døren smeller igjen bak dem, og flere stemmer begynner å hviske det samme ordet",
-          "Loftsdøren åpner seg helt, og en skygge beveger seg ut i trappen bak dem",
-          "Lyset i rommet slukker, og de hører vennene sine rope fra etasjen under",
-          "De ser hvem som har hvisket, før døren sakte lukker seg mellom dem og trappen"
+          "Døren smeller igjen bak dem, og flere stemmer hvisker det samme ordet",
+          "Lyset går plutselig på",
+          "Vennene deres roper på dem nedenfra",
+          "De finner en gammel skattekiste"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg tok et skritt inn, og plutselig smalt døren igjen bak oss."
@@ -2440,10 +2440,10 @@
       {
         "prompt": "Hvorfor fungerer fascismen, ifølge teksten, som en advarsel for nåtidens samfunn?",
         "options": [
-          "Fordi frykt og kriser kan gjøre samfunn mer mottakelige for politikk som setter makt over menneskeverd",
-          "Fordi økonomiske kriser alene kan omforme demokratiske systemer til fascistiske regimer",
-          "Fordi tap av tillit til politiske partier vanligvis fører til krav om sterkere statlig kontroll",
-          "Fordi fascistiske bevegelser historisk har utviklet seg etter samme mønster når samfunnet blir polarisert"
+          "Fordi frykt og kriser kan skape grobunn for en politikk som setter makt over menneskeverd",
+          "Fordi fascismen alltid vil komme tilbake i samme form",
+          "Fordi den kun er et historisk fenomen uten relevans i dag",
+          "Fordi den alltid fører til økonomisk vekst"
         ],
         "correctIndex": 0,
         "sourceSentence": "Dermed fungerer fascismen som en advarsel om hvor sårbare samfunn kan være når frykt og kriser gir grobunn for en politikk som setter makt og ideologi over menneskeverd og rettssikkerhet."
@@ -2488,10 +2488,10 @@
       {
         "prompt": "Hvorfor kan februar oppleves som en lang måned for noen, men samtidig håndteres godt, ifølge teksten?",
         "options": [
-          "Mørket kan gjøre måneden tung, mens hyggelige aktiviteter og samvær hjelper",
-          "Kulden gjør at folk må være inne, mens vinterferien gir dem mer tid til å arbeide",
-          "Snøen varer lenge, mens fastelavn markerer at vinteren snart er helt over",
-          "Dagene er korte, mens høyere temperaturer gjør det lett å være mye utendørs"
+          "Fordi det fortsatt er mørkt store deler av dagen, men hyggelige aktiviteter og samvær med andre hjelper",
+          "Fordi det ikke finnes noen tradisjoner i februar",
+          "Fordi snøen aldri smelter",
+          "Fordi alle må jobbe mer i februar"
         ],
         "correctIndex": 0,
         "sourceSentence": "Februar kan føles lang for noen, men det hjelper å gjøre hyggelige ting og å være sammen med familie og venner."
@@ -2503,10 +2503,10 @@
       {
         "prompt": "Hva fokuserte den første bølgen av feminismen på, ifølge teksten?",
         "options": [
-          "Grunnleggende rettigheter som stemmerett og tilgang til utdanning",
-          "Likestilling i arbeidslivet, særlig lønn og rett til lederstillinger",
-          "Hvordan kjønn virker sammen med andre former for diskriminering",
-          "Kjønnsroller som påvirker både kvinners og menns psykiske helse"
+          "Grunnleggende rettigheter som stemmerett og utdanning",
+          "Likelønn i arbeidslivet",
+          "Interseksjonalitet",
+          "Menns psykiske helse"
         ],
         "correctIndex": 0,
         "sourceSentence": "Den første bølgen fokuserte på grunnleggende rettigheter som stemmerett og tilgang til utdanning."
@@ -2536,10 +2536,10 @@
       {
         "prompt": "Hvordan har fokuset i feminismen endret seg fra å bare handle om kvinners rettigheter, ifølge teksten?",
         "options": [
-          "Fokuset omfatter også kjønnsstereotyper som kan ramme menn, blant annet psykisk",
-          "Fokuset har flyttet seg fra juridiske rettigheter til bare spørsmål om arbeidslivet",
-          "Fokuset omfatter menn først og fremst som motstandere av videre likestillingsarbeid",
-          "Fokuset har gått bort fra kvinners erfaringer til fordel for et kjønnsnøytralt perspektiv"
+          "Det inkluderer nå også å bryte ned kjønnsstereotyper som påvirker menn, blant annet knyttet til psykisk helse",
+          "Det handler nå kun om likelønn",
+          "Feminismen har sluttet å fokusere på likestilling",
+          "Det fokuserer nå bare på interseksjonalitet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Samtidig ser vi en økende bevissthet rundt menn som også kan være ofre for kjønnsdiskriminering, spesielt når det gjelder psykisk helse og press om å være sterke og følelsesmessig reserverte."
@@ -2584,10 +2584,10 @@
       {
         "prompt": "Hvorfor beskriver teksten fermentering som både en vitenskap og en kunst?",
         "options": [
-          "Fordi prosessen krever presis kontroll, men også forståelse for naturlig variasjon",
-          "Fordi vitenskapen forklarer mikroorganismene, mens kunsten først og fremst gjelder smaken",
-          "Fordi moderne fermentering følger faste regler, mens tradisjonelle metoder bygger på improvisasjon",
-          "Fordi temperatur og salt kan måles nøyaktig, mens selve fermenteringstiden alltid må gjettes"
+          "Fordi det krever presis balanse av temperatur, tid og salt, men også forståelse for naturens uforutsigbare elementer",
+          "Fordi det kun kan læres på universitetet",
+          "Fordi resultatet alltid er det samme uansett metode",
+          "Fordi det er en helt ny oppfinnelse"
         ],
         "correctIndex": 0,
         "sourceSentence": "Prosessen krever presisjon – temperaturen, tiden og mengden salt må være perfekt balansert – men også en forståelse av de subtile, uforutsigbare elementene som naturen bringer med seg."
@@ -2669,10 +2669,10 @@
       {
         "prompt": "Hva anbefaler teksten når man vil prøve nye smakskombinasjoner?",
         "options": [
-          "Å være nysgjerrig og villig til å prøve kombinasjoner man ikke kjenner fra før",
-          "Å begynne med kjente kombinasjoner og bare endre én ingrediens om gangen",
-          "Å følge etablerte oppskrifter til man har lært hvilke smaker som passer sammen",
-          "Å unngå sterke kontraster mellom søtt, salt, surt og bittert når man eksperimenterer"
+          "Å være nysgjerrig og ikke redd for å teste noe nytt",
+          "Å alltid følge oppskrifter nøyaktig",
+          "Å unngå søtt og salt sammen",
+          "Å bruke kun kjente smaker"
         ],
         "correctIndex": 0,
         "sourceSentence": "Når man prøver ut nye smakskombinasjoner, er det viktig å være nysgjerrig og ikke redd for å teste noe nytt."
@@ -2791,10 +2791,10 @@
       {
         "prompt": "Selv om Spania opplevde økonomisk vekst på 1950- og 60-tallet, hva forble uendret ifølge teksten?",
         "options": [
-          "Den politiske friheten forble sterkt begrenset til tross for den økonomiske veksten",
-          "Den økonomiske åpningen førte til større pressefrihet, men ikke til frie valg",
-          "Turismen økte, mens regimets økonomiske politikk ellers forble uendret",
-          "Den politiske undertrykkelsen ble svakere fordi Franco gradvis ga fra seg makt"
+          "Den politiske friheten var fortsatt svært begrenset",
+          "Landet ble fullstendig demokratisk",
+          "Fattigdommen økte kraftig",
+          "Sensuren forsvant helt"
         ],
         "correctIndex": 0,
         "sourceSentence": "Dette førte til økonomisk vekst, men den politiske friheten var fortsatt svært begrenset."
@@ -2817,10 +2817,10 @@
       {
         "prompt": "Hva ba skapningen Victor om å lage etter at broren ble drept?",
         "options": [
-          "En kvinnelig skapning som kunne være venn og ledsager",
-          "Et skjult hjem der skapningen kunne leve uten å bli sett",
-          "En kur som kunne gjøre skapningen mer menneskelig i utseendet",
-          "En forklaring på hvorfor Victor hadde skapt den og senere forlatt den"
+          "En kvinne som kunne være dens venn",
+          "Et nytt hjem",
+          "Penger",
+          "Et våpen"
         ],
         "correctIndex": 0,
         "sourceSentence": "Så ba den Victor om å lage en kvinne som kunne være dens venn."
@@ -2828,10 +2828,10 @@
       {
         "prompt": "Hvorfor ødela Victor arbeidet med den kvinnelige skapningen før han ble ferdig?",
         "options": [
-          "Han fryktet at to slike skapninger kunne bli en fare for hele verden",
-          "Han innså at den nye skapningen sannsynligvis ville nekte å leve sammen med den første",
-          "Han fryktet at arbeidet ville bli oppdaget før han rakk å gi den nye skapningen liv",
-          "Han bestemte seg for at det var mer moralsk å forsøke å gjøre den første skapningen menneskelig"
+          "Han var redd for at to slike vesener kunne bli farlige for hele verden",
+          "Han hadde ikke nok materialer",
+          "Skapningen ba ham om å stoppe",
+          "Han ble syk og kunne ikke fortsette"
         ],
         "correctIndex": 0,
         "sourceSentence": "Han var redd for at to slike vesener kunne bli farlige for hele verden."
@@ -2854,10 +2854,10 @@
       {
         "prompt": "Hva peker moderne nevrovitenskap og deterministiske tradisjoner på, ifølge teksten?",
         "options": [
-          "At valg formes av biologiske prosesser, sosiale strukturer og kulturelle normer",
-          "At refleksjon gjør menneskelige valg uavhengige av både biologiske og sosiale påvirkninger",
-          "At nevrovitenskap viser at kulturelle normer har mindre betydning enn bevisste beslutninger",
-          "At determinisme først og fremst forklarer tilfeldige handlinger som individet ikke kan kontrollere"
+          "At våre valg i stor grad formes av biologiske prosesser, sosiale strukturer og kulturelle normer",
+          "At mennesker er helt fri fra ytre påvirkning",
+          "At fri vilje er bevist vitenskapelig",
+          "At valg kun styres av tilfeldigheter"
         ],
         "correctIndex": 0,
         "sourceSentence": "På den andre siden peker både moderne nevrovitenskap og deterministiske tradisjoner på at våre valg i stor grad formes av biologiske prosesser, sosiale strukturer og kulturelle normer."
@@ -2865,10 +2865,10 @@
       {
         "prompt": "I teksten betyr uttrykket «en nødvendig illusjon» om fri vilje at:",
         "options": [
-          "At fri vilje kan mangle virkelig grunnlag, men likevel være viktig for ansvar og moral",
-          "At fri vilje eksisterer psykologisk selv om den ikke påvirker hvordan mennesker faktisk handler",
-          "At troen på fri vilje først og fremst er nødvendig for at rettssystemet skal kunne straffe lovbrudd",
-          "At fri vilje bare er en språklig idé som ikke har noen praktisk funksjon i samfunnet"
+          "Fri vilje kanskje ikke finnes i virkeligheten, men gir mening til ansvar og moral",
+          "Fri vilje er bevist å eksistere",
+          "Fri vilje er en løgn uten noen funksjon",
+          "Fri vilje kun gjelder for filosofer"
         ],
         "correctIndex": 0,
         "sourceSentence": "Enkelte hevder at fri vilje er en nødvendig illusjon: en opplevelse som gir mening til ansvar, moral og rettferdighet, men som ikke har ontologisk forankring."
@@ -2887,10 +2887,10 @@
       {
         "prompt": "Hva utfordres, ifølge teksten, dersom fri vilje viser seg å være en illusjon?",
         "options": [
-          "Rettssystemet, etiske normer og synet vårt på oss selv som handlende personer",
-          "Først og fremst vitenskapens forklaringer på hvordan biologiske prosesser påvirker valg",
-          "Hovedsakelig religiøse forestillinger om skyld, mens sekulær moral forblir uendret",
-          "Bare forestillingen om personlig skyld, siden rettssystemet kan fungere uten ansvar"
+          "Rettssystemet, etiske normer og vårt eget selvbilde som handlende subjekter",
+          "Kun den vitenskapelige forskningen på hjernen",
+          "Ingenting, fordi samfunnet ville fungere som før",
+          "Bare religiøse institusjoner"
         ],
         "correctIndex": 0,
         "sourceSentence": "Hvis den derimot viser seg å være en illusjon, utfordres både rettssystemet, etiske normer og vårt eget selvbilde som handlende subjekter."
@@ -2935,10 +2935,10 @@
       {
         "prompt": "Hva er, ifølge teksten, den mest fremtredende utfordringen for partiets videre utvikling?",
         "options": [
-          "Spenningen mellom protestpartiets idealer og kompromissene som følger med regjeringsmakt",
-          "Spenningen mellom økonomisk liberalisme og ønsket om sterkere offentlig eierskap",
-          "Spenningen mellom partiets distriktsprofil og ønsket om tettere europeisk integrasjon",
-          "Spenningen mellom en liberal innvandringspolitikk og krav om strengere grensekontroll"
+          "Spenningen mellom å være et ideelt protestparti og det å drive praktisk realpolitikk som regjeringspartner",
+          "Mangel på velgere",
+          "Konflikter med andre lands regjeringer",
+          "For lite fokus på innvandring"
         ],
         "correctIndex": 0,
         "sourceSentence": "Denne spenningen mellom ideal og realpolitikk er kanskje den mest fremtredende utfordringen for partiets videre utvikling."
@@ -2961,10 +2961,10 @@
       {
         "prompt": "Hva er et «overmenneske», ifølge teksten?",
         "options": [
-          "Et ideal om et menneske som overskrider vanlige grenser og former sitt eget liv",
-          "Et religiøst ideal om et menneske som følger tradisjonelle moralske regler",
-          "Et biologisk overlegent menneske som står over andre mennesker",
-          "En politisk leder som får makt gjennom styrke og lydighet"
+          "Et ideal om et menneske som går utover vanlige grenser og former sitt eget liv",
+          "En religiøs leder",
+          "En superhelt fra litteraturen",
+          "En person med overnaturlige krefter"
         ],
         "correctIndex": 0,
         "sourceSentence": "altså et ideal om et menneske som går utover vanlige grenser og former sitt eget liv."
@@ -2983,10 +2983,10 @@
       {
         "prompt": "Hvorfor er Nietzsche fortsatt interessant å lese og diskutere i dag, ifølge teksten?",
         "options": [
-          "Fordi ideene hans fortsatt utfordrer lesere og har hatt stor innflytelse",
-          "Fordi han utviklet et filosofisk system som senere ble allment akseptert",
-          "Fordi han forsvarte de tradisjonelle verdiene som preget samtiden hans",
-          "Fordi han først og fremst skrev om praktiske løsninger på politiske problemer"
+          "Fordi han er en utfordrende tenker hvis kontroversielle ideer har hatt stor innflytelse frem til i dag",
+          "Fordi han skrev enkle barnebøker",
+          "Fordi han var enig med de fleste filosofer i sin samtid",
+          "Fordi han aldri ble kritisert"
         ],
         "correctIndex": 0,
         "sourceSentence": "Nietzsche blir ofte beskrevet som en utfordrende tenker, men nettopp derfor er han fortsatt interessant å lese og diskutere."
@@ -3094,10 +3094,10 @@
       {
         "prompt": "Hva kan en homoikon være, ifølge teksten?",
         "options": [
-          "En kjent person som er åpen om legningen sin, eller som blir beundret som forbilde",
-          "En skeiv person som først og fremst er kjent for partipolitisk arbeid",
-          "En populær kunstner som ikke nødvendigvis forbindes med skeive miljøer",
-          "En person som blir kjent hovedsakelig fordi privatlivet omtales i mediene"
+          "En kjent person som står åpent fram med sin legning, eller beundres for mot, kunst eller personlighet",
+          "Kun en politiker",
+          "Kun en filmskuespiller",
+          "En person som skjuler sin legning"
         ],
         "correctIndex": 0,
         "sourceSentence": "En homoikon kan være en kjent person som står åpent fram med sin legning, eller en som blir beundret for sitt mot, sin kunst eller sin personlighet."
@@ -3105,10 +3105,10 @@
       {
         "prompt": "Hva kan homoikoner bety for mange unge mennesker, ifølge teksten?",
         "options": [
-          "Et forbilde kan gjøre det lettere å føle seg tryggere på seg selv",
-          "Et forbilde kan erstatte behovet for støtte fra familie og venner",
-          "Et forbilde viser at diskriminering ikke lenger er et problem",
-          "Et forbilde har først og fremst betydning som underholdning"
+          "Å ha et forbilde kan være avgjørende for å føle seg tryggere på seg selv",
+          "De gir ingen praktisk betydning",
+          "De er bare underholdning",
+          "De motvirker likestilling"
         ],
         "correctIndex": 0,
         "sourceSentence": "For mange unge kan det å ha et forbilde være avgjørende for å føle seg tryggere på seg selv."
@@ -3334,10 +3334,10 @@
       {
         "prompt": "Hva mente Arendt med uttrykket «ondskapens banalitet»?",
         "options": [
-          "At vanlige mennesker kan gjøre grusomme ting når de følger ordre uten kritisk refleksjon",
-          "At mennesker som begår grusomheter vanligvis er ideologisk overbevist og fullt klar over konsekvensene",
-          "At totalitære systemer gjør enkeltpersoner helt ute av stand til å velge annerledes",
-          "At ondskap blir banal når svært mange mennesker utfører de samme handlingene over lang tid"
+          "At bare ekstremt onde mennesker kan begå grusomheter",
+          "At vanlige mennesker kan begå grusomme handlinger ved blindt å følge ordre",
+          "At ondskap alltid er planlagt lenge i forveien",
+          "At totalitære regimer aldri kan analyseres vitenskapelig"
         ],
         "correctIndex": 1,
         "sourceSentence": "som beskrev hvordan vanlige mennesker kan begå grusomme handlinger uten nødvendigvis å være ondskapsfulle, men heller fordi de blindt følger ordre"
@@ -3471,10 +3471,10 @@
       {
         "prompt": "Hva advarer Harari mot dersom noen få selskaper eller stater får kontroll over ny teknologi?",
         "options": [
-          "At teknologisk makt kan konsentreres og gjøre ulikheten mellom rike og fattige større",
-          "At teknologisk utvikling kan gå saktere dersom stater regulerer selskaper for strengt",
-          "At små land kan miste tilgang til teknologi dersom internasjonalt samarbeid blir svakere",
-          "At ny teknologi kan bli mindre innovativ dersom mange selskaper konkurrerer om de samme markedene"
+          "At teknologien vil forsvinne",
+          "At forskjellen mellom rike og fattige kan bli enda større",
+          "At alle mennesker vil bli like",
+          "At krig blir umulig"
         ],
         "correctIndex": 1,
         "sourceSentence": "Hvis noen få selskaper eller stater får kontroll over slike teknologier, kan forskjellen mellom rike og fattige bli enda større."
@@ -3493,10 +3493,10 @@
       {
         "prompt": "Hva er hovedbudskapet i hvordan teksten beskriver Homo Deus?",
         "options": [
-          "Boken inviterer til kritisk refleksjon over framtiden og verdiene samfunnet bør bygge på",
-          "Boken forsøker å vise hvilke teknologier som mest sannsynlig vil dominere framtidens samfunn",
-          "Boken argumenterer for at teknologisk utvikling bør bremses til politiske institusjoner er klare",
-          "Boken hevder at framtidige samfunn hovedsakelig vil bli formet av økonomisk ulikhet"
+          "Boken gir et endelig svar på hva som vil skje",
+          "Boken inviterer leseren til å tenke kritisk om hvilke verdier samfunnet bør bygge på",
+          "Boken argumenterer for at teknologi bør forbys",
+          "Boken handler bare om Hararis eget liv"
         ],
         "correctIndex": 1,
         "sourceSentence": "Homo Deus inviterer oss til å tenke kritisk om fremtiden, og til å stille spørsmål om hvilke verdier vi vil at samfunnet vårt skal bygge på."
@@ -3582,10 +3582,10 @@
       {
         "prompt": "Hvordan beskriver teksten overgangen fra republikk til diktatur?",
         "options": [
-          "Som en gradvis serie små skritt som kan framstå som pragmatiske",
-          "Som et tydelig brudd der demokratiske institusjoner avskaffes samtidig",
-          "Som en prosess som hovedsakelig begynner med at militæret overtar parlamentet",
-          "Som en utvikling der velgerne først mister stemmeretten og mediene deretter begrenses"
+          "Den skjer brått, over natten",
+          "Den preges av en serie små, tilsynelatende pragmatiske skritt",
+          "Den skjer kun gjennom militærkupp",
+          "Den er alltid resultat av utenlandsk innblanding"
         ],
         "correctIndex": 1,
         "sourceSentence": "Overgangen skjer sjelden brått; snarere preges den av en serie små, tilsynelatende pragmatiske skritt."
@@ -3593,10 +3593,10 @@
       {
         "prompt": "Hva sier teksten skjer med rettsvesenet, parlamentet og frie medier i denne prosessen?",
         "options": [
-          "Rettsvesenet svekkes, parlamentet blir en formalitet, og frie medier stemples som illojale",
-          "Rettsvesenet underordnes parlamentet, mens mediene får større frihet til å kritisere regjeringen",
-          "Parlamentet svekkes, men rettsvesenet og mediene beholder sin uavhengighet som motvekt",
-          "Institusjonene består formelt, men får gradvis større myndighet over den utøvende makten"
+          "De styrkes for å beskytte demokratiet",
+          "Rettsvesenet svekkes, parlamentet blir en formalitet, og medier stemples som illojale",
+          "De forblir uendret",
+          "De blir slått sammen til én institusjon"
         ],
         "correctIndex": 1,
         "sourceSentence": "Rettsvesenet svekkes, parlamentet reduseres til en formalitet, og frie medier blir stemplet som illojale eller direkte farlige."
@@ -3604,10 +3604,10 @@
       {
         "prompt": "Hva er paradokset teksten peker på til slutt?",
         "options": [
-          "At republikken beholder institusjonene sine, men gradvis gir dem større selvstendighet",
-          "At et system skapt for å beskytte frihet ender med å legitimere diktatur i folkets navn",
-          "At diktaturet oppstår fordi borgerne formelt avskaffer republikken gjennom én avstemning",
-          "At republikken blir mer demokratisk samtidig som lederen får mindre politisk innflytelse"
+          "At diktaturer alltid er svakere enn republikker",
+          "At republikken som skulle beskytte frihet ender opp som et diktatur som hevder å være folkets sanne uttrykk",
+          "At folket alltid støtter diktaturet fullt ut",
+          "At demokratiske institusjoner aldri kan svekkes"
         ],
         "correctIndex": 1,
         "sourceSentence": "Den republikken som ble grunnlagt for å beskytte borgernes frihet, ender opp som et diktatur som rettferdiggjør sin makt nettopp gjennom påstanden om å være folkets sanne uttrykk."
@@ -3615,10 +3615,10 @@
       {
         "prompt": "Hva kjennetegner rollen til en karismatisk leder i den beskrevne prosessen, sett i sammenheng med resten av teksten?",
         "options": [
-          "Lederen fremstiller seg som løsningen på krisen og knytter etter hvert lojalitet til sin egen person",
-          "Lederen bruker krisen til å styrke uavhengige institusjoner og begrense sin egen myndighet",
-          "Lederen søker først og fremst kompromisser med opposisjonen for å spre makten bredere",
-          "Lederen reduserer sin offentlige rolle når krisen er over og overlater makten til parlamentet"
+          "Lederen fremstår som den eneste som kan håndtere kriser, og bruker senere patriotisk retorikk for å knytte lojalitet til seg selv",
+          "Lederen holder seg helt nøytral og unngår all retorikk",
+          "Lederen styrker rettsvesenet for å vinne tillit",
+          "Lederen trekker seg fra makten så snart krisen er løst"
         ],
         "correctIndex": 0,
         "sourceSentence": "Ofte starter prosessen med at en karismatisk leder fremstår som den eneste som kan håndtere nasjonale kriser"
@@ -3678,10 +3678,10 @@
       {
         "prompt": "Hva argumenterer Høyre med når det gjelder næringslivets rammevilkår?",
         "options": [
-          "At verdiskaping i privat sektor er nødvendig for å kunne finansiere velferden",
-          "At velferdsstaten bør finansieres hovedsakelig gjennom offentlige selskaper og statlig eierskap",
-          "At næringslivet bør få bedre vilkår selv om det innebærer varig lavere finansiering av velferd",
-          "At privat verdiskaping og offentlig velferd i hovedsak er separate områder som ikke påvirker hverandre"
+          "At verdiskaping i privat sektor er en forutsetning for å finansiere velferden",
+          "At staten bør eie alle bedrifter",
+          "At privat sektor bør avvikles",
+          "At velferd ikke er statens ansvar i det hele tatt"
         ],
         "correctIndex": 0,
         "sourceSentence": "med argumentet om at verdiskaping i privat sektor er en forutsetning for å finansiere velferden"
@@ -3689,10 +3689,10 @@
       {
         "prompt": "Hvorfor fremstår Høyre som attraktivt for et bredt spekter av velgere, ifølge teksten?",
         "options": [
-          "Partiet kombinerer markedsorientert økonomi med en pragmatisk holdning til velferd",
-          "Partiet prioriterer velferdsstaten foran markedsøkonomi i nesten alle politiske spørsmål",
-          "Partiet legger hovedvekten på tradisjonelle verdier og holder økonomiske spørsmål i bakgrunnen",
-          "Partiet forsøker å appellere bredt ved å unngå klare standpunkter om både marked og velferd"
+          "Fordi partiet kombinerer en liberal tilnærming til økonomien med en pragmatisk holdning til velferdsstaten",
+          "Fordi partiet lover å fjerne alle skatter",
+          "Fordi partiet kun appellerer til velgere i byene",
+          "Fordi partiet er det eneste partiet i Norge"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det har bidratt til å gjøre partiet attraktivt både for velgere som verdsetter markedsøkonomi og for dem som anser velferd som et grunnleggende sikkerhetsnett."
@@ -3700,10 +3700,10 @@
       {
         "prompt": "Hva har, ifølge teksten, i stor grad bidratt til Høyres varige relevans i norsk politikk?",
         "options": [
-          "Evnen til å tilpasse politikken til samfunnsendringer over tid",
-          "Evnen til å holde fast ved samme politiske profil til tross for samfunnsendringer",
-          "Evnen til å prioritere økonomisk liberalisme framfor alle andre politiske hensyn",
-          "Evnen til å unngå kompromisser som kan gjøre den konservative profilen mindre tydelig"
+          "Partiets evne til å tilpasse seg samfunnsendringer",
+          "Partiets motstand mot enhver modernisering",
+          "Partiets fravær fra offentlig debatt",
+          "Partiets fokus utelukkende på utdanningspolitikk"
         ],
         "correctIndex": 0,
         "sourceSentence": "og partiets evne til å tilpasse seg samfunnsendringer har i stor grad bidratt til dets varige relevans"
@@ -3735,12 +3735,12 @@
         "sourceSentence": "Migrasjon, digital kommunikasjon og kulturell utveksling bidrar til å utvide repertoaret av mulige identitetsmarkører, men kan samtidig skape en følelse av fragmentering eller tilhørighetskonflikt."
       },
       {
-        "prompt": "Hva antyder spørsmålet «hvordan blir jeg til gjennom andre?» om identitet?",
+        "prompt": "Ifølge teksten, hvilket annet spørsmål handler refleksjon over identitet om, i tillegg til «hvem er jeg?»",
         "options": [
-          "At identitet formes i samspill med andre mennesker",
-          "At identitet først og fremst er et privat valg uten ytre påvirkning",
-          "At identitet bestemmes helt av hvordan andre vurderer oss",
-          "At identitet først blir relevant når man blir voksen"
+          "«Hvordan blir jeg til gjennom andre?»",
+          "«Hva skal jeg spise til middag?»",
+          "«Hvor mye penger har jeg?»",
+          "«Hvilket land bor jeg i?»"
         ],
         "correctIndex": 0,
         "sourceSentence": "men også «hvordan blir jeg til gjennom andre?»"
@@ -3748,10 +3748,10 @@
       {
         "prompt": "Hva krever prosessen med å reflektere over identitet, sett i sammenheng med hele teksten?",
         "options": [
-          "Å tåle ambivalens og godta at identiteten kan være i stadig endring",
-          "Å finne ett endelig svar som kan brukes i alle sosiale sammenhenger",
-          "Å skille sin egen identitet mest mulig fra kulturelle påvirkninger",
-          "Å velge én identitetsmarkør og gjøre den til den viktigste"
+          "En vilje til å tåle ambivalens og akseptere at identitet alltid er under revisjon",
+          "Et fast og endelig svar på hvem man er",
+          "At man isolerer seg fra sosiale strukturer",
+          "At man unngår all kulturell utveksling"
         ],
         "correctIndex": 0,
         "sourceSentence": "Denne prosessen krever en vilje til å tåle ambivalens og til å akseptere at identitet aldri er endelig ferdigskrevet, men alltid under revisjon."
@@ -3763,10 +3763,10 @@
       {
         "prompt": "Hvilke eksempler fra naturen bruker teksten for å vise forgjengelighet?",
         "options": [
-          "Blomster som visner og fjell som langsomt eroderer",
-          "Trær som mister blader og hav som skifter med tidevannet",
-          "Elver som endrer løp og dyr som forlater leveområdene sine",
-          "Skyer som løser seg opp og stjerner som beveger seg over himmelen"
+          "Blomster som visner og fjell som eroderer sakte",
+          "Stjerner som aldri slukner",
+          "Hav som aldri endrer seg",
+          "Dyr som lever evig"
         ],
         "correctIndex": 0,
         "sourceSentence": "blomster springer ut, men visner like raskt; årstidene skifter uavbrutt, og selv fjellene, som kan virke uforanderlige, er i en langsom, kontinuerlig prosess av erosjon"
@@ -3774,10 +3774,10 @@
       {
         "prompt": "Hva sier teksten at impermanens er, i tillegg til et tap?",
         "options": [
-          "En åpning som viser at ingenting trenger å forbli låst i samme form",
-          "En påminnelse om at varighet bare kan finnes gjennom minner og relasjoner",
-          "En erfaring som først og fremst gjør mennesket mer bevisst på det som går tapt",
-          "En motsetning mellom naturens stadige endringer og menneskets stabile identitet"
+          "En åpning - en påminnelse om at intet forblir låst i en bestemt form",
+          "En sykdom som må kureres",
+          "Noe som kun gjelder for mennesker, ikke naturen",
+          "En illusjon uten virkelig betydning"
         ],
         "correctIndex": 0,
         "sourceSentence": "Impermanens er ikke bare et tap, men også en åpning—en påminnelse om at intet forblir låst i en bestemt form."
@@ -3785,10 +3785,10 @@
       {
         "prompt": "Hva kan vi oppnå ved å akseptere forgjengeligheten, ifølge teksten?",
         "options": [
-          "En dypere ro gjennom å erkjenne at alt er i bevegelse",
-          "En sterkere følelse av kontroll gjennom å forutse hvordan ting vil endre seg",
-          "En større avstand til relasjoner fordi også de nødvendigvis er midlertidige",
-          "En trygghet i at noen deler av livet forblir uendret selv når andre forsvinner"
+          "En dypere ro i bevisstheten om at alt er i bevegelse",
+          "Total kontroll over livet vårt",
+          "En følelse av at ingenting noensinne forandrer seg",
+          "En permanent tilstand av frykt"
         ],
         "correctIndex": 0,
         "sourceSentence": "Når vi aksepterer dette, kan vi frigjøre oss fra illusjonen om kontroll og i stedet finne en dypere ro i bevisstheten om at alt er i bevegelse."
@@ -3800,10 +3800,10 @@
       {
         "prompt": "Hva betyr det å ha impostor-syndrom, ifølge teksten?",
         "options": [
-          "Å føle seg som en bedrager selv om man faktisk har kunnskap og ferdigheter",
-          "Å tvile på om man har valgt riktig yrke selv om man vanligvis gjør en god jobb",
-          "Å være redd for kritikk fordi man tidligere har gjort flere alvorlige feil",
-          "Å overvurdere egne ferdigheter og derfor føle seg usikker når andre presterer bedre"
+          "Å føle seg som en lurer, selv om man har kunnskap og ferdigheter",
+          "Å være ekstremt selvsikker uten grunn",
+          "Å alltid gjøre feil på jobben",
+          "Å ikke ha noen venner å snakke med"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det betyr at man føler seg som en lurer, selv om man egentlig har kunnskap og ferdigheter."
@@ -4066,10 +4066,10 @@
       {
         "prompt": "Hva foreslår teksten som en måte å forstå islam bedre på?",
         "options": [
-          "Å møte religionen med åpenhet og respekt og søke kunnskap gjennom dialog",
-          "Å skille religiøs praksis helt fra kultur før man forsøker å forstå islam",
-          "Å konsentrere seg om historiske konflikter for å forstå religionens rolle i dag",
-          "Å sammenligne islam med andre religioner før man undersøker muslimske miljøer nærmere"
+          "Å møte religionen med åpenhet og respekt, gjennom kunnskap og dialog",
+          "Å unngå all kontakt med muslimske samfunn",
+          "Å studere kun politisk historie",
+          "Å se bort fra religiøse tradisjoner helt"
         ],
         "correctIndex": 0,
         "sourceSentence": "For å forstå islam bedre er det viktig å møte religionen med åpenhet og respekt."
@@ -4151,10 +4151,10 @@
       {
         "prompt": "Hva viser mangfoldet blant dagens jødiske samfunn, ifølge teksten?",
         "options": [
-          "At praksisen er mangfoldig, samtidig som en felles arv gir sterk tilhørighet",
-          "At religiøs praksis varierer så mye at den felles historiske arven har mindre betydning i dag",
-          "At jødiske samfunn har forskjellige tradisjoner, men stort sett samme syn på hvordan troen skal praktiseres",
-          "At mangfoldet først og fremst skyldes geografiske forskjeller, mens religiøs identitet er ganske ensartet"
+          "At det er rikdom i jødedommen samtidig som den felles arven skaper tilhørighet",
+          "At jødedommen har sluttet å eksistere som religion",
+          "At alle jødiske samfunn praktiserer troen identisk",
+          "At jødedom ikke lenger har noen felles historie"
         ],
         "correctIndex": 0,
         "sourceSentence": "Dette viser mangfoldet og rikdommen innen jødedommen, samtidig som den felles arven skaper en sterk følelse av tilhørighet."
@@ -4273,10 +4273,10 @@
       {
         "prompt": "På hvilke måter bruker forfatteren norsk i hverdagen?",
         "options": [
-          "Ved å snakke med venner, handle i butikken og se på TV",
-          "Ved å lese aviser, skrive e-post og gjøre lekser på norskkurset",
-          "Ved å bruke norsk på jobben, men morsmålet i resten av hverdagen",
-          "Ved å se norsk TV og lese bøker, men unngå å snakke før hun føler seg sikker"
+          "Ved å snakke med venner, handle i butikken, eller se på TV",
+          "Kun på jobben",
+          "Kun når hun skriver brev",
+          "Hun bruker aldri norsk utenfor kurs"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg prøver å bruke norsk hver dag, enten jeg snakker med venner, handler i butikken, eller ser på TV."
@@ -4336,10 +4336,10 @@
       {
         "prompt": "Hva bygger liberalismen på, ifølge teksten?",
         "options": [
-          "At mennesker bør kunne ta egne valg så lenge de respekterer andres frihet",
-          "At individuell frihet normalt bør vike når staten ønsker større økonomisk likhet",
-          "At staten bør bestemme hvilke livsvalg som gir mest frihet for samfunnet samlet",
-          "At økonomisk markedsfrihet er viktigere enn den enkeltes personlige frihet"
+          "Tanken om at mennesker skal ha mulighet til å ta egne valg, så lenge de ikke begrenser andres frihet",
+          "Tanken om at staten alltid bør kontrollere markedet fullt ut",
+          "Tanken om at individet aldri bør ha rettigheter",
+          "Tanken om at frihet kun gjelder for staten, ikke for individet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Den bygger på tanken om at mennesker skal ha mulighet til å ta egne valg i livet, så lenge de ikke begrenser andres frihet."
@@ -4347,10 +4347,10 @@
       {
         "prompt": "Hva betyr liberalisme ofte innenfor økonomi, ifølge teksten?",
         "options": [
-          "At staten bør ha en begrenset rolle og la markedet regulere mye selv",
-          "At staten bør styre markedet tett, men la privat eierskap bestå",
-          "At markedet bør være fritt, men alle større bedrifter bør eies av staten",
-          "At økonomiske valg bør avgjøres politisk fremfor gjennom markedet"
+          "At staten skal ha en begrenset rolle, slik at markedet i stor grad regulerer seg selv",
+          "At staten skal eie alle bedrifter",
+          "At markedet skal reguleres fullstendig av staten",
+          "At privat eiendom skal avskaffes"
         ],
         "correctIndex": 0,
         "sourceSentence": "Innenfor økonomi betyr liberalisme ofte at staten skal ha en begrenset rolle, slik at markedet i stor grad regulerer seg selv."
@@ -4358,10 +4358,10 @@
       {
         "prompt": "Hva sier teksten om de ulike retningene innenfor liberalismen?",
         "options": [
-          "De varierer fra liten statlig innblanding til frihet kombinert med sosial sikkerhet",
-          "De er enige om økonomisk politikk, men uenige om hvor mye personlig frihet som trengs",
-          "De skiller seg først og fremst i synet på utenrikspolitikk og internasjonalt samarbeid",
-          "De har gradvis samlet seg om én felles modell for forholdet mellom stat og marked"
+          "De spenner fra minst mulig statlig innblanding til å kombinere frihet med sterk sosial sikkerhet",
+          "Alle liberale er enige om nøyaktig samme politikk",
+          "Liberalisme har bare én retning som gjelder overalt",
+          "Liberalisme avviser all form for frihet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Liberalismen har derfor ulike retninger, fra de som ønsker mest mulig frihet og minst mulig statlig innblanding, til de som kombinerer frihet med en sterk sosial sikkerhet."
@@ -4432,10 +4432,10 @@
       {
         "prompt": "Hva minner liminalitet oss om, ifølge teksten?",
         "options": [
-          "At overganger er naturlige og kan åpne for en ny identitet",
-          "At identiteten blir tydeligst når livet er stabilt og uten store endringer",
-          "At overgangsfaser helst bør avsluttes raskt for å unngå usikkerhet",
-          "At ritualer først og fremst skal bevare den identiteten man allerede har"
+          "At endringer er naturlige og gir oss sjansen til å skape en ny identitet",
+          "At vi bør unngå alle overganger i livet",
+          "At overganger alltid er negative",
+          "At identitet aldri kan endre seg"
         ],
         "correctIndex": 0,
         "sourceSentence": "Liminalitet minner oss om at endringer er naturlige, og at de gir oss sjansen til å skape en ny identitet."
@@ -4532,10 +4532,10 @@
       {
         "prompt": "Hva skjer da fortelleren prøver å sende en melding til jorden?",
         "options": [
-          "Han får bare ekkoet av sin egen stemme tilbake",
-          "Han hører et svakt svar som forsvinner før han klarer å forstå ordene",
-          "Radioen sender meldingen, men gir ingen lyd som viser om den er mottatt",
-          "Han får kontakt med jorden et øyeblikk før forbindelsen brytes helt"
+          "Han får bare et ekko av sin egen stemme tilbake",
+          "Han får umiddelbart svar fra jorden",
+          "Radioen slutter helt å fungere",
+          "Han hører en fremmed stemme svare"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg prøvde å sende en melding til jorden, men fikk bare et ekko av min egen stemme tilbake."
@@ -4580,10 +4580,10 @@
       {
         "prompt": "Hvorfor er Charlotte i Tokyo?",
         "options": [
-          "Hun har reist dit sammen med mannen sin, som er fotograf og arbeider i Tokyo",
-          "Hun er der for sitt eget arbeid mens mannen hennes oppholder seg i et annet land",
-          "Hun har reist alene for å finne ut hva hun vil gjøre med livet sitt",
-          "Hun følger en venn som jobber i Tokyo og bruker oppholdet til å studere japansk kultur"
+          "Hun har fulgt mannen sin, en fotograf, dit for jobb",
+          "Hun jobber som skuespiller",
+          "Hun studerer japansk kultur",
+          "Hun er på ferie alene"
         ],
         "correctIndex": 0,
         "sourceSentence": "Hun har fulgt mannen sin, en fotograf, til Tokyo, men han er opptatt med jobb og gir henne lite oppmerksomhet."
@@ -4602,10 +4602,10 @@
       {
         "prompt": "Hva kan man slutte om forholdet mellom Bob og Charlotte, basert på hele teksten?",
         "options": [
-          "Det utvikler seg til et nært bånd som er betydningsfullt uten å måtte bli romantisk",
-          "Det forblir et vennskap preget av høflighet, men uten egentlig følelsesmessig nærhet",
-          "Det utvikler seg til et romantisk forhold som de begge velger framfor sine tidligere liv",
-          "Det bygger mest på deres felles fremmedgjøring, men forsvinner når de blir kjent med Tokyo"
+          "Det er et dypt og ekte bånd som ikke trenger romantikk for å bety noe",
+          "Det er utelukkende et profesjonelt forhold",
+          "De klarer aldri å kommunisere på grunn av aldersforskjellen",
+          "De unngår hverandre etter det første møtet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mellom dem vokser et bånd som ikke trenger romantikk for å føles ekte og dypt."
@@ -4905,10 +4905,10 @@
       {
         "prompt": "Hva forteller teksten om forholdet mellom marxistisk styresett og utviklingen etter den kalde krigen?",
         "options": [
-          "Mange har avvist marxistisk styre, men marxistisk analyse brukes fortsatt mot kapitalismen",
-          "Marxistiske styreformer forsvant, og marxistisk analyse mistet samtidig all politisk betydning",
-          "Etter den kalde krigen ble marxistisk analyse hovedsakelig brukt til å forsvare markedsøkonomien",
-          "Mange land beholdt marxistisk styre, men sluttet å bruke teorien til samfunnskritikk"
+          "Mange land har avvist marxistiske styresett, men marxistisk analyse brukes fortsatt til å kritisere kapitalisme",
+          "Alle land innførte marxistisk styresett etter den kalde krigen",
+          "Marxismen forsvant helt fra offentlig debatt",
+          "Marxismen ble aldri brukt til å kritisere noe som helst"
         ],
         "correctIndex": 0,
         "sourceSentence": "Selv om mange land har avvist marxistiske styresett etter den kalde krigen, ser vi fortsatt at marxistiske analyser brukes for å kritisere kapitalisme, særlig i møte med økende ulikhet og globale utfordringer som klimakrisen."
@@ -5016,10 +5016,10 @@
       {
         "prompt": "Hva sier teksten at god mental helse innebærer, i tillegg til å være fri for psykiske lidelser?",
         "options": [
-          "Å kunne håndtere utfordringer, ha gode relasjoner og oppleve mening og tilhørighet",
-          "Å være følelsesmessig stabil og sjelden oppleve stress, tristhet eller konflikter",
-          "Å fungere godt i arbeid eller skole selv om nære relasjoner og tilhørighet mangler",
-          "Å være fri for psykiske lidelser og klare daglige oppgaver uten profesjonell støtte"
+          "Evnen til å takle livets utfordringer og ha gode relasjoner",
+          "Å aldri føle seg trist",
+          "Å unngå kontakt med andre mennesker",
+          "Å jobbe så mye som mulig"
         ],
         "correctIndex": 0,
         "sourceSentence": "Å ha god mental helse betyr ikke bare å være fri for psykiske lidelser, men også å ha evnen til å takle livets utfordringer, opprettholde gode relasjoner og ha en følelse av mening og tilhørighet."
@@ -5027,10 +5027,10 @@
       {
         "prompt": "Hvem nevner teksten som kan gi støtte og veiledning ved psykiske utfordringer?",
         "options": [
-          "Psykologer, terapeuter og andre profesjonelle",
-          "Fastleger, venner og familiemedlemmer",
-          "Lærere, arbeidsgivere og kollegaer",
-          "Frivillige organisasjoner og offentlige myndigheter"
+          "Psykologer og terapeuter",
+          "Kun familie",
+          "Kun venner",
+          "Kun lærere"
         ],
         "correctIndex": 0,
         "sourceSentence": "Psykologer, terapeuter og andre profesjonelle kan gi støtte og veiledning."
@@ -5038,10 +5038,10 @@
       {
         "prompt": "Hva mener teksten er nøkkelen til bedre mental helse i samfunnet?",
         "options": [
-          "Forebygging gjennom åpenhet, lav terskel for hjelp og miljøer som reduserer stress",
-          "Tidligere diagnostisering gjennom mer omfattende testing av hele befolkningen",
-          "Større individuelt ansvar for å håndtere psykiske utfordringer uten profesjonell hjelp",
-          "Mer spesialisert behandling etter at psykiske problemer allerede har blitt alvorlige"
+          "Forebygging, gjennom et samfunn der det er trygt å snakke om psykiske utfordringer",
+          "Strengere lover mot sosiale medier",
+          "Mer medisinering av befolkningen",
+          "Mindre åpenhet om psykiske lidelser"
         ],
         "correctIndex": 0,
         "sourceSentence": "Forebygging er nøkkelen til bedre mental helse."
@@ -5197,10 +5197,10 @@
       {
         "prompt": "Hvilket eksempel gir teksten på mobbmentalitet blant elever?",
         "options": [
-          "En elevgruppe ler av noen selv om de fleste ikke ville gjort det alene",
-          "En elevgruppe protesterer samlet mot en regel de mener er urettferdig",
-          "Flere elever hjelper en medelev fordi de andre i gruppen gjør det",
-          "En klasse blir enig om å ignorere en konflikt for å bevare roen"
+          "En gruppe elever begynner å le av noen, selv om de fleste ikke ville gjort det alene",
+          "Elever hjelper hverandre med lekser i grupper",
+          "Elever nekter å snakke med læreren sin",
+          "Elever organiserer en klassefest sammen"
         ],
         "correctIndex": 0,
         "sourceSentence": "For eksempel kan en gruppe elever begynne å le av noen, selv om de fleste av dem egentlig ikke ville ha gjort det på egen hånd."
@@ -5257,9 +5257,9 @@
         "prompt": "Hvem finner ifølge teksten kreative måter å dele informasjon på i diktaturer?",
         "options": [
           "Aktivister, journalister og vanlige mennesker",
-          "Opposisjonspolitikere og utenlandske regjeringer",
-          "Statlige medier og offentlige tjenestemenn",
-          "Teknologiselskaper og internasjonale organisasjoner"
+          "Kun regjeringen selv",
+          "Kun utenlandske selskaper",
+          "Kun militæret"
         ],
         "correctIndex": 0,
         "sourceSentence": "Aktivister, journalister og vanlige mennesker finner kreative måter å dele informasjon på, både inne i landet og med verden utenfor."
@@ -5267,10 +5267,10 @@
       {
         "prompt": "Hva kan man slutte fra teksten om hvorvidt diktaturer faller lett?",
         "options": [
-          "De kan falle, men motstand og regimeskifte innebærer ofte tid og betydelig risiko",
-          "De faller vanligvis først når teknologien gjør det umulig å kontrollere informasjon",
-          "De kan bare falle når opposisjonen får direkte støtte fra andre lands regjeringer",
-          "De virker sterke, men teksten antyder at de som regel kollapser raskt ved protester"
+          "Historien viser at slike regimer kan falle, men det skjer sjelden raskt eller uten risiko",
+          "Diktaturer faller alltid raskt og uten problemer",
+          "Diktaturer har aldri falt i historien",
+          "Diktaturer kan kun falle gjennom internasjonal krig"
         ],
         "correctIndex": 0,
         "sourceSentence": "Historien viser at slike regimer kan falle, men det skjer sjelden raskt eller uten risiko."
@@ -5330,10 +5330,10 @@
       {
         "prompt": "Hva viser forskning om hjernen vår og multitasking, ifølge teksten?",
         "options": [
-          "At hjernen har begrenset evne til å rette full oppmerksomhet mot flere oppgaver samtidig",
-          "At hjernen kan fokusere på flere krevende oppgaver dersom man bytter raskt mellom dem",
-          "At hjernen blir mer effektiv når to oppgaver bruker forskjellige sanser samtidig",
-          "At hjernen kan trene opp en varig kapasitet for å håndtere mange oppgaver parallelt"
+          "Hjernen er egentlig ikke laget for å fokusere på mer enn én oppgave om gangen",
+          "Hjernen fungerer best med mange oppgaver samtidig",
+          "Hjernen blir sterkere av multitasking",
+          "Hjernen kan ikke gjøre noen oppgaver om gangen"
         ],
         "correctIndex": 0,
         "sourceSentence": "Likevel viser forskning at hjernen vår egentlig ikke er laget for å fokusere på mer enn én oppgave om gangen."
@@ -5363,10 +5363,10 @@
       {
         "prompt": "Hva konkluderer teksten med om hvordan man bør tilnærme seg multitasking?",
         "options": [
-          "Man bør være bevisst på hvilke oppgaver som kan kombineres uten å tape kvalitet",
-          "Man bør unngå alle kombinasjoner av oppgaver fordi hjernen aldri kan håndtere dem",
-          "Man bør trene på å kombinere stadig flere krevende oppgaver for å øke kapasiteten",
-          "Man bør veksle raskt mellom oppgaver fordi hyppige skifter reduserer stress over tid"
+          "Man bør velge riktig type oppgaver å kombinere for å unngå å miste kvalitet",
+          "Man bør alltid unngå å gjøre flere ting samtidig",
+          "Man bør alltid gjøre flest mulig ting samtidig",
+          "Multitasking er alltid skadelig, uansett situasjon"
         ],
         "correctIndex": 0,
         "sourceSentence": "Derfor handler det kanskje mer om å velge riktig type oppgaver å kombinere, slik at vi ikke mister kvalitet eller blir unødvendig stresset."
@@ -5796,10 +5796,10 @@
       {
         "prompt": "Hva handler nevrodiversitet om, ifølge teksten?",
         "options": [
-          "Å forstå ulike måter å lære og bearbeide informasjon på som menneskelig variasjon",
-          "Å skille tydelig mellom normale hjerner og hjerner som trenger medisinsk behandling",
-          "Å behandle individuelle læringsforskjeller som problemer som helst bør reduseres",
-          "Å beskrive bestemte diagnoser som viktigere enn personens øvrige egenskaper og erfaringer"
+          "Å se forskjeller i hvordan mennesker lærer og bearbeider informasjon som variasjoner, ikke feil",
+          "Å behandle alle hjerneforskjeller som sykdommer",
+          "Å fjerne alle forskjeller mellom mennesker",
+          "Å fokusere kun på svakheter hos mennesker"
         ],
         "correctIndex": 0,
         "sourceSentence": "Nevrodiversitet handler om å se på forskjeller i hvordan mennesker opplever, lærer og bearbeider informasjon, ikke som feil eller sykdommer, men som variasjoner i det menneskelige mangfoldet."
@@ -5829,10 +5829,10 @@
       {
         "prompt": "I teksten betyr ordet «mangfoldet» omtrent:",
         "options": [
-          "Variasjonen mellom mennesker",
-          "Likheten mellom mennesker",
-          "Tilpasningen til omgivelsene",
-          "Evnen til å lære raskt"
+          "Variasjon og forskjellighet",
+          "Ensartethet",
+          "Sykdom",
+          "Svakhet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Nevrodiversitet handler om å se på forskjeller i hvordan mennesker opplever, lærer og bearbeider informasjon, ikke som feil eller sykdommer, men som variasjoner i det menneskelige mangfoldet."
@@ -5893,9 +5893,9 @@
         "prompt": "Hvem er Julia?",
         "options": [
           "En ung kvinne som også hater Partiet",
-          "En ung kvinne som arbeider lojalt for Partiet",
-          "En kollega som hjelper Winston med arbeidet i departementet",
-          "En kvinne som forsøker å få Winston angitt til myndighetene"
+          "Winstons søster",
+          "En lærer i Sannhetsministeriet",
+          "O'Briens kone"
         ],
         "correctIndex": 0,
         "sourceSentence": "En dag møter han Julia, en ung kvinne som også hater Partiet."
@@ -5903,10 +5903,10 @@
       {
         "prompt": "Hva tvinger O'Brien Winston til å akseptere?",
         "options": [
-          "At 2 + 2 kan være 5 dersom Partiet bestemmer at det er sant",
-          "At Julia egentlig har arbeidet for Partiet gjennom hele forholdet deres",
-          "At Storebror bare er et symbol og ikke trenger å eksistere som person",
-          "At historiske fakta kan endres i dokumentene, men ikke i menneskers hukommelse"
+          "At 2 + 2 kan være 5 hvis Partiet sier det",
+          "At Julia er en forræder",
+          "At Storebror ikke finnes",
+          "At historien aldri kan endres"
         ],
         "correctIndex": 0,
         "sourceSentence": "Winston lærer at 2 + 2 kan være 5 hvis Partiet sier det."
@@ -5951,10 +5951,10 @@
       {
         "prompt": "Hva er spesielt med Nintendo Switch, ifølge teksten?",
         "options": [
-          "Den kan brukes både på TV hjemme og som en bærbar spillmaskin",
-          "Den kan brukes bærbart, men må kobles til en TV for større spill",
-          "Den fungerer som en vanlig hjemmekonsoll, men har en ekstra skjerm på kontrolleren",
-          "Den kan brukes på TV eller datamaskin, men ikke som en selvstendig bærbar maskin"
+          "Den kan brukes både hjemme på TV og som en bærbar maskin",
+          "Den kan kun brukes hjemme på TV",
+          "Den har ingen skjerm",
+          "Den er bare laget for voksne"
         ],
         "correctIndex": 0,
         "sourceSentence": "Denne konsollen kan brukes både hjemme på TV og som en liten bærbar maskin."
@@ -6014,10 +6014,10 @@
       {
         "prompt": "Hvorfor har båndene mellom Norge og USA historisk sett vært sterke, ifølge teksten?",
         "options": [
-          "Den store norske utvandringen til USA på 1800- og tidlig 1900-tallet",
-          "Det tette militære samarbeidet som oppstod mellom landene allerede på 1800-tallet",
-          "En lang historie med felles språk og omfattende handel mellom naboland",
-          "Kongelige familiebånd som skapte nære politiske forbindelser før første verdenskrig"
+          "På grunn av den omfattende utvandringen fra Norge til USA på 1800- og tidlig 1900-tallet",
+          "På grunn av en felles krig mot et tredje land",
+          "På grunn av kongelige giftermål mellom landene",
+          "På grunn av et felles språk"
         ],
         "correctIndex": 0,
         "sourceSentence": "Historisk sett har båndene mellom Norge og USA vært sterke, ikke minst på grunn av den omfattende utvandringen fra Norge til USA på 1800- og tidlig 1900-tallet."
@@ -6232,10 +6232,10 @@
       {
         "prompt": "Hva nevner teksten som eksempler på «små drypp» av det store ingenting?",
         "options": [
-          "Pausen før man svarer og stillheten i et rom man nettopp har forlatt",
-          "Gleden etter en samtale og forventningen før noe viktig skal skje",
-          "Frykten for mørket og uroen som oppstår når man føler seg alene",
-          "Stillheten etter en samtale og tomheten når en forventning ikke blir innfridd"
+          "Sult og tørst",
+          "Glede og latter",
+          "Frykt for mørket",
+          "Stillheten etter en samtale og tomheten ved uinnfridde forventninger"
         ],
         "correctIndex": 3,
         "sourceSentence": "Den stillheten som legger seg etter en intens samtale, eller tomheten vi føler når en forventning ikke innfris, er små drypp av dette store ingenting."
@@ -6428,10 +6428,10 @@
       {
         "prompt": "Hva menes med at «språket ble mindre som en mur og mer som en dør jeg kunne åpne»?",
         "options": [
-          "At språket gradvis gikk fra å være en hindring til å åpne nye muligheter",
-          "At forfatteren sluttet å oppleve norsk som viktig og valgte andre måter å kommunisere på",
-          "At språket ble enklere fordi forfatteren sluttet å bry seg om grammatikk og uttale",
-          "At forfatteren oppdaget at kommunikasjon var mulig uten å lære mer av språket"
+          "At forfatteren sluttet å snakke norsk",
+          "At forfatteren flyttet til et nytt hus",
+          "At språket ble et hinder som var lettere å overvinne og ga tilgang til nye muligheter",
+          "At grammatikken ble vanskeligere"
         ],
         "correctIndex": 2,
         "sourceSentence": "Etter hvert ble språket mindre som en mur og mer som en dør jeg kunne åpne."
@@ -6440,9 +6440,9 @@
         "prompt": "Hvor begynte forfatteren å bruke små setninger?",
         "options": [
           "I butikken, på bussen og sammen med kollegaer",
-          "På norskkurset, hjemme og i samtaler med naboene",
-          "På jobben, i telefonen og når hun skrev meldinger",
-          "På biblioteket, på kafé og i møter med offentlige kontorer"
+          "Bare hjemme alene",
+          "Kun på skolen",
+          "I telefonsamtaler med familien i hjemlandet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg begynte å bruke små setninger i butikken, på bussen og sammen med kollegaer."
@@ -6535,10 +6535,10 @@
       {
         "prompt": "Hvorfor vil Knappestøperen smelte Peer om?",
         "options": [
-          "Fordi Peer aldri har vært sant seg selv, men har levd gjennom skiftende masker og roller",
-          "Fordi Peer har nektet å følge samfunnets lover og derfor må straffes for handlingene sine",
-          "Fordi Peer har mistet evnen til å skille mellom fantasien sin og det virkelige livet",
-          "Fordi Peer har forlatt Solveig og dermed brutt det løftet som kunne ha reddet ham"
+          "Fordi Peer har begått forbrytelser mot loven",
+          "Fordi Peer er for gammel til å leve videre",
+          "Fordi Solveig har bedt om det",
+          "Fordi Peer aldri har vært «seg selv i sannhet», bare jaget etter masker og roller"
         ],
         "correctIndex": 3,
         "sourceSentence": "Han konfronteres med Knappestøperen, som vil smelte ham om fordi han aldri har vært «seg selv i sannhet», men bare jaget etter masker og roller."
@@ -6598,10 +6598,10 @@
       {
         "prompt": "Er personlighetstrekk helt uforanderlige gjennom livet, ifølge teksten?",
         "options": [
-          "Nei, de er ganske stabile, men kan utvikle seg gjennom nye erfaringer",
-          "Nei, de forandrer seg vanligvis kraftig hver gang livssituasjonen endres",
-          "Ja, de er stabile etter barndommen, selv om hvordan vi viser dem kan endre seg",
-          "Ja, de er i hovedsak medfødte og påvirkes lite av erfaringer gjennom livet"
+          "Ja, de er alltid helt uforanderlige",
+          "Ja, men bare hos barn",
+          "Nei, de kan utvikle seg med nye erfaringer",
+          "Nei, de forsvinner helt i voksen alder"
         ],
         "correctIndex": 2,
         "sourceSentence": "Mange mener at personlighetstrekk er ganske stabile gjennom livet, men de kan likevel utvikle seg når vi får nye erfaringer."
@@ -6609,10 +6609,10 @@
       {
         "prompt": "Hvorfor er det viktig å forstå egne og andres personlighetstrekk, ifølge teksten?",
         "options": [
-          "Det kan gjøre kommunikasjon lettere og hjelpe oss å bygge bedre relasjoner",
-          "Det kan hjelpe oss å forutsi nøyaktig hvordan andre vil reagere i vanskelige situasjoner",
-          "Det kan gjøre det lettere å avgjøre hvilke mennesker som passer sammen som venner",
-          "Det kan vise hvilke trekk vi bør endre for å fungere godt sammen med andre"
+          "Fordi det kan hjelpe oss å kommunisere bedre og bygge gode relasjoner",
+          "Fordi det gjør oss rikere",
+          "Fordi det er lovpålagt",
+          "Fordi det garanterer suksess på jobben"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det er viktig å forstå både sine egne og andres personlighetstrekk, fordi det kan hjelpe oss å kommunisere bedre og bygge gode relasjoner."
@@ -6624,10 +6624,10 @@
       {
         "prompt": "Hva skjer, ifølge legenden, når føniksen har levd i flere hundre år?",
         "options": [
-          "Den bygger et reir, setter det i brann og brenner opp i flammene",
-          "Den legger ett siste egg i et reir og dør før egget klekkes",
-          "Den flyr mot solen til kroppen brenner opp og faller ned som aske",
-          "Den mister fjærene, går i dvale og våkner igjen som en ung fugl"
+          "Den blir usynlig og forsvinner",
+          "Den legger egg og dør stille",
+          "Den flyr til solen og smelter",
+          "Den bygger et reir, setter det i brann og brenner opp"
         ],
         "correctIndex": 3,
         "sourceSentence": "Ifølge legenden lever føniksen i flere hundre år før den bygger et reir, setter det i brann og selv brenner opp i flammene."
@@ -6783,10 +6783,10 @@
       {
         "prompt": "Hva er den dypere funksjonen til politisk satire, ifølge teksten, utover å underholde?",
         "options": [
-          "Å utfordre etablerte fortellinger og åpne for kritisk refleksjon",
-          "Å gjøre kompliserte politiske saker enklere uten å påvirke synet på makt",
-          "Å gi publikum et nøytralt alternativ til journalistikk og politisk debatt",
-          "Å samle ulike politiske grupper rundt en felles humoristisk forståelse"
+          "Å underholde uten noen dypere hensikt",
+          "Å støtte makthavere",
+          "Å destabilisere etablerte narrativer og åpne rom for kritisk refleksjon",
+          "Å fjerne humor fra samfunnsdebatten"
         ],
         "correctIndex": 2,
         "sourceSentence": "Selv om sjangeren ofte oppleves som underholdende, har den en dypere funksjon: å destabilisere etablerte narrativer og åpne rom for kritisk refleksjon."
@@ -6805,10 +6805,10 @@
       {
         "prompt": "Hva menes med at politisk satire er «et tveegget sverd»?",
         "options": [
-          "Den kan både fremme demokratisk debatt og styrke kynisme og mistillit",
-          "Den kan både beskytte makthavere mot kritikk og gjøre politikken mindre personlig",
-          "Den kan både forenkle politiske budskap og gjøre velgerne mer lojale mot institusjonene",
-          "Den kan både redusere polarisering og gjøre satire mindre relevant som kritikkform"
+          "At den bare skader makthaverne",
+          "At den både kan stimulere debatt og forsterke kynisme og mistillit",
+          "At den er fysisk farlig å praktisere",
+          "At den alltid fører til krig"
         ],
         "correctIndex": 1,
         "sourceSentence": "I en tid preget av polarisering og mediemanipulasjon, blir politisk satire et tveegget sverd: den kan stimulere til demokratisk debatt, men også forsterke kynisme og mistillit."
@@ -6816,10 +6816,10 @@
       {
         "prompt": "Hvorfor krever sjangeren, ifølge teksten, både språklig finesse og etisk bevissthet?",
         "options": [
-          "Fordi satire må holde seg innenfor klare juridiske grenser for hva humor kan omtale",
-          "Fordi satiren ellers lett mister den komiske formen og blir til ordinær politisk journalistikk",
-          "Fordi publikum må kunne vite nøyaktig hvilken politisk side satirikeren selv støtter",
-          "Fordi humoren bør gi innsikt, ikke bare fungere som en følelsesmessig ventil"
+          "Fordi lovgivningen krever det",
+          "Fordi satirikere ellers mister jobben",
+          "Fordi publikum ikke forstår humor",
+          "Slik at latteren fungerer som et redskap til innsikt og ikke bare en ventil"
         ],
         "correctIndex": 3,
         "sourceSentence": "Nettopp derfor krever sjangeren både språklig finesse og etisk bevissthet, slik at latteren ikke bare fungerer som ventil, men som et redskap til innsikt."
@@ -6879,10 +6879,10 @@
       {
         "prompt": "Hva kan hjelpe mot prokrastinering, ifølge teksten?",
         "options": [
-          "Å dele en stor oppgave opp i mindre og mer håndterlige deler",
-          "Å vente med oppgaven til motivasjonen kommer naturlig og man kan arbeide mer effektivt",
-          "Å fjerne alle tidsfrister slik at oppgaven ikke lenger forbindes med press og stress",
-          "Å gjøre en enklere aktivitet først for å få energi før man begynner på den vanskelige oppgaven"
+          "Å alltid vente til fristen nærmer seg",
+          "Å unngå tidsfrister helt",
+          "Å scrolle mer på telefonen",
+          "Å dele store oppgaver inn i mindre deler"
         ],
         "correctIndex": 3,
         "sourceSentence": "For å bekjempe prokrastinering kan det være lurt å dele store oppgaver inn i mindre deler."
@@ -6890,10 +6890,10 @@
       {
         "prompt": "Hvorfor gir det en kortvarig følelse av lettelse å utsette en oppgave, men fører likevel til mer stress senere?",
         "options": [
-          "Vi slipper ubehaget nå, men oppgaven og tidsfristen er fortsatt der senere",
-          "Vi arbeider mer effektivt under press, men bruker mer energi på å planlegge",
-          "Vi glemmer oppgaven midlertidig, men hjernen fortsetter å løse den ubevisst",
-          "Vi får bedre oversikt etter en pause, men mister motivasjonen når vi begynner igjen"
+          "Fordi vi unngår ubehaget med en gang, men problemet og fristen fortsatt består",
+          "Fordi oppgaven blir borte av seg selv",
+          "Fordi hjernen glemmer oppgaven helt",
+          "Fordi utsettelse alltid forbedrer resultatet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Dette kan gi en kortvarig følelse av lettelse, men fører som regel til mer stress og dårligere resultater på lang sikt."
@@ -6901,10 +6901,10 @@
       {
         "prompt": "Hva gjør hjernen, ifølge teksten, når en oppgave virker overveldende?",
         "options": [
-          "Leter etter en raskere og mer behagelig aktivitet som gir umiddelbar lettelse",
-          "Deler automatisk opp oppgaven i mindre deler for å gjøre den mer oversiktlig",
-          "Øker konsentrasjonen for å kompensere for følelsen av å være overveldet",
-          "Ignorerer andre stimuli og holder oppmerksomheten fast på den vanskeligste delen"
+          "Løser oppgaven umiddelbart",
+          "Slutter å fungere helt",
+          "Søker etter en rask løsning, som å scrolle på telefonen",
+          "Blir mer kreativ og fokusert"
         ],
         "correctIndex": 2,
         "sourceSentence": "Når en oppgave virker overveldende, kan hjernen søke etter en rask løsning, for eksempel ved å scrolle på telefonen eller rydde litt i huset."
@@ -7064,10 +7064,10 @@
       {
         "prompt": "Hva betyr det å angre, ifølge teksten?",
         "options": [
-          "Å se tilbake på et valg og ønske at man hadde handlet annerledes",
-          "Å være usikker før man tar et viktig valg i livet",
-          "Å tilgi seg selv etter at andre har gjort noe galt",
-          "Å bestemme seg for å gjøre det samme valget på nytt"
+          "Å glemme fortiden helt",
+          "Å alltid ha rett",
+          "Å unngå alle valg i livet",
+          "Å se tilbake på en handling og ønske man hadde gjort noe annet"
         ],
         "correctIndex": 3,
         "sourceSentence": "Når man angrer, betyr det at man ser tilbake på en handling eller et valg og skulle ønske at man hadde gjort noe annet."
@@ -7086,10 +7086,10 @@
       {
         "prompt": "Hvordan kan anger hjelpe oss å vokse som mennesker, ifølge teksten?",
         "options": [
-          "Ved å hjelpe oss å forstå hva vi vil gjøre annerledes neste gang",
-          "Ved å få oss til å unngå situasjoner der vi tidligere har gjort feil",
-          "Ved å lære oss at dårlige valg først og fremst skyldes manglende informasjon",
-          "Ved å gjøre oss mer forsiktige med å stole på egne vurderinger i framtiden"
+          "Ved å lære oss hva som er riktig og galt, slik at vi handler annerledes neste gang",
+          "Ved å gjøre oss redde for å ta valg",
+          "Ved å fjerne alle våre feil for godt",
+          "Ved å gjøre oss mer avhengige av andres godkjenning"
         ],
         "correctIndex": 0,
         "sourceSentence": "Når man kjenner på anger, kan man forstå hva som er riktig og galt, og hvordan man vil handle neste gang."
@@ -7160,10 +7160,10 @@
       {
         "prompt": "Hvilke konsekvenser hadde jordbruksrevolusjonen, ifølge teksten?",
         "options": [
-          "Mer mat og flere bosetninger, men også mer sykdom og sosial ulikhet",
-          "Mindre mat og færre bosetninger, men bedre helse og større likhet",
-          "Mer mat og bedre helse, uten vesentlige endringer i hvordan mennesker bodde",
-          "Flere bosetninger og mindre ulikhet, men større avhengighet av jakt og sanking"
+          "Bare positive endringer uten ulemper",
+          "Slutten på menneskelig samarbeid",
+          "Mindre mat, men bedre helse",
+          "Mer mat og flere bosetninger, men også mer sykdom og sosial ulikhet"
         ],
         "correctIndex": 3,
         "sourceSentence": "For eksempel førte jordbruket til mer mat og flere bosetninger, men også til mer sykdom og sosial ulikhet."
@@ -7593,10 +7593,10 @@
       {
         "prompt": "Hvordan kan trafikklys styres i en smart by?",
         "options": [
-          "Av ansatte som følger trafikken og endrer lysene manuelt",
-          "Av faste tidsplaner som er like uansett hvor mye trafikk det er",
-          "Av sensorer som tilpasser lysene etter trafikken",
-          "Av sjåfører som sender informasjon direkte til hvert lyskryss"
+          "Av politiet manuelt",
+          "Av værmeldinger",
+          "Av sensorer, slik at bilene slipper å stå lenge i kø",
+          "Av innbyggerne via avstemning"
         ],
         "correctIndex": 2,
         "sourceSentence": "I en smart by kan trafikklys styres av sensorer slik at bilene slipper å stå lenge i kø."
@@ -7626,10 +7626,10 @@
       {
         "prompt": "Ifølge teksten, hva handler en smart by om i tillegg til teknologi?",
         "options": [
-          "Også om mennesker: informasjon og mulighet for innbyggerne til å delta i beslutninger",
-          "Også om økonomi: at kommunen sparer penger ved å automatisere flest mulig tjenester",
-          "Også om miljø: at all transport og energibruk skal styres sentralt av teknologien",
-          "Også om effektivitet: at fagfolk kan ta beslutninger raskere uten omfattende innbyggerdialog"
+          "Kun om å spare penger for kommunen",
+          "Kun om å tiltrekke turister",
+          "Kun om å bygge høyere bygninger",
+          "Mennesker – at innbyggerne får mer informasjon og kan delta i beslutninger"
         ],
         "correctIndex": 3,
         "sourceSentence": "Til slutt handler en smart by ikke bare om teknologi, men også om mennesker."
@@ -7689,10 +7689,10 @@
       {
         "prompt": "I teksten betyr ordet «distrahert» omtrent det samme som:",
         "options": [
-          "Uoppmerksom og lett avledet",
-          "Anspent og bekymret for noe",
-          "Mentalt sliten etter mye arbeid",
-          "Opptatt av flere ting samtidig"
+          "Uoppmerksom og med tankene et annet sted",
+          "Veldig glad og fornøyd",
+          "Fullstendig avslappet",
+          "Ekstremt sulten"
         ],
         "correctIndex": 0,
         "sourceSentence": "Flere studier viser at vi ofte blir distrahert, og mange føler seg stresset når de hele tiden må være tilgjengelige."
@@ -7748,10 +7748,10 @@
       {
         "prompt": "Hva kan skje over tid hvis man får støtte til å håndtere sosial angst, ifølge teksten?",
         "options": [
-          "Man kan gradvis lære å føle seg tryggere i sosiale situasjoner",
-          "Man kan lære å unngå de situasjonene som utløser sterkest angst",
-          "Man kan bli helt fri for ubehag så lenge man får nok støtte fra andre",
-          "Man kan lære å skjule angsten bedre selv om selve følelsen ikke endrer seg"
+          "Man kan lære å føle seg tryggere i sosiale sammenhenger",
+          "Man blir aldri kvitt sosial angst uansett",
+          "Man må slutte å være sosial helt",
+          "Det finnes ingen løsning uten medisiner"
         ],
         "correctIndex": 0,
         "sourceSentence": "Med støtte fra venner, familie eller en profesjonell kan man lære å føle seg tryggere i sosiale sammenhenger."
@@ -7785,10 +7785,10 @@
       {
         "prompt": "Hva betyr ordet «sammensatt» i setningen om virkeligheten?",
         "options": [
-          "At virkeligheten er kompleks og har flere sider",
-          "At virkeligheten endrer seg raskt fra dag til dag",
-          "At virkeligheten er vanskelig å dokumentere sikkert",
-          "At virkeligheten ofte oppfattes forskjellig av ulike mennesker"
+          "Komplisert og med flere sider",
+          "Veldig enkel",
+          "Kjedelig",
+          "Farlig"
         ],
         "correctIndex": 0,
         "sourceSentence": "men virkeligheten er ofte mer sammensatt."
@@ -7844,10 +7844,10 @@
       {
         "prompt": "Hvorfor rømte ikke Sokrates da han fikk sjansen i fengselet?",
         "options": [
-          "Han mente trofasthet mot prinsippene sine var viktigere enn å redde livet",
-          "Han trodde en flukt ville vise at dommen mot ham egentlig var rettferdig",
-          "Han ville bli i fengselet for å fortsette samtalene med elever og venner",
-          "Han mente at familien hans ville bli straffet dersom han rømte fra byen"
+          "Han mente det var viktigere å følge sine prinsipper enn å redde sitt eget liv",
+          "Han trodde fluktplanen ville mislykkes",
+          "Han ønsket å bli værende for å undervise flere elever",
+          "Han fryktet straff for familien sin"
         ],
         "correctIndex": 0,
         "sourceSentence": "Han trodde at det var viktigere å følge sine prinsipper enn å redde sitt eget liv."
@@ -7859,10 +7859,10 @@
       {
         "prompt": "Hva er «maieutikken», ifølge teksten?",
         "options": [
-          "En metode der læreren hjelper eleven til selv å komme fram til innsikt",
-          "En metode der læreren tester om eleven kan gjengi etablerte filosofiske sannheter",
-          "En metode der eleven lærer gjennom å observere hvordan læreren løser et problem",
-          "En metode der filosofiske spørsmål erstattes med praktiske øvelser og eksempler"
+          "En metode som skal hjelpe eleven til selv å finne innsikt",
+          "En streng eksamensform",
+          "En religiøs praksis fra antikken",
+          "Et system for å memorere fakta"
         ],
         "correctIndex": 0,
         "sourceSentence": "Sokrates’ metode – den såkalte maieutikken – kan betraktes som en intellektuell jordmorvirksomhet, der målet ikke var å overføre kunnskap fra lærer til elev, men å hjelpe eleven til selv å “føde” innsikt."
@@ -8092,10 +8092,10 @@
       {
         "prompt": "What can you buy from a kiosk, according to the text?",
         "options": [
-          "A hot dog with bread",
-          "A kebab in flatbread",
-          "A spring roll with sauce",
-          "A taco with vegetables"
+          "A simple hot dog with bread",
+          "Sushi",
+          "Pizza",
+          "Ice cream"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mange liker også å kjøpe en enkel pølse med brød fra en kiosk."
@@ -8192,10 +8192,10 @@
       {
         "prompt": "Hva betyr «bærekraftig sjømat», ifølge teksten?",
         "options": [
-          "Sjømat som fanges eller dyrkes uten å skade naturen eller bestandene på lang sikt",
-          "Sjømat som kommer fra lokale fiskere og derfor har kort transportvei til butikken",
-          "Sjømat som dyrkes i kontrollerte anlegg i stedet for å bli fanget ute i havet",
-          "Sjømat som fanges med moderne utstyr som gjør fisket mer effektivt og lønnsomt"
+          "Fisk og skalldyr som fanges eller dyrkes på en måte som tar vare på naturen",
+          "Fisk som er fanget med store båter",
+          "Fisk som er dyrket i akvarier",
+          "Fisk som selges billig"
         ],
         "correctIndex": 0,
         "sourceSentence": "Bærekraftig sjømat betyr at fisk og skalldyr blir fanget eller dyrket på en måte som tar vare på naturen og havet, og som ikke skader bestanden for framtiden."
@@ -8214,10 +8214,10 @@
       {
         "prompt": "Hvorfor er det nødvendig med regler og kontroll for fiske, ifølge teksten?",
         "options": [
-          "For at bestandene skal få tid til å vokse og holde seg stabile",
-          "For at fiskerne skal kunne fange like mye fisk hvert år uavhengig av bestanden",
-          "For at prisene på sjømat skal holdes stabile når etterspørselen varierer",
-          "For at oppdrettsfisk og villfisk skal kunne behandles etter de samme reglene"
+          "Slik at fiskebestanden får tid til å vokse og holde seg stabil",
+          "For å gjøre fisk dyrere",
+          "For å hindre eksport av fisk",
+          "For å øke turismen"
         ],
         "correctIndex": 0,
         "sourceSentence": "Derfor er det nødvendig med regler og kontroll, slik at fiskebestanden får tid til å vokse og holde seg stabil."
@@ -8251,10 +8251,10 @@
       {
         "prompt": "What can a key symbolize, according to the text?",
         "options": [
-          "New possibilities in life",
-          "A secret that must stay hidden",
-          "Protection from danger",
-          "Money and personal success"
+          "The possibility of opening new doors in life",
+          "A locked secret",
+          "Danger",
+          "Money"
         ],
         "correctIndex": 0,
         "sourceSentence": "En nøkkel kan bety muligheten til å åpne nye dører, ikke bare i et hus, men også i livet."
@@ -8278,9 +8278,9 @@
         "prompt": "Hva heter hovedpersonen i historien?",
         "options": [
           "Caden Cotard",
-          "Sammy Barnathan",
-          "Adele Lack",
-          "Hazel"
+          "Adele",
+          "Hazel",
+          "Claire"
         ],
         "correctIndex": 0,
         "sourceSentence": "En teaterregissør ved navn Caden Cotard lever i en tilstand av stadig voksende angst over kroppens skrøpelighet, ekteskapets forvitring og tidens ubønnhørlige fremdrift."
@@ -8310,10 +8310,10 @@
       {
         "prompt": "Hva skjer til slutt med Cadens rolle i sitt eget prosjekt?",
         "options": [
-          "Han gir regien til en skuespiller og ender selv i en birolle i prosjektet",
-          "Han beholder regien, men lar en skuespiller overta rollen som ham i selve stykket",
-          "Han avslutter prosjektet etter å ha innsett at det ikke kan gjenskape livet nøyaktig",
-          "Han forlater teatret og lar de andre skuespillerne fullføre prosjektet uten noen regissør"
+          "Han overlater regien til en skuespiller og trekker seg tilbake til en birolle",
+          "Han blir den mest berømte skuespilleren i prosjektet",
+          "Han avslutter prosjektet og reiser bort",
+          "Han gifter seg på nytt med Adele"
         ],
         "correctIndex": 0,
         "sourceSentence": "Til slutt overlater han regien til en skuespiller som spiller ham selv, og trekker seg tilbake til en birolle i sitt eget livsverk."
@@ -8337,9 +8337,9 @@
         "prompt": "Hva kan en student bruke for å forstå matematikk bedre, ifølge teksten?",
         "options": [
           "Fysiske objekter som terninger eller klosser",
-          "Tegninger og diagrammer av tall og geometriske former",
-          "En kalkulator som viser hvert trinn i utregningen",
-          "En lydforklaring som beskriver hvordan regnestykket løses"
+          "En kalkulator",
+          "En podcast",
+          "Et videospill"
         ],
         "correctIndex": 0,
         "sourceSentence": "En annen student kan forstå matematikk bedre ved å bruke fysiske objekter, som terninger eller klosser, i stedet for bare å se på tall på et ark."
@@ -8347,10 +8347,10 @@
       {
         "prompt": "Hvorfor er taktil læring nyttig, ifølge teksten?",
         "options": [
-          "Kroppen deltar i læringen, noe som kan skape flere koblinger i hjernen",
-          "Fysisk aktivitet erstatter behovet for konsentrasjon og gjør læringen mer automatisk",
-          "Berøring gjør at hjernen husker informasjon bedre uansett hvilket fag man arbeider med",
-          "Metoden gjør det mulig å lære raskere fordi abstrakte forklaringer ikke lenger er nødvendige"
+          "Fordi kroppen blir en del av læringsprosessen og skaper flere koblinger i hjernen",
+          "Fordi det er raskere enn andre læringsmetoder",
+          "Fordi det krever ingen konsentrasjon",
+          "Fordi det kun fungerer for barn"
         ],
         "correctIndex": 0,
         "sourceSentence": "Taktil læring er nyttig fordi kroppen blir en del av læringsprosessen. Når vi rører, bygger, eller beveger oss, skaper vi flere koblinger i hjernen."
@@ -8495,10 +8495,10 @@
       {
         "prompt": "Hva er eksempler på skjulte steder, ifølge teksten?",
         "options": [
-          "En bortgjemt skogssti, en liten kafé i en bakgate eller et forlatt hus",
-          "En rolig park, et kjent museum eller et lite hotell utenfor sentrum",
-          "En travel togstasjon, et stort kjøpesenter eller en populær turistgate",
-          "En privat bolig, en skolegård eller en restaurant man har besøkt mange ganger"
+          "En bortgjemt sti i skogen eller en liten kafé i en bakgate",
+          "Et kjøpesenter og en flyplass",
+          "En stor konsertarena",
+          "Et travelt torg i sentrum"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det kan være en bortgjemt sti i skogen, en liten kafé i en bakgate, eller et gammelt hus som ingen lenger besøker."
@@ -8570,9 +8570,9 @@
         "prompt": "Hvem formulerte begrepet «ondskapens banalitet»?",
         "options": [
           "Hannah Arendt",
-          "Martin Heidegger",
-          "Immanuel Kant",
-          "Jean-Paul Sartre"
+          "Platon",
+          "Sokrates",
+          "Aristoteles"
         ],
         "correctIndex": 0,
         "sourceSentence": "Begrepet «ondskapens banalitet», slik det ble formulert av Hannah Arendt, peker på hvordan grusomme handlinger kan utføres ikke nødvendigvis av monstre, men av vanlige mennesker som handler uten å reflektere kritisk over konsekvensene av sine valg."
@@ -8580,10 +8580,10 @@
       {
         "prompt": "Hva hevder Arendt om hvem som kan utføre grusomme handlinger?",
         "options": [
-          "Vanlige mennesker som handler uten kritisk refleksjon over konsekvensene",
-          "Mennesker som forstår konsekvensene fullt ut, men velger ondskap av ideologisk overbevisning",
-          "Personer med stor politisk makt som selv utformer systemets regler",
-          "Mennesker som handler impulsivt uten å være del av et større system"
+          "Vanlige mennesker som ikke reflekterer kritisk over konsekvensene",
+          "Kun mennesker med psykiske lidelser",
+          "Kun ledere med mye makt",
+          "Kun personer som hater andre"
         ],
         "correctIndex": 0,
         "sourceSentence": "peker på hvordan grusomme handlinger kan utføres ikke nødvendigvis av monstre, men av vanlige mennesker som handler uten å reflektere kritisk over konsekvensene av sine valg."
@@ -8602,10 +8602,10 @@
       {
         "prompt": "Hva advarer teksten mot i et moderne perspektiv?",
         "options": [
-          "Å fraskrive seg moralsk ansvar ved å vise til rutiner, prosedyrer eller systemer",
-          "Å tro at moralsk ansvar bare gjelder når man personlig har utformet reglene",
-          "Å behandle alle regler som mistenkelige fordi systemer kan misbrukes av mennesker",
-          "Å anta at kritisk refleksjon alene er nok til å forhindre skade i store organisasjoner"
+          "Å skyve fra oss moralsk ansvar ved å henvise til rutiner og systemer",
+          "Å stille for mange spørsmål til autoriteter",
+          "Å være for kritisk til byråkratiet",
+          "Å unngå å følge lover"
         ],
         "correctIndex": 0,
         "sourceSentence": "I et moderne perspektiv kan «ondskapens banalitet» leses som en advarsel mot vår egen tilbøyelighet til å skyve fra oss moralsk ansvar ved å henvise til rutiner, prosedyrer eller upersonlige systemer."
@@ -8639,10 +8639,10 @@
       {
         "prompt": "Hvor brukes koding, ifølge teksten?",
         "options": [
-          "I blant annet mobiltelefoner, biler, sykehus og banker",
-          "I dataspill, datamaskiner, universiteter og forskningslaboratorier",
-          "I mobiltelefoner og biler, men i liten grad i helsevesen og bank",
-          "Hovedsakelig i teknologibedrifter og offentlige IT-avdelinger"
+          "I mobiltelefoner, biler, sykehus og banker",
+          "Bare i dataspill",
+          "Bare på universiteter",
+          "Bare i romfart"
         ],
         "correctIndex": 0,
         "sourceSentence": "Vi finner det i mobiltelefoner, biler, sykehus og banker."
@@ -8798,10 +8798,10 @@
       {
         "prompt": "Hva slags bevis nevner teksten for at Big Bang skjedde?",
         "options": [
-          "En svak stråling som kan måles fra alle retninger i verdensrommet",
-          "Lyset fra de nærmeste stjernene som viser at de beveger seg rundt jorden",
-          "Spor etter gamle eksplosjoner som finnes i bergarter på jordens overflate",
-          "Bilder av universets begynnelse som er tatt med moderne romteleskoper"
+          "En svak stråling som kommer fra alle retninger i verdensrommet",
+          "Bilder tatt av romfartøy",
+          "Gamle steinformasjoner på jorden",
+          "Historiske tekster fra antikken"
         ],
         "correctIndex": 0,
         "sourceSentence": "For eksempel kan forskere måle en svak stråling som kommer fra alle retninger i verdensrommet."
@@ -8972,10 +8972,10 @@
       {
         "prompt": "Hva slags verdigrunnlag representerer Kristelig Folkeparti, ifølge teksten?",
         "options": [
-          "En kombinasjon av verdikonservatisme, sosialt engasjement og kristent verdigrunnlag",
-          "En kombinasjon av økonomisk liberalisme, sekularisme og sterk sentralisering",
-          "En kombinasjon av sosialisme, internasjonalisme og motstand mot religiøse argumenter",
-          "En kombinasjon av nasjonalisme, markedsliberalisme og et svakt sosialpolitisk engasjement"
+          "Verdikonservatisme, sosialt engasjement og et kristent verdigrunnlag",
+          "Sosialisme og internasjonalisme",
+          "Ren markedsliberalisme",
+          "Nasjonalisme og isolasjonisme"
         ],
         "correctIndex": 0,
         "sourceSentence": "Kristelig Folkeparti har i norsk politikk lenge representert en særegen kombinasjon av verdikonservatisme, sosialt engasjement og et uttalt kristent verdigrunnlag."
@@ -8984,9 +8984,9 @@
         "prompt": "I hvilke debatter ble partiet tidlig en tydelig stemme, ifølge teksten?",
         "options": [
           "Familiepolitikk, alkoholpolitikk og etikk i det offentlige rom",
-          "Skattepolitikk, privat eierskap og regulering av arbeidsmarkedet",
-          "Forsvarspolitikk, NATO-samarbeid og forholdet til europeisk integrasjon",
-          "Klimaomstilling, oljevirksomhet og utbygging av fornybar energi"
+          "Utenrikspolitikk og forsvar",
+          "Skattepolitikk og økonomi",
+          "Miljøpolitikk og klima"
         ],
         "correctIndex": 0,
         "sourceSentence": "det ble tidlig en tydelig stemme i debatter om familiepolitikk, alkoholpolitikk og etikk i det offentlige rom."
@@ -9005,10 +9005,10 @@
       {
         "prompt": "Hva vil partiets fremtid avhenge av, ifølge teksten?",
         "options": [
-          "Om partiet klarer å vise at verdigrunnlaget fortsatt er relevant i et mer pluralistisk Norge",
-          "Om partiet velger å tone ned det sosiale engasjementet og bli tydeligere verdikonservativt",
-          "Om partiet kan gjenopprette tidligere oppslutning uten å endre sin politiske rolle",
-          "Om partiet går fra samarbeid med større partier til å avvise pragmatiske kompromisser"
+          "Om det lykkes med å vise at verdigrunnlaget fortsatt er relevant i et pluralistisk Norge",
+          "Om det får støtte fra EU",
+          "Om det endrer navn",
+          "Om det slår seg sammen med Senterpartiet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Partiets fremtid vil avhenge av i hvilken grad det lykkes med å formidle at dets verdigrunnlag fortsatt har relevans i et stadig mer pluralistisk og globalisert Norge."
@@ -9138,10 +9138,10 @@
       {
         "prompt": "Hva var en av begrensningene ved Grunnloven i sin opprinnelige form?",
         "options": [
-          "Store deler av befolkningen var utelukket fra politisk innflytelse",
-          "Den ga Stortinget svært liten makt sammenlignet med kongen i alle saker",
-          "Den innførte allmenn stemmerett, men bare for menn over en bestemt alder",
-          "Den opphevet diskriminerende regler fra dansketiden uten å erstatte dem med nye"
+          "Den utelukket store deler av befolkningen fra politisk innflytelse",
+          "Den forbød 17. mai-feiring",
+          "Den innførte allmenn stemmerett med en gang",
+          "Den opphevet alle lover fra Danmark"
         ],
         "correctIndex": 0,
         "sourceSentence": "for eksempel ved å utelukke store deler av befolkningen fra politisk innflytelse og ved å inneholde diskriminerende bestemmelser."
@@ -9234,10 +9234,10 @@
       {
         "prompt": "Hva er den sentrale utfordringen teksten peker på?",
         "options": [
-          "Å bevare verdifulle sider ved tradisjonene samtidig som man tilpasser seg nye krav",
-          "Å velge mellom tradisjonell maskulinitet og en fullstendig avvisning av tidligere normer",
-          "Å finne én ny mannsrolle som kan erstatte de gamle rollene for alle menn",
-          "Å skjerme tradisjonelle kjønnsroller fra endringene i arbeidsliv og likestillingsidealer"
+          "Å finne en balanse mellom å bevare tradisjonelle verdier og tilpasse seg nye krav",
+          "Å avskaffe alle tradisjonelle kjønnsroller",
+          "Å ignorere endringene i samfunnet",
+          "Å gå tilbake til gamle roller uten endring"
         ],
         "correctIndex": 0,
         "sourceSentence": "Utfordringen ligger i å finne en balanse mellom å bevare det som er verdifullt i tradisjonene, og å tilpasse seg de nye kravene som dagens verden stiller."
@@ -9393,10 +9393,10 @@
       {
         "prompt": "Hva betyr det å være «ydmyk» i denne sammenhengen?",
         "options": [
-          "Å erkjenne at man kan ta feil og være villig til å søke mer kunnskap",
-          "Å være forsiktig med å uttale seg selv når man har mye erfaring",
-          "Å stole mer på eksperter enn på egne vurderinger i alle situasjoner",
-          "Å undervurdere egne ferdigheter for å unngå å framstå som selvsikker"
+          "Å innse at man kanskje ikke vet alt og være åpen for mer kunnskap",
+          "Å være arrogant og selvsikker",
+          "Å unngå å stille spørsmål",
+          "Å tro man alltid har rett"
         ],
         "correctIndex": 0,
         "sourceSentence": "Effekten viser oss at det kan være viktig å være ydmyk, stille spørsmål og søke mer kunnskap, i stedet for å tro at man allerede vet alt."
@@ -9504,10 +9504,10 @@
       {
         "prompt": "Hva kan FOMO påvirke, ifølge teksten?",
         "options": [
-          "Selvtilliten og livskvaliteten",
-          "Konsentrasjonen og hukommelsen",
-          "Søvnrytmen og energinivået",
-          "Matvanene og den fysiske helsen"
+          "Selvtillit og livskvalitet",
+          "Kroppstemperatur",
+          "Matvaner alene",
+          "Søvnbehov utelukkende"
         ],
         "correctIndex": 0,
         "sourceSentence": "Selv om FOMO kan virke ufarlig, kan det påvirke både selvtillit og livskvalitet."
@@ -9526,10 +9526,10 @@
       {
         "prompt": "Hvorfor gir bilder på sosiale medier et «skjevt bilde» av virkeligheten?",
         "options": [
-          "Fordi folk ofte deler høydepunktene og ikke den mer ordinære eller vanskelige delen av livet",
-          "Fordi bildene vanligvis er redigert så mye at de ikke lenger viser virkelige mennesker eller steder",
-          "Fordi de fleste legger ut bilder fra gamle hendelser og får dem til å se ut som om de skjer nå",
-          "Fordi sosiale medier viser innhold fra mennesker med svært andre liv enn brukeren selv"
+          "Fordi folk bare viser de beste øyeblikkene fra livet sitt",
+          "Fordi bildene alltid er falske",
+          "Fordi de fleste ikke bruker sosiale medier",
+          "Fordi bildene er tegnet for hånd"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mange viser bare de beste øyeblikkene fra livet sitt, og det gir et skjevt bilde."
@@ -9539,12 +9539,12 @@
   "Det gode liv": {
     "questions": [
       {
-        "prompt": "Hvilken kontrast bruker teksten for å vise at «det gode liv» kan forstås forskjellig?",
+        "prompt": "Hva representerer «det gode liv» for noen mennesker, ifølge teksten?",
         "options": [
-          "Materielt overskudd og bekymringsfrihet settes opp mot mening og tilhørighet",
-          "Personlig frihet settes opp mot plikten til å følge samfunnets forventninger",
-          "Et liv i naturen settes opp mot et liv preget av teknologi",
-          "Individuell suksess settes opp mot politisk og økonomisk likhet"
+          "En tilstand av materielt overskudd og frihet fra bekymringer",
+          "Utelukkende fysisk styrke",
+          "Et liv uten venner",
+          "Konstant reise til utlandet"
         ],
         "correctIndex": 0,
         "sourceSentence": "For noen representerer det gode liv en tilstand av materielt overskudd og frihet fra bekymringer, mens det for andre snarere handler om en dypere form for mening og tilhørighet."
@@ -9552,10 +9552,10 @@
       {
         "prompt": "Hvilke verdier knyttes det gode liv til i norsk sammenheng?",
         "options": [
-          "Likeverd, naturkontakt og en jevnbyrdig fordeling av goder",
-          "Personlig konkurranse, økonomisk vekst og høy sosial status",
-          "Tradisjonell autoritet, religiøs plikt og lydighet mot fellesskapet",
-          "Teknologisk utvikling, urbanisering og størst mulig individuelt forbruk"
+          "Likeverd, naturkontakt og jevnbyrdig fordeling av goder",
+          "Konkurranse og individuell suksess",
+          "Militær styrke",
+          "Religiøs autoritet"
         ],
         "correctIndex": 0,
         "sourceSentence": "I norsk sammenheng knyttes gjerne dette til verdier som likeverd, naturkontakt og en jevnbyrdig fordeling av goder."
@@ -9563,10 +9563,10 @@
       {
         "prompt": "Hva menes med at det gode liv er en «dynamisk søken etter harmoni» istedenfor en «statisk fasit»?",
         "options": [
-          "At et godt liv er en kontinuerlig prosess med å søke balanse, ikke et endelig svar",
-          "At et godt liv krever at man finner den rette balansen én gang og deretter holder fast ved den",
-          "At harmoni først oppstår når man velger bort motsetninger mellom arbeid, relasjoner og stillhet",
-          "At det gode liv hovedsakelig består i å tilpasse seg skiftende samfunnsnormer"
+          "At det gode liv er en pågående prosess uten et endelig, fastsatt svar",
+          "At det gode liv er en oppskrift alle må følge likt",
+          "At det gode liv oppnås én gang for alle",
+          "At det gode liv kun handler om ro og stillhet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Dermed blir det gode liv ikke en statisk fasit, men en dynamisk søken etter harmoni"
@@ -9574,10 +9574,10 @@
       {
         "prompt": "Hvorfor kan det å skape rom for stillhet fremstå som et privilegium i dagens samfunn?",
         "options": [
-          "Fordi høyt tempo og konstant tilgjengelighet gjør stillhet vanskeligere å skape",
-          "Fordi teknologien gjør stillhet til en vare som hovedsakelig er tilgjengelig for velstående mennesker",
-          "Fordi mange forbinder stillhet med fritid, mens arbeid i dag krever kontinuerlig sosial kontakt",
-          "Fordi moderne samfunn verdsetter refleksjon mindre enn tidligere og derfor tilbyr færre stille steder"
+          "Fordi samfunnet er preget av høyt tempo, teknologi og konstant tilgjengelighet",
+          "Fordi stillhet er forbudt ved lov",
+          "Fordi de fleste foretrekker støy",
+          "Fordi teknologi gjør stillhet lettere tilgjengelig for alle"
         ],
         "correctIndex": 0,
         "sourceSentence": "I et samfunn preget av høyt tempo, teknologisk utvikling og konstant tilgjengelighet kan det å skape rom for stillhet og refleksjon fremstå som et privilegium snarere enn en selvfølge."
@@ -9734,9 +9734,9 @@
         "prompt": "Hvem kan gi helten råd underveis?",
         "options": [
           "En klok lærer eller en gammel venn",
-          "En rival eller en tidligere fiende",
-          "Et familiemedlem eller en fremmed",
-          "En konge eller en annen mektig leder"
+          "Bare fiender",
+          "Ingen, helten er alltid alene",
+          "Kun familiemedlemmer"
         ],
         "correctIndex": 0,
         "sourceSentence": "Noen ganger får han råd fra en klok lærer eller en gammel venn."
@@ -9819,9 +9819,9 @@
         "prompt": "Hvilke virkemidler ble brukt under verdenskrigene for å villede fienden?",
         "options": [
           "Falske radiomeldinger, fabrikerte dokumenter og manipulerte bilder",
-          "Feilaktige kart, hemmelige avtaler og sensurerte avisartikler",
-          "Forfalskede pass, skjulte våpen og kodede private brev",
-          "Propagandataler, diplomatiske protester og offentlige plakater"
+          "Kun muntlige rykter",
+          "Sosiale medier-kampanjer",
+          "Offentlige debatter"
         ],
         "correctIndex": 0,
         "sourceSentence": "hvor falske radiomeldinger, fabrikerte dokumenter og manipulerte bilder ble brukt for å villede fienden."
@@ -9829,10 +9829,10 @@
       {
         "prompt": "Hva gjør desinformasjon i den digitale tidsalderen annerledes enn tidligere, ifølge teksten?",
         "options": [
-          "Den kan spres langt raskere og nå langt flere gjennom digitale plattformer",
-          "Den bygger i større grad enn tidligere på statlige aviser og offisielle kunngjøringer",
-          "Den er vanskeligere å gjenta fordi digitale plattformer begrenser kopiering av innhold",
-          "Den når først og fremst små, avgrensede grupper framfor et bredt internasjonalt publikum"
+          "Den kan spres med et tempo og en rekkevidde som tidligere var utenkelig",
+          "Den er nå fullstendig forsvunnet",
+          "Den påvirker bare militære konflikter",
+          "Den er blitt forbudt globalt"
         ],
         "correctIndex": 0,
         "sourceSentence": "Sosiale medier og algoritmestyrte plattformer gjør det mulig å spre falsk eller manipulerende informasjon i et tempo og med en rekkevidde som tidligere var utenkelig."
@@ -9845,9 +9845,9 @@
         "prompt": "Hva var de første kartene laget av, ifølge teksten?",
         "options": [
           "Enkle tegninger på stein eller leire",
-          "Detaljerte tegninger på papir eller tekstil",
-          "Utskårne symboler på tre eller metall",
-          "Malerier på vegger eller dyreskinn"
+          "Digitale skjermer",
+          "Trykte bøker",
+          "Fotografier"
         ],
         "correctIndex": 0,
         "sourceSentence": "De var ofte enkle tegninger på stein eller leire, og de viste fjell, elver og viktige steder i området."
@@ -9940,10 +9940,10 @@
       {
         "prompt": "Hva kjennetegner en kafkaesk situasjon, ifølge teksten?",
         "options": [
-          "At grensen mellom orden og kaos blir uklar",
-          "At et kaotisk system gradvis erstattes av tydelige regler",
-          "At individet lærer å forstå systemets logikk gjennom erfaring",
-          "At tilfeldig uorden oppstår fordi ingen egentlig kontrollerer systemet"
+          "At motsetningen mellom orden og kaos oppheves",
+          "At alt er fullstendig logisk og forutsigbart",
+          "At individet alltid vinner over systemet",
+          "At språket alltid skaper klarhet"
         ],
         "correctIndex": 0,
         "sourceSentence": "I en kafkaesk situasjon vil man ofte erfare at motsetningen mellom orden og kaos oppheves"
@@ -9951,10 +9951,10 @@
       {
         "prompt": "Hva skjer med språket i en kafkaesk situasjon, ifølge teksten?",
         "options": [
-          "Det blir et redskap for forvirring snarere enn for klarhet",
-          "Det blir stadig mer presist, men mister sin følelsesmessige kraft",
-          "Det erstattes av taushet fordi systemet nekter å kommunisere",
-          "Det blir et personlig uttrykk som frigjør individet fra systemet"
+          "Det blir et redskap for forvirring i stedet for klarhet",
+          "Det forsvinner helt",
+          "Det blir enklere å forstå",
+          "Det brukes bare til poesi"
         ],
         "correctIndex": 0,
         "sourceSentence": "Språket, som i utgangspunktet skal skape mening, blir et redskap for forvirring"
@@ -9962,10 +9962,10 @@
       {
         "prompt": "Hva betyr det at individet opplever «vedvarende usikkerhet om hvorvidt man selv er medskyldig i sin egen fortapelse»?",
         "options": [
-          "At man ikke vet sikkert om man selv også har bidratt til situasjonen man er fanget i",
-          "At man vet at systemet alene er skyldig, men mangler mulighet til å bevise det",
-          "At man opplever skyld uten å forstå hva systemet anklager en for å ha gjort",
-          "At man bevisst samarbeider med systemet selv om man vet at det vil skade en"
+          "Man er ikke sikker på om man selv har skyld i sin egen situasjon",
+          "Man er helt sikker på at systemet er skyldig",
+          "Man vet med sikkerhet at man er uskyldig",
+          "Man bryr seg ikke om skyldspørsmålet"
         ],
         "correctIndex": 0,
         "sourceSentence": "men også den vedvarende usikkerheten om hvorvidt man selv er medskyldig i sin egen fortapelse."
@@ -9973,10 +9973,10 @@
       {
         "prompt": "Hvorfor fungerer det kafkaeske som en metafor for det moderne mennesket, ifølge teksten?",
         "options": [
-          "Det uttrykker fremmedgjøring overfor institusjoner og regler med en ugjennomtrengelig logikk",
-          "Det viser hvordan moderne mennesker blir fremmedgjort fordi institusjoner mangler faste regler",
-          "Det beskriver hvordan individer lærer å navigere komplekse systemer ved å forstå deres skjulte logikk",
-          "Det fungerer som metafor for at naturen og tilfeldighetene styrer mer av livet enn institusjoner gjør"
+          "Fordi det viser fremmedgjøring i møte med institusjoner som opererer etter egne ugjennomtrengelige logikker",
+          "Fordi det viser hvordan mennesker alltid forstår byråkratiet fullt ut",
+          "Fordi det beskriver et samfunn uten regler i det hele tatt",
+          "Fordi det handler om naturens uforutsigbarhet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Nettopp derfor fungerer det kafkaeske som en kraftfull metafor for det moderne menneskets fremmedgjøring i møte med institusjoner, lover og strukturer som synes å operere etter sine egne, ugjennomtrengelige logikker."
@@ -10010,10 +10010,10 @@
       {
         "prompt": "Hva kan spilleren gjøre med okarinaen, ifølge teksten?",
         "options": [
-          "Spille melodier som gir magiske evner, blant annet knyttet til tid og natur",
-          "Lagre magisk energi som senere kan brukes til å forbedre våpen og rustning",
-          "Kalle fram andre figurer som kan kjempe sammen med Link i vanskelige områder",
-          "Åpne alle låste områder uten å måtte finne gjenstander eller løse oppgaver"
+          "Spille melodier som gir magiske evner, som å manipulere tid",
+          "Bygge hus og broer",
+          "Kjøpe våpen i en butikk",
+          "Snakke med andre spillere online"
         ],
         "correctIndex": 0,
         "sourceSentence": "spilleren bruker okarinaen for å spille melodier som gir magiske evner, som å manipulere tid og naturen."
@@ -10021,10 +10021,10 @@
       {
         "prompt": "Hvorfor regnes Ocarina of Time som kulturelt viktig, ifølge teksten?",
         "options": [
-          "Det blir framstilt som en milepæl i utviklingen av videospill som kunstform",
-          "Det blir framstilt som spillet som for første gang gjorde fantasy til en populær spillsjanger",
-          "Det blir framstilt som teknisk viktigere enn kulturelt viktig fordi historien var enkel",
-          "Det blir framstilt som kulturelt viktig først og fremst fordi det nådde et voksent publikum"
+          "Fordi det representerer en milepæl i utviklingen av videospill som kunstform",
+          "Fordi det var det første spillet noensinne",
+          "Fordi det ikke hadde noen historie",
+          "Fordi det bare ble spilt av barn"
         ],
         "correctIndex": 0,
         "sourceSentence": "Kulturelt sett er Ocarina of Time viktig fordi det representerer en milepæl i utviklingen av videospill som en kunstform."
@@ -10069,10 +10069,10 @@
       {
         "prompt": "Hvorfor kan velgere oppfatte Venstre som «vinglete»?",
         "options": [
-          "Når kompromissene blir så omfattende at partiets egen profil virker uklar",
-          "Når partiet endrer standpunkt i saker der samarbeidspartnerne allerede er enige",
-          "Når partiet prioriterer prinsipielle standpunkter framfor praktiske kompromisser",
-          "Når partiet nekter å inngå samarbeid med partier som står nær det politisk"
+          "Dersom kompromissene i samarbeid med andre partier blir for omfattende",
+          "Fordi partiet aldri endrer sin politikk",
+          "Fordi partiet ikke har noen velgere igjen",
+          "Fordi partiet alltid nekter å samarbeide"
         ],
         "correctIndex": 0,
         "sourceSentence": "Dette skaper tidvis spenninger, både internt og i forholdet til velgerne, som kan oppfatte partiet som vinglete dersom kompromissene blir for omfattende."
@@ -10096,9 +10096,9 @@
         "prompt": "Hva skriver Dreyman en artikkel om?",
         "options": [
           "De høye selvmordsratene i DDR",
-          "Hvordan Stasi overvåker kunstnere og forfattere i Øst-Berlin",
-          "Hvorfor myndighetene skjuler politiske protester fra vestlige medier",
-          "Forholdet mellom kulturpolitikk og sensur i DDR"
+          "Stasis organisasjonsstruktur",
+          "Sitt eget kjærlighetsliv",
+          "Berlinmurens byggeprosess"
         ],
         "correctIndex": 0,
         "sourceSentence": "Dreyman bestemmer seg for å skrive en artikkel om de høye selvmordsratene i DDR, en sak som staten gjør alt for å skjule."
@@ -10228,10 +10228,10 @@
       {
         "prompt": "Hvorfor gir Gregor til slutt opp livet, ifølge teksten?",
         "options": [
-          "Fordi han innser at han er blitt en fremmed i sitt eget hjem og en byrde for familien",
-          "Fordi han tror familien vil få det bedre dersom han finner et nytt hjem et annet sted",
-          "Fordi han mister håpet etter at faren nekter ham enhver kontakt med søsteren",
-          "Fordi han forstår at forvandlingen kan reverseres, men ikke ønsker å bli menneske igjen"
+          "Fordi han innser at han er blitt den fremmede i sitt eget hjem etter at søsteren sier de ikke lenger kan bære hans nærvær",
+          "Fordi faren dreper ham direkte",
+          "Fordi han rømmer og blir tatt av politiet",
+          "Fordi han finner en kur, men velger å ikke bruke den"
         ],
         "correctIndex": 0,
         "sourceSentence": "skjønte Gregor med smertefull klarhet at han var blitt den fremmede i eget hjem."
@@ -10313,10 +10313,10 @@
       {
         "prompt": "Hvorfor kan nasjonalstaten føre til konflikter, ifølge teksten?",
         "options": [
-          "Fordi grenser kan avvike fra bosetningsmønstre og gjøre at minoriteter blir marginalisert",
-          "Fordi en felles nasjonal kultur vanligvis gjør religiøse og språklige forskjeller større",
-          "Fordi nasjonalstater må ha klart avgrensede territorier og derfor ofte utvider grensene sine",
-          "Fordi minoriteter normalt får større politisk makt når de bor samlet nær en statsgrense"
+          "Når grenser ikke samsvarer med hvor folk faktisk bor, kan minoriteter oppleve å bli utestengt",
+          "Fordi alle nasjonalstater fører krig mot hverandre",
+          "Fordi nasjonalstater ikke har noen grenser",
+          "Fordi det ikke finnes noen felles kultur i noen stater"
         ],
         "correctIndex": 0,
         "sourceSentence": "Når grenser ikke samsvarer med hvor folk faktisk bor, kan minoriteter oppleve å bli utestengt eller undertrykt."
@@ -10424,10 +10424,10 @@
       {
         "prompt": "Hva er valgparadokset, ifølge teksten?",
         "options": [
-          "At svært mange valgmuligheter kan skape lammelse, usikkerhet og anger",
-          "At få valgmuligheter ofte gjør mennesker mer misfornøyde med valget",
-          "At mennesker foretrekker å overlate viktige valg til andre",
-          "At valgfrihet først skaper problemer når valgene har økonomiske konsekvenser"
+          "At overfloden av valgmuligheter ikke fører til økt tilfredshet, men til lammelse og usikkerhet",
+          "At flere valg alltid gir mer lykke",
+          "At mennesker aldri har nok valgmuligheter",
+          "At valg ikke påvirker følelser i det hele tatt"
         ],
         "correctIndex": 0,
         "sourceSentence": "Men paradokset oppstår idet overfloden av valgmuligheter ikke fører til økt tilfredshet, men snarere til en følelse av lammelse, usikkerhet og til og med anger."
@@ -10446,10 +10446,10 @@
       {
         "prompt": "Hva menes med at «selv små valg får en uproporsjonal tyngde»?",
         "options": [
-          "At selv ubetydelige valg kan føles langt viktigere og mer krevende enn de egentlig er",
-          "At små valg ofte får større faktiske konsekvenser enn de store valgene vi planlegger nøye",
-          "At vi bruker mer tid på små valg fordi vi har mindre informasjon å basere dem på",
-          "At valgmulighetene blir færre når små beslutninger først har låst oss til en bestemt retning"
+          "At bagatellmessige valg kan oppleves som unødvendig viktige og krevende",
+          "At små valg aldri betyr noe",
+          "At bare store valg er vanskelige",
+          "At valg blir lettere jo flere de er"
         ],
         "correctIndex": 0,
         "sourceSentence": "Denne dynamikken kan bidra til en underliggende uro i hverdagen, fordi selv små valg får en uproporsjonal tyngde."
@@ -10457,10 +10457,10 @@
       {
         "prompt": "Hva er den grunnleggende spenningen paradokset peker på, ifølge siste avsnitt?",
         "options": [
-          "Vi ønsker frihet, men kan belastes kognitivt og emosjonelt når valgmulighetene blir grenseløse",
-          "Vi ønsker mange valg, men blir først tilfredse når andre tar de viktigste beslutningene for oss",
-          "Vi opplever frihet som positiv bare når alle alternativene fører til omtrent samme resultat",
-          "Vi tror valgfrihet betyr autonomi, men teksten hevder at mennesker egentlig foretrekker faste regler"
+          "At vi lengter etter frihet, men er sårbare for byrdene som følger av grenseløs frihet",
+          "At mennesker aldri ønsker frihet",
+          "At frihet alltid fører til lykke uten unntak",
+          "At valgmuligheter er irrelevante for velvære"
         ],
         "correctIndex": 0,
         "sourceSentence": "vi lengter etter frihet og autonomi, men vi er samtidig sårbare for de kognitive og emosjonelle belastningene som følger med når friheten blir grenseløs."
@@ -10509,10 +10509,10 @@
       {
         "prompt": "Hva er å tilegne seg et andrespråk, ifølge teksten, i tillegg til en praktisk ferdighet?",
         "options": [
-          "Et eksistensielt prosjekt som påvirker identitet, kultur og hvordan vi erkjenner verden",
-          "En intellektuell øvelse som først og fremst utvider ordforrådet uten å påvirke selvforståelsen",
-          "En kulturell tilpasningsprosess der målet er å erstatte morsmålets perspektiv med et nytt",
-          "Et praktisk kommunikasjonsverktøy som kan holdes adskilt fra spørsmål om identitet og mening"
+          "Et eksistensielt prosjekt som berører identitet, kultur og erkjennelse",
+          "Bare en økonomisk investering",
+          "En ren grammatisk øvelse",
+          "En midlertidig hobby uten dypere betydning"
         ],
         "correctIndex": 0,
         "sourceSentence": "Å tilegne seg et andrespråk er ikke bare en praktisk ferdighet, men et eksistensielt prosjekt som berører selve vår forståelse av identitet, kultur og erkjennelse."
@@ -10520,10 +10520,10 @@
       {
         "prompt": "Hva innebærer det å lære et andrespråk, ifølge teksten, i epistemologisk forstand?",
         "options": [
-          "En form for ydmykhet der man blir klar over begrensningene i egen måte å forstå verden på",
-          "En form for kunnskap der man gradvis erstatter morsmålets perspektiv med et mer objektivt perspektiv",
-          "En form for intellektuell sikkerhet fordi man lærer at samme idé kan uttrykkes presist på flere språk",
-          "En form for kulturell distanse som gjør det lettere å vurdere både egen og andres kultur utenfra"
+          "En form for ydmykhet der man erkjenner sine kognitive begrensninger",
+          "En følelse av overlegenhet over andre kulturer",
+          "En fullstendig forkastelse av morsmålet",
+          "En garanti for umiddelbar suksess"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det å lære et andrespråk innebærer dermed en form for epistemologisk ydmykhet."
@@ -10531,10 +10531,10 @@
       {
         "prompt": "Hvorfor kan det å lære et nytt språk oppleves som «destabiliserende», ifølge teksten?",
         "options": [
-          "Fordi et nytt språk kan utfordre selvfølgelige antakelser man tidligere ikke stilte spørsmål ved",
-          "Fordi man ofte mister sikkerheten i morsmålet når man begynner å bruke et annet språk mye",
-          "Fordi språkinnlæring gjør det vanskelig å avgjøre hvilke kulturelle perspektiver som er riktige",
-          "Fordi man må lære nye grammatiske regler som står i direkte konflikt med logikken i morsmålet"
+          "Fordi det utfordrer implisitte sannheter man tidligere tok for gitt",
+          "Fordi det gjør en fysisk syk",
+          "Fordi det er ulovlig i mange land",
+          "Fordi det aldri gir noen fordeler"
         ],
         "correctIndex": 0,
         "sourceSentence": "destabiliserende fordi det utfordrer de implisitte sannheter man tidligere tok for gitt."
@@ -10542,10 +10542,10 @@
       {
         "prompt": "Hva slags «etisk fordring» mener teksten at det å beherske flere språk innebærer?",
         "options": [
-          "Å møte den andre på egne premisser uten å redusere det fremmede til sitt eget",
-          "Å legge bort eget morsmål for å kunne forstå en annen kultur fullt ut",
-          "Å oversette fremmede erfaringer til kjente begreper så raskt som mulig",
-          "Å behandle alle språk som uttrykk for nøyaktig samme kulturelle perspektiv"
+          "En invitasjon til å se den andre på dens egne premisser uten å assimilere det fremmede",
+          "En plikt til å slutte å bruke morsmålet sitt",
+          "En rett til å dømme andre kulturer som underlegne",
+          "Et krav om å lære alle verdens språk"
         ],
         "correctIndex": 0,
         "sourceSentence": "en invitasjon til å se den andre på dens egne premisser, uten å redusere eller assimilere det fremmede til ens egen språklige orden."
@@ -10557,10 +10557,10 @@
       {
         "prompt": "Hva er placeboeffekten, ifølge teksten?",
         "options": [
-          "At forventningen om behandling kan gi målbar bedring selv uten aktive ingredienser",
-          "At en aktiv medisin virker bedre når pasienten ikke vet hva den inneholder",
-          "At behandling uten aktive ingredienser bare påvirker hvordan symptomer beskrives",
-          "At kroppen reagerer likt på alle behandlinger uavhengig av forventninger"
+          "At en behandling uten aktive medisinske ingredienser kan gi en målbar helseforbedring fordi man tror den vil virke",
+          "At alle medisiner er placebo",
+          "At placebo alltid er farlig",
+          "At placebo kun virker på dyr"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det refererer til hvordan en behandling uten aktive medisinske ingredienser kan føre til en målbar forbedring i en persons helse, bare fordi de tror at behandlingen vil virke."
@@ -10642,10 +10642,10 @@
       {
         "prompt": "Hva sier psykologer om lykke, ifølge teksten?",
         "options": [
-          "At lykke formes både av hvordan vi tenker og av hva vi gjør, ikke bare av suksess",
-          "At lykke hovedsakelig bestemmes av økonomisk trygghet, men påvirkes litt av vaner",
-          "At lykke først oppstår når man slutter å sammenligne seg med andre mennesker",
-          "At lykke er et stabilt personlighetstrekk som daglige handlinger påvirker svært lite"
+          "At lykke ikke bare handler om penger eller suksess, men også om hvordan vi tenker",
+          "At lykke kun avhenger av inntekt",
+          "At lykke er umulig å oppnå",
+          "At lykke bare kommer fra å være alene"
         ],
         "correctIndex": 0,
         "sourceSentence": "Psykologer sier at lykke ikke bare handler om penger eller suksess, men også om hvordan vi tenker, og hva vi gjør i hverdagen."
@@ -10723,10 +10723,10 @@
       {
         "prompt": "Hva anbefaler psykologer at man kan gjøre for å håndtere ensomhet?",
         "options": [
-          "Oppsøke kontakt, for eksempel gjennom frivillig arbeid, aktiviteter eller en nabo",
-          "Redusere sosiale forventninger og vente til følelsen vanligvis går over av seg selv",
-          "Prioritere digitale relasjoner framfor fysiske møter for å unngå sosialt press",
-          "Skifte miljø helt, for eksempel ved å flytte, før man prøver å knytte nye bånd"
+          "Delta i frivillig arbeid eller starte en samtale med en nabo",
+          "Unngå sosiale sammenkomster helt",
+          "Slutte i jobben",
+          "Flytte til et nytt land"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det kan være å delta i frivillig arbeid, melde seg på en aktivitet eller starte en samtale med en nabo."
@@ -10738,10 +10738,10 @@
       {
         "prompt": "Hva satte ravnen seg på da den fløy inn i rommet?",
         "options": [
-          "En byste av Pallas som sto over døren",
-          "Vinduskarmen ved siden av den åpne døren",
-          "Bordet der mannen hadde sittet og lest",
-          "Stolen ved peisen på den andre siden av rommet"
+          "En byste av Pallas over døren",
+          "Vinduskarmen",
+          "Bordet foran mannen",
+          "Stolen ved peisen"
         ],
         "correctIndex": 0,
         "sourceSentence": "Den satte seg på en byste av Pallas over døren og stirret på ham med øyne som glødet som to små branner."
@@ -10771,10 +10771,10 @@
       {
         "prompt": "Hvorfor blir mannen til slutt overbevist om at ravnen aldri vil forlate ham?",
         "options": [
-          "Fordi «Aldri mer» etter hvert oppleves som en dom over framtiden hans, ikke bare som et svar",
-          "Fordi ravnen blir sittende etter at mannen åpner både døren og vinduet for å slippe den ut",
-          "Fordi mannen tolker fuglens stillhet som et tegn på at den har valgt rommet som hjem",
-          "Fordi ravnen gjentar at den vil bli værende hver gang mannen ber den forlate rommet"
+          "Fordi ordet «Aldri mer» oppfattes som en dom over hans skjebne, ikke bare et svar",
+          "Fordi ravnen forteller ham det direkte",
+          "Fordi han låser døren og vinduet",
+          "Fordi en annen person sier det til ham"
         ],
         "correctIndex": 0,
         "sourceSentence": "At dens ord – \"Aldri mer\" – ikke bare var svar, men en dom."
@@ -10786,10 +10786,10 @@
       {
         "prompt": "Hva springer Rødt ut av, ifølge teksten?",
         "options": [
-          "En politisk tradisjon med røtter på den radikale venstresiden",
-          "En sosialdemokratisk tradisjon med hovedvekt på brede sentrumskompromisser",
-          "En verdikonservativ tradisjon med sterke bånd til kristne organisasjoner",
-          "En markedsliberal tradisjon med vekt på mindre statlig innblanding"
+          "En tradisjon som har røtter i den radikale venstresiden",
+          "Den kristne arbeiderbevegelsen",
+          "Det konservative borgerskapet",
+          "En liberal markedsideologi"
         ],
         "correctIndex": 0,
         "sourceSentence": "Partiet springer ut av en tradisjon som har røtter i den radikale venstresiden"
@@ -10797,10 +10797,10 @@
       {
         "prompt": "Hvilke to konkrete forslag nevnes som eksempler på Rødts kritiserte økonomiske politikk?",
         "options": [
-          "Å forby profitt i velferden og øke skatten kraftig på store formuer",
-          "Å begrense privat eierskap i industrien og redusere skatten på lave inntekter",
-          "Å øke offentlige utgifter og gjøre fagforeningsmedlemskap obligatorisk",
-          "Å nasjonalisere bankene og innføre et generelt pristak på grunnleggende varer"
+          "Å forby profitt i velferden og kraftig øke beskatningen av store formuer",
+          "Å senke skatten for alle og privatisere skolene",
+          "Å kutte i velferdsordninger og redusere formuesskatten",
+          "Å innføre flat skatt og redusere offentlige utgifter"
         ],
         "correctIndex": 0,
         "sourceSentence": "som å forby profitt i velferden og å kraftig øke beskatningen av store formuer"
@@ -11067,10 +11067,10 @@
       {
         "prompt": "Hvor i planten skjer fotosyntesen, ifølge teksten?",
         "options": [
-          "I kloroplastene som finnes i plantenes blader",
-          "I røttene, der planten tar opp vann og mineraler",
-          "I stengelen, der vann og næringsstoffer transporteres",
-          "I blomstene, der planten produserer frø og formerer seg"
+          "I celler som kalles kloroplaster, i bladene",
+          "I røttene",
+          "I stengelen",
+          "I blomstene"
         ],
         "correctIndex": 0,
         "sourceSentence": "Prosessen skjer i celler som kalles kloroplaster, som finnes i plantenes blader."
@@ -11100,10 +11100,10 @@
       {
         "prompt": "Hvorfor er fotosyntese viktig for hele økosystemet, ifølge teksten?",
         "options": [
-          "Den gir plantene energi og danner grunnlag for mat til dyr og mennesker",
-          "Den gjør at planter kan ta opp vann og mineraler direkte fra jorda",
-          "Den sørger for at planter holder samme temperatur gjennom hele året",
-          "Den gjør at planter kan vokse uten lys når de har lagret nok næring"
+          "Fordi den gir planter energi til å vokse og gir mat til dyr og mennesker",
+          "Fordi den lager vann",
+          "Fordi den varmer opp jorden",
+          "Fordi den stopper klimaendringer helt"
         ],
         "correctIndex": 0,
         "sourceSentence": "Ikke bare gir den planter energi til å vokse, men den gir også mat til dyr og mennesker."
@@ -11163,10 +11163,10 @@
       {
         "prompt": "Hvordan møtte Anna og Jonas hverandre, ifølge samtalen deres?",
         "options": [
-          "Anna tok en annen vei til jobb og møtte Jonas på bussholdeplassen",
-          "Jonas byttet buss en morgen og satte seg ved siden av Anna på vei til jobb",
-          "De tok samme vei til jobb hver dag og begynte etter hvert å snakke på holdeplassen",
-          "Anna gikk innom en ny kafé før jobb og traff Jonas der for første gang"
+          "Anna tok en annen vei til jobben og møtte ham på bussholdeplassen",
+          "De møttes på en fest",
+          "De var naboer som barn",
+          "De jobbet sammen"
         ],
         "correctIndex": 0,
         "sourceSentence": "den dagen jeg bestemte meg for å gå en annen vei til jobben. Jeg møtte deg på bussholdeplassen."
@@ -11174,10 +11174,10 @@
       {
         "prompt": "Hva pleide Jonas å gjøre før han begynte å møtes med Anna?",
         "options": [
-          "Han valgte de samme stedene og de samme rutinene igjen og igjen",
-          "Han byttet ofte kafé, men fulgte ellers den samme rutinen hver dag",
-          "Han unngikk faste rutiner og prøvde bevisst å gjøre noe nytt hver uke",
-          "Han brukte mye tid på å planlegge valgene sine, men ombestemte seg ofte"
+          "Velge det samme, samme kafé og samme rutiner",
+          "Reise mye til utlandet",
+          "Aldri drikke kaffe",
+          "Alltid prøve noe nytt"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg pleide å alltid velge det samme, samme kafé, samme rutiner."
@@ -11200,10 +11200,10 @@
       {
         "prompt": "Hva er SVs mål innenfor klimapolitikken, ifølge teksten?",
         "options": [
-          "Å fase ut olje og gass og erstatte dem med fornybare energikilder",
-          "Å beholde oljeproduksjonen, men bruke inntektene til større klimatiltak",
-          "Å redusere oljeutvinningen uten å endre energipolitikken på andre områder",
-          "Å prioritere teknologiske utslippskutt framfor en gradvis utfasing av fossil energi"
+          "Å fase ut olje- og gassindustrien til fordel for fornybar energi",
+          "Å øke oljeutvinningen",
+          "Å bygge flere kullkraftverk",
+          "Å redusere skatter på fossilt brensel"
         ],
         "correctIndex": 0,
         "sourceSentence": "med mål om å fase ut olje- og gassindustrien til fordel for fornybare energikilder."
@@ -11222,10 +11222,10 @@
       {
         "prompt": "Hva menes med at SV fungerer som «en verdimessig premissleverandør» i politisk debatt?",
         "options": [
-          "At partiets verdier kan påvirke debatten selv når oppslutningen er begrenset",
-          "At partiet først og fremst påvirker politikken gjennom å kontrollere regjeringsapparatet",
-          "At partiet bestemmer hvilke saker andre venstrepartier har lov til å prioritere",
-          "At partiet leverer konkrete politiske forslag som andre partier vanligvis vedtar uendret"
+          "At partiet påvirker debatten med sine verdier selv uten stor oppslutning",
+          "At partiet leverer mat til Stortinget",
+          "At partiet bestemmer alle lover alene",
+          "At partiet ikke har noen innflytelse"
         ],
         "correctIndex": 0,
         "sourceSentence": "har partiet ofte fungert som en verdimessig premissleverandør i den politiske debatten."
@@ -11307,10 +11307,10 @@
       {
         "prompt": "Hva menes med at rommet har gått «fra å være en arena for konkurranse til å bli et sted for samarbeid»?",
         "options": [
-          "At internasjonalt samarbeid har fått større plass enn rivaliseringen under den kalde krigen",
-          "At statlig romfart i stor grad er blitt erstattet av konkurranse mellom private selskaper",
-          "At USA og Russland har sluttet med egne romprogrammer og arbeider gjennom én organisasjon",
-          "At utforskning av verdensrommet i dag først og fremst handler om vitenskap, ikke politikk"
+          "At land i dag samarbeider i rommet i stedet for å konkurrere som under den kalde krigen",
+          "At det ikke lenger finnes noen romfart",
+          "At USA og Russland sluttet å utforske rommet",
+          "At bare private selskaper driver med romfart nå"
         ],
         "correctIndex": 0,
         "sourceSentence": "I dag samarbeider mange land i rommet, blant annet gjennom Den internasjonale romstasjonen. Dermed har rommet gått fra å være en arena for konkurranse til å bli et sted for samarbeid og felles utforskning."
@@ -11392,10 +11392,10 @@
       {
         "prompt": "Hva gjorde Spania rikt, ifølge teksten?",
         "options": [
-          "Gull og sølv som ble hentet fra koloniene i Latin-Amerika",
-          "Skatteinntekter fra europeiske områder som Spania kontrollerte direkte",
-          "Handel med asiatiske varer som ble fraktet gjennom koloniene i Amerika",
-          "Et produktivt jordbruk som gjorde Spania til Europas største mateksportør"
+          "Gull og sølv fra koloniene i Latin-Amerika",
+          "Handel med Asia",
+          "Oljefunn",
+          "Landbruk i Europa"
         ],
         "correctIndex": 0,
         "sourceSentence": "Spania ble raskt rikt på grunn av gull og sølv som ble hentet fra koloniene i Latin-Amerika."
@@ -11684,10 +11684,10 @@
       {
         "prompt": "Hva skjer med folks empati når roboter ser mer menneskelige ut, ifølge Mori?",
         "options": [
-          "Den øker etter hvert som roboten blir mer menneskelig, men faller ved et visst punkt",
-          "Den synker gradvis jo mer menneskelig roboten blir, før den stiger helt til slutt",
-          "Den holder seg stabil fram til roboten ser helt menneskelig ut, og øker deretter kraftig",
-          "Den påvirkes ikke av utseendet, men bare av hvor intelligent roboten oppfører seg"
+          "Den øker, men bare til et visst punkt",
+          "Den synker med en gang",
+          "Den forblir helt uendret",
+          "Den forsvinner helt"
         ],
         "correctIndex": 0,
         "sourceSentence": "Ifølge Mori er det slik at når roboter eller kunstige figurer ser mer menneskelige ut, øker folks empati for dem, men bare til et visst punkt."
@@ -11706,10 +11706,10 @@
       {
         "prompt": "Hvorfor tror forskere denne effekten oppstår, ifølge teksten?",
         "options": [
-          "Den kan henge sammen med en evolusjonær følsomhet for tegn på fare",
-          "Den oppstår fordi mennesker lærer gjennom filmer at menneskelignende roboter er farlige",
-          "Den skyldes hovedsakelig at kunstige ansikter beveger seg langsommere enn menneskelige ansikter",
-          "Den kommer av at vi automatisk forventer høyere intelligens jo mer menneskelig noe ser ut"
+          "På grunn av hvordan vi evolusjonsmessig har lært å oppfatte fare",
+          "Fordi roboter alltid er farlige",
+          "Fordi mennesker ikke liker teknologi",
+          "Fordi filmer har lært oss å frykte roboter"
         ],
         "correctIndex": 0,
         "sourceSentence": "Forskere tror denne effekten oppstår på grunn av hvordan vi evolusjonsmessig har lært å oppfatte fare."
@@ -11754,10 +11754,10 @@
       {
         "prompt": "Hva mener kritikere er en svakhet ved FN, ifølge teksten?",
         "options": [
-          "Kompliserte beslutningsprosesser og politiske konflikter kan gjøre organisasjonen ineffektiv",
-          "Medlemslandene gir organisasjonen for mye selvstendig makt til å handle uten samtykke",
-          "Organisasjonen prioriterer humanitært arbeid så høyt at sikkerhetsspørsmål blir oversett",
-          "Beslutningene tas for raskt og gir medlemslandene for liten tid til å finne kompromisser"
+          "At organisasjonen ofte er ineffektiv på grunn av kompliserte beslutningsprosesser og politiske uenigheter",
+          "At FN har for få medlemsland",
+          "At FN bruker for lite penger",
+          "At FN ikke har noen ledelse"
         ],
         "correctIndex": 0,
         "sourceSentence": "Kritikere mener at FN ofte er ineffektivt på grunn av kompliserte beslutningsprosesser og politiske uenigheter mellom medlemslandene."
@@ -11817,10 +11817,10 @@
       {
         "prompt": "Hvilke eksempler gir Morten på små ting som «holder verden oppe»?",
         "options": [
-          "Moren som brettet sengetøy, og læreren som lærte henne å lese",
-          "Faren som reparerte huset, og naboen som passet barna",
-          "Legen som behandlet familien, og presten som holdt taler",
-          "Politikeren som vedtok lover, og kunstneren som ble berømt"
+          "Moren som brettet sengetøyet, og læreren som lærte henne å lese",
+          "Store politiske vedtak",
+          "Berømte kunstverk",
+          "Penger og eiendom"
         ],
         "correctIndex": 0,
         "sourceSentence": "Tenk på moren din som alltid brettet sengetøyet med den samme presisjonen, eller læreren på barneskolen som lærte deg å lese."
@@ -11839,10 +11839,10 @@
       {
         "prompt": "Hva konkluderer Elin til slutt om tyngden av et vanlig liv?",
         "options": [
-          "At tyngden ligger i å bære andre i det stille snarere enn i å bli husket",
-          "At et vanlig liv får tyngde når små handlinger til slutt blir anerkjent av andre",
-          "At hverdagslige liv først blir betydningsfulle når de inngår i en større historisk sammenheng",
-          "At det er minnene andre beholder om oss som avgjør hvor mye et liv har betydd"
+          "At den ligger i å bære andre i det stille, ikke i å bli husket",
+          "At den ligger i å bli berømt",
+          "At den ikke finnes i det hele tatt",
+          "At den ligger i å tjene mye penger"
         ],
         "correctIndex": 0,
         "sourceSentence": "«Så du mener at tyngden av et vanlig liv,» sa Elin til slutt, «ikke ligger i å bli husket, men i å bære andre i det stille?»"
@@ -11887,10 +11887,10 @@
       {
         "prompt": "Hva prøver Hedvig å gjøre for å bevise sin kjærlighet til faren, og hva skjer i stedet?",
         "options": [
-          "Hun vil ofre villanda for å bevise kjærligheten sin, men ender med å ta sitt eget liv",
-          "Hun vil forlate familien for å skåne faren, men Gregers overtaler henne til å bli",
-          "Hun vil avsløre sannheten om familien, men innser at Hjalmar allerede kjenner den",
-          "Hun vil drepe villanda for å gjøre Gregers fornøyd, men Hjalmar hindrer henne"
+          "Hun prøver å ofre familiens villand, men ender med å ta sitt eget liv",
+          "Hun prøver å ofre villanda og lykkes, og familien blir glad",
+          "Hun rømmer hjemmefra for godt",
+          "Hun gifter seg med Gregers"
         ],
         "correctIndex": 0,
         "sourceSentence": "Tragisk nok ender hun opp med å ta sitt eget liv i stedet, noe som etterlater familien i ruiner."
@@ -11924,10 +11924,10 @@
       {
         "prompt": "Hva må Dorothy gjøre for å komme hjem til slutt?",
         "options": [
-          "Klikke hælene på de røde skoene tre ganger og si den riktige setningen",
-          "Be trollmannen åpne en portal og følge den gule veien tilbake",
-          "Finne en ny tornado og bruke skoene til å styre den mot Kansas",
-          "Gi de røde skoene til Glinda og be henne sende Toto hjem først"
+          "Klikke hælene på de røde skoene tre ganger og si en bestemt setning",
+          "Drepe trollmannen",
+          "Finne en ny tornado",
+          "Bygge et nytt hus"
         ],
         "correctIndex": 0,
         "sourceSentence": "Ved å klikke hælene på de røde skoene tre ganger og si \"Det finnes ikke noe sted som hjemme,\" våknet Dorothy opp igjen i Kansas, med Toto ved sin side."
@@ -12009,10 +12009,10 @@
       {
         "prompt": "Hvilket etisk spørsmål reiser teksten angående det å endre fortiden?",
         "options": [
-          "Om vi har rett til å endre fortiden når det kan utslette hele eksistenser",
-          "Om en tidsreisende har plikt til å fortelle andre hvilken framtid som venter",
-          "Om framtidige mennesker bør få bestemme hvilke historiske hendelser som er viktige",
-          "Om det er moralsk forsvarlig å observere fortiden uten å forsøke å forbedre den"
+          "Om vi har rett til å endre fortiden dersom konsekvensene kan utslette hele eksistenser",
+          "Om det er lovlig å reise i tid",
+          "Om tidsreiser er dyrt",
+          "Om roboter kan reise i tid"
         ],
         "correctIndex": 0,
         "sourceSentence": "Samtidig reiser tidsreisen etiske spørsmål: Har vi rett til å endre fortiden dersom konsekvensene kan utslette hele eksistenser?"
@@ -12168,10 +12168,10 @@
       {
         "prompt": "Hva skjer med heltene i eksempelet som kjemper for noe viktig?",
         "options": [
-          "De mister alt fordi de ikke klarer å se sine egne begrensninger",
-          "De vinner kampen, men oppdager at målet de kjempet for ikke var verdt prisen",
-          "De gir opp kampen når de forstår at svakheten deres vil skade andre",
-          "De blir beseiret først og fremst fordi motstanderen kjenner svakheten deres"
+          "De mister alt fordi de ikke ser sine egne grenser",
+          "De vinner alltid til slutt",
+          "De blir konger",
+          "De slutter å kjempe"
         ],
         "correctIndex": 0,
         "sourceSentence": "Et kjent eksempel fra verdenslitteraturen er helter som kjemper for noe viktig, men som mister alt fordi de ikke klarer å se sine egne grenser."
@@ -12390,10 +12390,10 @@
       {
         "prompt": "Hva kjennetegner en tuk-tuk, ifølge teksten?",
         "options": [
-          "Den er høy og bråkete, men kommer lett fram i tett trafikk",
-          "Den er liten og stille, men har problemer med å komme fram i tett trafikk",
-          "Den er rask på åpne veier, men brukes sjelden i byer med mye trafikk",
-          "Den er åpen og enkel, men kan bare brukes der veiene er svært smale"
+          "Den er høy og bråkete, men kommer lett fram i trafikken",
+          "Den er stille og går sakte",
+          "Den brukes bare i Norge",
+          "Den kan bare kjøre på snø"
         ],
         "correctIndex": 0,
         "sourceSentence": "De er høye og bråkete, men de kommer lett fram i trafikken."
@@ -12550,9 +12550,9 @@
         "prompt": "Hvordan kommer et virus inn i kroppen, ifølge teksten?",
         "options": [
           "Gjennom luft, mat eller kontakt med andre mennesker",
-          "Gjennom luft, men ikke gjennom mat eller nær kontakt",
-          "Gjennom mat og vann, men ikke gjennom kontakt mellom mennesker",
-          "Gjennom insektbitt eller hudkontakt, men ikke gjennom luft"
+          "Bare gjennom vann",
+          "Bare gjennom insektbitt",
+          "Bare gjennom sollys"
         ],
         "correctIndex": 0,
         "sourceSentence": "De kommer inn i kroppen gjennom luft, mat eller kontakt med andre mennesker."
@@ -12571,10 +12571,10 @@
       {
         "prompt": "Hva bør man gjøre for å hindre at virus sprer seg, ifølge teksten?",
         "options": [
-          "Vaske hendene, hoste i albuen og holde avstand når man er syk",
-          "Vaske hendene, bruke antibiotika tidlig og unngå kontakt med dyr",
-          "Holde seg hjemme ved alle symptomer og unngå å dele mat med andre",
-          "Ta vaksine mot alle virus og ellers følge vanlige hygienerutiner"
+          "Vaske hendene ofte, hoste i albuen og holde avstand hvis man er syk",
+          "Unngå all mat i noen dager",
+          "Bare ta vaksine og ellers ikke gjøre noe",
+          "Holde seg innendørs for alltid"
         ],
         "correctIndex": 0,
         "sourceSentence": "For å hindre at virus sprer seg, er det viktig å vaske hendene ofte, hoste i albuen og holde avstand hvis man er syk."
@@ -12756,10 +12756,10 @@
       {
         "prompt": "Hvorfor kan vi oppleve et menneske som vakkert selv om vi ikke tenker på utseendet?",
         "options": [
-          "Fordi personen kan få oss til å føle oss trygge, sett og verdsatt",
-          "Fordi personligheten gradvis kan få oss til å legge mindre merke til utseendet",
-          "Fordi vi gjerne forbinder trygghet med mennesker som følger vanlige skjønnhetsidealer",
-          "Fordi kjennskap gjør at vi automatisk vurderer menneskers utseende mer positivt"
+          "Fordi personen får oss til å føle oss trygge og sett",
+          "Fordi personen har dyre klær",
+          "Fordi personen er kjent",
+          "Fordi personen ligner en filmstjerne"
         ],
         "correctIndex": 0,
         "sourceSentence": "Når vi møter et menneske som får oss til å føle oss trygge og sett, kan vi oppleve denne personen som vakker, uavhengig av hvordan han eller hun ser ut."
@@ -12767,10 +12767,10 @@
       {
         "prompt": "Hva konkluderer teksten om skjønnhet til slutt?",
         "options": [
-          "At skjønnhet forener ytre og indre kvaliteter og samtidig er subjektiv",
-          "At skjønnhet først og fremst bestemmes av kulturelle normer for utseende",
-          "At indre egenskaper er objektive, mens ytre skjønnhet alltid er subjektiv",
-          "At skjønnhet finnes i kunst og natur, men ikke kan knyttes til mennesker"
+          "At den er en kombinasjon av det ytre og det indre, og alltid subjektiv",
+          "At den kun avhenger av utseende",
+          "At den er lik for alle mennesker",
+          "At den ikke finnes i kunst"
         ],
         "correctIndex": 0,
         "sourceSentence": "Til slutt kan man kanskje si at skjønnhet er en kombinasjon av det ytre og det indre, og at den alltid vil være subjektiv."
@@ -12882,10 +12882,10 @@
       {
         "prompt": "I teksten betyr uttrykket «å pynte på sannheten» omtrent:",
         "options": [
-          "Å formulere sannheten mildere for å skåne en annen persons følelser",
-          "Å utelate viktig informasjon for å beskytte seg selv mot konsekvenser",
-          "Å overdrive positive sider ved noe for å få andre til å like det",
-          "Å endre sannheten litt fordi man ikke husker nøyaktig hva som skjedde"
+          "Å gjøre sannheten mindre brutal for å skåne andres følelser",
+          "Å lyve for egen vinning",
+          "Å avsløre hemmeligheter",
+          "Å snakke veldig direkte og brutalt"
         ],
         "correctIndex": 0,
         "sourceSentence": "Når vi velger å pynte på sannheten for å skåne andres følelser, kan det tolkes som en form for empati, men det kan også problematiseres som en subtil undergraving av tillit."
@@ -12893,10 +12893,10 @@
       {
         "prompt": "Hvilket etisk paradoks stiller hvite løgner oss overfor, ifølge teksten?",
         "options": [
-          "Om kompromissløs ærlighet er bedre enn en mindre skadelig løgn",
-          "Om en løgn er moralsk akseptabel dersom den aldri blir oppdaget",
-          "Om sannheten bør fortelles bare når den kan bevises sikkert",
-          "Om det er riktig å lyve når man selv tjener på resultatet"
+          "Om man skal være kompromissløst ærlig eller velge en tilsynelatende mindre skadelig løgn",
+          "Om man skal stjele eller ikke",
+          "Om man skal si sannheten bare til familie",
+          "Om man skal lyve bare på jobben"
         ],
         "correctIndex": 0,
         "sourceSentence": "Skal man være kompromissløst ærlig, eller skal man velge en tilsynelatende mindre skadelig løgn?"
@@ -12904,10 +12904,10 @@
       {
         "prompt": "Hva kan hvite løgner si om et samfunn, ifølge teksten?",
         "options": [
-          "De kan speile hvilke verdier både enkeltmennesker og samfunn prioriterer",
-          "De viser hvor stor toleranse et samfunn har for bevisst bedrag i offentlige sammenhenger",
-          "De avslører først og fremst hvilke kulturer som legger størst vekt på direkte kommunikasjon",
-          "De forteller om et samfunn vurderer gode intensjoner som viktigere enn faktiske konsekvenser"
+          "De kan fungere som et speil på individets og samfunnets verdier",
+          "De viser at samfunnet mangler regler",
+          "De beviser at folk generelt er uærlige",
+          "De er alltid ulovlige i alle kulturer"
         ],
         "correctIndex": 0,
         "sourceSentence": "Dermed kan de, i all sin tilsynelatende enkelhet, fungere som et speil på både individets og samfunnets verdier."
@@ -12915,10 +12915,10 @@
       {
         "prompt": "Når oppstår hvite løgner ofte, ifølge teksten?",
         "options": [
-          "Når sannheten kan oppleves som for brutal eller vanskelig å håndtere",
-          "Når man ønsker å skjule en alvorlig forbrytelse for andre",
-          "Når man mangler kunnskap og derfor svarer på måfå",
-          "Når man vil overbevise andre om noe man selv vet er falskt"
+          "I situasjoner der sannheten ville vært for direkte, brutal eller vanskelig å håndtere",
+          "Bare når man er sint",
+          "Bare i forretningslivet",
+          "Bare mellom fremmede"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det interessante er at hvite løgner ofte oppstår i situasjoner der sannheten ville være for direkte, for brutal eller for vanskelig å håndtere"
@@ -13281,10 +13281,10 @@
       {
         "prompt": "Hva skjedde i 1917 som bidro til å endre krigens balanse?",
         "options": [
-          "USA gikk inn på Ententens side, mens Russland trakk seg ut",
-          "Russland gikk inn på Ententens side, mens USA trakk seg ut",
-          "USA og Russland gikk begge inn i krigen på Sentralmaktenes side",
-          "USA forble nøytralt, mens Russland styrket sin innsats på vestfronten"
+          "USA gikk inn i krigen på Ententemaktenes side, mens Russland trakk seg ut",
+          "Tyskland kapitulerte",
+          "Storbritannia trakk seg fra krigen",
+          "Versaillestraktaten ble signert"
         ],
         "correctIndex": 0,
         "sourceSentence": "I 1917 gikk USA inn i krigen på Ententemaktenes side, og dette bidro sterkt til å endre balansen. Russland trakk seg ut etter revolusjonen samme år."
@@ -13340,10 +13340,10 @@
       {
         "prompt": "Hvilken internasjonal organisasjon ble opprettet som en følge av krigen, og hva var målet?",
         "options": [
-          "FN, for å fremme fred og forsøke å hindre en ny verdenskrig",
-          "NATO, for å samle de tidligere allierte i én permanent militær organisasjon",
-          "EU, for å gjenoppbygge Europas økonomi og hindre nye økonomiske kriser",
-          "Røde Kors, for å koordinere humanitær hjelp mellom land etter krigen"
+          "FN, med mål om å skape fred og hindre en ny verdenskrig",
+          "NATO, med mål om militær ekspansjon",
+          "EU, med mål om økonomisk vekst",
+          "Røde Kors, med mål om handel"
         ],
         "correctIndex": 0,
         "sourceSentence": "Samtidig førte krigen til opprettelsen av FN i 1945, som hadde som mål å skape fred og hindre en ny verdenskrig."
@@ -13356,9 +13356,9 @@
         "prompt": "Hvor brukes verdensbygging ofte, ifølge teksten?",
         "options": [
           "I litteratur, film og dataspill",
-          "I film, teater og dokumentar",
-          "I litteratur, journalistikk og reklame",
-          "I dataspill, musikk og sakprosa"
+          "Bare i vitenskapelige artikler",
+          "Bare i musikk",
+          "Bare i matlaging"
         ],
         "correctIndex": 0,
         "sourceSentence": "Verdensbygging er en spennende prosess som ofte brukes i litteratur, film og dataspill."
@@ -13451,10 +13451,10 @@
       {
         "prompt": "Hva er målet med zazen-meditasjon, ifølge teksten?",
         "options": [
-          "Å akseptere øyeblikket som det er, heller enn å meditere for å oppnå et bestemt resultat",
-          "Å oppnå en tilstand der negative tanker ikke lenger dukker opp under meditasjon",
-          "Å trene konsentrasjonen til man kan holde oppmerksomheten på pusten uten avbrudd",
-          "Å forstå buddhistiske læresetninger gjennom stillhet i stedet for gjennom tekster"
+          "Ikke å oppnå noe, men å akseptere øyeblikket som det er",
+          "Å oppnå rikdom og suksess raskt",
+          "Å bekjempe negative tanker med makt",
+          "Å telle pusten til man sovner"
         ],
         "correctIndex": 0,
         "sourceSentence": "Målet er ikke å oppnå noe, men heller å akseptere øyeblikket som det er."
@@ -13463,9 +13463,9 @@
         "prompt": "Hva er et eksempel på oppmerksomhet i hverdagslige handlinger, ifølge teksten?",
         "options": [
           "Å være fullt til stede mens man lager mat, vasker opp eller går en tur",
-          "Å gjøre hverdagsoppgaver raskt slik at man får mer tid til formell meditasjon",
-          "Å bruke hverdagsoppgaver til å analysere tankene sine så systematisk som mulig",
-          "Å unngå rutinepregede aktiviteter fordi de gjør det vanskeligere å være oppmerksom"
+          "Å multitaske så mye som mulig",
+          "Å unngå alt husarbeid",
+          "Å meditere kun i templer"
         ],
         "correctIndex": 0,
         "sourceSentence": "Dette kan innebære å være fullt til stede mens man lager mat, vasker opp, eller går en tur."
@@ -13473,10 +13473,10 @@
       {
         "prompt": "Hvorfor har Zenbuddhisme blitt populær i vestlige land, ifølge teksten?",
         "options": [
-          "Den oppleves som praktisk og enkel å bruke også utenfor en bestemt religion eller kultur",
-          "Den passer godt inn i vestlig kultur fordi den krever få endringer i daglige vaner",
-          "Den har blitt populær fordi zazen lover raske resultater uten religiøs eller filosofisk bakgrunn",
-          "Den skiller seg fra andre buddhistiske retninger ved å legge mindre vekt på personlig erfaring"
+          "Fordi dens praktiske og ukompliserte filosofi kan brukes uavhengig av religion eller kultur",
+          "Fordi den krever medlemskap i en bestemt religion",
+          "Fordi den er billigere enn andre terapiformer",
+          "Fordi den ble oppfunnet i Vesten"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mange tiltrekkes av dens praktiske og ukompliserte filosofi, som kan brukes uavhengig av religion eller kulturell bakgrunn."
@@ -13595,10 +13595,10 @@
       {
         "prompt": "I teksten betyr uttrykket «stenger døren for dialog» omtrent:",
         "options": [
-          "At handlingen gjør samtale og gjensidig forståelse vanskelig eller umulig",
-          "At handlingen markerer at en diskusjon er avsluttet fordi partene allerede har sagt sitt",
-          "At handlingen fører til at færre ønsker å diskutere bøkenes innhold offentlig",
-          "At handlingen flytter debatten fra bøkenes ideer til spørsmål om ytringsfrihet"
+          "Gjør det umulig å diskutere og forstå hverandre",
+          "Åpner for nye diskusjoner",
+          "Beskytter ytringsfriheten",
+          "Skaper flere bøker"
         ],
         "correctIndex": 0,
         "sourceSentence": "men brenning av bøker stenger døren for dialog og forståelse."
@@ -13865,10 +13865,10 @@
       {
         "prompt": "Hvor møttes Ingrid og Markus igjen?",
         "options": [
-          "På den gamle kafeen de pleide å besøke som studenter",
-          "På en kafé i nærheten av universitetet der de hadde studert",
-          "På restauranten der de sist hadde sett hverandre før de mistet kontakten",
-          "På universitetet etter at Markus foreslo å gå tilbake til et kjent sted"
+          "På den gamle kafeen de pleide å gå til i studietiden",
+          "På en ny restaurant i sentrum",
+          "Hjemme hos Ingrid",
+          "På universitetet"
         ],
         "correctIndex": 0,
         "sourceSentence": "De hadde avtalt å møtes på den gamle kafeen de pleide å frekventere i studietiden – nå nyoppusset, men fortsatt med det samme skjeve skiltet over døren."
@@ -13898,10 +13898,10 @@
       {
         "prompt": "Hva antyder sammenligningen med «gamle sanger» om forholdet mellom Ingrid og Markus?",
         "options": [
-          "At den gamle fortroligheten kan komme tilbake når de først begynner å snakke",
-          "At minnene deres er så forskjellige at de ikke lenger kjenner hverandre",
-          "At forholdet først og fremst holdes sammen av en felles interesse for musikk",
-          "At de forsøker å gjenskape studietiden nøyaktig slik den en gang var"
+          "At de har glemt hverandre fullstendig",
+          "At noe av fortroligheten mellom dem fortsatt finnes, selv etter mange år",
+          "At de aldri egentlig kjente hverandre",
+          "At musikk er deres felles hobby"
         ],
         "correctIndex": 1,
         "sourceSentence": "Som gamle sanger – man husker teksten når melodien begynner."
@@ -13973,9 +13973,9 @@
         "prompt": "Hvilke to deler består Bibelen av, ifølge teksten?",
         "options": [
           "Det gamle testamentet og Det nye testamentet",
-          "Loven og profetene",
-          "Evangeliene og brevene",
-          "Toraen og evangeliene"
+          "Toraen og Talmud",
+          "Koranen og Hadith",
+          "Evangeliene og salmene"
         ],
         "correctIndex": 0,
         "sourceSentence": "Bibelen er den hellige teksten, og den inneholder både Det gamle testamentet og Det nye testamentet."
@@ -14020,10 +14020,10 @@
       {
         "prompt": "Hvorfor kan lys fra skjermer gjøre det vanskeligere å sovne, ifølge teksten?",
         "options": [
-          "Skjermlyset kan få hjernen til å tolke det som om det fortsatt er dag",
-          "Skjermlyset øker kroppstemperaturen så mye at kroppen ikke kan gå i hvilemodus",
-          "Skjermbruk gjør at hjernen produserer mer søvnhormon tidligere på kvelden",
-          "Skjermer gjør oss fysisk mer aktive, slik at kroppen trenger lengre tid på å roe seg"
+          "Fordi det lurer hjernen til å tro at det fortsatt er dag",
+          "Fordi det varmer opp rommet",
+          "Fordi det lager støy",
+          "Fordi det tiltrekker insekter"
         ],
         "correctIndex": 0,
         "sourceSentence": "Lyset fra skjermer kan nemlig lure hjernen til å tro at det fortsatt er dag, og da blir det vanskeligere å sovne."
@@ -14031,10 +14031,10 @@
       {
         "prompt": "Hva anbefaler teksten for å opprettholde en stabil døgnrytme, selv i helgene?",
         "options": [
-          "Å legge seg og stå opp omtrent samme tid hver dag, også i helgene",
-          "Å sove betydelig lenger i helgene for å ta igjen søvn fra ukedagene",
-          "Å legge seg til samme tid, men stå opp senere når man ikke skal på jobb",
-          "Å variere leggetiden etter hvor trøtt man føler seg, men alltid stå opp tidlig"
+          "Å stå opp og legge seg til omtrent samme tid hver dag",
+          "Å sove lenger i helgene",
+          "Å drikke mer kaffe om morgenen",
+          "Å bruke skjerm hele natten"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det anbefales å stå opp og legge seg til omtrent samme tid hver dag, også i helgene."
@@ -14142,10 +14142,10 @@
       {
         "prompt": "Hva menes med at klisjeer «mister sin opprinnelige kraft eller betydning»?",
         "options": [
-          "At uttrykkene ikke lenger virker like sterke eller originale fordi de er blitt brukt så mye",
-          "At uttrykkene gradvis får en annen betydning enn den de opprinnelig hadde",
-          "At uttrykkene blir så gamle at færre mennesker forstår hva ordene betyr",
-          "At uttrykkene mister grammatisk mening og derfor bare fungerer i uformelt språk"
+          "At de blir forbudt å bruke",
+          "At de ikke lenger virker sterke eller spesielle fordi de er brukt så mye",
+          "At de blir borte fra språket helt",
+          "At de får en helt ny betydning"
         ],
         "correctIndex": 1,
         "sourceSentence": "Klisjeer er uttrykk eller ideer som har blitt brukt så mange ganger at de mister sin opprinnelige kraft eller betydning."
@@ -14153,10 +14153,10 @@
       {
         "prompt": "Ifølge teksten, når kan klisjeer være passende å bruke?",
         "options": [
+          "Aldri, de bør alltid unngås",
           "Når man vil uttrykke noe raskt og enkelt",
-          "Når man vil gjøre et vanlig uttrykk mer originalt og overraskende",
-          "Når man vil unngå at mottakeren kjenner igjen budskapet med en gang",
-          "Når man trenger et svært presist uttrykk for en komplisert eller ny idé"
+          "Bare i formelle taler",
+          "Bare i dikt"
         ],
         "correctIndex": 1,
         "sourceSentence": "Likevel kan klisjeer noen ganger være passende, spesielt når vi vil uttrykke noe raskt og enkelt."
@@ -14216,10 +14216,10 @@
       {
         "prompt": "Hva er bekreftelsesbias, ifølge teksten?",
         "options": [
-          "Å legge mest merke til informasjon som støtter det man allerede tror",
-          "Å vurdere en hendelse som mer sannsynlig fordi den er lett å huske",
-          "Å endre mening raskt når man møter informasjon som motsier egne antakelser",
-          "Å undervurdere risiko fordi man ikke nylig har sett eksempler på negative hendelser"
+          "Å bare legge merke til informasjon som støtter det man allerede tror på",
+          "Å alltid tro på nyheter uten å sjekke",
+          "Å overvurdere sannsynligheten for flyulykker",
+          "Å endre mening ofte"
         ],
         "correctIndex": 0,
         "sourceSentence": "En av de vanligste er bekreftelsesbias, hvor man kun legger merke til informasjon som støtter det man allerede tror på, og ignorerer motstridende fakta."
@@ -14227,10 +14227,10 @@
       {
         "prompt": "Hvilket eksempel brukes for å forklare tilgjengelighetsbias?",
         "options": [
-          "At nyheter om flyulykker kan få oss til å overvurdere hvor farlig det er å fly",
-          "At vi legger mer vekt på forskning som bekrefter at fly er trygge enn på forskning som sier det motsatte",
-          "At vi velger fly framfor bil fordi de mest positive reiseminnene våre er fra flyturer",
-          "At vi tror flyulykker er vanlige fordi eksperter ofte diskuterer dem i kompliserte statistikker"
+          "Å tro at flyging er farligere enn det er etter å ha sett flere nyheter om flyulykker",
+          "Å tro at kaffe er sunt fordi man drikker det hver dag",
+          "Å stole på venner mer enn eksperter",
+          "Å alltid velge det billigste produktet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Hvis man for eksempel har sett flere nyhetsinnslag om flyulykker, kan man begynne å tro at det er farligere å fly enn det faktisk er."
@@ -14249,10 +14249,10 @@
       {
         "prompt": "Hva har bekreftelsesbias og tilgjengelighetsbias til felles, ifølge teksten?",
         "options": [
-          "Begge er mentale snarveier som kan føre til systematiske feilvurderinger",
-          "Begge får oss til å legge størst vekt på informasjon som er lett å huske",
-          "Begge gjør at vi først og fremst søker informasjon som bekrefter det vi allerede tror",
-          "Begge oppstår hovedsakelig når vi bevisst prøver å forenkle kompliserte valg"
+          "Begge er mentale snarveier som kan føre til feilvurderinger",
+          "Begge gjelder bare eksperter",
+          "Begge handler kun om flyulykker",
+          "Begge er bevisste og villede valg"
         ],
         "correctIndex": 0,
         "sourceSentence": "påvirkes vi ofte av kognitive biaser – mentale snarveier som kan føre til feilvurderinger."
@@ -14286,10 +14286,10 @@
       {
         "prompt": "Hvilken forenklet fremstilling av kolonialismen advarer teksten mot?",
         "options": [
-          "At kolonialismen enten reduseres til ren ondskap eller fremstilles som et sivilisatorisk framskritt",
-          "At kolonialismen forklares utelukkende gjennom økonomiske interesser og ikke gjennom politiske ideer",
-          "At kolonialismen fremstilles som den samme prosessen i alle deler av verden og i alle perioder",
-          "At kolonialismen analyseres fra både kolonimaktenes og de koloniserte samfunnens perspektiver"
+          "At kolonialismen enten fremstilles som ensidig ond eller som et sivilisatorisk framskritt",
+          "At kolonialismen alltid omtales som nøytral",
+          "At kolonialismen kun diskuteres i skolen",
+          "At kolonialismen glemmes helt"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det er likevel viktig å unngå en forenklet fremstilling der kolonialismen enten fremstilles som ensidig ond eller, i enkelte tilfeller, som et slags sivilisatorisk framskritt."
@@ -14297,10 +14297,10 @@
       {
         "prompt": "Hvorfor mener teksten det er essensielt å lytte til stemmene fra det globale sør?",
         "options": [
-          "For å gi berørte samfunns perspektiver en reell plass i spørsmål om avkolonisering og historisk rettferdighet",
-          "For å erstatte europeiske historiske kilder med muntlige fortellinger fra tidligere kolonier",
-          "For å avgjøre hvilke tidligere kolonimakter som alene skal bære ansvaret for dagens ulikhet",
-          "For å skille dagens politiske konflikter helt fra kolonitidens historiske erfaringer"
+          "For å anerkjenne deres perspektiver i diskusjonen om avkolonisering og historisk rettferdighet",
+          "Fordi de har mer penger enn Europa",
+          "Fordi de styrer FN",
+          "Fordi det er lovpålagt"
         ],
         "correctIndex": 0,
         "sourceSentence": "I denne sammenhengen blir det essensielt å lytte til stemmene fra det globale sør, og å anerkjenne deres perspektiver i den pågående diskusjonen om avkolonisering og historisk rettferdighet."
@@ -14493,10 +14493,10 @@
       {
         "prompt": "Hvorfor har internett gjort det enklere å spre konspirasjonsteorier, ifølge teksten?",
         "options": [
-          "Hvem som helst kan publisere påstander uten at de nødvendigvis blir faktasjekket",
-          "Store mediehus publiserer flere teorier fordi de ikke lenger bruker redaktører",
-          "Myndigheter har mindre tilgang til internett og kan derfor ikke svare på teoriene",
-          "Eksperter bruker sosiale medier sjeldnere enn før og overlater debatten til andre"
+          "Fordi hvem som helst kan publisere informasjon uten at den nødvendigvis blir faktasjekket",
+          "Fordi internett er gratis",
+          "Fordi myndighetene oppmuntrer til det",
+          "Fordi det finnes færre eksperter nå"
         ],
         "correctIndex": 0,
         "sourceSentence": "Internett har gjort det enklere å spre slike teorier, siden hvem som helst kan publisere informasjon uten at den nødvendigvis blir faktasjekket."
@@ -14567,10 +14567,10 @@
       {
         "prompt": "Hva slags retter liker fortelleren å lage på hostellkjøkkenet?",
         "options": [
-          "Enkle retter som pasta med saus, salater eller supper",
-          "Retter som krever lang steketid, som gryter og ovnsbakst",
-          "Lokale spesialiteter som må lages med mange ulike råvarer",
-          "Kaldbord med brød, ost og ferdigmat som ikke trenger tilberedning"
+          "Avanserte desserter",
+          "Pasta med saus, salater eller supper",
+          "Grillmat",
+          "Sushi"
         ],
         "correctIndex": 1,
         "sourceSentence": "Jeg liker å lage enkle retter som pasta med saus, salater eller supper."
@@ -14615,10 +14615,10 @@
       {
         "prompt": "Hvilket eksempel gir teksten på en «trang»?",
         "options": [
-          "En plutselig sterk lyst til å spise sjokolade om natten",
-          "Et vedvarende savn etter stedet man vokste opp",
-          "Et ønske om å møte en venn man ikke har sett på mange år",
-          "En følelse av at livet mangler noe uten at man vet nøyaktig hva"
+          "Å lengte etter barndomshjemmet",
+          "En sterk trang til å spise sjokolade midt på natta",
+          "Å savne en gammel venn",
+          "Å tenke på fremtiden"
         ],
         "correctIndex": 1,
         "sourceSentence": "For eksempel kan man få en sterk trang til å spise sjokolade midt på natta, eller føle et akutt behov for å sjekke mobilen."
@@ -14663,10 +14663,10 @@
       {
         "prompt": "Hva kjennetegner cyberpunk-sjangeren, ifølge teksten?",
         "options": [
-          "Avansert teknologi satt sammen med kriminalitet, korrupsjon og store sosiale forskjeller",
-          "Avansert teknologi i samfunn der sosiale konflikter stort sett er løst",
-          "Teknologisk tilbakegang kombinert med sterke stater og tradisjonelle samfunn",
-          "Virtuelle verdener som først og fremst brukes som bakgrunn for historiske fortellinger"
+          "Avansert teknologi kombinert med sosiale problemer som kriminalitet og korrupsjon",
+          "Fredelige samfunn uten teknologi",
+          "Historiske fortellinger fra middelalderen",
+          "Enkle historier for barn"
         ],
         "correctIndex": 0,
         "sourceSentence": "Den kjennetegnes av avansert teknologi, som kunstig intelligens og virtuelle verdener, kombinert med sosiale problemer som kriminalitet, korrupsjon og store økonomiske forskjeller."
@@ -14696,10 +14696,10 @@
       {
         "prompt": "Hvilke spørsmål stiller cyberpunk-sjangeren ofte, ifølge teksten?",
         "options": [
-          "Hva det betyr å være menneske, og om teknologisk kontroll kan true friheten vår",
-          "Hvordan mennesker kan bruke avansert teknologi uten at samfunnet rundt dem forandres",
-          "Om økonomiske forskjeller forsvinner når kunstig intelligens og virtuelle verdener utvikles",
-          "Hvordan myndigheter kan beholde kontrollen når selskaper får mindre økonomisk og politisk makt"
+          "Hva det betyr å være menneske, og om vi kan beholde friheten vår med teknologi",
+          "Hvordan man bygger romskip",
+          "Hvem som vant andre verdenskrig",
+          "Hva som er den beste maten å spise"
         ],
         "correctIndex": 0,
         "sourceSentence": "Sjangerens historier stiller ofte spørsmål om hva det betyr å være menneske, og om vi kan beholde vår frihet når teknologi kontrollerer så mye av livet."
@@ -14796,10 +14796,10 @@
       {
         "prompt": "Ifølge Sokrates, hvorfor er frykten for døden irrasjonell?",
         "options": [
-          "Fordi døden enten er utslokking og hvile eller en overgang til en annen eksistens",
-          "Fordi døden bør forstås som en nødvendig forutsetning for et moralsk liv",
-          "Fordi mennesket først blir virkelig fritt når det slutter å tenke på døden",
-          "Fordi frykten for døden skyldes uvitenhet om hva som skjer etter livet"
+          "Fordi døden enten er en fullstendig utslokking eller en overgang til en annen eksistensform",
+          "Fordi døden aldri skjer",
+          "Fordi alle mennesker er udødelige",
+          "Fordi døden alltid er smertefull"
         ],
         "correctIndex": 0,
         "sourceSentence": "enten er den en endelig utslokking, og dermed en tilstand av fullstendig hvile, eller så er den en overgang til en annen form for eksistens."
@@ -14818,10 +14818,10 @@
       {
         "prompt": "Hva betyr uttrykket «væren-mot-døden» i Heideggers filosofi, ifølge teksten?",
         "options": [
-          "At bevisstheten om egen dødelighet er en grunnleggende del av menneskets væren",
-          "At mennesket bør leve som om døden hele tiden er umiddelbart forestående",
-          "At døden først får eksistensiell betydning når mennesket aktivt reflekterer over den",
-          "At et autentisk liv krever at man frigjør seg fra tanken på sin egen dødelighet"
+          "At mennesket alltid lever med bevisstheten om sin egen dødelighet som en grunnleggende struktur",
+          "At mennesket bør ønske å dø raskt",
+          "At døden er en fiende man må bekjempe",
+          "At mennesket ikke kan tenke på døden"
         ],
         "correctIndex": 0,
         "sourceSentence": "For ham er bevisstheten om vår egen dødelighet ikke en abstrakt innsikt, men en fundamental eksistensiell struktur: vi lever alltid som væren-mot-døden."
@@ -14829,10 +14829,10 @@
       {
         "prompt": "Hvordan kan erkjennelsen av at tiden vår er begrenset påvirke oss, ifølge teksten?",
         "options": [
-          "Den kan gjøre forholdet til oss selv og våre valg mer autentisk",
-          "Den kan få oss til å betrakte personlige valg som mindre betydningsfulle",
-          "Den kan føre til at vi søker sikkerhet fremfor å ta ansvar for egne valg",
-          "Den kan gjøre spørsmålet om livets mening mindre relevant for oss"
+          "Den kan åpne muligheten for et mer autentisk forhold til oss selv og våre valg",
+          "Den gjør oss likegyldige til livet",
+          "Den fjerner all mening fra tilværelsen",
+          "Den fører alltid til depresjon"
         ],
         "correctIndex": 0,
         "sourceSentence": "Nettopp ved å erkjenne at vår tid er begrenset, åpner vi muligheten for et mer autentisk forhold til oss selv og våre valg."
@@ -14903,10 +14903,10 @@
       {
         "prompt": "Hvem hadde IKKE rett til å delta i politikken i det gamle Athen, ifølge teksten?",
         "options": [
-          "Frie menn, filosofer og soldater",
+          "Frie menn",
           "Kvinner, slaver og fremmede",
-          "Borgere, handelsmenn og håndverkere",
-          "Eldre menn, bønder og krigere"
+          "Filosofer",
+          "Krigere"
         ],
         "correctIndex": 1,
         "sourceSentence": "Kvinner, slaver og fremmede hadde ikke rett til å være med."
@@ -14988,10 +14988,10 @@
       {
         "prompt": "Hvilket eksempel gir teksten på et lite steg man kan starte med?",
         "options": [
-          "Å la være å bruke telefonen etter klokken ti om kvelden",
-          "Å slå av varsler fra telefonen mens man er på jobb eller skole",
-          "Å slette én sosial medie-app i en uke for å se om man savner den",
-          "Å bruke telefonen bare til samtaler når man er hjemme om kvelden"
+          "Å ikke bruke telefonen etter klokken ti om kvelden",
+          "Å slette alle sosiale medier-kontoer",
+          "Å kjøpe en ny datamaskin",
+          "Å slutte å jobbe helt"
         ],
         "correctIndex": 0,
         "sourceSentence": "For eksempel kan man bestemme seg for å ikke bruke telefonen etter klokken ti om kvelden, eller la mobilen ligge hjemme når man går på tur."
