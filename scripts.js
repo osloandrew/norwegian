@@ -2108,6 +2108,20 @@ function selectType(type) {
   handleTypeChange(type);
 }
 
+// Like Sentence Search's landing example, the Words card shows a real
+// reproducible result without making the example look like learner input.
+async function openLandingWordSearch(query) {
+  const searchBar = document.getElementById("search-bar");
+  // Keep the example separate from the learner's own input. Selecting Words
+  // first restores its normal controls; search(query) then renders the
+  // example without ever placing it in the visible field.
+  if (searchBar) searchBar.value = "";
+  selectType("words");
+  await search(query, { updateHistory: false });
+  if (searchBar) searchBar.value = "";
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+}
+
 // Visual disabled/enabled styling (grayed text, not-allowed cursor) comes
 // entirely from CSS — button:disabled and input[type="text"]:disabled in
 // styles.css — the instant .disabled flips below, so there's nothing left
