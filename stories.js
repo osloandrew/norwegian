@@ -97,6 +97,14 @@ const CSV_URL = "norwegianStories.csv";
 const STORY_CACHE_KEY = "storyDataNorwegian";
 const STORY_CACHE_TIME_KEY = "storyDataTimestampNorwegian";
 const STORY_CACHE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours, matching scripts.js
+const STORY_LIST_INITIAL_SIZE = 25;
+const STORY_LIST_BATCH_SIZE = 24;
+// A genuine title search should feel complete, not like browsing a paginated
+// catalogue. This cap still protects the initial view when a broad term
+// happens to match much of the library.
+const STORY_LIST_SHOW_ALL_MATCHES_THRESHOLD = 48;
+const STORY_READING_WORDS_PER_MINUTE_FAST = 180;
+const STORY_READING_WORDS_PER_MINUTE_LEISURELY = 145;
 let storyDataLoadPromise = null;
 const storyImagePathCache = new Map();
 
@@ -105,6 +113,25 @@ function normalizeStoryEntries(entries) {
     ...entry,
     titleNorwegian: (entry.titleNorwegian || "").trim(),
   }));
+}
+
+function formatStoryGenre(genre) {
+  const value = String(genre || "").trim();
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
+}
+
+function getStoryReadingTimeLabel(story) {
+  const wordCount = (String(story.norwegian || "").match(/[\p{L}\p{M}]+/gu) || [])
+    .length;
+  const shortestMinutes = Math.max(
+    1,
+    Math.ceil(wordCount / STORY_READING_WORDS_PER_MINUTE_FAST),
+  );
+  const longestMinutes = Math.max(
+    shortestMinutes + 1,
+    Math.ceil(wordCount / STORY_READING_WORDS_PER_MINUTE_LEISURELY),
+  );
+  return `${shortestMinutes}\u2013${longestMinutes} min read`;
 }
 
 // On a local dev/test server (not the deployed osloandrew.github.io site),
@@ -577,6 +604,11 @@ function createStoryCardLink(story) {
     titleContainer.appendChild(englishTitle);
   }
 
+  const readingTime = document.createElement("p");
+  readingTime.className = "story-reading-time";
+  readingTime.textContent = getStoryReadingTimeLabel(story);
+  titleContainer.appendChild(readingTime);
+
   const detailContainer = document.createElement("div");
   detailContainer.classList.add("stories-detail-container");
 
@@ -584,6 +616,11 @@ function createStoryCardLink(story) {
   genreDiv.classList.add("stories-genre");
   genreDiv.innerHTML =
     (story.genre && genreIcons[story.genre.toLowerCase()]) || "";
+  const genreLabel = formatStoryGenre(story.genre);
+  if (genreLabel) {
+    genreDiv.title = genreLabel;
+    genreDiv.setAttribute("aria-label", genreLabel);
+  }
 
   const cefrDiv = document.createElement("div");
   cefrDiv.classList.add("cefr-value", getStoryCefrClass(story.CEFR));
@@ -632,7 +669,10 @@ function createStoryRecommendationElement(story) {
   return wrapper;
 }
 
-async function displayStoryList(filteredStories = storyResults) {
+async function displayStoryList(
+  filteredStories = storyResults,
+  { visibleCount = STORY_LIST_INITIAL_SIZE } = {},
+) {
   showSpinner(); // Show spinner before rendering story list
   restoreSearchContainerInner();
   removeStoryHeader();
@@ -685,15 +725,6 @@ async function displayStoryList(filteredStories = storyResults) {
     return genreMatch && cefrMatch && hasNorwegian && matchesSearch;
   });
 
-  // Recommend a story weighted toward the learner's estimated ability,
-  // elevated above the regular list, and excluded from it so it isn't
-  // shown twice.
-  const recommendedStory = getRecommendedStory();
-
-  if (recommendedStory) {
-    filtered = filtered.filter((story) => story !== recommendedStory);
-  }
-
   // Ability-weighted, read-penalized, deterministic-per-seed ordering (see
   // getStoryOrder) — not a fresh shuffle on every render. Falls back to
   // the CSV's own order for any story the ranking doesn't know about,
@@ -706,6 +737,35 @@ async function displayStoryList(filteredStories = storyResults) {
       (storyOrder.get(b.titleNorwegian) ?? Infinity),
   );
 
+  const totalMatchingStories = filtered.length;
+
+  // Keep the recommendation inside the active search/filter result set.
+  // Otherwise a focused lookup could surface an unrelated story above its
+  // one matching result, which makes the library feel like it ignored the
+  // learner's choice.
+  const candidateRecommendation = getRecommendedStory();
+  const recommendedStory = filtered.includes(candidateRecommendation)
+    ? candidateRecommendation
+    : null;
+  const regularStories = recommendedStory
+    ? filtered.filter((story) => story !== recommendedStory)
+    : filtered;
+
+  // A narrow search is most useful when all of its results are immediately
+  // visible. The regular browse path is intentionally progressive so the
+  // page does not build hundreds of cards before the learner sees a choice.
+  const showAllSearchMatches =
+    Boolean(searchText) &&
+    totalMatchingStories <= STORY_LIST_SHOW_ALL_MATCHES_THRESHOLD;
+  const recommendedSlots = recommendedStory ? 1 : 0;
+  const regularVisibleCount = showAllSearchMatches
+    ? regularStories.length
+    : Math.min(
+        regularStories.length,
+        Math.max(0, visibleCount - recommendedSlots),
+      );
+  const visibleStories = regularStories.slice(0, regularVisibleCount);
+
   // ▶ NEW: populate <ul id="stories"> with <li> items (JP mirror)
   const container = document.getElementById("results-container");
   let storyList = document.getElementById("stories");
@@ -717,7 +777,7 @@ async function displayStoryList(filteredStories = storyResults) {
   storyList.innerHTML = ""; // clear old list items
   const storyItems = document.createDocumentFragment();
 
-  filtered.forEach((story) => {
+  visibleStories.forEach((story) => {
     const li = document.createElement("li");
     li.className = "stories-list-item";
     li.appendChild(createStoryCardLink(story));
@@ -747,6 +807,24 @@ async function displayStoryList(filteredStories = storyResults) {
   }
 
   container.appendChild(storyList);
+
+  if (regularVisibleCount < regularStories.length) {
+    const loadMore = document.createElement("div");
+    loadMore.className = "stories-load-more";
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "stories-load-more-button";
+    button.textContent = "Show More Stories";
+    button.addEventListener("click", () => {
+      displayStoryList(filteredStories, {
+        visibleCount: visibleCount + STORY_LIST_BATCH_SIZE,
+      });
+    });
+
+    loadMore.appendChild(button);
+    container.appendChild(loadMore);
+  }
 
   // show list / hide reader (unchanged behavior)
   const storyViewer = document.getElementById("story-viewer");
