@@ -222,6 +222,77 @@ assert.equal(value(nominal.forms, "Definite singular"), "den amerikanske bisonen
 assert.equal(value(nominal.forms, "Indefinite plural"), "amerikanske bisoner");
 assert.equal(value(nominal.forms, "Definite plural"), "de amerikanske bisonene");
 
+// A single citation form with a fixed preposition ahead of the noun still
+// gets the full declension synthesized (nothing here signals the idiom is
+// closed to just one or two forms) — the article belongs immediately
+// before the noun phrase, not at the very start of the rendered string, so
+// naively prepending it at position 0 used to produce "en i bunn" (article
+// in front of the preposition) instead of "i en bunn" (article in front of
+// "bunn", where it belongs).
+const singleVariantPrepositionalEntry = {
+  ord: "i bunnen",
+  gender: "expression",
+  definisjon: "som grunn, grunnlag (under noe annet)",
+  eksempel: "I bunn handler denne saken om rettferdighet.",
+};
+const singleVariantPrepositional = await context.ExpressionPatterns.getAnalysis(
+  singleVariantPrepositionalEntry,
+);
+assert.equal(
+  value(singleVariantPrepositional.forms, "Indefinite singular"),
+  "i en bunn",
+);
+assert.equal(
+  value(singleVariantPrepositional.forms, "Definite singular"),
+  "i den bunnen",
+);
+assert.equal(
+  value(singleVariantPrepositional.forms, "Indefinite plural"),
+  "i bunner",
+);
+assert.equal(
+  value(singleVariantPrepositional.forms, "Definite plural"),
+  "i de bunnene",
+);
+
+// But the REAL dictionary entry authors both the indefinite and definite
+// singular explicitly ("i bunn, i bunnen") — every variant selects the same
+// noun lemma ("bunn"), which means the author already spelled out the exact
+// forms this frozen idiom is valid in. That enumeration is the fixed,
+// complete answer; synthesizing further forms would fabricate a plural
+// ("i bunner", "i de bunnene") nobody would ever use for this meaning.
+const closedIdiomEntry = {
+  ord: "i bunn, i bunnen",
+  gender: "expression",
+  definisjon: "som grunn, grunnlag (under noe annet)",
+  eksempel: "I bunn handler denne saken om rettferdighet.",
+};
+const closedIdiom = await context.ExpressionPatterns.getAnalysis(closedIdiomEntry);
+assert.equal(closedIdiom.forms.sourceType, "expression-ordbank");
+assert.deepEqual(
+  alternatives(value(closedIdiom.forms, "Fixed expression")),
+  ["i bunn", "i bunnen"],
+);
+
+// "en god del" (a good deal / quite a lot) is a quantifier idiom whose
+// citation form already contains its own literal "en" before the adjective
+// + noun phrase — inserting the row's own article there duplicated it
+// ("en en god del"), and the definite/plural rows mixed the still-literal
+// "en" with a freshly inserted "den"/"de" ("en den gode delen"). Unlike "i
+// bunn, i bunnen" there's only one authored variant here, so there's no
+// second citation form to base a definite/plural reading on either way —
+// this must just stay the fixed, literal quantifier phrase.
+const quantifierIdiomEntry = {
+  ord: "en god del",
+  gender: "expression",
+  definisjon: "nokså mange eller mye",
+  eksempel: "Det var en god del folk på konserten i går.",
+};
+const quantifierIdiom = await context.ExpressionPatterns.getAnalysis(
+  quantifierIdiomEntry,
+);
+assert.equal(value(quantifierIdiom.forms, "Fixed expression"), "en god del");
+
 const easyEntry = {
   ord: "lett som en plett",
   gender: "expression",
@@ -234,6 +305,90 @@ assert.match(easyHighlight, />lett<\/span>/u);
 assert.match(easyHighlight, />som<\/span>/u);
 assert.match(easyHighlight, />en<\/span>/u);
 assert.match(easyHighlight, />plett<\/span>/u);
+
+// "en"/"et"/"ei" (indefinite article) happen to also be the imperative of
+// the rare verbs "ene"/"ete"/"eie" (unite/eat/own), and a noun in its bare
+// citation form can itself collide with a different verb's imperative
+// ("foss" the waterfall vs. "fosse", to gush). Both must lose to the
+// obvious noun-phrase reading here, and the expression's only conjugating
+// head must be "snakke"/"prate" — not "ene" or "fosse".
+const waterfallEntry = {
+  ord: "snakke som en foss, prate som en foss",
+  gender: "expression",
+  definisjon: "snakke mye og fort",
+  eksempel: "Hun kunne snakke som en foss og stoppet aldri.",
+};
+const waterfall = await context.ExpressionPatterns.getAnalysis(waterfallEntry);
+assert.equal(waterfall.matcher.test(waterfallEntry.eksempel), true);
+for (const pattern of waterfall.patterns) {
+  // "en" here is fixed grammar (the article), not a substitutable slot like
+  // "noen"/"noe" — it stays a plain, unselected lexeme (matched by literal
+  // text equality, same as "som") rather than a `type: "placeholder"` node.
+  // A placeholder is matched by blindly consuming whatever token sits at
+  // the current search position, which is fine for a genuinely free slot
+  // but wrong for a fixed word — it previously let the search swallow the
+  // wrong token entirely when the article opened the citation form with no
+  // anchor word before it (see the "et avsluttet kapittel" case below), and
+  // it must print as plain "en" in Word Forms, not "[en]".
+  const enNode = pattern.nodes.find((node) => node.normalized === "en");
+  assert.equal(enNode?.type, "lexeme");
+  assert.equal(enNode?.selected, undefined);
+  const fossNode = pattern.nodes.find((node) => node.normalized === "foss");
+  assert.notEqual(fossNode?.selected?.wordClass, "verb");
+}
+assert.match(
+  waterfall.matcher.highlight(waterfallEntry.eksempel),
+  />en<\/span>/u,
+);
+// Both comma-separated variants are equally valid dictionary entries; the
+// shared example sentence only ever attests "snakke" literally, but "prate"
+// must still get its own conjugation rather than silently vanishing.
+assert.deepEqual([...waterfall.forms.expressionHeads], ["snakke", "prate"]);
+assert.deepEqual(alternatives(value(waterfall.forms, "Present")), [
+  "snakker som en foss",
+  "prater som en foss",
+]);
+
+// "et" opens this citation form with no anchor word before it (unlike "en"
+// in "snakke som en foss", which comes after the real head verb) — the case
+// that actually exposed the placeholder blind-consumption bug: the search
+// swallowed the sentence's first word entirely as "et", then bridged the
+// gap to "avsluttet" through ordinary gap tolerance, so "et" was never
+// actually matched or highlighted at its real position. "avsluttet" is
+// also a past participle used as an adjective here ("a closed chapter"),
+// not a finite verb — Norsk Ordbank has no separate adjective lexeme for
+// it, so without dropping the verb reading explicitly, it was the only
+// candidate left standing and produced a nonsense conjugation table for a
+// fixed noun phrase that doesn't inflect at all.
+const closedChapterEntry = {
+  ord: "et avsluttet kapittel, et tilbakelagt kapittel",
+  gender: "expression",
+  definisjon: "noe en har gjort seg ferdig med",
+  eksempel: "Forholdet vårt er et avsluttet kapittel.",
+};
+const closedChapter = await context.ExpressionPatterns.getAnalysis(
+  closedChapterEntry,
+);
+assert.equal(closedChapter.matcher.test(closedChapterEntry.eksempel), true);
+for (const pattern of closedChapter.patterns) {
+  const etNode = pattern.nodes.find((node) => node.normalized === "et");
+  assert.equal(etNode?.type, "lexeme");
+  assert.equal(etNode?.selected, undefined);
+  const participleNode = pattern.nodes.find(
+    (node) => node.normalized === "avsluttet" || node.normalized === "tilbakelagt",
+  );
+  assert.notEqual(participleNode?.selected?.wordClass, "verb");
+}
+assert.deepEqual(
+  alternatives(value(closedChapter.forms, "Fixed expression")),
+  ["et avsluttet kapittel", "et tilbakelagt kapittel"],
+);
+const closedChapterHighlight = closedChapter.matcher.highlight(
+  closedChapterEntry.eksempel,
+);
+assert.match(closedChapterHighlight, />et<\/span>/u);
+assert.match(closedChapterHighlight, />avsluttet<\/span>/u);
+assert.match(closedChapterHighlight, />kapittel<\/span>/u);
 
 // This is a compiler-wide rule, not an exception for "lett som en plett": an
 // authored generic "en" is highlighted when that literal token is present,

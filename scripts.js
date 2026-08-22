@@ -1821,7 +1821,23 @@ async function search(queryOverride = null, options = {}) {
       // Update URL and title for a single result
       const singleResult = matchingResults[0];
       if (wordSearchResolution.reason === "exact") {
-        updateURL(null, type, selectedPOS, selectedCEFR, null, singleResult.ord);
+        // renderWordDefinition (which reads this `word` param back out on a
+        // fresh load/refresh) matches it against each individual
+        // comma-separated variant in a CSV row's `ord` field, not the row's
+        // full raw value — mirroring handleCardClick's convention below.
+        // Storing the whole multi-variant string here ("et avsluttet
+        // kapittel, et tilbakelagt kapittel") meant it could never match any
+        // single variant on the way back in, so refreshing a single-result
+        // page for any entry with comma-separated variants always landed on
+        // "No Definition Found".
+        updateURL(
+          null,
+          type,
+          selectedPOS,
+          selectedCEFR,
+          null,
+          singleResult.ord.split(",")[0].trim(),
+        );
       }
       // Display this single result directly
       displaySearchResults([singleResult], query); // Display only this single result
