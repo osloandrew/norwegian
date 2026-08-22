@@ -4139,6 +4139,14 @@ function renderClozeGameUI(
     blank +
     clozeTarget.sentence.slice(clozeTarget.endIndex);
   const promptLengthClass = getGamePromptLengthClass(sentenceWithBlank);
+  // Typed-cloze gives no multiple-choice options to lean on, so unlike the
+  // multiple-choice cloze branch it shows the sentence translation up front
+  // as a semantic anchor, in the same spot/markup the post-answer reveal
+  // already uses (see the isCloze branch in handleTranslationClick) so the
+  // English visibility toggle keeps working without extra wiring.
+  const clozeSentenceTranslation = useTypedRecall
+    ? getGameSentenceTranslation(wordObj, clozeTarget.sentenceIndex)
+    : "";
 
   // Rendered by renderStats() below -- see the matching comment in
   // renderWordGameUI.
@@ -4183,7 +4191,17 @@ function renderClozeGameUI(
       <h2 id="cloze-sentence">${escapeGameHTML(sentenceWithBlank)}</h2>
       </div>
 
-      <div class="game-cefr-spacer"></div>
+      <div class="game-cefr-spacer">
+        ${
+          clozeSentenceTranslation
+            ? `<div class="sentence-pair">
+          <p class="game-english-translation" style="display: ${
+            isEnglishVisible ? "inline-block" : "none"
+          };">${clozeSentenceTranslation}</p>
+        </div>`
+            : ""
+        }
+      </div>
     </div>
 
     <!-- Answer Section -->
