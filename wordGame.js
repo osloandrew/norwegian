@@ -747,9 +747,18 @@ function updateRecentAnswers(isCorrect, wordObj) {
   updateAbilityScore(wordObj, isCorrect);
 }
 
-function getWordDifficultyAnchor(entry) {
+// Normalizes to one of CEFR_DIFFICULTY_ANCHOR's five keys, falling back to
+// B1 for anything missing/unrecognized — shared by getWordDifficultyAnchor
+// (the numeric anchor) and countEntriesByCefr (per-band draw-pool tallies,
+// see NEW_WORD_FLOOR_WEIGHT_BUDGET) so the two can never disagree about
+// which band a given entry belongs to.
+function getWordCefrLabel(entry) {
   const cefr = String(entry?.CEFR ?? "").trim().toUpperCase();
-  return CEFR_DIFFICULTY_ANCHOR[cefr] ?? CEFR_DIFFICULTY_ANCHOR.B1;
+  return CEFR_DIFFICULTY_ANCHOR[cefr] !== undefined ? cefr : "B1";
+}
+
+function getWordDifficultyAnchor(entry) {
+  return CEFR_DIFFICULTY_ANCHOR[getWordCefrLabel(entry)];
 }
 
 // Elo/logistic-style update: predicts the probability the learner gets a
@@ -1123,6 +1132,19 @@ function getTypedRecallProbability(wordObj, mode) {
   // New and relearning words stay supported by choices. This also makes the
   // feature a no-op when durable study data is unavailable.
   if (!snapshot || snapshot.queue === "new" || snapshot.queue === "relearning") {
+    return 0;
+  }
+
+  // A word that's failed unusually often relative to how many times it's
+  // actually been tested (see SpacedRepetition.isChronicallyStruggling)
+  // stays in scaffolded multiple-choice/cloze form regardless of its
+  // current strength reading — strength can bounce back up quickly after
+  // just one lucky correct guess (scheduleCorrect's "learning" branch), so
+  // a chronic pattern wouldn't otherwise show up here until strength
+  // dropped again too. Free play only: a structured round (daily quest/
+  // bonus) that forces a typed question via forceTypedReverse bypasses this
+  // function entirely, matching those rounds' own fixed-recipe design.
+  if (window.SpacedRepetition?.isChronicallyStruggling?.(snapshot.record)) {
     return 0;
   }
 
@@ -5057,26 +5079,73 @@ const STRENGTH_WEIGHT_EXPONENT = 2; // squared — retune here if the curve need
 // right at the estimated ability gets full weight; one further away fades
 // out smoothly rather than being excluded outright.
 //
-// The floor keeps that falloff from ever reaching zero. Without it, a word
-// two or more CEFR bands from a learner's ability (e.g. an A1 word for a
-// B2/C learner) gets a weight on the order of 1e-6 relative to an
-// on-level word — not merely unlikely, but never drawn in practice. Real
-// vocabulary gaps at other bands would then never surface again once
-// ability climbs. NEW_WORD_ABILITY_FLOOR is expressed relative to a
-// same-level word's weight of 1, and is only ever applied to the `new`
-// queue (see getGameWordWeight) — words already due for review don't need
-// it, since their turn is earned by scheduling, not by CEFR proximity.
-const NEW_WORD_ABILITY_FLOOR = 0.03;
+// The falloff needs some rescue mechanism to keep it off exactly zero —
+// CEFR tags are an approximate, hand-applied "v1 simplification" (see
+// CEFR_DIFFICULTY_ANCHOR's comment), so a word mislabeled as much closer or
+// further from a learner's ability than it really is should still have some
+// path back into rotation, rather than becoming permanently unreachable
+// once ability drifts past it.
+//
+// A flat per-word floor turns out to be the wrong shape for that, though:
+// this dictionary's CEFR bands range from 889 words (A1) to 14,176 (B2), so
+// the same per-word floor produces wildly different AGGREGATE leakage
+// depending on which distant band happens to be huge. Concretely, a flat
+// floor small enough to keep a B2 learner's rare stray A1 word negligible
+// was still large enough that a brand-new A1 learner saw a 2+-band-away
+// word — drawn overwhelmingly from B2's 14,176-word pool, and often as a
+// cloze sentence with no translation shown and likely-harder surrounding
+// vocabulary too — in essentially every 50-word round. That's a real risk
+// of a discouraging first impression at exactly the point a new learner is
+// most likely to churn, not a rare edge case.
+//
+// NEW_WORD_FLOOR_WEIGHT_BUDGET fixes that by normalizing per band instead
+// of per word: it's the total rescue weight a whole distant CEFR band gets
+// to share, split evenly across however many words are actually in that
+// band right now (see countEntriesByCefr). A big band's per-word floor
+// shrinks accordingly, so its aggregate contribution to the draw stays
+// roughly the same small size as a small band's, instead of scaling up
+// with the band's word count. It's expressed as a weight budget (not a
+// 0-1 fraction like the old flat floor was) since "how much floor does one
+// word get" now depends on the band it's in — see getAbilityProximityWeight.
+//
+// Deliberately *not* direction-aware (no lower floor above ability, higher
+// below, or vice versa) — 2+ CEFR bands away is only a rare mislabeling
+// edge case in either direction, and treating it as routine has real costs
+// both ways: for an advanced learner, an unseen A1 word wastes a session
+// slot on something they almost certainly already know; for a new learner,
+// an unseen C-level word risks the discouraging-first-impression problem
+// above. Keeping the floor low in both directions costs nothing real: a
+// word that's legitimately too far away now will re-enter ordinary
+// (non-floor) reach once ability has actually drifted closer to it.
+const NEW_WORD_FLOOR_WEIGHT_BUDGET = 1.5;
 
-function getAbilityProximityWeight(entry) {
+// Tally of how many entries in the current candidate pool share each CEFR
+// label, keyed the same way getWordCefrLabel normalizes it. Computed once
+// per weighted draw (see pickPrioritizedGameWord) rather than per entry,
+// since every entry in the same band needs the identical count to split
+// NEW_WORD_FLOOR_WEIGHT_BUDGET evenly.
+function countEntriesByCefr(entries) {
+  const counts = {};
+
+  for (const entry of entries) {
+    const label = getWordCefrLabel(entry);
+    counts[label] = (counts[label] || 0) + 1;
+  }
+
+  return counts;
+}
+
+function getAbilityProximityWeight(entry, cefrCounts) {
   if (abilityScore === null) return 1;
 
   const distance = getWordDifficultyAnchor(entry) - abilityScore;
   const gaussian = Math.exp(
     -(distance * distance) / (2 * ABILITY_PROXIMITY_SIGMA * ABILITY_PROXIMITY_SIGMA),
   );
+  const bandSize = cefrCounts?.[getWordCefrLabel(entry)] || 1;
+  const perWordFloor = NEW_WORD_FLOOR_WEIGHT_BUDGET / bandSize;
 
-  return Math.max(NEW_WORD_ABILITY_FLOOR, gaussian);
+  return Math.max(perWordFloor, gaussian);
 }
 
 // useAbilityWeight is false for queues built from words the learner has
@@ -5085,7 +5154,13 @@ function getAbilityProximityWeight(entry) {
 // being "off-level" would let it lose out indefinitely to due words closer
 // to current ability, undermining spaced repetition. Ability proximity only
 // applies when choosing what unseen word to introduce next (queue "new").
-function getGameWordWeight(entry, { useAbilityWeight = true } = {}) {
+// cefrCounts is only meaningful (and only ever passed) alongside
+// useAbilityWeight — see pickPrioritizedGameWord, the sole caller that
+// computes it.
+function getGameWordWeight(
+  entry,
+  { useAbilityWeight = true, cefrCounts = null } = {},
+) {
   const strength = window.WordStrengthAPI?.get?.(entry) ?? 0;
   const strengthWeight = Math.pow(
     STRENGTH_WEIGHT_CEILING - strength,
@@ -5093,7 +5168,7 @@ function getGameWordWeight(entry, { useAbilityWeight = true } = {}) {
   );
 
   return useAbilityWeight
-    ? strengthWeight * getAbilityProximityWeight(entry)
+    ? strengthWeight * getAbilityProximityWeight(entry, cefrCounts)
     : strengthWeight;
 }
 
@@ -5123,9 +5198,17 @@ function pickWeightedGameWord(entries, weights) {
 }
 
 function pickPrioritizedGameWord(eligibleEntries, { useAbilityWeight = true } = {}) {
+  // Only needed (and only worth the pass over eligibleEntries) when ability
+  // weighting is actually in play — see getAbilityProximityWeight.
+  const cefrCounts = useAbilityWeight
+    ? countEntriesByCefr(eligibleEntries)
+    : null;
+
   return pickWeightedGameWord(
     eligibleEntries,
-    eligibleEntries.map((entry) => getGameWordWeight(entry, { useAbilityWeight })),
+    eligibleEntries.map((entry) =>
+      getGameWordWeight(entry, { useAbilityWeight, cefrCounts }),
+    ),
   );
 }
 
