@@ -132,6 +132,12 @@
     "uten",
     "ved",
   ]);
+  // The three indefinite articles are each also, by coincidence, the
+  // imperative of a real (if rare) verb: "en"/"ene" (unite), "et"/"ete"
+  // (eat), "ei"/"eie" (own). Every place that disambiguates the article
+  // reading from the verb-imperative reading needs to check all three, not
+  // just "en" — see the two loops below.
+  const INDEFINITE_ARTICLES = new Set(["en", "et", "ei"]);
   const cache = new WeakMap();
   const primitiveCache = new Map();
 
@@ -477,9 +483,21 @@
     ) {
       return compatible.find(({ candidate }) => candidate.wordClass === "verb");
     }
+    // A word right after a placeholder is preferred as a verb (a finite verb
+    // that "fronted" past a variable slot), but only when nothing else fits
+    // — a placeholder like "en"/"et"/"ei" (the indefinite article) is always
+    // directly followed by a noun or an adjective modifying one, and
+    // preferring a coincidental verb homograph there is wrong. Without this
+    // guard, "en foss" ("a waterfall") had "foss" read as the imperative of
+    // the rare verb "fosse" (to gush), and "et avsluttet kapittel" ("a
+    // closed chapter") had the participial adjective "avsluttet" read as a
+    // finite verb — both purely because they followed the article
+    // placeholder.
     if (
       pattern.nodes[match.nodeIndex - 1]?.type === "placeholder" &&
-      compatible.some(({ candidate }) => candidate.wordClass === "verb")
+      compatible.some(({ candidate }) => candidate.wordClass === "verb") &&
+      !compatible.some(({ candidate }) => candidate.wordClass === "noun") &&
+      !compatible.some(({ candidate }) => candidate.wordClass === "adjective")
     ) {
       return compatible.find(({ candidate }) => candidate.wordClass === "verb");
     }
@@ -629,6 +647,29 @@
       }
     }
 
+    // A comma-separated CSV entry ("snakke som en foss, prate som en foss")
+    // shares a single example sentence across every variant, and that
+    // example can only ever attest one of them literally — here, "snakke".
+    // The propagation above only carries a selection to a node with the
+    // SAME surface form in another pattern (it correctly fills in "som"/
+    // "en"/"foss" this way), so it never touches "prate": no pattern has
+    // "prate" as literal text anywhere. Left unfixed, "prate"'s own head
+    // verb never gets selected at all, and its conjugation silently drops
+    // out of the Word Forms table even though it's an equally valid entry.
+    // The citation form itself — the bare infinitive heading the variant —
+    // is unambiguous evidence on its own, independent of real usage.
+    for (const pattern of patterns) {
+      const head = pattern.nodes[0];
+      if (!head || head.type !== "lexeme" || head.selected) continue;
+      const citationForm = head.candidates?.find(
+        (candidate) =>
+          candidate.wordClass === "verb" &&
+          candidate.lemma === head.normalized &&
+          !candidate.estimated,
+      );
+      if (citationForm) head.selected = citationForm;
+    }
+
     // Alternatives commonly differ only in one fixed preposition.  If the
     // primary example establishes a bounded gap for one alternative, carry
     // that structural evidence to an otherwise parallel alternative instead
@@ -725,9 +766,18 @@
           // expressions.  Looking them up as open-class homographs can turn
           // "min" into a form of the verb "mine" and manufacture nonsense
           // such as "du store miner/minte". A literal opening "noen"/"noe"
-          // gets the same treatment for the same reason.
+          // gets the same treatment for the same reason. The infinitive
+          // marker "å" gets it too: it's also, by rare coincidence, a real
+          // noun meaning "creek/stream" — accepting that reading turned "for
+          // å si det med" ("so to speak") into a nonsense noun declension
+          // ("for en å si det med", "for å-er si det med") once a lone
+          // surviving real candidate started being trusted outright (see the
+          // exact-match fallback in chooseCandidate). "å" is always the
+          // infinitive marker in these citation forms, never the creek.
           candidates:
-            POSSESSIVE_FORMS.has(token.normalized) || isLiteralOpeningVariable
+            POSSESSIVE_FORMS.has(token.normalized) ||
+            isLiteralOpeningVariable ||
+            token.normalized === "å"
               ? []
               : await getCandidates(token, index, includeReverse),
           maxGapBefore: 0,
@@ -736,19 +786,33 @@
     }
     // A preposition (this set deliberately excludes the infinitive marker
     // "å") is never directly followed by a finite verb form -- only by a
-    // noun phrase, or by "å" + infinitive. So a verb candidate surviving
-    // here can only be a spurious homograph: e.g. the indefinite article
+    // noun phrase, or by "å" + infinitive. Same for an indefinite article:
+    // it's always followed by a noun phrase (optionally via an adjective),
+    // never a finite verb. So a verb candidate surviving in either position
+    // can only be a spurious homograph: e.g. the indefinite article
     // "en"/"et"/"ei" is also, by coincidence, the imperative of the verbs
     // "ene"/"ete"/"eie" (unite/eat/own), which previously let "med en
     // gang" get read as an imperative "en" and generate a nonsense verb
-    // conjugation table. Dropping the verb reading here mirrors the
+    // conjugation table. A past participle used attributively right after
+    // the article ("et avsluttet kapittel", "a closed chapter") hits the
+    // same problem from the other side: Norsk Ordbank has no separate
+    // adjective lexeme for a participle like "avsluttet" (only the verb's
+    // own participle slot), so the competing adjective reading is a
+    // low-confidence guess that the exact-match filter drops, leaving the
+    // real verb candidate to win by default with nothing left to compete
+    // against it. Dropping the verb reading here mirrors the
     // POSSESSIVE_FORMS handling above: closed-class words in a fixed
     // grammatical slot must not be looked up as open-class homographs.
     for (let index = 1; index < nodes.length; index++) {
       const node = nodes[index];
       const previous = nodes[index - 1];
       if (node?.type !== "lexeme" || previous?.type !== "lexeme") continue;
-      if (!PREPOSITIONS.has(previous.normalized)) continue;
+      if (
+        !PREPOSITIONS.has(previous.normalized) &&
+        !INDEFINITE_ARTICLES.has(previous.normalized)
+      ) {
+        continue;
+      }
       node.candidates = (node.candidates || []).filter(
         (candidate) => candidate.wordClass !== "verb",
       );
@@ -768,7 +832,7 @@
     }
     for (let index = 0; index < nodes.length - 1; index++) {
       if (
-        nodes[index]?.normalized === "en" &&
+        INDEFINITE_ARTICLES.has(nodes[index]?.normalized) &&
         PREPOSITIONS.has(nodes[index + 1]?.normalized)
       ) {
         nodes[index] = {
@@ -782,7 +846,7 @@
       }
     }
     for (let index = 0; index < nodes.length; index++) {
-      if (nodes[index]?.normalized !== "en") continue;
+      if (!INDEFINITE_ARTICLES.has(nodes[index]?.normalized)) continue;
       const previous = nodes[index - 1];
       const next = nodes[index + 1];
       const previousIsVerb = previous?.candidates?.some(
@@ -796,16 +860,48 @@
         nextCandidateClasses.has("verb") &&
         !nextCandidateClasses.has("noun") &&
         !nextCandidateClasses.has("adjective");
-      const nextIsInflectedNoun = next?.candidates?.some(
-        (candidate) =>
-          candidate.wordClass === "noun" &&
-          candidate.lemma !== next.normalized,
-      );
-      if (
+      // An article directly in front of a noun phrase — a bare or inflected
+      // noun, or an adjective (participial or otherwise) modifying one — is
+      // the indefinite article; that's true regardless of what precedes it.
+      // Narrowing this to only inflected nouns (and only when the previous
+      // word was itself a verb) missed the far more common "en/et/ei [noun
+      // or adjective]" shape: "som" isn't a verb or preposition ("snakke som
+      // en foss", "lett som en plett"), a bare singular noun like "foss" has
+      // lemma === surface form ("et avsluttet kapittel" — "kapittel" isn't
+      // inflected either), and a past participle used adjectivally
+      // ("avsluttet") carries both a verb AND an adjective candidate, so it
+      // isn't "unambiguously a verb" the way nextIsVerb requires. None of
+      // that fired the old check, and the article kept resolving to the
+      // imperative of its rare verb homograph ("ene"/"ete"/"eie") instead.
+      const nextIsNounPhraseHead =
+        nextCandidateClasses.has("noun") || nextCandidateClasses.has("adjective");
+      if (nextIsNounPhraseHead) {
+        // Unlike the generic-placeholder cases below (a substitutable
+        // stand-in for a person, e.g. "følge en til graven" -> "følge ham
+        // til graven"), the article before a noun is fixed grammar: always
+        // exactly that single word, never dropped or swapped for something
+        // else — so it must NOT become a `type: "placeholder"` node. A
+        // placeholder is matched by blindly consuming whatever token sits at
+        // the current search position (its content is only checked much
+        // later, for highlighting purposes), which is fine for a genuinely
+        // free slot but wrong here: when the article is the very first word
+        // of the citation form ("et avsluttet kapittel" has no anchor word
+        // before it), the search greedily swallowed whatever word happened
+        // to be first in the real sentence, then bridged the resulting gap
+        // to reach "avsluttet" through ordinary gap tolerance — so "et"
+        // never actually matched the literal word "et" at all. Clearing its
+        // candidates instead keeps it a normal, unselected lexeme node,
+        // which is matched by literal text equality just like "som" already
+        // is, and prints as plain "en"/"et"/"ei" in Word Forms (see the
+        // generic `replacements.get(index) || [node.text]` fallback).
+        nodes[index] = {
+          ...nodes[index],
+          candidates: [],
+        };
+      } else if (
         (index === nodes.length - 1 &&
           (previousIsVerb || previousIsPreposition)) ||
-        nextIsVerb ||
-        (previousIsVerb && nextIsInflectedNoun)
+        nextIsVerb
       ) {
         nodes[index] = {
           type: "placeholder",
@@ -1249,12 +1345,58 @@
       nounNodes[nounNodes.length - 1];
     const nounParadigm = head.node.selected.paradigm;
     if (!nounParadigm?.slots?.length) return null;
+    // When every authored citation variant selects the very same noun
+    // lemma, the author already spelled out the exact forms this idiom is
+    // valid in (e.g. "i bunn, i bunnen" — the indefinite and definite
+    // singular, explicitly) — that enumeration is the fixed, complete
+    // answer, not a seed to derive a fuller paradigm from. "i bunn" (at the
+    // core) is frozen: synthesizing a plural ("i bunner", "i de bunnene")
+    // would fabricate a form nobody would ever use for this meaning.
+    // Falling back to null here routes to the generic literal-variant
+    // display in createForms instead.
+    if (analysis.patterns.length > 1) {
+      const nounLemmas = new Set(
+        analysis.patterns.flatMap((otherPattern) =>
+          otherPattern.nodes
+            .filter((node) => node.selected?.wordClass === "noun")
+            .map((node) => node.selected.lemma),
+        ),
+      );
+      if (nounLemmas.size === 1) return null;
+    }
     const adjectiveNodes = pattern.nodes
       .map((node, index) => ({ node, index }))
       .filter(
         ({ node, index }) =>
           index < head.index && node.selected?.wordClass === "adjective",
       );
+    const leadingDeterminers = new Set(["en", "ei", "et", "den", "det", "de"]);
+    // The article/determiner belongs immediately before the noun phrase
+    // (the leading adjective, if any, otherwise the noun itself) — not
+    // necessarily at the very start of the rendered string.
+    const phraseStartIndex =
+      adjectiveNodes.length > 0
+        ? Math.min(...adjectiveNodes.map(({ index }) => index))
+        : head.index;
+    // "en god del" (a good deal/quite a lot) already has a literal, fixed
+    // "en" of its own before the adjective+noun phrase — inserting ANOTHER
+    // article there (see below) produced "en en god del", and swapping in
+    // "den"/"de" for the other rows alongside the still-literal "en" gave
+    // "en den gode delen". A quantifier idiom like this doesn't decline in
+    // its idiomatic sense at all ("den gode delen" just means "the part",
+    // losing the "a lot of" meaning entirely), and — unlike "i bunn, i
+    // bunnen" — there's no second authored variant here to show what a
+    // "definite" reading should even look like. When the citation form
+    // already contains its own literal article anywhere before the phrase,
+    // bail out entirely rather than guess: falling back to null routes to
+    // the generic literal fixed-expression display in createForms.
+    if (
+      pattern.nodes
+        .slice(0, phraseStartIndex)
+        .some((node) => !node.selected && leadingDeterminers.has(node.normalized))
+    ) {
+      return null;
+    }
     const gender = nounParadigm.gender || "en";
     const article = String(gender).split("-")[0] || "en";
     const rows = [
@@ -1263,7 +1405,17 @@
       { label: "Indefinite plural", nounSlot: 2, adjectiveSlot: 4, prefix: "" },
       { label: "Definite plural", nounSlot: 3, adjectiveSlot: 4, prefix: "de" },
     ];
-    const leadingDeterminers = new Set(["en", "ei", "et", "den", "det", "de"]);
+    // Prepending the article to position 0 unconditionally only happened to
+    // work when the noun phrase already WAS the whole expression
+    // ("amerikansk bison" -> "en amerikansk bison"); a fixed prefix ahead of
+    // it, like the preposition in "i bunn" (at the core), instead produced
+    // "en i bunn" — the article landing in front of the preposition rather
+    // than in front of "bunn". insertBefore places it at the noun phrase's
+    // own position regardless of what precedes it, giving "i en bunn"
+    // instead.
+    const hasOwnLeadingDeterminer = leadingDeterminers.has(
+      pattern.nodes[phraseStartIndex]?.normalized,
+    );
     const forms = rows.map((row) => {
       const replacements = new Map();
       replacements.set(head.index, nounParadigm.slots[row.nounSlot] || []);
@@ -1273,12 +1425,17 @@
           adjective.node.selected.paradigm.slots[row.adjectiveSlot] || [],
         );
       }
-      let values = renderPatternValues(pattern, replacements, analysis.entry);
-      values = values.map((value) => {
-        const words = value.split(" ");
-        if (leadingDeterminers.has(normalize(words[0]))) words.shift();
-        return [row.prefix, words.join(" ")].filter(Boolean).join(" ");
-      });
+      const insertBefore =
+        row.prefix && !hasOwnLeadingDeterminer
+          ? new Map([[phraseStartIndex, [row.prefix]]])
+          : null;
+      const values = renderPatternValues(
+        pattern,
+        replacements,
+        analysis.entry,
+        null,
+        insertBefore,
+      );
       return { label: row.label, value: displayValue(values) };
     });
     return { wordClass: "expression", forms };
@@ -1315,9 +1472,22 @@
     };
   }
 
-  function getSourceMetadata(analysis) {
+  function getSourceMetadata(analysis, relevantWordClasses = null) {
+    // A node can in principle end up with a real, non-estimated selection
+    // that the chosen forms-builder never actually reads (a word class the
+    // active table doesn't render). Restricting to the word class(es) the
+    // active builder actually used keeps expressionHeads (and the
+    // "Component forms for X" credit line it feeds) limited to components
+    // that genuinely appear inflected in the displayed table, instead of
+    // also crediting bystanders.
     const selected = analysis.patterns.flatMap((pattern) =>
-      pattern.nodes.map((node) => node.selected).filter(Boolean),
+      pattern.nodes
+        .map((node) => node.selected)
+        .filter(
+          (candidate) =>
+            candidate &&
+            (!relevantWordClasses || relevantWordClasses.has(candidate.wordClass)),
+        ),
     );
     if (selected.length === 0) {
       return {
@@ -1347,6 +1517,7 @@
       ),
     );
     let result;
+    let relevantWordClasses = null;
     const hasIndependentVerb = analysis.patterns.some((pattern) =>
       pattern.nodes.some(
         (node) =>
@@ -1355,10 +1526,16 @@
     );
     if (hasIndependentVerb) {
       result = createVerbExpressionForms(analysis);
+      relevantWordClasses = new Set(["verb"]);
     } else if (selectedClasses.has("noun")) {
       result = createNominalExpressionForms(analysis);
+      // The nominal builder also declines a leading adjective in agreement
+      // with the noun (e.g. "amerikansk" in "amerikansk bison" -> "den
+      // amerikanske bisonen"), so it's credited here too.
+      relevantWordClasses = new Set(["noun", "adjective"]);
     } else if (selectedClasses.has("adjective")) {
       result = createAdjectiveExpressionForms(analysis);
+      relevantWordClasses = new Set(["adjective"]);
     }
     result ||= {
       wordClass: "expression",
@@ -1369,7 +1546,7 @@
         },
       ],
     };
-    return { ...result, ...getSourceMetadata(analysis) };
+    return { ...result, ...getSourceMetadata(analysis, relevantWordClasses) };
   }
 
   function createSearchAlternatives(patterns) {
