@@ -449,6 +449,76 @@ button:disabled i {
   padding: 25px;
 }
 
+/* First-visit data loading is long enough to be noticeable on slower
+   connections. This reserves the space occupied by the destination instead
+   of showing a blank page, while the small shimmer signals active progress
+   without competing with the page's primary heading. */
+.vocabulary-loading-shell {
+  min-height: 235px;
+  padding: 34px;
+  text-align: center;
+}
+
+.vocabulary-loading-shell h2 {
+  color: var(--color-heading);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 22px;
+  margin: 0;
+}
+
+.vocabulary-loading-shell .vocabulary-loading-description {
+  color: var(--color-text-secondary);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 15px;
+  margin: 10px 0 24px;
+}
+
+.vocabulary-loading-skeleton {
+  display: grid;
+  gap: 12px;
+  margin: 0 auto;
+  max-width: 440px;
+}
+
+.vocabulary-loading-skeleton-line {
+  animation: vocabulary-loading-shimmer 1.4s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-light) 20%,
+    #e7eef6 50%,
+    var(--color-bg-light) 80%
+  );
+  background-size: 200% 100%;
+  border-radius: 999px;
+  height: 14px;
+}
+
+.vocabulary-loading-skeleton-line:nth-child(2) {
+  animation-delay: 0.12s;
+  width: 84%;
+}
+
+.vocabulary-loading-skeleton-line:nth-child(3) {
+  animation-delay: 0.24s;
+  width: 68%;
+}
+
+@keyframes vocabulary-loading-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vocabulary-loading-skeleton-line {
+    animation: none;
+  }
+}
+
 .definition-content {
   display: grid;
   column-gap: 10px;
