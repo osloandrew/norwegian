@@ -297,9 +297,9 @@
         "prompt": "Hvor lenge siden hadde den siste bussen gått da Jonas kom til holdeplassen?",
         "options": [
           "Ti minutter",
+          "Fem minutter",
           "Tjue minutter",
-          "En time",
-          "Fem minutter"
+          "En halv time"
         ],
         "correctIndex": 0,
         "sourceSentence": "Den siste bussen hadde gått for ti minutter siden."
@@ -308,9 +308,9 @@
         "prompt": "Hva gjorde Jonas etter at han innså at mobilen hadde dårlig dekning?",
         "options": [
           "Han begynte å gå nedover veien",
-          "Han ringte etter taxi",
-          "Han ventet ved holdeplassen",
-          "Han gikk tilbake til fjellet"
+          "Han prøvde å finne et sted med bedre dekning",
+          "Han bestemte seg for å vente på en forbipasserende bil",
+          "Han gikk tilbake mot stedet han kom fra"
         ],
         "correctIndex": 0,
         "sourceSentence": "Han bestemte seg derfor for å begynne å gå nedover veien."
@@ -367,9 +367,9 @@
         "prompt": "What does the narrator buy in a shop?",
         "options": [
           "A small teddy bear",
-          "A t-shirt",
-          "A postcard",
-          "A hat"
+          "A souvenir t-shirt",
+          "A picture postcard",
+          "A colorful hat"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg kjøper en liten bamse i en butikk."
@@ -457,8 +457,8 @@
         "options": [
           "Bread and cheese",
           "Eggs and bacon",
-          "Cereal",
-          "Pancakes"
+          "Cereal with milk",
+          "Pancakes with jam"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg spiser frokost med brød og ost."
@@ -504,9 +504,9 @@
         "prompt": "What does Hanna order to eat?",
         "options": [
           "The fish of the day",
-          "The burger",
-          "A salad",
-          "Soup"
+          "A burger with potatoes",
+          "A salad with bread",
+          "A bowl of soup"
         ],
         "correctIndex": 0,
         "sourceSentence": "\"Jeg tar dagens fisk,\" svarte hun."
@@ -562,10 +562,10 @@
       {
         "prompt": "Hvorfor dreper Jon Snow til slutt Daenerys?",
         "options": [
-          "Fordi hun har blitt for farlig etter å ha ødelagt byen",
-          "Fordi hun forrådte ham først",
-          "Fordi hun ville gi fra seg tronen",
-          "Fordi Cersei ba ham om det"
+          "Fordi han mener Daenerys har blitt farlig etter ødeleggelsen av byen",
+          "Fordi han tror hun vil straffe ham for å ha utfordret kravet hennes på tronen",
+          "Fordi han vil hindre henne i å overlate tronen til en annen arving",
+          "Fordi han blir overbevist av Cerseis støttespillere om å forråde henne"
         ],
         "correctIndex": 0,
         "sourceSentence": "Til slutt blir Daenerys dronning, men hun ødelegger byen med ild og dragekraft. Jon ser at hun har blitt for farlig, og han dreper henne."
@@ -589,9 +589,9 @@
         "prompt": "Hvem kan digitale assistenter særlig hjelpe, ifølge teksten?",
         "options": [
           "Eldre mennesker",
-          "Barn",
-          "Leger",
-          "Forskere"
+          "Pasienter med små barn",
+          "Leger på sykehus",
+          "Forskere i laboratorier"
         ],
         "correctIndex": 0,
         "sourceSentence": "noe som gjør hverdagen enklere, særlig for eldre mennesker."
@@ -710,10 +710,10 @@
       {
         "prompt": "Hvilket eksempel nevner teksten om vikingene?",
         "options": [
-          "At de kunne ha etablert varige bosetninger i Nord-Amerika før Columbus",
-          "At de kunne ha erobret hele Europa",
-          "At de kunne ha oppdaget Australia",
-          "At de kunne ha forhindret andre verdenskrig"
+          "At vikingene kunne ha etablert varige bosetninger i Nord-Amerika før Columbus",
+          "At vikingene kunne ha beholdt politisk kontroll over store deler av Europa",
+          "At vikingene kunne ha nådd Asia gjennom en nordlig sjørute",
+          "At vikingene kunne ha stanset europeisk kolonisering av Amerika"
         ],
         "correctIndex": 0,
         "sourceSentence": "Eller hvis vikingene hadde etablert varige bosetninger i Nord-Amerika lenge før Columbus?"
@@ -817,10 +817,10 @@
       {
         "prompt": "I teksten betyr ordet «arven» omtrent det samme som:",
         "options": [
-          "Det som er overlevert eller etterlatt fra fortiden",
-          "En stor sum penger",
-          "Et kongelig slott",
-          "En militær tittel"
+          "Det som lever videre fra fortiden og påvirker ettertiden",
+          "Verdier og eiendom som går i arv innen en familie",
+          "Gamle bygninger som fortsatt står på samme sted",
+          "Historiske dokumenter som oppbevares i arkiver"
         ],
         "correctIndex": 0,
         "sourceSentence": "Likevel lever arven etter det gamle Roma videre i dag."
@@ -891,10 +891,10 @@
       {
         "prompt": "Hva er forskjellen mellom de to synene på dyrevelferd som nevnes til slutt i teksten?",
         "options": [
-          "Noen godtar bruk av dyr hvis de behandles godt, mens andre avviser bruk av dyr i seg selv",
-          "Noen godtar dyr som mat, mens andre bare godtar bruk av dyr i forskning",
-          "Noen prioriterer husdyr, mens andre mener ville dyr bør ha sterkere vern",
-          "Noen legger mest vekt på levevilkår, mens andre først og fremst vil redusere dyretesting"
+          "Noen godtar bruk av dyr dersom de behandles godt, mens andre mener dyr ikke bør brukes",
+          "Noen mener dyr kan brukes til mat, mens andre bare godtar bruk i forskning",
+          "Noen vil først og fremst beskytte husdyr, mens andre prioriterer ville dyr",
+          "Noen fokuserer på bedre levevilkår, mens andre bare vil forby dyretesting"
         ],
         "correctIndex": 0,
         "sourceSentence": "Noen mener det er greit å bruke dyr så lenge de behandles godt, mens andre mener at dyr ikke bør brukes i det hele tatt."
@@ -1066,9 +1066,9 @@
         "prompt": "Hvilket eksempel på en film med kunstig intelligens nevner teksten?",
         "options": [
           "Ex Machina",
-          "Matrix",
+          "Her",
           "Blade Runner",
-          "Her"
+          "2001: A Space Odyssey"
         ],
         "correctIndex": 0,
         "sourceSentence": "Et kjent eksempel er filmen Ex Machina, hvor en forsker utvikler en avansert AI som viser seg å ha egne intensjoner."
@@ -1125,9 +1125,9 @@
         "prompt": "What sign should Maria look for to know she has found the station?",
         "options": [
           "A sign that says 'Stasjon'",
-          "A red door",
-          "A large clock",
-          "A fountain"
+          "A sign with a red arrow",
+          "A large clock above the road",
+          "A fountain beside the entrance"
         ],
         "correctIndex": 0,
         "sourceSentence": "Du vil se et skilt med ‘Stasjon’ på."
@@ -1151,9 +1151,9 @@
         "prompt": "What directions does the man give Selma?",
         "options": [
           "Go straight ahead, then turn left",
-          "Turn right immediately",
-          "Go upstairs",
-          "Take the elevator down"
+          "Turn right after the first sign",
+          "Go upstairs and cross the hall",
+          "Take the elevator down one floor"
         ],
         "correctIndex": 0,
         "sourceSentence": "Gå rett fram, og så til venstre. Der er taxiplassen."
@@ -1199,9 +1199,9 @@
         "prompt": "What does Maria do after getting the password?",
         "options": [
           "She sits down at a table by the window with her phone",
-          "She leaves the café immediately",
-          "She orders a sandwich",
-          "She asks for another coffee"
+          "She leaves the café and checks her phone outside",
+          "She orders a sandwich and sits near the counter",
+          "She asks for another coffee before choosing a table"
         ],
         "correctIndex": 0,
         "sourceSentence": "Hun fant et bord ved vinduet og satte seg ned med telefonen."
@@ -1214,9 +1214,9 @@
         "prompt": "Where is Lisa's toothache located?",
         "options": [
           "The back tooth on the left side",
-          "The front tooth",
-          "The top right tooth",
-          "A wisdom tooth"
+          "A front tooth on the left side",
+          "The back tooth on the right side",
+          "A wisdom tooth on the right side"
         ],
         "correctIndex": 0,
         "sourceSentence": "“Den bakerst, på venstre side,” svarte hun."
@@ -1447,9 +1447,9 @@
         "prompt": "What is Bryggen known for?",
         "options": [
           "Colorful houses that are part of UNESCO World Heritage",
-          "A famous university",
-          "A large shopping mall",
-          "An old castle"
+          "An old fortress overlooking the harbor",
+          "A large fish market in the city center",
+          "A mountain with a popular viewing point"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mange turister kommer til Bergen for å se de fargerike husene på Bryggen, som er en del av UNESCOs verdensarv."
@@ -1458,9 +1458,9 @@
         "prompt": "What can you do at Fløyen?",
         "options": [
           "Get a great view of the city",
-          "Go swimming",
-          "Visit an aquarium",
-          "Watch a concert"
+          "See old wooden houses by the harbor",
+          "Visit the city aquarium",
+          "Walk around a large outdoor market"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det er også vanlig å ta Fløibanen opp til Fløyen, hvor man får en flott utsikt over byen."
@@ -1606,9 +1606,9 @@
         "prompt": "Hvordan beskrives mellombarn, ifølge teorien?",
         "options": [
           "Fleksible og flinke til å samarbeide",
-          "De mest ansvarlige i familien",
-          "De mest kreative i familien",
-          "De som får mest oppmerksomhet"
+          "Ansvarlige og opptatt av å følge regler",
+          "Sosiale og vant til å få mye oppmerksomhet",
+          "Selvstendige og mindre opptatt av kompromisser"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mellombarn blir ofte sett på som fleksible og flinke til å samarbeide, fordi de vokser opp mellom to andre søsken og må tilpasse seg."
@@ -1616,10 +1616,10 @@
       {
         "prompt": "Hva sier teksten om bevisene bak søskenrekkefølge-teorien?",
         "options": [
-          "At teorien er populær, men at bevisene ikke viser en så sterk og sikker effekt",
-          "At teorien støttes tydelig for førstefødte, men ikke for mellom- eller yngstebarn",
-          "At forskere er enige om hovedmønstrene, men uenige om hvorfor de oppstår",
-          "At teorien er godt dokumentert, men bare i familier med tre eller flere barn"
+          "Teorien er populær, men forskningen viser ikke en sikker og stor effekt av fødselsrekkefølge",
+          "Forskningen støtter teorien tydelig for førstefødte, men ikke for yngre søsken",
+          "Forskere er enige om mønstrene, men uenige om hva som skaper dem",
+          "Teorien gjelder først og fremst familier med minst tre barn"
         ],
         "correctIndex": 0,
         "sourceSentence": "Selv om teorien er populær, finnes det ikke bevis som viser at søskenrekkefølgen alltid har så stor betydning."
@@ -1849,10 +1849,10 @@
       {
         "prompt": "Hva skjedde med Lucy etter at hun ble syk?",
         "options": [
-          "Hun mistet blod hver natt, døde, og reiste seg som vampyr",
-          "Hun ble frisk igjen etter en uke",
-          "Hun flyttet til Transylvania",
-          "Hun ble Van Helsings assistent"
+          "Hun mister stadig blod, dør og vender tilbake som vampyr",
+          "Hun blir gradvis frisk etter at Van Helsing behandler henne",
+          "Hun forlater England for å komme seg bort fra Dracula",
+          "Hun overlever sykdommen, men mister minnene om det som skjedde"
         ],
         "correctIndex": 0,
         "sourceSentence": "Til slutt døde hun, men hun reiste seg igjen som en vampyr."
@@ -1875,10 +1875,10 @@
       {
         "prompt": "I teksten betyr uttrykket «et fortellergrep» omtrent:",
         "options": [
-          "En teknikk forfatteren bruker i historien",
-          "En type bokomslag",
-          "En sjanger innen film",
-          "En feil i handlingen"
+          "En teknikk forfatteren bruker for å forme hvordan historien fortelles",
+          "En bestemt type fortelling som bare foregår inne i en drøm",
+          "En måte å beskrive miljøet uten å utvikle handlingen",
+          "Et brudd i handlingen som ikke har forbindelse til resten av teksten"
         ],
         "correctIndex": 0,
         "sourceSentence": "Drømmer har ofte blitt brukt som et fortellergrep i litteratur og film"
@@ -1934,10 +1934,10 @@
       {
         "prompt": "I teksten betyr «skurker» omtrent:",
         "options": [
-          "Onde personer/antagonister i historien",
-          "Modige helter",
-          "Forfattere av romaner",
-          "Lesere av bøker"
+          "Personer som fungerer som onde eller motstående krefter i fortellingen",
+          "Helter som må velge mellom to vanskelige alternativer",
+          "Forfattere som skjuler meningene sine bak karakterene",
+          "Bipersoner som hjelper hovedpersonen uten å stå i sentrum"
         ],
         "correctIndex": 0,
         "sourceSentence": "I klassiske romaner ser vi ofte helter som både er modige og redde, eller skurker som viser små øyeblikk av omsorg."
@@ -1972,9 +1972,9 @@
         "prompt": "Where does the text say it is wise to go during an earthquake?",
         "options": [
           "Under a table or in an open space",
-          "Under a tree",
-          "In an elevator",
-          "Near a window"
+          "Beside a tall tree or a wall",
+          "Inside an elevator or on the stairs",
+          "Close to a large window"
         ],
         "correctIndex": 0,
         "sourceSentence": "Når det er jordskjelv, er det lurt å finne et trygt sted, for eksempel under et bord eller ute på en åpen plass."
@@ -1994,9 +1994,9 @@
         "prompt": "According to the text, why are people scared during an earthquake?",
         "options": [
           "Because the ground beneath their feet doesn't stay still",
-          "Because the houses become dark",
-          "Because the weather changes quickly",
-          "Because people cannot hear each other"
+          "Because the lights in houses often go out",
+          "Because the weather suddenly becomes colder",
+          "Because people cannot hear each other clearly"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mennesker blir redde fordi bakken under føttene ikke står stille."
@@ -2261,8 +2261,8 @@
         "options": [
           "Gasskjemper",
           "Steinplaneter",
-          "Iskalde måner",
-          "Asteroider"
+          "Iskjemper",
+          "Dvergplaneter"
         ],
         "correctIndex": 0,
         "sourceSentence": "Noen er gasskjemper som ligner på Jupiter, mens andre er steinplaneter mer lik Jorden."
@@ -2270,10 +2270,10 @@
       {
         "prompt": "Hvorfor regnes den beboelige sonen som viktig i letingen etter liv utenfor jorden, ifølge teksten?",
         "options": [
-          "Fordi temperaturen der kan gjøre flytende vann mulig, noe som regnes som viktig for liv",
-          "Fordi planeter i denne sonen vanligvis allerede har både oksygen og metan i atmosfæren",
-          "Fordi planeter i denne sonen ligger nærmest stjernen og derfor er enklest å observere",
-          "Fordi alle steinplaneter befinner seg i denne sonen, mens gasskjemper ligger utenfor"
+          "Fordi temperaturen kan gjøre flytende vann mulig, noe som er viktig for liv slik vi kjenner det",
+          "Fordi planeter der vanligvis har både oksygen og metan før de blir observert",
+          "Fordi planeter der ligger nærmest stjernen og derfor er enklest å oppdage",
+          "Fordi bare steinplaneter kan ligge i denne sonen"
         ],
         "correctIndex": 0,
         "sourceSentence": "Dette regnes som en viktig forutsetning for liv slik vi kjenner det."
@@ -2310,7 +2310,7 @@
           "A packed lunch and some water",
           "Fruit, juice, and a sandwich",
           "A thermos and some cake",
-          "Only a bottle of water"
+          "A bottle of water and an apple"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg tar med en matpakke og litt vann."
@@ -2334,9 +2334,9 @@
         "prompt": "Hva skjer med døren til loftet når de når toppen av trappen?",
         "options": [
           "Den står på gløtt og beveger seg sakte av seg selv",
-          "Den er låst og de må bryte den opp",
-          "Den er borte",
-          "Den er malt rød"
+          "Den er lukket, men åpner seg når de nærmer seg",
+          "Den står helt åpen, og et svakt lys kommer innenfra",
+          "Den er låst, men de hører lyder fra rommet bak"
         ],
         "correctIndex": 0,
         "sourceSentence": "Da vi nådde toppen, sto døren til loftet på gløtt. Den beveget seg sakte, som om noen usynlige fingre dyttet den åpen."
@@ -2467,9 +2467,9 @@
         "prompt": "Hva gjør folk for å feire fastelavn, ifølge teksten?",
         "options": [
           "Pynter med fargerike fjær og baker boller med krem",
-          "Tenner bål og synger sanger",
-          "Spiser lutefisk og drikker akevitt",
-          "Kler seg ut som nisser"
+          "Tenner lys, lager kakao og inviterer familie hjem",
+          "Kler seg ut og går fra dør til dør for å få godteri",
+          "Lager store middager med tradisjonell vintermat"
         ],
         "correctIndex": 0,
         "sourceSentence": "Da pynter folk med fargerike fjær og baker boller med krem."
@@ -2478,9 +2478,9 @@
         "prompt": "Hva gjør mange nordmenn, ifølge teksten, når det er kaldt ute?",
         "options": [
           "Kose seg inne med stearinlys, kakao og bøker",
-          "Reiser til utlandet",
-          "Sover mer enn vanlig",
-          "Trener utendørs hele dagen"
+          "Dra på korte helgeturer til varmere steder",
+          "Sove lenger og bruke mindre tid utendørs",
+          "Trene inne og møte venner på kafé"
         ],
         "correctIndex": 0,
         "sourceSentence": "Selv om det er kaldt ute, liker mange å kose seg inne med stearinlys, varm kakao og gode bøker."
@@ -2669,10 +2669,10 @@
       {
         "prompt": "Hva anbefaler teksten når man vil prøve nye smakskombinasjoner?",
         "options": [
-          "Å være nysgjerrig og villig til å prøve kombinasjoner man ikke kjenner fra før",
-          "Å begynne med kjente kombinasjoner og bare endre én ingrediens om gangen",
-          "Å følge etablerte oppskrifter til man har lært hvilke smaker som passer sammen",
-          "Å unngå sterke kontraster mellom søtt, salt, surt og bittert når man eksperimenterer"
+          "Å være nysgjerrig og villig til å prøve nye kombinasjoner",
+          "Å endre én ingrediens om gangen til man finner en trygg kombinasjon",
+          "Å følge kjente oppskrifter før man prøver sterke smakskontraster",
+          "Å begynne med milde smaker og unngå søtt og salt sammen"
         ],
         "correctIndex": 0,
         "sourceSentence": "Når man prøver ut nye smakskombinasjoner, er det viktig å være nysgjerrig og ikke redd for å teste noe nytt."
@@ -2685,9 +2685,9 @@
         "prompt": "What can a flying car do that a regular car cannot, according to the text?",
         "options": [
           "Go up in the air",
-          "Drive underwater",
-          "Change color",
-          "Talk to the driver"
+          "Drive under the water",
+          "Change shape while driving",
+          "Talk directly to the driver"
         ],
         "correctIndex": 0,
         "sourceSentence": "De ser ut som vanlige biler, men de kan gå opp i luften."
@@ -2759,9 +2759,9 @@
         "prompt": "Når døde Francisco Franco, ifølge teksten?",
         "options": [
           "1975",
-          "1939",
+          "1969",
           "1978",
-          "1950"
+          "1982"
         ],
         "correctIndex": 0,
         "sourceSentence": "Spania under Franco var perioden da general Francisco Franco styrte landet fra slutten av den spanske borgerkrigen i 1939 til sin død i 1975."
@@ -3143,9 +3143,9 @@
         "prompt": "What was George Orwell's real name, according to the text?",
         "options": [
           "Eric Arthur Blair",
-          "George Blair",
-          "Arthur Orwell",
-          "Eric Orwell"
+          "George Arthur Blair",
+          "Arthur Eric Orwell",
+          "Eric George Orwell"
         ],
         "correctIndex": 0,
         "sourceSentence": "Han het egentlig Eric Arthur Blair, men han brukte navnet George Orwell når han skrev bøker og artikler."
@@ -3154,9 +3154,9 @@
         "prompt": "What happens to some animals over time in Animal Farm, according to the text?",
         "options": [
           "Some become stronger than the others, and it becomes unfair",
-          "All animals become equal forever",
-          "They all leave the farm",
-          "They elect a human leader"
+          "The animals remain equal and share power fairly",
+          "Most of the animals decide to leave the farm",
+          "The animals choose a human to lead the farm"
         ],
         "correctIndex": 0,
         "sourceSentence": "Men etter en tid blir noen dyr sterkere enn de andre, og det blir urettferdig."
@@ -3165,9 +3165,9 @@
         "prompt": "What does 1984 show, according to the text?",
         "options": [
           "A future where the state controls everything people do and say",
-          "A past where animals ruled the world",
-          "A war between two countries",
-          "A biography of Orwell's childhood"
+          "A society where animals take control from human farmers",
+          "A country at war where ordinary people lose their homes",
+          "A writer looking back on Orwell's childhood"
         ],
         "correctIndex": 0,
         "sourceSentence": "Den viser en framtid der staten kontrollerer alt folk gjør og sier."
@@ -3202,9 +3202,9 @@
         "prompt": "How much does the haircut cost, according to the text?",
         "options": [
           "One hundred and fifty kroner",
-          "Fifty kroner",
+          "One hundred kroner",
           "Two hundred kroner",
-          "It was free"
+          "Two hundred and fifty kroner"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det blir hundre og femti kroner."
@@ -3301,21 +3301,21 @@
       {
         "prompt": "Hvorfor måtte Arendt flykte fra Tyskland i 1933?",
         "options": [
-          "Fordi hun kritiserte Heidegger",
           "Fordi hun var jødisk og nazistene kom til makten",
-          "Fordi hun ble utvist av universitetet",
-          "Fordi hun ønsket å studere i Frankrike"
+          "Fordi universitetet forbød henne å undervise etter en politisk konflikt",
+          "Fordi hun ønsket å arbeide med filosofi i Frankrike",
+          "Fordi hun ble anklaget for å støtte kommunistiske grupper"
         ],
-        "correctIndex": 1,
+        "correctIndex": 0,
         "sourceSentence": "På grunn av sin jødiske bakgrunn ble Arendt tvunget til å flykte fra Tyskland da nazistene kom til makten i 1933."
       },
       {
         "prompt": "Hva skjedde med Arendt etter at hun først flyktet til Frankrike?",
         "options": [
-          "Hun ble værende der resten av livet",
+          "Hun ble værende i Frankrike til etter krigen",
           "Hun måtte flykte videre til USA i 1941",
-          "Hun returnerte til Tyskland",
-          "Hun flyttet til Israel"
+          "Hun reiste tilbake til Tyskland etter noen få år",
+          "Hun flyttet videre til Palestina før krigen"
         ],
         "correctIndex": 1,
         "sourceSentence": "men i 1941 måtte hun flykte videre til USA for å unnslippe de nazistiske okkupasjonsstyrkene"
@@ -3323,10 +3323,10 @@
       {
         "prompt": "Hva handler boken Eichmann i Jerusalem om?",
         "options": [
-          "Arendts eget liv i Tyskland",
-          "Rettssaken mot en nazileder ansvarlig for Holocaust",
-          "Martin Heideggers filosofi",
-          "Livet i New York på 1950-tallet"
+          "Arendts erfaringer som flyktning fra Tyskland",
+          "Rettssaken mot Adolf Eichmann og Arendts analyse av den",
+          "Forholdet mellom Arendt og Martin Heidegger",
+          "Utviklingen av totalitarismen i USA etter krigen"
         ],
         "correctIndex": 1,
         "sourceSentence": "der Arendt rapporterte fra rettssaken mot Adolf Eichmann, en av nazilederne som var ansvarlig for Holocaust"
@@ -3386,12 +3386,12 @@
       {
         "prompt": "Why do some animals hibernate, according to the text?",
         "options": [
-          "Because they are lazy",
-          "Because it is cold and they cannot find food",
-          "Because they want to grow bigger",
-          "Because the sun is too warm"
+          "Because winter is cold and food is hard to find",
+          "Because winter makes animals grow too quickly",
+          "Because they need to travel to warmer places",
+          "Because the summer sun is too strong"
         ],
-        "correctIndex": 1,
+        "correctIndex": 0,
         "sourceSentence": "Om vinteren er det kaldt, og mange dyr finner ikke mat."
       },
       {
@@ -3399,8 +3399,8 @@
         "options": [
           "It eats as much as possible",
           "It finds a cave or a safe place",
-          "It travels south",
-          "It builds a nest in a tree"
+          "It travels south to a warmer place",
+          "It builds a nest high in a tree"
         ],
         "correctIndex": 1,
         "sourceSentence": "Den finner en hule eller et trygt sted før vinteren kommer."
@@ -3461,9 +3461,9 @@
         "prompt": "Hva hevder Harari at menneskeheten tidligere brukte mesteparten av energien sin på?",
         "options": [
           "Å overleve krig, sult og sykdom",
-          "Å utvikle kunstig intelligens",
-          "Å reise til andre planeter",
-          "Å bygge store byer"
+          "Å utvikle politiske systemer og bygge byer",
+          "Å utforske verden og etablere nye handelsruter",
+          "Å utvikle teknologi og skape stadig større økonomisk vekst"
         ],
         "correctIndex": 0,
         "sourceSentence": "Han hevder at vi tidligere har brukt mesteparten av vår energi på å overleve krig, sult og sykdom"
@@ -3483,9 +3483,9 @@
         "prompt": "Hvilke teknologier nevner teksten som eksempler på det som gir nye muligheter?",
         "options": [
           "Kunstig intelligens, genteknologi og bioteknologi",
-          "Landbruk, fiske og jakt",
-          "Trykkpresse og telegraf",
-          "Romfart og satellitter"
+          "Robotikk, romfart og kvantedatamaskiner",
+          "Landbruksteknologi, energi og transport",
+          "Internett, satellitter og tradisjonell medisin"
         ],
         "correctIndex": 0,
         "sourceSentence": "Teknologi som kunstig intelligens, genteknologi og bioteknologi gir oss nye muligheter til å forlenge livet"
@@ -3631,9 +3631,9 @@
         "prompt": "What are stars born from, according to the text?",
         "options": [
           "Clouds of gas and dust",
-          "Rocks and ice",
-          "Water and fire",
-          "Light and sound"
+          "Large pieces of rock and ice",
+          "Hot water and fire",
+          "Light from nearby planets"
         ],
         "correctIndex": 0,
         "sourceSentence": "Der finnes det store skyer av gass og støv."
@@ -3886,9 +3886,9 @@
         "prompt": "What does the person sometimes add to make the noodles taste better and healthier?",
         "options": [
           "Vegetables or an egg",
-          "More noodles",
-          "Sugar",
-          "Ice cream"
+          "Extra sauce or cheese",
+          "Sugar or honey",
+          "Bread or potatoes"
         ],
         "correctIndex": 0,
         "sourceSentence": "noen ganger legger jeg til litt grønnsaker eller et egg"
@@ -3896,10 +3896,10 @@
       {
         "prompt": "Why does the person eat instant noodles, according to the text?",
         "options": [
-          "Because they are the healthiest meal the person knows",
+          "Because they are considered the healthiest meal in the house",
           "Because it is cheap and practical when there's no time to cook",
-          "Because they take longer to make than other simple meals",
-          "Because the person prefers them to all other foods"
+          "Because they take more time to make than other simple foods",
+          "Because the person likes them more than any other meal"
         ],
         "correctIndex": 1,
         "sourceSentence": "Hurtignudler er billig mat, og jeg kan lage det når jeg ikke har tid til å lage noe annet."
@@ -3948,10 +3948,10 @@
       {
         "prompt": "Hvorfor flyttet Maria til Bergen?",
         "options": [
-          "Fordi hun fikk en jobb som lærerassistent",
-          "Fordi hun ville lære spansk",
-          "Fordi familien hennes bor der",
-          "Fordi hun studerer medisin"
+          "Fordi hun fikk jobb som lærerassistent på en barneskole",
+          "Fordi hun begynte på et norskkurs ved universitetet",
+          "Fordi familien hennes flyttet til Bergen året før",
+          "Fordi hun fikk studieplass på en lærerutdanning"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg flyttet hit for ett år siden fordi jeg fikk en jobb som lærerassistent på en barneskole."
@@ -3971,9 +3971,9 @@
         "prompt": "Hva liker Maria å gjøre på fritiden?",
         "options": [
           "Lese bøker, gå tur i fjellet og lage mat",
-          "Se på TV hele dagen",
-          "Reise til Spania hver helg",
-          "Spille fotball med kollegaene"
+          "Se filmer, gå på kafé og trene på treningssenter",
+          "Besøke familie, spille fotball og høre på musikk",
+          "Reise i helgene, fotografere og lære å male"
         ],
         "correctIndex": 0,
         "sourceSentence": "På fritiden liker jeg å lese bøker, gå tur i fjellet og lage mat."
@@ -4008,9 +4008,9 @@
         "prompt": "What can happen if we skip breakfast, according to the text?",
         "options": [
           "We become tired and have little energy",
-          "We become stronger",
-          "We sleep better",
-          "We learn faster"
+          "We feel stronger and more awake",
+          "We sleep better during the night",
+          "We learn faster at school"
         ],
         "correctIndex": 0,
         "sourceSentence": "Uten frokost kan vi bli trøtte og ha lite energi."
@@ -4082,9 +4082,9 @@
         "prompt": "What do children do outside in January, according to the text?",
         "options": [
           "Make snowmen and snow angels",
-          "Swim in the sea",
-          "Pick flowers",
-          "Go to the beach"
+          "Swim in the cold sea",
+          "Pick winter flowers",
+          "Play games on the beach"
         ],
         "correctIndex": 0,
         "sourceSentence": "Barna leker ute og lager snømenn og snøengler."
@@ -4142,8 +4142,8 @@
         "options": [
           "Kosher",
           "Halal",
-          "Fasteregler",
-          "Sabbatsmat"
+          "Kashrut",
+          "Sabbat"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mange jøder følger også bestemte matregler, kalt kosher, som handler om hva som er tillatt å spise og hvordan maten skal tilberedes."
@@ -4215,9 +4215,9 @@
         "prompt": "What do many Norwegians like to do outdoors in June, according to the text?",
         "options": [
           "Go for walks in the forest, ride bikes, or have barbecues",
-          "Ski down mountains",
-          "Ice skate on lakes",
-          "Stay indoors"
+          "Go skiing in the mountains or skate on lakes",
+          "Stay indoors and watch films with friends",
+          "Go swimming indoors and visit shopping centers"
         ],
         "correctIndex": 0,
         "sourceSentence": "De går tur i skogen, sykler, eller griller med venner og familie."
@@ -4237,9 +4237,9 @@
         "prompt": "What does the text say about the weather in June?",
         "options": [
           "It can be both warm and cold, and it rains some days",
-          "It is usually warm, but it almost never rains",
-          "It is mostly cold and wet, with very little sun",
-          "It is warm in the day and always cold at night"
+          "It is mostly warm, with rain mainly at night",
+          "It is usually cool and wet throughout the month",
+          "It is warm during the day and cold every evening"
         ],
         "correctIndex": 0,
         "sourceSentence": "Været kan være både varmt og kaldt, og det regner noen dager."
@@ -4448,9 +4448,9 @@
         "prompt": "What can you see in Lofoten in summer, according to the text?",
         "options": [
           "The midnight sun",
-          "Snow all year",
-          "Volcanoes",
-          "Deserts"
+          "Snow that stays all summer",
+          "Active volcanoes",
+          "Large desert areas"
         ],
         "correctIndex": 0,
         "sourceSentence": "I Lofoten kan man også se midnattssolen om sommeren."
@@ -4470,9 +4470,9 @@
         "prompt": "What is a popular dish from Lofoten, according to the text?",
         "options": [
           "Tørrfisk (dried fish)",
-          "Pizza",
+          "Fresh salmon soup",
           "Rice pudding",
-          "Meatballs"
+          "Norwegian meatballs"
         ],
         "correctIndex": 0,
         "sourceSentence": "Tørrfisk er en populær matrett fra området."
@@ -4496,9 +4496,9 @@
         "prompt": "What is Big Ben, according to the text?",
         "options": [
           "A large clock tower",
-          "A palace",
-          "A museum",
-          "A bridge"
+          "A royal palace",
+          "A famous museum",
+          "A stone bridge"
         ],
         "correctIndex": 0,
         "sourceSentence": "Et av de mest kjente stedene er Big Ben, et stort klokketårn."
@@ -4655,9 +4655,9 @@
         "prompt": "Hva tror mange at en tryllestav kan gi deg, ifølge teksten?",
         "options": [
           "Krefter til å gjøre ting som ellers virker umulige",
-          "Bedre helse og lengre liv",
-          "Penger og rikdom",
-          "Evnen til å fly"
+          "Evnen til å forstå hva andre mennesker tenker",
+          "Muligheten til å bli usynlig når man ønsker det",
+          "Kunnskap om hvordan man lager magiske gjenstander"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mange tror at en tryllestav kan gi deg krefter til å gjøre ting som ellers virker umulige, som å forvandle en stein til gull eller få blomster til å vokse på et øyeblikk."
@@ -4677,9 +4677,9 @@
         "prompt": "Hva symboliserer tryllestaven for mange barn, ifølge teksten?",
         "options": [
           "Fantasi og lek",
-          "Skolearbeid",
-          "Penger",
-          "Fare og frykt"
+          "Makt og ansvar",
+          "Fare og hemmeligheter",
+          "Kunnskap og læring"
         ],
         "correctIndex": 0,
         "sourceSentence": "For mange barn er tryllestaven et symbol på fantasi og lek."
@@ -4724,10 +4724,10 @@
       {
         "prompt": "I teksten betyr ordet «slitasje» omtrent:",
         "options": [
-          "Skade eller nedbrytning på grunn av bruk",
-          "Lavere vedlikeholdskostnader",
-          "Svært høye hastigheter",
-          "Store investeringer i nye baner"
+          "Gradvis skade eller nedbrytning som følger av bruk",
+          "Utgifter knyttet til vanlig vedlikehold av banen",
+          "Motstand som oppstår når toget beveger seg raskt",
+          "Belastningen som oppstår når banen må bygges om"
         ],
         "correctIndex": 0,
         "sourceSentence": "I tillegg fører den lave friksjonen til mindre slitasje og dermed lavere vedlikeholdskostnader."
@@ -4798,10 +4798,10 @@
       {
         "prompt": "I teksten betyr ordet «minneverdige» omtrent:",
         "options": [
-          "Lette å huske på grunn av positive opplevelser",
-          "Dyre og vanskelige å planlegge",
-          "Kjedelige og uinteressante",
-          "Farlige og skumle"
+          "Opplevelser som er så sterke eller hyggelige at de blir husket",
+          "Reiser som krever mye planlegging før man drar",
+          "Opplevelser som føles uvante mens de pågår",
+          "Reiser som blir dyrere enn man først hadde tenkt"
         ],
         "correctIndex": 0,
         "sourceSentence": "Til slutt kan reiser bli enda mer minneverdige når man deler dem med nye venner."
@@ -4836,9 +4836,9 @@
         "prompt": "Hva gjør mange familier i vinterferien, ifølge teksten?",
         "options": [
           "Reiser til fjellet for å stå på ski",
-          "Reiser til utlandet for sol",
-          "Blir hjemme og jobber",
-          "Drar til stranden"
+          "Drar til kysten for å gå lange turer",
+          "Besøker familie i byene og går på museum",
+          "Reiser sørover for å finne varmere vær"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mange familier reiser til fjellet for å stå på ski, gå turer og kose seg i hytte med peis."
@@ -4847,9 +4847,9 @@
         "prompt": "I teksten betyr uttrykket «kose seg» omtrent:",
         "options": [
           "Å ha det hyggelig og avslappet",
-          "Å jobbe hardt",
-          "Å krangle med familien",
-          "Å reise langt bort"
+          "Å holde seg aktiv og travel",
+          "Å være sammen uten å snakke",
+          "Å gjøre noe spesielt for andre"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mange familier reiser til fjellet for å stå på ski, gå turer og kose seg i hytte med peis."
@@ -4858,9 +4858,9 @@
         "prompt": "Hvilke blomster kan dukke opp i hagen om våren, ifølge teksten?",
         "options": [
           "Snøklokker og krokus",
-          "Roser og tulipaner",
-          "Solsikker",
-          "Nelliker"
+          "Tulipaner og påskeliljer",
+          "Roser og fioler",
+          "Solsikker og nelliker"
         ],
         "correctIndex": 0,
         "sourceSentence": "Snøklokker og krokus kan dukke opp i hagen, og fuglene begynner å synge mer."
@@ -4881,12 +4881,12 @@
         "sourceSentence": "Marxisme, en politisk og økonomisk teori utviklet av Karl Marx og Friedrich Engels på 1800-tallet, forblir en sentral del av diskusjoner om sosial rettferdighet og økonomisk likhet."
       },
       {
-        "prompt": "Hva kaller teksten motsetningen mellom arbeiderklassen og eierklassen?",
+        "prompt": "Hva uttrykker begrepet «klassekamp» i tekstens framstilling av marxismen?",
         "options": [
-          "Klassekampen",
-          "Revolusjonen",
-          "Kapitalismen",
-          "Sosialdemokratiet"
+          "En konflikt mellom arbeidere og eiere om makt, produksjonsmidler og fordeling",
+          "En politisk konflikt mellom ulike sosialistiske partier om hvordan staten bør organiseres",
+          "En konkurranse mellom nasjoner om tilgang til industri, handel og råvarer",
+          "En kulturell konflikt mellom tradisjonelle og moderne verdier i arbeiderklassen"
         ],
         "correctIndex": 0,
         "sourceSentence": "Hovedidéen i marxismen er analysen av klassekampen, der arbeiderklassen (proletariatet) står i motsetning til eierklassen (borgerskapet), som kontrollerer produksjonsmidlene."
@@ -4932,9 +4932,9 @@
         "prompt": "What do children get on the 17th of May, according to the text?",
         "options": [
           "Ice cream and hot dogs",
-          "Cake and candy",
-          "New clothes",
-          "Toys"
+          "Cake and sweet buns",
+          "Small flags and toys",
+          "New clothes and shoes"
         ],
         "correctIndex": 0,
         "sourceSentence": "Barn får is og pølser, og mange har på seg bunad."
@@ -5076,9 +5076,9 @@
         "prompt": "Hva regnes som en av verdens eldste fortellinger, ifølge teksten?",
         "options": [
           "Gilgamesj-eposet",
-          "Bibelen",
-          "Iliaden",
-          "Codex Hammurabi"
+          "Enuma Elish",
+          "Hammurabis lover",
+          "Iliaden"
         ],
         "correctIndex": 0,
         "sourceSentence": "Et kjent eksempel er «Gilgamesj-eposet», som regnes som en av verdens eldste fortellinger."
@@ -5102,8 +5102,8 @@
         "prompt": "Who is Fredersen in the story?",
         "options": [
           "The boss of the city",
-          "A worker in the machines",
-          "Freder's son",
+          "A worker who repairs the machines",
+          "Freder's close friend",
           "Maria's father"
         ],
         "correctIndex": 0,
@@ -5219,10 +5219,10 @@
       {
         "prompt": "Hva viser det, ifølge teksten, å stå imot presset fra en gruppe?",
         "options": [
-          "Mot og selvstendighet",
-          "Svakhet og usikkerhet",
-          "Uhøflighet",
-          "Uvitenhet"
+          "Mot og evne til å tenke selvstendig",
+          "Usikkerhet overfor resten av gruppen",
+          "Manglende forståelse for gruppens mål",
+          "Et ønske om å få oppmerksomhet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Å stå imot presset fra en gruppe kan være vanskelig, men det viser mot og selvstendighet."
@@ -5282,10 +5282,10 @@
       {
         "prompt": "Hva ble propaganda tidligere ofte knyttet til, ifølge teksten?",
         "options": [
-          "Krig, politikk eller ideologiske konflikter",
-          "Underholdning og sport",
-          "Vitenskap og forskning",
-          "Kunst og musikk"
+          "Krig, politikk og ideologiske konflikter",
+          "Kommersiell reklame og forbrukerkultur",
+          "Vitenskapelig formidling og utdanning",
+          "Kunstneriske bevegelser og populærkultur"
         ],
         "correctIndex": 0,
         "sourceSentence": "Tidligere var propaganda ofte knyttet til krig, politikk eller ideologiske konflikter, der myndigheter brukte plakater, radio og aviser for å påvirke befolkningen."
@@ -5390,9 +5390,9 @@
         "prompt": "What is in the corner of the classroom?",
         "options": [
           "A shelf with lots of books",
-          "A clock",
-          "Pictures",
-          "Desks and chairs"
+          "A clock above the door",
+          "Pictures on the wall",
+          "Desks and chairs for students"
         ],
         "correctIndex": 0,
         "sourceSentence": "I hjørnet står det en hylle med mange bøker."
@@ -5475,9 +5475,9 @@
         "prompt": "What does the narrator drink with pizza?",
         "options": [
           "Juice or water",
-          "Milk",
-          "Soda",
-          "Coffee"
+          "Milk or cocoa",
+          "Soda or lemonade",
+          "Coffee or tea"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg spiser pizza hjemme med familien min, og vi drikker juice eller vann til."
@@ -5527,9 +5527,9 @@
         "prompt": "What did the narrator want to make the first time cooking?",
         "options": [
           "Pasta with sauce",
-          "Soup",
-          "Pizza",
-          "Rice and chicken"
+          "Vegetable soup",
+          "Homemade pizza",
+          "Rice with chicken"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg ville lage pasta med saus."
@@ -5549,9 +5549,9 @@
         "prompt": "How did the narrator feel after tasting the food?",
         "options": [
           "Proud and happy",
-          "Disappointed and sad",
-          "Angry",
-          "Bored"
+          "Disappointed and a little sad",
+          "Angry and frustrated",
+          "Tired and bored"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg ble stolt og glad."
@@ -5868,8 +5868,8 @@
         "options": [
           "\"Happy New Year!\"",
           "\"Merry Christmas!\"",
-          "\"Good morning!\"",
-          "\"Welcome home!\""
+          "\"Have a good day!\"",
+          "\"Welcome to Norway!\""
         ],
         "correctIndex": 0,
         "sourceSentence": "Noen sier «Godt nytt år!» og klemmer hverandre."
@@ -6026,9 +6026,9 @@
         "prompt": "Hva er Norge medlem av, som styrker samarbeidet med USA innen forsvar, ifølge teksten?",
         "options": [
           "NATO",
-          "EU",
-          "FNs sikkerhetsråd",
-          "Nordisk råd"
+          "EØS",
+          "Nordisk råd",
+          "OECD"
         ],
         "correctIndex": 0,
         "sourceSentence": "Norge er et medlem av NATO, og USA er en viktig alliert i organisasjonen."
@@ -6037,9 +6037,9 @@
         "prompt": "Hva eksporterer Norge spesielt til USA, ifølge teksten?",
         "options": [
           "Fisk, olje og gass",
-          "Biler og elektronikk",
-          "Tømmer og papir",
-          "Klær og tekstiler"
+          "Maskiner, biler og elektronikk",
+          "Tømmer, papir og møbler",
+          "Klær, sko og tekstiler"
         ],
         "correctIndex": 0,
         "sourceSentence": "USA er en viktig handelspartner for Norge, spesielt når det gjelder eksport av fisk, olje og gass."
@@ -6049,8 +6049,8 @@
         "options": [
           "Fulbright-stipender",
           "Erasmus-programmet",
-          "Rhodes-stipend",
-          "Nobel-stipend"
+          "Marshall-stipender",
+          "Nordplus"
         ],
         "correctIndex": 0,
         "sourceSentence": "Utdanningsprogrammer, som utveksling gjennom Fulbright-stipender, har bidratt til å bygge broer mellom de to nasjonene."
@@ -6122,9 +6122,9 @@
         "prompt": "What is a popular dish mentioned besides fish?",
         "options": [
           "Meatballs with brown gravy and potatoes",
-          "Spaghetti bolognese",
-          "Roast chicken",
-          "Fish soup"
+          "Pasta with tomato sauce and cheese",
+          "Roast chicken with rice and vegetables",
+          "Fish soup with bread and butter"
         ],
         "correctIndex": 0,
         "sourceSentence": "Kjøttkaker med brun saus og poteter er også en populær rett."
@@ -6148,9 +6148,9 @@
         "prompt": "What toppings are mentioned for bread at lunch?",
         "options": [
           "Cheese, ham, or liver pâté",
-          "Peanut butter and jelly",
-          "Chocolate spread",
-          "Fried egg"
+          "Peanut butter, jam, or honey",
+          "Chocolate spread or sliced banana",
+          "Fried egg, tomato, or avocado"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mange spiser brødskiver med pålegg, for eksempel ost, skinke eller leverpostei."
@@ -6208,14 +6208,14 @@
   "Ingenting": {
     "questions": [
       {
-        "prompt": "Hos hvem er intetheten uløselig knyttet til væren, ifølge teksten?",
+        "prompt": "Hvordan brukes Heidegger i teksten til å forklare forholdet mellom intetheten og menneskets eksistens?",
         "options": [
-          "Nietzsche",
-          "Kierkegaard",
-          "Heidegger",
-          "Sartre"
+          "Møtet med muligheten for fravær og utslettelse kan gjøre vår egen væren tydeligere for oss",
+          "Intetheten viser at menneskelig eksistens bare er en språklig konstruksjon uten virkelig innhold",
+          "Mennesket må fylle all tomhet med aktivitet for å unngå at intetheten får betydning",
+          "Intetheten står uten forbindelse til væren og fungerer bare som et abstrakt filosofisk begrep"
         ],
-        "correctIndex": 2,
+        "correctIndex": 0,
         "sourceSentence": "Hos Heidegger er den uløselig knyttet til væren: vi forstår vår egen eksistens først idet vi konfronteres med muligheten for at alt kan forsvinne."
       },
       {
@@ -6281,9 +6281,9 @@
         "prompt": "Hvorfor tenner mange stearinlys hjemme i november?",
         "options": [
           "For å skape en koselig stemning",
-          "For å spare strøm",
-          "For å lage mat",
-          "For å holde dyr borte"
+          "For å få mer lys når strømmen er dyr",
+          "For å varme opp rommet om kvelden",
+          "For å markere at vinteren har begynt"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mange tenner stearinlys hjemme for å skape en koselig stemning"
@@ -6291,9 +6291,9 @@
       {
         "prompt": "Hva begynner noen å gjøre mot slutten av november?",
         "options": [
-          "Reise til Syden",
-          "Plante blomster",
-          "Male huset",
+          "Bestille sommerferien",
+          "Forberede hagen til våren",
+          "Male og pusse opp hjemme",
           "Pynte litt til jul"
         ],
         "correctIndex": 3,
@@ -6500,12 +6500,12 @@
   "Peer Gynt": {
     "questions": [
       {
-        "prompt": "Hvem er den trofaste kvinnen som venter på Peer gjennom årtier?",
+        "prompt": "Hva representerer Solveigs rolle i kontrast til Peers rastløse liv?",
         "options": [
-          "Solveig",
-          "Åse",
-          "Dovregubbens datter",
-          "Anitra"
+          "Trofasthet og en stabil kjærlighet som Peer stadig vender seg bort fra",
+          "Ambisjon og sosial status som Peer forsøker å oppnå gjennom reisene sine",
+          "Fristelsen til å leve etter trollenes ideal om maksimal selvhevdelse",
+          "Et krav om at Peer må bevise sin verdi gjennom rikdom og berømmelse"
         ],
         "correctIndex": 0,
         "sourceSentence": "Tilbake i bygda kaster han også vrak på Solveig, den stille og tålmodige jenta som virkelig elsker ham."
@@ -6524,10 +6524,10 @@
       {
         "prompt": "Hvilke roller hadde Peer på sine reiser ute i verden?",
         "options": [
-          "Konge, prest og lærer",
-          "Eventyrer, slavehandler og selvutnevnt profet",
-          "Fisker, bonde og soldat",
-          "Skuespiller, maler og musiker"
+          "Roller som viser et stabilt liv preget av ansvar og tilhørighet",
+          "Roller som eventyrer, slavehandler og selvutnevnt profet, som understreker hans skiftende identitet",
+          "Yrker som gradvis fører ham tilbake til familien og bygda",
+          "Roller der han først og fremst arbeider for andre og unngår personlig ambisjon"
         ],
         "correctIndex": 1,
         "sourceSentence": "Peer derimot driver rastløst videre ut i verden: som eventyrer i Marokko, som slavehandler, som selvutnevnt profet og forretningsmann."
@@ -6646,10 +6646,10 @@
       {
         "prompt": "Hva symboliserer føniksen, ifølge teksten?",
         "options": [
-          "Frykt og undergang",
-          "Rikdom og grådighet",
+          "Tap, sorg og det uunngåelige ved døden",
+          "Makt, rikdom og seier over andre",
           "Håp, fornyelse og evig liv",
-          "Ensomhet og tap"
+          "Visdom, ro og et liv uten forandring"
         ],
         "correctIndex": 2,
         "sourceSentence": "Mange ser på føniksen som et symbol på håp, fornyelse og evig liv."
@@ -6685,8 +6685,8 @@
         "options": [
           "Ham and pepperoni",
           "Sauce, often tomato sauce",
-          "Vegetables",
-          "Olive oil"
+          "Chopped vegetables",
+          "A little olive oil"
         ],
         "correctIndex": 1,
         "sourceSentence": "På bunnen legger man saus, ofte tomatsaus, og så ost på toppen."
@@ -6698,10 +6698,10 @@
       {
         "prompt": "Hva pakker personen i sekken før turen?",
         "options": [
-          "Telt og sovepose",
-          "Bok og paraply",
+          "Telt, sovepose, kokeutstyr og lommelykt",
+          "Bok, paraply, ekstra klær og termos",
           "Vannflaske, matpakke, kamera og et lite kart",
-          "Ski og staver"
+          "Ski, staver, hjelm og varme votter"
         ],
         "correctIndex": 2,
         "sourceSentence": "Deretter tar jeg sekken min og pakker vannflaske, matpakke, kamera og et lite kart."
@@ -6731,9 +6731,9 @@
       {
         "prompt": "Hva skal personen gjøre etter pausen ved vannet?",
         "options": [
-          "Gå rett hjem",
-          "Sove i teltet",
-          "Ta bussen tilbake",
+          "Gå tilbake samme vei etter pausen",
+          "Sette opp telt ved vannet og bli der",
+          "Følge en kortere rute ned til veien",
           "Fortsette opp til toppen for utsikten"
         ],
         "correctIndex": 3,
@@ -6769,7 +6769,7 @@
         "prompt": "Which party focuses on climate and a greener future?",
         "options": [
           "Miljøpartiet De Grønne",
-          "Høyre",
+          "Arbeiderpartiet",
           "Senterpartiet",
           "Kristelig Folkeparti"
         ],
@@ -6880,11 +6880,11 @@
         "prompt": "Hva kan hjelpe mot prokrastinering, ifølge teksten?",
         "options": [
           "Å dele en stor oppgave opp i mindre og mer håndterlige deler",
-          "Å vente med oppgaven til motivasjonen kommer naturlig og man kan arbeide mer effektivt",
-          "Å fjerne alle tidsfrister slik at oppgaven ikke lenger forbindes med press og stress",
-          "Å gjøre en enklere aktivitet først for å få energi før man begynner på den vanskelige oppgaven"
+          "Å vente til man føler seg helt motivert før man begynner",
+          "Å fjerne tidsfrister slik at oppgaven oppleves mindre krevende",
+          "Å gjøre andre, enklere oppgaver først for å komme i gang"
         ],
-        "correctIndex": 3,
+        "correctIndex": 0,
         "sourceSentence": "For å bekjempe prokrastinering kan det være lurt å dele store oppgaver inn i mindre deler."
       },
       {
@@ -6916,10 +6916,10 @@
       {
         "prompt": "Hva viser offentlige transportkart?",
         "options": [
-          "Værmeldingen for dagen",
-          "Hvor bussene, trikkene og T-banene går",
-          "Priser på billetter",
-          "Historien til byen"
+          "Hvor de viktigste turistattraksjonene ligger",
+          "Hvor buss-, trikke- og T-banelinjene går",
+          "Hvor mye de ulike billettypene koster",
+          "Hvor lang tid det tar å gå mellom holdeplassene"
         ],
         "correctIndex": 1,
         "sourceSentence": "De viser hvor bussene, trikkene og T-banene går, og gjør det lettere å finne riktig rute."
@@ -6927,9 +6927,9 @@
       {
         "prompt": "Hva kan digitale kart på mobilen vise?",
         "options": [
-          "Hvor mye billetten koster i andre byer",
-          "Hvor man kan spise middag",
-          "Hvor mange passasjerer som er om bord",
+          "Prisene på alle billettyper i byen",
+          "Hvor de nærmeste restaurantene ligger",
+          "Hvor fullt hvert kjøretøy er akkurat nå",
           "Hvilken buss som kommer snart, eller om det er forsinkelser"
         ],
         "correctIndex": 3,
@@ -6954,9 +6954,9 @@
         "prompt": "Siden hvilket år har likekjønnede ekteskap vært lovlig i Norge?",
         "options": [
           "1999",
-          "2015",
+          "2005",
           "2009",
-          "1972"
+          "2013"
         ],
         "correctIndex": 2,
         "sourceSentence": "og likekjønnede ekteskap har vært lovlige siden 2009."
@@ -6975,10 +6975,10 @@
       {
         "prompt": "Hva brukes Pride-feiringer også til, i tillegg til å feire kjærlighet og mangfold?",
         "options": [
-          "Å samle inn penger til politiske partier",
+          "Å diskutere partipolitikk og valgkamp under festivalen",
           "Å rette søkelyset på utfordringer som hatkriminalitet og mobbing",
-          "Å erstatte skolegang for unge skeive",
-          "Å avskaffe antidiskrimineringslover"
+          "Å tilby egne undervisningsprogrammer som erstatter skolens arbeid",
+          "Å markere at juridisk likestilling har løst de viktigste problemene"
         ],
         "correctIndex": 1,
         "sourceSentence": "Samtidig brukes anledningen til å rette søkelyset på de utfordringene som fortsatt eksisterer, som hatkriminalitet, mobbing i skolen og psykisk helse blant unge skeive."
@@ -7002,9 +7002,9 @@
         "prompt": "What do many cities have to help people sort their trash?",
         "options": [
           "Separate trash bins in different colors",
-          "Free recycling classes",
-          "Recycling machines in every home",
-          "Weekly recycling inspectors"
+          "Special recycling rooms in every apartment",
+          "Machines that sort all household waste automatically",
+          "Workers who collect each type of trash separately"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mange byer har egne søppeldunker i forskjellige farger."
@@ -7224,9 +7224,9 @@
         "prompt": "Hva ble de hemmelige gangene brukt til?",
         "options": [
           "Å rømme i farlige tider eller bevege seg usett",
-          "Å lagre mat og drikke",
-          "Å holde dyr trygge",
-          "Å transportere varer til markedet"
+          "Å oppbevare forsyninger under lange beleiringer",
+          "Å føre tjenere mellom kjøkken og selskapsrom",
+          "Å frakte varer inn og ut av bygninger utenfor hovedinngangen"
         ],
         "correctIndex": 0,
         "sourceSentence": "De ble brukt til å rømme i farlige tider, eller til å bevege seg usett mellom rom."
@@ -7286,10 +7286,10 @@
       {
         "prompt": "What river runs through Seoul?",
         "options": [
-          "The Nile",
+          "The Nile River",
           "The Han River",
-          "The Rhine",
-          "The Mekong"
+          "The Nakdong River",
+          "The Mekong River"
         ],
         "correctIndex": 1,
         "sourceSentence": "Elven Han går gjennom byen, og mange liker å gå tur eller sykle langs elven."
@@ -7398,9 +7398,9 @@
         "prompt": "What Norwegian food does the lady offer Maria to try first?",
         "options": [
           "Brunost (brown cheese)",
-          "Chocolate",
-          "Bread",
-          "Cake"
+          "Norwegian chocolate",
+          "A slice of bread",
+          "A cinnamon bun"
         ],
         "correctIndex": 0,
         "sourceSentence": "«Ja, vi har brunost. Det er veldig norsk. Vil du prøve?»"
@@ -7469,26 +7469,26 @@
   "Sigmund Freud": {
     "questions": [
       {
-        "prompt": "Hvor ble Freud født?",
+        "prompt": "Hvilket spenn mellom bakgrunn og faglig utvikling fremheves i innledningen om Freud?",
         "options": [
-          "Freiberg, Moravia",
-          "Wien, Østerrike",
-          "London, England",
-          "Berlin, Tyskland"
+          "Han ble født i Moravia, men utviklet det meste av sitt faglige arbeid i Wien",
+          "Han ble født og utdannet i London før han senere flyttet til Wien",
+          "Han vokste opp i Wien, men utviklet psykoanalysen først etter at han flyttet til Moravia",
+          "Han tilbrakte mesteparten av livet i Freiberg, men publiserte arbeidene sine i London"
         ],
         "correctIndex": 0,
         "sourceSentence": "Freud ble født i Freiberg, Moravia (nå en del av Tsjekkia), men tilbrakte mesteparten av sitt liv i Wien, hvor han utviklet sine banebrytende ideer."
       },
       {
-        "prompt": "Hvilken fransk nevrolog samarbeidet Freud med tidlig i karrieren?",
+        "prompt": "Hvordan påvirket samarbeidet med Jean-Martin Charcot utviklingen av Freuds tenkning?",
         "options": [
-          "Carl Jung",
-          "Jean-Martin Charcot",
-          "Alfred Adler",
-          "Wilhelm Wundt"
+          "Det styrket interessen hans for det ubevisstes rolle i psykiske lidelser",
+          "Det førte til at han forlot nevrologien og begynte å studere rent biologiske sykdommer",
+          "Det overbeviste ham om at hypnose alene kunne forklare all menneskelig adferd",
+          "Det fikk ham til å avvise ideen om at tidlige erfaringer kan påvirke psyken"
         ],
-        "correctIndex": 1,
-        "sourceSentence": "I sine tidlige år som lege var han spesielt interessert i hysteri og nevroser, og samarbeidet med den franske nevrologen Jean-Martin Charcot, som benyttet hypnose i behandling av psykiske lidelser."
+        "correctIndex": 0,
+        "sourceSentence": "Dette vekket Freuds interesse for det ubevisste sinnets rolle i menneskelig adferd, noe som senere skulle bli kjernen i hans teorier."
       },
       {
         "prompt": "Hvilke tre deler består Freuds strukturmodell av psyken av?",
@@ -7520,9 +7520,9 @@
         "prompt": "What does the person do when the sun is shining?",
         "options": [
           "Go for a walk in the park",
-          "Bake a cake",
-          "Read a book",
-          "Watch a movie"
+          "Bake something in the kitchen",
+          "Read a book by the window",
+          "Watch a movie at home"
         ],
         "correctIndex": 0,
         "sourceSentence": "Når solen skinner, går jeg gjerne en tur i parken og ser på blomstene."
@@ -7530,10 +7530,10 @@
       {
         "prompt": "What fills the kitchen when the person bakes a cake?",
         "options": [
-          "Music",
-          "The smell",
-          "Smoke",
-          "Steam"
+          "Music from the radio",
+          "The smell of the cake",
+          "Smoke from the oven",
+          "Steam from hot water"
         ],
         "correctIndex": 1,
         "sourceSentence": "Noen ganger baker jeg kake hjemme, og duften fyller hele kjøkkenet."
@@ -7541,10 +7541,10 @@
       {
         "prompt": "What does the person like to do in the evening?",
         "options": [
-          "Go for a run",
-          "Visit a café",
+          "Go for a run or take a walk",
+          "Visit a café or meet a friend",
           "Read a book or watch a simple movie",
-          "Bake bread"
+          "Bake bread or make dinner"
         ],
         "correctIndex": 2,
         "sourceSentence": "Om kvelden liker jeg å lese en bok eller se en enkel film."
@@ -7775,9 +7775,9 @@
         "prompt": "Hva bruker vi sosiale medier til, ifølge teksten?",
         "options": [
           "Å holde kontakt med venner og dele bilder",
-          "Å lage mat og handle dagligvarer",
-          "Å reservere hotell og fly",
-          "Å betale regninger"
+          "Å organisere reiser og kjøpe billetter",
+          "Å betale regninger og styre bankkontoer",
+          "Å bestille mat og dagligvarer"
         ],
         "correctIndex": 0,
         "sourceSentence": "Vi bruker dem til å holde kontakt med venner, dele bilder, uttrykke meninger og oppdage nye interesser."
@@ -7834,9 +7834,9 @@
         "prompt": "Hva ble Sokrates dømt til døden for?",
         "options": [
           "Å korrumpere ungdommen og ikke anerkjenne byens guder",
-          "Å stjele penger fra staten",
-          "Å angripe andre filosofer",
-          "Å nekte å betale skatt"
+          "Å utfordre politiske ledere og nekte å forlate Athen",
+          "Å undervise mot betaling og spre fremmede religioner",
+          "Å nekte militærtjeneste og kritisere Athens lover"
         ],
         "correctIndex": 0,
         "sourceSentence": "Til slutt ble han dømt til døden for “å korrumpere ungdommen” og “ikke å anerkjenne byens guder”."
@@ -7868,12 +7868,12 @@
         "sourceSentence": "Sokrates’ metode – den såkalte maieutikken – kan betraktes som en intellektuell jordmorvirksomhet, der målet ikke var å overføre kunnskap fra lærer til elev, men å hjelpe eleven til selv å “føde” innsikt."
       },
       {
-        "prompt": "Hva regnes som det første skrittet mot visdom, ifølge teksten?",
+        "prompt": "Hvorfor beskrives erkjennelsen av egen uvitenhet som et første skritt mot visdom?",
         "options": [
-          "Uvitenhet",
-          "Rikdom",
-          "Makt",
-          "Berømmelse"
+          "Fordi den åpner for spørsmål, kritisk undersøkelse og revisjon av egne antakelser",
+          "Fordi den viser at kunnskap først og fremst må overføres fra lærer til elev",
+          "Fordi den gjør det mulig å unngå spørsmål som ikke har sikre svar",
+          "Fordi den erstatter behovet for dialog med personlig refleksjon"
         ],
         "correctIndex": 0,
         "sourceSentence": "basert på erkjennelsen av at uvitenhet ofte er det første skrittet mot visdom."
@@ -7946,7 +7946,7 @@
         "options": [
           "Poteter",
           "Ris",
-          "Havre",
+          "Hvete",
           "Mais"
         ],
         "correctIndex": 0,
@@ -7982,9 +7982,9 @@
         "prompt": "What does the person do when it rains outside?",
         "options": [
           "Works out in the living room",
-          "Goes for a run outside",
-          "Stays in bed all day",
-          "Goes to the gym"
+          "Goes running outside in the rain",
+          "Stays in bed and watches TV",
+          "Travels to a gym across town"
         ],
         "correctIndex": 0,
         "sourceSentence": "Når det regner ute, kan jeg trene i stua."
@@ -8044,10 +8044,10 @@
       {
         "prompt": "Hva er et eksempel på en historie i historien, ifølge teksten?",
         "options": [
-          "En bestemor som synger en sang fra barndommen midt i fortellingen",
-          "En lærer som viser en film",
-          "En bok uten bilder",
-          "En avis med nyheter"
+          "En fortelling der en person begynner å gjengi en annen fortelling inne i den første",
+          "En fortelling som bytter mellom to hovedpersoner på forskjellige steder",
+          "En bok der fortelleren snakker direkte til leseren om handlingen",
+          "En historie som begynner og slutter med den samme hendelsen"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det kan være en bestemor som forteller om sin barndom, og midt i historien begynner hun å gjengi en sang hun lærte som liten."
@@ -8119,9 +8119,9 @@
         "prompt": "Hvilke matvarer nevnes som eksempler på supermat, ifølge teksten?",
         "options": [
           "Blåbær, spinat, laks, quinoa og chiafrø",
-          "Poteter, brød og ris",
-          "Sjokolade, kake og is",
-          "Kjøtt, egg og melk"
+          "Poteter, fullkornsbrød, ris, egg og melk",
+          "Epler, gulrøtter, kylling, pasta og yoghurt",
+          "Avokado, bønner, ost, havre og appelsiner"
         ],
         "correctIndex": 0,
         "sourceSentence": "Eksempler på supermat inkluderer blåbær, spinat, laks, quinoa og chiafrø."
@@ -8275,23 +8275,23 @@
   "Synecdoche, New York": {
     "questions": [
       {
-        "prompt": "Hva heter hovedpersonen i historien?",
+        "prompt": "Hva antyder Cadens prosjekt om forholdet mellom kunst og virkelighet i teksten?",
         "options": [
-          "Caden Cotard",
-          "Sammy Barnathan",
-          "Adele Lack",
-          "Hazel"
+          "Forsøket på å gjenskape livet fullstendig gjør skillet mellom kunst og virkelighet stadig mindre tydelig",
+          "Kunsten gir Caden en stabil måte å kontrollere virkeligheten på etter hvert som livet blir vanskeligere",
+          "Prosjektet viser at kunst fungerer best når den holder stor avstand til kunstnerens eget liv",
+          "Replikaen av New York gjør det mulig for Caden å avslutte prosjektet og vende tilbake til et normalt liv"
         ],
         "correctIndex": 0,
-        "sourceSentence": "En teaterregissør ved navn Caden Cotard lever i en tilstand av stadig voksende angst over kroppens skrøpelighet, ekteskapets forvitring og tidens ubønnhørlige fremdrift."
+        "sourceSentence": "Virkelighet og iscenesettelse blir uatskillelige; når Caden mister grep om sitt eget liv, forsvinner skillet mellom regissør og rollefigur."
       },
       {
         "prompt": "Hva gjør Caden med kunstnerstipendet han får?",
         "options": [
-          "Bygger en replika av New York i en lagerhall",
-          "Reiser til Hellas for å studere filosofi",
-          "Skriver en bok om sitt eget liv",
-          "Starter et teaterselskap i Paris"
+          "Han bruker stipendet til å bygge en stadig mer omfattende kopi av New York som del av teaterverket",
+          "Han bruker stipendet til å dokumentere sitt eget liv i en tradisjonell selvbiografisk forestilling",
+          "Han bruker stipendet til å reise og samle autentiske historier som senere skal dramatiseres",
+          "Han bruker stipendet til å etablere et permanent teater som bare setter opp andres verk"
         ],
         "correctIndex": 0,
         "sourceSentence": "I en enorm lagerhall begynner han å bygge en replika av New York, komplett med gater, bygninger og mennesker som skal spille vanlige liv, inkludert seg selv."
@@ -8373,10 +8373,10 @@
       {
         "prompt": "Hvor mange kofferter sjekker Anna inn?",
         "options": [
-          "Bare én",
-          "To",
-          "Tre",
-          "Ingen"
+          "Bare én koffert",
+          "To kofferter",
+          "Tre kofferter",
+          "Ingen kofferter"
         ],
         "correctIndex": 0,
         "sourceSentence": "«Bare denne,» svarte hun, og kjente et lite sug i magen da kofferten forsvant på båndet."
@@ -8481,9 +8481,9 @@
         "prompt": "Hvem skrev Hulelignelsen, ifølge teksten?",
         "options": [
           "Platon",
-          "Sokrates",
           "Aristoteles",
-          "Hannah Arendt"
+          "Xenofon",
+          "Epikur"
         ],
         "correctIndex": 0,
         "sourceSentence": "Hulelignelsen, skrevet av den greske filosofen Platon, er en metafor som illustrerer forskjellen mellom det vi oppfatter som virkelighet og den egentlige sannheten."
@@ -8555,9 +8555,9 @@
         "prompt": "What does Anna buy in addition to the rolls?",
         "options": [
           "A bun with sugar on top",
-          "A loaf of bread",
-          "A cake",
-          "A cookie"
+          "A loaf of dark bread",
+          "A piece of chocolate cake",
+          "A large oatmeal cookie"
         ],
         "correctIndex": 0,
         "sourceSentence": "Anna nølte litt, men øynene falt på bollene med sukker på toppen. «Ja… én bolle også.»"
@@ -8567,12 +8567,12 @@
   "Ondskapens banalitet": {
     "questions": [
       {
-        "prompt": "Hvem formulerte begrepet «ondskapens banalitet»?",
+        "prompt": "Hva er hovedpoenget i begrepet «ondskapens banalitet» slik teksten forklarer det?",
         "options": [
-          "Hannah Arendt",
-          "Martin Heidegger",
-          "Immanuel Kant",
-          "Jean-Paul Sartre"
+          "Alvorlig ondskap kan oppstå når vanlige mennesker adlyder systemer uten kritisk moralsk refleksjon",
+          "Ondskap skyldes først og fremst sterke personlige følelser som hat og sadisme",
+          "Byråkratiske systemer reduserer risikoen for overgrep fordi ansvaret fordeles på flere",
+          "Bare personer med bevisst ønske om å skade andre kan holdes moralsk ansvarlige"
         ],
         "correctIndex": 0,
         "sourceSentence": "Begrepet «ondskapens banalitet», slik det ble formulert av Hannah Arendt, peker på hvordan grusomme handlinger kan utføres ikke nødvendigvis av monstre, men av vanlige mennesker som handler uten å reflektere kritisk over konsekvensene av sine valg."
@@ -8655,9 +8655,9 @@
         "prompt": "What do Anna and Jonas see near the water's edge?",
         "options": [
           "A small crab",
-          "A fish",
-          "A jellyfish",
-          "A dog"
+          "A small silver fish",
+          "A clear jellyfish",
+          "A little brown dog"
         ],
         "correctIndex": 0,
         "sourceSentence": "og så en liten krabbe som beveget seg sidelengs over steinene."
@@ -8677,9 +8677,9 @@
         "prompt": "What do Anna and Jonas do after swimming?",
         "options": [
           "They lie down on their towels",
-          "They go home",
-          "They eat lunch",
-          "They build a sandcastle"
+          "They walk back toward the parking lot",
+          "They sit down to eat lunch",
+          "They start building a sandcastle"
         ],
         "correctIndex": 0,
         "sourceSentence": "Etterpå la de seg ned på håndklærne sine og så opp på himmelen."
@@ -8761,10 +8761,10 @@
       {
         "prompt": "Hva brukte folk for å rive ned muren i 1989, ifølge teksten?",
         "options": [
-          "Hammere og andre verktøy",
-          "Biler",
-          "Bomber",
-          "Ingenting, den falt av seg selv"
+          "Hammere og andre håndverktøy",
+          "Store gravemaskiner og lastebiler",
+          "Sprengstoff kontrollert av myndighetene",
+          "Militære kjøretøy fra begge sider"
         ],
         "correctIndex": 0,
         "sourceSentence": "Folk fra begge sider kom sammen for å feire, og mange brukte hammere og andre verktøy for å rive ned muren."
@@ -8814,9 +8814,9 @@
         "prompt": "What kind of book is Anna looking for?",
         "options": [
           "An easy book in Norwegian",
-          "A cookbook",
-          "A history book",
-          "A poetry collection"
+          "A simple Norwegian cookbook",
+          "A short history book",
+          "A collection of Norwegian poems"
         ],
         "correctIndex": 0,
         "sourceSentence": "«Jeg vil ha en lett bok. Jeg lærer norsk.»"
@@ -9021,9 +9021,9 @@
         "prompt": "Hva heter byen i trærne, ifølge teksten?",
         "options": [
           "Treluna",
-          "Elvendal",
-          "Skogby",
-          "Rotheim"
+          "Trelund",
+          "Lunaskog",
+          "Eikheim"
         ],
         "correctIndex": 0,
         "sourceSentence": "Innbyggerne kalte stedet for Treluna, og de mente at trærne beskyttet dem mot verden utenfor."
@@ -9043,9 +9043,9 @@
         "prompt": "Hva lyser om kvelden i byen, ifølge teksten?",
         "options": [
           "Lykter laget av krystaller",
-          "Stjerner på himmelen",
-          "Ildfluer",
-          "Elektriske lamper"
+          "Små lamper skjult mellom greinene",
+          "Ildfluer som samler seg rundt husene",
+          "Elektriske lys langs gangbroene"
         ],
         "correctIndex": 0,
         "sourceSentence": "Om kvelden lyste lykter laget av krystaller, og hele byen skinte som en stjernehimmel under bladverket."
@@ -9053,10 +9053,10 @@
       {
         "prompt": "Hvorfor begynte folk å frykte for Trelunas fremtid, ifølge teksten?",
         "options": [
-          "Fordi ryktet sa at noen utenfra hadde oppdaget dalen",
-          "Fordi trærne begynte å dø",
-          "Fordi det ikke var nok mat",
-          "Fordi innbyggerne kranglet med hverandre"
+          "Fordi noen utenfra kan ha oppdaget dalen og dermed true balansen der",
+          "Fordi skogen ikke lenger klarer å produsere nok mat til innbyggerne",
+          "Fordi trehusene har begynt å bli ustabile etter mange år",
+          "Fordi en konflikt mellom familiene truer med å dele byen"
         ],
         "correctIndex": 0,
         "sourceSentence": "Ryktet sa at noen utenfra hadde oppdaget dalen, og folk begynte å frykte at fremmede ville komme for å ødelegge balansen mellom mennesker og trær."
@@ -9114,25 +9114,25 @@
   "Norges grunnlov": {
     "questions": [
       {
-        "prompt": "Hvilket år er Grunnloven fra, ifølge teksten?",
+        "prompt": "Hvilket spenn ved Grunnloven understreker teksten?",
         "options": [
-          "1789",
-          "1814",
-          "1905",
-          "1940"
+          "Den forbindes med liberale idealer, men den opprinnelige teksten hadde også tydelige begrensninger og ekskludering",
+          "Den ble skrevet som et konservativt dokument, men utviklet seg senere til å avvise folkesuverenitet",
+          "Den var opprinnelig fullt inkluderende, men har blitt mindre demokratisk gjennom senere endringer",
+          "Den bygger på opplysningstidens ideer, men har liten betydning for dagens politiske system"
         ],
-        "correctIndex": 1,
-        "sourceSentence": "Grunnloven av 1814 regnes som et av de mest betydningsfulle dokumentene i norsk historie"
+        "correctIndex": 0,
+        "sourceSentence": "Samtidig må man erkjenne at Grunnloven i sin opprinnelige form hadde klare begrensninger, for eksempel ved å utelukke store deler av befolkningen fra politisk innflytelse og ved å inneholde diskriminerende bestemmelser."
       },
       {
-        "prompt": "Fra hvilket land brøt Norge etter mer enn fire hundre års union?",
+        "prompt": "Hvorfor har bruddet med Danmark en sentral plass i tekstens framstilling av Grunnloven?",
         "options": [
-          "Sverige",
-          "Danmark",
-          "Tyskland",
-          "England"
+          "Det markerer overgangen fra langvarig union til et norsk politisk rammeverk basert på nye prinsipper",
+          "Det viser at Norge umiddelbart ble fullt selvstendig og uten politiske bånd til andre land",
+          "Det forklarer hvorfor Grunnloven hovedsakelig videreførte det danske politiske systemet",
+          "Det viser at nasjonal selvstendighet var viktigere enn spørsmål om maktfordeling og rettigheter"
         ],
-        "correctIndex": 1,
+        "correctIndex": 0,
         "sourceSentence": "ikke bare fordi den markerte landets formelle brudd med Danmark etter mer enn fire hundre års union"
       },
       {
@@ -9308,10 +9308,10 @@
       {
         "prompt": "What did the narrator hear?",
         "options": [
-          "A dog barking",
+          "A dog barking outside",
           "A faint voice saying \"Come in\"",
-          "Music playing",
-          "A phone ringing"
+          "Music coming from another room",
+          "A phone ringing in the hallway"
         ],
         "correctIndex": 1,
         "sourceSentence": "Jeg hørte en svak stemme: «Kom inn… kom inn…»"
@@ -9321,8 +9321,8 @@
         "options": [
           "Went closer to the mirror",
           "Screamed and ran out of the room",
-          "Fell asleep",
-          "Turned off the lights"
+          "Called for someone in the hallway",
+          "Covered the mirror with a cloth"
         ],
         "correctIndex": 1,
         "sourceSentence": "Jeg ropte høyt og løp ut av rommet."
@@ -9393,10 +9393,10 @@
       {
         "prompt": "Hva betyr det å være «ydmyk» i denne sammenhengen?",
         "options": [
-          "Å erkjenne at man kan ta feil og være villig til å søke mer kunnskap",
-          "Å være forsiktig med å uttale seg selv når man har mye erfaring",
-          "Å stole mer på eksperter enn på egne vurderinger i alle situasjoner",
-          "Å undervurdere egne ferdigheter for å unngå å framstå som selvsikker"
+          "Å erkjenne at man kan ta feil og være villig til å lære mer",
+          "Å være tilbakeholden med å uttale seg selv når man har mye kunnskap",
+          "Å stole på eksperter fremfor egne vurderinger i de fleste situasjoner",
+          "Å undervurdere egne ferdigheter for å unngå å virke selvsikker"
         ],
         "correctIndex": 0,
         "sourceSentence": "Effekten viser oss at det kan være viktig å være ydmyk, stille spørsmål og søke mer kunnskap, i stedet for å tro at man allerede vet alt."
@@ -9467,10 +9467,10 @@
       {
         "prompt": "Hva betyr det at Jonas og Lina bare «tar det som det kommer»?",
         "options": [
-          "De har ikke planlagt fremtiden sammen, men lar ting utvikle seg naturlig",
-          "De har bestemt seg for å gifte seg",
-          "De har allerede flyttet sammen",
-          "De har bestemt seg for å slå opp"
+          "De har ikke lagt en fast plan, men lar forholdet utvikle seg underveis",
+          "De har bestemt seg for å bo hver for seg selv om de fortsetter forholdet",
+          "De unngår å snakke om fremtiden fordi de forventer å gjøre det slutt",
+          "De har en plan, men vil vente med å fortelle andre om den"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg tror vi begge bare… tar det som det kommer."
@@ -9478,10 +9478,10 @@
       {
         "prompt": "Hvorfor sier Marte at hun trenger å finne ut hvem hun er uten byen?",
         "options": [
-          "Fordi hun tror identiteten hennes har vært knyttet til stedet og forventningene der",
-          "Fordi hun hater byen",
-          "Fordi hun har mistet jobben sin der",
-          "Fordi foreldrene hennes tvinger henne til å flytte"
+          "Fordi hun opplever at byen og andres forventninger har vært en del av identiteten hennes",
+          "Fordi hun ønsker å bryte med alle hun kjenner før hun begynner på studiene",
+          "Fordi hun tror et nytt sted automatisk vil løse usikkerheten hun føler",
+          "Fordi hun har bestemt seg for å forlate Norge permanent"
         ],
         "correctIndex": 0,
         "sourceSentence": "jeg tror kanskje jeg trenger å finne ut av hvem jeg er uten alt dette. Uten denne byen, uten alle forventningene…"
@@ -9612,9 +9612,9 @@
         "prompt": "When are the colors especially strong, according to the text?",
         "options": [
           "At sunrise and sunset",
-          "At midday",
-          "During rainstorms",
-          "In winter"
+          "Around the middle of the day",
+          "After a heavy rainstorm",
+          "On cold winter mornings"
         ],
         "correctIndex": 0,
         "sourceSentence": "Soloppgang og solnedgang over Grand Canyon er spesielt fine, fordi lyset gjør fargene enda sterkere."
@@ -9893,9 +9893,9 @@
         "prompt": "Hvor og når startet den industrielle revolusjonen?",
         "options": [
           "I Storbritannia på slutten av 1700-tallet",
-          "I Frankrike på 1900-tallet",
-          "I USA på 1600-tallet",
-          "I Tyskland på 1800-tallet"
+          "I Frankrike på midten av 1800-tallet",
+          "I USA tidlig på 1700-tallet",
+          "I Tyskland på begynnelsen av 1900-tallet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Denne perioden startet på slutten av 1700-tallet i Storbritannia, og spredte seg raskt til andre deler av verden."
@@ -9997,12 +9997,12 @@
         "sourceSentence": "Utgitt i 1998 av Nintendo, spillet satte standarden for hva et action-eventyrspill kunne være"
       },
       {
-        "prompt": "Hvem er hovedpersonens fiende i spillet?",
+        "prompt": "Hva viser konflikten mellom Link og Ganondorf om spillets grunnleggende fortelling?",
         "options": [
-          "Ganondorf",
-          "Zelda",
-          "Mario",
-          "Bowser"
+          "At Link må beskytte Hyrule og Zelda mot en maktsøkende motstander",
+          "At Link og Ganondorf konkurrerer om å bli herskere over det samme fredelige riket",
+          "At Zelda bruker Ganondorf som alliert for å teste Links lojalitet",
+          "At hovedkonflikten først og fremst handler om hvem som kontrollerer okarinaens musikk"
         ],
         "correctIndex": 0,
         "sourceSentence": "Historien følger hovedpersonen Link i hans kamp mot den onde Ganondorf for å redde Hyrules rike og prinsesse Zelda."
@@ -10107,9 +10107,9 @@
         "prompt": "Hva skjer med Wiesler etter at han beskytter Dreyman?",
         "options": [
           "Han blir degradert og satt til meningsløst kontorarbeid",
-          "Han blir forfremmet i Stasi",
-          "Han flykter til Vest-Tyskland",
-          "Han blir arrestert og fengslet"
+          "Han beholder stillingen, men mister muligheten til å overvåke Dreyman",
+          "Han blir overført til en annen avdeling uten kontakt med saken",
+          "Han mister jobben i Stasi og blir tvunget til å forlate Berlin"
         ],
         "correctIndex": 0,
         "sourceSentence": "Wiesler betaler en høy pris for sitt forræderi mot systemet: han blir degradert og sendt til å gjøre meningsløst kontorarbeid."
@@ -10144,9 +10144,9 @@
         "prompt": "Where did the woman find Anna's wallet?",
         "options": [
           "On the seat in front of her on the bus",
-          "On the ground at the bus stop",
-          "In her own bag",
-          "At the ticket counter"
+          "On the ground beside the bus stop",
+          "Inside a bag under the seat",
+          "At the ticket counter at the station"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg fant den på setet foran meg."
@@ -10155,9 +10155,9 @@
         "prompt": "How did Anna feel when she got her wallet back?",
         "options": [
           "Relieved and full of warm joy",
-          "Angry and suspicious",
-          "Confused and indifferent",
-          "Embarrassed and sad"
+          "Relieved but still a little worried",
+          "Embarrassed and unsure what to say",
+          "Angry because someone had opened it"
         ],
         "correctIndex": 0,
         "sourceSentence": "Hun kjente en varm glede spre seg."
@@ -10206,10 +10206,10 @@
       {
         "prompt": "Hva oppdager Gregor Samsa da han våkner?",
         "options": [
-          "At kroppen hans er forvandlet til et insekt",
-          "At han har mistet jobben sin",
-          "At familien hans har flyttet",
-          "At han er blitt usynlig"
+          "Han våkner i en kropp som er blitt forvandlet til et insekt",
+          "Han våkner og oppdager at familien har behandlet ham som et insekt",
+          "Han våkner etter å ha mistet jobben og tolker seg selv som verdiløs",
+          "Han våkner i et fremmed rom uten å vite hvordan han kom dit"
         ],
         "correctIndex": 0,
         "sourceSentence": "våknet Gregor Samsa i sin seng og oppdaget at kroppen hans ikke lenger var menneskelig, men forvandlet til et uhyggelig insekt"
@@ -10340,9 +10340,9 @@
         "prompt": "Hva ofret Odin for å drikke av visdommens brønn?",
         "options": [
           "Sitt ene øye",
-          "Sin hammer",
-          "Sin sønn",
-          "Sitt kongerike"
+          "Spydet sitt, Gungnir",
+          "En av ravnene sine",
+          "Ringen Draupnir"
         ],
         "correctIndex": 0,
         "sourceSentence": "han ofret til og med sitt ene øye for å drikke av visdommens brønn."
@@ -10353,7 +10353,7 @@
           "Mjølner",
           "Gungnir",
           "Draupnir",
-          "Gjallarhorn"
+          "Skidbladner"
         ],
         "correctIndex": 0,
         "sourceSentence": "Tor, på sin side, var en krigergud som beskyttet både guder og mennesker med sin kraftige hammer, Mjølner."
@@ -10362,9 +10362,9 @@
         "prompt": "Hva var Loke kjent for, ifølge teksten?",
         "options": [
           "Sin sluhet og evne til å skape kaos",
-          "Sin fysiske styrke i kamp",
-          "Sin visdom og fredsommelighet",
-          "Sin kjærlighet til familie"
+          "Sin styrke og vilje til å møte fiender direkte",
+          "Sin visdom og evne til å megle mellom gudene",
+          "Sin lojalitet og ansvarsfølelse overfor familien"
         ],
         "correctIndex": 0,
         "sourceSentence": "Loke var kjent for sin sluhet og evne til å skape kaos, men han kunne også være hjelpsom når det passet ham."
@@ -10580,9 +10580,9 @@
         "prompt": "Hva er en nøkkelfaktor til at placeboeffekten fungerer, ifølge teksten?",
         "options": [
           "Forventning",
-          "Kjønn",
-          "Alder alene",
-          "Utdanningsnivå"
+          "Tidligere erfaring",
+          "Behandlingens pris",
+          "Pasientens alder"
         ],
         "correctIndex": 0,
         "sourceSentence": "En nøkkel til placeboeffekten er forventning."
@@ -10702,9 +10702,9 @@
         "prompt": "Hva kan langvarig ensomhet føre til, ifølge forskning?",
         "options": [
           "Stress, søvnproblemer og redusert selvfølelse",
-          "Bedre helse og mer overskudd",
-          "Økt kreativitet",
-          "Flere venner"
+          "Mindre stress, men svakere motivasjon i hverdagen",
+          "Større kreativitet kombinert med mindre behov for søvn",
+          "Bedre konsentrasjon, men vanskeligere sosiale relasjoner"
         ],
         "correctIndex": 0,
         "sourceSentence": "Den kan føre til stress, søvnproblemer og redusert selvfølelse."
@@ -10750,9 +10750,9 @@
         "prompt": "Hva svarer ravnen når mannen spør om han vil se Lenore igjen?",
         "options": [
           "«Aldri mer»",
-          "«Kanskje»",
-          "Ingenting, den flyr bort",
-          "«Ja, snart»"
+          "«Ikke ennå»",
+          "«Du vil møte henne»",
+          "Ravnen svarer ikke på spørsmålet"
         ],
         "correctIndex": 0,
         "sourceSentence": "\"Aldri mer,\" svarte fuglen kaldt."
@@ -10857,9 +10857,9 @@
         "prompt": "Hvilke to kunstnere nevnes som eksempler fra renessansen?",
         "options": [
           "Leonardo da Vinci og Michelangelo",
-          "Picasso og Van Gogh",
+          "Raphael og Donatello",
           "Rembrandt og Vermeer",
-          "Munch og Vigeland"
+          "Picasso og Van Gogh"
         ],
         "correctIndex": 0,
         "sourceSentence": "Mange kunstnere, som Leonardo da Vinci og Michelangelo, laget store verk som fremdeles er berømte i dag."
@@ -11148,10 +11148,10 @@
       {
         "prompt": "Hvordan klarer Danny å overleve jakten i labyrinten?",
         "options": [
-          "Han bruker sin kunnskap om labyrinten mot faren",
-          "Han gjemmer seg i rom 237",
-          "Han ringer politiet",
-          "Han klatrer opp på hotelltaket"
+          "Han bruker kunnskapen sin om labyrinten til å villede faren",
+          "Han gjemmer seg på hotellet til faren slutter å lete",
+          "Han finner en telefon og får kontakt med politiet",
+          "Han klatrer over en vegg og løper direkte tilbake til hotellet"
         ],
         "correctIndex": 0,
         "sourceSentence": "Danny, liten og smart, bruker sin kunnskap om labyrinten for å overleve."
@@ -11287,8 +11287,8 @@
         "options": [
           "1957",
           "1961",
-          "1969",
-          "1945"
+          "1965",
+          "1969"
         ],
         "correctIndex": 0,
         "sourceSentence": "Sovjetunionen sendte opp den første satellitten, Sputnik, i 1957"
@@ -11356,9 +11356,9 @@
         "prompt": "Hvor lenge styrte Franco Spania som diktator etter krigen?",
         "options": [
           "I nesten førti år",
-          "I ti år",
-          "I hundre år",
-          "I fem år"
+          "I omtrent tjue år",
+          "I litt over femti år",
+          "I mindre enn ti år"
         ],
         "correctIndex": 0,
         "sourceSentence": "Franco styrte Spania som diktator i nesten førti år etterpå."
@@ -11382,9 +11382,9 @@
         "prompt": "Når oppdaget Columbus Amerika, ifølge teksten?",
         "options": [
           "1492",
-          "1500",
-          "1600",
-          "1800"
+          "1488",
+          "1519",
+          "1588"
         ],
         "correctIndex": 0,
         "sourceSentence": "Imperiet vokste frem etter oppdagelsen av Amerika i 1492, da Christofer Columbus, på vegne av den spanske kronen, seilte vestover"
@@ -11403,10 +11403,10 @@
       {
         "prompt": "Hva viser teksten om den kulturelle arven fra det spanske imperiet i dag?",
         "options": [
-          "At spansk språk og katolsk tro er sentrale elementer i Latin-Amerika",
-          "At Spania fortsatt kontrollerer koloniene sine",
-          "At Latin-Amerika har glemt all spansk kultur",
-          "At Spania mistet sitt eget språk"
+          "At spansk språk og katolsk tro fortsatt preger store deler av Latin-Amerika",
+          "At spanske politiske institusjoner fortsatt styrer de fleste latinamerikanske land",
+          "At urfolksspråk i Latin-Amerika i stor grad har erstattet spansk",
+          "At den katolske kirken mistet nesten all innflytelse etter kolonitiden"
         ],
         "correctIndex": 0,
         "sourceSentence": "I dag kan vi fortsatt se resultatene av dette i Latin-Amerika, der spansk språk og katolsk tro er sentrale elementer i samfunnet."
@@ -11430,9 +11430,9 @@
         "prompt": "What is the address Maria gives the taxi driver?",
         "options": [
           "Karl Johans gate 12",
-          "Storgata 5",
+          "Storgata 12",
           "Kongens gate 10",
-          "Bygdøy allé 3"
+          "Bygdøy allé 13"
         ],
         "correctIndex": 0,
         "sourceSentence": "«Adressen er Karl Johans gate 12,» sa hun."
@@ -11504,9 +11504,9 @@
         "prompt": "Hvem utviklet evolusjonsteorien, ifølge teksten?",
         "options": [
           "Charles Darwin",
-          "Isaac Newton",
+          "Alfred Russel Wallace",
           "Gregor Mendel",
-          "Albert Einstein"
+          "Jean-Baptiste Lamarck"
         ],
         "correctIndex": 0,
         "sourceSentence": "Evolusjonsteorien, utviklet av Charles Darwin på 1800-tallet, er en av de mest betydningsfulle vitenskapelige teoriene i menneskets historie."
@@ -11552,9 +11552,9 @@
         "prompt": "Hva opplevde kvinnen i historien mange år tidligere?",
         "options": [
           "Kulturrevolusjonen i Kina",
-          "En romreise",
-          "Andre verdenskrig",
-          "En jordskjelvkatastrofe"
+          "En politisk revolusjon i Russland",
+          "En konflikt mellom Kina og Japan",
+          "En stor naturkatastrofe i Kina"
         ],
         "correctIndex": 0,
         "sourceSentence": "Parallelt følger vi en kvinne som, mange år tidligere, opplevde kulturrevolusjonen i Kina."
@@ -11723,8 +11723,8 @@
         "options": [
           "1945",
           "1919",
-          "1960",
-          "1939"
+          "1939",
+          "1950"
         ],
         "correctIndex": 0,
         "sourceSentence": "De forente nasjoner (FN) er en internasjonal organisasjon som ble opprettet i 1945, etter slutten av andre verdenskrig."
@@ -11733,9 +11733,9 @@
         "prompt": "Hvor mange medlemsland har FN i dag, ifølge teksten?",
         "options": [
           "193",
-          "150",
-          "200",
-          "175"
+          "189",
+          "195",
+          "201"
         ],
         "correctIndex": 0,
         "sourceSentence": "Organisasjonen har i dag 193 medlemsland, som samarbeider om ulike spørsmål som klimaforandringer, fattigdom, utdanning og helse."
@@ -11744,9 +11744,9 @@
         "prompt": "Hvor mange bærekraftsmål inngår i FNs globale handlingsplan?",
         "options": [
           "17",
-          "10",
-          "25",
-          "5"
+          "15",
+          "20",
+          "25"
         ],
         "correctIndex": 0,
         "sourceSentence": "Et annet sentralt aspekt av FNs arbeid er bærekraftsmålene, en global handlingsplan med 17 mål som tar for seg problemer som ulikhet, klima og utdanning."
@@ -11856,8 +11856,8 @@
         "options": [
           "Henrik Ibsen",
           "Bjørnstjerne Bjørnson",
-          "Knut Hamsun",
-          "Jon Fosse"
+          "Alexander Kielland",
+          "August Strindberg"
         ],
         "correctIndex": 0,
         "sourceSentence": "Vildanden av Henrik Ibsen er et drama som utforsker temaer som løgn, selvbedrag og familiehemmeligheter."
@@ -11865,10 +11865,10 @@
       {
         "prompt": "Hva avslører Gregers for Hjalmar?",
         "options": [
-          "At Hedvig kanskje ikke er hans biologiske datter",
-          "At Gina har stjålet penger",
-          "At Hjalmar er syk",
-          "At faren hans er død"
+          "At Hedvig kanskje ikke er Hjalmars biologiske datter",
+          "At Gina lenge har skjult hvordan familien egentlig får økonomisk støtte",
+          "At Hjalmar har visst om Gregers’ far og Gina hele tiden",
+          "At Hedvig planlegger å forlate familien for å bo hos Gregers"
         ],
         "correctIndex": 0,
         "sourceSentence": "Gregers tror at sannheten vil frigjøre familien Ekdal, og han avslører for Hjalmar at Hedvig kanskje ikke er hans biologiske datter, men resultatet av et forhold mellom Gina og hans far."
@@ -12084,9 +12084,9 @@
         "prompt": "What does the narrator do because of the nice weather?",
         "options": [
           "Goes for a walk",
-          "Stays inside",
-          "Goes swimming",
-          "Reads a book"
+          "Stays inside and rests",
+          "Goes for a swim",
+          "Reads a book at home"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg liker når været er slik, for da kan jeg gå en tur."
@@ -12098,10 +12098,10 @@
       {
         "prompt": "Hva er Shibuya kjent for, ifølge teksten?",
         "options": [
-          "Verdens mest trafikkerte fotgjengerfelt",
-          "Tokyos eldste tempel",
-          "Kirsebærtrær",
-          "Den internasjonale romstasjonen"
+          "Et svært travelt fotgjengerfelt",
+          "Et gammelt buddhisttempel",
+          "En park kjent for kirsebærblomstring",
+          "Et stort marked for sjømat"
         ],
         "correctIndex": 0,
         "sourceSentence": "I Tokyo kan du besøke steder som Shibuya, kjent for verdens mest trafikkerte fotgjengerfelt."
@@ -12110,9 +12110,9 @@
         "prompt": "Hvilket tempel er Tokyos eldste, ifølge teksten?",
         "options": [
           "Sensoji-tempelet",
-          "Todaiji-tempelet",
-          "Kinkaku-ji",
-          "Fushimi Inari"
+          "Meiji-helligdommen",
+          "Zojoji-tempelet",
+          "Kanda-helligdommen"
         ],
         "correctIndex": 0,
         "sourceSentence": "Asakusa er et eksempel, der du kan besøke Sensoji-tempelet, Tokyos eldste tempel."
@@ -12121,9 +12121,9 @@
         "prompt": "Hva kalles kirsebærblomstringsfestivalen i Japan?",
         "options": [
           "Hanami",
-          "Shinkansen",
           "Hanabi",
-          "Matsuri"
+          "Matsuri",
+          "Obon"
         ],
         "correctIndex": 0,
         "sourceSentence": "der både lokalbefolkningen og turister samles for å feire hanami, kirsebærblomstringsfestivalen."
@@ -12147,9 +12147,9 @@
         "prompt": "Hva kalles en svakhet hos en litterær person som fører til problemer, ifølge teksten?",
         "options": [
           "En tragisk feil",
-          "En helt vanlig feil",
-          "Et mysterium",
-          "En superkraft"
+          "En indre konflikt",
+          "Et moralsk dilemma",
+          "Et vendepunkt"
         ],
         "correctIndex": 0,
         "sourceSentence": "Denne svakheten kalles ofte en «tragisk feil»."
@@ -12257,10 +12257,10 @@
       {
         "prompt": "I teksten betyr uttrykket «han har et hjerte av stein» at personen er...",
         "options": [
-          "Kald og uten følelser",
-          "Fysisk syk",
-          "Veldig rik",
-          "Glad og optimistisk"
+          "Kald og lite medfølende",
+          "Fysisk syk og svak",
+          "Hardtarbeidende og bestemt",
+          "Rolig og optimistisk"
         ],
         "correctIndex": 0,
         "sourceSentence": "Hvis jeg sier «han har et hjerte av stein», mener jeg ikke at hjertet hans virkelig er laget av stein, men at han virker kald og uten følelser."
@@ -12317,9 +12317,9 @@
         "prompt": "What is Norway's national day called?",
         "options": [
           "Syttende mai",
+          "Første juledag",
           "Nyttårsaften",
-          "Julaften",
-          "Midtsommer"
+          "Sankthansaften"
         ],
         "correctIndex": 0,
         "sourceSentence": "Syttende mai er Norges nasjonaldag."
@@ -12380,9 +12380,9 @@
         "prompt": "Hva er et bambustog, ifølge teksten?",
         "options": [
           "En liten plattform som ruller på togskinner",
-          "Et fly laget av bambus",
-          "En bil med tre hjul",
-          "En båt som går på elver"
+          "En lett vogn som trekkes av en motorsykkel",
+          "En liten båt bygget av bambus og tre",
+          "Et skinnekjøretøy som henger under banen"
         ],
         "correctIndex": 0,
         "sourceSentence": "I noen land finnes det bambustog, der folk sitter på en liten plattform som ruller på togskinnene."
@@ -12417,9 +12417,9 @@
         "prompt": "What is a utopia, according to the text?",
         "options": [
           "A dream of a perfect society without war or poverty",
-          "A society with strong rules but little crime",
-          "A rich society where everyone has the same job",
-          "A future society with advanced technology and few traditions"
+          "A peaceful society with strict rules and little personal freedom",
+          "A wealthy society where everyone has the same kind of work",
+          "A future society with advanced technology but strong inequality"
         ],
         "correctIndex": 0,
         "sourceSentence": "En utopi er en drøm om et perfekt samfunn."
@@ -12524,9 +12524,9 @@
         "prompt": "Hva er et eksempel på en typisk norsk vegetarrett, ifølge teksten?",
         "options": [
           "Ovnsbakte rotgrønnsaker med urter og salat",
-          "Kjøttboller med brun saus",
-          "Fiskesuppe med reker",
-          "Pizza med skinke"
+          "Potetgrateng med bacon og grønne grønnsaker",
+          "Fiskesuppe med rotgrønnsaker og brød",
+          "Pasta med skinke, urter og frisk salat"
         ],
         "correctIndex": 0,
         "sourceSentence": "En typisk norsk vegetarrett kan være ovnsbakte rotgrønnsaker med urter, servert med en frisk salat og hjemmelaget brød."
@@ -12624,9 +12624,9 @@
         "prompt": "What animal made the narrator feel a little scared?",
         "options": [
           "A big shark",
-          "A turtle",
-          "Jellyfish",
-          "Small fish"
+          "A large turtle",
+          "A group of jellyfish",
+          "A school of small fish"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg så en stor hai, og jeg ble litt redd."
@@ -12646,9 +12646,9 @@
         "prompt": "What did the narrator buy in the café?",
         "options": [
           "An ice cream",
-          "A coffee",
-          "A sandwich",
-          "A postcard"
+          "A cup of coffee",
+          "A cheese sandwich",
+          "A picture postcard"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg kjøpte en is i kaféen."
@@ -12682,10 +12682,10 @@
       {
         "prompt": "What is the difference between an active and a dormant volcano, according to the text?",
         "options": [
-          "An active volcano may erupt soon, a dormant one hasn't erupted in many years",
-          "An active volcano is hot, a dormant volcano is always cold",
-          "An active volcano is larger, a dormant volcano is smaller",
-          "An active volcano has erupted before, a dormant volcano never has"
+          "An active volcano may erupt soon, while a dormant one hasn't erupted in many years",
+          "An active volcano erupts every year, while a dormant one erupts every ten years",
+          "An active volcano is usually larger, while a dormant one is usually smaller",
+          "An active volcano has lava inside, while a dormant one has no magma"
         ],
         "correctIndex": 0,
         "sourceSentence": "En aktiv vulkan kan få utbrudd snart, mens en sovende vulkan ikke har hatt utbrudd på mange år."
@@ -12698,9 +12698,9 @@
         "prompt": "What does Jonas plan to do this weekend?",
         "options": [
           "Visit his grandparents in the country",
-          "Go shopping in town",
-          "Watch a movie at home",
-          "Play computer games all weekend"
+          "Go shopping with friends in town",
+          "Stay home and watch a movie",
+          "Play computer games with his brother"
         ],
         "correctIndex": 0,
         "sourceSentence": "Jeg tror jeg skal besøke besteforeldrene mine. De bor på landet, og vi skal spise middag sammen."
@@ -12709,9 +12709,9 @@
         "prompt": "What does Maria plan to do on Sunday?",
         "options": [
           "Read a book and watch a movie at home",
-          "Meet a friend in town",
-          "Visit her grandparents",
-          "Go hiking in the mountains"
+          "Meet a friend and go shopping in town",
+          "Visit her grandparents in the country",
+          "Go hiking in the mountains with friends"
         ],
         "correctIndex": 0,
         "sourceSentence": "På søndag vil jeg bare lese en bok og se en film hjemme."
@@ -13163,10 +13163,10 @@
       {
         "prompt": "Hva er forskjellen mellom Glinda og Elphaba i starten av historien?",
         "options": [
-          "Glinda er populær og opptatt av rykte, Elphaba er utstøtt men har sterke overbevisninger",
-          "Glinda er grønn i huden, Elphaba er lys og populær",
-          "Begge er like populære og har samme mål",
-          "Glinda er lærer, Elphaba er student"
+          "Glinda er populær og opptatt av rykte, mens Elphaba er utstøtt og prinsippfast",
+          "Glinda er sosialt usikker, mens Elphaba er populær og opptatt av status",
+          "Glinda og Elphaba er begge utstøtte, men av forskjellige grunner",
+          "Glinda er opptatt av politikk, mens Elphaba helst unngår konflikter"
         ],
         "correctIndex": 0,
         "sourceSentence": "Den ene, Glinda, er lys, populær og opptatt av sitt eget rykte. Den andre, Elphaba, er grønn i huden, utstøtt fra barnsben av, men med et skarpt sinn og sterke overbevisninger."
@@ -13185,10 +13185,10 @@
       {
         "prompt": "Hvorfor bestemmer Elphaba seg for å nekte å adlyde Trollmannen?",
         "options": [
-          "Fordi hun får vite at han misbruker makten sin for å kontrollere Oz",
-          "Fordi han nekter å gi henne mat",
-          "Fordi Glinda ber henne om det",
-          "Fordi hun vil bli den nye trollmannen selv"
+          "Fordi hun oppdager at han bruker makten til å kontrollere og undertrykke andre",
+          "Fordi hun innser at han ikke kan gi henne den statusen hun ønsker",
+          "Fordi Glinda overbeviser henne om at Trollmannen ikke kan stoles på",
+          "Fordi hun ønsker å overta rollen hans og styre Oz på egen hånd"
         ],
         "correctIndex": 0,
         "sourceSentence": "Men når Elphaba får vite sannheten om Trollmannens makt og hvordan han misbruker den for å kontrollere Oz, føler hun seg lurt og sviktet."
@@ -13211,10 +13211,10 @@
       {
         "prompt": "Hva skjer med Fiyero når Elphaba prøver å beskytte ham?",
         "options": [
-          "Han blir forvandlet til en skikkelse laget av halm (Fugleskremselet)",
-          "Han blir usynlig",
-          "Han mister hukommelsen",
-          "Han blir forvandlet til en fugl"
+          "Han blir forvandlet til en skikkelse av halm som ikke kan føle smerte",
+          "Han blir gjort usynlig slik at soldatene ikke kan finne ham",
+          "Han mister minnene sine og glemmer hvorfor han hjalp Elphaba",
+          "Han blir forvandlet til en fugl og flyr bort fra Oz"
         ],
         "correctIndex": 0,
         "sourceSentence": "I sitt forsøk på å beskytte ham bruker hun en mektig besvergelse, som viser seg å gjøre ham om til en skikkelse laget av halm – det eneste som kan sikre at han ikke føler smerte."
@@ -13244,10 +13244,10 @@
       {
         "prompt": "Hvorfor føler Glinda seg splittet etter at hun har fått makt og respekt?",
         "options": [
-          "Fordi hun savner vennskapet med Elphaba, selv om presset fra samfunnet får henne til å tvile",
-          "Fordi hun ikke liker å være kjent",
-          "Fordi hun vil bli en heks som Elphaba",
-          "Fordi Trollmannen tvinger henne til å reise"
+          "Fordi makten gir henne status, men hun savner Elphaba og kjenner presset fra samfunnet",
+          "Fordi hun oppdager at offentlig respekt ikke passer til personligheten hennes",
+          "Fordi hun ønsker å forlate Oz, men er redd for å miste stillingen sin",
+          "Fordi forholdet til Trollmannen blir vanskeligere etter at Elphaba forsvinner"
         ],
         "correctIndex": 0,
         "sourceSentence": "Selv om hun har fått makt og respekt, savner hun vennskapet med Elphaba."
@@ -13260,9 +13260,9 @@
         "prompt": "Hva utløste starten på første verdenskrig?",
         "options": [
           "Drapet på erkehertug Franz Ferdinand i Sarajevo",
-          "Den russiske revolusjonen",
-          "USAs inntreden i krigen",
-          "Undertegningen av Versaillestraktaten"
+          "Russlands revolusjon og sammenbruddet av tsarstyret",
+          "USAs beslutning om å gå inn i krigen",
+          "Versaillestraktaten og de nye grensene i Europa"
         ],
         "correctIndex": 0,
         "sourceSentence": "Krigen begynte etter at erkehertug Franz Ferdinand av Østerrike-Ungarn ble drept i Sarajevo."
@@ -13271,9 +13271,9 @@
         "prompt": "Hvilke nye våpen ble brukt under første verdenskrig, ifølge teksten?",
         "options": [
           "Giftgass, maskingevær og stridsvogner",
-          "Atombomber og missiler",
-          "Droner og satellitter",
-          "Kjernefysiske ubåter"
+          "Fly, ubåter og langtrekkende raketter",
+          "Droner, missiler og moderne radar",
+          "Atombomber, hangarskip og kjernefysiske våpen"
         ],
         "correctIndex": 0,
         "sourceSentence": "Samtidig ble det brukt nye våpen som giftgass, maskingevær og stridsvogner, noe som gjorde krigen ekstra brutal."
@@ -13330,9 +13330,9 @@
         "prompt": "Hva skjedde i august 1945 som fikk Japan til å overgi seg?",
         "options": [
           "USA slapp atombomber over Hiroshima og Nagasaki",
-          "Sovjetunionen invaderte Japan",
-          "Japan tapte slaget ved Midway",
-          "FN ble opprettet"
+          "Sovjetunionen gikk inn i krigen mot Japan og tok Tokyo",
+          "Japan mistet hele flåten sin i et siste sjøslag",
+          "De allierte inngikk en fredsavtale med Japan i Europa"
         ],
         "correctIndex": 0,
         "sourceSentence": "men etter at USA slapp atombomber over Hiroshima og Nagasaki i august 1945, overga også Japan seg."
@@ -13502,7 +13502,7 @@
           "2015",
           "2017",
           "2019",
-          "2021"
+          "2022"
         ],
         "correctIndex": 2,
         "sourceSentence": "I 2019 fikk vi for første gang se et bilde av et svart hull i galaksen M87, takket være Event Horizon Telescope-prosjektet."
@@ -13559,9 +13559,9 @@
         "prompt": "How does the blue whale communicate with other whales?",
         "options": [
           "Through deep sounds humans can't hear",
-          "Through body movements",
-          "Through bright colors",
-          "Through smell"
+          "Through movements of the tail and fins",
+          "Through changing the color of the skin",
+          "Through smells carried in the water"
         ],
         "correctIndex": 0,
         "sourceSentence": "Den kommuniserer med andre hvaler gjennom dype lyder som mennesker ikke kan høre."
@@ -13573,10 +13573,10 @@
       {
         "prompt": "Hva er et kjent historisk eksempel på bokbrenning nevnt i teksten?",
         "options": [
-          "Bokbrenninger under den franske revolusjonen",
-          "Nazistenes bokbrenninger i Tyskland på 1930-tallet",
-          "Bokbrenninger i antikkens Roma",
-          "Bokbrenninger i Sovjetunionen på 1950-tallet"
+          "Nazistenes offentlige bokbrenninger i Tyskland på 1930-tallet",
+          "Sovjetiske myndigheters stenging av forlag etter andre verdenskrig",
+          "Brenning av politiske pamfletter under den franske revolusjonen",
+          "Ødeleggelse av biblioteker under første verdenskrig"
         ],
         "correctIndex": 1,
         "sourceSentence": "Et kjent historisk eksempel er nazistenes bokbrenninger i Tyskland på 1930-tallet."
@@ -13584,10 +13584,10 @@
       {
         "prompt": "Hvilke bøker ble systematisk brent av nazistene, ifølge teksten?",
         "options": [
-          "Bøker om vitenskap og matematikk",
-          "Bøker skrevet av jødiske forfattere og politiske motstandere",
-          "Bøker om historie og geografi",
-          "Bøker skrevet av barn"
+          "Bøker som ble sett på som politisk ufarlige, men kulturelt gammeldagse",
+          "Bøker av jødiske forfattere, politiske motstandere og andre regimet så som trusler",
+          "Bøker skrevet etter første verdenskrig, uansett forfatter eller innhold",
+          "Bøker om religion og filosofi, men ikke politiske eller litterære verk"
         ],
         "correctIndex": 1,
         "sourceSentence": "Bøker skrevet av jødiske forfattere, politiske motstandere og andre som ble sett på som en trussel mot regimet, ble systematisk brent på offentlige plasser."
@@ -13707,9 +13707,9 @@
         "prompt": "Why should you plan your trip early?",
         "options": [
           "To find cheap plane tickets and hotels",
-          "To avoid using a budget",
-          "To meet more tourists",
-          "To get free food"
+          "To make sure every activity is already booked",
+          "To meet other travelers before leaving home",
+          "To avoid carrying money while traveling"
         ],
         "correctIndex": 0,
         "sourceSentence": "Da kan du finne billige flybilletter og hotell."
@@ -13754,10 +13754,10 @@
       {
         "prompt": "What does Maria get instead of a discount?",
         "options": [
-          "A free magnet",
+          "A free magnet from the shop",
           "A small card with information about the figurine",
-          "A second figurine for free",
-          "A discount coupon for next time"
+          "A second figurine at no extra cost",
+          "A coupon for a discount next time"
         ],
         "correctIndex": 1,
         "sourceSentence": "Men du får et lite kort med informasjon om figuren med på kjøpet."
@@ -13765,10 +13765,10 @@
       {
         "prompt": "What does Anna buy?",
         "options": [
-          "A scarf",
-          "A wood carving",
+          "A warm wool scarf",
+          "A small wood carving",
           "A magnet with the Norwegian flag",
-          "A candle"
+          "A scented candle"
         ],
         "correctIndex": 2,
         "sourceSentence": "“Ja, en med norsk flagg,” svarte Anna."
@@ -13781,9 +13781,9 @@
         "prompt": "What does each capsule usually include?",
         "options": [
           "A mattress, a lamp, a small TV, and an outlet",
-          "A private bathroom and kitchen",
-          "A balcony and a window",
-          "A double bed and a sofa"
+          "A bed, a private shower, and a small kitchen",
+          "A chair, a balcony, and a large window",
+          "A double bed, a sofa, and a dining table"
         ],
         "correctIndex": 0,
         "sourceSentence": "Hver kapsel har plass til én person og inneholder ofte en madrass, en lampe, en liten TV og en stikkontakt."
@@ -13951,9 +13951,9 @@
         "prompt": "Siden når har kristendommen vært den dominerende religionen i Norge?",
         "options": [
           "Siden middelalderen",
-          "Siden vikingtiden",
+          "Siden reformasjonen",
           "Siden 1800-tallet",
-          "Siden reformasjonen"
+          "Siden andre verdenskrig"
         ],
         "correctIndex": 1,
         "sourceSentence": "I Norge har kristendommen vært den dominerende religionen siden vikingtiden, da kristne misjonærer begynte å spre budskapet om Jesus Kristus."
@@ -14009,10 +14009,10 @@
       {
         "prompt": "Hva kan forstyrre døgnrytmen, ifølge teksten?",
         "options": [
-          "Å drikke vann om morgenen",
+          "Regelmessig dagslys og faste måltider",
           "Skiftarbeid, jetlag eller skjermbruk sent på kvelden",
-          "Å gå tur i naturen",
-          "Å sove åtte timer hver natt"
+          "Rolig fysisk aktivitet tidlig på dagen",
+          "Fast leggetid og nok søvn gjennom uka"
         ],
         "correctIndex": 1,
         "sourceSentence": "Dette skjer ofte ved skiftarbeid, jetlag eller når man bruker skjermer sent på kvelden."
@@ -14083,10 +14083,10 @@
       {
         "prompt": "What does the narrator do first when cleaning?",
         "options": [
-          "Vacuum the floor",
+          "Vacuum the floor and move the chair",
           "Pick up the clothes and put them in the closet",
-          "Wash the table",
-          "Make the bed"
+          "Wash the table and clean the shelves",
+          "Make the bed and fold the blanket"
         ],
         "correctIndex": 1,
         "sourceSentence": "Først plukker jeg opp klærne og legger dem i skapet."
@@ -14094,10 +14094,10 @@
       {
         "prompt": "What does the narrator use to clean the floor?",
         "options": [
-          "A cloth",
+          "A wet cleaning cloth",
           "A vacuum cleaner",
-          "A broom",
-          "A mop"
+          "A small broom",
+          "A floor mop"
         ],
         "correctIndex": 1,
         "sourceSentence": "Jeg tar støvsugeren og støvsuger gulvet."
@@ -14168,10 +14168,10 @@
       {
         "prompt": "Hva fører til at CO₂ slippes ut i atmosfæren, ifølge teksten?",
         "options": [
-          "Bruk av olje, kull og gass",
-          "Bruk av solenergi",
-          "Planting av trær",
-          "Bruk av vindkraft"
+          "Forbrenning av olje, kull og gass",
+          "Produksjon av sol- og vindenergi",
+          "Planting og skjøtsel av skog",
+          "Bruk av kollektivtransport og sykkel"
         ],
         "correctIndex": 0,
         "sourceSentence": "Når vi bruker olje, kull og gass, slipper vi ut mye CO₂ i atmosfæren."
@@ -14191,9 +14191,9 @@
         "prompt": "Hva kan man gjøre i stedet for å kjøre bil, ifølge teksten?",
         "options": [
           "Sykle eller ta buss",
-          "Kjøre motorsykkel",
-          "Ta fly",
-          "Bruke mer plast"
+          "Kjøre en mindre bensinbil",
+          "Ta tog bare på lange reiser",
+          "Samkjøre i bil med andre"
         ],
         "correctIndex": 0,
         "sourceSentence": "Vi kan også sykle eller ta buss i stedet for å kjøre bil, og vi kan kaste mindre mat og bruke mindre plast."
@@ -14202,9 +14202,9 @@
         "prompt": "Hvilke ekstreme værhendelser nevner teksten?",
         "options": [
           "Flom, stormer og hetebølger",
-          "Jordskjelv og vulkanutbrudd",
-          "Tornadoer og tsunamier",
-          "Snøstormer og lynnedslag"
+          "Tørke, snøskred og jordskjelv",
+          "Tsunamier, vulkanutbrudd og stormflo",
+          "Tornadoer, jordras og vulkanutbrudd"
         ],
         "correctIndex": 0,
         "sourceSentence": "Det blir også flere ekstreme værhendelser, som flom, stormer og hetebølger."
@@ -14386,10 +14386,10 @@
       {
         "prompt": "Hva er problemet med genseren Anna kjøpte?",
         "options": [
-          "Den er feil størrelse",
+          "Den er i feil størrelse",
           "Den har fått hull i sømmen",
-          "Den har feil farge",
-          "Den mangler en knapp"
+          "Fargen har falmet etter vask",
+          "En knapp har falt av"
         ],
         "correctIndex": 1,
         "sourceSentence": "Jeg kjøpte denne genseren her forrige uke, men den har allerede fått hull i sømmen."
@@ -14637,10 +14637,10 @@
       {
         "prompt": "Hva bærer lengsel ofte med seg, ifølge teksten?",
         "options": [
-          "Sinne og rastløshet",
+          "En rastløshet som først og fremst krever rask handling",
           "Et snev av håp og melankoli",
-          "Ro og tilfredshet",
-          "Frykt og forventning"
+          "En rolig tilfredshet med det man allerede har",
+          "En frykt for at ønsket skal bli oppfylt"
         ],
         "correctIndex": 1,
         "sourceSentence": "Lengsel bærer ofte med seg et snev av håp og melankoli, noe som gjør den både vakker og sår på samme tid."
@@ -14676,8 +14676,8 @@
         "options": [
           "Skogen",
           "Byen",
-          "Havet",
-          "Rommet"
+          "Ødemarken",
+          "Romstasjonen"
         ],
         "correctIndex": 1,
         "sourceSentence": "I cyberpunk-fortellinger er byen vanligvis et sentralt element, full av neonlys, reklameskjermer og trange bakgater."
@@ -14725,7 +14725,7 @@
           "Your favorite color",
           "Your phone number or address",
           "Your favorite movie",
-          "Your first name"
+          "The name of your favorite food"
         ],
         "correctIndex": 1,
         "sourceSentence": "Det er viktig å ikke gi personlige opplysninger, som telefonnummer eller adresse, til fremmede."
@@ -14759,23 +14759,23 @@
       {
         "prompt": "Hvor brukes latin mest i dag, ifølge teksten?",
         "options": [
-          "I hverdagslige samtaler hjemme",
           "I forskning, medisin og religion",
-          "På sosiale medier",
-          "I musikk og film"
+          "I daglig tale i enkelte europeiske land",
+          "I moderne populærmusikk og film",
+          "I offentlig administrasjon i Sør-Europa"
         ],
-        "correctIndex": 1,
+        "correctIndex": 0,
         "sourceSentence": "I dag brukes latin mest i forskning, medisin og religion, men ingen snakker det hjemme med familien."
       },
       {
         "prompt": "Hvilke moderne språk kan man finne spor av gammelnorsk i?",
         "options": [
-          "Engelsk og tysk",
           "Moderne norsk og islandsk",
-          "Fransk og spansk",
-          "Russisk og polsk"
+          "Dansk og svensk",
+          "Engelsk og tysk",
+          "Fransk og spansk"
         ],
-        "correctIndex": 1,
+        "correctIndex": 0,
         "sourceSentence": "Selv om det ikke snakkes lenger, kan vi finne spor av det i moderne norsk og islandsk."
       },
       {
@@ -14805,15 +14805,15 @@
         "sourceSentence": "enten er den en endelig utslokking, og dermed en tilstand av fullstendig hvile, eller så er den en overgang til en annen form for eksistens."
       },
       {
-        "prompt": "Hvilken filosof satte døden i sentrum for menneskets selvforståelse, ifølge teksten?",
+        "prompt": "Hva er den sentrale funksjonen døden får hos Heidegger i teksten?",
         "options": [
-          "Sokrates",
-          "Heidegger",
-          "Platon",
-          "Aristoteles"
+          "Bevisstheten om egen dødelighet kan åpne for et mer autentisk forhold til egne valg",
+          "Døden viser at menneskelig frihet er umulig fordi alle liv har samme slutt",
+          "Døden bør ignoreres i hverdagen fordi den ikke kan erfares direkte",
+          "Døden fungerer primært som et argument for tro på en videre eksistens"
         ],
-        "correctIndex": 1,
-        "sourceSentence": "Senere har eksistensialistene, særlig Heidegger, satt døden i sentrum for menneskets selvforståelse."
+        "correctIndex": 0,
+        "sourceSentence": "Nettopp ved å erkjenne at vår tid er begrenset, åpner vi muligheten for et mer autentisk forhold til oss selv og våre valg."
       },
       {
         "prompt": "Hva betyr uttrykket «væren-mot-døden» i Heideggers filosofi, ifølge teksten?",
@@ -14844,10 +14844,10 @@
       {
         "prompt": "Hva skjer med dagene i Norge i desember, ifølge teksten?",
         "options": [
-          "De blir lengre",
-          "De blir korte, og solen går ned tidlig",
-          "De forblir like lange hele året",
-          "Solen slutter å gå ned"
+          "De blir gradvis lengre utover måneden",
+          "De er korte, og solen går ned tidlig",
+          "De er omtrent like lange som i november",
+          "De er lyse om morgenen, men mørke om kvelden"
         ],
         "correctIndex": 1,
         "sourceSentence": "Dagene blir korte, og solen går ned tidlig på ettermiddagen."
@@ -14867,9 +14867,9 @@
         "prompt": "Hva kan man kjøpe og smake på julemarkedene i byene?",
         "options": [
           "Håndlagde gaver og varm gløgg",
-          "Sommerklær og is",
-          "Elektronikk og bøker",
-          "Blomster og planter"
+          "Vinterklær og varme supper",
+          "Julepynt og ferske bakevarer",
+          "Lokale matvarer og varme drikker"
         ],
         "correctIndex": 0,
         "sourceSentence": "I byene er det julemarkeder hvor man kan kjøpe håndlagde gaver og smake på varm gløgg."
