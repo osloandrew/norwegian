@@ -2914,11 +2914,10 @@ input[type="text"]:not(:placeholder-shown) + label {
   color: var(--color-text-alt-title);
   display: -webkit-box; /* Creates a block-level flex container */
   font-family: "Noto Serif", serif; /* Japanese-specific font */
-  font-weight: 350;
+  font-weight: 400;
   font-size: 14px;
   overflow: hidden; /* Hides the overflowing text */
   text-overflow: ellipsis; /* Adds ellipses when text overflows */
-  text-transform: uppercase;
   letter-spacing: 0.4px;
   -webkit-box-orient: vertical; /* Specifies vertical stacking of lines */
   -webkit-line-clamp: 2; /* Limits the text to 1 line */
@@ -5326,13 +5325,12 @@ body.my-stats-mode .cefr-filter-group {
   display: -webkit-box; /* Creates a block-level flex container */
   font-family: "Noto Sans", sans;
   font-size: 12.5px !important;
-  font-weight: 350;
+  font-weight: 400;
   line-height: 1.25;
   overflow: hidden; /* Hides the overflowing text */
   color: var(--color-text-muted) !important;
   letter-spacing: 0.25px;
   margin: 0 !important;
-  text-transform: uppercase;
   -webkit-box-orient: vertical; /* Specifies vertical stacking of lines */
   -webkit-line-clamp: 1; /* Limits the text to 1 line */
 }
@@ -5662,6 +5660,12 @@ body.my-stats-mode .cefr-filter-group {
   height: 40px;
   margin-bottom: 10px;
   width: 40px;
+}
+
+.title-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 /* Gray out both the select text and the arrow when disabled */
