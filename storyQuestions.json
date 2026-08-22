@@ -13482,5 +13482,1590 @@
         "sourceSentence": "Mange tiltrekkes av dens praktiske og ukompliserte filosofi, som kan brukes uavhengig av religion eller kulturell bakgrunn."
       }
     ]
+  },
+  "Svarte hull": {
+    "questions": [
+      {
+        "prompt": "Hva er de tre hovedkomponentene i et svart hull, ifølge teksten?",
+        "options": [
+          "Hendelseshorisonten, singulariteten og akkresjonsskiven",
+          "Kjernen, skallet og overflaten",
+          "Tyngdekraften, lyset og materien",
+          "Stjernen, planeten og månen"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Et svart hull har tre hovedkomponenter: hendelseshorisonten, singulariteten og akkresjonsskiven."
+      },
+      {
+        "prompt": "Når ble det første bildet av et svart hull tatt, ifølge teksten?",
+        "options": [
+          "2015",
+          "2017",
+          "2019",
+          "2021"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "I 2019 fikk vi for første gang se et bilde av et svart hull i galaksen M87, takket være Event Horizon Telescope-prosjektet."
+      },
+      {
+        "prompt": "I teksten betyr «hendelseshorisonten»:",
+        "options": [
+          "Grensen der lys og materie blir fanget",
+          "Sentrum der massen er samlet",
+          "Gassen som snurrer rundt hullet",
+          "Selve stjernen som kollapser"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Hendelseshorisonten er grensen rundt det svarte hullet der lyset og materien blir fanget."
+      },
+      {
+        "prompt": "Hvorfor regnes svarte hull som viktige utover astrofysikken, ifølge teksten?",
+        "options": [
+          "Fordi de utfordrer vår forståelse av fysikkens lover og tidens natur",
+          "Fordi de produserer energi vi kan bruke",
+          "Fordi de beviser at jorden er flat",
+          "Fordi de er lette å reise til"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "De utfordrer vår forståelse av fysikkens lover og tidens natur."
+      }
+    ]
+  },
+  "Blåhvaler": {
+    "questions": [
+      {
+        "prompt": "How long can a blue whale grow?",
+        "options": [
+          "Up to 20 meters",
+          "Up to 30 meters",
+          "Up to 40 meters",
+          "Up to 50 meters"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Den kan bli opp til 30 meter lang og veie mer enn 150 000 kilo."
+      },
+      {
+        "prompt": "What does the blue whale mainly eat?",
+        "options": [
+          "Fish",
+          "Seaweed",
+          "Krill",
+          "Squid"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "Den spiser mest små dyr som kalles krill."
+      },
+      {
+        "prompt": "How does the blue whale communicate with other whales?",
+        "options": [
+          "Through deep sounds humans can't hear",
+          "Through body movements",
+          "Through bright colors",
+          "Through smell"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Den kommuniserer med andre hvaler gjennom dype lyder som mennesker ikke kan høre."
+      }
+    ]
+  },
+  "Bokbrenning": {
+    "questions": [
+      {
+        "prompt": "Hva er et kjent historisk eksempel på bokbrenning nevnt i teksten?",
+        "options": [
+          "Bokbrenninger under den franske revolusjonen",
+          "Nazistenes bokbrenninger i Tyskland på 1930-tallet",
+          "Bokbrenninger i antikkens Roma",
+          "Bokbrenninger i Sovjetunionen på 1950-tallet"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Et kjent historisk eksempel er nazistenes bokbrenninger i Tyskland på 1930-tallet."
+      },
+      {
+        "prompt": "Hvilke bøker ble systematisk brent av nazistene, ifølge teksten?",
+        "options": [
+          "Bøker om vitenskap og matematikk",
+          "Bøker skrevet av jødiske forfattere og politiske motstandere",
+          "Bøker om historie og geografi",
+          "Bøker skrevet av barn"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Bøker skrevet av jødiske forfattere, politiske motstandere og andre som ble sett på som en trussel mot regimet, ble systematisk brent på offentlige plasser."
+      },
+      {
+        "prompt": "I teksten betyr uttrykket «stenger døren for dialog» omtrent:",
+        "options": [
+          "Gjør det umulig å diskutere og forstå hverandre",
+          "Åpner for nye diskusjoner",
+          "Beskytter ytringsfriheten",
+          "Skaper flere bøker"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "men brenning av bøker stenger døren for dialog og forståelse."
+      },
+      {
+        "prompt": "Hva antyder teksten er den dypere årsaken bak moderne bokbrenninger?",
+        "options": [
+          "Frykt for det ukjente og tap av kontroll",
+          "Mangel på papir til nye bøker",
+          "Ønske om å spare penger",
+          "Interesse for gammel litteratur"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "I slike tilfeller handler det ofte om frykt – frykt for det ukjente, for annerledes tanker og for tap av kontroll."
+      }
+    ]
+  },
+  "Bestilling av hotellrom": {
+    "questions": [
+      {
+        "prompt": "What room does Anna book?",
+        "options": [
+          "A double room",
+          "A single room",
+          "A suite",
+          "A family room"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "“Kan jeg få et enkeltrom for én natt?”"
+      },
+      {
+        "prompt": "How much does the room cost?",
+        "options": [
+          "750 kroner",
+          "850 kroner",
+          "950 kroner",
+          "1050 kroner"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "Rommet koster 950 kroner for én natt."
+      },
+      {
+        "prompt": "What room number does Anna get?",
+        "options": [
+          "104",
+          "204",
+          "304",
+          "404"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Flott. Her er nøkkelen, rom 204, i andre etasje."
+      }
+    ]
+  },
+  "Buddhisme": {
+    "questions": [
+      {
+        "prompt": "Hvem grunnla buddhismen?",
+        "options": [
+          "Konfucius",
+          "Siddhartha Gautama",
+          "Dalai Lama",
+          "Laozi"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Den ble grunnlagt av Siddhartha Gautama, som senere ble kalt Buddha."
+      },
+      {
+        "prompt": "Hva heter veien som ifølge buddhismen fører ut av lidelse?",
+        "options": [
+          "Den gyldne veien",
+          "Den åttedelte veien",
+          "Den hellige veien",
+          "Den lange veien"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Denne veien kalles Den åttedelte veien, og den handler om rett forståelse, rett tale, rett handling og andre viktige verdier."
+      },
+      {
+        "prompt": "Hvilken av disse er IKKE nevnt som en retning innen buddhismen?",
+        "options": [
+          "Theravada",
+          "Mahayana",
+          "Zen",
+          "Sufisme"
+        ],
+        "correctIndex": 3,
+        "sourceSentence": "Det finnes flere retninger innen buddhismen, blant annet theravada, mahayana og zen."
+      },
+      {
+        "prompt": "Hvorfor forlot Siddhartha Gautama sitt rike, ifølge teksten?",
+        "options": [
+          "For å bli en mektig konge andre steder",
+          "For å finne svar på hvorfor mennesker lider og hvordan man finner fred",
+          "For å unnslippe fiender",
+          "For å studere medisin"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Han var en prins som forlot sitt rike for å finne svar på hvorfor mennesker lider, og hvordan man kan finne fred."
+      }
+    ]
+  },
+  "Budsjettreisetips": {
+    "questions": [
+      {
+        "prompt": "Why should you plan your trip early?",
+        "options": [
+          "To find cheap plane tickets and hotels",
+          "To avoid using a budget",
+          "To meet more tourists",
+          "To get free food"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Da kan du finne billige flybilletter og hotell."
+      },
+      {
+        "prompt": "What should you use instead of a taxi to save money?",
+        "options": [
+          "A rental car",
+          "Public transport",
+          "A bicycle you buy",
+          "Walking only"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Bruk kollektivtransport i stedet for taxi."
+      },
+      {
+        "prompt": "Why is it smart to travel outside the high season?",
+        "options": [
+          "Prices are lower and there are fewer tourists",
+          "Hotels are closed",
+          "The weather is always better",
+          "Flights are longer"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Prisene er lavere, og det er færre turister."
+      }
+    ]
+  },
+  "Kjøp av suvenirer": {
+    "questions": [
+      {
+        "prompt": "How much does the Viking figurine cost?",
+        "options": [
+          "49 kroner",
+          "99 kroner",
+          "199 kroner",
+          "299 kroner"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "“199 kroner. Det er litt dyrt, men den er håndlaget.”"
+      },
+      {
+        "prompt": "What does Maria get instead of a discount?",
+        "options": [
+          "A free magnet",
+          "A small card with information about the figurine",
+          "A second figurine for free",
+          "A discount coupon for next time"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Men du får et lite kort med informasjon om figuren med på kjøpet."
+      },
+      {
+        "prompt": "What does Anna buy?",
+        "options": [
+          "A scarf",
+          "A wood carving",
+          "A magnet with the Norwegian flag",
+          "A candle"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "“Ja, en med norsk flagg,” svarte Anna."
+      }
+    ]
+  },
+  "Kapselhoteller": {
+    "questions": [
+      {
+        "prompt": "What does each capsule usually include?",
+        "options": [
+          "A mattress, a lamp, a small TV, and an outlet",
+          "A private bathroom and kitchen",
+          "A balcony and a window",
+          "A double bed and a sofa"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Hver kapsel har plass til én person og inneholder ofte en madrass, en lampe, en liten TV og en stikkontakt."
+      },
+      {
+        "prompt": "Which cities are mentioned as having capsule hotels?",
+        "options": [
+          "Paris and London",
+          "Tokyo and Oslo",
+          "New York and Berlin",
+          "Rome and Madrid"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Kapselhoteller finnes ofte i store byer som Tokyo og Oslo."
+      },
+      {
+        "prompt": "Why do many guests like capsule hotels, according to the text?",
+        "options": [
+          "Because they can meet other travelers there",
+          "Because the rooms are very large",
+          "Because they include free flights",
+          "Because pets are allowed"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Mange gjester liker at de kan møte andre reisende der."
+      }
+    ]
+  },
+  "Kontantløse samfunn": {
+    "questions": [
+      {
+        "prompt": "Hvilket land trekkes frem som et av landene som har kommet lengst i utviklingen mot et kontantløst samfunn?",
+        "options": [
+          "Sverige",
+          "Norge",
+          "Danmark",
+          "Finland"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Norge er et av de landene som har kommet lengst i denne utviklingen."
+      },
+      {
+        "prompt": "Hva er en fordel med et kontantløst samfunn, ifølge teksten?",
+        "options": [
+          "Det blir vanskeligere å drive med svart økonomi",
+          "Det blir lettere å stjele kontanter",
+          "Alle får gratis bankkort",
+          "Butikkene trenger ikke lenger ansatte"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Det blir vanskeligere å drive med svart økonomi, og transaksjoner kan spores lettere."
+      },
+      {
+        "prompt": "Hvilken gruppe kan oppleve problemer i et kontantløst samfunn, ifølge teksten?",
+        "options": [
+          "Unge mennesker med smarttelefon",
+          "Personer uten bankkonto eller smarttelefon",
+          "Turister med kredittkort",
+          "Butikkeiere med Vipps"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "personer uten bankkonto eller smarttelefon kan få problemer i et samfunn der alt krever elektronisk betaling."
+      },
+      {
+        "prompt": "Hva er hovedspørsmålet teksten stiller om utviklingen mot et kontantløst samfunn?",
+        "options": [
+          "Om det er riktig å gå helt bort fra kontanter",
+          "Om digitale betalinger er raskere enn kontanter",
+          "Om Vipps bør erstattes av kort",
+          "Om butikker bør stenge tidligere"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Spørsmålet mange stiller seg, er om det er riktig å gå helt bort fra kontanter."
+      }
+    ]
+  },
+  "Ta igjen det tapte etter flere år fra hverandre": {
+    "questions": [
+      {
+        "prompt": "Hvor møttes Ingrid og Markus igjen?",
+        "options": [
+          "På den gamle kafeen de pleide å gå til i studietiden",
+          "På en ny restaurant i sentrum",
+          "Hjemme hos Ingrid",
+          "På universitetet"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "De hadde avtalt å møtes på den gamle kafeen de pleide å frekventere i studietiden – nå nyoppusset, men fortsatt med det samme skjeve skiltet over døren."
+      },
+      {
+        "prompt": "Hva har Ingrid gjort i løpet av de femten årene, ifølge samtalen?",
+        "options": [
+          "Flyttet til København og jobbet med film",
+          "Vært gift, skilt, reist og mistet faren sin",
+          "Blitt lege og fått barn",
+          "Reist verden rundt som fotograf"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Vært gift. Skilt. Reist. Mistet faren min. Skrevet en bok som aldri ble publisert. Begynt å male."
+      },
+      {
+        "prompt": "Hva svarer Markus når Ingrid spør hva han leter etter i livet?",
+        "options": [
+          "Penger og suksess",
+          "Tilhørighet",
+          "En ny kjæreste",
+          "Berømmelse"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "“Tilhørighet,” svarte han etter en pause."
+      },
+      {
+        "prompt": "Hva antyder sammenligningen med «gamle sanger» om forholdet mellom Ingrid og Markus?",
+        "options": [
+          "At de har glemt hverandre fullstendig",
+          "At noe av fortroligheten mellom dem fortsatt finnes, selv etter mange år",
+          "At de aldri egentlig kjente hverandre",
+          "At musikk er deres felles hobby"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Som gamle sanger – man husker teksten når melodien begynner."
+      }
+    ]
+  },
+  "Sjekke inn på hotell": {
+    "questions": [
+      {
+        "prompt": "What is the guest's name?",
+        "options": [
+          "Anna Larsen",
+          "Maria Olsen",
+          "Maria Larsen",
+          "Anna Olsen"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "“Maria Olsen.”"
+      },
+      {
+        "prompt": "How many nights does Maria stay?",
+        "options": [
+          "One night",
+          "Two nights",
+          "Three nights",
+          "A week"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "“Ja, her er du. Ett rom for to netter?”"
+      },
+      {
+        "prompt": "What time does breakfast start?",
+        "options": [
+          "6 o'clock",
+          "7 o'clock",
+          "8 o'clock",
+          "9 o'clock"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "“Frokost er fra klokka sju til ti,” sa han."
+      }
+    ]
+  },
+  "Kristendom": {
+    "questions": [
+      {
+        "prompt": "Siden når har kristendommen vært den dominerende religionen i Norge?",
+        "options": [
+          "Siden middelalderen",
+          "Siden vikingtiden",
+          "Siden 1800-tallet",
+          "Siden reformasjonen"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "I Norge har kristendommen vært den dominerende religionen siden vikingtiden, da kristne misjonærer begynte å spre budskapet om Jesus Kristus."
+      },
+      {
+        "prompt": "Hva heter den største trosretningen i Norge i dag?",
+        "options": [
+          "Den katolske kirke",
+          "Den norske kirke",
+          "Pinsebevegelsen",
+          "Den ortodokse kirke"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "I dag er Den norske kirke fortsatt den største trosretningen i Norge, selv om samfunnet har blitt mer sekulært de siste tiårene."
+      },
+      {
+        "prompt": "Hvilke to deler består Bibelen av, ifølge teksten?",
+        "options": [
+          "Det gamle testamentet og Det nye testamentet",
+          "Toraen og Talmud",
+          "Koranen og Hadith",
+          "Evangeliene og salmene"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Bibelen er den hellige teksten, og den inneholder både Det gamle testamentet og Det nye testamentet."
+      },
+      {
+        "prompt": "Hva forteller teksten om nordmenns forhold til kirken i dag?",
+        "options": [
+          "Nesten ingen er medlemmer lenger",
+          "Mange er medlemmer uten å være aktive troende",
+          "Alle går i kirken hver søndag",
+          "Kirken er forbudt av staten"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Mange nordmenn er medlemmer av kirken uten å være aktive troende, og det er vanlig at folk døper barna sine, gifter seg i kirken, og holder konfirmasjon, selv om de ikke går i kirken regelmessig."
+      }
+    ]
+  },
+  "Døgnrytmer": {
+    "questions": [
+      {
+        "prompt": "Hva skjer i kroppen når det blir mørkt, ifølge teksten?",
+        "options": [
+          "Kroppen produserer mer melatonin",
+          "Kroppen slutter å produsere melatonin",
+          "Kroppen produserer mer koffein",
+          "Hjernen slutter å fungere"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Når det blir mørkt ute, begynner kroppen å produsere mer av hormonet melatonin, som gjør oss trøtte."
+      },
+      {
+        "prompt": "Hva kan forstyrre døgnrytmen, ifølge teksten?",
+        "options": [
+          "Å drikke vann om morgenen",
+          "Skiftarbeid, jetlag eller skjermbruk sent på kvelden",
+          "Å gå tur i naturen",
+          "Å sove åtte timer hver natt"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Dette skjer ofte ved skiftarbeid, jetlag eller når man bruker skjermer sent på kvelden."
+      },
+      {
+        "prompt": "Hvorfor kan lys fra skjermer gjøre det vanskeligere å sovne, ifølge teksten?",
+        "options": [
+          "Fordi det lurer hjernen til å tro at det fortsatt er dag",
+          "Fordi det varmer opp rommet",
+          "Fordi det lager støy",
+          "Fordi det tiltrekker insekter"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Lyset fra skjermer kan nemlig lure hjernen til å tro at det fortsatt er dag, og da blir det vanskeligere å sovne."
+      },
+      {
+        "prompt": "Hva anbefaler teksten for å opprettholde en stabil døgnrytme, selv i helgene?",
+        "options": [
+          "Å stå opp og legge seg til omtrent samme tid hver dag",
+          "Å sove lenger i helgene",
+          "Å drikke mer kaffe om morgenen",
+          "Å bruke skjerm hele natten"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Det anbefales å stå opp og legge seg til omtrent samme tid hver dag, også i helgene."
+      }
+    ]
+  },
+  "Byparker": {
+    "questions": [
+      {
+        "prompt": "What do families often do in the park on weekends, according to the text?",
+        "options": [
+          "Visit playgrounds with children",
+          "Go swimming in a pool",
+          "Attend concerts",
+          "Go shopping"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Noen parker har lekeplasser for barn, og mange familier besøker dem i helgene."
+      },
+      {
+        "prompt": "What do people bring for a picnic in the park?",
+        "options": [
+          "Food, drinks, and a blanket",
+          "Tents and sleeping bags",
+          "Books and pens",
+          "Music instruments only"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "De tar med mat, drikke og et teppe."
+      },
+      {
+        "prompt": "What are city parks good for, according to the text?",
+        "options": [
+          "Only for children",
+          "Both the body and the mind",
+          "Only for old people",
+          "Only for tourists"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Byparker er gode for både kroppen og hodet."
+      }
+    ]
+  },
+  "Rydding av rommet mitt": {
+    "questions": [
+      {
+        "prompt": "What does the narrator do first when cleaning?",
+        "options": [
+          "Vacuum the floor",
+          "Pick up the clothes and put them in the closet",
+          "Wash the table",
+          "Throw away the trash"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Først plukker jeg opp klærne og legger dem i skapet."
+      },
+      {
+        "prompt": "What does the narrator use to clean the floor?",
+        "options": [
+          "A cloth",
+          "A vacuum cleaner",
+          "A broom",
+          "A mop"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Jeg tar støvsugeren og støvsuger gulvet."
+      },
+      {
+        "prompt": "How does the narrator feel after cleaning the room?",
+        "options": [
+          "Tired and bored",
+          "Glad and proud",
+          "Angry and confused",
+          "Sad and lonely"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Jeg føler meg glad og stolt."
+      }
+    ]
+  },
+  "Klisjeer": {
+    "questions": [
+      {
+        "prompt": "Hvilket eksempel på en klisjé nevner teksten for å beskrive at tiden går fort?",
+        "options": [
+          "«Tiden flyr»",
+          "«Bedre sent enn aldri»",
+          "«Alle gode ting er tre»",
+          "«Øve gjør mester»"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "For eksempel sier vi «tiden flyr» når vi mener at tiden går fort, eller «bedre sent enn aldri» når vi kommer for sent."
+      },
+      {
+        "prompt": "Hvorfor bør man unngå for mange klisjeer når man skriver tekster på skolen eller jobb?",
+        "options": [
+          "Fordi teksten virker mer personlig og ekte uten dem",
+          "Fordi klisjeer er forbudt i skolen",
+          "Fordi de tar for lang tid å skrive",
+          "Fordi lærere ikke forstår dem"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Da virker teksten mer personlig og ekte."
+      },
+      {
+        "prompt": "Hva menes med at klisjeer «mister sin opprinnelige kraft eller betydning»?",
+        "options": [
+          "At de blir forbudt å bruke",
+          "At de ikke lenger virker sterke eller spesielle fordi de er brukt så mye",
+          "At de blir borte fra språket helt",
+          "At de får en helt ny betydning"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Klisjeer er uttrykk eller ideer som har blitt brukt så mange ganger at de mister sin opprinnelige kraft eller betydning."
+      },
+      {
+        "prompt": "Ifølge teksten, når kan klisjeer være passende å bruke?",
+        "options": [
+          "Aldri, de bør alltid unngås",
+          "Når man vil uttrykke noe raskt og enkelt",
+          "Bare i formelle taler",
+          "Bare i dikt"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Likevel kan klisjeer noen ganger være passende, spesielt når vi vil uttrykke noe raskt og enkelt."
+      }
+    ]
+  },
+  "Klimaendringer": {
+    "questions": [
+      {
+        "prompt": "Hva fører til at CO₂ slippes ut i atmosfæren, ifølge teksten?",
+        "options": [
+          "Bruk av olje, kull og gass",
+          "Bruk av solenergi",
+          "Planting av trær",
+          "Bruk av vindkraft"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Når vi bruker olje, kull og gass, slipper vi ut mye CO₂ i atmosfæren."
+      },
+      {
+        "prompt": "Hva skjer med havnivået, ifølge teksten?",
+        "options": [
+          "Det synker",
+          "Det stiger",
+          "Det forblir det samme",
+          "Det fryser"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Isen smelter på Nordpolen og Sørpolen, og havnivået stiger."
+      },
+      {
+        "prompt": "Hva kan man gjøre i stedet for å kjøre bil, ifølge teksten?",
+        "options": [
+          "Sykle eller ta buss",
+          "Kjøre motorsykkel",
+          "Ta fly",
+          "Bruke mer plast"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Vi kan også sykle eller ta buss i stedet for å kjøre bil, og vi kan kaste mindre mat og bruke mindre plast."
+      },
+      {
+        "prompt": "Hvilke ekstreme værhendelser nevner teksten?",
+        "options": [
+          "Flom, stormer og hetebølger",
+          "Jordskjelv og vulkanutbrudd",
+          "Tornadoer og tsunamier",
+          "Snøstormer og lynnedslag"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Det blir også flere ekstreme værhendelser, som flom, stormer og hetebølger."
+      }
+    ]
+  },
+  "Kognitive skjevheter": {
+    "questions": [
+      {
+        "prompt": "Hva er bekreftelsesbias, ifølge teksten?",
+        "options": [
+          "Å bare legge merke til informasjon som støtter det man allerede tror på",
+          "Å alltid tro på nyheter uten å sjekke",
+          "Å overvurdere sannsynligheten for flyulykker",
+          "Å endre mening ofte"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "En av de vanligste er bekreftelsesbias, hvor man kun legger merke til informasjon som støtter det man allerede tror på, og ignorerer motstridende fakta."
+      },
+      {
+        "prompt": "Hvilket eksempel brukes for å forklare tilgjengelighetsbias?",
+        "options": [
+          "Å tro at flyging er farligere enn det er etter å ha sett flere nyheter om flyulykker",
+          "Å tro at kaffe er sunt fordi man drikker det hver dag",
+          "Å stole på venner mer enn eksperter",
+          "Å alltid velge det billigste produktet"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Hvis man for eksempel har sett flere nyhetsinnslag om flyulykker, kan man begynne å tro at det er farligere å fly enn det faktisk er."
+      },
+      {
+        "prompt": "Hva foreslår teksten for å redusere effekten av kognitive biaser?",
+        "options": [
+          "Kritisk tenkning, åpne diskusjoner og å søke ulike perspektiver",
+          "Å unngå å lese nyheter helt",
+          "Å stole blindt på egne meninger",
+          "Å diskutere kun med folk som er enige"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Kritisk tenkning, åpne diskusjoner og det å søke ulike perspektiver kan hjelpe oss med å ta mer balanserte og informerte valg."
+      },
+      {
+        "prompt": "Hva har bekreftelsesbias og tilgjengelighetsbias til felles, ifølge teksten?",
+        "options": [
+          "Begge er mentale snarveier som kan føre til feilvurderinger",
+          "Begge gjelder bare eksperter",
+          "Begge handler kun om flyulykker",
+          "Begge er bevisste og villede valg"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "påvirkes vi ofte av kognitive biaser – mentale snarveier som kan føre til feilvurderinger."
+      }
+    ]
+  },
+  "Kolonialisme": {
+    "questions": [
+      {
+        "prompt": "Ifølge teksten, hva var kolonialismen i tillegg til en politisk og økonomisk ekspansjon?",
+        "options": [
+          "Et rent militært prosjekt",
+          "Et kulturelt prosjekt",
+          "Et religiøst korstog",
+          "Et vitenskapelig eksperiment"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Kolonialismen var ikke bare en politisk og økonomisk ekspansjon, men også et kulturelt prosjekt, der europeiske stormakter søkte å legitimere sin dominans gjennom ideologier om sivilisasjon, kristning og modernisering."
+      },
+      {
+        "prompt": "Hva ble prioritert fremfor bærekraftig utvikling i koloniene, ifølge teksten?",
+        "options": [
+          "Ressursutvinning",
+          "Utdanning",
+          "Helsevesen",
+          "Infrastruktur"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Ressursutvinning ble prioritert fremfor bærekraftig utvikling, og lokalbefolkningen ble ofte marginalisert, både økonomisk og sosialt."
+      },
+      {
+        "prompt": "Hvilken forenklet fremstilling av kolonialismen advarer teksten mot?",
+        "options": [
+          "At kolonialismen enten fremstilles som ensidig ond eller som et sivilisatorisk framskritt",
+          "At kolonialismen alltid omtales som nøytral",
+          "At kolonialismen kun diskuteres i skolen",
+          "At kolonialismen glemmes helt"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Det er likevel viktig å unngå en forenklet fremstilling der kolonialismen enten fremstilles som ensidig ond eller, i enkelte tilfeller, som et slags sivilisatorisk framskritt."
+      },
+      {
+        "prompt": "Hvorfor mener teksten det er essensielt å lytte til stemmene fra det globale sør?",
+        "options": [
+          "For å anerkjenne deres perspektiver i diskusjonen om avkolonisering og historisk rettferdighet",
+          "Fordi de har mer penger enn Europa",
+          "Fordi de styrer FN",
+          "Fordi det er lovpålagt"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "I denne sammenhengen blir det essensielt å lytte til stemmene fra det globale sør, og å anerkjenne deres perspektiver i den pågående diskusjonen om avkolonisering og historisk rettferdighet."
+      }
+    ]
+  },
+  "Trøstmat": {
+    "questions": [
+      {
+        "prompt": "What are examples of comfort food mentioned in the text?",
+        "options": [
+          "Warm soup, pasta with cheese, and bread with butter",
+          "Salad and fruit",
+          "Steak and potatoes",
+          "Ice cream and cake only"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "For meg er komfortmat varm suppe, pasta med ost, eller nybakt brød med smør."
+      },
+      {
+        "prompt": "According to the text, does comfort food need to be fancy or expensive?",
+        "options": [
+          "Yes, it must be expensive",
+          "No, it just needs to taste good and feel safe",
+          "Yes, it must be homemade",
+          "No, it must be cold"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Komfortmat trenger ikke være fancy eller dyr."
+      },
+      {
+        "prompt": "What does the narrator like to drink when it's cold outside?",
+        "options": [
+          "Iced tea",
+          "Hot cocoa",
+          "Orange juice",
+          "Milk"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Jeg liker også sjokolade og varm kakao når det er kaldt ute."
+      }
+    ]
+  },
+  "Kompasser": {
+    "questions": [
+      {
+        "prompt": "What does a compass always show?",
+        "options": [
+          "East",
+          "West",
+          "North",
+          "South"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "Det viser alltid hvor nord er."
+      },
+      {
+        "prompt": "Why does a compass work, according to the text?",
+        "options": [
+          "Because the needle is made of gold",
+          "Because the Earth has a magnetic field",
+          "Because it is connected to satellites",
+          "Because it uses batteries"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Et kompass fungerer fordi jorden har et magnetfelt."
+      },
+      {
+        "prompt": "What should you do first when using a compass?",
+        "options": [
+          "Turn until the needle points north",
+          "Hold it flat in your hand",
+          "Look at a map",
+          "Call someone for help"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Først må du holde det flatt i hånden."
+      }
+    ]
+  },
+  "Klage på en tjeneste": {
+    "questions": [
+      {
+        "prompt": "Hva er problemet med genseren Anna kjøpte?",
+        "options": [
+          "Den er feil størrelse",
+          "Den har fått hull i sømmen",
+          "Den har feil farge",
+          "Den mangler en knapp"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Jeg kjøpte denne genseren her forrige uke, men den har allerede fått hull i sømmen."
+      },
+      {
+        "prompt": "Hva velger Anna når hun får valget mellom ny genser og pengene tilbake?",
+        "options": [
+          "En ny genser",
+          "Pengene tilbake",
+          "Begge deler",
+          "Ingen av delene"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "«Jeg vil gjerne ha pengene tilbake,» svarte Anna."
+      },
+      {
+        "prompt": "Hva ber ekspeditøren om for å behandle klagen?",
+        "options": [
+          "Kvitteringen",
+          "Bankkortet",
+          "Et bilde av genseren",
+          "Anna sitt telefonnummer"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "«Men har du kvitteringen?»"
+      },
+      {
+        "prompt": "Hvordan føler Anna seg etter samtalen med ekspeditøren, sammenlignet med i begynnelsen?",
+        "options": [
+          "Roligere og mer fornøyd",
+          "Sintere enn før",
+          "Mer forvirret",
+          "Helt likegyldig"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Anna kjente at hun ble litt roligere."
+      }
+    ]
+  },
+  "Bekjennelser fra en kjedelig vampyr": {
+    "questions": [
+      {
+        "prompt": "Hvor lenge har fortelleren vært vampyr?",
+        "options": [
+          "Femti år",
+          "Hundre år",
+          "Over to hundre år",
+          "Tusen år"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "Jeg har vært vampyr i over to hundre år, og tro meg – etter en stund blir alt det samme."
+      },
+      {
+        "prompt": "Hva prøvde vampyren å lære seg, som gikk dårlig?",
+        "options": [
+          "Å synge",
+          "Å strikke",
+          "Å male",
+          "Å danse"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "og ja, jeg har til og med prøvd å lære meg strikking. Det gikk dårlig."
+      },
+      {
+        "prompt": "Hva vurderer vampyren å starte på slutten av teksten?",
+        "options": [
+          "En restaurant",
+          "En blogg",
+          "En skole",
+          "En klesbutikk"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Kanskje jeg skal starte en blogg? “Livsstil for moderne vampyrer”?"
+      },
+      {
+        "prompt": "Hvorfor tør ikke vampyren stå fram og fortelle folk hvem han/hun egentlig er?",
+        "options": [
+          "Fordi det er ulovlig å være vampyr",
+          "Fordi folk enten blir redde eller tror det er tull",
+          "Fordi vampyren ikke kan snakke om dagen",
+          "Fordi vampyren ikke har venner"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Men jeg vet at folk ikke er klare for det. De blir redde. Eller de tror det er tull."
+      }
+    ]
+  },
+  "Konspirasjonsteorier": {
+    "questions": [
+      {
+        "prompt": "Hvilket eksempel på en konspirasjonsteori nevner teksten?",
+        "options": [
+          "At jorden er flat",
+          "At månelandingen aldri fant sted",
+          "At dinosaurene fortsatt lever",
+          "At vaksiner ble oppfunnet i 2020"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Dette kan handle om alt fra hvem som egentlig styrer verden, til påstander om at månelandingen aldri fant sted."
+      },
+      {
+        "prompt": "Hvorfor har internett gjort det enklere å spre konspirasjonsteorier, ifølge teksten?",
+        "options": [
+          "Fordi hvem som helst kan publisere informasjon uten at den nødvendigvis blir faktasjekket",
+          "Fordi internett er gratis",
+          "Fordi myndighetene oppmuntrer til det",
+          "Fordi det finnes færre eksperter nå"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Internett har gjort det enklere å spre slike teorier, siden hvem som helst kan publisere informasjon uten at den nødvendigvis blir faktasjekket."
+      },
+      {
+        "prompt": "Hvilke følelser spiller konspirasjonsteorier ofte på, ifølge teksten?",
+        "options": [
+          "Frykt, mistillit og nysgjerrighet",
+          "Glede, stolthet og tillit",
+          "Sinne og sjalusi",
+          "Kjærlighet og medfølelse"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "På sosiale medier får konspirasjonsteorier ofte stor oppmerksomhet fordi de spiller på følelser som frykt, mistillit og nysgjerrighet."
+      },
+      {
+        "prompt": "Hva kan det føre til når folk mister tilliten til myndigheter og eksperter, ifølge teksten?",
+        "options": [
+          "Det kan svekke demokratiet",
+          "Det gjør samfunnet tryggere",
+          "Det fører til bedre helsevesen",
+          "Det stopper spredning av konspirasjonsteorier"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Dette kan føre til at folk mister tilliten til myndigheter og eksperter, noe som igjen kan svekke demokratiet."
+      }
+    ]
+  },
+  "Sushi på samlebånd": {
+    "questions": [
+      {
+        "prompt": "How do you choose what to eat at a conveyor belt sushi restaurant?",
+        "options": [
+          "You order from a menu",
+          "You take the plate you like from the belt",
+          "You ask the chef to make it",
+          "You pick from a picture book"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Når du ser en rett du liker, tar du bare tallerkenen fra båndet."
+      },
+      {
+        "prompt": "What determines the price of the food?",
+        "options": [
+          "The size of the plate",
+          "The color of the plate",
+          "The time of day",
+          "The number of guests"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Prisen på maten kommer an på fargen på tallerkenen."
+      },
+      {
+        "prompt": "How does the waiter know how much to charge you?",
+        "options": [
+          "By counting how many plates you took",
+          "By weighing your plates",
+          "By asking you to guess",
+          "By scanning a ticket you got at the door"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Når du er ferdig, teller servitøren hvor mange tallerkener du har tatt, og så betaler du."
+      }
+    ]
+  },
+  "Matlaging på et hostelkjøkken": {
+    "questions": [
+      {
+        "prompt": "Hva slags retter liker fortelleren å lage på hostellkjøkkenet?",
+        "options": [
+          "Avanserte desserter",
+          "Pasta med saus, salater eller supper",
+          "Grillmat",
+          "Sushi"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Jeg liker å lage enkle retter som pasta med saus, salater eller supper."
+      },
+      {
+        "prompt": "Hvorfor planlegger fortelleren hva som skal lages på forhånd?",
+        "options": [
+          "For å spare tid og slippe å gå flere ganger til butikken",
+          "For å imponere andre gjester",
+          "Fordi hostellet krever det",
+          "For å lære seg nye språk"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "På den måten sparer jeg tid og slipper å gå flere ganger."
+      },
+      {
+        "prompt": "Hva er det fine med å lage mat på et hostell, ifølge teksten?",
+        "options": [
+          "At man kan møte mennesker fra hele verden",
+          "At maten alltid er gratis",
+          "At kjøkkenet alltid er stort",
+          "At man slipper å vaske opp"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Det fine med å lage mat på hostell er at man kan møte mennesker fra hele verden."
+      },
+      {
+        "prompt": "Hva må man gjøre når kjøkkenutstyr mangler eller er opptatt, ifølge teksten?",
+        "options": [
+          "Gi opp og bestille take-away",
+          "Være kreativ og bruke det man har",
+          "Klage til de andre gjestene",
+          "Vente til neste dag"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Da gjelder det å være kreativ og bruke det man har."
+      }
+    ]
+  },
+  "Trang kontra lengsel": {
+    "questions": [
+      {
+        "prompt": "Hvilket eksempel gir teksten på en «trang»?",
+        "options": [
+          "Å lengte etter barndomshjemmet",
+          "En sterk trang til å spise sjokolade midt på natta",
+          "Å savne en gammel venn",
+          "Å tenke på fremtiden"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "For eksempel kan man få en sterk trang til å spise sjokolade midt på natta, eller føle et akutt behov for å sjekke mobilen."
+      },
+      {
+        "prompt": "Hva skjer med en trang når behovet er dekket, ifølge teksten?",
+        "options": [
+          "Den blir sterkere",
+          "Den roer seg",
+          "Den blir til lengsel",
+          "Den forsvinner aldri"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Mens trangen gjerne roer seg når behovet er dekket, kan lengselen bli sterkere jo lenger den ikke blir oppfylt."
+      },
+      {
+        "prompt": "Hva bærer lengsel ofte med seg, ifølge teksten?",
+        "options": [
+          "Sinne og frustrasjon",
+          "Et snev av håp og melankoli",
+          "Frykt og panikk",
+          "Glede og latter"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Lengsel bærer ofte med seg et snev av håp og melankoli, noe som gjør den både vakker og sår på samme tid."
+      },
+      {
+        "prompt": "Hvorfor beskrives lengsel som noe som kan vokse seg sterkere over tid, i motsetning til trang?",
+        "options": [
+          "Fordi lengsel er knyttet til noe fjernt som ikke lett kan oppnås eller dekkes",
+          "Fordi lengsel er en fysisk følelse som krever mat",
+          "Fordi trang varer lengre enn lengsel",
+          "Fordi lengsel forsvinner raskere enn trang"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Det kan være en stille, vedvarende følelse som ligger i bakgrunnen, ofte knyttet til noe eller noen som er langt borte – i tid, rom eller begge deler."
+      }
+    ]
+  },
+  "Cyberpunk": {
+    "questions": [
+      {
+        "prompt": "Hva kjennetegner cyberpunk-sjangeren, ifølge teksten?",
+        "options": [
+          "Avansert teknologi kombinert med sosiale problemer som kriminalitet og korrupsjon",
+          "Fredelige samfunn uten teknologi",
+          "Historiske fortellinger fra middelalderen",
+          "Enkle historier for barn"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Den kjennetegnes av avansert teknologi, som kunstig intelligens og virtuelle verdener, kombinert med sosiale problemer som kriminalitet, korrupsjon og store økonomiske forskjeller."
+      },
+      {
+        "prompt": "Hva er vanligvis et sentralt element i cyberpunk-fortellinger?",
+        "options": [
+          "Skogen",
+          "Byen",
+          "Havet",
+          "Rommet"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "I cyberpunk-fortellinger er byen vanligvis et sentralt element, full av neonlys, reklameskjermer og trange bakgater."
+      },
+      {
+        "prompt": "Hva slags makt kan selskaper ha i cyberpunk-fortellinger, ifølge teksten?",
+        "options": [
+          "Mindre makt enn enkeltpersoner",
+          "Mer makt enn myndighetene",
+          "Ingen makt i det hele tatt",
+          "Kun makt over teknologi"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Samtidig viser den en verden der de mektigste selskapene kan ha mer makt enn myndighetene, noe som skaper en følelse av urettferdighet og kamp for overlevelse."
+      },
+      {
+        "prompt": "Hvilke spørsmål stiller cyberpunk-sjangeren ofte, ifølge teksten?",
+        "options": [
+          "Hva det betyr å være menneske, og om vi kan beholde friheten vår med teknologi",
+          "Hvordan man bygger romskip",
+          "Hvem som vant andre verdenskrig",
+          "Hva som er den beste maten å spise"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Sjangerens historier stiller ofte spørsmål om hva det betyr å være menneske, og om vi kan beholde vår frihet når teknologi kontrollerer så mye av livet."
+      }
+    ]
+  },
+  "Farlige sider ved sosiale medier": {
+    "questions": [
+      {
+        "prompt": "Which social media platforms are mentioned in the text?",
+        "options": [
+          "Facebook, Instagram and Snapchat",
+          "TikTok, YouTube and Twitter",
+          "LinkedIn and Pinterest",
+          "WhatsApp and Telegram"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Mange bruker Facebook, Instagram og Snapchat."
+      },
+      {
+        "prompt": "What information should you not give to strangers online?",
+        "options": [
+          "Your favorite color",
+          "Your phone number or address",
+          "Your favorite movie",
+          "Your school subjects"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Det er viktig å ikke gi personlige opplysninger, som telefonnummer eller adresse, til fremmede."
+      },
+      {
+        "prompt": "What can spending too much time on the phone be bad for?",
+        "options": [
+          "The eyes and head",
+          "The legs and arms",
+          "The teeth",
+          "The stomach"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Dette kan være dårlig for øynene og hodet."
+      }
+    ]
+  },
+  "Døde språk": {
+    "questions": [
+      {
+        "prompt": "Hva betyr det at et språk er «dødt», ifølge teksten?",
+        "options": [
+          "At det aldri har eksistert skriftlige kilder",
+          "At ingen mennesker lenger har det som morsmål",
+          "At det er forbudt å snakke det",
+          "At det kun brukes i skolen"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Et dødt språk betyr at ingen mennesker lenger har det som morsmål, selv om det kan finnes skriftlige kilder eller gamle tekster."
+      },
+      {
+        "prompt": "Hvor brukes latin mest i dag, ifølge teksten?",
+        "options": [
+          "I hverdagslige samtaler hjemme",
+          "I forskning, medisin og religion",
+          "På sosiale medier",
+          "I musikk og film"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "I dag brukes latin mest i forskning, medisin og religion, men ingen snakker det hjemme med familien."
+      },
+      {
+        "prompt": "Hvilke moderne språk kan man finne spor av gammelnorsk i?",
+        "options": [
+          "Engelsk og tysk",
+          "Moderne norsk og islandsk",
+          "Fransk og spansk",
+          "Russisk og polsk"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Selv om det ikke snakkes lenger, kan vi finne spor av det i moderne norsk og islandsk."
+      },
+      {
+        "prompt": "Hvorfor jobber mange i dag for å bevare små språk, ifølge teksten?",
+        "options": [
+          "For at de ikke skal dø ut i framtiden",
+          "For å tjene penger",
+          "For å lage nye alfabet",
+          "For å konkurrere med engelsk"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Derfor er det mange som jobber for å bevare små språk i dag, slik at de ikke skal dø ut i framtiden."
+      }
+    ]
+  },
+  "Død i filosofien": {
+    "questions": [
+      {
+        "prompt": "Ifølge Sokrates, hvorfor er frykten for døden irrasjonell?",
+        "options": [
+          "Fordi døden enten er en fullstendig utslokking eller en overgang til en annen eksistensform",
+          "Fordi døden aldri skjer",
+          "Fordi alle mennesker er udødelige",
+          "Fordi døden alltid er smertefull"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "enten er den en endelig utslokking, og dermed en tilstand av fullstendig hvile, eller så er den en overgang til en annen form for eksistens."
+      },
+      {
+        "prompt": "Hvilken filosof satte døden i sentrum for menneskets selvforståelse, ifølge teksten?",
+        "options": [
+          "Sokrates",
+          "Heidegger",
+          "Platon",
+          "Aristoteles"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Senere har eksistensialistene, særlig Heidegger, satt døden i sentrum for menneskets selvforståelse."
+      },
+      {
+        "prompt": "Hva betyr uttrykket «væren-mot-døden» i Heideggers filosofi, ifølge teksten?",
+        "options": [
+          "At mennesket alltid lever med bevisstheten om sin egen dødelighet som en grunnleggende struktur",
+          "At mennesket bør ønske å dø raskt",
+          "At døden er en fiende man må bekjempe",
+          "At mennesket ikke kan tenke på døden"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "For ham er bevisstheten om vår egen dødelighet ikke en abstrakt innsikt, men en fundamental eksistensiell struktur: vi lever alltid som væren-mot-døden."
+      },
+      {
+        "prompt": "Hvordan kan erkjennelsen av at tiden vår er begrenset påvirke oss, ifølge teksten?",
+        "options": [
+          "Den kan åpne muligheten for et mer autentisk forhold til oss selv og våre valg",
+          "Den gjør oss likegyldige til livet",
+          "Den fjerner all mening fra tilværelsen",
+          "Den fører alltid til depresjon"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Nettopp ved å erkjenne at vår tid er begrenset, åpner vi muligheten for et mer autentisk forhold til oss selv og våre valg."
+      }
+    ]
+  },
+  "Desember i Norge": {
+    "questions": [
+      {
+        "prompt": "Hva skjer med dagene i Norge i desember, ifølge teksten?",
+        "options": [
+          "De blir lengre",
+          "De blir korte, og solen går ned tidlig",
+          "De forblir like lange hele året",
+          "Solen slutter å gå ned"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Dagene blir korte, og solen går ned tidlig på ettermiddagen."
+      },
+      {
+        "prompt": "Hvilke tradisjonelle retter nevner teksten at familier lager før jul?",
+        "options": [
+          "Pizza og pasta",
+          "Ribbe eller pinnekjøtt",
+          "Sushi og ris",
+          "Fisk og chips"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Før jul baker familier ofte kaker og lager tradisjonelle retter som ribbe eller pinnekjøtt."
+      },
+      {
+        "prompt": "Hva kan man kjøpe og smake på julemarkedene i byene?",
+        "options": [
+          "Håndlagde gaver og varm gløgg",
+          "Sommerklær og is",
+          "Elektronikk og bøker",
+          "Blomster og planter"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "I byene er det julemarkeder hvor man kan kjøpe håndlagde gaver og smake på varm gløgg."
+      },
+      {
+        "prompt": "Hvordan opplever mange nordmenn desember, til tross for mørket og kulden?",
+        "options": [
+          "Som en trist og ensom tid",
+          "Som en tid fylt med hygge, fellesskap og forventning",
+          "Som en tid uten tradisjoner",
+          "Som den travleste måneden på jobb"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Selv om desember kan være mørk og kald, opplever mange nordmenn at det er en tid fylt med hygge, fellesskap og forventning til julen som kommer."
+      }
+    ]
+  },
+  "Demokrati i antikkens Athen": {
+    "questions": [
+      {
+        "prompt": "Hva betyr ordet «demokrati», ifølge teksten?",
+        "options": [
+          "«Kongens makt»",
+          "«Folkets makt»",
+          "«Gudenes vilje»",
+          "«Krigens lov»"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Ordet kommer fra gresk og betyr «folkets makt»."
+      },
+      {
+        "prompt": "Hvem hadde IKKE rett til å delta i politikken i det gamle Athen, ifølge teksten?",
+        "options": [
+          "Frie menn",
+          "Kvinner, slaver og fremmede",
+          "Filosofer",
+          "Krigere"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Kvinner, slaver og fremmede hadde ikke rett til å være med."
+      },
+      {
+        "prompt": "Hvorfor roterte athenerne på lederne, ifølge teksten?",
+        "options": [
+          "For at makten ikke skulle ligge hos én person for lenge",
+          "For å spare penger",
+          "Fordi lederne ble syke ofte",
+          "For å følge en religiøs tradisjon"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "de roterte ledere for at makten ikke skulle ligge hos én person for lenge."
+      },
+      {
+        "prompt": "Hvorfor mener mange historikere at demokratiet i Athen var viktig, til tross for at det ikke var rettferdig for alle?",
+        "options": [
+          "Det la grunnlaget for ideene vi i dag forbinder med demokrati",
+          "Det gjorde Athen til den rikeste byen i verden",
+          "Det stoppet alle kriger i Hellas",
+          "Det ble kopiert direkte av Romerriket"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Selv om dette systemet ikke var rettferdig for alle, la det grunnlaget for de ideene vi i dag forbinder med demokrati."
+      }
+    ]
+  },
+  "Ørkenoaser": {
+    "questions": [
+      {
+        "prompt": "What can grow around the water in an oasis?",
+        "options": [
+          "Cacti and rocks",
+          "Palm trees and grass",
+          "Coral and seaweed",
+          "Mushrooms and moss"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Rundt vannet kan det vokse palmer og gress."
+      },
+      {
+        "prompt": "Why is an oasis important for people who live in the desert?",
+        "options": [
+          "It is a place with life in the middle of the sand",
+          "It is where they build their houses",
+          "It is the coldest place in the desert",
+          "It has no water at all"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Det er et sted med liv midt i sanden."
+      },
+      {
+        "prompt": "What is difficult in the desert, according to the text?",
+        "options": [
+          "For animals to sleep",
+          "For plants to grow",
+          "For the sun to shine",
+          "For sand to move"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Det finnes nesten ikke vann, og det er vanskelig for planter å vokse."
+      }
+    ]
+  },
+  "Digital detox": {
+    "questions": [
+      {
+        "prompt": "Hva betyr en «digital detox», ifølge teksten?",
+        "options": [
+          "At man kjøper en ny mobil",
+          "At man tar en pause fra skjermene",
+          "At man slutter å bruke internett for alltid",
+          "At man jobber mer med data"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "En digital detox betyr at man tar en pause fra skjermene."
+      },
+      {
+        "prompt": "Hvilket eksempel gir teksten på et lite steg man kan starte med?",
+        "options": [
+          "Å ikke bruke telefonen etter klokken ti om kvelden",
+          "Å slette alle sosiale medier-kontoer",
+          "Å kjøpe en ny datamaskin",
+          "Å slutte å jobbe helt"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "For eksempel kan man bestemme seg for å ikke bruke telefonen etter klokken ti om kvelden, eller la mobilen ligge hjemme når man går på tur."
+      },
+      {
+        "prompt": "Hva opplever mange når de tar en pause fra skjermene, ifølge teksten?",
+        "options": [
+          "At de sover bedre og føler seg roligere",
+          "At de blir mer stresset",
+          "At de mister venner",
+          "At de glemmer hvordan man bruker telefonen"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Mange opplever at de sover bedre og føler seg roligere når de tar en slik pause."
+      },
+      {
+        "prompt": "Hva kan en digital detox gi, ifølge avslutningen av teksten?",
+        "options": [
+          "Mer energi, bedre konsentrasjon og sterkere forhold til menneskene rundt oss",
+          "Mer penger og en bedre jobb",
+          "En raskere internett-tilkobling",
+          "Flere følgere på sosiale medier"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "En digital detox kan gi mer energi, bedre konsentrasjon og sterkere forhold til menneskene rundt oss."
+      }
+    ]
+  },
+  "Digitale nomader": {
+    "questions": [
+      {
+        "prompt": "Hva trenger en digital nomade for å kunne jobbe, ifølge teksten?",
+        "options": [
+          "Et kontor og en fast arbeidsplass",
+          "En datamaskin og tilgang til internett",
+          "En bil og førerkort",
+          "Et universitetsdiplom"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Det betyr at de kan jobbe fra hvor som helst, så lenge de har en datamaskin og tilgang til internett."
+      },
+      {
+        "prompt": "Hva slags steder oppsøker digitale nomader ofte, ifølge teksten?",
+        "options": [
+          "Steder med høye levekostnader og stille miljø",
+          "Steder med lave levekostnader og et inspirerende miljø",
+          "Steder uten internett",
+          "Steder nær hjemlandet deres"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Mange kombinerer arbeid med reiser, og de oppsøker ofte steder med lave levekostnader og et inspirerende miljø."
+      },
+      {
+        "prompt": "Hva er en utfordring ved å leve som digital nomade, ifølge teksten?",
+        "options": [
+          "Det kan være vanskelig å skille mellom arbeidstid og fritid",
+          "Det er umulig å reise til andre land",
+          "Man får ikke lov til å bruke internett",
+          "Man må alltid bo i store byer"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "For eksempel kan det være vanskelig å skille mellom arbeidstid og fritid, og noen savner et fast sosialt nettverk."
+      },
+      {
+        "prompt": "For hvem passer denne livsstilen best, ifølge teksten?",
+        "options": [
+          "For de som trives med fleksibilitet og selvstendighet",
+          "For de som ønsker faste rutiner og stabilitet",
+          "For de som ikke liker å reise",
+          "For de som foretrekker kontorarbeid"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Denne livsstilen passer ikke for alle, men for de som trives med fleksibilitet og selvstendighet, kan den være svært givende."
+      }
+    ]
   }
 }

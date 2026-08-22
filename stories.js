@@ -983,6 +983,11 @@ function displayStory(titleNorwegian) {
   }
 
   if (searchContainer) searchContainer.style.display = "none";
+  // Guards against the landing page being left visible underneath the
+  // story reader: normal navigation hides it via handleTypeChange("stories")
+  // before displayStory ever runs, but a direct/refreshed story URL calls
+  // displayStory straight from DOMContentLoaded and skips that step entirely.
+  showLandingCard(false);
 
   document
     .getElementById("back-button")

@@ -668,6 +668,30 @@
         </div>
       </div>
 
+      <script>
+        // Guards against the landing page ever being visible on a fresh load
+        // (or refresh) of any other page — words/sentences/stories/word-game/
+        // pronunciation/my-stats/word-list all eventually hide #landing-card
+        // themselves once their own init logic runs, but each is a separate
+        // async path (dictionary load, story fetch, etc.) and a gap in any
+        // one of them left the landing page visible underneath until it was
+        // hidden here too. Runs inline, synchronously, before any deferred
+        // script — so there's no window where the wrong page can flash.
+        (function () {
+          var params = new URLSearchParams(window.location.search);
+          var type = params.get("type") || "words";
+          var isLandingPage =
+            type === "words" &&
+            !params.get("query") &&
+            !params.get("word") &&
+            !params.get("story");
+          if (!isLandingPage) {
+            var landingCard = document.getElementById("landing-card");
+            if (landingCard) landingCard.style.display = "none";
+          }
+        })();
+      </script>
+
       <section id="story-viewer" style="display: none">
         <div id="story-content"></div>
       </section>
@@ -824,13 +848,13 @@
     <script src="pronunciation.js?v=c057d68508" defer></script>
     <script src="wordList.js?v=3cd17528c4" defer></script>
     <script src="myWordsAuth.js?v=76c5d41e35" defer></script>
-    <script src="noRandom.js?v=44f641d473" defer></script>
+    <script src="noRandom.js?v=dd11769910" defer></script>
     <script src="scripts.js?v=2f179e913f" defer></script>
     <script src="wordGame.js?v=a8a96ceae5" defer></script>
     <script src="placementTest.js?v=34512a65ac" defer></script>
     <script src="streak.js?v=ddb26efe7e" defer></script>
-    <script src="stories.js?v=f0f6201075" defer></script>
-    <script src="storyQuiz.js?v=77cf74f1e2" defer></script>
+    <script src="stories.js?v=3e514e23d6" defer></script>
+    <script src="storyQuiz.js?v=42c70f88d5" defer></script>
     <script src="myStats.js?v=39333a17d7" defer></script>
 
     <!--

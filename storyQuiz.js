@@ -46,15 +46,36 @@
     }
   }
 
+  // Generation tends to place the correct answer first far more often than
+  // chance (observed ~80% at index 0 across the generated question set), so
+  // the stored correctIndex can't be trusted as a display order — shuffle
+  // fresh on every render instead, including retries.
+  function shuffleOptions(question) {
+    const paired = question.options.map((text, i) => ({
+      text,
+      isCorrect: i === question.correctIndex,
+    }));
+    for (let i = paired.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [paired[i], paired[j]] = [paired[j], paired[i]];
+    }
+    return {
+      options: paired.map((p) => p.text),
+      correctIndex: paired.findIndex((p) => p.isCorrect),
+    };
+  }
+
   // Renders one question at a time into `root`, tracking score as the
   // learner progresses. `questions` is the array for a single story.
   function renderQuizFlow(root, titleNorwegian, questions) {
     let index = 0;
     let score = 0;
     let answers = [];
+    let shuffled = null;
 
     function renderQuestion() {
       const question = questions[index];
+      shuffled = shuffleOptions(question);
       root.innerHTML = `
         <div class="story-quiz-progress">Question ${index + 1} of ${questions.length}</div>
         <div class="story-quiz-prompt">${escapeHTML(question.prompt)}</div>
@@ -63,7 +84,7 @@
       `;
 
       const optionsEl = root.querySelector(".story-quiz-options");
-      question.options.forEach((option, optionIndex) => {
+      shuffled.options.forEach((option, optionIndex) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "story-quiz-option-btn";
@@ -77,18 +98,18 @@
 
     function handleAnswer(chosenIndex, chosenButton, optionsEl) {
       const question = questions[index];
-      const isCorrect = chosenIndex === question.correctIndex;
+      const isCorrect = chosenIndex === shuffled.correctIndex;
       if (isCorrect) score += 1;
       answers.push({
         prompt: question.prompt,
-        chosenOption: question.options[chosenIndex],
-        correctOption: question.options[question.correctIndex],
+        chosenOption: shuffled.options[chosenIndex],
+        correctOption: shuffled.options[shuffled.correctIndex],
         isCorrect,
       });
 
       optionsEl.querySelectorAll(".story-quiz-option-btn").forEach((btn, i) => {
         btn.disabled = true;
-        if (i === question.correctIndex) {
+        if (i === shuffled.correctIndex) {
           btn.classList.add("story-quiz-correct");
           btn.insertAdjacentHTML(
             "beforeend",
