@@ -1,0 +1,205 @@
+{
+  "Den første dagen i ny jobb": {
+    "questions": [
+      {
+        "prompt": "How does the person get to work on the first day?",
+        "options": ["By bus", "By car", "On foot", "By train"],
+        "correctIndex": 0,
+        "sourceSentence": "Jeg tar bussen til jobben."
+      },
+      {
+        "prompt": "Who does the person meet first at work?",
+        "options": ["A new colleague", "The boss", "A neighbor", "A customer"],
+        "correctIndex": 1,
+        "sourceSentence": "På jobben møter jeg sjefen min."
+      },
+      {
+        "prompt": "How does the person feel at the end of the day?",
+        "options": [
+          "Angry and confused",
+          "Tired but happy",
+          "Bored and cold",
+          "Sick and worried"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Jeg er trøtt når jeg kommer hjem, men jeg er fornøyd."
+      }
+    ]
+  },
+  "Oktober i Norge": {
+    "questions": [
+      {
+        "prompt": "What colors do the leaves turn in October?",
+        "options": [
+          "Yellow, red, and orange",
+          "Green and blue",
+          "Only red",
+          "Brown and black"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Trærne får gule, røde og oransje blader."
+      },
+      {
+        "prompt": "When do Norwegian schools have autumn break?",
+        "options": [
+          "At the end of October",
+          "In the middle of November",
+          "At the beginning of October",
+          "They don't have one"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "Skolene har høstferie i begynnelsen av måneden."
+      },
+      {
+        "prompt": "What do many children do at the end of October?",
+        "options": [
+          "Go skiing",
+          "Celebrate Halloween",
+          "Visit the beach",
+          "Plant trees"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "På slutten av oktober feirer mange barn halloween."
+      }
+    ]
+  },
+  "Blå soner": {
+    "questions": [
+      {
+        "prompt": "Hvor mange blå soner finnes det i verden, ifølge teksten?",
+        "options": ["Tre", "Fire", "Fem", "Sju"],
+        "correctIndex": 2,
+        "sourceSentence": "Det finnes fem slike steder: Okinawa i Japan, Sardinia i Italia, Nicoya i Costa Rica, Ikaria i Hellas og Loma Linda i USA."
+      },
+      {
+        "prompt": "Hva spiser folk mye av i blå soner?",
+        "options": [
+          "Kjøtt og sukker",
+          "Grønnsaker, frukt, bønner og nøtter",
+          "Ferdigmat og brus",
+          "Bare fisk"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "I blå soner spiser folk mye grønnsaker, frukt, bønner og nøtter."
+      },
+      {
+        "prompt": "I teksten betyr ordet «hemmeligheten» omtrent det samme som:",
+        "options": [
+          "Løsningen som er lett å se med det samme",
+          "Noe skjult som forklarer hvorfor",
+          "En oppskrift på mat",
+          "Et sted man ikke kan besøke"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Hva er hemmeligheten?"
+      },
+      {
+        "prompt": "Hva sier teksten om sosiale bånd i blå soner?",
+        "options": [
+          "De er svake fordi folk jobber mye",
+          "Familie og venner spiller en viktig rolle",
+          "Folk bor alene det meste av tiden",
+          "De har ikke tid til venner"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "De har sterke sosiale bånd. Familie og venner spiller en viktig rolle, og de tar seg tid til å være sammen."
+      }
+    ]
+  },
+  "Terraforming av Mars": {
+    "questions": [
+      {
+        "prompt": "Hva er en av de største utfordringene med Mars sin atmosfære?",
+        "options": [
+          "Den er for tykk",
+          "Den er svært tynn og består mest av karbondioksid",
+          "Den inneholder for mye oksygen",
+          "Den har ikke noe karbondioksid"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "En av de største utfordringene er at Mars har en svært tynn atmosfære, som består mest av karbondioksid."
+      },
+      {
+        "prompt": "Hvilken metode nevnes for å varme opp planeten?",
+        "options": [
+          "Å bore dype hull i bakken",
+          "Store speil som reflekterer sollys ned på overflaten",
+          "Å fjerne alt vann fra Mars",
+          "Å bygge fabrikker som lager oksygen direkte"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Noen forskere foreslår at vi kan varme opp planeten ved å slippe ut drivhusgasser, for eksempel ved hjelp av store speil som reflekterer sollys ned på overflaten."
+      },
+      {
+        "prompt": "Hva kan skje hvis isen på Mars smelter?",
+        "options": [
+          "Planeten blir kaldere",
+          "Store mengder vann og karbondioksid frigjøres",
+          "Atmosfæren forsvinner helt",
+          "Ingenting endrer seg"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Hvis isen smelter, kunne den frigjøre store mengder vann og karbondioksid, noe som kan bidra til en tykkere atmosfære."
+      },
+      {
+        "prompt": "Hvorfor mener mange at det er mer realistisk å bygge kolonier under kupler først?",
+        "options": [
+          "Fordi å forandre hele planeten er svært vanskelig med dagens teknologi",
+          "Fordi Mars allerede har en atmosfære som Jorden",
+          "Fordi kupler er billigere enn romdrakter",
+          "Fordi ingen ønsker å bo på Mars"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Selv om teknologien for å terraforme Mars ennå ikke finnes... Mange mener at det er mer realistisk å bygge selvforsynte kolonier under kupler før man kan forandre hele planeten."
+      }
+    ]
+  },
+  "Sosiale velferdsstater": {
+    "questions": [
+      {
+        "prompt": "Hva hviler den nordiske velferdsmodellen på, ifølge teksten?",
+        "options": [
+          "En grunnleggende tillit mellom staten og borgerne",
+          "Fullstendig statlig kontroll over privat eiendom",
+          "Fravær av skatt",
+          "Et system uten offentlige tjenester"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Denne modellen hviler på en grunnleggende tillit mellom staten og borgerne."
+      },
+      {
+        "prompt": "Hva er et særtrekk ved velferdsstaten utover å være et sikkerhetsnett?",
+        "options": [
+          "Den fungerer også som virkemiddel for sosial mobilitet og hindrer ulikhet",
+          "Den fjerner all konkurranse i arbeidslivet",
+          "Den garanterer at alle tjener like mye",
+          "Den avskaffer behovet for utdanning"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Et særtrekk ved velferdsstaten er at den ikke kun fungerer som et sikkerhetsnett... men også som et virkemiddel for å skape sosial mobilitet og hindre omfattende ulikhet."
+      },
+      {
+        "prompt": "Hva er et kritisk argument mot velferdsstaten som nevnes i teksten?",
+        "options": [
+          "Den kan føre til ineffektivitet, avhengighet og redusert personlig ansvar",
+          "Den gjør befolkningen yngre",
+          "Den øker ulikhet mellom borgerne",
+          "Den fjerner all sosial stabilitet"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Kritikere hevder at en så omfattende statlig rolle kan føre til ineffektivitet, avhengighet og redusert personlig ansvar."
+      },
+      {
+        "prompt": "Hva er fremtidens hovedutfordring for velferdsstaten, ifølge teksten?",
+        "options": [
+          "Å finne en balanse mellom solidaritet og økonomisk realisme",
+          "Å avskaffe skatt helt",
+          "Å redusere levealderen i befolkningen",
+          "Å stoppe all innvandring"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Fremtidens utfordring blir derfor å finne en balansegang der solidaritet og økonomisk realisme kan eksistere side om side."
+      }
+    ]
+  }
+}

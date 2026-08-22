@@ -1034,6 +1034,9 @@ function displayStory(titleNorwegian) {
     }
     hideSpinner(); // Hide spinner after story content is displayed
     scheduleStoryUpgrades();
+    if (storyContent && typeof renderStoryComprehensionQuiz === "function") {
+      renderStoryComprehensionQuiz(storyContent, selectedStory);
+    }
   };
 
   // Process story text into sentences
