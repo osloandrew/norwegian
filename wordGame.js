@@ -334,10 +334,14 @@ const LISTENING_PROBABILITY = {
 // unaided English-to-Norwegian recall follows only once a word is stronger.
 // A missed typed answer is first reintroduced by the relearning queue as a
 // multiple-choice scaffold, then must be typed correctly before that word can
-// leave the queue or the round can finish.
+// leave the queue or the round can finish. listening's typed variant (true
+// dictation — hear the word, type what you heard, no English shown at all)
+// ramps on the same shape as reverse: it's unaided production too, just from
+// audio instead of an English gloss.
 const TYPED_RECALL_PROBABILITY = Object.freeze({
   cloze: Object.freeze({ 2: 0.25, 3: 0.5, 4: 0.75, 5: 1 }),
   reverse: Object.freeze({ 3: 0.35, 4: 0.65, 5: 0.9 }),
+  listening: Object.freeze({ 3: 0.35, 4: 0.65, 5: 0.9 }),
 });
 
 // --- Game-mode registry ---------------------------------------------------
@@ -345,15 +349,15 @@ const TYPED_RECALL_PROBABILITY = Object.freeze({
 // specific to that mode (today: selection eligibility/odds, instruction
 // text, and top-level rendering dispatch; answer-checking still lives where
 // it always has — see handleTranslationClick()). "forward", "typed-reverse",
-// and "typed-cloze" don't define isEligible/matchesStructuredMode/
-// freePlayProbability: they aren't top-level selection outcomes — forward is
-// selectQuestionMode()'s implicit default, and the two typed variants are
-// sub-decisions made after cloze/reverse are already chosen (see
-// shouldUseTypedRecall) — so those three fields would never be consulted for
-// them. Likewise only cloze/listening/reverse/forward define renderQuestion:
-// those are the only values selectQuestionMode() can actually return: the
-// two typed variants are chosen *inside* renderQuestion for cloze/reverse,
-// not looked up separately.
+// "typed-cloze", and "typed-listening" don't define isEligible/
+// matchesStructuredMode/freePlayProbability: they aren't top-level selection
+// outcomes — forward is selectQuestionMode()'s implicit default, and the
+// three typed variants are sub-decisions made after cloze/reverse/listening
+// are already chosen (see shouldUseTypedRecall) — so those fields would
+// never be consulted for them. Likewise only cloze/listening/reverse/forward
+// define renderQuestion: those are the only values selectQuestionMode() can
+// actually return: the typed variants are chosen *inside* renderQuestion for
+// cloze/reverse/listening, not looked up separately.
 const GAME_MODES = Object.freeze({
   cloze: Object.freeze({
     // No pre-check here: cloze eligibility (a usable example sentence, a
@@ -432,7 +436,15 @@ const GAME_MODES = Object.freeze({
     freePlayProbability: (ctx) =>
       interpolateByAbility(ctx.ability, LISTENING_PROBABILITY) ?? 0.25,
     instructionText: () => "Listen and choose the meaning",
+    // True dictation: no English shown at all, nothing to gate on (unlike
+    // cloze/reverse's typed variants, which need a saved sentence
+    // translation as the learner's only semantic anchor) — the audio itself
+    // is the whole prompt, replayable as many times as needed.
     async renderQuestion({ wordObj, fallbackTranslations }) {
+      if (shouldUseTypedRecall(wordObj, "listening")) {
+        renderWordGameUI(wordObj, [], false, "typed-listening");
+        return;
+      }
       renderWordGameUI(wordObj, fallbackTranslations, false, "listening");
     },
   }),
@@ -478,6 +490,9 @@ const GAME_MODES = Object.freeze({
   }),
   "typed-cloze": Object.freeze({
     instructionText: () => "Type the word that completes the sentence",
+  }),
+  "typed-listening": Object.freeze({
+    instructionText: () => "Type the word you hear",
   }),
 });
 
@@ -3248,6 +3263,13 @@ async function startWordGame() {
         } else {
           renderWordGameUI(randomWordObj, [], true, "typed-reverse");
         }
+      } else if (firstWordInQueue.wasListening) {
+        // A dictation miss (typed-listening) scaffolds down to plain
+        // listening's multiple-choice form first (see the non-forced branch
+        // below, which already renders "listening" for any wasListening
+        // entry) — once that's answered correctly, it comes back here for
+        // the required typed retry, same word, same audio.
+        renderWordGameUI(randomWordObj, [], true, "typed-listening");
       } else {
         renderWordGameUI(randomWordObj, [], true, "typed-reverse");
       }
@@ -3845,6 +3867,7 @@ function attachTypedAnswerForm(
     isCloze = false,
     clozeSentence = "",
     isReverse = false,
+    isListening = false,
     exampleSentenceIndex = null,
   } = {},
 ) {
@@ -3872,7 +3895,7 @@ function attachTypedAnswerForm(
       isCloze,
       clozeSentence,
       isReverse,
-      false,
+      isListening,
       getTypedAcceptedAnswers(wordObj, isCloze, correctTranslation),
       exampleSentenceIndex,
       true,
@@ -3900,31 +3923,40 @@ function attachTypedAnswerForm(
 }
 
 // mode: "forward" (Norwegian shown, recognize English — the default),
-// "reverse" (English shown, recall Norwegian), or "listening" (Norwegian
-// audio only, recognize English — the word's own text is hidden until
-// answered).
+// "reverse"/"typed-reverse" (English shown, recall Norwegian), "listening"
+// (Norwegian audio only, recognize English from options — the word's own
+// text is hidden until answered), or "typed-listening" (true dictation:
+// Norwegian audio only, type the Norwegian word you heard — no English
+// anywhere on screen).
 function renderWordGameUI(
   wordObj,
   translations,
   isReintroduced = false,
   mode = "forward",
 ) {
-  const isTyped = mode === "typed-reverse";
-  const isReverse = mode === "reverse" || isTyped;
-  const isListening = mode === "listening";
+  // Dictation ("typed-listening"): hear the word, type what you heard — no
+  // English shown at all. It reuses listening's own prompt (audio icon,
+  // freely replayable, revealed as text once answered) rather than
+  // reverse's, since unlike typed-reverse there's no English gloss standing
+  // in as the prompt here for the typed input to add audio to afterward —
+  // see attachTypedAnswerForm's isListening option below.
+  const isDictation = mode === "typed-listening";
+  const isTyped = mode === "typed-reverse" || isDictation;
+  const isReverse = mode === "reverse" || mode === "typed-reverse";
+  const isListening = mode === "listening" || isDictation;
 
   // Each render replaces the previous question entirely, so nothing still
   // references earlier entries — reset instead of growing forever.
   wordDataStore = [];
   const wordId = wordDataStore.push(wordObj) - 1;
 
-  // Reverse flashcards show the English meaning and ask the learner to
-  // recall the Norwegian word — the answer options (and so the "correct"
-  // value handleTranslationClick checks against) are Norwegian words
-  // instead of English translations. Mirrors renderClozeGameUI reassigning
-  // this same global to the clozed Norwegian form. Listening's correct
-  // answer is English, same as forward, so it needs no reassignment here.
-  if (isReverse) {
+  // Reverse flashcards and dictation both ask the learner to recall the
+  // Norwegian word — the answer options (and so the "correct" value
+  // handleTranslationClick checks against) are Norwegian words instead of
+  // English translations. Mirrors renderClozeGameUI reassigning this same
+  // global to the clozed Norwegian form. Plain listening's correct answer is
+  // English, same as forward, so it needs no reassignment here.
+  if (isReverse || isDictation) {
     correctTranslation = getPrimaryNorwegianForm(wordObj);
   }
 
@@ -4032,8 +4064,15 @@ function renderWordGameUI(
     `);
 
   if (isTyped) {
+    // Dictation grades as Norwegian recall (see correctTranslation above)
+    // but isn't a "reverse" question — its prompt already carries its own
+    // audio (wired below, same as plain listening), so it doesn't need
+    // revealReverseWordAudio's after-the-fact fix-up, only the isListening
+    // flag so a miss/correct answer reveals the word's text the same way
+    // plain listening does.
     attachTypedAnswerForm(wordObj, {
-      isReverse: true,
+      isReverse: !isDictation,
+      isListening: isDictation,
       exampleSentenceIndex: 0,
     });
   } else {
@@ -4415,9 +4454,10 @@ function updateTypedAnswerFeedback(isCorrect, correctAnswer, isNearMiss = false)
   // #game-banner-placeholder — the same gray box showBanner() uses for the
   // streak/cleared-practice congratulation messages — rather than appended
   // to the form (which sits outside .game-word-card entirely, between the
-  // input and the Next Word button). Typed-reverse and cloze questions
-  // (the only two modes that reach here) never call displayPronunciation,
-  // so this box is always free at this point; the one real overlap is
+  // input and the Next Word button). Typed-reverse, typed-listening, and
+  // cloze questions (the only modes that reach here) never call
+  // displayPronunciation, so this box is always free at this point; the
+  // one real overlap is
   // showBanner("streak"/"clearedPracticeWords", ...) a few lines below in
   // handleTranslationClick/handleTypedAnswerSubmit, which — being called
   // after this — wins the shared box on the rare question that's both a
@@ -4487,9 +4527,14 @@ function completeClozeSentence(clozeSentence) {
 //                 first dictionary alternative (correctTranslationPart /
 //                 selectedTranslationPart below).
 //   isReverse   — unlocks replaying the Norwegian word's audio on the
-//                 now-visible correct card (revealReverseWordAudio).
+//                 now-visible correct card (revealReverseWordAudio). Only
+//                 needed when nothing on screen already has that audio
+//                 wired — true for reverse/typed-reverse (whose prompt is
+//                 English text), false for dictation (typed-listening),
+//                 whose prompt already carries its own audio from render.
 //   isListening — reveals the Norwegian word's text, previously hidden
-//                 behind just its audio (revealListeningWordText).
+//                 behind just its audio (revealListeningWordText). True for
+//                 both plain listening and dictation.
 //   wasTyped    — whether a typed-mastery requirement on this word (see
 //                 requiresTypedMastery below, and shouldUseTypedRecall
 //                 elsewhere) has now actually been satisfied — gates both
