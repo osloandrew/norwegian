@@ -1154,7 +1154,36 @@
     header.className =
       "definition multiple-results-definition word-list-header";
 
-    header.appendChild(createWordListControls(visibleCount));
+    const summary = document.createElement("div");
+    summary.className = "word-list-header-summary";
+
+    const copy = document.createElement("div");
+    copy.className = "word-list-header-copy";
+
+    const heading = document.createElement("h2");
+    heading.className = "word-list-header-title";
+    heading.textContent = activeWordListView === "my" ? "My Words" : "All Words";
+
+    const description = document.createElement("p");
+    description.className = "word-list-header-description";
+    description.textContent =
+      activeWordListView === "my"
+        ? "Your personal vocabulary collection."
+        : "Browse the dictionary and save words for later.";
+
+    copy.append(heading, description);
+
+    const count = document.createElement("strong");
+    count.className = "word-list-header-count";
+    const countValue =
+      activeWordListView === "my" ? myWordsEntryIds.size : visibleCount;
+    const countNoun = activeWordListView === "my" ? "saved word" : "word";
+    count.textContent = `${countValue.toLocaleString("en-US")} ${countNoun}${
+      countValue === 1 ? "" : "s"
+    }`;
+
+    summary.append(copy, count);
+    header.append(summary, createWordListControls(visibleCount));
 
     return header;
   }
@@ -1164,12 +1193,13 @@
    */
   function createWordListEmptyMessage() {
     const message = document.createElement("div");
-    message.className = "definition error-message";
+    message.className = "definition error-message word-list-empty-state";
 
     const heading = document.createElement("h2");
-    heading.className = "word-gender";
+    heading.className = "word-list-empty-heading";
 
     const explanation = document.createElement("p");
+    explanation.className = "word-list-empty-copy";
 
     if (activeWordListView === "my" && myWordsEntryIds.size === 0) {
       heading.textContent = "No saved words yet";

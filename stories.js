@@ -698,12 +698,15 @@ async function displayStoryList(
     .value.toLowerCase()
     .trim();
 
-  // NEW: read search text (support either id if your HTML differs)
+  // Stories search only changes after a deliberate submit. The input can
+  // contain a new unfinished query while this list retains the last one.
   const searchInput =
     document.getElementById("search-bar") ||
     document.getElementById("stories-search") ||
     document.getElementById("global-search");
-  const searchText = (searchInput?.value || "").toLowerCase().trim();
+  const searchText = (
+    searchInput?.dataset.submittedStoryQuery || ""
+  ).toLowerCase().trim();
 
   // Filter stories based on selected CEFR and genre
   let filtered = filteredStories.filter((story) => {
@@ -768,6 +771,44 @@ async function displayStoryList(
 
   // ▶ NEW: populate <ul id="stories"> with <li> items (JP mirror)
   const container = document.getElementById("results-container");
+  const hasActiveStoryFilter = Boolean(
+    searchText || selectedCEFR || selectedGenre,
+  );
+  if (hasActiveStoryFilter) {
+    const activeFilterChips = [
+      selectedGenre
+        ? `<span class="story-results-filter-summary story-results-genre-filter" title="${escapeHTML(formatStoryGenre(selectedGenre))}"><span class="story-results-genre-icon" aria-hidden="true">${
+            genreIcons[selectedGenre] ||
+            '<i class="fas fa-tag" aria-hidden="true"></i>'
+          }</span><span class="story-results-filter-name">${escapeHTML(formatStoryGenre(selectedGenre))}</span></span>`
+        : "",
+      selectedCEFR
+        ? `<span class="story-results-filter-summary story-results-cefr-filter" title="CEFR ${escapeHTML(selectedCEFR)}"><span class="cefr-value ${getStoryCefrClass(selectedCEFR)}" aria-hidden="true">${escapeHTML(selectedCEFR)}</span><span class="story-results-filter-name">${escapeHTML(getCefrLabel(selectedCEFR) || selectedCEFR)}</span></span>`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("");
+    const resultsHeader = document.createElement("div");
+    resultsHeader.className = "result-header story-results-header";
+    resultsHeader.innerHTML = `
+      <div class="story-results-header-copy">
+        <p class="story-results-eyebrow">${searchText ? "Story search" : "Story library"}</p>
+        <h2>${
+          searchText
+            ? `Results for <span class="story-results-query">"${escapeHTML(searchText)}"</span>`
+            : "Filtered stories"
+        }</h2>
+        ${
+          activeFilterChips
+            ? `<div class="story-results-filters">${activeFilterChips}</div>`
+            : ""
+        }
+      </div>
+      <strong class="story-results-count">${totalMatchingStories} stor${totalMatchingStories === 1 ? "y" : "ies"}</strong>
+    `;
+    container.appendChild(resultsHeader);
+  }
+
   let storyList = document.getElementById("stories");
   if (!storyList) {
     storyList = document.createElement("ul");
@@ -1217,7 +1258,10 @@ function storiesBackBtn() {
     document.getElementById("search-bar") ||
     document.getElementById("stories-search") ||
     document.getElementById("global-search");
-  if (searchEl) searchEl.value = "";
+  if (searchEl) {
+    searchEl.value = "";
+    searchEl.dataset.submittedStoryQuery = "";
+  }
 
   // 3) If you must switch the type tab, do it now (this may rebuild the filters)
   const typeSel = document.getElementById("type-select");
@@ -1343,22 +1387,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Wire up live story filtering:
-
-  // After data is loaded, wire up live filtering like JP:
-  const searchEl =
-    document.getElementById("search-bar") ||
-    document.getElementById("stories-search") ||
-    document.getElementById("global-search");
+  // The shared toolbar's Enter/search-button handlers submit Story search.
+  // There is intentionally no input listener here.
   const cefrEl = document.getElementById("cefr-select");
   const genreEl = document.getElementById("genre-select");
-  if (searchEl) {
-    searchEl.addEventListener("input", () => {
-      if (isStoriesTabActive()) {
-        displayStoryList();
-      }
-    });
-  }
   if (cefrEl) {
     cefrEl.addEventListener("change", () => {
       if (isStoriesTabActive()) {

@@ -631,6 +631,7 @@ function clearInput(refreshCurrentView = true) {
 
   if (searchEl) {
     searchEl.value = "";
+    searchEl.dataset.submittedStoryQuery = "";
   }
 
   const typeSelect = document.getElementById("type-select");
@@ -1444,14 +1445,22 @@ async function randomWord() {
       "$1",
     );
 
-    // Build the sentence HTML
+    // Build the sentence HTML. Random practice uses the same orientation
+    // card and in-banner translation control as a normal sentence search.
     let sentenceHTML = `
-            <div class="result-header">
-                <h2>Random Sentence</h2>
+            <div class="result-header sentence-results-header random-sentence-header">
+                <div class="sentence-results-header-copy">
+                  <p class="sentence-results-eyebrow">Sentence practice</p>
+                  <h2>Random sentence</h2>
+                </div>
+                <div class="sentence-results-header-side">
+                  <div class="sentence-results-actions">
+                    <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations()">
+                      ${isEnglishVisible ? "Hide English" : "Show English"}
+                    </button>
+                  </div>
+                </div>
             </div>
-            <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations(this)">
-                ${isEnglishVisible ? "Hide English" : "Show English"}
-            </button>
             <div class="sentence-container">
                 <div lang="nb" class="sentence-box-norwegian ${
                   !isEnglishVisible ? "sentence-box-norwegian-hidden" : ""
@@ -1502,7 +1511,7 @@ async function randomWord() {
 // showSentencesSearchExample() below to preview real results for a word
 // nobody actually searched for.
 async function search(queryOverride = null, options = {}) {
-  const { updateHistory = true } = options;
+  const { updateHistory = true, sentenceResultSubtitle = "" } = options;
   const searchInput = document.getElementById("search-bar");
   const rawQuery = queryOverride === null ? searchInput.value : queryOverride;
   const originalQuery = normalizeSearchText(rawQuery);
@@ -1594,6 +1603,10 @@ async function search(queryOverride = null, options = {}) {
   let matchingResults;
 
   if (type === "stories") {
+    // Keep an explicit submitted value. The Stories input can hold a new
+    // query while the current list remains stable until Enter/search.
+    searchInput.dataset.submittedStoryQuery = query;
+
     // If query is empty, display all stories
     if (!query) {
       matchingResults = storyResults;
@@ -1751,14 +1764,14 @@ async function search(queryOverride = null, options = {}) {
       });
     }
 
-    // Top-N cap (10 like your current UI), exact matches first, within each CEFR-ordered
+    // Keep the full ranked set. The renderer initially shows ten, then lets
+    // learners reveal more without changing the search order.
     let combined = [];
     if (exact.length) {
       combined = sortByCEFR(exact).concat(sortByCEFR(partial));
     } else {
       combined = sortByCEFR(partial);
     }
-    combined = combined.slice(0, 10);
 
     // Parity with word search's "no exact matches — here are inexact
     // results" fallback (see the type === "words" branch's noExactMatches
@@ -1780,7 +1793,7 @@ async function search(queryOverride = null, options = {}) {
         const inexactRowsFiltered = selectedCEFR
           ? inexactRowsAll.filter((r) => r.cefr === selectedCEFR)
           : inexactRowsAll;
-        const inexactRows = sortByCEFR(inexactRowsFiltered).slice(0, 10);
+        const inexactRows = sortByCEFR(inexactRowsFiltered);
 
         if (inexactRows.length > 0) {
           combined = inexactRows;
@@ -1798,6 +1811,7 @@ async function search(queryOverride = null, options = {}) {
       englishHighlightTermsForRender,
       inexactMatchInfo ? null : expressionMatcher,
       inexactMatchInfo,
+      { sentenceResultSubtitle },
     );
 
     console.timeEnd("[Sentences] query");
@@ -1981,9 +1995,6 @@ async function search(queryOverride = null, options = {}) {
         );
       });
 
-      // ✂️ Limit to 10 results after sorting
-      inexactWordMatches = inexactWordMatches.slice(0, 10);
-
       // Display the "No Exact Matches" message
       resultsContainer.innerHTML = `
                 <div class="definition error-message">
@@ -2048,18 +2059,11 @@ async function search(queryOverride = null, options = {}) {
 // "here's what the feature does" rather than something the visitor
 // appears to have typed themselves.
 async function showSentencesSearchExample() {
-  await search("apple", { updateHistory: false });
-
-  const resultHeader = document.querySelector(
-    "#results-container .result-header",
-  );
-  if (!resultHeader) return;
-
-  const subtitle = document.createElement("p");
-  subtitle.className = "result-header-subtitle";
-  subtitle.textContent =
-    "Type any Norwegian or English word to find sentences that use it.";
-  resultHeader.appendChild(subtitle);
+  await search("apple", {
+    updateHistory: false,
+    sentenceResultSubtitle:
+      "Type any Norwegian or English word to find sentences that use it.",
+  });
 }
 
 // Handle change in part of speech (POS) filter
@@ -2938,16 +2942,38 @@ function getDictionaryEntryDomKey(entry) {
   return `entry-${dictionaryEntryDomIds.get(entry)}`;
 }
 
+const SEARCH_RESULTS_BATCH_SIZE = 10;
+
 // Render a list of results (words)
-function displaySearchResults(results, query = "") {
+function displaySearchResults(
+  results,
+  query = "",
+  { visibleCount = SEARCH_RESULTS_BATCH_SIZE } = {},
+) {
   query = query.toLowerCase().trim(); // Ensure the query is lowercased and trimmed
   const defaultResult = results.length <= 1; // Determine if there are multiple results
   const multipleResults = results.length > 1; // Determine if there are multiple results
+  const visibleResults = results.slice(0, visibleCount);
 
-  let htmlString = "";
+  const safeQuery = escapeHTML(query);
+  const resultLabel = `${results.length} result${results.length === 1 ? "" : "s"}`;
+  let htmlString = multipleResults
+    ? `
+      <div class="result-header word-results-header">
+        <div class="word-results-header-copy">
+          <p class="word-results-eyebrow">Word search</p>
+          <h2>${
+            safeQuery
+              ? `Results for <span class="word-results-query">"${safeQuery}"</span>`
+              : "Matching definitions"
+          }</h2>
+        </div>
+        <strong class="word-results-count">${resultLabel}</strong>
+      </div>
+    `
+    : "";
 
-  // Limit to a maximum of 10 results
-  results.slice(0, 10).forEach((result) => {
+  visibleResults.forEach((result) => {
     result.gender = WordClass.formatWordClassLabel(result.gender);
     // Directly handle the POS based on the gender field
     result.pos = WordClass.getWordClass(result.gender);
@@ -3124,7 +3150,35 @@ function displaySearchResults(results, query = "") {
             <div class="sentences-container" id="sentences-container-${dictionaryEntryDomKey}"></div>
         `;
   });
-  appendToContainer(htmlString);
+  if (visibleResults.length < results.length) {
+    htmlString += `
+      <div class="search-results-load-more">
+        <button type="button" class="search-results-load-more-button">Show More Results</button>
+      </div>
+    `;
+  }
+
+  // Single entries (and short result lists) stay as direct children of the
+  // results area. Several definition-card styles rely on that established
+  // structure; only a list that actually needs another batch gets a wrapper
+  // so it can be safely replaced while preserving an inexact-match notice.
+  if (visibleResults.length < results.length) {
+    const resultList = document.createElement("div");
+    resultList.className = "word-search-results";
+    resultList.innerHTML = htmlString;
+    resultsContainer.appendChild(resultList);
+
+    resultList
+      .querySelector(".search-results-load-more-button")
+      ?.addEventListener("click", () => {
+        resultList.remove();
+        displaySearchResults(results, query, {
+          visibleCount: visibleResults.length + SEARCH_RESULTS_BATCH_SIZE,
+        });
+      });
+  } else {
+    appendToContainer(htmlString);
+  }
 
   if (defaultResult && results[0]?.definisjon) {
     const definitionEl = resultsContainer.querySelector(".definition-text");
@@ -3149,7 +3203,7 @@ function displaySearchResults(results, query = "") {
     multipleResults &&
     typeof window.attachMultipleResultMyWordsStars === "function"
   ) {
-    window.attachMultipleResultMyWordsStars(results.slice(0, 10));
+    window.attachMultipleResultMyWordsStars(visibleResults);
   }
 
   // Automatically load sentences for a single result, regardless of whether sentences exist in `eksempel`
@@ -3290,6 +3344,7 @@ function renderSentenceMatchesFromCorpus(
   // results, matching the word-search pattern of substituting and showing
   // results directly rather than a dead-end "no results" page.
   inexactMatchInfo = null,
+  { visibleCount = SEARCH_RESULTS_BATCH_SIZE, sentenceResultSubtitle = "" } = {},
 ) {
   clearContainer();
   const safeQuery = escapeHTML(query);
@@ -3320,15 +3375,30 @@ function renderSentenceMatchesFromCorpus(
 
   let html = `
     ${inexactNoticeHTML}
-    <div class="result-header">
-      <h2>Sentence Results for "${inexactMatchInfo ? escapeHTML(inexactMatchInfo.matchedTerm) : safeQuery}"</h2>
+    <div class="result-header sentence-results-header">
+      <div class="sentence-results-header-copy">
+        <p class="sentence-results-eyebrow">Sentence search</p>
+        <h2>Results for <span class="sentence-results-query">"${inexactMatchInfo ? escapeHTML(inexactMatchInfo.matchedTerm) : safeQuery}"</span></h2>
+        ${
+          sentenceResultSubtitle
+            ? `<p class="result-header-subtitle">${escapeHTML(sentenceResultSubtitle)}</p>`
+            : ""
+        }
+      </div>
+      <div class="sentence-results-header-side">
+        <strong class="sentence-results-count">${rows.length} example${rows.length === 1 ? "" : "s"}</strong>
+        <div class="sentence-results-actions">
+          <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations()">
+            ${isEnglishVisible ? "Hide English" : "Show English"}
+          </button>
+        </div>
+      </div>
     </div>
-    <button class="sentence-btn english-toggle-btn" onclick="toggleEnglishTranslations()">
-      ${isEnglishVisible ? "Hide English" : "Show English"}
-    </button>
   `;
 
-  for (const row of rows) {
+  const visibleRows = rows.slice(0, visibleCount);
+
+  for (const row of visibleRows) {
     const cefr = row.cefr;
     const cefrLabel = getSentenceCefrLabelHTML(cefr);
 
@@ -3366,7 +3436,35 @@ function renderSentenceMatchesFromCorpus(
     `;
   }
 
+  if (visibleRows.length < rows.length) {
+    html += `
+      <div class="search-results-load-more">
+        <button type="button" class="search-results-load-more-button">Show More Results</button>
+      </div>
+    `;
+  }
+
   document.getElementById("results-container").innerHTML = html;
+
+  const loadMoreButton = resultsContainer.querySelector(
+    ".search-results-load-more-button",
+  );
+  if (loadMoreButton) {
+    loadMoreButton.addEventListener("click", () => {
+      renderSentenceMatchesFromCorpus(
+        rows,
+        query,
+        norwegianHighlightTerms,
+        englishHighlightTerms,
+        norwegianMatcherOverride,
+        inexactMatchInfo,
+        {
+          visibleCount: visibleRows.length + SEARCH_RESULTS_BATCH_SIZE,
+          sentenceResultSubtitle,
+        },
+      );
+    });
+  }
 }
 
 function renderWordDefinition(word, selectedPOS = "") {
