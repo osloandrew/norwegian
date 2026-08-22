@@ -6912,6 +6912,130 @@ body.my-stats-mode .cefr-filter-group {
   }
 }
 
+/*
+   Desktop navigation contract
+   ---------------------------
+   The dictionary and Stories views are the visual reference for the app:
+   one calm, predictable control bar with filters on the left and discovery
+   actions on the right. Keep this entire contract above 1024px only. The
+   compact/mobile toolbar has carefully tuned wrapping and touch targets of
+   its own, so it is intentionally left untouched.
+*/
+@media (min-width: 1025px) {
+  #search-container {
+    padding: 12px 24px;
+  }
+
+  #search-container-inner {
+    align-items: center;
+    gap: 12px;
+    justify-content: flex-start;
+    width: min(calc(100% - 48px), 1120px);
+  }
+
+  .selectors-wrapper {
+    flex: 0 0 auto;
+    gap: 8px;
+    justify-content: flex-start;
+  }
+
+  .type-filter,
+  .pos-filter,
+  .cefr-filter,
+  .genre-filter,
+  .game-english-filter,
+  .cefr-filter-group {
+    box-sizing: border-box;
+    flex: 0 0 184px;
+    height: 44px;
+    min-width: 0;
+  }
+
+  .cefr-filter-group {
+    gap: 8px;
+  }
+
+  .cefr-filter-group .cefr-filter {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .type-filter select,
+  .pos-filter select,
+  .cefr-filter select,
+  .genre-filter select,
+  .game-english-filter select {
+    font-size: 13px;
+    padding-left: 16px;
+  }
+
+  .search-and-random-wrapper {
+    align-items: center;
+    flex: 1 1 300px;
+    gap: 8px;
+    min-width: 250px;
+  }
+
+  .search-bar-wrapper {
+    box-sizing: border-box;
+    height: 44px;
+    min-width: 0;
+  }
+
+  #search-bar {
+    box-sizing: border-box;
+    height: 44px;
+    padding: 0 16px;
+  }
+
+  .search-btn,
+  .my-words-nav-btn {
+    height: 44px;
+    width: 44px;
+  }
+
+  .search-btn {
+    min-width: 44px;
+  }
+
+  /* Personal-report screens deliberately use the same outer toolbar, but
+     retain only their useful controls: the section picker at the start and
+     saved words as the single utility action at the end. */
+  body.my-stats-mode .search-and-random-wrapper {
+    flex: 0 0 auto;
+    margin-left: 0;
+    min-width: 0;
+  }
+
+  body.my-stats-mode #search-container-inner,
+  body.word-game-mode #search-container-inner {
+    justify-content: center;
+  }
+
+  /* Word Game is a focused study surface, not a search screen. Removing
+     the now-empty right-hand group leaves its two relevant controls in the
+     exact same left-hand rhythm as every other section. */
+  body.word-game-mode .search-and-random-wrapper {
+    display: none;
+  }
+
+  body.word-game-mode .cefr-filter-group {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  #search-container-inner.word-game-active #game-end-session-btn,
+  #search-container-inner.word-game-active .toolbar-report-issue-btn {
+    height: 44px;
+  }
+
+  #search-container-inner.word-game-active .toolbar-report-issue-btn {
+    box-sizing: border-box;
+    padding: 0;
+    width: 44px;
+  }
+}
+
 /* Report-an-issue dialog: one shared component used by the word card and
    the word game. */
 .feedback-dialog-overlay {
