@@ -2918,7 +2918,7 @@ input[type="text"]:not(:placeholder-shown) + label {
   font-size: 14px;
   overflow: hidden; /* Hides the overflowing text */
   text-overflow: ellipsis; /* Adds ellipses when text overflows */
-  letter-spacing: 0.4px;
+  letter-spacing: 0.1px;
   -webkit-box-orient: vertical; /* Specifies vertical stacking of lines */
   -webkit-line-clamp: 2; /* Limits the text to 1 line */
 }
