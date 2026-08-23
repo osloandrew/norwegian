@@ -61,7 +61,7 @@
   flex-direction: column;
   gap: 15px;
   margin: 0 10px 20px;
-  padding: 20px 40px !important;
+  padding: 20px 40px;
   text-align: center;
 }
 
@@ -516,20 +516,20 @@
     margin-top: 10px;
   }
 
-  .word-list-norwegian {
+  #word-list .word-list-row .word-list-norwegian {
     font-size: 12px;
-    padding: 6px !important;
+    padding: 6px;
   }
 
-  .word-list-english {
+  #word-list .word-list-row .word-list-english {
     font-size: 10px;
-    padding: 6px !important;
+    padding: 6px;
   }
 
-  .word-list-class,
-  .word-list-level,
-  .word-list-strength {
-    padding: 2px !important;
+  #word-list .word-list-row .word-list-class,
+  #word-list .word-list-row .word-list-level,
+  #word-list .word-list-row .word-list-strength {
+    padding: 2px;
   }
 
   .word-strength-dot {
@@ -547,12 +547,11 @@
     padding: 2px 5px;
   }
 
-  .word-list-row .word-list-favorite {
-    padding: 2px !important;
+  #word-list .word-list-row .word-list-favorite {
+    padding: 2px;
   }
 
   .word-list-favorite-button {
-    font-size: 15px;
     height: 30px;
     width: 30px;
   }
@@ -563,11 +562,7 @@
 
   .word-list-header {
     margin: 0px 5px;
-    padding: 10px 20px !important;
-  }
-
-  .word-list-table {
-    border-spacing: 0 8px !important;
+    padding: 10px 20px;
   }
 
   .word-list-table-container {
@@ -621,7 +616,7 @@ p.word-list-empty-copy {
 }
 
 .word-list-empty-heading {
-  color: var(--color-primary) !important;
+  color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
   font-size: 19px;
   font-weight: 600;
@@ -637,7 +632,7 @@ p.word-list-empty-copy {
   box-shadow: 0 6px 18px rgba(13, 58, 105, 0.08);
   gap: 16px;
   margin: 0 10px 18px;
-  padding: 20px 24px !important;
+  padding: 20px 24px;
   text-align: left;
 }
 
@@ -701,7 +696,7 @@ p.word-list-empty-copy {
 @media (max-width: 480px) {
   #word-list .word-list-header {
     margin: 0 5px 12px;
-    padding: 16px 14px !important;
+    padding: 16px 14px;
   }
 
   #word-list .word-list-controls {
@@ -727,5 +722,11 @@ p.word-list-empty-copy {
   #word-list .word-list-empty-state {
     margin: 0 5px;
     padding: 22px 16px;
+  }
+}
+
+@media (max-width: 1024px) {
+  #word-list .word-list-table {
+    border-spacing: 0 8px;
   }
 }

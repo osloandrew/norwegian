@@ -2335,43 +2335,44 @@ h4 {
     width: clamp(64px, 20vw, 88px);
   }
 
-  @media (max-width: 1024px) and (max-height: 700px) {
-    body.word-game-mode .game-cefr-spacer {
-      flex-basis: 48px;
-      height: 48px;
-      max-height: 48px;
-      min-height: 48px;
-    }
+}
 
-    body.word-game-mode .game-word-card {
-      height: 268px;
-      max-height: 268px;
-      min-height: 268px;
-    }
+@media (max-width: 1024px) and (max-height: 700px) {
+  body.word-game-mode .game-cefr-spacer {
+    flex-basis: 48px;
+    height: 48px;
+    max-height: 48px;
+    min-height: 48px;
+  }
 
-    body.word-game-mode .game-grid {
-      min-height: 138px;
-    }
+  body.word-game-mode .game-word-card {
+    height: 268px;
+    max-height: 268px;
+    min-height: 268px;
+  }
 
-    body.word-game-mode .game-translation-card {
-      height: 64px;
-      max-height: 64px;
-      min-height: 64px;
-    }
+  body.word-game-mode .game-grid {
+    min-height: 138px;
+  }
 
-    body.word-game-mode .game-grid.game-typed-grid {
-      min-height: 0;
-    }
+  body.word-game-mode .game-translation-card {
+    height: 64px;
+    max-height: 64px;
+    min-height: 64px;
+  }
 
-    body.word-game-mode .game-typed-answer-form {
-      height: auto;
-    }
+  body.word-game-mode .game-grid.game-typed-grid {
+    min-height: 0;
+  }
 
-    body.word-game-mode #game-next-word-button {
-      margin-top: 10px;
-      min-height: 48px;
-      padding: 12px 15px;
-    }
+  body.word-game-mode .game-typed-answer-form {
+    height: auto;
+  }
+
+  body.word-game-mode #game-next-word-button {
+    margin-top: 10px;
+    min-height: 48px;
+    padding: 12px 15px;
   }
 }
 

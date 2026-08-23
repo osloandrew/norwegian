@@ -240,7 +240,7 @@ ul {
 
 .sentence-btn {
   background-color: var(--color-white); /* Subtle, lighter background */
-  border: none !important; /* Thin maroon border */
+  border: none;
   border-radius: 9px; /* Slightly rounded corners */
   box-shadow:
     0 4px 8px rgba(135, 135, 135, 0.2),
@@ -327,11 +327,7 @@ ul {
   border-radius: 0 12px 12px 0; /* Rounded corners on bottom */
   box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
   color: gray;
-  display: flex !important;
-}
-
-.sentence-box-english.hidden {
-  display: none !important; /* hide when toggled */
+  display: flex;
 }
 
 .sentence-box-norwegian {
@@ -349,7 +345,7 @@ ul {
   gap: 3px; /* Adds space between the boxes */
   justify-content: space-between;
   flex-direction: row;
-  align-items: stretch !important; /* Horizontally align content (CEFR and sentence) */
+  align-items: stretch; /* Horizontally align content (CEFR and sentence) */
 }
 
 .sentence-content {
@@ -832,8 +828,8 @@ ul {
 }
 
 .stories-list-item h2 {
-  color: var(--color-primary) !important;
-  font-family: "Noto Sans", sans-serif !important;
+  color: var(--color-primary);
+  font-family: "Noto Sans", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.4;
@@ -842,13 +838,13 @@ ul {
 .stories-subtitle {
   display: -webkit-box; /* Creates a block-level flex container */
   font-family: "Noto Sans", sans;
-  font-size: 12.5px !important;
+  font-size: 12.5px;
   font-weight: 400;
   line-height: 1.25;
   overflow: hidden; /* Hides the overflowing text */
-  color: var(--color-text-muted) !important;
+  color: var(--color-text-muted);
   letter-spacing: 0.25px;
-  margin: 0 !important;
+  margin: 0;
   -webkit-box-orient: vertical; /* Specifies vertical stacking of lines */
   -webkit-line-clamp: 1; /* Limits the text to 1 line */
 }
@@ -1301,7 +1297,7 @@ ul {
   }
 
   .stories-subtitle {
-    font-size: 14px !important;
+    font-size: 14px;
   }
 
   #story-content {
@@ -1498,7 +1494,7 @@ ul {
 .sentence-results-actions .sentence-btn {
   align-items: center;
   background-color: var(--color-white);
-  border: 1px solid var(--color-border-blue-soft) !important;
+  border: 1px solid var(--color-border-blue-soft);
   border-radius: 8px;
   box-shadow: none;
   color: var(--color-primary);
