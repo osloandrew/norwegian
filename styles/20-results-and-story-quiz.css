@@ -510,8 +510,16 @@ ul {
 .definition-actions-row {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-  gap: 8px;
+  /* Keep the two actions beside each other when both labels genuinely fit,
+     then let the shared row collapse to one column on narrow phones. A pair
+     of zero-minimum columns made the longer fallback label ("Report missing
+     word") overflow into "Word forms" instead of reserving its real width. */
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, 175px), 1fr)
+  );
+  column-gap: 8px;
+  row-gap: 12px;
   margin-top: 12px;
 }
 
