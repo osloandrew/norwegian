@@ -6594,6 +6594,12 @@ body.my-stats-mode .cefr-filter-group {
     gap: 10px; /* Adds space between the Norwegian and English sentences */
   }
 
+  .result-header.sentence-results-header,
+  .result-header.word-results-header,
+  .result-header.story-results-header {
+    margin-bottom: 10px;
+  }
+
   .sticky-cefr-label {
     height: 25px !important;
   }
