@@ -808,15 +808,18 @@ ul {
 }
 
 .stories-detail-container {
-  align-items: flex-end;
-  display: flex; /* Use flexbox layout */
+  align-items: center;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
   margin-left: 10px;
+  /* The favorite button is the first item in this visual rail, but remains
+     a sibling of the link so interactive controls are never nested. */
   padding-top: 34px;
 }
 
 .stories-genre {
-  align-self: flex-start; /* Align the label to the left */
+  align-self: center;
   background-color: var(--color-bg-subtle); /* Green for 'A1, A2' */
   border-radius: 4px;
   padding: 4px 8px;
@@ -922,8 +925,68 @@ ul {
   z-index: 2;
 }
 
+/* Story-list stars should recede behind the title and reading-level cues
+   until selected. Word favorites keep their existing darker outline. */
+.story-card-favorite-button:not(.is-saved) {
+  color: #a9b0b8;
+}
+
 .story-recommendation .story-card-favorite-button {
   top: 31px;
+}
+
+/* Stories-list metadata only: flatten the three controls and trade that
+   reclaimed height for clearer vertical separation. These selectors are
+   body-scoped so word favorites, sticky-story metadata, and other pages keep
+   their existing dimensions. */
+body.stories-mode .stories-detail-container {
+  gap: 10px;
+  padding-top: 40px;
+}
+
+body.stories-mode .story-card-favorite-button {
+  height: 30px;
+  right: 11px;
+  top: 8px;
+  width: 40px;
+}
+
+body.stories-mode .story-card-favorite-button::before {
+  background-color: transparent;
+  border-radius: 50%;
+  content: "";
+  height: 30px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: background-color 0.2s ease;
+  width: 30px;
+}
+
+body.stories-mode .story-card-favorite-button:hover {
+  background-color: transparent;
+}
+
+body.stories-mode .story-card-favorite-button:hover::before {
+  background-color: rgba(28, 104, 181, 0.1);
+}
+
+body.stories-mode .story-recommendation .story-card-favorite-button {
+  top: 34px;
+}
+
+body.stories-mode .stories-genre,
+body.stories-mode #stories .cefr-value,
+body.stories-mode .story-recommendation .cefr-value {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  height: 24px;
+  justify-content: center;
+  padding-bottom: 2px;
+  padding-top: 2px;
+  width: 36px;
 }
 
 .story-list-empty-state {

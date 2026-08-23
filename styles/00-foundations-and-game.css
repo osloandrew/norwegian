@@ -2334,7 +2334,6 @@ h4 {
     height: clamp(64px, 20vw, 88px);
     width: clamp(64px, 20vw, 88px);
   }
-
 }
 
 @media (max-width: 1024px) and (max-height: 700px) {

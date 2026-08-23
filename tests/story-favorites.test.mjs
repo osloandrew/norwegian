@@ -106,4 +106,54 @@ assert.match(
   /li\.appendChild\(createStoryCardLink\(story\)\);\s+li\.appendChild\(createStoryFavoriteButton\(story\)\);/,
 );
 
+const indexSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const favoritesFilterIndex = indexSource.indexOf(
+  'id="story-favorites-filter"',
+);
+const genreFilterIndex = indexSource.indexOf('id="genre-filter"');
+const levelFilterIndex = indexSource.indexOf('class="cefr-filter-group"');
+assert.ok(favoritesFilterIndex < genreFilterIndex);
+assert.ok(genreFilterIndex < levelFilterIndex);
+
+const chipListStart = storiesSource.indexOf("const activeFilterChips = [");
+const chipListEnd = storiesSource.indexOf("]\n      .filter(Boolean)", chipListStart);
+const chipListSource = storiesSource.slice(chipListStart, chipListEnd);
+assert.ok(
+  chipListSource.indexOf("showFavoritesOnly") <
+    chipListSource.indexOf("selectedGenre"),
+);
+assert.ok(
+  chipListSource.indexOf("selectedGenre") <
+    chipListSource.indexOf("selectedCEFR"),
+);
+
+const storyStylesSource = fs.readFileSync(
+  path.join(root, "styles/20-results-and-story-quiz.css"),
+  "utf8",
+);
+assert.match(
+  storyStylesSource,
+  /\.story-card-favorite-button:not\(\.is-saved\)\s*\{\s*color:\s*#a9b0b8;/,
+);
+assert.match(
+  storyStylesSource,
+  /\.stories-detail-container\s*\{[\s\S]*?flex-direction:\s*column;/,
+);
+assert.match(
+  storyStylesSource,
+  /body\.stories-mode \.stories-detail-container\s*\{[\s\S]*?gap:\s*10px;[\s\S]*?padding-top:\s*40px;/,
+);
+assert.match(
+  storyStylesSource,
+  /body\.stories-mode \.story-card-favorite-button\s*\{[\s\S]*?height:\s*30px;/,
+);
+assert.match(
+  storyStylesSource,
+  /body\.stories-mode \.story-card-favorite-button::before\s*\{[\s\S]*?border-radius:\s*50%;[\s\S]*?height:\s*30px;[\s\S]*?width:\s*30px;/,
+);
+assert.ok(
+  storiesSource.indexOf("detailContainer.appendChild(genreDiv)") <
+    storiesSource.indexOf("detailContainer.appendChild(cefrDiv)"),
+);
+
 console.log("story favorite tests passed");

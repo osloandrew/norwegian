@@ -841,6 +841,9 @@ async function displayStoryList(
   );
   if (hasActiveStoryFilter) {
     const activeFilterChips = [
+      showFavoritesOnly
+        ? `<span class="story-results-filter-summary story-results-favorites-filter"><span class="story-results-genre-icon" aria-hidden="true"><i class="fas fa-star"></i></span><span class="story-results-filter-name">Favorites</span></span>`
+        : "",
       selectedGenre
         ? `<span class="story-results-filter-summary story-results-genre-filter" title="${escapeHTML(formatStoryGenre(selectedGenre))}"><span class="story-results-genre-icon" aria-hidden="true">${
             genreIcons[selectedGenre] ||
@@ -849,9 +852,6 @@ async function displayStoryList(
         : "",
       selectedCEFR
         ? `<span class="story-results-filter-summary story-results-cefr-filter" title="CEFR ${escapeHTML(selectedCEFR)}"><span class="cefr-value ${getStoryCefrClass(selectedCEFR)}" aria-hidden="true">${escapeHTML(selectedCEFR)}</span><span class="story-results-filter-name">${escapeHTML(getCefrLabel(selectedCEFR) || selectedCEFR)}</span></span>`
-        : "",
-      showFavoritesOnly
-        ? `<span class="story-results-filter-summary story-results-favorites-filter"><span class="story-results-genre-icon" aria-hidden="true"><i class="fas fa-star"></i></span><span class="story-results-filter-name">Favorites</span></span>`
         : "",
     ]
       .filter(Boolean)
