@@ -2224,6 +2224,12 @@ h4 {
     font-size: 0.7em !important;
   }
 
+  /* Give the My Words star a little breathing room inside the card without
+     changing the card width or shifting the prompt and answer layout. */
+  body.word-game-mode .game-my-words-star {
+    margin-inline-end: 4px;
+  }
+
   .game-grid {
     grid-gap: 10px;
     min-height: 154px;
