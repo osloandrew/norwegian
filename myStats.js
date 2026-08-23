@@ -9,8 +9,8 @@
 // light-blue .my-stats-box per section — mirroring the landing page's
 // .landing-daily-quests / .landing-progress-summary boxes exactly, rather
 // than stacking separate white cards. Every text element explicitly sets
-// "Noto Sans" (see the comment above .my-stats in styles.css for why that
-// has to be explicit, not inherited).
+// "Noto Sans" (see the comment above .my-stats in the shell/landing/stats
+// stylesheet for why that has to be explicit, not inherited).
 //
 // Every number here already exists somewhere in WordStrengthAPI or
 // StreakAPI — this file is pure aggregation/rendering, no new tracking.

@@ -2696,7 +2696,7 @@ function handleMinimalPairAnswer(selectedWord, targetWord, pair) {
     } else if (cardText === selectedWord) {
       card.classList.add("game-incorrect-card");
     } else {
-      // Not .distractor-muted — see that class's own comment in styles.css.
+      // Not .distractor-muted — see that class's own stylesheet comment.
       card.classList.add("game-minimal-pairs-unselected");
     }
     // Once graded, both words become individually replayable — comparing
@@ -4026,7 +4026,7 @@ function renderWordGameUI(
   let bannerPlaceholder = '<div id="game-banner-placeholder"></div>';
 
   // Rendered by renderStats() below, inside the stats row itself (see
-  // .game-stats-content in styles.css) rather than as a plain line here --
+  // .game-stats-content in the stylesheets) rather than as a plain line here --
   // on mobile that lets it sit directly under the progress bar, between
   // the two colored boxes, instead of adding its own full-width row.
   const instructionText = getGameInstructionText(mode);

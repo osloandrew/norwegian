@@ -2124,7 +2124,7 @@ async function openLandingWordSearch(query) {
 
 // Visual disabled/enabled styling (grayed text, not-allowed cursor) comes
 // entirely from CSS — button:disabled and input[type="text"]:disabled in
-// styles.css — the instant .disabled flips below, so there's nothing left
+// the stylesheets — the instant .disabled flips below, so there's nothing left
 // to set here beyond that flag.
 function enableSearchControls() {
   const searchBar = document.getElementById("search-bar");
@@ -2158,7 +2158,7 @@ function handleTypeChange(type, options = {}) {
   const shouldRenderInitialContent = options.renderInitialContent !== false;
   // Give the page a dedicated class while Word Game is selected.
   document.body.classList.toggle("word-game-mode", type === "word-game");
-  // Same idea for My Stats — styles.css uses this to keep the My Words
+  // Same idea for My Stats — the stylesheets use this to keep the My Words
   // button as a labeled pill beside the type dropdown at ≤1024px instead
   // of the icon-only circle meant to share a row with the search bar,
   // which My Stats hides entirely.
@@ -4118,7 +4118,7 @@ function loadStateFromURL() {
         // the mode-picker intro again rather than resuming silently.
         wordGameRoundActive = false;
         // handleTypeChange isn't called on this direct-URL path, so mirror
-        // its body class toggle here too (styles.css scopes mobile rules
+        // its body class toggle here too (the stylesheets scope mobile rules
         // to body.word-game-mode).
         document.body.classList.toggle("word-game-mode", true);
         startWordGame();
@@ -4301,7 +4301,7 @@ window.onload = function () {
       typeSelect.disabled = true;
 
       // randomBtn's own grayed/not-allowed styling comes from the global
-      // button:disabled rule in styles.css, same as searchBtn/clearBtn above.
+      // button:disabled rule in the stylesheets, same as searchBtn/clearBtn above.
       typeFilterContainer.classList.add("disabled");
       posFilterContainer.classList.add("disabled"); // Add the 'disabled' class to visually disable POS filter
       cefrFilterContainer.classList.add("disabled"); // Add the 'disabled' class to visually disable CEFR filter

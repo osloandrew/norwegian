@@ -1,0 +1,538 @@
+/* My Words collection surface
+   ---------------------------
+   The saved-word page now introduces its collection before its controls,
+   using the same calm title / muted-detail hierarchy as Stories. This sits
+   below the shared navigation, so the existing mobile header is unchanged. */
+.word-list-header-summary {
+  align-items: flex-start;
+  display: flex;
+  font-family: "Noto Sans", sans-serif;
+  gap: 12px;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.word-list-header-title {
+  color: var(--color-primary);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-caps-heading);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+p.word-list-header-description,
+p.word-list-empty-copy {
+  color: var(--color-text-slate-soft);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 4px 0 0;
+}
+
+.word-list-header-count {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border-blue-soft);
+  border-radius: 999px;
+  color: var(--color-primary);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 9px;
+  white-space: nowrap;
+}
+
+.word-list-empty-state {
+  text-align: center;
+}
+
+.word-list-empty-heading {
+  color: var(--color-primary) !important;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-caps-heading);
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+
+#word-list .word-list-header {
+  background: linear-gradient(145deg, #f8fbfd 0%, #f1f6fa 100%);
+  border: 1px solid var(--color-border-blue-soft);
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(13, 58, 105, 0.08);
+  gap: 16px;
+  margin: 0 10px 18px;
+  padding: 20px 24px !important;
+  text-align: left;
+}
+
+#word-list .word-list-controls {
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  justify-content: flex-start;
+}
+
+#word-list .word-list-control-group {
+  justify-content: flex-start;
+  width: auto;
+}
+
+#word-list .word-list-strength-controls {
+  margin-left: auto;
+}
+
+#word-list .word-list-my-words-actions,
+#word-list .word-list-export-controls {
+  border-top: 1px solid var(--color-border-blue-soft);
+  padding-top: 14px;
+  width: 100%;
+}
+
+#word-list .word-list-export-controls .word-list-export-button,
+#word-list .word-list-my-words-actions .word-list-export-button {
+  min-height: 40px;
+}
+
+#word-list .word-list-table {
+  border-spacing: 0 10px;
+}
+
+#word-list .word-list-row {
+  box-shadow: 0 3px 10px rgba(13, 58, 105, 0.09);
+}
+
+#word-list .word-list-row td {
+  padding: 14px 18px;
+}
+
+#word-list .word-list-empty-state {
+  background: linear-gradient(145deg, #f8fbfd 0%, #f1f6fa 100%);
+  border: 1px solid var(--color-border-blue-soft);
+  border-radius: 14px;
+  box-shadow: none;
+  margin: 0 10px;
+  padding: 28px 24px;
+}
+
+@media (min-width: 1025px) {
+  #word-list .word-list-header-title,
+  #word-list .word-list-empty-heading {
+    font-size: 20px;
+  }
+}
+
+/* The content uses the same components on a phone; it simply changes from
+   a horizontal toolbar into a deliberate, full-width stack once there is
+   no room for the tabs and strength selector to sit side by side. */
+@media (max-width: 480px) {
+  #word-list .word-list-header {
+    margin: 0 5px 12px;
+    padding: 16px 14px !important;
+  }
+
+  #word-list .word-list-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  #word-list .word-list-control-group,
+  #word-list .word-list-strength-controls {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  #word-list .word-list-view-controls .word-list-export-button {
+    flex: 1 1 0;
+  }
+
+  #word-list .word-list-strength-select-wrapper,
+  #word-list .word-list-strength-select {
+    width: 100%;
+  }
+
+  #word-list .word-list-empty-state {
+    margin: 0 5px;
+    padding: 22px 16px;
+  }
+}
+
+/* Sentence search header
+   ----------------------
+   A result list is a browsing surface, so its orientation card follows the
+   same navy title, muted explanation, and light-paper treatment as My
+   Words and Stories. This is deliberately scoped to Sentence Search's
+   generated header; the shared filter banner above it is unchanged. */
+.result-header.sentence-results-header,
+.result-header.word-results-header,
+.result-header.story-results-header {
+  align-items: center;
+  background: linear-gradient(145deg, #f8fbfd 0%, #f1f6fa 100%);
+  border: 1px solid var(--color-border-blue-soft);
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(13, 58, 105, 0.08);
+  box-sizing: border-box;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 20px 24px;
+  text-align: left;
+}
+
+.result-header.sentence-results-header {
+  margin-bottom: 12px;
+}
+
+.sentence-results-eyebrow,
+.word-results-eyebrow,
+.story-results-eyebrow {
+  color: var(--color-text-slate-soft);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin: 0 0 3px;
+  text-transform: uppercase;
+}
+
+.result-header.sentence-results-header h2,
+.result-header.word-results-header h2,
+.result-header.story-results-header h2 {
+  color: var(--color-primary);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0;
+  margin: 0;
+  text-align: left;
+}
+
+.sentence-results-query,
+.word-results-query,
+.story-results-query {
+  color: var(--color-text-strong);
+  font-weight: 500;
+}
+
+.sentence-results-count,
+.word-results-count,
+.story-results-count {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border-blue-soft);
+  border-radius: 999px;
+  color: var(--color-primary);
+  flex: 0 0 auto;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 9px;
+  white-space: nowrap;
+}
+
+.result-header.word-results-header,
+.result-header.story-results-header {
+  margin-bottom: 16px;
+}
+
+.sentence-results-header-side {
+  align-items: flex-end;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sentence-results-header-copy,
+.word-results-header-copy,
+.story-results-header-copy {
+  min-width: 0;
+}
+
+.story-results-filters,
+.search-results-filters {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 10px;
+}
+
+.story-results-filter-summary,
+.search-results-filter-summary {
+  align-items: center;
+  color: var(--color-text-slate-soft);
+  cursor: default;
+  display: inline-flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 7px;
+  line-height: 1;
+  min-width: 124px;
+}
+
+.story-results-filters .cefr-value,
+.search-results-filters .cefr-value {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.story-results-filter-summary + .story-results-filter-summary,
+.search-results-filter-summary + .search-results-filter-summary {
+  border-left: 1px solid var(--color-border-blue-soft);
+  padding-left: 14px;
+}
+
+.search-results-pos-filter .search-results-word-class-badge {
+  flex: 0 0 auto;
+  margin: 0 !important;
+}
+
+@media (min-width: 481px) {
+  /* Match the 12px multi-result word-class badge below the header. This
+     keeps its height and baseline aligned with the adjacent CEFR badge,
+     without disturbing the already-correct compact mobile treatment. */
+  .word-results-header .search-results-pos-filter {
+    min-width: 0;
+  }
+
+  .word-results-header .search-results-word-class-badge {
+    font-size: 12px !important;
+  }
+}
+
+.story-results-genre-icon {
+  align-items: center;
+  color: var(--color-text-slate-soft);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 13px;
+  height: 20px;
+  justify-content: center;
+  width: 20px;
+}
+
+/* .result-header's legacy icon rule positions every icon absolutely. In a
+   filter summary the genre glyph belongs inline with its label instead. */
+.result-header.story-results-header .story-results-genre-icon i {
+  color: inherit;
+  left: auto;
+  position: static;
+}
+
+.story-results-filter-name,
+.search-results-filter-name {
+  white-space: nowrap;
+}
+
+.result-header.sentence-results-header .result-header-subtitle {
+  color: var(--color-text-slate-soft);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 8px 0 0;
+  text-align: left;
+}
+
+.sentence-results-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0;
+}
+
+.sentence-results-actions .sentence-btn {
+  align-items: center;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border-blue-soft) !important;
+  border-radius: 8px;
+  box-shadow: none;
+  color: var(--color-primary);
+  display: inline-flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  height: 40px;
+  justify-content: center;
+  letter-spacing: 0.04em;
+  margin: 0;
+  padding: 8px 13px;
+  text-transform: uppercase;
+  width: auto;
+}
+
+.sentence-results-actions .sentence-btn:hover {
+  background-color: var(--color-bg-hover);
+  box-shadow: 0 2px 5px rgba(13, 58, 105, 0.1);
+}
+
+@media (max-width: 480px) {
+  .result-header.sentence-results-header,
+  .result-header.word-results-header,
+  .result-header.story-results-header {
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 16px;
+  }
+
+  .result-header.word-results-header,
+  .result-header.sentence-results-header {
+    flex-wrap: wrap;
+  }
+
+  .word-results-header-copy,
+  .sentence-results-header-copy {
+    flex: 1 1 210px;
+  }
+
+  .search-results-filters {
+    gap: 8px 12px;
+    margin-top: 8px;
+  }
+
+  .search-results-filter-summary {
+    min-width: 0;
+  }
+
+  .search-results-filter-summary + .search-results-filter-summary {
+    padding-left: 12px;
+  }
+
+  .result-header.sentence-results-header h2,
+  .result-header.word-results-header h2,
+  .result-header.story-results-header h2 {
+    font-size: 18px;
+  }
+
+  .sentence-results-actions {
+    margin: 0;
+  }
+}
+
+/* Report-an-issue dialog: one shared component used by the word card and
+   the word game. */
+.feedback-dialog-overlay {
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  z-index: 2000;
+}
+
+.feedback-dialog {
+  background-color: var(--color-white);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  max-width: 380px;
+  padding: 20px;
+  text-align: left;
+  width: 100%;
+}
+
+.feedback-dialog h3 {
+  color: var(--color-primary);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 16px;
+  margin: 0 0 15px;
+  word-break: break-word;
+}
+
+.feedback-dialog-label {
+  /* Overrides the site-wide floating-label `label` rule (position:
+     absolute, centered over an input) — this label sits in normal flow
+     above its field instead. */
+  color: var(--color-text-strong);
+  display: block;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  left: auto;
+  margin: 12px 0 5px;
+  pointer-events: auto;
+  position: static;
+  top: auto;
+  transform: none;
+}
+
+.feedback-dialog select,
+.feedback-dialog textarea {
+  border: 1px solid var(--color-border-input);
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 14px;
+  padding: 8px 10px;
+  width: 100%;
+}
+
+.feedback-dialog textarea {
+  resize: vertical;
+}
+
+.feedback-dialog select:focus-visible,
+.feedback-dialog textarea:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.feedback-dialog-status {
+  color: var(--color-text-strong);
+  font-size: 13px;
+  margin: 12px 0 0;
+  min-height: 1.2em;
+}
+
+.feedback-dialog-status-error {
+  color: #b3261e;
+}
+
+.feedback-dialog-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+.feedback-dialog-cancel,
+.feedback-dialog-submit {
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+}
+
+.feedback-dialog-cancel {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border-input);
+  color: var(--color-text-strong);
+}
+
+.feedback-dialog-cancel:hover {
+  background-color: var(--color-bg-subtle);
+}
+
+.feedback-dialog-submit {
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  color: var(--color-white);
+}
+
+.feedback-dialog-submit:hover {
+  background-color: #0a2e54;
+}
+
+.feedback-dialog-cancel:disabled,
+.feedback-dialog-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}

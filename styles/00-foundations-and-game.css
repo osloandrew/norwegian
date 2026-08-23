@@ -1,0 +1,2379 @@
+/*
+ * Colors that repeat across this file (2+ uses), extracted into custom
+ * properties so each one has a single source of truth instead of a hex
+ * literal copy-pasted at every call site. Names describe the color's role,
+ * not its value, so a future dark theme can retarget these without hunting
+ * down every occurrence individually.
+ *
+ * Colors used only once are left as literals for now — extracting a value
+ * with no reuse doesn't reduce duplication, only completeness for a future
+ * dark-mode pass would justify it.
+ */
+:root {
+  /* Uppercase section headers & buttons (landing page, word-game intro,
+     My Stats -- see .landing-daily-quests h3, .game-intro-heading,
+     .my-stats-heading, #landing-daily-quests-start, etc.), split into two
+     tokens rather than one shared value: letter-spacing in em scales with
+     font-size, so the same value reads noticeably wider on a ~19-22px
+     heading than on ~11-13px button text. Button value matches the
+     0.03-0.04em already used elsewhere (#game-next-word-button,
+     .game-typed-submit, .sentence-btn); heading value is tighter so
+     larger caps text doesn't read as loud/overspaced. */
+  --letter-spacing-caps: 0.04em;
+  --letter-spacing-caps-heading: 0.02em;
+  /* Brand blues */
+  --color-primary: #0d3a69;
+  --color-primary-active: #092c50;
+  --color-heading: #293a78;
+  --color-heading-accent: #1c68b5;
+  --color-link: #3c88d4;
+  --color-accent: #4a99ff;
+  /* Text */
+  --color-text: #333333;
+  --color-text-strong: #4a4a4a;
+  --color-text-secondary: #555555;
+  --color-text-muted: #666666;
+  --color-text-icon-muted: #6a6a6a;
+  --color-text-slate: #69737e;
+  --color-text-slate-soft: #5d6874;
+  --color-text-blue-muted: #52708f;
+  --color-text-faint: #777777;
+  --color-text-alt-title: #3c3c3c;
+  --color-badge-text: #4f4f4f;
+  /* Neutral / borders / backgrounds */
+  --color-white: #ffffff;
+  --color-border: #cccccc;
+  --color-border-light: #dddddd;
+  --color-border-neutral: #bbbbbb;
+  --color-border-input: #a0a0a0;
+  --color-progress-track: #eeeeee;
+  --color-bg-subtle: #f0f0f0;
+  --color-bg-light: #f4f4f4;
+  --color-table-header-bg: #f5f5f5;
+  --color-bg-hover: #f7f7f7;
+  --color-bg-hover-strong: #e0e0e0;
+  --color-text-on-light-btn: #2a3a2f;
+  /* Status (danger, success, streak, favorite) */
+  --color-danger: #951b1b;
+  --color-danger-dark: #5a1a1a;
+  --color-danger-text: #6b2814;
+  --color-danger-bg: #e9a895;
+  --color-success-bg: #c7e3b6;
+  --color-success-text: #254a1d;
+  --color-success: #365f36;
+  --color-streak-bg: #fff3e0;
+  --color-streak-border: #f0c896;
+  --color-streak-text: #b3541e;
+  --color-streak-icon: #f2994a;
+  --color-favorite: #a66c00;
+  --color-level-mid: #f2d96b;
+  /* Feature-specific accents (bonus quests, pale-blue hover states) */
+  --color-bonus: #5a3d82;
+  --color-bonus-hover: #72529d;
+  --color-bg-hover-blue: #eaf1fb;
+  --color-bg-row-hover: #f2f9fd;
+  --color-bg-quest-active: #f8fbff;
+  --color-bg-stat: #f7f9fc;
+  --color-bg-blue-active: #d9e8ff;
+  --color-border-blue-soft: #cbd9e8;
+  --color-bg-chrome: #d2dce5;
+  /* Third-party brand colors */
+  --color-linkedin: #0a66c2;
+  --color-border-google: #dadce0;
+  --color-google-text: #3c4043;
+}
+
+/* Visually hides content while keeping it in the accessibility tree —
+   e.g. a <label> that duplicates a control's aria-label for sighted users
+   who don't use assistive tech, or the skip-link below before it's focused. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10000;
+  padding: 10px 16px;
+  background: var(--color-primary);
+  color: #ffffff;
+  border-radius: 4px;
+  text-decoration: none;
+  /* Off-screen by a multiple of the link's own rendered height, rather
+     than a guessed fixed pixel offset (the previous top:-40px left part
+     of it visibly poking into the corner, since the real rendered height
+     was ~46px). A transform relative to the element's own size stays
+     fully off-screen regardless of font size, padding, or zoom. */
+  transform: translateY(-250%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+a {
+  color: var(--color-link);
+}
+
+.alt-spelling {
+  display: block;
+  font-size: 0.8em;
+  font-weight: 400;
+  margin-top: 2px;
+  opacity: 0.75; /* Very subtle */
+}
+
+audio {
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+}
+
+#back-button,
+#speed-btn,
+#toggle-english-btn {
+  background-color: var(--color-bg-light); /* Neutral light gray */
+  border: var(--color-border-neutral) 1px solid;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  min-width: 115px;
+  padding: 0.5em 1em;
+  position: relative;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease;
+  z-index: 1;
+}
+
+#back-button:hover,
+#speed-btn:hover,
+#toggle-english-btn:hover {
+  background-color: gainsboro; /* Slightly darker purple on hover */
+}
+
+#audio-player {
+  display: none !important; /* Always hidden */
+}
+
+.back-navigation {
+  display: block; /* Block-level element to allow centering */
+  line-height: 30px; /* Matches height for vertical centering */
+  margin: 0 0 10px 0; /* Remove auto margin and set bottom margin only */
+  margin-bottom: 10px;
+  background-color: var(--color-white); /* Subtle, lighter background */
+  color: var(--color-danger-dark); /* Subtle maroon text */
+  border-radius: 6px; /* Slightly rounded corners */
+  padding: 8px 14px; /* Larger padding for a more clickable feel */
+  font-family: "Noto Sans", sans-serif; /* Clean, modern font */
+  font-size: 12px; /* Smaller font size for subtlety */
+  font-weight: 500; /* Slightly bolder text */
+  text-transform: uppercase; /* Uppercase for consistency */
+  letter-spacing: 0.03em; /* Slight letter spacing */
+  cursor: pointer; /* Pointer on hover */
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease; /* Subtle transitions */
+  touch-action: manipulation; /* Helps reduce delay on mobile */
+  box-shadow:
+    0 4px 8px rgba(135, 135, 135, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  width: fit-content;
+  height: 30px;
+}
+
+.back-navigation:hover {
+  background-color: var(
+    --color-bg-hover
+  ); /* Slightly darker background on hover */
+  box-shadow:
+    0 6px 12px rgba(135, 135, 135, 0.3),
+    0 3px 6px rgba(0, 0, 0, 0.15); /* Slightly larger shadow */
+}
+
+body {
+  background-color: var(--color-bg-light);
+  display: flex;
+  flex-direction: column;
+  font-family: "Noto Serif", serif;
+  font-size: 16px;
+  height: 100%;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+button:disabled {
+  color: var(--color-border);
+  cursor: not-allowed;
+}
+
+/* Disable hover effects for disabled buttons */
+button:disabled:hover {
+  cursor: not-allowed; /* Keep the not-allowed cursor */
+}
+
+button:disabled i {
+  color: var(--color-border);
+  cursor: not-allowed;
+}
+
+/* .search-btn, .clear-btn, and .my-words-nav-btn each set their own
+   color/cursor (and .search-btn/.clear-btn their own icon color) in their
+   base rule below, so the generic button:disabled above isn't guaranteed
+   to win over them — these give each one an explicit disabled override
+   instead of leaving that to a specificity tie-break. */
+.search-btn:disabled,
+.clear-btn:disabled,
+.my-words-nav-btn:disabled {
+  color: var(--color-border);
+  cursor: not-allowed;
+}
+
+.search-btn:disabled i,
+.clear-btn:disabled i {
+  color: var(--color-border);
+}
+
+.button-container i {
+  color: var(--color-primary);
+  margin-bottom: 10px;
+}
+
+.button-pron {
+  background-color: var(--color-bg-light); /* Neutral light gray */
+  border: var(--color-border-neutral) 1px solid;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: var(--color-text-on-light-btn);
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-weight: 500;
+  padding: 0.5em 1em;
+  position: relative;
+  transition: background-color 0.3s ease;
+  z-index: 1;
+}
+
+.button-pron:hover {
+  background-color: gainsboro; /* Slightly darker purple on hover */
+}
+
+.cefr-audio-block {
+  display: flex;
+  flex-direction: column; /* stack vertically */
+  align-items: flex-start; /* left-align both items */
+  gap: 10px; /* small vertical gap between CEFR and icon */
+}
+
+.cefr-value {
+  border-radius: 4px;
+  color: var(--color-badge-text); /* Default text color */
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 3px 7px;
+  text-align: center;
+  text-transform: uppercase;
+  user-select: none;
+  white-space: nowrap;
+  width: 18px;
+}
+
+.cefr-value.a1,
+.sticky-cefr-label.a1 {
+  background-color: #cfe5c0; /* Soft olive green for A1 (new grass) */
+  color: #2a4d14; /* Dark forest green for high contrast */
+}
+
+.cefr-value.a2,
+.sticky-cefr-label.a2 {
+  background-color: #b3d8a3; /* Bright meadow green for A2 (spring leaves) */
+  color: #2f4f17; /* Deep moss green for high contrast */
+}
+
+.cefr-value.b1,
+.sticky-cefr-label.b1 {
+  background-color: #f7e3b0; /* Gentle wheat yellow for B1 (warm sunlight) */
+  color: #5c4b11; /* Warm brown for legibility and contrast */
+}
+
+.cefr-value.b2,
+.sticky-cefr-label.b2 {
+  background-color: #f0d39a; /* Brighter golden yellow for B2 (ripe fields) */
+  color: #604b0e; /* Rich amber brown for sharp contrast */
+}
+
+.cefr-value.c1,
+.sticky-cefr-label.c1 {
+  background-color: #e9c3b4; /* Muted rose pink for C1 (wild roses) */
+  color: #5a2d25; /* Deep reddish-brown for readability and aesthetic balance */
+}
+
+.cefr-value.c2,
+.sticky-cefr-label.c2 {
+  background-color: #e0af92; /* Bright terracotta orange for C2 (sunlit clay) */
+  color: #5a2e18; /* Burnt sienna for clear contrast */
+}
+
+.cefr-value.cefr-unknown,
+.sticky-cefr-label.cefr-unknown {
+  background-color: var(--color-bg-hover-strong); /* Gray for unknown levels */
+  color: #444444; /* Dark charcoal gray for readability */
+}
+
+/* A round, inset icon button — same footprint/hover language as
+   .word-list-favorite-button elsewhere (soft tinted-blue circle + slight
+   scale on hover, not a flush edge-to-edge rectangle) rather than a
+   bespoke look just for this button. */
+.clear-btn {
+  align-items: center;
+  appearance: none;
+  aspect-ratio: 1;
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: none;
+  flex-shrink: 0;
+  font-size: 16px;
+  height: 36px;
+  width: 36px;
+  justify-content: center;
+  margin: 0 4px;
+  padding: 0;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* display, not visibility: with .search-btn now a fixed width instead of
+   being sized by flex-shrink competition with its siblings, hiding this
+   button's box entirely gives that space back to #search-bar (the only
+   flex-grow item left in the row) instead of it going to waste — real
+   room the placeholder needs when the field is empty, which is exactly
+   when this button isn't shown anyway. placeholder=" " on #search-bar
+   (see its markup) means :placeholder-shown is only true when the field
+   is genuinely empty — including after a programmatic clearInput(), not
+   just while the user is typing — so this stays in sync with the
+   field's actual state without any JS. */
+#search-bar:not(:placeholder-shown) ~ .clear-btn {
+  display: flex;
+}
+
+.clear-btn:hover {
+  background-color: rgba(28, 104, 181, 0.1);
+  color: var(--color-link);
+  transform: scale(1.08);
+}
+
+.clear-btn:active {
+  transform: scale(0.92);
+}
+
+.clear-btn:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+.clear-btn i {
+  color: inherit;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.clickable-definition-word {
+  cursor: pointer;
+  color: var(--color-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(60, 136, 212, 0.4);
+  transition:
+    color 0.2s ease,
+    text-decoration-color 0.2s ease;
+}
+
+.clickable-definition-word:hover {
+  color: #1f4f80; /* darker and cooler than #2b6ca3 */
+  text-decoration-color: transparent; /* fades underline out smoothly */
+}
+
+#cloze-sentence {
+  font-weight: normal;
+  font-size: 1.2em;
+  line-height: 1.35; /* Preferred */
+  overflow: visible; /* Let text overflow if necessary */
+}
+
+.coffee-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent; /* No visible border but ensures alignment */
+  border-radius: 4px;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.coffee-img {
+  max-height: 30px; /* Adjust the height of the image to align with the LinkedIn button */
+  width: auto;
+}
+
+.default-hidden-content {
+  display: none;
+}
+
+.definition {
+  background-color: var(--color-white);
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  padding: 25px;
+}
+
+/* First-visit data loading is long enough to be noticeable on slower
+   connections. This reserves the space occupied by the destination instead
+   of showing a blank page, while the small shimmer signals active progress
+   without competing with the page's primary heading. */
+.vocabulary-loading-shell {
+  min-height: 235px;
+  padding: 34px;
+  text-align: center;
+}
+
+.vocabulary-loading-shell h2 {
+  color: var(--color-heading);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 22px;
+  margin: 0;
+}
+
+.vocabulary-loading-shell .vocabulary-loading-description {
+  color: var(--color-text-secondary);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 15px;
+  margin: 10px 0 24px;
+}
+
+.vocabulary-loading-skeleton {
+  display: grid;
+  gap: 12px;
+  margin: 0 auto;
+  max-width: 440px;
+}
+
+.vocabulary-loading-skeleton-line {
+  animation: vocabulary-loading-shimmer 1.4s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-light) 20%,
+    #e7eef6 50%,
+    var(--color-bg-light) 80%
+  );
+  background-size: 200% 100%;
+  border-radius: 999px;
+  height: 14px;
+}
+
+.vocabulary-loading-skeleton-line:nth-child(2) {
+  animation-delay: 0.12s;
+  width: 84%;
+}
+
+.vocabulary-loading-skeleton-line:nth-child(3) {
+  animation-delay: 0.24s;
+  width: 68%;
+}
+
+@keyframes vocabulary-loading-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vocabulary-loading-skeleton-line {
+    animation: none;
+  }
+}
+
+.definition-content {
+  display: grid;
+  column-gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.definition-content i {
+  margin-right: 8px;
+  color: var(--color-danger); /* Dark red color */
+  font-size: 18px; /* Slightly larger than the text */
+  width: 24px; /* Fixed width for uniformity */
+  text-align: center; /* Centers the icons within their block */
+  display: inline-block; /* Ensures icons behave like a fixed block */
+  vertical-align: middle; /* Ensures the icon is vertically aligned with the text */
+}
+
+.definition-content p {
+  color: var(--color-danger); /* Ensure text is also dark red */
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.definition p,
+li {
+  color: var(--color-text);
+  font-size: 20px;
+  line-height: 1.4;
+  margin: 10px 0 10px 0;
+}
+
+.english,
+.etymology,
+.pronunciation {
+  color: var(--color-text-secondary) !important;
+  font-size: 16px !important;
+  font-weight: 500;
+}
+
+.distractor-muted {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.english-sentence {
+  color: gray; /* Set a different color for English text */
+  font-family: "Noto Serif", serif; /* Adjust to the appropriate English font */
+}
+
+.english-title {
+  color: var(--color-text-muted);
+  font-family: "Noto Sans", sans-serif; /* English-specific font */
+  font-size: 12.5px;
+  -webkit-box-orient: vertical; /* Specifies vertical stacking of lines */
+  -webkit-line-clamp: 1; /* Limits the text to 1 line */
+}
+
+.error-message {
+  align-content: center;
+  background-color: var(--color-white);
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  padding: 25px;
+  color: var(--color-danger); /* Error type in a similar error color */
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Specific styling for the error message */
+.error-message h2 {
+  color: var(--color-danger); /* Error title in a distinct color */
+  font-size: 24px;
+}
+
+.error-message p {
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.example {
+  font-size: 16px !important;
+}
+
+footer {
+  background-color: var(--color-bg-chrome);
+  bottom: 0;
+  color: var(--color-primary);
+  font-family: "Noto Sans", sans-serif;
+  padding: 20px 0;
+  position: relative;
+  text-align: center;
+  width: 100%;
+}
+
+footer p {
+  font-size: 14px;
+  margin: 5px 0;
+}
+
+footer p a {
+  color: var(--color-link);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+footer p a:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+footer .copyright {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+#game-banner-placeholder {
+  align-self: baseline;
+  background-color: #f8f8f8;
+  color: var(--color-badge-text); /* Gray color, matching the scorecard */
+  text-align: center;
+  padding: 0px 6px !important; /* Smaller padding for a more compact banner */
+  border-radius: 5px;
+  font-size: 16px !important; /* Smaller font size to fit the text on one line */
+  font-family: "Noto Serif", serif; /* Using Noto Sans, sans-serif */
+  margin: 0 1px; /* Reduced spacing between banner and the rest */
+  margin-bottom: 5px;
+  max-width: 60%;
+  transition: opacity 0.5s ease-in-out; /* Smooth transition */
+  font-weight: 400;
+  user-select: none;
+}
+
+#game-banner-placeholder p {
+  margin: 1px !important;
+}
+
+.game-my-words-star {
+  flex: 0 0 40px;
+}
+
+/* .word-list-favorite-button's own height (40px) gets narrowed to 30px
+   under max-width:1024px for the My Words list -- the flex-basis above
+   already re-pins the width back to 40px in that case, but height needs
+   the same explicit override, or the circle renders as a 40x30 oval.
+   Needs the two-class selector (not just .game-my-words-star) to
+   out-specificity that mobile override regardless of source order. */
+.word-list-favorite-button.game-my-words-star {
+  height: 40px;
+}
+
+/* Both empty and filled stars are muted before answering. */
+.game-my-words-star:disabled,
+.game-my-words-star.is-saved:disabled {
+  background-color: transparent;
+  color: #b5b5b5;
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}
+
+.game-my-words-star:disabled:hover,
+.game-my-words-star.is-saved:disabled:hover {
+  background-color: transparent;
+  transform: none;
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-gap: 15px; /* Slightly increase space between the cards */
+  min-height: 159px;
+  /* Without this, a grid container defaults to hugging its content's width
+     rather than filling its parent — invisible in the word game's own
+     layout (a plain block parent, where that's the same thing), but the
+     placement test reuses .game-intro-card as its wrapper, whose
+     align-items:center centers flex children at their content width
+     instead of stretching them, collapsing this to two cramped columns. */
+  width: 100%;
+}
+
+/* Says what a question is actually asking for — previously the word/
+   sentence and four choices appeared with no instruction at all (see
+   getGameInstructionText() in wordGame.js). Sits above the gender/CEFR
+   row inside .game-word-card, so it reads first. */
+.game-instruction {
+  color: #4d6883; /* Softer than the original #3f5b7a (7.0:1 contrast) —
+     5.8:1 against white, comfortably clear of the 4.5:1 AA minimum for
+     this text size, just less attention-grabbing so the Norwegian word/
+     sentence in the card below reads as the main event. */
+  font-family: "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  margin: 4px 0 8px;
+  overflow: hidden;
+  text-align: center;
+  /* Guarantees a single line regardless of viewport width or how long a
+     future instruction string might be — the mobile font-size below is
+     tuned so the longest current string ("Choose the word that completes
+     the sentence") fits without needing this ellipsis fallback at all. */
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.game-cefr-label {
+  align-self: flex-start; /* Align the label to the left */
+  padding: 3px 7px; /* Smaller padding */
+  font-size: 12px; /* Smaller font size */
+  color: var(--color-badge-text);
+  font-weight: bold;
+  border-radius: 4px;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: "Noto Sans", sans-serif;
+  white-space: nowrap; /* Prevent text wrapping */
+  min-width: 17.5px;
+  user-select: none; /* Prevent text selection */
+}
+
+.game-cefr-label.easy,
+.game-cefr-label.a1,
+.game-cefr-label.a2 {
+  background-color: var(--color-success-bg); /* Green for 'A1, A2' */
+}
+
+.game-cefr-label.medium,
+.game-cefr-label.b1,
+.game-cefr-label.b2 {
+  background-color: var(--color-level-mid); /* Yellow for 'B1, B2' */
+}
+
+.game-cefr-label.hard,
+.game-cefr-label.c,
+.game-cefr-label.c1,
+.game-cefr-label.c2 {
+  background-color: #ecb3a3; /* Red for 'C' */
+}
+
+.game-cefr-spacer {
+  align-items: safe flex-end;
+  display: flex;
+  flex: 0 0 70px;
+  gap: 5px; /* Optional: Space between the elements */
+  height: 70px;
+  max-height: 70px;
+  min-height: 70px;
+  overflow-y: auto;
+  text-align: center;
+  flex-direction: row;
+  width: 100%;
+}
+
+/* Example Sentences */
+.game-cefr-spacer p {
+  color: #413e3e;
+  font-family: "Noto Serif", serif;
+  font-size: 0.7em !important;
+  flex: 1; /* Makes each <p> element take up equal width */
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.game-correct-card {
+  background-color: var(
+    --color-success-bg
+  ) !important; /* Lighter olive green for correct */
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: game-card-pop 0.35s ease-out;
+}
+
+/*
+ * background-color above is !important, and CSS Animations can never win
+ * against an !important static declaration for the same property — so the
+ * feedback motion here is built from transform/box-shadow instead, which
+ * these cards don't otherwise set.
+ */
+@keyframes game-card-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.07);
+    box-shadow: 0 0 0 3px rgba(42, 77, 20, 0.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.game-english-translation {
+  color: gray !important;
+  cursor: default;
+}
+
+.game-gender {
+  align-self: flex-start; /* Align the label to the left */
+  background-color: var(--color-bg-subtle);
+  border-radius: 4px;
+  color: var(--color-badge-text) !important;
+  font-family: "Noto Sans", sans-serif;
+  padding: 3px 7px;
+  font-size: 12px; /* Smaller font size */
+  font-weight: bold !important;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-transform: uppercase;
+  margin: 0px 0px 5px 0px !important;
+  min-width: fit-content;
+  user-select: none; /* Prevent text selection */
+}
+
+.game-incorrect-card {
+  background-color: var(
+    --color-danger-bg
+  ) !important; /* Lighter clay red for incorrect */
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: game-card-shake 0.4s ease-in-out;
+}
+
+@keyframes game-card-shake {
+  10%,
+  90% {
+    transform: translateX(-1px);
+  }
+  20%,
+  80% {
+    transform: translateX(2px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-4px);
+  }
+  40%,
+  60% {
+    transform: translateX(4px);
+  }
+}
+
+.game-label-subgroup {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  flex-direction: column;
+}
+
+/* Keep the game-card controls horizontal. align-items:center (rather than
+   flex-start) matters here because the star button is a fixed 40x40px
+   circle while the tricky-word badge is much shorter — top-aligning them
+   left their midpoints at different heights, so they didn't read as being
+   on the same row. Centering lines up their visual middles regardless of
+   the size difference. */
+.game-label-subgroup.game-card-actions-subgroup {
+  align-items: center;
+  flex-direction: row;
+  flex-shrink: 0;
+  gap: 6px;
+}
+
+.game-card-actions-subgroup .game-tricky-word {
+  align-self: center;
+}
+
+/* Three real columns (rather than the banner spanning grid-column:1/-1
+   over the same row as the other two) so the banner has its own space and
+   can't visually overlap or touch the icon group on the right. The two
+   outer columns share a floor (72px — roughly the icon group's own
+   width, the wider of the two sides) rather than each sizing to just
+   its own content — with plain `auto` columns, a bare `1fr auto 1fr`,
+   or anything else where the columns can end up different widths, the
+   banner (centered within just the middle track) drifts off-center from
+   the card as a whole. A shared floor keeps both tracks — and so the
+   middle track and the banner in it — the same width and centered,
+   while `justify-self` below still pins each side's actual content to
+   its outer edge, so nothing visually shifts inward. */
+.game-labels-container {
+  align-items: start;
+  display: grid;
+  grid-template-columns: minmax(72px, 1fr) auto minmax(72px, 1fr);
+  gap: 10px;
+  min-height: 70px;
+  width: 100%;
+}
+
+.game-labels-container > .game-label-subgroup:first-child {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+}
+
+.game-labels-container > #game-banner-placeholder {
+  box-sizing: border-box;
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  margin: 0 0 5px;
+  max-width: 100%;
+}
+
+.game-labels-container > .game-card-actions-subgroup {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+}
+
+#game-next-word-button {
+  margin-top: 15px;
+  width: 100%;
+  background-color: var(
+    --color-primary
+  ); /* Match the site's primary action color */
+  color: var(--color-white);
+  border: 1px solid var(--color-primary);
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* More prominent shadow */
+  border-radius: 6px; /* Slightly rounded corners */
+  padding: 20px 15px;
+  font-family: "Noto Sans", sans-serif; /* Clean, modern font */
+  font-size: 14px; /* Smaller font size for subtlety */
+  font-weight: 400; /* Normal font weight for less boldness */
+  text-transform: uppercase; /* Uppercase for consistency */
+  letter-spacing: 0.04em; /* Slight letter spacing */
+  cursor: pointer; /* Pointer on hover */
+  user-select: none; /* Prevent text selection */
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease; /* Subtle transitions */
+}
+
+/* Typed recall has one full-width answer card rather than a two-row choice
+   grid. Keep just a small separation before the primary action. */
+.game-typed-grid ~ .game-next-button-container #game-next-word-button {
+  margin-top: 15px;
+}
+
+#game-next-word-button:hover {
+  background-color: var(
+    --color-accent
+  ); /* Same hover treatment as the search button */
+  border-color: var(--color-accent);
+}
+
+#game-next-word-button:active {
+  background-color: var(
+    --color-primary-active
+  ); /* Darker background on click */
+  border-color: var(--color-primary-active);
+}
+
+#game-next-word-button:disabled {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border-color: var(--color-primary);
+  cursor: not-allowed; /* Disabled cursor */
+  box-shadow: none; /* No shadow when disabled */
+  opacity: 0.4;
+}
+
+.game-pronunciation {
+  font-family: "Noto Serif", serif;
+  font-size: 20px;
+  font-weight: 300;
+  letter-spacing: 0.04rem;
+}
+
+.game-tricky-word {
+  align-self: flex-end; /* Align to the top */
+  padding: 3px 7px; /* Same padding as CEFR label */
+  font-size: 12px; /* Same font size as CEFR label */
+  color: var(--color-badge-text);
+  font-weight: bold;
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-family: "Noto Sans", sans-serif;
+  white-space: nowrap; /* Prevent text wrapping */
+  background-color: #fae5c3;
+  visibility: hidden; /* Initially hidden but space is reserved */
+}
+
+.game-tricky-word.visible {
+  visibility: visible; /* When the label should be shown */
+}
+
+/* Stats Card Styling */
+.game-stats-content {
+  align-items: center; /* Keeps the two side boxes and the middle progress
+     bar/instruction column on one visual row regardless of their differing
+     heights — flex-start (the previous value) top-aligned them instead,
+     which left the middle column looking offset whenever it was shorter
+     (or taller, e.g. with Quit & see stats above it) than the side boxes. */
+  display: flex;
+  width: 100%; /* Ensure the content takes up full width */
+  gap: 10px; /* Adjust the space between boxes */
+  margin: 0px 0px 7.5px 0px; /* Center horizontally */
+}
+
+/* .game-instruction (the question prompt, e.g. "Choose the English
+   meaning") is rendered nested inside .game-stats-progress-wrapper (see
+   renderStats(), wordGame.js), stacked directly under the bar rather than
+   as a separate full-width line below the whole stats row. A separate row
+   there sized to the shorter correct/incorrect boxes' own height, but
+   still had to extend for the instruction text anyway -- leaving a blank
+   gutter beside those boxes before the word card. Nesting it here means
+   the row's total height is just whichever column is naturally tallest,
+   with no leftover dead space. Was tuned (font-size, white-space:nowrap)
+   to fit as a single line spanning the full stats row; this column is
+   much narrower, so it needs to wrap instead. */
+.game-stats-progress-wrapper > .game-instruction {
+  margin: 2px 0 0;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+/* Correct box styling */
+.game-stats-correct-box {
+  background-color: #d7ecc9; /* Softer/lighter than the original #c7e3b6 —
+     less saturated so the stats row doesn't compete with the Norwegian
+     word/sentence card below it; contrast against the text below only
+     improves as the background lightens, so this stays well within
+     WCAG AA. */
+  border-radius: 10px;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  text-align: center;
+  color: white;
+  min-width: 60px; /* Ensure minimum size */
+  max-width: 92px; /* Keep it compact — the label used to stretch this
+     as wide as it needed to avoid wrapping at all; this caps it and lets
+     the label wrap onto a second line instead. */
+  /* .game-stats-content now uses align-items:flex-start (rather than
+     the flex default, stretch) specifically so this box sizes to its own
+     content instead of stretching to match the middle column's height —
+     this centering is what keeps the label+number stack tidy within
+     that now-content-driven height. */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Incorrect box styling */
+.game-stats-incorrect-box {
+  background-color: #f0c1b3; /* Softer/lighter than the original #e9a895,
+     matching .game-stats-correct-box's tone-down above. */
+  border-radius: 10px;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  text-align: center;
+  color: white;
+  min-width: 60px; /* Ensure minimum size */
+  max-width: 92px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Text styling for the numbers — scoped to the number itself (rather than
+   a blanket "p" selector) so the caption added above it
+   (.game-stat-label, see renderStats() in wordGame.js) can use its own,
+   much smaller size/color without this rule's !important winning. Colors
+   darkened from the original #6b9461/#b5634d (~2.2-2.5:1 against their
+   box backgrounds, well under WCAG AA's 4.5:1 minimum for this size/
+   weight of text) to #254a1d/#6b2814 (7.3:1 / 5.4:1). */
+.game-stats-correct-box #streak-count {
+  color: var(--color-success-text) !important;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 18px; /* Bigger font for numbers */
+  font-weight: 400;
+  margin: 0;
+  user-select: none; /* Prevent text selection */
+}
+
+.game-stats-incorrect-box #review-count {
+  color: var(--color-danger-text) !important;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 18px; /* Bigger font for numbers */
+  font-weight: 400;
+  margin: 0;
+  user-select: none; /* Prevent text selection */
+}
+
+/* Shared caption styling for the three stat labels — "Correct in a row",
+   "Words to review", and "Round progress"/"Recent accuracy" — that make
+   the two side counters and the middle progress bar/percentage
+   self-explanatory instead of bare numbers. */
+.game-stat-label {
+  font-family: "Noto Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  margin: 0 0 3px;
+  text-align: center;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.game-stats-correct-box .game-stat-label {
+  color: #3f6b35;
+}
+
+.game-stats-incorrect-box .game-stat-label {
+  color: #8a3f2c;
+}
+
+.game-stats-progress-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.game-stats-progress-wrapper .game-stat-label {
+  color: var(--color-text-muted);
+}
+
+.game-translation-card {
+  appearance: none;
+  background-color: white; /* Same as the word card */
+  border: 1px solid var(--color-border); /* Same border */
+  border-radius: 10px; /* Same rounded corners */
+  box-sizing: border-box;
+  padding: 10px;
+  position: relative; /* Anchors the correct/incorrect ::after badge */
+  text-align: center; /* Centered text */
+  font-family: "Noto Sans", sans-serif;
+  /* Smaller than the card's 1.2em original so a 2-3 word phrase still
+     clears the fixed card height below without needing to scroll. */
+  font-size: 1.05em !important;
+  color: var(--color-text); /* Same text color */
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Same shadow */
+  transition: background-color 0.3s ease; /* Smooth hover effect */
+  cursor: pointer; /* Make it clickable */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 72px;
+  max-height: 72px;
+  min-height: 72px;
+  min-width: 0;
+  margin: 0;
+  line-height: 1.25em; /* Reduce line spacing slightly */
+  /* Long words (Norwegian compounds especially, e.g. "salgsrepresentanten")
+     wrap at real syllable boundaries with a hyphen instead of getting cut
+     at an arbitrary character — needs each card's lang attribute (set per
+     card below, since options can be Norwegian or English depending on
+     the exercise direction) so the browser picks the right hyphenation
+     dictionary. overflow-wrap is just the fallback for the rare word a
+     dictionary doesn't cover. */
+  hyphens: auto;
+  overflow-wrap: break-word;
+  overflow-y: auto;
+}
+
+.game-translation-card:hover {
+  background-color: #e6f7ff; /* Hover effect same as word card */
+}
+
+/* Grading disables every answer card to prevent a second response. Keep the
+   answer text at its normal readable color instead of inheriting the global
+   pale-gray disabled-button treatment; color and animation already explain
+   which answer was right. */
+.game-translation-card:disabled {
+  color: var(--color-text);
+  cursor: default;
+}
+
+.game-translation-card:focus-visible {
+  outline: 3px solid var(--color-link);
+  outline-offset: 3px;
+}
+
+/* Typed recall occupies the same answer area and uses the same type, border,
+   radius, shadow, and primary blue as the existing cards/buttons. It is a
+   new interaction, but not a new visual language. */
+.game-grid.game-typed-grid {
+  align-content: start;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+}
+
+.game-typed-answer-form {
+  height: auto;
+  overflow: visible;
+  width: 100%;
+}
+
+.game-typed-answer-row {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.game-typed-answer-input {
+  appearance: none;
+  background-color: var(--color-white);
+  /* Match the prompt card directly above it. */
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  color: var(--color-text);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1.2em;
+  min-height: 60px;
+  min-width: 0;
+  padding: 10px 15px;
+  text-align: center;
+  width: 100%;
+}
+
+.game-typed-answer-input:focus,
+.game-typed-answer-input:focus-visible {
+  border-color: var(--color-border);
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  outline: none;
+}
+
+.game-typed-submit {
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: 10px;
+  color: var(--color-white);
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  padding: 10px 28px;
+  text-transform: uppercase;
+}
+
+.game-typed-submit:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.game-typed-submit:focus-visible {
+  outline: 3px solid var(--color-link);
+  outline-offset: 3px;
+}
+
+.game-typed-submit:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.game-typed-answer-form.is-correct .game-typed-answer-input {
+  background-color: #edf7e7;
+  border-color: #7cab62;
+}
+
+.game-typed-answer-form.is-incorrect .game-typed-answer-input {
+  background-color: #fbede9;
+  border-color: #c97861;
+}
+
+/* Rendered inside #game-banner-placeholder (see updateTypedAnswerFeedback,
+   wordGame.js) — the gray box itself, its text color included, is
+   #game-banner-placeholder's own background/padding/radius/color, same as
+   every other banner that lives there (streak, cleared-practice, saved/
+   removed word), so nothing needs restating here. */
+
+/* Answer feedback is announced to assistive technology without introducing
+   a new visible message; the existing green/red treatment remains the sole
+   visual feedback. */
+.game-answer-status {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.game-word {
+  align-items: safe center; /* Center short prompts; start long overflow safely. */
+  display: flex;
+  flex: 0 0 8rem;
+  height: 8rem;
+  justify-content: safe center;
+  max-height: 8rem;
+  min-height: 8rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  text-align: center;
+  cursor: default;
+  user-select: none;
+  width: 100%;
+}
+
+/* Sentences (cloze) land in this tier far more often than single vocab
+   words do — a smaller step down from the default than "long" so a
+   typical short sentence doesn't still read at near-heading size. */
+.game-word.game-prompt-medium h2 {
+  font-size: clamp(18px, 2.6vw, 23px) !important;
+  line-height: 1.3;
+}
+
+.game-word.game-prompt-long h2 {
+  font-size: clamp(17px, 2.1vw, 21px) !important;
+  line-height: 1.3;
+}
+
+.game-word.game-prompt-extra-long h2 {
+  font-size: clamp(15px, 1.7vw, 18px) !important;
+  line-height: 1.3;
+}
+
+.game-word-audio {
+  cursor: pointer;
+}
+
+.game-word h2 {
+  /* Higher specificity than the shared h2{font-size:30px} rule, so this
+     wins without needing !important — the tiers above still take over via
+     their extra class the moment a prompt stops being a short word. */
+  font-size: clamp(20px, 3.4vw, 28px);
+  line-height: 1.25;
+  margin: 0;
+  font-family: "Noto Sans", sans-serif;
+  font-weight: 400 !important;
+}
+
+/* Listening questions show this in place of the word's text pre-answer —
+   styled as its own solid circular button (rather than plain text-sized
+   glyph) so it clearly reads as "tap to play" rather than as inert
+   decoration, with a slow pulse to draw the eye to it on first render. */
+.game-listening-icon {
+  align-items: center;
+  background-color: var(--color-primary);
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(13, 58, 105, 0.35);
+  color: var(--color-white);
+  /* Font Awesome's own base rule (.fas/.fa-solid) was winning the cascade
+     and resolving this to display:block, which silently made
+     align-items/justify-content inert (they only affect flex/grid
+     containers) — the glyph was landing in normal block/inline flow
+     instead: left-aligned and pinned to the top of the box, not centered
+     either direction. !important guarantees this wins regardless of how
+     Font Awesome's own selector is written. */
+  display: flex !important;
+  font-size: 2.25rem;
+  height: 5.5rem;
+  width: 5.5rem;
+  justify-content: center;
+  /* The fa-volume-up glyph's own ink (speaker cone + sound-wave arcs) bulges
+     right of center within its character box — a flex-centered box alone
+     still reads as visually off-center. Nudging the content left with
+     padding (rather than the box itself) fixes the optical centering
+     without moving the button. */
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+  animation: game-listening-icon-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes game-listening-icon-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-listening-icon {
+    animation: none;
+  }
+}
+
+.game-word-audio:hover .game-listening-icon {
+  background-color: var(--color-link);
+  box-shadow: 0 6px 14px rgba(13, 58, 105, 0.45);
+}
+
+.game-word-audio:active .game-listening-icon {
+  transform: scale(0.94);
+}
+
+.game-word-audio:focus-visible .game-listening-icon {
+  outline: 3px solid var(--color-link);
+  outline-offset: 3px;
+}
+
+/* Word Game intro screen — mode picker shown before every round. */
+.game-intro-card {
+  align-items: center;
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.game-today-practice {
+  background: #f6f9fd;
+  border: 1px solid var(--color-border-blue-soft);
+  border-radius: 12px;
+  box-sizing: border-box;
+  margin-bottom: 18px;
+  padding: 18px;
+  text-align: left;
+  width: 100%;
+}
+
+.game-today-practice-heading-row,
+.game-daily-quests-heading-row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.game-today-practice-eyebrow {
+  color: var(--color-text-blue-muted);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 2px;
+  text-transform: uppercase;
+}
+
+.game-today-practice .game-intro-heading {
+  margin-bottom: 0;
+  text-align: left;
+}
+
+.game-today-practice-count {
+  color: var(--color-primary);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1.1em;
+  white-space: nowrap;
+}
+
+.game-today-practice-note {
+  color: var(--color-text-slate-soft);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.82em;
+  margin: 9px 0 10px;
+}
+
+.game-today-practice-progress {
+  background-color: #dfe7ef;
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.game-today-practice-progress span {
+  background-color: #6b9e5e;
+  display: block;
+  height: 100%;
+  transition: width 0.25s ease;
+}
+
+.game-today-practice--emerald {
+  border-color: #b9d9ca;
+}
+
+.game-today-practice--ruby {
+  border-color: #e2bbc3;
+}
+
+.game-today-practice--ruby .game-today-practice-progress span {
+  background-color: #b94b5b;
+}
+
+.game-today-practice--sapphire {
+  border-color: #b9cfe5;
+}
+
+.game-today-practice--sapphire .game-today-practice-progress span {
+  background-color: #3478b9;
+}
+
+.game-today-practice-btn {
+  align-items: center;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: 8px;
+  color: var(--color-white);
+  cursor: pointer;
+  display: flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 7px;
+  justify-content: center;
+  letter-spacing: var(--letter-spacing-caps);
+  margin-top: 14px;
+  min-height: 44px;
+  padding: 10px 16px;
+  text-transform: uppercase;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  width: 100%;
+}
+
+.game-today-practice-btn:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.game-today-practice-btn.is-complete {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.game-today-practice-btn.is-bonus {
+  background-color: var(--color-bonus);
+  border-color: var(--color-bonus);
+}
+
+.game-today-practice-btn.is-bonus:hover {
+  background-color: var(--color-bonus-hover);
+  border-color: var(--color-bonus-hover);
+}
+
+.game-daily-quests {
+  text-align: left;
+  width: 100%;
+}
+
+.game-daily-quests-heading-row h3 {
+  color: var(--color-primary);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.95em;
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-caps-heading);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.game-daily-quests-heading-row > span {
+  color: var(--color-text-faint);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.72em;
+}
+
+.game-daily-quest-list {
+  display: grid;
+  gap: 9px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.game-daily-quest {
+  align-items: center;
+  background-color: var(--color-white);
+  border: 1px solid #d6dce2;
+  border-radius: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 178px;
+  padding: 15px 10px 12px;
+  text-align: center;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.game-daily-quest--active {
+  background-color: var(--color-bg-quest-active);
+  border-color: #8daac7;
+  box-shadow: 0 5px 16px rgba(13, 58, 105, 0.1);
+  transform: translateY(-2px);
+}
+
+.game-daily-quest--locked {
+  background-color: var(--color-table-header-bg);
+  color: var(--color-text-faint);
+}
+
+.game-daily-quest--complete {
+  background-color: #f4f9f1;
+  border-color: #aac9a1;
+}
+
+.game-daily-quest-gem {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: drop-shadow(0 4px 8px rgba(28, 42, 58, 0.3));
+  flex: 0 0 68px;
+  width: 68px;
+}
+
+.game-daily-quest-gem--emerald {
+  background-image: url("../Resources/Photos/emerald.webp");
+}
+
+.game-daily-quest-gem--ruby {
+  background-image: url("../Resources/Photos/ruby.webp");
+}
+
+.game-daily-quest-gem--sapphire {
+  background-image: url("../Resources/Photos/sapphire.webp");
+}
+
+.game-daily-quest--locked .game-daily-quest-gem {
+  filter: drop-shadow(0 4px 8px rgba(28, 42, 58, 0.15)) saturate(0.45)
+    opacity(0.6);
+}
+
+.game-daily-quest-copy {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.game-daily-quest-title {
+  color: #31465b;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.78em;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.game-daily-quest-target,
+.game-daily-quest-status {
+  color: var(--color-text-slate);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.66em;
+  line-height: 1.25;
+}
+
+.game-daily-quest-status {
+  font-weight: 700;
+  margin-top: auto;
+  text-transform: uppercase;
+}
+
+.game-daily-quest--complete .game-daily-quest-status {
+  color: #477340;
+}
+
+.game-intro-divider {
+  align-items: center;
+  color: var(--color-text-faint);
+  display: flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.72em;
+  gap: 10px;
+  letter-spacing: 0.04em;
+  margin: 22px 0 8px;
+  text-transform: uppercase;
+  width: 100%;
+}
+
+.game-intro-divider::before,
+.game-intro-divider::after {
+  background-color: #d9dde2;
+  content: "";
+  flex: 1;
+  height: 1px;
+}
+
+.game-intro-heading {
+  color: var(--color-primary);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1.4em;
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-caps-heading);
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+}
+
+.game-intro-subheading {
+  color: var(--color-text-muted);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.95em;
+  margin: 0 0 18px 0;
+}
+
+.game-intro-options {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+}
+
+.game-intro-option {
+  align-items: center;
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  color: var(--color-primary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font-family: "Noto Sans", sans-serif;
+  gap: 4px;
+  justify-content: center;
+  padding: 20px 10px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+  user-select: none;
+}
+
+.game-intro-option:hover {
+  background-color: #f0f6ff;
+  border-color: var(--color-accent);
+}
+
+.game-intro-option:active {
+  transform: scale(0.97);
+}
+
+.game-intro-option-count {
+  font-size: 1.8em;
+  font-weight: 700;
+}
+
+.game-intro-option-label {
+  font-size: 0.85em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.game-intro-option-infinite {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  flex-direction: row;
+  gap: 10px;
+}
+
+.game-intro-option-infinite:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.game-intro-option-infinite i {
+  font-size: 1.3em;
+}
+
+.game-my-words-options {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+}
+
+.game-my-words-option {
+  align-items: center;
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  color: var(--color-primary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font-family: "Noto Sans", sans-serif;
+  gap: 4px;
+  justify-content: center;
+  padding: 14px 6px;
+  text-align: center;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
+  user-select: none;
+}
+
+.game-my-words-option:hover {
+  background-color: #f0f6ff;
+  border-color: var(--color-accent);
+}
+
+.game-my-words-option:active {
+  transform: scale(0.97);
+}
+
+.game-my-words-option.is-selected {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-white);
+}
+
+.game-my-words-option-value {
+  font-size: 1.25em;
+  font-weight: 700;
+}
+
+.game-my-words-option-label {
+  font-size: 0.72em;
+  letter-spacing: 0.02em;
+}
+
+.placement-card {
+  gap: 10px;
+}
+
+.placement-option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.placement-option-btn {
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.06);
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.95em;
+  padding: 14px 16px;
+  text-align: left;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.placement-option-btn:hover {
+  background-color: #f0f6ff;
+  border-color: var(--color-accent);
+}
+
+.placement-option-btn:focus-visible {
+  outline: 3px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+.placement-start-btn {
+  align-items: center;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: 8px;
+  color: var(--color-white);
+  cursor: pointer;
+  display: flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  justify-content: center;
+  margin-top: 6px;
+  min-height: 44px;
+  padding: 10px 16px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  width: 100%;
+}
+
+.placement-start-btn:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.placement-progress {
+  color: var(--color-text-slate-soft);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.82em;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.placement-retake-link {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.85em;
+  letter-spacing: var(--letter-spacing-caps);
+  margin-top: 18px;
+  padding: 9px 18px;
+  text-transform: uppercase;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.placement-retake-link:hover {
+  background-color: var(--color-bg-subtle);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.placement-retake-link:focus-visible {
+  outline: 3px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .game-intro-card {
+    padding: 20px 12px;
+  }
+
+  .game-today-practice {
+    padding: 14px;
+  }
+
+  .game-daily-quest-list {
+    gap: 6px;
+  }
+
+  .game-daily-quest {
+    min-height: 166px;
+    padding: 11px 5px 9px;
+  }
+
+  .game-daily-quest-gem {
+    flex-basis: 54px;
+    width: 54px;
+  }
+
+  .game-daily-quest-title {
+    font-size: 0.7em;
+  }
+
+  .game-daily-quest-target,
+  .game-daily-quest-status {
+    font-size: 0.58em;
+  }
+}
+
+/* Word Game round-summary screen — shown when a bounded round finishes or
+   an infinite round is manually ended (see #game-end-session-btn below). */
+.game-summary-card {
+  align-items: center;
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.game-summary-icon {
+  color: var(--color-level-mid);
+  font-size: 2.2em;
+  margin-bottom: 10px;
+}
+
+.game-summary-heading {
+  color: var(--color-primary);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1.4em;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+}
+
+.game-summary-gems {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: -6px 0 20px;
+  width: 100%;
+}
+
+.game-summary-gem {
+  align-items: center;
+  background-color: var(--color-bg-stat);
+  border: 1px solid #d8dee5;
+  border-radius: 8px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.7em;
+  font-weight: 700;
+  gap: 4px;
+  max-width: 110px;
+  padding: 9px 6px;
+}
+
+/* Shown when recordStreakActivity() (streak.js) reports an active streak
+   after this round — see showWordGameRoundSummary() in wordGame.js. */
+.game-summary-streak {
+  align-items: center;
+  background-color: var(--color-streak-bg);
+  border-radius: 8px;
+  color: var(--color-streak-text);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: -8px 0 20px 0;
+  padding: 10px 16px;
+  width: 100%;
+}
+
+.game-summary-streak-count {
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1.1em;
+  font-weight: 700;
+}
+
+.game-summary-streak .fa-fire {
+  color: var(--color-streak-icon);
+  margin-right: 4px;
+}
+
+.game-summary-streak-note {
+  color: #8a5a2e;
+  font-size: 0.8em;
+  margin: 0;
+}
+
+.game-summary-stats {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 25px;
+  width: 100%;
+}
+
+.game-summary-stat {
+  background-color: var(--color-bg-stat);
+  border-radius: 10px;
+  padding: 14px 10px;
+}
+
+/* The "p." tag qualifier isn't decorative — both are always literally
+   <p> tags (see wordGame.js's round summary and myStats.js's
+   createStatTile), and My Stats now nests them inside a .definition card
+   (for its own single-paper redesign). .definition p, li's global 20px
+   otherwise wins on specificity over these classes' 1.5em/0.8em alone,
+   flattening value and label to the same size and losing the
+   big-number/small-label hierarchy entirely. */
+p.game-summary-stat-value {
+  color: var(--color-primary);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1.5em;
+  font-weight: 700;
+  margin: 0;
+}
+
+p.game-summary-stat-label {
+  color: var(--color-text-muted);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.8em;
+  letter-spacing: 0.03em;
+  margin: 4px 0 0 0;
+  text-transform: uppercase;
+}
+
+.game-summary-primary-btn {
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: 6px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  color: var(--color-white);
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  padding: 15px;
+  text-transform: uppercase;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  user-select: none;
+  width: 100%;
+}
+
+.game-summary-primary-btn:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.game-summary-primary-btn:active {
+  background-color: var(--color-primary-active);
+  border-color: var(--color-primary-active);
+}
+
+/* Lists the specific words missed during the round — populated from
+   wordGameSessionMissedWords in showWordGameRoundSummary() (wordGame.js).
+   Rows themselves are real .word-list-row rows (built via WordListAPI, see
+   wordGame.js) so they match the Word List / My Words pages exactly; this
+   just gives the wrapping table a shorter cap than the page-wide 70vh on
+   .word-list-table-container, since it sits inside a summary card. */
+.game-summary-missed {
+  margin-bottom: 20px;
+  text-align: left;
+  width: 100%;
+}
+
+.game-summary-missed-heading {
+  color: var(--color-text-muted);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+}
+
+.game-summary-missed-table-container {
+  max-height: 260px;
+  padding: 0;
+}
+
+.game-summary-missed-more {
+  color: var(--color-text-muted);
+  font-size: 0.8em;
+  margin: 8px 0 0 0;
+  text-align: center;
+}
+
+.game-minimal-pairs-missed-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.game-minimal-pairs-missed-list li {
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 0.9em;
+  padding: 8px 0;
+}
+
+.game-minimal-pairs-missed-list li:last-child {
+  border-bottom: none;
+}
+
+/* Deliberately not .distractor-muted: that class sets pointer-events:none,
+   right for the regular game's true wrong-distractor cards, wrong here —
+   with only two cards total, the unchosen one is never an irrelevant
+   distractor, just the other word in the pair, and it must stay clickable
+   for audio replay (see handleMinimalPairAnswer). */
+.game-minimal-pairs-unselected {
+  opacity: 0.6;
+}
+
+/* Plain block wrapper so the round-progress row below stacks under the
+   stats bar instead of becoming a flex sibling of it (#game-session-stats
+   itself is a .game-stats-content flex row). */
+.game-stats-wrapper {
+  width: 100%;
+}
+
+/* Bounded-round progress ("Word 4 of 20"), filling with green as the round
+   advances — shown where infinite mode's level-progress-bar-bg/-fill sit,
+   since session rounds don't level up/down and that bar has nothing left
+   to communicate there (see renderStats() and evaluateProgression() in
+   wordGame.js). Mirrors .level-progress-bar-bg/-fill's colors so the two
+   read as the same component in different modes. */
+.game-session-progress-bg {
+  background-color: var(--color-progress-track);
+  border-radius: 10px;
+  flex-grow: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.game-session-progress-fill {
+  background-color: var(--color-success-bg);
+  transition: width 0.3s ease;
+}
+
+/* Wraps the accuracy/progress bar and the Quit & see stats button below it
+   (see renderStats() in wordGame.js) — stacked at every width, not just
+   mobile, so the button reads as clearly separate from the bar rather
+   than crowding beside it. */
+.game-stats-accuracy-row {
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.game-stats-accuracy-row .level-progress-bar-bg,
+.game-stats-accuracy-row .game-session-progress-bg {
+  flex-grow: 1;
+  /* Explicit rather than relying on align-items:stretch — the mobile
+     override below switches this row to flex-direction:column (see
+     .game-stats-accuracy-row in the max-width:600px block), where stretch
+     only affects width. level-progress-bar-bg also has no in-flow content
+     (its percentage text is position:absolute) to otherwise establish a
+     height; game-session-progress-bg is given the same explicit height
+     for consistency now that Quit & see stats sits beside it too. */
+  height: 30px;
+}
+
+/* The "end early" control. Uppercase/letter-spaced to match the filter
+   pills' (.type-filter select etc.) "suave" button language, and given
+   enough padding to read as a real button rather than a thin strip — but
+   deliberately outlined rather than solid-filled, and sized modestly:
+   this is an "opt out early" action, not one worth visually competing
+   with Next Word or the answer cards for attention.
+
+   #game-end-session-btn is a static button in the toolbar (index.html, in
+   .cefr-filter-group — the same spot the CEFR filter occupies outside
+   Word Game mode) shown only mid-round via
+   updateEndSessionToolbarButtonVisibility() (wordGame.js), on every
+   screen size: the word game hides .cefr-filter entirely, which is what
+   leaves the room for this button to sit there instead of needing to
+   relocate on mobile. */
+.game-end-session-btn {
+  align-items: center;
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-primary);
+  border-radius: 8px;
+  color: var(--color-primary);
+  cursor: pointer;
+  display: flex;
+  flex-shrink: 0;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  justify-content: center;
+  letter-spacing: 0.04em;
+  padding: 9px 14px;
+  text-transform: uppercase;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.game-end-session-btn:hover {
+  background-color: var(--color-bg-hover-blue);
+}
+
+.game-end-session-btn:active {
+  background-color: var(--color-bg-blue-active);
+}
+
+/* Hidden by default — .hidden (index.html) covers the "no round active"
+   case via JS, but the base class above still defaults to display:flex,
+   so the toolbar instance needs its own baseline of display:none here,
+   overridden only within word-game mode. */
+#game-end-session-btn {
+  display: none;
+}
+
+#search-container-inner.word-game-active #game-end-session-btn {
+  display: flex;
+  /* Matches the 42px height of its toolbar neighbors (.cefr-filter,
+     .type-filter, etc. — see the shared height:42px rule) instead of the
+     shorter, content-driven height .game-end-session-btn gets on its
+     own. The mobile rule further below matches it to the row's shorter
+     38px height instead. */
+  height: 42px;
+  padding: 0 14px;
+}
+
+.header-top-row {
+  align-items: center;
+}
+
+.game-word-card {
+  align-items: center; /* Center the content horizontally */
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-sizing: border-box;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column; /* Stack the label and word vertically */
+  font-size: 1.2em;
+  height: 290px;
+  justify-content: center; /* Center the content vertically */
+  margin-bottom: 15px !important;
+  overflow: hidden; /* Prevent overflowing content from changing layout */
+  padding: 10px; /* Reduce padding at the top, add more below */
+  /* Without this, a block-level box like this one would still default to
+     filling its parent's width — true in the word game's own layout, a
+     plain block parent. But the placement test wraps this in
+     .game-intro-card instead, whose align-items:center centers flex
+     children at their own content width rather than stretching them,
+     which otherwise collapsed this into a tall, narrow sliver. */
+  width: 100%;
+  position: relative; /* Allow for flexible layout */
+  max-height: 290px;
+  min-height: 290px;
+}
+
+.gender {
+  align-self: flex-start; /* Align the label to the left */
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-icon-muted) !important;
+  font-family: "Noto Sans", sans-serif;
+  padding: 3px 4px; /* Smaller padding */
+  font-size: 10px; /* Smaller font size */
+  font-weight: 500 !important;
+  border-radius: 4px;
+  text-align: center;
+  text-transform: uppercase;
+  margin: 10px 0px 5px 0px !important; /* Space between the label and the word */
+  min-width: fit-content;
+  user-select: none; /* Prevent text selection */
+}
+
+.genre-filter {
+  display: none;
+}
+
+h1 {
+  color: var(--color-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+h2 {
+  color: var(--color-heading-accent);
+  font-size: 30px;
+  font-weight: bold;
+  margin: -5px 0 -5px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+h3 {
+  user-select: none;
+}
+
+h4 {
+  user-select: none;
+}

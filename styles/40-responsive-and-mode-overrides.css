@@ -1,0 +1,1027 @@
+@media (max-width: 1024px) {
+  #back-button,
+  #speed-btn,
+  #toggle-english-btn {
+    font-size: 10px;
+    min-width: 80px;
+    padding: 0.5em;
+  }
+
+  .cefr-audio-block {
+    flex-direction: row;
+  }
+
+  /* In the row layout, height (not width) is what needs to line up with
+     .sentence-audio-icon so the two look aligned sitting side by side.
+     Width still needs to be fixed (not just floored) here — "C" is one
+     character narrower than "A1"/"B2", so a min-width alone left it
+     sized to its own content while the two-letter labels sized to
+     theirs, and the two no longer matched. The value itself is the
+     label's own unconstrained (desktop) height, ~29px, not its desktop
+     width (38px) — reusing the wider desktop value here made the badge
+     read as a stretched-out rectangle instead of a compact sticker. */
+  .sentence-cefr-label {
+    width: 29px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .definition {
+    margin-bottom: 10px;
+    padding: 20px;
+  }
+
+  .english,
+  .etymology,
+  .pronunciation {
+    line-height: 1.4 !important;
+  }
+
+  .error-message {
+    margin: 5px 0px;
+  }
+
+  footer,
+  header {
+    width: 100%; /* Ensure both footer and header are the same width */
+    padding: 10px 20px; /* Add consistent padding */
+    box-sizing: border-box; /* Ensure padding is included in the element's total width */
+  }
+
+  footer p {
+    font-size: 11px !important;
+    margin: 0;
+  }
+
+  /* Example Sentences */
+  .game-cefr-spacer p {
+    font-size: 0.7em !important;
+  }
+
+  .game-grid {
+    grid-gap: 10px; /* Slightly increase space between the cards */
+    min-height: 154px;
+  }
+
+  .game-typed-answer-form {
+    height: auto;
+  }
+
+  .game-cleared-practice-banner,
+  .game-removed-word-banner,
+  .game-saved-word-banner,
+  .game-streak-banner,
+  .game-typed-answer-note {
+    font-size: 0.9em !important;
+  }
+
+  .game-translation-card {
+    font-size: 1em !important; /* Slightly smaller font size for mobile */
+  }
+
+  /* Stats Card Styling */
+  .game-stats-content {
+    margin: 0px 0px 5px 0px; /* Center horizontally */
+  }
+
+  /* .game-instruction nests inside .game-stats-progress-wrapper at every
+     width (see the base rule above) -- this just tightens its spacing
+     further for the narrower mobile column, on top of the smaller
+     font-size already set for .game-instruction at these widths below. */
+  .game-stats-progress-wrapper > .game-instruction {
+    margin-top: 1px;
+  }
+
+  /* Flatten the progress bar and drop its in-bar text ("Word 5 of 20" /
+     "55%") on every mobile width, not just short-height phones — the
+     label above it (Round progress / Recent accuracy) already says what
+     it is, so the number itself is the only thing worth the extra height.
+     Was previously scoped to max-width:600px and max-height:700px (see
+     that block below); this is now the general mobile look. */
+  .game-stats-accuracy-row .level-progress-bar-bg,
+  .game-stats-accuracy-row .game-session-progress-bg {
+    height: 8px;
+  }
+
+  .game-session-progress-label,
+  .level-progress-label {
+    display: none;
+  }
+
+  /* The middle column is too narrow on mobile to fit the accuracy bar and
+     the "Quit & see stats" button side by side (see .game-stats-accuracy-row
+     in renderStats(), wordGame.js) — stack them instead of letting the bar
+     get squeezed to 0 width. */
+  .game-stats-accuracy-row {
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .game-stats-correct-box,
+  .game-stats-incorrect-box {
+    min-width: 0;
+    max-width: 78px;
+    padding: 6px;
+  }
+
+  .game-stats-correct-box .game-stat-label,
+  .game-stats-incorrect-box .game-stat-label {
+    font-size: 9px;
+  }
+
+  .game-stats-correct-box #streak-count,
+  .game-stats-incorrect-box #review-count {
+    font-size: 16px;
+  }
+
+  .game-typed-answer-row {
+    gap: 10px;
+  }
+
+  /* Typed recall has one full-width answer card rather than a two-row choice
+   grid. Keep just a small separation before the primary action. */
+  .game-typed-grid ~ .game-next-button-container #game-next-word-button {
+    margin-top: 10px;
+  }
+
+  .game-word-card {
+    margin-bottom: 10px !important;
+  }
+
+  h1 {
+    font-size: 10vw !important;
+    margin-bottom: 10px;
+    margin-top: -5px;
+    white-space: nowrap;
+  }
+
+  h2 {
+    font-size: 7vw;
+    hyphens: auto;
+    overflow-wrap: break-word;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  header {
+    padding: 10px 15px;
+  }
+
+  header p {
+    font-size: 3vw !important;
+    margin: -10px 0 0px 0 !important;
+  }
+
+  input[type="text"] {
+    padding: 10px 10px;
+  }
+
+  /* Adjust landing card width for mobile */
+  #landing-card {
+    width: 85%; /* Ensure it takes up more space on mobile */
+    margin: 5px auto; /* Matches the margin of definition cards */
+    padding: 20px; /* Add more padding for mobile readability */
+  }
+
+  #landing-card h2 {
+    font-size: 26px !important;
+  }
+
+  /* Adjust landing card heading (h3) for mobile */
+  #landing-card h3 {
+    font-size: 14px; /* Reduce font size to fit smaller screens */
+  }
+
+  /* Adjust landing card heading (h4) for mobile */
+  #landing-card h4 {
+    font-size: 12px; /* Reduce font size to fit smaller screens */
+  }
+
+  /* Adjust landing card paragraph text for mobile */
+  #landing-card p {
+    font-size: 10px !important; /* Reduce paragraph font size — must match the base rule's !important or it never wins */
+  }
+
+  .landing-card-btn {
+    font-size: 10px; /* Smaller font size for subtlety */
+    padding: 6px 8px;
+  }
+
+  .linkedin-btn {
+    font-size: 12px; /* Slightly smaller font size */
+    padding: 0px 10px 0px 10px !important; /* Adjust padding to reduce the button's height */
+    border-radius: 4px;
+  }
+
+  .linkedin-btn::after {
+    content: "Connect"; /* Set the text to 'Connect' on mobile */
+  }
+
+  /* Hide the original text */
+  .linkedin-btn span {
+    display: none;
+  }
+
+  .feedback-footer-btn {
+    font-size: 12px;
+    padding: 0px 10px;
+  }
+
+  .landing-card-button-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .linkedin-icon {
+    width: 14px; /* Adjust icon size to match the button */
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 5px 0 5px 0;
+    gap: 8px; /* Ensure proper space between buttons */
+    padding: 0 20px; /* Add padding to create space between the buttons and the screen edges */
+  }
+
+  /* The whole box */
+  .multiple-results-definition {
+    padding: 15px 60px 15px 20px;
+  }
+
+  /* The word, gender and definition */
+  .multiple-results-definition-header {
+    display: flex;
+    flex-direction: row; /* Horizontally aligns the word and definition */
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* The definition */
+  .multiple-results-definition-text {
+    flex: 1;
+    font-size: 14px !important;
+    margin-left: 20px; /* Space between the gender/word and definition */
+    hyphens: auto;
+    overflow-wrap: break-word;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .multiple-results-my-words-star {
+    right: 15px;
+    top: 10px;
+  }
+
+  /* The word and gender */
+  .multiple-results-word-gender {
+    display: flex;
+    font-size: 18px !important;
+    flex-direction: column; /* Ensures word and gender are stacked vertically */
+    margin: 0 20px 0 0 !important;
+    line-height: 1.2 !important;
+    justify-content: center; /* Vertically center the word and gender within their container */
+  }
+
+  .practice-row {
+    display: block;
+  }
+
+  .result-header {
+    padding: 20px;
+  }
+
+  #results-container {
+    margin: 5px auto;
+    width: 97.5%;
+  }
+
+  .search-and-random-wrapper {
+    align-items: center; /* Vertically align items */
+    box-sizing: border-box; /* Include padding and border within width */
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+    width: 100%;
+  }
+
+  #search-bar {
+    flex-grow: 1;
+    flex-basis: 70%; /* Use percentage for flexibility */
+    min-width: 10px; /* Minimum width to avoid excessive shrinking */
+  }
+
+  .search-bar-wrapper {
+    min-width: 0px;
+  }
+
+  .search-btn {
+    padding: 8px;
+    min-width: 60px !important;
+    max-width: 60px !important;
+  }
+
+  .search-btn i {
+    text-align: center;
+    font-size: 16px;
+  }
+
+  #search-container {
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 10px 5px 10px 5px;
+  }
+
+  #search-container-inner {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    min-width: 100%;
+  }
+
+  #search-container-inner.word-game-active {
+    gap: 0;
+  }
+
+  #search-container-inner.word-game-active .cefr-filter select {
+    padding-right: 30px;
+  }
+
+  .selectors-wrapper {
+    box-sizing: border-box !important;
+    display: flex;
+    gap: 5px;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .sentence-box-english,
+  .sentence-box-norwegian {
+    font-size: 15px;
+    margin-bottom: 2px !important;
+    width: auto;
+  }
+
+  .sentence-box-english {
+    border-radius: 0 0 12px 12px; /* Rounded corners on bottom */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 6px 9px 6px 49px;
+  }
+
+  .sentence-box-norwegian {
+    border-radius: 12px 12px 0 0; /* Rounded corners on top */
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+    padding: 6px 9px;
+  }
+
+  /* Norwegian box styling when English is hidden */
+  .sentence-box-norwegian-hidden {
+    border-radius: 12px; /* Apply full rounding when only the Norwegian box is visible */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .sentence-btn {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  .sentence-container {
+    display: block; /* Stack sentence boxes on top of each other */
+    gap: 10px; /* Adds space between the boxes */
+    margin-bottom: 10px;
+  }
+
+  .sentence-content {
+    gap: 10px; /* Adds space between the Norwegian and English sentences */
+  }
+
+  .result-header.sentence-results-header,
+  .result-header.word-results-header,
+  .result-header.story-results-header {
+    margin-bottom: 10px;
+  }
+
+  .sticky-cefr-label {
+    height: 25px !important;
+  }
+
+  .sticky-genre {
+    height: 25px;
+  }
+
+  #sticky-header {
+    border: none;
+    padding: 0.25em 0.5em;
+    gap: 0.5em;
+  }
+
+  .sticky-title-container {
+    gap: 5px; /* Adjust to desired spacing */
+  }
+
+  .sticky-title-japanese {
+    font-size: 1.3em;
+  }
+
+  .sticky-title-english {
+    font-size: 0.8em;
+  }
+
+  #stories {
+    display: grid;
+    grid-template-columns: 1fr;
+    row-gap: 10px;
+  }
+
+  .stories-detail-container {
+    margin-top: 0px !important;
+  }
+
+  .stories-list-item {
+    margin: 0;
+  }
+
+  .stories-story-header h2 {
+    font-size: 16px;
+  }
+
+  .stories-subtitle {
+    font-size: 14px !important;
+  }
+
+  #story-content {
+    margin: 0.75em 0;
+    padding: 1em 1em 1em 1em;
+  }
+
+  #story-content > div {
+    margin-bottom: 15px; /* Margin for each sentence couplet */
+  }
+
+  .story-image {
+    margin-bottom: 1.25em;
+  }
+
+  .story-recommendation {
+    margin: 0 0 7.5px 0;
+  }
+
+  .type-filter,
+  .pos-filter,
+  .cefr-filter,
+  .genre-filter,
+  .game-english-filter {
+    box-sizing: border-box !important;
+    background-color: var(
+      --color-primary
+    ); /* Consistent background for all filters */
+    border-radius: 15px;
+    padding: 0;
+    min-width: 0px;
+  }
+
+  .type-filter,
+  .pos-filter,
+  .genre-filter,
+  .game-english-filter,
+  .search-bar-wrapper {
+    box-sizing: border-box !important;
+    width: 100%;
+  }
+
+  /* My Stats hides the search bar entirely — it's a personal report, not
+     a browsable list (see handleTypeChange's "my-stats" branch in
+     scripts.js) — so .my-words-nav-btn (always the small icon-only circle
+     now, on every page and screen size) isn't sharing the row with a
+     flex-grow search bar the way it is everywhere else above. Without
+     this override, #search-container-inner's flex-wrap above dropped it
+     onto its own line under the type dropdown: a lone circle stranded
+     below, instead of sitting at the end of the dropdown's row the way it
+     sits at the end of the search bar everywhere else. Giving the
+     dropdown's wrapper the flex-grow instead (mirroring
+     .search-bar-wrapper's own flex-grow: 1 next to this same button in
+     every other mode) reproduces that same "grows to fill, button stays
+     put" layout with the type dropdown standing in for the search bar. */
+  body.my-stats-mode #search-container-inner {
+    flex-wrap: nowrap;
+    /* min-width stays 100% (the unscoped rule above) — that's what
+       stretches the row edge to edge in word-game-mode too. Overriding
+       it to 0 here was the bug: #search-container-inner then had nothing
+       to distribute, so both wrappers below just shrank to their content
+       and left the row shrink-wrapped and centered instead of full-width. */
+  }
+
+  body.my-stats-mode .selectors-wrapper {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+  }
+
+  body.my-stats-mode .search-and-random-wrapper {
+    flex: 0 0 auto;
+    width: auto;
+  }
+
+  body.my-stats-mode .type-filter {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .type-filter i,
+  .pos-filter i,
+  .cefr-filter i,
+  .genre-filter i,
+  .game-english-filter i {
+    font-size: 12px; /* Make the arrow smaller */
+    pointer-events: none; /* Ensure the icon doesn't block clicks */
+  }
+
+  .type-filter select,
+  .pos-filter select,
+  .cefr-filter select,
+  .genre-filter select,
+  .game-english-filter select {
+    box-sizing: border-box !important;
+    cursor: pointer;
+    font-size: 10px; /* Further reduce the font size for very small screens */
+    font-weight: 500;
+    text-transform: uppercase;
+    padding: 0 30px 0 8px;
+    min-width: 0px;
+    letter-spacing: 0px;
+    text-overflow: unset;
+  }
+
+  .word-gender {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    hyphens: auto;
+  }
+
+  .word-gender .gender {
+    margin-top: 10px;
+  }
+
+  .word-list-norwegian {
+    font-size: 12px;
+    padding: 6px !important;
+  }
+
+  .word-list-english {
+    font-size: 10px;
+    padding: 6px !important;
+  }
+
+  /* .word-list-favorite deliberately omitted here: its padding is always
+     overridden by .word-list-row .word-list-favorite on specificity alone
+     (see that rule), so a value here would never actually apply. */
+  .word-list-class,
+  .word-list-level,
+  .word-list-strength {
+    padding: 2px !important;
+  }
+
+  .word-strength-dot {
+    font-size: 6px;
+  }
+
+  /* These four columns are already shrink-to-content (see
+     .word-list-row .word-list-class/.word-list-level/.word-list-strength/
+     .word-list-favorite's width: 1% in the unscoped rules), but a long POS
+     label like "EXPRESSION" plus a 40px favorite-star touch target were
+     together outweighing the Norwegian and English columns combined on a
+     375px screen. Tightening the badges/button themselves (not just their
+     cell padding, already reduced above) gives the two word columns their
+     width back. */
+  .word-list-class-badge {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+  }
+
+  .word-list-level .game-cefr-label {
+    font-size: 10px;
+    min-width: 14px;
+    padding: 2px 5px;
+  }
+
+  .word-list-row .word-list-favorite {
+    padding: 2px !important;
+  }
+
+  .word-list-favorite-button {
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+  }
+
+  .word-list-export-controls .word-list-export-button {
+    font-size: 10px;
+  }
+
+  .word-list-header {
+    padding: 10px 20px !important;
+    margin: 0px 5px;
+  }
+
+  .word-list-table {
+    border-spacing: 0 8px !important;
+  }
+  .word-list-table-container {
+    padding: 0 5px;
+  }
+
+  /* =========================================================
+   WORD GAME PAGE MODE
+   ========================================================= */
+
+  body.word-game-mode {
+    min-height: 100svh;
+    overflow-x: hidden;
+    overflow-x: clip;
+  }
+
+  /* The footer is unnecessary while actively playing. */
+  body.word-game-mode footer {
+    display: none;
+  }
+
+  /* Keep the clickable title, but remove excess header height. */
+  body.word-game-mode header {
+    padding: 6px 12px;
+  }
+
+  body.word-game-mode #site-title {
+    font-size: clamp(28px, 7vw, 38px) !important;
+    line-height: 1.1;
+    margin: 0;
+  }
+
+  /* The third column used to reserve extra room (1.5fr) for the CEFR
+     dropdown it once held. The word game hides that dropdown entirely now
+     (see .cefr-filter in startWordGame(), wordGame.js) — .cefr-filter-group
+     holds only "Quit & see stats" and the report-issue flag here, so a
+     fixed fr share leaves a large dead gap after them at wider widths in
+     this range (768-1024px) where the row itself is wide but their
+     combined content isn't. max-content instead sizes the column to that
+     content exactly, whatever it is; the freed space goes to the other
+     two (still 1fr each) columns. */
+  body.word-game-mode .selectors-wrapper {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr)
+      max-content;
+    gap: 5px;
+    width: 100%;
+  }
+
+  /* One explicit height, set on every pill in the row (rather than
+     leaving some at the base 42px and letting CSS Grid's default
+     align-items:stretch inflate others to match whatever the tallest
+     sibling happens to be) — that mix is exactly what made them look
+     inconsistent and, once "Show English" needed two lines, chubby.
+     38px is tall enough for two lines of the english selector's wrapped
+     text but leaner than the 42-48px mix this replaces. */
+  body.word-game-mode .type-filter,
+  body.word-game-mode .game-english-filter,
+  body.word-game-mode .cefr-filter-group,
+  body.word-game-mode .cefr-filter {
+    height: 38px;
+  }
+
+  body.word-game-mode .type-filter select,
+  body.word-game-mode .cefr-filter select {
+    height: 38px;
+  }
+
+  /* Let the Level selector shrink beside its separate lock control. */
+  body.word-game-mode #cefr-select {
+    flex: 1 1 0;
+    width: 0;
+  }
+
+  /* Trimmed down from its non-game-mode padding/font-size (which alone
+     pushed it past 40px tall) so it fits the shared 38px row instead of
+     overflowing it. Right margin keeps it from sitting flush against
+     the pill's own edge. */
+  body.word-game-mode #lock-icon {
+    flex: 0 0 16px;
+    font-size: 13px;
+    margin: 0 10px 0 4px;
+    padding: 0;
+  }
+
+  /* Desktop's right:44px (from #search-container-inner.word-game-active
+     .cefr-filter > .fa-chevron-down, an ID-anchored rule that a plain
+     class selector can't outrank regardless of source order) leaves an
+     oversized gap before the lock icon on the much narrower mobile
+     pill — closes that up without touching the lock icon's own
+     position/margin above. Only applies while the lock is actually
+     visible, same as the desktop rule it's overriding. */
+  #search-container-inner.word-game-active.game-lock-visible
+    .cefr-filter
+    > .fa-chevron-down {
+    right: 32px;
+  }
+
+  /* Stretches to fill the shared 38px row rather than sitting as a
+     short button with dead space above and below. */
+  body.word-game-mode .toolbar-report-issue-btn {
+    align-self: stretch;
+    flex: 0 0 auto;
+    font-size: 12px;
+    height: auto;
+    /* Wider horizontal padding than vertical so the button reads as a
+       (slightly wide) square against the row's 38px height, rather than
+       the tall, narrow sliver the old 6px-a-side padding produced. */
+    padding: 4px 13px;
+  }
+
+  /* Overrides the desktop rule's fixed 42px, and stretches to fill the
+     shared 38px row (align-items:center on .cefr-filter-group otherwise
+     leaves it at its own small content height) so it matches its
+     .cefr-filter-group row-mates instead of looking short next to them.
+     Trimmed font/padding/letter-spacing (vs. the flag button's own 12px)
+     because this column has to fit both the flag button and this text
+     label — without the trim, "Quit & see stats" alone was wide enough
+     to push the flag button off the edge of the row on narrow phones. */
+  #search-container-inner.word-game-active #game-end-session-btn {
+    align-self: stretch;
+    flex: 0 0 auto;
+    font-size: 10px;
+    height: auto;
+    letter-spacing: 0.01em;
+    padding: 4px 6px;
+  }
+
+  /* "Show English"/"Hide English" doesn't fit on one line at this font
+     size without either truncating or shrinking past legibility — let it
+     wrap onto two lines within the shared 38px height instead. */
+  body.word-game-mode .game-english-filter select {
+    height: 38px;
+    line-height: 1.05;
+    padding: 1px 24px 1px 6px;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Nudged in from the shared 15px (calibrated for the wider desktop
+     pill) so it doesn't sit too far toward the left edge of these much
+     narrower mobile pills. True vertical centering (top:50%) is kept
+     from the base rule — .game-english-filter's two-line text still
+     centers around the same midpoint as the single-line pills. */
+  body.word-game-mode .type-filter > .fa-chevron-down,
+  body.word-game-mode .game-english-filter > .fa-chevron-down {
+    right: 10px;
+  }
+
+  /* Keep the game prompt readable without sizing it for a particular phone. */
+  body.word-game-mode .game-word {
+    min-width: 0;
+    width: 100%;
+  }
+
+  body.word-game-mode .game-word h2 {
+    font-size: clamp(22px, 6vw, 34px);
+    hyphens: none;
+    line-height: 1.25;
+    max-width: 100%;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: normal;
+  }
+
+  body.word-game-mode .game-listening-icon {
+    font-size: clamp(28px, 8vw, 40px);
+    height: clamp(64px, 20vw, 88px);
+    width: clamp(64px, 20vw, 88px);
+  }
+
+  /* Compact the game when vertical space is genuinely limited — hides
+     the whole header, title and the streak badge/Google sign-in pill
+     alike, to save every bit of vertical space here. */
+  @media (max-width: 1024px) and (max-height: 700px) {
+    body.word-game-mode header {
+      display: none;
+    }
+
+    body.word-game-mode .game-cefr-spacer {
+      flex-basis: 48px;
+      height: 48px;
+      max-height: 48px;
+      min-height: 48px;
+    }
+
+    body.word-game-mode .game-word-card {
+      height: 268px;
+      max-height: 268px;
+      min-height: 268px;
+    }
+
+    body.word-game-mode .game-grid {
+      min-height: 138px;
+    }
+
+    body.word-game-mode .game-translation-card {
+      height: 64px;
+      max-height: 64px;
+      min-height: 64px;
+    }
+
+    body.word-game-mode .game-grid.game-typed-grid {
+      min-height: 0;
+    }
+
+    body.word-game-mode .game-typed-answer-form {
+      height: auto;
+    }
+
+    body.word-game-mode #game-next-word-button {
+      margin-top: 10px;
+      min-height: 48px;
+      padding: 12px 15px;
+    }
+  }
+}
+
+/* Short phones (iPhone SE-class: 375x667 and similar) — width alone
+   doesn't catch these, since most modern phones share the ~375-430px
+   width but have noticeably more height to work with. The header, filter
+   row, stats row, and instruction line stacked above the actual game card
+   can otherwise eat most of a 667px-tall viewport before any interactive
+   content appears. This trims the vertical rhythm of the stats/
+   instruction elements specifically, rather than touching the header or
+   filters shared by the rest of the site. Flattening the bar and dropping
+   its in-bar text used to live here too, but that's now the general
+   max-width:1024px look (see .game-stats-content there) rather than being
+   gated on a short viewport. */
+@media (max-width: 600px) and (max-height: 700px) {
+  .game-stats-content {
+    margin: 0 0 4px 0;
+  }
+
+  .game-stat-label {
+    margin: 0 0 1px;
+  }
+
+  .game-stats-correct-box,
+  .game-stats-incorrect-box {
+    padding: 4px 6px;
+  }
+
+  .game-stats-accuracy-row {
+    gap: 4px;
+  }
+
+  .game-word-card {
+    padding: 8px;
+  }
+}
+
+/* Preserve the original Word Game design on desktop. */
+@media (min-width: 1025px) {
+  .game-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .game-translation-card {
+    box-sizing: border-box;
+    height: 72px;
+    max-height: 72px;
+    min-height: 72px;
+    min-width: auto;
+    overflow-wrap: normal;
+    padding: 15px;
+  }
+}
+
+/*
+   Desktop navigation contract
+   ---------------------------
+   The dictionary and Stories views are the visual reference for the app:
+   one calm, predictable control bar with filters on the left and discovery
+   actions on the right. Keep this entire contract above 1024px only. The
+   compact/mobile toolbar has carefully tuned wrapping and touch targets of
+   its own, so it is intentionally left untouched.
+*/
+@media (min-width: 1025px) {
+  #search-container {
+    padding: 12px 24px;
+  }
+
+  #search-container-inner {
+    align-items: center;
+    gap: 12px;
+    justify-content: flex-start;
+    width: min(calc(100% - 48px), 1120px);
+  }
+
+  .selectors-wrapper {
+    flex: 0 0 auto;
+    gap: 8px;
+    justify-content: flex-start;
+  }
+
+  .type-filter,
+  .pos-filter,
+  .cefr-filter,
+  .genre-filter,
+  .game-english-filter,
+  .cefr-filter-group {
+    box-sizing: border-box;
+    flex: 0 0 184px;
+    height: 44px;
+    min-width: 0;
+  }
+
+  .cefr-filter-group {
+    gap: 8px;
+  }
+
+  .cefr-filter-group .cefr-filter {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .type-filter select,
+  .pos-filter select,
+  .cefr-filter select,
+  .genre-filter select,
+  .game-english-filter select {
+    font-size: 13px;
+    padding-left: 16px;
+  }
+
+  .search-and-random-wrapper {
+    align-items: center;
+    flex: 1 1 300px;
+    gap: 8px;
+    min-width: 250px;
+  }
+
+  .search-bar-wrapper {
+    box-sizing: border-box;
+    height: 44px;
+    min-width: 0;
+  }
+
+  #search-bar {
+    box-sizing: border-box;
+    height: 44px;
+    padding: 0 16px;
+  }
+
+  .search-btn,
+  .my-words-nav-btn {
+    height: 44px;
+    width: 44px;
+  }
+
+  .search-btn {
+    min-width: 44px;
+  }
+
+  /* Personal-report screens deliberately use the same outer toolbar, but
+     retain only their useful controls: the section picker at the start and
+     saved words as the single utility action at the end. */
+  body.my-stats-mode .search-and-random-wrapper {
+    flex: 0 0 auto;
+    margin-left: 0;
+    min-width: 0;
+  }
+
+  body.my-stats-mode #search-container-inner,
+  body.word-game-mode #search-container-inner {
+    justify-content: center;
+  }
+
+  /* Word Game is a focused study surface, not a search screen. Removing
+     the now-empty right-hand group leaves its two relevant controls in the
+     exact same left-hand rhythm as every other section. */
+  body.word-game-mode .search-and-random-wrapper {
+    display: none;
+  }
+
+  body.word-game-mode .cefr-filter-group {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  #search-container-inner.word-game-active #game-end-session-btn,
+  #search-container-inner.word-game-active .toolbar-report-issue-btn {
+    height: 44px;
+  }
+
+  #search-container-inner.word-game-active .toolbar-report-issue-btn {
+    box-sizing: border-box;
+    padding: 0;
+    width: 44px;
+  }
+}
+
