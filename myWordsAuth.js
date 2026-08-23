@@ -100,12 +100,8 @@
   let db = null;
   let provider = null;
   let currentUserId = null;
-  let pushTimeoutId = null;
-  let strengthPushTimeoutId = null;
-  let abilityPushTimeoutId = null;
-  let streakPushTimeoutId = null;
-  let dailyQuestPushTimeoutId = null;
-  let showEnglishPushTimeoutId = null;
+  let progressPushTimeoutId = null;
+  let profilePushTimeoutId = null;
   let wasSignedInThisSession = false;
 
   // Words/streak/ability data saved locally must not leak into whichever
@@ -176,6 +172,10 @@
 
   function getUserDocRef(userId) {
     return db.collection("myWordsUsers").doc(userId);
+  }
+
+  function getProgressShardsRef(userId) {
+    return getUserDocRef(userId).collection("progressShards");
   }
 
   function defaultSignInNudgeState() {
@@ -322,259 +322,255 @@
     }
   }
 
-  // {merge:true} is required on every write below: entryIds and
-  // wordStrengths are pushed independently (different events, different
-  // debounce timers), and without merge each write would silently wipe
-  // out whichever field it doesn't mention.
-  function pushEntryIdsNow(userId, entryIds, entryTimestamps) {
-    getUserDocRef(userId)
-      .set(
-        {
-          entryIds,
-          entryTimestamps: entryTimestamps ?? {},
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      )
-      .then(clearSyncStatusError)
-      .catch((error) => {
-        console.warn("My Words could not be synced.", error);
-        showSyncStatusError();
-      });
-  }
+  const inFlightWrites = new Set();
+  let pendingShardPatches = {};
+  let pendingProfile = {};
+  let progressBatchesInFlight = 0;
+  let abilityCloudPending = false;
+  let abilityRevision = 0;
+  const LAST_USER_ID_KEY = "norwegian-dictionary-last-user-id-v1";
+  const PROGRESS_DIRTY_KEY_PREFIX = "norwegian-dictionary-progress-dirty-v2:";
+  const GUEST_PROGRESS_DIRTY_KEY =
+    "norwegian-dictionary-guest-progress-dirty-v2";
 
-  function pushWordStrengthsNow(userId, strengths) {
-    getUserDocRef(userId)
-      .set(
-        {
-          wordStrengths: strengths,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      )
-      .then(clearSyncStatusError)
-      .catch((error) => {
-        console.warn("Word strength could not be synced.", error);
-        showSyncStatusError();
-      });
-  }
-
-  function pushAbilityNow(userId, score, placementCompleted) {
-    getUserDocRef(userId)
-      .set(
-        {
-          abilityScore: score,
-          placementCompleted,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      )
-      .then(clearSyncStatusError)
-      .catch((error) => {
-        console.warn("Ability score could not be synced.", error);
-        showSyncStatusError();
-      });
-  }
-
-  function pushStreakNow(userId, streak) {
-    getUserDocRef(userId)
-      .set(
-        {
-          streak,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      )
-      .then(clearSyncStatusError)
-      .catch((error) => {
-        console.warn("Streak could not be synced.", error);
-        showSyncStatusError();
-      });
-  }
-
-  function pushDailyQuestNow(userId, dailyPractice) {
-    getUserDocRef(userId)
-      .set(
-        {
-          dailyPractice,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      )
-      .then(clearSyncStatusError)
-      .catch((error) => {
-        console.warn("Daily quests could not be synced.", error);
-        showSyncStatusError();
-      });
-  }
-
-  function pushShowEnglishNow(userId, showEnglish) {
-    getUserDocRef(userId)
-      .set(
-        {
-          showEnglish,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      )
-      .then(clearSyncStatusError)
-      .catch((error) => {
-        console.warn("English visibility could not be synced.", error);
-        showSyncStatusError();
-      });
-  }
-
-  // Debounced writes need their latest pending value kept around outside
-  // the setTimeout closure, so a flush (tab hidden/closed before the 800ms
-  // fires) can push it immediately instead of losing it.
-  let pendingEntryIds = null;
-  let pendingEntryTimestamps = null;
-  let pendingStrengths = null;
-  let pendingAbility = null;
-  let pendingStreak = null;
-  let pendingDailyQuest = null;
-  let pendingShowEnglish = null;
-
-  function schedulePush(entryIds, entryTimestamps) {
-    if (!currentUserId) {
-      return;
+  function rememberedUserId() {
+    try {
+      return localStorage.getItem(LAST_USER_ID_KEY);
+    } catch (error) {
+      return null;
     }
-
-    pendingEntryIds = entryIds;
-    pendingEntryTimestamps = entryTimestamps;
-    window.clearTimeout(pushTimeoutId);
-    pushTimeoutId = window.setTimeout(() => {
-      pushTimeoutId = null;
-      pendingEntryIds = null;
-      pendingEntryTimestamps = null;
-      pushEntryIdsNow(currentUserId, entryIds, entryTimestamps);
-    }, PUSH_DEBOUNCE_MS);
   }
 
-  function scheduleStrengthPush(strengths) {
-    if (!currentUserId) {
-      return;
+  function setProgressDirty(userId, isDirty) {
+    try {
+      const key = userId
+        ? PROGRESS_DIRTY_KEY_PREFIX + userId
+        : GUEST_PROGRESS_DIRTY_KEY;
+      if (isDirty) localStorage.setItem(key, "1");
+      else localStorage.removeItem(key);
+    } catch (error) {
+      // Best effort. Explicit sign-out still awaits in-memory writes.
     }
-
-    pendingStrengths = strengths;
-    window.clearTimeout(strengthPushTimeoutId);
-    strengthPushTimeoutId = window.setTimeout(() => {
-      strengthPushTimeoutId = null;
-      pendingStrengths = null;
-      pushWordStrengthsNow(currentUserId, strengths);
-    }, PUSH_DEBOUNCE_MS);
   }
 
-  function scheduleAbilityPush(score, placementCompleted) {
-    if (!currentUserId) {
-      return;
-    }
-
-    pendingAbility = { score, placementCompleted };
-    window.clearTimeout(abilityPushTimeoutId);
-    abilityPushTimeoutId = window.setTimeout(() => {
-      abilityPushTimeoutId = null;
-      pendingAbility = null;
-      pushAbilityNow(currentUserId, score, placementCompleted);
-    }, PUSH_DEBOUNCE_MS);
-  }
-
-  function scheduleStreakPush(streak) {
-    if (!currentUserId) {
-      return;
-    }
-
-    pendingStreak = streak;
-    window.clearTimeout(streakPushTimeoutId);
-    streakPushTimeoutId = window.setTimeout(() => {
-      streakPushTimeoutId = null;
-      pendingStreak = null;
-      pushStreakNow(currentUserId, streak);
-    }, PUSH_DEBOUNCE_MS);
-  }
-
-  function scheduleDailyQuestPush(dailyPractice) {
-    if (!currentUserId) {
-      return;
-    }
-
-    pendingDailyQuest = dailyPractice;
-    window.clearTimeout(dailyQuestPushTimeoutId);
-    dailyQuestPushTimeoutId = window.setTimeout(() => {
-      dailyQuestPushTimeoutId = null;
-      pendingDailyQuest = null;
-      pushDailyQuestNow(currentUserId, dailyPractice);
-    }, PUSH_DEBOUNCE_MS);
-  }
-
-  function scheduleShowEnglishPush(showEnglish) {
-    if (!currentUserId) {
-      return;
-    }
-
-    pendingShowEnglish = showEnglish;
-    window.clearTimeout(showEnglishPushTimeoutId);
-    showEnglishPushTimeoutId = window.setTimeout(() => {
-      showEnglishPushTimeoutId = null;
-      pendingShowEnglish = null;
-      pushShowEnglishNow(currentUserId, showEnglish);
-    }, PUSH_DEBOUNCE_MS);
-  }
-
-  // Fires when the tab is backgrounded, closed, or navigated away from —
-  // pushes anything still waiting out its debounce instead of risking it
-  // being silently dropped if the page never becomes active again.
-  function flushPendingPushes() {
-    if (!currentUserId) {
-      return;
-    }
-
-    if (pushTimeoutId !== null) {
-      window.clearTimeout(pushTimeoutId);
-      pushTimeoutId = null;
-      pushEntryIdsNow(currentUserId, pendingEntryIds, pendingEntryTimestamps);
-      pendingEntryIds = null;
-      pendingEntryTimestamps = null;
-    }
-
-    if (strengthPushTimeoutId !== null) {
-      window.clearTimeout(strengthPushTimeoutId);
-      strengthPushTimeoutId = null;
-      pushWordStrengthsNow(currentUserId, pendingStrengths);
-      pendingStrengths = null;
-    }
-
-    if (abilityPushTimeoutId !== null) {
-      window.clearTimeout(abilityPushTimeoutId);
-      abilityPushTimeoutId = null;
-      pushAbilityNow(
-        currentUserId,
-        pendingAbility?.score,
-        pendingAbility?.placementCompleted,
+  function isProgressDirty(userId) {
+    try {
+      return (
+        localStorage.getItem(PROGRESS_DIRTY_KEY_PREFIX + userId) === "1" ||
+        localStorage.getItem(GUEST_PROGRESS_DIRTY_KEY) === "1"
       );
-      pendingAbility = null;
+    } catch (error) {
+      return true;
+    }
+  }
+
+  function clearProgressDirty(userId) {
+    setProgressDirty(userId, false);
+    try {
+      localStorage.removeItem(GUEST_PROGRESS_DIRTY_KEY);
+    } catch (error) {
+      // Best effort; a stale flag only causes one extra full merge.
+    }
+  }
+
+  function mergeStrengthRecord(localValue, remoteValue) {
+    return (
+      window.SpacedRepetition?.mergeRecordValues?.(localValue, remoteValue) ??
+      (window.ProgressSharding.getStrengthTimestamp(remoteValue) >
+      window.ProgressSharding.getStrengthTimestamp(localValue)
+        ? remoteValue
+        : localValue)
+    );
+  }
+
+  function trackWrite(promise, failureLabel) {
+    let tracked;
+    tracked = promise
+      .then((value) => {
+        clearSyncStatusError();
+        return value;
+      })
+      .catch((error) => {
+        console.warn(failureLabel, error);
+        showSyncStatusError();
+        throw error;
+      })
+      .finally(() => inFlightWrites.delete(tracked));
+    inFlightWrites.add(tracked);
+    // Timer/pagehide callers cannot await. This prevents an unhandled
+    // rejection while flushPendingPushes() and explicit sign-out still can.
+    tracked.catch(() => {});
+    return tracked;
+  }
+
+  function pushShardPatchNow(userId, shardId, patch) {
+    const shardRef = getProgressShardsRef(userId).doc(shardId);
+    return trackWrite(
+      db.runTransaction(async (transaction) => {
+        const snapshot = await transaction.get(shardRef);
+        const current = snapshot.exists
+          ? window.ProgressSharding.parsePayload(snapshot.data().payload)
+          : window.ProgressSharding.emptyPayload();
+        const merged = window.ProgressSharding.mergePayload(
+          current,
+          patch,
+          mergeStrengthRecord,
+        );
+        transaction.set(
+          shardRef,
+          {
+            schemaVersion: window.ProgressSharding.SCHEMA_VERSION,
+            // A JSON string deliberately prevents Firestore from indexing a
+            // field for every vocabulary entry inside the payload.
+            payload: window.ProgressSharding.serializePayload(merged),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        );
+      }),
+      "Progress could not be synced.",
+    );
+  }
+
+  function drainPendingShardPatches(userId) {
+    const patches = pendingShardPatches;
+    pendingShardPatches = {};
+    if (!userId || Object.keys(patches).length === 0) return Promise.resolve();
+    progressBatchesInFlight++;
+    return Promise.all(
+      Object.entries(patches).map(([shardId, patch]) =>
+        pushShardPatchNow(userId, shardId, patch),
+      ),
+    )
+      .catch((error) => {
+        // Keep a retryable copy in memory and the durable dirty marker. Some
+        // shards may already have committed, but replaying them is idempotent.
+        for (const [shardId, patch] of Object.entries(patches)) {
+          pendingShardPatches[shardId] = window.ProgressSharding.mergePayload(
+            patch,
+            pendingShardPatches[shardId],
+            mergeStrengthRecord,
+          );
+        }
+        setProgressDirty(userId, true);
+        throw error;
+      })
+      .finally(() => {
+        progressBatchesInFlight--;
+      })
+      .then(() => {
+        if (
+          progressBatchesInFlight === 0 &&
+          Object.keys(pendingShardPatches).length === 0
+        ) {
+          clearProgressDirty(userId);
+        }
+      });
+  }
+
+  function scheduleProgressPush(options, { defer = false } = {}) {
+    const targetUserId = currentUserId || rememberedUserId();
+    setProgressDirty(targetUserId, true);
+    if (!currentUserId) return;
+    const patches = window.ProgressSharding.buildShardPatches(options);
+    for (const [shardId, patch] of Object.entries(patches)) {
+      pendingShardPatches[shardId] = window.ProgressSharding.mergePayload(
+        pendingShardPatches[shardId],
+        patch,
+        mergeStrengthRecord,
+      );
     }
 
-    if (streakPushTimeoutId !== null) {
-      window.clearTimeout(streakPushTimeoutId);
-      streakPushTimeoutId = null;
-      pushStreakNow(currentUserId, pendingStreak);
-      pendingStreak = null;
+    if (defer) return;
+
+    const userId = currentUserId;
+    window.clearTimeout(progressPushTimeoutId);
+    progressPushTimeoutId = window.setTimeout(() => {
+      progressPushTimeoutId = null;
+      drainPendingShardPatches(userId).catch(() => {});
+    }, PUSH_DEBOUNCE_MS);
+  }
+
+  function pushProfileNow(userId, profile) {
+    if (!userId || Object.keys(profile).length === 0) return Promise.resolve();
+    return trackWrite(
+      getUserDocRef(userId).set(
+        {
+          ...profile,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      ),
+      "Profile progress could not be synced.",
+    );
+  }
+
+  function pushProfileWithAbilityTracking(userId, profile, revision) {
+    return pushProfileNow(userId, profile).then((value) => {
+      if (
+        Object.prototype.hasOwnProperty.call(profile, "abilityScore") &&
+        revision === abilityRevision
+      ) {
+        abilityCloudPending = false;
+      }
+      return value;
+    });
+  }
+
+  // Ability, streak, and daily-quest updates all happen while a round
+  // summary is being assembled. Combining partials here makes that one
+  // Firestore write instead of three independent writes.
+  function scheduleProfilePush(partial) {
+    if (!currentUserId) return;
+    if (Object.prototype.hasOwnProperty.call(partial, "abilityScore")) {
+      abilityCloudPending = true;
+      abilityRevision++;
+    }
+    pendingProfile = { ...pendingProfile, ...partial };
+    const userId = currentUserId;
+    window.clearTimeout(profilePushTimeoutId);
+    profilePushTimeoutId = window.setTimeout(() => {
+      profilePushTimeoutId = null;
+      const profile = pendingProfile;
+      pendingProfile = {};
+      const revision = abilityRevision;
+      pushProfileWithAbilityTracking(userId, profile, revision).catch(() => {
+        pendingProfile = { ...profile, ...pendingProfile };
+      });
+    }, PUSH_DEBOUNCE_MS);
+  }
+
+  // Explicit sign-out awaits this function. A pagehide can only make a
+  // best-effort start, but still bypasses the debounce window.
+  async function flushPendingPushes() {
+    const userId = currentUserId;
+    if (!userId) return;
+
+    window.clearTimeout(progressPushTimeoutId);
+    window.clearTimeout(profilePushTimeoutId);
+    progressPushTimeoutId = null;
+    profilePushTimeoutId = null;
+
+    const writes = [...inFlightWrites];
+    if (Object.keys(pendingShardPatches).length > 0) {
+      writes.push(drainPendingShardPatches(userId));
+    }
+    if (Object.keys(pendingProfile).length > 0) {
+      const profile = pendingProfile;
+      pendingProfile = {};
+      writes.push(
+        pushProfileWithAbilityTracking(userId, profile, abilityRevision).catch(
+          (error) => {
+            pendingProfile = { ...profile, ...pendingProfile };
+            throw error;
+          },
+        ),
+      );
     }
 
-    if (dailyQuestPushTimeoutId !== null) {
-      window.clearTimeout(dailyQuestPushTimeoutId);
-      dailyQuestPushTimeoutId = null;
-      pushDailyQuestNow(currentUserId, pendingDailyQuest);
-      pendingDailyQuest = null;
-    }
-
-    if (showEnglishPushTimeoutId !== null) {
-      window.clearTimeout(showEnglishPushTimeoutId);
-      showEnglishPushTimeoutId = null;
-      pushShowEnglishNow(currentUserId, pendingShowEnglish);
-      pendingShowEnglish = null;
-    }
+    const results = await Promise.allSettled(writes);
+    const failure = results.find((result) => result.status === "rejected");
+    if (failure) throw failure.reason;
   }
 
   document.addEventListener("visibilitychange", () => {
@@ -585,6 +581,55 @@
   window.addEventListener("pagehide", flushPendingPushes);
 
   let unsubscribeRealtimeSync = null;
+  let unsubscribeProgressSync = null;
+  const PROGRESS_CURSOR_KEY_PREFIX =
+    "norwegian-dictionary-progress-cursor-v2:";
+
+  function loadProgressCursor(userId) {
+    try {
+      const value = Number(localStorage.getItem(PROGRESS_CURSOR_KEY_PREFIX + userId));
+      return Number.isFinite(value) && value > 0 ? value : 0;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  function saveProgressCursor(userId, value) {
+    if (!Number.isFinite(value) || value <= 0) return;
+    try {
+      localStorage.setItem(PROGRESS_CURSOR_KEY_PREFIX + userId, String(value));
+    } catch (error) {
+      // Best effort; losing the cursor only causes a full shard read next time.
+    }
+  }
+
+  function timestampMillis(value) {
+    return typeof value?.toMillis === "function" ? value.toMillis() : 0;
+  }
+
+  function applyProgressSnapshots(userId, snapshots) {
+    const payloads = [];
+    let newestTimestamp = loadProgressCursor(userId);
+    snapshots.forEach((snapshot) => {
+      if (!snapshot.exists || snapshot.metadata?.hasPendingWrites) return;
+      const data = snapshot.data();
+      payloads.push(window.ProgressSharding.parsePayload(data.payload));
+      newestTimestamp = Math.max(newestTimestamp, timestampMillis(data.updatedAt));
+    });
+    if (payloads.length === 0) return newestTimestamp;
+
+    const progress = window.ProgressSharding.combineShardDocuments(
+      payloads,
+      mergeStrengthRecord,
+    );
+    window.MyWordsAPI?.reconcileEntryIds?.(
+      progress.entryIds,
+      progress.entryTimestamps,
+    );
+    window.WordStrengthAPI?.mergeAll?.(progress.strengths);
+    saveProgressCursor(userId, newestTimestamp);
+    return newestTimestamp;
+  }
 
   // Keeps this tab in sync with changes made on *other* signed-in devices,
   // without waiting for a page reload here. Firestore's own snapshot
@@ -604,8 +649,9 @@
   // resolves this the same way it resolves the sign-in merge: per-word
   // last-write-wins, so a stale remote snapshot can't stomp a newer local
   // change (and a genuinely newer remote change still wins).
-  function attachRealtimeSync(userId) {
+  function attachRealtimeSync(userId, cursor = loadProgressCursor(userId)) {
     unsubscribeRealtimeSync?.();
+    unsubscribeProgressSync?.();
 
     unsubscribeRealtimeSync = getUserDocRef(userId).onSnapshot(
       (snapshot) => {
@@ -619,21 +665,7 @@
 
         const data = snapshot.data();
 
-        if (Array.isArray(data.entryIds)) {
-          window.MyWordsAPI?.reconcileEntryIds?.(
-            data.entryIds,
-            data.entryTimestamps,
-          );
-        }
-
-        if (data.wordStrengths && typeof data.wordStrengths === "object") {
-          // Merge chronologically instead of replacing local state: a
-          // debounced lapse made on this device must not be erased by a
-          // server snapshot that still contains an older, stronger record.
-          window.WordStrengthAPI?.mergeAll?.(data.wordStrengths);
-        }
-
-        if (Number.isFinite(data.abilityScore)) {
+        if (Number.isFinite(data.abilityScore) && !abilityCloudPending) {
           window.WordGameHelpers?.replaceAbility?.(
             data.abilityScore,
             data.placementCompleted,
@@ -656,6 +688,28 @@
         console.warn("Live sync for My Words was interrupted.", error);
       },
     );
+
+    // Re-open from one millisecond before the persisted high-water mark.
+    // This may re-read a shard at the boundary but cannot miss two server
+    // timestamps that happened inside the same millisecond.
+    let query = getProgressShardsRef(userId);
+    if (cursor > 0) {
+      query = query.where(
+        "updatedAt",
+        ">",
+        firebase.firestore.Timestamp.fromMillis(Math.max(0, cursor - 1)),
+      );
+    }
+    unsubscribeProgressSync = query.onSnapshot(
+      (snapshot) => {
+        if (userId !== currentUserId) return;
+        applyProgressSnapshots(
+          userId,
+          snapshot.docChanges().map((change) => change.doc),
+        );
+      },
+      (error) => console.warn("Live progress sync was interrupted.", error),
+    );
   }
 
   // Reconcile the words already saved on this device with whatever is saved
@@ -676,26 +730,69 @@
       const snapshot = await getUserDocRef(userId).get();
       const remoteData = snapshot.exists ? snapshot.data() : {};
 
-      const remoteEntryIds = Array.isArray(remoteData.entryIds)
+      const hasShardedProgress =
+        remoteData.progressSchemaVersion >= window.ProgressSharding.SCHEMA_VERSION;
+      const storedCursor = loadProgressCursor(userId);
+      const progressDirty = isProgressDirty(userId);
+      let shardQuery = getProgressShardsRef(userId);
+      if (hasShardedProgress && storedCursor > 0 && !progressDirty) {
+        shardQuery = shardQuery.where(
+          "updatedAt",
+          ">",
+          firebase.firestore.Timestamp.fromMillis(Math.max(0, storedCursor - 1)),
+        );
+      }
+      const shardSnapshot = await shardQuery.get();
+      const shardPayloads = shardSnapshot.docs.map((document) =>
+        window.ProgressSharding.parsePayload(document.data().payload),
+      );
+      let newestCursor = storedCursor;
+      shardSnapshot.docs.forEach((document) => {
+        newestCursor = Math.max(
+          newestCursor,
+          timestampMillis(document.data().updatedAt),
+        );
+      });
+
+      // Version-1 progress lived in two large fields on the profile doc.
+      // Fold it into the same merge input until migration has committed.
+      const legacyEntryIds = Array.isArray(remoteData.entryIds)
         ? remoteData.entryIds
         : [];
-      const remoteEntryTimestamps =
+      const legacyEntryTimestamps =
         remoteData.entryTimestamps &&
         typeof remoteData.entryTimestamps === "object"
           ? remoteData.entryTimestamps
           : {};
+      const legacyStrengths =
+        remoteData.wordStrengths && typeof remoteData.wordStrengths === "object"
+          ? remoteData.wordStrengths
+          : {};
+      const normalizedLegacyTimestamps = { ...legacyEntryTimestamps };
+      legacyEntryIds.forEach((entryId) => {
+        if (!Number.isFinite(normalizedLegacyTimestamps[entryId])) {
+          normalizedLegacyTimestamps[entryId] = 0;
+        }
+      });
+      const legacyPatches = window.ProgressSharding.buildShardPatches({
+        entryIds: legacyEntryIds,
+        entryTimestamps: normalizedLegacyTimestamps,
+        strengths: legacyStrengths,
+      });
+      const remoteProgress = window.ProgressSharding.combineShardDocuments(
+        [...shardPayloads, ...Object.values(legacyPatches)],
+        mergeStrengthRecord,
+      );
+
       const reconciledEntries = window.MyWordsAPI?.reconcileEntryIds?.(
-        remoteEntryIds,
-        remoteEntryTimestamps,
+        remoteProgress.entryIds,
+        remoteProgress.entryTimestamps,
       ) ?? {
         entryIds: window.MyWordsAPI?.getEntryIds?.() ?? [],
         entryTimestamps: window.MyWordsAPI?.getEntryTimestamps?.() ?? {},
       };
 
-      const remoteStrengths =
-        remoteData.wordStrengths && typeof remoteData.wordStrengths === "object"
-          ? remoteData.wordStrengths
-          : {};
+      const remoteStrengths = remoteProgress.strengths;
       const localStrengths = window.WordStrengthAPI?.getAll?.() ?? {};
       const mergedStrengths =
         window.WordStrengthAPI?.mergeCollections?.(
@@ -847,20 +944,58 @@
       window.DailyQuestAPI?.replaceState?.(mergedDailyPractice);
       window.EnglishVisibilityAPI?.replaceState?.(mergedShowEnglish);
 
-      pushEntryIdsNow(
-        userId,
-        reconciledEntries.entryIds,
-        reconciledEntries.entryTimestamps,
-      );
-      pushWordStrengthsNow(userId, mergedStrengths);
-      if (mergedAbility !== null && mergedAbility !== undefined) {
-        pushAbilityNow(userId, mergedAbility, mergedPlacementCompleted);
+      // First use of the sharded format on an account/browser seeds the
+      // merged local state. Later sessions read and write only changed
+      // shards, which is the normal low-usage path.
+      if (!hasShardedProgress || storedCursor === 0 || progressDirty) {
+        const mergedPatches = window.ProgressSharding.buildShardPatches({
+          entryIds: reconciledEntries.entryIds,
+          entryTimestamps: reconciledEntries.entryTimestamps,
+          strengths: mergedStrengths,
+        });
+        await Promise.all(
+          Object.entries(mergedPatches).map(([shardId, patch]) =>
+            pushShardPatchNow(userId, shardId, patch),
+          ),
+        );
+        clearProgressDirty(userId);
       }
-      pushStreakNow(userId, mergedStreak);
-      pushDailyQuestNow(userId, mergedDailyPractice);
-      pushShowEnglishNow(userId, mergedShowEnglish);
+
+      if (!hasShardedProgress) {
+        // Only declare migration complete after every shard write succeeds.
+        // Deleting these two legacy fields prevents the root document from
+        // continuing to approach Firestore's 1 MiB document ceiling.
+        await trackWrite(
+          getUserDocRef(userId).set(
+            {
+              progressSchemaVersion: window.ProgressSharding.SCHEMA_VERSION,
+              entryIds: firebase.firestore.FieldValue.delete(),
+              entryTimestamps: firebase.firestore.FieldValue.delete(),
+              wordStrengths: firebase.firestore.FieldValue.delete(),
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            },
+            { merge: true },
+          ),
+          "Progress migration could not be finalized.",
+        );
+      }
+
+      await pushProfileNow(userId, {
+        ...(mergedAbility !== null && mergedAbility !== undefined
+          ? {
+              abilityScore: mergedAbility,
+              placementCompleted: mergedPlacementCompleted,
+            }
+          : {}),
+        streak: mergedStreak,
+        dailyPractice: mergedDailyPractice,
+        showEnglish: mergedShowEnglish,
+      });
+      saveProgressCursor(userId, newestCursor);
+      return newestCursor;
     } catch (error) {
       console.warn("Your saved words could not be loaded from your account.", error);
+      return loadProgressCursor(userId);
     }
   }
 
@@ -884,12 +1019,14 @@
     }
   }
 
-  function rememberSignedInState(isSignedIn) {
+  function rememberSignedInState(isSignedIn, userId = null) {
     try {
       if (isSignedIn) {
         localStorage.setItem(WAS_SIGNED_IN_KEY, "1");
+        if (userId) localStorage.setItem(LAST_USER_ID_KEY, userId);
       } else {
         localStorage.removeItem(WAS_SIGNED_IN_KEY);
+        localStorage.removeItem(LAST_USER_ID_KEY);
       }
     } catch (error) {
       // Best-effort only — worst case, Firebase loads on click instead of
@@ -926,25 +1063,37 @@
     db = firebase.firestore();
     provider = new firebase.auth.GoogleAuthProvider();
 
-    signOutButton?.addEventListener("click", () => {
+    signOutButton?.addEventListener("click", async () => {
       window.trackEvent?.("sign_out");
-      auth.signOut().catch((error) => {
+      signOutButton.disabled = true;
+      try {
+        await flushPendingPushes();
+        await auth.signOut();
+      } catch (error) {
         console.warn("Sign-out failed.", error);
-      });
+        window.alert(
+          "Your latest progress could not be synced, so you have not been signed out. Please check your connection and try again.",
+        );
+        signOutButton.disabled = false;
+      }
     });
 
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged(async (user) => {
       currentUserId = user ? user.uid : null;
       updateAuthUI(user);
-      rememberSignedInState(Boolean(user));
+      rememberSignedInState(Boolean(user), user?.uid);
 
       if (user) {
         wasSignedInThisSession = true;
-        mergeRemoteData(user.uid);
-        attachRealtimeSync(user.uid);
+        const cursor = await mergeRemoteData(user.uid);
+        if (currentUserId === user.uid) {
+          attachRealtimeSync(user.uid, cursor);
+        }
       } else {
         unsubscribeRealtimeSync?.();
+        unsubscribeProgressSync?.();
         unsubscribeRealtimeSync = null;
+        unsubscribeProgressSync = null;
 
         if (wasSignedInThisSession) {
           wasSignedInThisSession = false;
@@ -988,7 +1137,11 @@
       return;
     }
 
-    schedulePush(event.detail?.entryIds ?? [], event.detail?.entryTimestamps ?? {});
+    scheduleProgressPush({
+      entryIds: event.detail?.entryIds ?? [],
+      entryTimestamps: event.detail?.entryTimestamps ?? {},
+      changedEntryIds: event.detail?.changedEntryIds,
+    });
   });
 
   // Fired by wordList.js's saveWordStrengths() whenever word strength changes.
@@ -997,13 +1150,30 @@
       return;
     }
 
-    scheduleStrengthPush(event.detail?.strengths ?? {});
+    scheduleProgressPush(
+      {
+        strengths: event.detail?.strengths ?? {},
+        changedStrengthIds: event.detail?.changedEntryIds,
+      },
+      { defer: event.detail?.deferRemote === true },
+    );
+  });
+
+  window.addEventListener("progress:round-complete", () => {
+    if (!currentUserId || Object.keys(pendingShardPatches).length === 0) return;
+    window.clearTimeout(progressPushTimeoutId);
+    progressPushTimeoutId = null;
+    drainPendingShardPatches(currentUserId).catch(() => {});
   });
 
   // Fired by wordGame.js's saveAbilityState() whenever the ability score
   // (or placement-completed flag) changes.
   window.addEventListener("ability:updated", (event) => {
     if (event.detail?.syncRemote === false) {
+      if (event.detail?.cloudPending === true) {
+        abilityCloudPending = true;
+        abilityRevision++;
+      }
       return;
     }
 
@@ -1011,7 +1181,10 @@
       return;
     }
 
-    scheduleAbilityPush(event.detail.score, Boolean(event.detail.placementCompleted));
+    scheduleProfilePush({
+      abilityScore: event.detail.score,
+      placementCompleted: Boolean(event.detail.placementCompleted),
+    });
   });
 
   // Fired by streak.js's saveStreakState() whenever the streak changes.
@@ -1020,7 +1193,7 @@
       return;
     }
 
-    scheduleStreakPush(event.detail?.streak ?? {});
+    scheduleProfilePush({ streak: event.detail?.streak ?? {} });
   });
 
   // Fired by wordGame.js's saveDailyPracticeState() whenever quest progress
@@ -1030,7 +1203,7 @@
       return;
     }
 
-    scheduleDailyQuestPush(event.detail?.dailyPractice ?? {});
+    scheduleProfilePush({ dailyPractice: event.detail?.dailyPractice ?? {} });
   });
 
   // Fired by englishVisibility.js's setEnglishVisible() whenever the
@@ -1040,7 +1213,9 @@
       return;
     }
 
-    scheduleShowEnglishPush(Boolean(event.detail?.isEnglishVisible));
+    scheduleProfilePush({
+      showEnglish: Boolean(event.detail?.isEnglishVisible),
+    });
   });
 
   signInNudgeDismissButton?.addEventListener("click", () => {

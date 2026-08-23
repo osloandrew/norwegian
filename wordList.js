@@ -164,7 +164,7 @@
     }
   }
 
-  function saveMyWordsEntryIds({ syncRemote = true } = {}) {
+  function saveMyWordsEntryIds({ syncRemote = true, changedEntryIds = null } = {}) {
     try {
       window.localStorage.setItem(
         MY_WORDS_STORAGE_KEY,
@@ -186,6 +186,7 @@
         detail: {
           entryIds: Array.from(myWordsEntryIds),
           entryTimestamps: myWordsEntryTimestamps,
+          changedEntryIds,
           syncRemote,
         },
       }),
@@ -337,7 +338,11 @@
     }
   }
 
-  function saveWordStrengths({ syncRemote = true } = {}) {
+  function saveWordStrengths({
+    syncRemote = true,
+    changedEntryIds = null,
+    deferRemote = false,
+  } = {}) {
     try {
       window.localStorage.setItem(
         WORD_STRENGTH_STORAGE_KEY,
@@ -355,7 +360,12 @@
     // change came from a remote merge, to avoid immediately writing it back.
     window.dispatchEvent(
       new CustomEvent("word-strength:updated", {
-        detail: { strengths: { ...wordStrengths }, syncRemote },
+        detail: {
+          strengths: { ...wordStrengths },
+          changedEntryIds,
+          syncRemote,
+          deferRemote,
+        },
       }),
     );
   }
@@ -411,7 +421,10 @@
       isCorrect,
     );
 
-    saveWordStrengths();
+    saveWordStrengths({
+      changedEntryIds: [entryId],
+      deferRemote: Boolean(options.deferRemote),
+    });
 
     return window.SpacedRepetition.cloneRecord(wordStrengths[entryId]);
   }
@@ -427,7 +440,7 @@
 
     myWordsEntryTimestamps[entryId] = Date.now();
 
-    saveMyWordsEntryIds();
+    saveMyWordsEntryIds({ changedEntryIds: [entryId] });
 
     return entryId;
   }
@@ -1614,11 +1627,12 @@
         }
 
         const removalTimestamp = Date.now();
+        const removedEntryIds = Array.from(myWordsEntryIds);
         myWordsEntryIds.forEach((entryId) => {
           myWordsEntryTimestamps[entryId] = removalTimestamp;
         });
         myWordsEntryIds.clear();
-        saveMyWordsEntryIds();
+        saveMyWordsEntryIds({ changedEntryIds: removedEntryIds });
         renderWordList();
       });
 

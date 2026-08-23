@@ -780,7 +780,9 @@ function updateAbilityScore(wordObj, isCorrect) {
   abilityScore = clampAbility(
     abilityScore + ABILITY_K_FACTOR * (actual - expected),
   );
-  saveAbilityState();
+  // Keep the continuously-adaptive estimate durable locally after every
+  // answer, but send it to Firestore once for the completed round below.
+  saveAbilityState({ syncRemote: false, cloudPending: true });
 }
 
 function toggleGameEnglish() {
@@ -3018,6 +3020,12 @@ function showWordGameRoundSummary() {
       ? wordGameEarnedDailyQuest || completeDailyQuestRound()
       : null;
 
+  // One cloud profile update per round instead of one per answer. Streak and
+  // daily-practice events fired during this summary share the same debounce
+  // window in myWordsAuth.js, so all three fields become a single write.
+  saveAbilityState();
+  window.dispatchEvent(new CustomEvent("progress:round-complete"));
+
   window.trackEvent?.("word_game_round_complete", {
     mode: wasBonusRound
       ? "bonus"
@@ -3438,7 +3446,7 @@ async function startWordGame() {
   if (abilityScore === null) {
     abilityScore = CEFR_DIFFICULTY_ANCHOR.A1;
     placementCompleted = false;
-    saveAbilityState();
+    saveAbilityState({ syncRemote: false });
   }
 
   // Fetch a random word that respects CEFR and POS filters
@@ -4676,6 +4684,7 @@ async function handleTranslationClick(
       credit: !["session-filler", "scheduled"].includes(
         currentWordQueueType,
       ) && !(activeQueueEntry?.requiresTypedMastery && !wasTyped),
+      deferRemote: true,
     });
     if (wordGameRoundActive) {
       wordGameSessionQuestionsAnswered++;
@@ -4758,7 +4767,9 @@ async function handleTranslationClick(
     incorrectCount++; // Increment incorrect count
     correctStreak = 0; // Reset the streak
     updateRecentAnswers(false, wordObj); // Track this correct answer
-    window.WordStrengthAPI?.recordResult?.(wordObj, false);
+    window.WordStrengthAPI?.recordResult?.(wordObj, false, {
+      deferRemote: true,
+    });
     if (wordGameRoundActive) {
       wordGameSessionQuestionsAnswered++;
       wordGameSessionIncorrectAnswers++;
@@ -5834,7 +5845,7 @@ function loadAbilityState() {
   return { score: null, placementCompleted: false };
 }
 
-function saveAbilityState({ syncRemote = true } = {}) {
+function saveAbilityState({ syncRemote = true, cloudPending = false } = {}) {
   try {
     window.localStorage.setItem(
       ABILITY_STORAGE_KEY,
@@ -5853,7 +5864,12 @@ function saveAbilityState({ syncRemote = true } = {}) {
   // change came from a remote merge, to avoid immediately writing it back.
   window.dispatchEvent(
     new CustomEvent("ability:updated", {
-      detail: { score: abilityScore, placementCompleted, syncRemote },
+      detail: {
+        score: abilityScore,
+        placementCompleted,
+        syncRemote,
+        cloudPending,
+      },
     }),
   );
 }
