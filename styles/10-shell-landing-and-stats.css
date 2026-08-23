@@ -1757,25 +1757,3 @@ li {
   padding: 5px;
   text-transform: uppercase;
 }
-
-#lock-icon {
-  color: white;
-  cursor: pointer;
-  display: none;
-  font-size: 16px;
-  margin: 0 5px 0 4px;
-  padding: 14px;
-  order: 2;
-  pointer-events: auto;
-  transition: all 0.2s ease;
-}
-
-#lock-icon.locked {
-  color: var(--color-success-bg); /* light green for locked */
-  transform: scale(1.1);
-}
-
-#lock-icon.unlocked {
-  color: white; /* default white */
-  transform: scale(1);
-}

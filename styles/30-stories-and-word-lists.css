@@ -31,61 +31,6 @@
   gap: 5px;
 }
 
-/* Gray out both the select text and the arrow when disabled */
-.cefr-filter.disabled select,
-.type-filter.disabled select,
-.pos-filter.disabled select,
-.genre-filter.disabled select,
-.game-english-filter.disabled select {
-  color: var(--color-border);
-  cursor: not-allowed;
-}
-
-.cefr-filter.disabled i,
-.type-filter.disabled i,
-.pos-filter.disabled i,
-.genre-filter.disabled i,
-.game-english-filter.disabled i {
-  color: var(--color-border); /* Gray out the arrow */
-  pointer-events: none; /* Prevent interaction with the arrow */
-}
-
-.type-filter select,
-.pos-filter select,
-.cefr-filter select,
-.genre-filter select,
-.game-english-filter select {
-  appearance: none;
-  background-color: inherit;
-  border: none;
-  border-radius: inherit;
-  box-sizing: border-box;
-  color: white;
-  cursor: pointer;
-  flex: 1 1 auto;
-  font-family: "Noto Sans", sans-serif;
-  height: 100%;
-  letter-spacing: 0.05em;
-  min-width: 0;
-  padding: 0 42px 0 15px;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  width: 100%;
-}
-
-.type-filter > .fa-chevron-down,
-.pos-filter > .fa-chevron-down,
-.cefr-filter > .fa-chevron-down,
-.genre-filter > .fa-chevron-down,
-.game-english-filter > .fa-chevron-down {
-  pointer-events: none;
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1;
-}
-
 .word-gender {
   align-items: flex;
   display: flex;
@@ -557,4 +502,3 @@
     transform: rotate(360deg);
   }
 }
-

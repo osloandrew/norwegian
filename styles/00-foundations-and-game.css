@@ -219,23 +219,6 @@ button:disabled i {
   cursor: not-allowed;
 }
 
-/* .search-btn, .clear-btn, and .my-words-nav-btn each set their own
-   color/cursor (and .search-btn/.clear-btn their own icon color) in their
-   base rule below, so the generic button:disabled above isn't guaranteed
-   to win over them — these give each one an explicit disabled override
-   instead of leaving that to a specificity tie-break. */
-.search-btn:disabled,
-.clear-btn:disabled,
-.my-words-nav-btn:disabled {
-  color: var(--color-border);
-  cursor: not-allowed;
-}
-
-.search-btn:disabled i,
-.clear-btn:disabled i {
-  color: var(--color-border);
-}
-
 .button-container i {
   color: var(--color-primary);
   margin-bottom: 10px;
@@ -321,68 +304,6 @@ button:disabled i {
 .sticky-cefr-label.cefr-unknown {
   background-color: var(--color-bg-hover-strong); /* Gray for unknown levels */
   color: #444444; /* Dark charcoal gray for readability */
-}
-
-/* A round, inset icon button — same footprint/hover language as
-   .word-list-favorite-button elsewhere (soft tinted-blue circle + slight
-   scale on hover, not a flush edge-to-edge rectangle) rather than a
-   bespoke look just for this button. */
-.clear-btn {
-  align-items: center;
-  appearance: none;
-  aspect-ratio: 1;
-  background-color: transparent;
-  border: none;
-  border-radius: 50%;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  display: none;
-  flex-shrink: 0;
-  font-size: 16px;
-  height: 36px;
-  width: 36px;
-  justify-content: center;
-  margin: 0 4px;
-  padding: 0;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-}
-
-/* display, not visibility: with .search-btn now a fixed width instead of
-   being sized by flex-shrink competition with its siblings, hiding this
-   button's box entirely gives that space back to #search-bar (the only
-   flex-grow item left in the row) instead of it going to waste — real
-   room the placeholder needs when the field is empty, which is exactly
-   when this button isn't shown anyway. placeholder=" " on #search-bar
-   (see its markup) means :placeholder-shown is only true when the field
-   is genuinely empty — including after a programmatic clearInput(), not
-   just while the user is typing — so this stays in sync with the
-   field's actual state without any JS. */
-#search-bar:not(:placeholder-shown) ~ .clear-btn {
-  display: flex;
-}
-
-.clear-btn:hover {
-  background-color: rgba(28, 104, 181, 0.1);
-  color: var(--color-link);
-  transform: scale(1.08);
-}
-
-.clear-btn:active {
-  transform: scale(0.92);
-}
-
-.clear-btn:focus-visible {
-  outline: 2px solid var(--color-link);
-  outline-offset: 2px;
-}
-
-.clear-btn i {
-  color: inherit;
-  font-size: 16px;
-  pointer-events: none;
 }
 
 .clickable-definition-word {
@@ -1935,7 +1856,8 @@ li {
 }
 
 /* Word Game round-summary screen — shown when a bounded round finishes or
-   an infinite round is manually ended (see #game-end-session-btn below). */
+   an infinite round is manually ended (see the toolbar control in
+   35-navigation.css). */
 .game-summary-card {
   align-items: center;
   background-color: white;
@@ -2197,67 +2119,6 @@ p.game-summary-stat-label {
   height: 30px;
 }
 
-/* The "end early" control. Uppercase/letter-spaced to match the filter
-   pills' (.type-filter select etc.) "suave" button language, and given
-   enough padding to read as a real button rather than a thin strip — but
-   deliberately outlined rather than solid-filled, and sized modestly:
-   this is an "opt out early" action, not one worth visually competing
-   with Next Word or the answer cards for attention.
-
-   #game-end-session-btn is a static button in the toolbar (index.html, in
-   .cefr-filter-group — the same spot the CEFR filter occupies outside
-   Word Game mode) shown only mid-round via
-   updateEndSessionToolbarButtonVisibility() (wordGame.js), on every
-   screen size: the word game hides .cefr-filter entirely, which is what
-   leaves the room for this button to sit there instead of needing to
-   relocate on mobile. */
-.game-end-session-btn {
-  align-items: center;
-  background-color: var(--color-white);
-  border: 1.5px solid var(--color-primary);
-  border-radius: 8px;
-  color: var(--color-primary);
-  cursor: pointer;
-  display: flex;
-  flex-shrink: 0;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 10px;
-  font-weight: 600;
-  justify-content: center;
-  letter-spacing: 0.04em;
-  padding: 9px 14px;
-  text-transform: uppercase;
-  transition: background-color 0.2s ease;
-  white-space: nowrap;
-}
-
-.game-end-session-btn:hover {
-  background-color: var(--color-bg-hover-blue);
-}
-
-.game-end-session-btn:active {
-  background-color: var(--color-bg-blue-active);
-}
-
-/* Hidden by default — .hidden (index.html) covers the "no round active"
-   case via JS, but the base class above still defaults to display:flex,
-   so the toolbar instance needs its own baseline of display:none here,
-   overridden only within word-game mode. */
-#game-end-session-btn {
-  display: none;
-}
-
-#search-container-inner.word-game-active #game-end-session-btn {
-  display: flex;
-  /* Matches the 42px height of its toolbar neighbors (.cefr-filter,
-     .type-filter, etc. — see the shared height:42px rule) instead of the
-     shorter, content-driven height .game-end-session-btn gets on its
-     own. The mobile rule further below matches it to the row's shorter
-     38px height instead. */
-  height: 42px;
-  padding: 0 14px;
-}
-
 .header-top-row {
   align-items: center;
 }
@@ -2304,10 +2165,6 @@ p.game-summary-stat-label {
   margin: 10px 0px 5px 0px !important; /* Space between the label and the word */
   min-width: fit-content;
   user-select: none; /* Prevent text selection */
-}
-
-.genre-filter {
-  display: none;
 }
 
 h1 {
