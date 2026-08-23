@@ -506,16 +506,32 @@
   }
 
   function entriesRepresentSameHeadword(left, right) {
-    if (
-      getCanonicalWordClass(left?.gender) !==
-      getCanonicalWordClass(right?.gender)
-    ) {
-      return false;
-    }
-
     const rightHeadwords = new Set(getEntryHeadwords(right));
-    return getEntryHeadwords(left).some((headword) =>
+    const sharedHeadwords = getEntryHeadwords(left).filter((headword) =>
       rightHeadwords.has(headword),
+    );
+    if (sharedHeadwords.length === 0) return false;
+
+    const leftWordClass = getCanonicalWordClass(left?.gender);
+    const rightWordClass = getCanonicalWordClass(right?.gender);
+    if (leftWordClass === rightWordClass) return true;
+
+    // Some uninflected official articles do not expose a paradigm tag, so
+    // their word class cannot be inferred. If that otherwise-unclassified
+    // fallback shares an exact headword with a local entry, displaying both
+    // produces two visibly identical cards (for example "selv om, sjøl om").
+    // Prefer the richer local entry, whose class and English gloss are known.
+    if (!leftWordClass || !rightWordClass) return true;
+
+    // The CSV intentionally groups lexicalized multi-word verbs such as
+    // "vise seg" under "expression", while Bokmålsordboka tags the same
+    // headword as a verb. Treat that classification difference as the same
+    // entry so the official fallback does not duplicate a phrase the local
+    // dictionary already contains. Keep single-word cross-class homonyms
+    // distinct (for example a noun and verb with the same spelling).
+    return (
+      (leftWordClass === "expression" || rightWordClass === "expression") &&
+      sharedHeadwords.some((headword) => headword.includes(" "))
     );
   }
 

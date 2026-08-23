@@ -199,6 +199,76 @@ test("deduplicates alternative spellings regardless of their order", () => {
   assert.equal(merged[0], localHeadword);
 });
 
+test("deduplicates a local multi-word expression against an official verb", () => {
+  const { api } = createContext();
+  const localExpression = {
+    ord: "vise seg",
+    gender: "expression",
+    definisjon: "local definition",
+  };
+  const officialVerb = {
+    ord: "vise seg",
+    gender: "verb",
+    definisjon: "official definition",
+    _ordbokene: { matchType: "exact" },
+  };
+
+  const merged = api.mergeEntries([localExpression], {
+    entries: [officialVerb],
+    hasExactArticles: true,
+  });
+
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0], localExpression);
+});
+
+test("deduplicates an unclassified official phrase against a local conjunction", () => {
+  const { api } = createContext();
+  const localConjunction = {
+    ord: "selv om, sjøl om",
+    gender: "conjunction",
+    definisjon: "local definition",
+  };
+  const officialPhrase = {
+    ord: "selv om, sjøl om",
+    gender: "",
+    definisjon: "official definition",
+    _ordbokene: { matchType: "exact" },
+  };
+
+  const merged = api.mergeEntries([localConjunction], {
+    entries: [officialPhrase],
+    hasExactArticles: true,
+  });
+
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0], localConjunction);
+});
+
+test("keeps single-word entries from different word classes distinct", () => {
+  const { api } = createContext();
+  const localNoun = {
+    ord: "type",
+    gender: "en",
+    definisjon: "local noun",
+  };
+  const officialVerb = {
+    ord: "type",
+    gender: "verb",
+    definisjon: "official verb",
+    _ordbokene: { matchType: "exact" },
+  };
+
+  const merged = api.mergeEntries([localNoun], {
+    entries: [officialVerb],
+    hasExactArticles: true,
+  });
+
+  assert.equal(merged.length, 2);
+  assert.equal(merged[0], officialVerb);
+  assert.equal(merged[1], localNoun);
+});
+
 test("prefers ei for nouns with an official feminine paradigm", () => {
   const { api } = createContext();
   const entry = api.articleToEntry(
