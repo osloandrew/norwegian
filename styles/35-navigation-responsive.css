@@ -1,0 +1,316 @@
+/*
+ * Responsive navigation toolbar
+ * -----------------------------
+ * Breakpoint behavior for the shared mode/filter/search toolbar. Base control
+ * styles remain with their current owners until a later consolidation pass.
+ */
+
+@media (max-width: 1024px) {
+  .search-and-random-wrapper {
+    align-items: center;
+    box-sizing: border-box;
+    display: flex;
+    gap: 5px;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  #search-bar {
+    flex-basis: 70%;
+    flex-grow: 1;
+    min-width: 10px;
+  }
+
+  .search-bar-wrapper {
+    min-width: 0;
+  }
+
+  .search-btn {
+    max-width: 60px !important;
+    min-width: 60px !important;
+    padding: 8px;
+  }
+
+  .search-btn i {
+    font-size: 16px;
+    text-align: center;
+  }
+
+  #search-container {
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 10px 5px;
+  }
+
+  #search-container-inner {
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    min-width: 100%;
+  }
+
+  #search-container-inner.word-game-active {
+    gap: 0;
+  }
+
+  #search-container-inner.word-game-active .cefr-filter select {
+    padding-right: 30px;
+  }
+
+  .selectors-wrapper {
+    box-sizing: border-box !important;
+    display: flex;
+    gap: 5px;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .type-filter,
+  .pos-filter,
+  .cefr-filter,
+  .genre-filter,
+  .game-english-filter {
+    background-color: var(--color-primary);
+    border-radius: 15px;
+    box-sizing: border-box !important;
+    min-width: 0;
+    padding: 0;
+  }
+
+  .type-filter,
+  .pos-filter,
+  .genre-filter,
+  .game-english-filter,
+  .search-bar-wrapper {
+    box-sizing: border-box !important;
+    width: 100%;
+  }
+
+  /* My Stats substitutes the type selector for the hidden search field. */
+  body.my-stats-mode #search-container-inner {
+    flex-wrap: nowrap;
+  }
+
+  body.my-stats-mode .selectors-wrapper {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+  }
+
+  body.my-stats-mode .search-and-random-wrapper {
+    flex: 0 0 auto;
+    width: auto;
+  }
+
+  body.my-stats-mode .type-filter {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .type-filter i,
+  .pos-filter i,
+  .cefr-filter i,
+  .genre-filter i,
+  .game-english-filter i {
+    font-size: 12px;
+    pointer-events: none;
+  }
+
+  .type-filter select,
+  .pos-filter select,
+  .cefr-filter select,
+  .genre-filter select,
+  .game-english-filter select {
+    box-sizing: border-box !important;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0;
+    min-width: 0;
+    padding: 0 30px 0 8px;
+    text-overflow: unset;
+    text-transform: uppercase;
+  }
+
+  /* Word Game uses the same toolbar as a compact study control strip. */
+  body.word-game-mode .selectors-wrapper {
+    display: grid;
+    gap: 5px;
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr)
+      max-content;
+    width: 100%;
+  }
+
+  body.word-game-mode .type-filter,
+  body.word-game-mode .game-english-filter,
+  body.word-game-mode .cefr-filter-group,
+  body.word-game-mode .cefr-filter {
+    height: 38px;
+  }
+
+  body.word-game-mode .type-filter select,
+  body.word-game-mode .cefr-filter select {
+    height: 38px;
+  }
+
+  body.word-game-mode #cefr-select {
+    flex: 1 1 0;
+    width: 0;
+  }
+
+  body.word-game-mode #lock-icon {
+    flex: 0 0 16px;
+    font-size: 13px;
+    margin: 0 10px 0 4px;
+    padding: 0;
+  }
+
+  #search-container-inner.word-game-active.game-lock-visible
+    .cefr-filter
+    > .fa-chevron-down {
+    right: 32px;
+  }
+
+  body.word-game-mode .toolbar-report-issue-btn {
+    align-self: stretch;
+    flex: 0 0 auto;
+    font-size: 12px;
+    height: auto;
+    padding: 4px 13px;
+  }
+
+  #search-container-inner.word-game-active #game-end-session-btn {
+    align-self: stretch;
+    flex: 0 0 auto;
+    font-size: 10px;
+    height: auto;
+    letter-spacing: 0.01em;
+    padding: 4px 6px;
+  }
+
+  body.word-game-mode .game-english-filter select {
+    height: 38px;
+    line-height: 1.05;
+    padding: 1px 24px 1px 6px;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  body.word-game-mode .type-filter > .fa-chevron-down,
+  body.word-game-mode .game-english-filter > .fa-chevron-down {
+    right: 10px;
+  }
+}
+
+/* Desktop navigation contract. */
+@media (min-width: 1025px) {
+  #search-container {
+    padding: 12px 24px;
+  }
+
+  #search-container-inner {
+    align-items: center;
+    gap: 12px;
+    justify-content: flex-start;
+    width: min(calc(100% - 48px), 1120px);
+  }
+
+  .selectors-wrapper {
+    flex: 0 0 auto;
+    gap: 8px;
+    justify-content: flex-start;
+  }
+
+  .type-filter,
+  .pos-filter,
+  .cefr-filter,
+  .genre-filter,
+  .game-english-filter,
+  .cefr-filter-group {
+    box-sizing: border-box;
+    flex: 0 0 184px;
+    height: 44px;
+    min-width: 0;
+  }
+
+  .cefr-filter-group {
+    gap: 8px;
+  }
+
+  .cefr-filter-group .cefr-filter {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .type-filter select,
+  .pos-filter select,
+  .cefr-filter select,
+  .genre-filter select,
+  .game-english-filter select {
+    font-size: 13px;
+    padding-left: 16px;
+  }
+
+  .search-and-random-wrapper {
+    align-items: center;
+    flex: 1 1 300px;
+    gap: 8px;
+    min-width: 250px;
+  }
+
+  .search-bar-wrapper {
+    box-sizing: border-box;
+    height: 44px;
+    min-width: 0;
+  }
+
+  #search-bar {
+    box-sizing: border-box;
+    height: 44px;
+    padding: 0 16px;
+  }
+
+  .search-btn,
+  .my-words-nav-btn {
+    height: 44px;
+    width: 44px;
+  }
+
+  .search-btn {
+    min-width: 44px;
+  }
+
+  body.my-stats-mode .search-and-random-wrapper {
+    flex: 0 0 auto;
+    margin-left: 0;
+    min-width: 0;
+  }
+
+  body.my-stats-mode #search-container-inner,
+  body.word-game-mode #search-container-inner {
+    justify-content: center;
+  }
+
+  body.word-game-mode .search-and-random-wrapper {
+    display: none;
+  }
+
+  body.word-game-mode .cefr-filter-group {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  #search-container-inner.word-game-active #game-end-session-btn,
+  #search-container-inner.word-game-active .toolbar-report-issue-btn {
+    height: 44px;
+  }
+
+  #search-container-inner.word-game-active .toolbar-report-issue-btn {
+    box-sizing: border-box;
+    padding: 0;
+    width: 44px;
+  }
+}
