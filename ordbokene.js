@@ -166,17 +166,24 @@
     );
   }
 
+  function getPreferredNounArticle(upperTags) {
+    // Bokmål permits many feminine nouns to use masculine agreement too,
+    // but the learner-facing dictionary consistently presents a feminine
+    // noun with "ei". Prefer the explicitly feminine paradigm whenever the
+    // official article supplies one instead of displaying "en-ei".
+    if (upperTags.includes("FEM")) return "ei";
+    if (upperTags.includes("NEUTER")) return "et";
+    if (upperTags.includes("MASC")) return "en";
+    return "";
+  }
+
   function inferWordClass(article) {
     const tags = getParadigmTags(article);
     const upperTags = tags.map((tag) => String(tag).toUpperCase());
     const classTag = upperTags.find((tag) => WORD_CLASS_LABELS[tag]);
 
     if (classTag === "NOUN") {
-      const articles = [];
-      if (upperTags.includes("MASC")) articles.push("en");
-      if (upperTags.includes("FEM")) articles.push("ei");
-      if (upperTags.includes("NEUTER")) articles.push("et");
-      return articles.length ? articles.join("-") : "noun";
+      return getPreferredNounArticle(upperTags) || "noun";
     }
 
     if (classTag) return WORD_CLASS_LABELS[classTag];
@@ -190,20 +197,163 @@
     return "";
   }
 
+  function getArticleParadigms(article) {
+    return (article?.lemmas || []).flatMap((lemma) =>
+      (lemma.paradigm_info || [])
+        .filter(
+          (paradigm) =>
+            !paradigm.standardisation ||
+            paradigm.standardisation === "STANDARD",
+        )
+        .map((paradigm) => ({
+          ...paradigm,
+          lemma: String(lemma.lemma || "").trim(),
+          upperTags: (paradigm.tags || []).map((tag) =>
+            String(tag).toUpperCase(),
+          ),
+        })),
+    );
+  }
+
+  function getFormValues(paradigms, requiredTags, excludedTags = []) {
+    return unique(
+      paradigms.flatMap((paradigm) =>
+        (paradigm.inflection || [])
+          .filter((inflection) => {
+            const tags = (inflection.tags || []).map((tag) =>
+              String(tag).toUpperCase(),
+            );
+            return (
+              requiredTags.every((tag) => tags.includes(tag)) &&
+              excludedTags.every((tag) => !tags.includes(tag))
+            );
+          })
+          .map((inflection) => String(inflection.word_form || "").trim()),
+      ),
+    );
+  }
+
+  function createOfficialInflections(article, gender) {
+    const wordClass = getCanonicalWordClass(gender);
+    let paradigms = getArticleParadigms(article);
+    let forms = [];
+
+    if (wordClass === "noun") {
+      const nounArticle = String(gender || "");
+      const preferredTag =
+        nounArticle === "ei"
+          ? "FEM"
+          : nounArticle === "et"
+            ? "NEUTER"
+            : nounArticle === "en"
+              ? "MASC"
+              : "";
+      // Keep both the feminine and masculine paradigms in the table, just as
+      // local `ei` nouns do. The preferred tag controls display order only;
+      // it does not discard other officially permitted agreement forms.
+      if (preferredTag) {
+        paradigms = [...paradigms].sort(
+          (left, right) =>
+            Number(right.upperTags.includes(preferredTag)) -
+            Number(left.upperTags.includes(preferredTag)),
+        );
+      }
+      const nounArticles =
+        nounArticle === "ei" ? ["ei", "en"] : nounArticle ? [nounArticle] : [];
+      const indefiniteSingular = getFormValues(paradigms, ["SING", "IND"])
+        .flatMap((form) =>
+          nounArticles.length > 0
+            ? nounArticles.map((article) => `${article} ${form}`)
+            : [form],
+        );
+      const slots = [
+        ["Indefinite singular", indefiniteSingular],
+        ["Definite singular", getFormValues(paradigms, ["SING", "DEF"])],
+        ["Indefinite plural", getFormValues(paradigms, ["PLUR", "IND"])],
+        ["Definite plural", getFormValues(paradigms, ["PLUR", "DEF"])],
+      ];
+      forms = slots
+        .filter(([, values]) => values.length > 0)
+        .map(([label, values]) => ({
+          label,
+          value: values.length === 1 ? values[0] : values,
+        }));
+    } else if (wordClass === "adjective") {
+      const positiveCommon = getFormValues(
+        paradigms,
+        ["POS", "SING", "IND"],
+        ["NEUTER"],
+      );
+      const slots = [
+        ["Masculine", positiveCommon],
+        ["Feminine", positiveCommon],
+        ["Neuter", getFormValues(paradigms, ["POS", "NEUTER", "SING"])],
+        ["Definite singular", getFormValues(paradigms, ["POS", "DEF", "SING"])],
+        ["Plural", getFormValues(paradigms, ["POS", "PLUR"])],
+        ["Comparative", getFormValues(paradigms, ["CMP"])],
+        ["Superlative", getFormValues(paradigms, ["SUP", "IND"])],
+        ["Definite superlative", getFormValues(paradigms, ["SUP", "DEF"])],
+      ];
+      forms = slots
+        .filter(([, values]) => values.length > 0)
+        .map(([label, values]) => ({
+          label,
+          value: values.length === 1 ? values[0] : values,
+        }));
+    } else if (wordClass === "verb") {
+      const slots = [
+        ["Infinitive", getFormValues(paradigms, ["INF"])],
+        ["Present", getFormValues(paradigms, ["PRES"])],
+        ["Past", getFormValues(paradigms, ["PRET"])],
+        ["Present perfect", getFormValues(paradigms, ["PERF", "PART"])],
+        ["Imperative", getFormValues(paradigms, ["IMP"])],
+      ];
+      forms = slots
+        .filter(([, values]) => values.length > 0)
+        .map(([label, values]) => ({
+          label,
+          value: values.length === 1 ? values[0] : values,
+        }));
+    }
+
+    return forms.length > 0
+      ? { wordClass, forms, sourceType: "ordbokene" }
+      : null;
+  }
+
+  function normalizeExampleSentence(example) {
+    const trimmed = String(example || "").replace(/\s+/g, " ").trim();
+    if (!trimmed) return "";
+
+    const capitalized = trimmed.replace(
+      /^(\s*[«“”„'"(\[]*)(\p{L})/u,
+      (_match, prefix, firstLetter) =>
+        `${prefix}${firstLetter.toLocaleUpperCase("nb-NO")}`,
+    );
+    return /[.!?…]$/.test(capitalized) ? capitalized : `${capitalized}.`;
+  }
+
   function joinExamples(examples) {
     return examples
-      .map((example) =>
-        /[.!?]$/.test(example) ? example : `${example}.`,
-      )
+      .map(normalizeExampleSentence)
+      .filter(Boolean)
       .join(" ");
   }
 
   function articleToEntry(article, concepts, matchType) {
-    const headword = String(
-      article?.lemmas?.find((lemma) => lemma.is_standard !== false)?.lemma ||
-        article?.lemmas?.[0]?.lemma ||
-        "",
-    ).trim();
+    const standardHeadwords = unique(
+      (article?.lemmas || [])
+        .filter((lemma) => lemma.is_standard !== false)
+        .map((lemma) => String(lemma.lemma || "").trim()),
+    );
+    const headwords = standardHeadwords.length
+      ? standardHeadwords
+      : unique(
+          (article?.lemmas || []).map((lemma) =>
+            String(lemma.lemma || "").trim(),
+          ),
+        );
+    const headword = headwords.join(", ");
     const articleId = Number(article?.article_id);
     if (!headword || !Number.isFinite(articleId)) return null;
 
@@ -222,6 +372,7 @@
         .filter(Boolean),
     ).join("; ");
     const gender = inferWordClass(article);
+    const inflections = createOfficialInflections(article, gender);
 
     return {
       CEFR: "",
@@ -238,6 +389,8 @@
       _ordbokene: {
         articleId,
         dictionary: "Bokmålsordboka",
+        hasBlankTranslations: definitionContent.examples.length > 0,
+        inflections,
         matchType,
         url: `${PUBLIC_BASE}/bm/${articleId}`,
       },
@@ -348,9 +501,22 @@
       : value;
   }
 
-  function entryIdentity(entry) {
-    const headword = normalize(String(entry?.ord || "").split(",")[0]);
-    return `${headword}|${getCanonicalWordClass(entry?.gender)}`;
+  function getEntryHeadwords(entry) {
+    return unique(String(entry?.ord || "").split(",").map(normalize));
+  }
+
+  function entriesRepresentSameHeadword(left, right) {
+    if (
+      getCanonicalWordClass(left?.gender) !==
+      getCanonicalWordClass(right?.gender)
+    ) {
+      return false;
+    }
+
+    const rightHeadwords = new Set(getEntryHeadwords(right));
+    return getEntryHeadwords(left).some((headword) =>
+      rightHeadwords.has(headword),
+    );
   }
 
   // Avoid duplicating a local headword/same-word-class entry. When the query
@@ -359,9 +525,11 @@
   // official inflection matches follow them.
   function mergeEntries(localEntries, lookupResult) {
     const local = Array.isArray(localEntries) ? localEntries : [];
-    const localIdentities = new Set(local.map(entryIdentity));
     const external = (lookupResult?.entries || []).filter(
-      (entry) => !localIdentities.has(entryIdentity(entry)),
+      (entry) =>
+        !local.some((localEntry) =>
+          entriesRepresentSameHeadword(entry, localEntry),
+        ),
     );
     const exact = external.filter(
       (entry) => entry._ordbokene?.matchType === "exact",
@@ -380,6 +548,7 @@
     getEntry,
     lookup,
     mergeEntries,
+    normalizeExampleSentence,
     renderStructuredText,
   });
 })();

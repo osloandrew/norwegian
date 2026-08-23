@@ -2873,6 +2873,9 @@ function renderInflectionRows(forms) {
 }
 
 function renderInflectionsSource(inflections) {
+  if (inflections?.sourceType === "ordbokene") {
+    return `<p class="inflections-hint">Forms from <a href="https://ordbokene.no" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Ordbøkene</a></p>`;
+  }
   if (inflections?.sourceType === "ordbank") {
     return `<p class="inflections-hint">Forms from <a href="https://ord.uib.no/ord_1_Ordlister.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Norsk Ordbank</a></p>`;
   }
@@ -3031,7 +3034,7 @@ function displaySearchResults(
     // null for word classes that don't inflect (adverb, preposition, ...)
     // or for entries without a verified noun/verb/adjective paradigm.
     const inflections = isOrdbokeneResult
-      ? null
+      ? result._ordbokene?.inflections || null
       : window.Inflections?.getForms(result) || null;
 
     const dictionaryEntryDomKey = getDictionaryEntryDomKey(result);
@@ -3068,9 +3071,7 @@ function displaySearchResults(
       .replace(/'/g, "\\'")
       .replace(/"/g, "&quot;")
       .replace(/\r?\n|\r/g, ""); // Escapes single quotes, double quotes, and removes newlines
-    const hasSentencesPlaceholder = isOrdbokeneResult
-      ? ""
-      : `<button class="sentence-btn english-toggle-btn" style="display: none;" onclick="event.stopPropagation(); toggleEnglishTranslations('${dictionaryEntryDomKey}')">Show English</button>`;
+    const hasSentencesPlaceholder = `<button class="sentence-btn english-toggle-btn" style="display: none;" onclick="event.stopPropagation(); toggleEnglishTranslations('${dictionaryEntryDomKey}')">Show English</button>`;
 
     const escapedGender = result.gender.replace(/'/g, "\\'").trim();
     const escapedEngelsk = result.engelsk.replace(/'/g, "\\'").trim();
@@ -3167,11 +3168,6 @@ function displaySearchResults(
                     : ""
                 }
                 </div>
-                ${
-                  multipleResults && isOrdbokeneResult
-                    ? `<div class="ordbokene-source ordbokene-source-summary">${ordbokeneSourceLink}</div>`
-                    : ""
-                }
                 <div class="definition-content ${multipleResultsHiddenContent}"> <!-- Apply the hidden class conditionally -->
                     ${
                       result.engelsk
@@ -3208,7 +3204,19 @@ function displaySearchResults(
                     }
                     ${
                       isOrdbokeneResult
-                        ? `<div class="ordbokene-source">Source: ${ordbokeneSourceLink}</div>`
+                        ? defaultResult
+                          ? `<div class="definition-actions-row ordbokene-actions-row">
+                              <button
+                                type="button"
+                                class="report-issue-btn"
+                                onclick="event.stopPropagation(); flagMissingWordEntry('${escapedWord}')"
+                                onkeydown="event.stopPropagation()"
+                              ><i class="fas fa-flag"></i> Report missing word</button>
+                              ${renderInflectionsToggleButton(inflections)}
+                            </div>
+                            ${renderInflectionsTableWrapper(inflections)}
+                            <div class="ordbokene-source">Source: ${ordbokeneSourceLink}</div>`
+                          : ""
                         : `<div class="definition-actions-row">
                             <button
                               type="button"
@@ -3748,13 +3756,18 @@ function renderDefinitionSentenceResults(
       const translations = result.sentenceTranslation
         ? result.sentenceTranslation.split(/(?<=[.!?])\s+/)
         : [];
+      const isOrdbokeneExample = Boolean(
+        result._ordbokene?.hasBlankTranslations,
+      );
 
       const cefrLabel = getSentenceCefrLabelHTML(result.CEFR);
 
       return sentences
         .map(
           (sentence, index) => `
-            <div class="sentence-container">
+            <div class="sentence-container ${
+              isOrdbokeneExample ? "ordbokene-sentence-container" : ""
+            }">
                 <div lang="nb" class="sentence-box-norwegian ${
                   !showEnglish ? "sentence-box-norwegian-hidden" : ""
                 }">
@@ -3775,12 +3788,16 @@ function renderDefinitionSentenceResults(
                   </div>
                 </div>
                 ${
-                  translations[index]
+                  translations[index] || isOrdbokeneExample
                     ? `
                 <div lang="en" class="sentence-box-english ${
                   showEnglish ? "" : "hidden"
-                }">
-                    <p class="sentence-translation">${translations[index]}</p>
+                }"${
+                  translations[index]
+                    ? ""
+                    : ' aria-label="English translation unavailable"'
+                }>
+                    <p class="sentence-translation">${translations[index] || ""}</p>
                 </div>`
                     : ""
                 }

@@ -126,7 +126,7 @@ test("maps an exact Bokmålsordboka article into the local card fields", async (
     entry.definisjon,
     "som er gjort med omtanke og svært nøyaktig; pertentlig, ordentlig, elegant",
   );
-  assert.equal(entry.eksempel, "en sirlig håndskrift.");
+  assert.equal(entry.eksempel, "En sirlig håndskrift.");
   assert.equal(entry.etymologi, "fra tysk; av sir opprinnelig ‘pyntelig’");
 });
 
@@ -176,7 +176,30 @@ test("does not duplicate a local headword of the same word class", async () => {
   );
 });
 
-test("infers Norwegian noun articles from official paradigm tags", () => {
+test("deduplicates alternative spellings regardless of their order", () => {
+  const { api } = createContext();
+  const localHeadword = {
+    ord: "fremtid, framtid",
+    gender: "ei",
+    definisjon: "local definition",
+  };
+  const officialHeadword = {
+    ord: "framtid, fremtid",
+    gender: "ei",
+    definisjon: "official definition",
+    _ordbokene: { matchType: "exact" },
+  };
+
+  const merged = api.mergeEntries([localHeadword], {
+    entries: [officialHeadword],
+    hasExactArticles: true,
+  });
+
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0], localHeadword);
+});
+
+test("prefers ei for nouns with an official feminine paradigm", () => {
   const { api } = createContext();
   const entry = api.articleToEntry(
     {
@@ -209,6 +232,104 @@ test("infers Norwegian noun articles from official paradigm tags", () => {
     "exact",
   );
 
-  assert.equal(entry.gender, "en-ei");
+  assert.equal(entry.gender, "ei");
   assert.equal(entry.ord, "rundspørring");
+});
+
+test("maps skie's feminine paradigm into the shared word-forms shape", () => {
+  const { api } = createContext();
+  const entry = api.articleToEntry(
+    {
+      article_id: 52697,
+      lemmas: [
+        {
+          lemma: "skie",
+          paradigm_info: [
+            {
+              standardisation: "STANDARD",
+              tags: ["NOUN", "Masc"],
+              inflection: [
+                { tags: ["Sing", "Ind"], word_form: "skie" },
+                { tags: ["Sing", "Def"], word_form: "skien" },
+                { tags: ["Plur", "Ind"], word_form: "skier" },
+                { tags: ["Plur", "Def"], word_form: "skiene" },
+              ],
+            },
+            {
+              standardisation: "STANDARD",
+              tags: ["NOUN", "Fem"],
+              inflection: [
+                { tags: ["Sing", "Ind"], word_form: "skie" },
+                { tags: ["Sing", "Def"], word_form: "skia" },
+                { tags: ["Plur", "Ind"], word_form: "skier" },
+                { tags: ["Plur", "Def"], word_form: "skiene" },
+              ],
+            },
+          ],
+        },
+        {
+          lemma: "ski",
+          paradigm_info: [
+            {
+              standardisation: "STANDARD",
+              tags: ["NOUN", "Fem"],
+              inflection: [
+                { tags: ["Sing", "Ind"], word_form: "ski" },
+                { tags: ["Sing", "Def"], word_form: "skia" },
+                { tags: ["Plur", "Ind"], word_form: "skier" },
+                { tags: ["Plur", "Def"], word_form: "skiene" },
+              ],
+            },
+          ],
+        },
+      ],
+      body: {
+        definitions: [
+          {
+            type_: "definition",
+            elements: [
+              { type_: "explanation", content: "kløyvd trestykke", items: [] },
+              {
+                type_: "example",
+                quote: {
+                  content: "legge en $ på varmen",
+                  items: [{ type_: "usage", text: "skie" }],
+                },
+              },
+              {
+                type_: "example",
+                quote: {
+                  content: "en $ i en skigard!",
+                  items: [{ type_: "usage", text: "skie" }],
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {},
+    "exact",
+  );
+
+  assert.equal(entry.gender, "ei");
+  assert.equal(entry.ord, "skie, ski");
+  assert.equal(
+    JSON.stringify(entry._ordbokene.inflections.forms),
+    JSON.stringify([
+      {
+        label: "Indefinite singular",
+        value: ["ei skie", "en skie", "ei ski", "en ski"],
+      },
+      { label: "Definite singular", value: ["skia", "skien"] },
+      { label: "Indefinite plural", value: "skier" },
+      { label: "Definite plural", value: "skiene" },
+    ]),
+  );
+  assert.equal(
+    entry.eksempel,
+    "Legge en skie på varmen. En skie i en skigard!",
+  );
+  assert.equal(entry.sentenceTranslation, "");
+  assert.equal(entry._ordbokene.hasBlankTranslations, true);
 });

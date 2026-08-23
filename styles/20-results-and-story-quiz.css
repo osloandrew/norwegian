@@ -110,11 +110,6 @@
   margin-top: 14px;
 }
 
-.ordbokene-source-summary {
-  margin: 7px 0 0;
-  text-align: right;
-}
-
 /* These fallback cards have no English/CEFR companion fields, so letting
    pronunciation and etymology span the existing two-column details grid
    avoids a narrow empty second column—especially on phones. */
@@ -405,6 +400,30 @@ ul {
   justify-content: space-between;
   flex-direction: row;
   align-items: stretch; /* Horizontally align content (CEFR and sentence) */
+}
+
+/* Ordbøkene supplies Norwegian examples without translations. A deliberately
+   blank English side keeps the same paired-card geometry and lets the shared
+   Show English control behave exactly as it does for CSV examples. */
+.ordbokene-sentence-container .sentence-box-norwegian,
+.ordbokene-sentence-container .sentence-box-english {
+  box-sizing: border-box;
+  flex: 1 1 0;
+  min-width: 0;
+  width: 50%;
+}
+
+.ordbokene-sentence-container .sentence-content,
+.ordbokene-sentence-container .sentence {
+  min-width: 0;
+}
+
+.ordbokene-sentence-container .sentence {
+  overflow-wrap: anywhere;
+}
+
+.ordbokene-sentence-container .sentence-translation:empty::before {
+  content: "\00a0";
 }
 
 .sentence-content {
@@ -1324,6 +1343,11 @@ ul {
     display: block;
     gap: 10px;
     margin-bottom: 10px;
+  }
+
+  .ordbokene-sentence-container .sentence-box-norwegian,
+  .ordbokene-sentence-container .sentence-box-english {
+    width: 100%;
   }
 
   .sentence-content {
