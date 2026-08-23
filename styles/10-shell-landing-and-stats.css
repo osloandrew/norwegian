@@ -1757,3 +1757,73 @@ li {
   padding: 5px;
   text-transform: uppercase;
 }
+
+/* Landing page, form, and footer responsive behavior. */
+@media (max-width: 1024px) {
+  input[type="text"] {
+    padding: 10px 10px;
+  }
+
+  #landing-card {
+    margin: 5px auto;
+    padding: 20px;
+    width: 85%;
+  }
+
+  #landing-card h2 {
+    font-size: 26px !important;
+  }
+
+  #landing-card h3 {
+    font-size: 14px;
+  }
+
+  #landing-card h4 {
+    font-size: 12px;
+  }
+
+  #landing-card p {
+    font-size: 10px !important;
+  }
+
+  .landing-card-btn {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+
+  .linkedin-btn {
+    border-radius: 4px;
+    font-size: 12px;
+    padding: 0px 10px 0px 10px !important;
+  }
+
+  .linkedin-btn::after {
+    content: "Connect";
+  }
+
+  .linkedin-btn span {
+    display: none;
+  }
+
+  .feedback-footer-btn {
+    font-size: 12px;
+    padding: 0px 10px;
+  }
+
+  .landing-card-button-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .linkedin-icon {
+    width: 14px;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin: 5px 0 5px 0;
+    padding: 0 20px;
+  }
+}

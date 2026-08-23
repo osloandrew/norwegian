@@ -2190,3 +2190,226 @@ h3 {
 h4 {
   user-select: none;
 }
+
+/* Shared primitives and Word Game responsive behavior. */
+@media (max-width: 1024px) {
+  #back-button,
+  #speed-btn,
+  #toggle-english-btn {
+    font-size: 10px;
+    min-width: 80px;
+    padding: 0.5em;
+  }
+
+  .cefr-audio-block {
+    flex-direction: row;
+  }
+
+  .definition {
+    margin-bottom: 10px;
+    padding: 20px;
+  }
+
+  .english,
+  .etymology,
+  .pronunciation {
+    line-height: 1.4 !important;
+  }
+
+  .error-message {
+    margin: 5px 0px;
+  }
+
+  .game-cefr-spacer p {
+    font-size: 0.7em !important;
+  }
+
+  .game-grid {
+    grid-gap: 10px;
+    min-height: 154px;
+  }
+
+  .game-typed-answer-form {
+    height: auto;
+  }
+
+  .game-cleared-practice-banner,
+  .game-removed-word-banner,
+  .game-saved-word-banner,
+  .game-streak-banner,
+  .game-typed-answer-note {
+    font-size: 0.9em !important;
+  }
+
+  .game-translation-card {
+    font-size: 1em !important;
+  }
+
+  .game-stats-content {
+    margin: 0px 0px 5px 0px;
+  }
+
+  .game-stats-progress-wrapper > .game-instruction {
+    margin-top: 1px;
+  }
+
+  .game-stats-accuracy-row .level-progress-bar-bg,
+  .game-stats-accuracy-row .game-session-progress-bg {
+    height: 8px;
+  }
+
+  .game-session-progress-label,
+  .level-progress-label {
+    display: none;
+  }
+
+  .game-stats-accuracy-row {
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .game-stats-correct-box,
+  .game-stats-incorrect-box {
+    max-width: 78px;
+    min-width: 0;
+    padding: 6px;
+  }
+
+  .game-stats-correct-box .game-stat-label,
+  .game-stats-incorrect-box .game-stat-label {
+    font-size: 9px;
+  }
+
+  .game-stats-correct-box #streak-count,
+  .game-stats-incorrect-box #review-count {
+    font-size: 16px;
+  }
+
+  .game-typed-answer-row {
+    gap: 10px;
+  }
+
+  .game-typed-grid ~ .game-next-button-container #game-next-word-button {
+    margin-top: 10px;
+  }
+
+  .game-word-card {
+    margin-bottom: 10px !important;
+  }
+
+  h1 {
+    font-size: 10vw !important;
+    margin-bottom: 10px;
+    margin-top: -5px;
+    white-space: nowrap;
+  }
+
+  h2 {
+    font-size: 7vw;
+    hyphens: auto;
+    overflow-wrap: break-word;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  body.word-game-mode .game-word {
+    min-width: 0;
+    width: 100%;
+  }
+
+  body.word-game-mode .game-word h2 {
+    font-size: clamp(22px, 6vw, 34px);
+    hyphens: none;
+    line-height: 1.25;
+    max-width: 100%;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: normal;
+  }
+
+  body.word-game-mode .game-listening-icon {
+    font-size: clamp(28px, 8vw, 40px);
+    height: clamp(64px, 20vw, 88px);
+    width: clamp(64px, 20vw, 88px);
+  }
+
+  @media (max-width: 1024px) and (max-height: 700px) {
+    body.word-game-mode .game-cefr-spacer {
+      flex-basis: 48px;
+      height: 48px;
+      max-height: 48px;
+      min-height: 48px;
+    }
+
+    body.word-game-mode .game-word-card {
+      height: 268px;
+      max-height: 268px;
+      min-height: 268px;
+    }
+
+    body.word-game-mode .game-grid {
+      min-height: 138px;
+    }
+
+    body.word-game-mode .game-translation-card {
+      height: 64px;
+      max-height: 64px;
+      min-height: 64px;
+    }
+
+    body.word-game-mode .game-grid.game-typed-grid {
+      min-height: 0;
+    }
+
+    body.word-game-mode .game-typed-answer-form {
+      height: auto;
+    }
+
+    body.word-game-mode #game-next-word-button {
+      margin-top: 10px;
+      min-height: 48px;
+      padding: 12px 15px;
+    }
+  }
+}
+
+@media (max-width: 600px) and (max-height: 700px) {
+  .game-stats-content {
+    margin: 0 0 4px 0;
+  }
+
+  .game-stat-label {
+    margin: 0 0 1px;
+  }
+
+  .game-stats-correct-box,
+  .game-stats-incorrect-box {
+    padding: 4px 6px;
+  }
+
+  .game-stats-accuracy-row {
+    gap: 4px;
+  }
+
+  .game-word-card {
+    padding: 8px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .game-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .game-translation-card {
+    box-sizing: border-box;
+    height: 72px;
+    max-height: 72px;
+    min-height: 72px;
+    min-width: auto;
+    overflow-wrap: normal;
+    padding: 15px;
+  }
+}

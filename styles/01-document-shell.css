@@ -3,7 +3,7 @@
  * --------------
  * Page-level sizing, typography, and chrome shared by every app mode.
  * Shell-owned responsive rules live at the bottom of this file. Feature and
- * navigation overrides remain in 40-responsive-and-mode-overrides.css.
+ * navigation responsive rules live beside their respective base styles.
  */
 
 html {

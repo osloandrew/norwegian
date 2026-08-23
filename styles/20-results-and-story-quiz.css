@@ -1152,3 +1152,172 @@ ul {
 .story-quiz-review-correct-answer {
   margin-top: 0.35em;
 }
+
+/* Results, sentence cards, and Stories responsive behavior. */
+@media (max-width: 1024px) {
+  .sentence-cefr-label {
+    align-items: center;
+    display: inline-flex;
+    height: 34px;
+    justify-content: center;
+    width: 29px;
+  }
+
+  .multiple-results-definition {
+    padding: 15px 60px 15px 20px;
+  }
+
+  .multiple-results-definition-header {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .multiple-results-definition-text {
+    flex: 1;
+    font-size: 14px !important;
+    hyphens: auto;
+    margin-left: 20px;
+    overflow-wrap: break-word;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .multiple-results-my-words-star {
+    right: 15px;
+    top: 10px;
+  }
+
+  .word-gender.multiple-results-word-gender {
+    display: flex;
+    flex-direction: column;
+    font-size: 18px !important;
+    justify-content: center;
+    line-height: 1.2 !important;
+    margin: 0 20px 0 0 !important;
+  }
+
+  .practice-row {
+    display: block;
+  }
+
+  .result-header {
+    padding: 20px;
+  }
+
+  #results-container {
+    margin: 5px auto;
+    width: 97.5%;
+  }
+
+  .sentence-box-english,
+  .sentence-box-norwegian {
+    font-size: 15px;
+    margin-bottom: 2px !important;
+    width: auto;
+  }
+
+  .sentence-box-english {
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 6px 9px 6px 49px;
+  }
+
+  .sentence-box-norwegian {
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+    padding: 6px 9px;
+  }
+
+  .sentence-box-norwegian-hidden {
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .sentence-btn {
+    margin-bottom: 10px;
+    margin-top: 10px;
+  }
+
+  .sentence-container {
+    display: block;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .sentence-content {
+    gap: 10px;
+  }
+
+  .result-header.sentence-results-header,
+  .result-header.word-results-header,
+  .result-header.story-results-header {
+    margin-bottom: 10px;
+  }
+
+  .sticky-cefr-label {
+    height: 25px !important;
+  }
+
+  .sticky-genre {
+    height: 25px;
+  }
+
+  #sticky-header {
+    border: none;
+    gap: 0.5em;
+    padding: 0.25em 0.5em;
+  }
+
+  .sticky-title-container {
+    gap: 5px;
+  }
+
+  .sticky-title-japanese {
+    font-size: 1.3em;
+  }
+
+  .sticky-title-english {
+    font-size: 0.8em;
+  }
+
+  #stories {
+    display: grid;
+    grid-template-columns: 1fr;
+    row-gap: 10px;
+  }
+
+  .stories-detail-container {
+    margin-top: 0px !important;
+  }
+
+  .stories-list-item {
+    margin: 0;
+  }
+
+  .stories-story-header h2 {
+    font-size: 16px;
+  }
+
+  .stories-subtitle {
+    font-size: 14px !important;
+  }
+
+  #story-content {
+    margin: 0.75em 0;
+    padding: 1em 1em 1em 1em;
+  }
+
+  #story-content > div {
+    margin-bottom: 15px;
+  }
+
+  .story-image {
+    margin-bottom: 1.25em;
+  }
+
+  .story-recommendation {
+    margin: 0 0 7.5px 0;
+  }
+}

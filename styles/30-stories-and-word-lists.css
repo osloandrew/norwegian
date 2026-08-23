@@ -502,3 +502,75 @@
     transform: rotate(360deg);
   }
 }
+
+/* Word-list table responsive behavior. */
+@media (max-width: 1024px) {
+  .word-gender {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    hyphens: auto;
+  }
+
+  .word-gender .gender {
+    margin-top: 10px;
+  }
+
+  .word-list-norwegian {
+    font-size: 12px;
+    padding: 6px !important;
+  }
+
+  .word-list-english {
+    font-size: 10px;
+    padding: 6px !important;
+  }
+
+  .word-list-class,
+  .word-list-level,
+  .word-list-strength {
+    padding: 2px !important;
+  }
+
+  .word-strength-dot {
+    font-size: 6px;
+  }
+
+  .word-list-class-badge {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+  }
+
+  .word-list-level .game-cefr-label {
+    font-size: 10px;
+    min-width: 14px;
+    padding: 2px 5px;
+  }
+
+  .word-list-row .word-list-favorite {
+    padding: 2px !important;
+  }
+
+  .word-list-favorite-button {
+    font-size: 15px;
+    height: 30px;
+    width: 30px;
+  }
+
+  .word-list-export-controls .word-list-export-button {
+    font-size: 10px;
+  }
+
+  .word-list-header {
+    margin: 0px 5px;
+    padding: 10px 20px !important;
+  }
+
+  .word-list-table {
+    border-spacing: 0 8px !important;
+  }
+
+  .word-list-table-container {
+    padding: 0 5px;
+  }
+}
