@@ -516,9 +516,7 @@
     }
 
     const dueLabel = snapshot.isDue
-      ? snapshot.queue === "relearning"
-        ? "Relearning due now"
-        : "Review due now"
+      ? "Review due now"
       : `Next review ${new Intl.DateTimeFormat("en", {
           dateStyle: "medium",
         }).format(snapshot.record.dueAt)}`;

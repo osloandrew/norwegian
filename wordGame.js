@@ -2007,12 +2007,11 @@ function renderLandingDailyQuests() {
 //    can still leave its strength reading high, even while the scheduler
 //    has it queued for an immediate short-term retry.
 //
-// So this instead builds on the same queue/state concept the scheduler
-// itself already uses (WordStrengthAPI/SpacedRepetition's due/relearning
-// bookkeeping — see buildGameWordQueues below) to split off "unpracticed"
-// and "relearning" as their own explicit states, and only applies the 1-5
-// ladder to words that have actually graduated past their first correct
-// answer.
+// So this instead splits off "unpracticed" (which has no record yet), then
+// applies the 1-5 ladder to every practiced word. The scheduler's transient
+// relearning state stays internal: a just-missed word still has a meaningful
+// visible strength and should not jump into a separate user-facing category
+// while it waits for its short retry.
 const VOCAB_LADDER_TIERS = Object.freeze([
   Object.freeze({ id: "learning", label: "Learning" }),
   Object.freeze({ id: "developing", label: "Developing" }),
@@ -2026,31 +2025,17 @@ const VOCAB_LADDER_TIERS = Object.freeze([
 // List's filter does: almost every entry in the ~29k-word All Words view
 // has never been asked.
 const VOCAB_UNPRACTICED_TIER_ID = "unpracticed";
-// Missed at least once and still awaiting its short-term retry — see
-// scheduleIncorrect in spacedRepetition.js. Kept off the 1-5 ladder
-// entirely (see the block comment above) since strength alone can't be
-// trusted to flag this state.
-const VOCAB_RELEARNING_TIER_ID = "relearning";
-// Dashboard order: relearning first (it's what the word game's own
-// scheduler treats as highest priority — see getNextGameQueueName below),
-// then the ladder low to high.
-const VOCAB_DASHBOARD_TIERS = Object.freeze([
-  Object.freeze({ id: VOCAB_RELEARNING_TIER_ID, label: "Relearning" }),
-  ...VOCAB_LADDER_TIERS,
-]);
+const VOCAB_DASHBOARD_TIERS = VOCAB_LADDER_TIERS;
 
 // snapshot: the object returned by SpacedRepetition.getSnapshot() /
 // WordStrengthAPI.getSnapshot() — { record, queue, isDue, retrievability,
 // strength }.
 function getWordProgressTierId(snapshot) {
   if (!snapshot || snapshot.strength === null) return VOCAB_UNPRACTICED_TIER_ID;
-  if (snapshot.record?.state === "relearning") return VOCAB_RELEARNING_TIER_ID;
 
-  // A word that's graduated past its first correct answer effectively
-  // never reads 0 here in ordinary play (see the block comment above) —
-  // the only way to see 0 outside relearning is a "review"-state word left
-  // unopened for months, decayed far past its short original interval.
-  // That belongs at the bottom rung of the ladder, not off it.
+  // Strength 0 can appear after a miss or after a short-interval word has
+  // decayed for a long time. Both belong at the bottom rung of the visible
+  // proficiency ladder; the retry queue remains an internal concern.
   const ladderIndex = Math.max(1, snapshot.strength) - 1;
   return VOCAB_LADDER_TIERS[ladderIndex]?.id ?? VOCAB_LADDER_TIERS[0].id;
 }
@@ -2063,13 +2048,11 @@ function getWordStrengthFilterId(entry, now = Date.now()) {
 }
 
 // The full option list for wordList.js's strength filter dropdown: the
-// unpracticed bucket first (the common case in All Words), then relearning,
-// then the same five ladder tiers and labels the landing dashboard uses, so
-// a learner only has to learn this vocabulary once.
+// unpracticed bucket first (the common case in All Words), then the same five
+// ladder tiers and labels the landing dashboard uses.
 function getVocabStrengthFilterOptions() {
   return [
     { id: VOCAB_UNPRACTICED_TIER_ID, label: "Not practiced yet" },
-    { id: VOCAB_RELEARNING_TIER_ID, label: "Relearning" },
     ...VOCAB_LADDER_TIERS.map(({ id, label }) => ({ id, label })),
   ];
 }

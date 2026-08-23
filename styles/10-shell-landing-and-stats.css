@@ -1122,30 +1122,24 @@ html.landing #landing-card {
   height: 100%;
 }
 
-/* Index 0 (Relearning) is deliberately off the light-to-dark ladder below
-   it — an amber "needs attention" tone, since it can happen to any word
-   regardless of how far along the ladder it otherwise is. */
+/* Learning-to-mastered ladder, ordered light to dark. */
 .landing-progress-segment--0 {
-  background-color: var(--color-streak-icon);
-}
-
-.landing-progress-segment--1 {
   background-color: #d7dee6;
 }
 
-.landing-progress-segment--2 {
+.landing-progress-segment--1 {
   background-color: #a9c6e8;
 }
 
-.landing-progress-segment--3 {
+.landing-progress-segment--2 {
   background-color: #6fa8dc;
 }
 
-.landing-progress-segment--4 {
+.landing-progress-segment--3 {
   background-color: #8fbf7f;
 }
 
-.landing-progress-segment--5 {
+.landing-progress-segment--4 {
   background-color: var(--color-success);
 }
 
@@ -1178,26 +1172,22 @@ html.landing #landing-card {
 }
 
 .landing-progress-legend-dot--0 {
-  background-color: var(--color-streak-icon);
-}
-
-.landing-progress-legend-dot--1 {
   background-color: #d7dee6;
 }
 
-.landing-progress-legend-dot--2 {
+.landing-progress-legend-dot--1 {
   background-color: #a9c6e8;
 }
 
-.landing-progress-legend-dot--3 {
+.landing-progress-legend-dot--2 {
   background-color: #6fa8dc;
 }
 
-.landing-progress-legend-dot--4 {
+.landing-progress-legend-dot--3 {
   background-color: #8fbf7f;
 }
 
-.landing-progress-legend-dot--5 {
+.landing-progress-legend-dot--4 {
   background-color: var(--color-success);
 }
 

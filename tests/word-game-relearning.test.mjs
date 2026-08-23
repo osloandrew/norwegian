@@ -44,4 +44,39 @@ assert.equal(
   "remove",
 );
 
+// Relearning remains an internal scheduler state, not a user-facing
+// vocabulary category. A missed word stays on the ordinary strength ladder.
+const tierStart = source.indexOf("const VOCAB_LADDER_TIERS");
+const tierEnd = source.indexOf("function getVocabProgressSummary", tierStart);
+
+assert.notEqual(tierStart, -1);
+assert.notEqual(tierEnd, -1);
+
+const tierContext = vm.createContext({ window: {} });
+vm.runInContext(source.slice(tierStart, tierEnd), tierContext, {
+  filename: "wordGame.js",
+});
+
+assert.deepEqual(
+  Array.from(
+    tierContext.getVocabStrengthFilterOptions(),
+    ({ id, label }) => [id, label],
+  ),
+  [
+    ["unpracticed", "Not practiced yet"],
+    ["learning", "Learning"],
+    ["developing", "Developing"],
+    ["strengthening", "Strengthening"],
+    ["strong", "Strong"],
+    ["mastered", "Mastered"],
+  ],
+);
+assert.equal(
+  tierContext.getWordProgressTierId({
+    strength: 0,
+    record: { state: "relearning" },
+  }),
+  "learning",
+);
+
 console.log("word-game relearning tests passed");
