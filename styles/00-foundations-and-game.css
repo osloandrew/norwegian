@@ -204,18 +204,6 @@ audio {
     0 3px 6px rgba(0, 0, 0, 0.15); /* Slightly larger shadow */
 }
 
-body {
-  background-color: var(--color-bg-light);
-  display: flex;
-  flex-direction: column;
-  font-family: "Noto Serif", serif;
-  font-size: 16px;
-  height: 100%;
-  line-height: 1.6;
-  margin: 0;
-  padding: 0;
-}
-
 button:disabled {
   color: var(--color-border);
   cursor: not-allowed;
@@ -602,38 +590,6 @@ li {
 
 .example {
   font-size: 16px !important;
-}
-
-footer {
-  background-color: var(--color-bg-chrome);
-  bottom: 0;
-  color: var(--color-primary);
-  font-family: "Noto Sans", sans-serif;
-  padding: 20px 0;
-  position: relative;
-  text-align: center;
-  width: 100%;
-}
-
-footer p {
-  font-size: 14px;
-  margin: 5px 0;
-}
-
-footer p a {
-  color: var(--color-link);
-  font-weight: bold;
-  text-decoration: none;
-}
-
-footer p a:hover {
-  color: var(--color-primary);
-  text-decoration: underline;
-}
-
-footer .copyright {
-  color: var(--color-text-secondary);
-  font-size: 12px;
 }
 
 #game-banner-placeholder {

@@ -1,0 +1,82 @@
+/*
+ * Document shell
+ * --------------
+ * Page-level sizing, typography, and chrome shared by every app mode.
+ * Responsive and mode-specific overrides remain in
+ * 40-responsive-and-mode-overrides.css so they stay late in the cascade.
+ */
+
+html {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin: 0;
+}
+
+/* Story reading can extend beyond the viewport. */
+html.reading {
+  height: auto;
+}
+
+body {
+  background-color: var(--color-bg-light);
+  display: flex;
+  flex-direction: column;
+  font-family: "Noto Serif", serif;
+  font-size: 16px;
+  height: 100%;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+header,
+footer {
+  background-color: var(--color-bg-chrome);
+  color: var(--color-primary);
+  font-family: "Noto Sans", sans-serif;
+  text-align: center;
+}
+
+header {
+  letter-spacing: 0.05rem;
+  padding: 20px;
+  position: relative;
+}
+
+header h1 {
+  font-family: "Grenze Gotisch", serif;
+  font-size: 50px;
+  user-select: none;
+}
+
+main {
+  flex: 1;
+}
+
+footer {
+  padding: 20px 0;
+  position: relative;
+  width: 100%;
+}
+
+footer p {
+  font-size: 14px;
+  margin: 5px 0;
+}
+
+footer p a {
+  color: var(--color-link);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+footer p a:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+footer .copyright {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
