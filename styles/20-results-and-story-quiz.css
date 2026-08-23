@@ -509,18 +509,29 @@ ul {
    CEFR) happened to fill the grid. */
 .definition-actions-row {
   grid-column: 1 / -1;
+  /* Mirrors .definition-content's own 1fr/1fr + 10px gap exactly, so
+     "Report an issue" and "Word forms" land in the same two column
+     positions as the pronunciation/etymology/CEFR rows above them — Word
+     forms starts flush under that right column's icons, not drifting
+     toward the middle or the far edge. A fixed pixel minimum or auto-fit
+     (tried first) can't reproduce this: they size columns off the
+     button's own width, which has no reason to match the content grid's
+     columns. Narrow screens are handled by letting a button's label wrap
+     within its column (see the nowrap override below) instead of by
+     collapsing to one column — the fallback label "Report missing word"
+     wrapping to two lines beats it overflowing into "Word forms", and
+     beats the whole row losing its column alignment.
+  */
   display: grid;
-  /* Keep the two actions beside each other when both labels genuinely fit,
-     then let the shared row collapse to one column on narrow phones. A pair
-     of zero-minimum columns made the longer fallback label ("Report missing
-     word") overflow into "Word forms" instead of reserving its real width. */
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(min(100%, 175px), 1fr)
-  );
-  column-gap: 8px;
-  row-gap: 12px;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 10px;
   margin-top: 12px;
+}
+
+.definition-actions-row .report-issue-btn,
+.definition-actions-row .inflections-toggle-btn {
+  white-space: normal;
+  width: auto;
 }
 
 .report-issue-btn,

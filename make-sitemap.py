@@ -1,42 +1,37 @@
 #!/usr/bin/env python3
-"""
-Generate a complete, deduplicated sitemap for the Norwegian learning app.
+"""Generate sitemap.xml from what's actually on disk.
 
-- Reads norwegianWords.csv and norwegianStories.csv
-- Adds the site's primary feature pages
-- Builds canonical word and story URLs
-- Removes duplicate URLs while preserving their original order
-- Validates the finished XML before replacing sitemap.xml
+Lists the site's core app views plus every /word/<slug>/index.html that
+scripts/capture-word-pages.py has written. Reading the word/ directory
+directly (rather than re-deriving slugs from the CSV independently) means
+the sitemap can never list a URL that doesn't actually have a page behind
+it — whatever's on disk is exactly what's on the sitemap.
+
+Run after scripts/capture-word-pages.py --all (or any time word/ changes).
 """
 
-import csv
-import re
-import urllib.parse
+from __future__ import annotations
+
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 SITE = "https://osloandrew.github.io/norwegian"
-
-WORDS_CSV = Path("norwegianWords.csv")
-STORIES_CSV = Path("norwegianStories.csv")
-OUTPUT_FILE = Path("sitemap.xml")
-
-# The site is a client-rendered single page app: every one of the ~29,000
-# per-word/per-story URLs this script *can* generate returns byte-for-byte
-# identical HTML until JavaScript runs and fetches/parses a 6MB CSV. Until
-# those pages are actually pre-rendered with unique content, submitting all
-# of them just spends a new/low-authority site's limited crawl budget on
-# near-duplicate pages instead of the handful that matter. Flip this back
-# on once pre-rendering exists.
-INCLUDE_INDIVIDUAL_PAGES = False
+ROOT = Path(__file__).resolve().parent
+WORD_DIR = ROOT / "word"
+STORY_DIR = ROOT / "story"
+OUTPUT_FILE = ROOT / "sitemap.xml"
 
 SITEMAP_NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9"
 MAX_SITEMAP_URLS = 50_000
 MAX_SITEMAP_BYTES = 50 * 1024 * 1024
 
+# Real, distinct application views with meaningful default content — see the
+# individual handleTypeChange() branches in scripts.js. Ordinary
+# ?type=...&word=...-style search-result states are deliberately not listed
+# here: those are per-visit results, not distinct indexable pages, and are
+# now properly served by the individual /word/<slug>/ pages instead.
 CORE_URLS = [
     f"{SITE}/",
-    f"{SITE}/?type=word-list",
     f"{SITE}/?type=sentences",
     f"{SITE}/?type=stories",
     f"{SITE}/?type=word-game",
@@ -44,168 +39,57 @@ CORE_URLS = [
 ]
 
 
-def require_file(path: Path) -> None:
-    """Stop instead of accidentally producing an incomplete sitemap."""
-    if not path.is_file():
-        raise FileNotFoundError(f"Required file is missing: {path}")
-
-
-def build_query_url(parameters: dict[str, str]) -> str:
-    """Build a consistently encoded URL using normal query parameters."""
-    query = urllib.parse.urlencode(
-        parameters,
-        quote_via=urllib.parse.quote,
-        safe="",
+def captured_page_urls(directory: Path, url_prefix: str) -> list[str]:
+    if not directory.is_dir():
+        return []
+    slugs = sorted(
+        p.name for p in directory.iterdir() if p.is_dir() and (p / "index.html").is_file()
     )
-
-    return f"{SITE}/?{query}"
-
-
-def normalize_pos(value: str) -> str:
-    """Mirror the part-of-speech normalization used by scripts.js."""
-    normalized = value.strip().lower()
-
-    return re.sub(r"^noun\s*-\s*", "", normalized)
-
-
-def build_word_urls(csv_path: Path) -> list[str]:
-    """Build one canonical definition URL for each CSV entry."""
-    require_file(csv_path)
-
-    urls = []
-
-    with csv_path.open(newline="", encoding="utf-8") as file:
-        reader = csv.DictReader(file)
-
-        for row in reader:
-            word = (row.get("ord") or "").split(",")[0].strip()
-            pos = normalize_pos(row.get("gender") or "")
-
-            if not word:
-                continue
-
-            parameters = {"type": "words"}
-
-            if pos:
-                parameters["pos"] = pos
-
-            parameters["word"] = word
-
-            urls.append(build_query_url(parameters))
-
-    return urls
-
-
-def build_story_urls(csv_path: Path) -> list[str]:
-    """Build one canonical URL for each Norwegian story."""
-    require_file(csv_path)
-
-    urls = []
-
-    with csv_path.open(newline="", encoding="utf-8") as file:
-        reader = csv.DictReader(file)
-
-        for row in reader:
-            title = (row.get("titleNorwegian") or "").strip()
-
-            if not title:
-                continue
-
-            urls.append(
-                build_query_url(
-                    {
-                        "type": "story",
-                        "story": title,
-                    }
-                )
-            )
-
-    return urls
-
-
-def deduplicate_urls(urls: list[str]) -> list[str]:
-    """Remove duplicate URLs without changing their original order."""
-    return list(dict.fromkeys(urls))
+    return [f"{SITE}/{url_prefix}/{slug}/" for slug in slugs]
 
 
 def write_sitemap(urls: list[str], output_file: Path) -> None:
-    """Create and validate the XML before replacing the existing sitemap."""
     if len(urls) > MAX_SITEMAP_URLS:
-        raise ValueError(
-            f"Sitemap contains {len(urls)} URLs; "
-            f"the maximum is {MAX_SITEMAP_URLS}."
-        )
+        raise ValueError(f"Sitemap contains {len(urls)} URLs; the maximum is {MAX_SITEMAP_URLS}.")
 
     ET.register_namespace("", SITEMAP_NAMESPACE)
-
     urlset = ET.Element(f"{{{SITEMAP_NAMESPACE}}}urlset")
 
     for page_url in urls:
-        url_element = ET.SubElement(
-            urlset,
-            f"{{{SITEMAP_NAMESPACE}}}url",
-        )
-
-        location_element = ET.SubElement(
-            url_element,
-            f"{{{SITEMAP_NAMESPACE}}}loc",
-        )
-
+        url_element = ET.SubElement(urlset, f"{{{SITEMAP_NAMESPACE}}}url")
+        location_element = ET.SubElement(url_element, f"{{{SITEMAP_NAMESPACE}}}loc")
         location_element.text = page_url
 
     tree = ET.ElementTree(urlset)
     ET.indent(tree, space="  ")
 
     temporary_file = output_file.with_suffix(".xml.tmp")
-
-    # xml_declaration=True would have ElementTree emit its own declaration,
-    # but it hardcodes single-quoted attributes and lowercase "utf-8"
-    # (<?xml version='1.0' encoding='utf-8'?>) — valid per the XML spec, but
-    # non-conventional enough that some stricter/naive sitemap validators
-    # fail to recognize it. Writing the body without a declaration and then
-    # prepending the conventional double-quoted, uppercase form ourselves
-    # avoids that friction entirely.
-    tree.write(
-        temporary_file,
-        encoding="utf-8",
-        xml_declaration=False,
-    )
+    tree.write(temporary_file, encoding="utf-8", xml_declaration=False)
 
     declaration = b'<?xml version="1.0" encoding="UTF-8"?>\n'
     temporary_file.write_bytes(declaration + temporary_file.read_bytes())
 
     sitemap_size = temporary_file.stat().st_size
-
     if sitemap_size > MAX_SITEMAP_BYTES:
         temporary_file.unlink(missing_ok=True)
+        raise ValueError(f"Sitemap is {sitemap_size} bytes; the maximum is {MAX_SITEMAP_BYTES} bytes.")
 
-        raise ValueError(
-            f"Sitemap is {sitemap_size} bytes; "
-            f"the maximum is {MAX_SITEMAP_BYTES} bytes."
-        )
-
-    # This raises an error if the generated XML is invalid.
-    ET.parse(temporary_file)
-
+    ET.parse(temporary_file)  # raises if the generated XML is invalid
     temporary_file.replace(output_file)
 
 
 def main() -> None:
-    raw_urls = []
+    word_urls = captured_page_urls(WORD_DIR, "word")
+    story_urls = captured_page_urls(STORY_DIR, "story")
 
-    raw_urls.extend(CORE_URLS)
+    urls = list(dict.fromkeys(CORE_URLS + word_urls + story_urls))
 
-    if INCLUDE_INDIVIDUAL_PAGES:
-        raw_urls.extend(build_word_urls(WORDS_CSV))
-        raw_urls.extend(build_story_urls(STORIES_CSV))
+    write_sitemap(urls, OUTPUT_FILE)
 
-    unique_urls = deduplicate_urls(raw_urls)
-    duplicates_removed = len(raw_urls) - len(unique_urls)
-
-    write_sitemap(unique_urls, OUTPUT_FILE)
-
-    print(f"Wrote {OUTPUT_FILE} with {len(unique_urls)} unique URLs.")
-    print(f"Removed {duplicates_removed} duplicate URLs.")
+    print(f"Wrote {OUTPUT_FILE} with {len(urls)} URLs.")
+    print(f"  {len(CORE_URLS)} core app views")
+    print(f"  {len(word_urls)} word pages")
+    print(f"  {len(story_urls)} story pages")
 
 
 if __name__ == "__main__":

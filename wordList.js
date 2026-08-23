@@ -88,7 +88,13 @@
 
     const entryPOS = getWordListEntryPOS(entry);
 
-    const url = new URL(window.location.origin + window.location.pathname);
+    // document.baseURI (the app's real root), not window.location.pathname
+    // — this list can itself be reached from a pretty static page like
+    // /word/forgjeves/, and each entry's link needs to point at the app
+    // root with its own type/pos/word, not stack onto whatever path the
+    // list happened to be viewed from.
+    const url = new URL(document.baseURI);
+    url.search = "";
 
     url.searchParams.set("type", "words");
 

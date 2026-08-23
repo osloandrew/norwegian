@@ -468,6 +468,20 @@ function setWordCanonicalURL(url) {
   canonicalLink.setAttribute("href", url);
 }
 
+// Matches the slug rule scripts/build-pages.py uses for /word/<slug>/
+// filenames, so the canonical link below always names a page that actually
+// exists on disk.
+function slugifyWordForURL(word) {
+  return String(word || "")
+    .trim()
+    .toLowerCase()
+    .replace(/['’]/g, "'")
+    .replace(/[\s/]+/g, "-")
+    .replace(/[^\p{L}\p{N}-]/gu, "")
+    .replace(/-{2,}/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function updateWordMetadata(entry) {
   if (!entry) {
     return;
@@ -476,8 +490,6 @@ function updateWordMetadata(entry) {
   const word = String(entry.ord || "")
     .split(",")[0]
     .trim();
-
-  const canonicalPOS = WordClass.stripNounPrefix(entry.gender);
 
   const wordClass = getWordClassForMetadata(entry.gender);
 
@@ -508,21 +520,22 @@ function updateWordMetadata(entry) {
         .trimEnd() + "...";
   }
 
+  // Always the pretty /word/<slug>/ page — resolved against document.baseURI
+  // (not window.location) so this is correct whether updateWordMetadata()
+  // is running on that page itself, on the legacy ?type=words&word=... page
+  // (which has no <base> tag, so baseURI falls back to the document's own
+  // URL), or on a local test server with a different <base href>. The
+  // legacy query-string URL keeps working exactly as before; this just
+  // stops it from ever claiming to be its own canonical once its pretty
+  // equivalent exists.
   const canonicalURL = new URL(
-    window.location.origin + window.location.pathname,
+    `word/${slugifyWordForURL(word)}/`,
+    document.baseURI,
   );
-
-  canonicalURL.searchParams.set("type", "words");
-
-  if (canonicalPOS) {
-    canonicalURL.searchParams.set("pos", canonicalPOS);
-  }
-
-  canonicalURL.searchParams.set("word", word);
 
   const socialImageURL = new URL(
     "Resources/Icons/android-chrome-512x512.png",
-    window.location.href,
+    document.baseURI,
   ).href;
 
   document.title = pageTitle;
@@ -570,8 +583,15 @@ function showLandingCard(show) {
 
 // Function to navigate back to the landing card when the H1 is clicked
 function returnToLandingPage() {
-  // Update the URL to the base URL without any query parameters
-  const baseUrl = window.location.origin + window.location.pathname;
+  // document.baseURI (not window.location.pathname) so this goes to the
+  // app's actual root even when clicked from a pretty static page like
+  // /word/forgjeves/ — otherwise it would "return home" by reloading that
+  // same word page instead of navigating away from it. baseURI carries the
+  // *current* query string on pages with no <base> tag (i.e. today's app
+  // root), so that's stripped explicitly rather than assumed away.
+  const baseUrl = new URL(document.baseURI);
+  baseUrl.search = "";
+  baseUrl.hash = "";
   window.history.pushState({}, "", baseUrl);
   window.location.reload();
 }
@@ -4050,7 +4070,15 @@ function updateURL(
   story = null,
   word = null,
 ) {
-  const url = new URL(window.location);
+  // document.baseURI, not window.location — on the app's own root page these
+  // are the same thing, but on a pretty static page like /word/forgjeves/
+  // (see scripts/capture-word-pages.py), window.location.pathname would be
+  // "/word/forgjeves/" and every call below would build a URL stacking
+  // query params onto that path instead of the app's real root
+  // (.../word/forgjeves/?type=words&word=knoll — not a page that exists).
+  // Any interactive navigation belongs at the app root regardless of which
+  // static page it was triggered from.
+  const url = new URL(document.baseURI);
 
   // Set or remove the query parameter
   if (query) {
@@ -4143,14 +4171,32 @@ function capitalizeType(type) {
 }
 
 // Load the state from the URL and trigger the appropriate search or display
+// Recognizes the pretty per-word/per-story URLs written by
+// scripts/build-pages.py (e.g. /word/forgjeves/, /story/svarte-hull/) as
+// equivalent to their ?word=/?story= query-string form, so a visitor whose
+// browser runs this script on one of those pages sees it seamlessly turn
+// into the normal interactive lookup instead of falling through to the
+// generic landing page (no word/story in the query string) once the
+// dictionary finishes loading. Query-string params still win if present.
+function parsePathState(pathname) {
+  const wordMatch = pathname.match(/\/word\/([^/]+)\/?$/);
+  if (wordMatch) return { word: decodeURIComponent(wordMatch[1]) };
+
+  const storyMatch = pathname.match(/\/story\/([^/]+)\/?$/);
+  if (storyMatch) return { story: storyMatch[1] };
+
+  return null;
+}
+
 function loadStateFromURL() {
   const url = new URL(window.location);
+  const pathState = parsePathState(url.pathname);
   const query = url.searchParams.get("query") || ""; // Default to an empty query if not present
   const type = url.searchParams.get("type") || "words"; // Default to 'words' if not specified
   const selectedPOS = url.searchParams.get("pos") || ""; // Default to empty POS if not present
   const selectedCEFR = url.searchParams.get("cefr") || ""; // Default to empty CEFR if not present
-  const storyTitle = url.searchParams.get("story"); // Check for a specific story parameter
-  const word = url.searchParams.get("word"); // Check for a specific word entry
+  const storyTitle = url.searchParams.get("story") || pathState?.story; // Check for a specific story parameter
+  const word = url.searchParams.get("word") || pathState?.word; // Check for a specific word entry
 
   // If there's a story in the URL, display that story and exit
   if (storyTitle) {
