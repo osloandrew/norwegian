@@ -3648,6 +3648,97 @@ function getExpressionSentenceCandidates(primaryEntry, analysis) {
   return candidates;
 }
 
+// Shared renderer for both the immediately available entry example and the
+// enriched set that replaces it after supplemental forms finish loading.
+function renderDefinitionSentenceResults(
+  matchingResults,
+  primaryResults,
+  formMatcher,
+  primaryHighlightMatcher,
+  sentenceContainer,
+  button,
+  showEnglish,
+) {
+  if (matchingResults.length === 0) return false;
+
+  const primaryResultSet = new Set(primaryResults);
+  const highlightedResults = matchingResults.slice(0, 10).map((result) => {
+    const cleanSentence = result.eksempel.replace(
+      /<span style="color: #1f6fb3;">(.*?)<\/span>/gi,
+      "$1",
+    );
+    const highlightMatcher = primaryResultSet.has(result)
+      ? primaryHighlightMatcher
+      : formMatcher;
+    return {
+      ...result,
+      eksempel: highlightMatcher.highlight(cleanSentence),
+    };
+  });
+
+  const sentenceContent = highlightedResults
+    .map((result) => {
+      // Split example sentences by common sentence delimiters (period, question mark, exclamation mark)
+      const sentences = result.eksempel
+        ? result.eksempel.split(/(?<=[.!?])\s+/)
+        : [];
+      const translations = result.sentenceTranslation
+        ? result.sentenceTranslation.split(/(?<=[.!?])\s+/)
+        : [];
+
+      const cefrLabel = getSentenceCefrLabelHTML(result.CEFR);
+
+      return sentences
+        .map(
+          (sentence, index) => `
+            <div class="sentence-container">
+                <div lang="nb" class="sentence-box-norwegian ${
+                  !showEnglish ? "sentence-box-norwegian-hidden" : ""
+                }">
+                  <div class="sentence-content">
+                  <div class="cefr-audio-block">
+
+                    ${cefrLabel}
+                ${
+                  result.sentenceAudio === "X"
+                    ? `<i class="fas fa-volume-up sentence-audio-icon"
+                          data-sentence="${sentence
+                            .replace(/<[^>]*>/g, "")
+                            .trim()}"></i>`
+                    : ""
+                }
+                </div>
+                <p class="sentence">${sentence}</p>
+                  </div>
+                </div>
+                ${
+                  translations[index]
+                    ? `
+                <div lang="en" class="sentence-box-english ${
+                  showEnglish ? "" : "hidden"
+                }">
+                    <p class="sentence-translation">${translations[index]}</p>
+                </div>`
+                    : ""
+                }
+            </div>
+        `,
+        )
+        .join("");
+    })
+    .join("");
+
+  if (!sentenceContent) return false;
+
+  sentenceContainer.innerHTML = sentenceContent;
+  sentenceContainer.style.display = "block";
+  if (button) {
+    button.style.display = "block";
+    button.innerText = showEnglish ? "Hide English" : "Show English";
+  }
+  return true;
+}
+
 // Fetch and render sentences for one exact dictionary sense. Cross-class and
 // same-gender homographs retain their searchable spelling; only genuinely
 // different noun-gender paradigms allocate shared forms to the earliest-
@@ -3693,6 +3784,32 @@ async function fetchAndRenderSentences(
 
   sentenceContainer.innerHTML = ""; // Clear previous sentences
 
+  // Every dictionary entry already carries its own example in the main CSV.
+  // Render that immediately instead of holding it behind the much larger,
+  // separately-fetched inflection snapshot needed only for supplemental
+  // examples. On a cold or slow connection the learner now sees useful
+  // content while the richer form-based lookup continues in the background.
+  const citationMatcher = window.SentenceFormMatching.createMatcher(
+    splitSearchTerms(matchingWordEntry.ord),
+  );
+  const { primary: immediatePrimaryResults } =
+    window.SentenceFormMatching.collectExamples(
+      matchingWordEntry,
+      [],
+      citationMatcher,
+      0,
+    );
+  renderDefinitionSentenceResults(
+    immediatePrimaryResults,
+    immediatePrimaryResults,
+    citationMatcher,
+    citationMatcher,
+    sentenceContainer,
+    button,
+    showEnglish,
+  );
+  sentenceContainer.setAttribute("data-supplemental-loading", "true");
+
   const homographEntries = getHomographEntries(matchingWordEntry);
   const isExpression =
     WordClass.getWordClass(matchingWordEntry.gender) === "expression";
@@ -3735,92 +3852,30 @@ async function fetchAndRenderSentences(
     "eksempel",
     WordClass.getWordClass(matchingWordEntry.gender),
   );
-  let matchingResults = [...primaryResults, ...rankedSupplemental].slice(0, 10);
+  const matchingResults = [...primaryResults, ...rankedSupplemental].slice(0, 10);
 
-  if (matchingResults.length === 0) return;
-
-  const primaryResultSet = new Set(primaryResults);
-  matchingResults.forEach((result) => {
-    const cleanSentence = result.eksempel.replace(
-      /<span style="color: #1f6fb3;">(.*?)<\/span>/gi,
-      "$1",
-    );
-    const highlightMatcher = primaryResultSet.has(result)
-      ? primaryHighlightMatcher
-      : formMatcher;
-    result.eksempel = highlightMatcher.highlight(cleanSentence);
-  });
-
-  // Create the sentence content with CEFR labels
-  let sentenceContent = matchingResults
-    .slice(0, 10)
-    .map((result) => {
-      // Split example sentences by common sentence delimiters (period, question mark, exclamation mark)
-      const sentences = result.eksempel
-        ? result.eksempel.split(/(?<=[.!?])\s+/)
-        : [];
-      const translations = result.sentenceTranslation
-        ? result.sentenceTranslation.split(/(?<=[.!?])\s+/)
-        : [];
-
-      // Generate the CEFR label based on the result's CEFR value
-      const cefrLabel = getSentenceCefrLabelHTML(result.CEFR);
-
-      // For each sentence, map it to a card
-      return sentences
-        .map(
-          (sentence, index) => `
-            <div class="sentence-container">
-                <div lang="nb" class="sentence-box-norwegian ${
-                  !showEnglish ? "sentence-box-norwegian-hidden" : ""
-                }">
-                  <div class="sentence-content">
-                  <div class="cefr-audio-block">
-
-                    ${cefrLabel}
-                ${
-                  result.sentenceAudio === "X"
-                    ? `<i class="fas fa-volume-up sentence-audio-icon"
-                          data-sentence="${sentence
-                            .replace(/<[^>]*>/g, "")
-                            .trim()}"></i>`
-                    : ""
-                }        
-                </div>            
-                <p class="sentence">${sentence}</p>
-                  </div>
-                </div>
-                ${
-                  translations[index]
-                    ? `
-                <div lang="en" class="sentence-box-english ${
-                  showEnglish ? "" : "hidden"
-                }">
-                    <p class="sentence-translation">${translations[index]}</p>
-                </div>`
-                    : ""
-                }
-            </div>
-        `,
-        )
-        .join("");
-    })
-    .join("");
-
-  if (sentenceContent) {
-    sentenceContainer.innerHTML = sentenceContent;
-    sentenceContainer.style.display = "block"; // Show the container
-
-    // Find the button and display it if sentences exist
-    const englishButton = button;
-    if (englishButton) {
-      englishButton.style.display = "block"; // Make the button visible
-      englishButton.innerText = showEnglish ? "Hide English" : "Show English";
-    }
-  } else {
-    console.warn("No content to show for the word:", trimmedWord);
+  if (matchingResults.length === 0) {
+    sentenceContainer.removeAttribute("data-supplemental-loading");
+    sentenceContainer.setAttribute("data-fetched", "true");
+    return;
   }
 
+  // The English toggle is shared across the app and may have changed while
+  // the supplemental lookup was in flight. Preserve its current state when
+  // replacing the immediate example with the enriched result set.
+  const currentEnglishVisibility =
+    typeof isEnglishVisible === "boolean" ? isEnglishVisible : showEnglish;
+  renderDefinitionSentenceResults(
+    matchingResults,
+    primaryResults,
+    formMatcher,
+    primaryHighlightMatcher,
+    sentenceContainer,
+    button,
+    currentEnglishVisibility,
+  );
+
+  sentenceContainer.removeAttribute("data-supplemental-loading");
   sentenceContainer.setAttribute("data-fetched", "true");
 }
 
