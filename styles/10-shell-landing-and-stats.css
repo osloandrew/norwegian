@@ -1301,15 +1301,12 @@ html.landing #landing-card {
    .landing-daily-quests / .landing-progress-summary on the landing page,
    which the .my-stats paper is deliberately mirroring. */
 .my-stats-box {
-  background: linear-gradient(
-    145deg,
-    var(--color-bg-quest-active) 0%,
-    #f4f7fb 100%
-  );
-  border: 1px solid var(--color-border-blue-soft);
-  border-radius: 14px;
+  background: var(--color-white);
+  border: 0;
+  border-radius: 0;
   box-sizing: border-box;
-  padding: 18px;
+  box-shadow: none;
+  padding: 22px 24px;
   text-align: left;
   width: 100%;
 }
@@ -1317,31 +1314,35 @@ html.landing #landing-card {
 .my-stats-heading {
   color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
-  font-size: 1.4em;
+  font-size: 24px;
   font-weight: 600;
-  letter-spacing: var(--letter-spacing-caps-heading);
-  margin: 0 0 6px;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  margin: 0 0 5px;
+  text-transform: none;
 }
 
 .my-stats-subheading {
-  color: var(--color-text-muted);
+  color: var(--color-text-slate-soft);
   font-family: "Noto Sans", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
   margin: 0;
 }
 
 .my-stats-section-heading {
   color: var(--color-primary);
   font-family: "Noto Sans", sans-serif;
-  font-size: 19px;
+  font-size: 16px;
   font-weight: 600;
   letter-spacing: var(--letter-spacing-caps-heading);
-  margin: 0 0 14px;
+  margin: 0 0 16px;
   text-transform: uppercase;
 }
 
 .my-stats-overview-action {
-  margin-top: 16px;
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 14px;
 }
 
 /* Four tiles in a row rather than .game-summary-stats' shared 2-column
@@ -1353,8 +1354,9 @@ html.landing #landing-card {
    instead of wasting it, and read as one cohesive strip rather than four
    separate cards each mostly empty. */
 .my-stats-overview-grid {
+  gap: 10px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  margin-bottom: 0;
 }
 
 @media (max-width: 480px) {
@@ -1365,8 +1367,9 @@ html.landing #landing-card {
 }
 
 .my-stats-overview-grid .game-summary-stat {
-  background-color: var(--color-white);
+  background-color: #f8fbfd;
   border: 1px solid var(--color-border-blue-soft);
+  border-radius: 9px;
   padding: 12px 6px;
   text-align: center;
 }
@@ -1375,7 +1378,7 @@ html.landing #landing-card {
    loudest thing on the page; at 4 narrower columns it doesn't need to be
    as large to still read as the tile's headline. */
 .my-stats-overview-grid p.game-summary-stat-value {
-  font-size: 1.2em;
+  font-size: 19px;
 }
 
 /* The shared label has no font-weight of its own (inherits normal/400),
@@ -1391,7 +1394,7 @@ html.landing #landing-card {
   display: flex;
   gap: 20px;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .my-stats-gems-header .my-stats-section-heading {
@@ -1400,19 +1403,20 @@ html.landing #landing-card {
 
 .my-stats-gems-row {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   width: 100%;
 }
 
 .my-stats-gems-tile {
   align-items: center;
-  background-color: var(--color-bg-stat);
-  border-radius: 10px;
+  background-color: #f8fbfd;
+  border: 1px solid var(--color-border-blue-soft);
+  border-radius: 9px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 14px 10px;
+  gap: 4px;
+  padding: 12px 10px;
   text-align: center;
 }
 
@@ -1420,8 +1424,9 @@ html.landing #landing-card {
    intro screen's full quest cards) is too large for this compact tile --
    this scales it down to match .game-summary-stat-value's proportions. */
 .my-stats-gems-icon {
-  flex-basis: 40px;
-  width: 40px;
+  filter: drop-shadow(0 2px 4px rgba(28, 42, 58, 0.16)) saturate(0.72);
+  flex-basis: 30px;
+  width: 30px;
 }
 
 .my-stats-vocabulary-header {
@@ -1441,7 +1446,7 @@ html.landing #landing-card {
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
   line-height: 1.45;
-  margin: 0 0 14px;
+  margin: 0 0 16px;
 }
 
 /* "p." here for the same reason as p.game-summary-stat-value above: this
@@ -1456,17 +1461,20 @@ p.my-stats-empty {
 }
 
 .my-stats-see-all-link {
-  color: var(--color-link);
+  color: var(--color-primary);
   display: inline-block;
   font-family: "Noto Sans", sans-serif;
   font-size: 13px;
-  font-weight: 500;
-  margin-top: 16px;
+  font-weight: 600;
+  margin-top: 14px;
   text-decoration: none;
+  text-decoration-color: var(--color-border-blue-soft);
+  text-underline-offset: 4px;
 }
 
 .my-stats-see-all-link:hover {
   text-decoration: underline;
+  text-decoration-color: currentColor;
 }
 
 /* Same capped-height, scrollable treatment as the round-summary's missed
@@ -1478,11 +1486,7 @@ p.my-stats-empty {
   margin-top: 4px;
 }
 
-/* My Stats refinement
-   -------------------
-   A report needs hierarchy more than decoration: one quiet report surface
-   with restrained internal divisions. These overrides intentionally stay
-   within My Stats so Word Game's shared stats components remain untouched. */
+/* My Stats report surface and section-specific controls. */
 #my-stats.definition.my-stats {
   background: var(--color-white);
   border: 1px solid var(--color-border-blue-soft);
@@ -1510,62 +1514,14 @@ p.my-stats-empty {
   text-transform: uppercase;
 }
 
-.my-stats-heading {
-  font-size: 24px;
-  letter-spacing: 0;
-  margin: 0 0 5px;
-  text-transform: none;
-}
-
-.my-stats-subheading {
-  color: var(--color-text-slate-soft);
-  font-size: 14px;
-  line-height: 1.45;
-}
-
-.my-stats-box {
-  background: var(--color-white);
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 22px 24px;
-}
-
 .my-stats-box + .my-stats-box {
   border-top: 1px solid var(--color-border-blue-soft);
-}
-
-.my-stats-section-heading {
-  font-size: 16px;
-  margin-bottom: 16px;
-}
-
-.my-stats-overview-grid {
-  gap: 10px;
-  margin-bottom: 0;
-}
-
-.my-stats-overview-grid .game-summary-stat {
-  background-color: #f8fbfd;
-  border: 1px solid var(--color-border-blue-soft);
-  border-radius: 9px;
-  padding: 12px 6px;
-}
-
-.my-stats-overview-grid p.game-summary-stat-value {
-  font-size: 19px;
 }
 
 .my-stats-overview-grid p.game-summary-stat-label,
 .my-stats-gems-tile p.game-summary-stat-label {
   font-size: 10px;
   font-weight: 600;
-}
-
-.my-stats-overview-action {
-  display: flex;
-  justify-content: flex-start;
-  margin-top: 14px;
 }
 
 .my-stats-overview-action .game-summary-primary-btn {
@@ -1585,46 +1541,8 @@ p.my-stats-empty {
   border-color: var(--color-border-blue-soft);
 }
 
-.my-stats-gems-header {
-  margin-bottom: 12px;
-}
-
-.my-stats-gems-row {
-  gap: 10px;
-}
-
-.my-stats-gems-tile {
-  background-color: #f8fbfd;
-  border: 1px solid var(--color-border-blue-soft);
-  border-radius: 9px;
-  gap: 4px;
-  padding: 12px 10px;
-}
-
-.my-stats-gems-icon {
-  filter: drop-shadow(0 2px 4px rgba(28, 42, 58, 0.16)) saturate(0.72);
-  flex-basis: 30px;
-  width: 30px;
-}
-
 .my-stats-gems-tile p.game-summary-stat-value {
   font-size: 18px;
-}
-
-.my-stats-vocabulary-intro {
-  margin-bottom: 16px;
-}
-
-.my-stats-see-all-link {
-  color: var(--color-primary);
-  font-weight: 600;
-  margin-top: 14px;
-  text-decoration-color: var(--color-border-blue-soft);
-  text-underline-offset: 4px;
-}
-
-.my-stats-see-all-link:hover {
-  text-decoration-color: currentColor;
 }
 
 @media (max-width: 480px) {

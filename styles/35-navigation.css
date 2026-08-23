@@ -535,8 +535,8 @@ body.my-stats-mode .cefr-filter-group {
   }
 
   .search-btn {
-    max-width: 60px !important;
-    min-width: 60px !important;
+    max-width: 60px;
+    min-width: 60px;
     padding: 8px;
   }
 
@@ -567,7 +567,7 @@ body.my-stats-mode .cefr-filter-group {
   }
 
   .selectors-wrapper {
-    box-sizing: border-box !important;
+    box-sizing: border-box;
     display: flex;
     gap: 5px;
     justify-content: space-between;
@@ -581,7 +581,7 @@ body.my-stats-mode .cefr-filter-group {
   .game-english-filter {
     background-color: var(--color-primary);
     border-radius: 15px;
-    box-sizing: border-box !important;
+    box-sizing: border-box;
     min-width: 0;
     padding: 0;
   }
@@ -591,7 +591,7 @@ body.my-stats-mode .cefr-filter-group {
   .genre-filter,
   .game-english-filter,
   .search-bar-wrapper {
-    box-sizing: border-box !important;
+    box-sizing: border-box;
     width: 100%;
   }
 
@@ -631,7 +631,7 @@ body.my-stats-mode .cefr-filter-group {
   .cefr-filter select,
   .genre-filter select,
   .game-english-filter select {
-    box-sizing: border-box !important;
+    box-sizing: border-box;
     cursor: pointer;
     font-size: 10px;
     font-weight: 500;

@@ -1,9 +1,9 @@
 # Stylesheet map
 
 The files in this directory replace the former 7,762-line `styles.css` file.
-They began as contiguous, behavior-preserving slices; focused cleanup passes
-now move shared rules into dedicated files while browser checks guard the
-cascade. Their order in `index.html` remains intentional.
+They are organized by shared shell and feature ownership, with responsive
+rules colocated beside their base components. Their order in `index.html`
+remains intentional.
 
 ## Current order
 
@@ -34,6 +34,14 @@ cascade. Their order in `index.html` remains intentional.
   affected state.
 - Update a file's cache-busting query value in `index.html` whenever that file
   changes.
+
+## Regression checklist
+
+- Run `npm test`.
+- Check representative 390px, 1024px, 1025px, and 1440px layouts.
+- Exercise empty, populated, focused, and disabled toolbar states.
+- Check the feedback dialog at desktop and mobile widths, including keyboard
+  focus.
 
 The document shell, shared navigation, Word Game, result views, Stories, and
 word lists own their base and responsive behavior. Cross-feature components
