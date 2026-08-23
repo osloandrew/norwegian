@@ -904,6 +904,59 @@ function renderClickableNorwegianSentence(sentenceText) {
   return html;
 }
 
+// Story translations are rendered as index-matched Norwegian/English
+// couplets. Keep sentence parsing in small pure helpers so alignment rules
+// can be regression-tested against the entire story catalogue.
+const STORY_SENTENCE_REGEX =
+  /(?:(["]?.+?(?<!\bMr)(?<!\bMrs)(?<!\bMs)(?<!\bDr)(?<!\bProf)(?<!\bJr)(?<!\bSr)(?<!\bSt)(?<!\bMt)[.!?]["]?)(?=\s|$)|(?:\.\.\."))/g;
+
+// The sentence parser separates a closing quotation from a following speech
+// attribution. Recombine only when "asked" is the attribution's opening
+// verb or follows its short subject ("Maria asked", "the dentist asked").
+// A broad `contains asked` check also caught complete new sentences such as
+// Don Quixote's "He also needed a companion, so he asked...", shifting every
+// subsequent English couplet by one.
+const STORY_ENGLISH_ASKED_ATTRIBUTION_REGEX =
+  /^(?:asked\b|(?:[\p{L}\p{M}'’-]+\s+){1,3}asked\b)/iu;
+
+function splitStoryTextIntoSentences(text) {
+  const standardized = String(text || "").replace(/[“”«»]/g, '"');
+  return standardized.match(STORY_SENTENCE_REGEX) || [standardized];
+}
+
+function combineStorySentenceFragments(sentences, attributionRegex = null) {
+  return sentences.reduce((combined, sentence) => {
+    const trimmedSentence = sentence.trim();
+    const previousSentence = combined[combined.length - 1] || "";
+
+    if (
+      combined.length > 0 &&
+      attributionRegex?.test(trimmedSentence) &&
+      /["”']$/.test(previousSentence)
+    ) {
+      combined[combined.length - 1] += " " + trimmedSentence;
+    } else if (combined.length > 0 && /^[a-zæøå]/.test(trimmedSentence)) {
+      combined[combined.length - 1] += " " + trimmedSentence;
+    } else {
+      combined.push(trimmedSentence);
+    }
+
+    return combined;
+  }, []);
+}
+
+function getStorySentencePairs(norwegianText, englishText) {
+  return {
+    norwegianSentences: combineStorySentenceFragments(
+      splitStoryTextIntoSentences(norwegianText),
+    ),
+    englishSentences: combineStorySentenceFragments(
+      splitStoryTextIntoSentences(englishText),
+      STORY_ENGLISH_ASKED_ATTRIBUTION_REGEX,
+    ),
+  };
+}
+
 function displayStory(titleNorwegian) {
   document.documentElement.classList.add("reading");
   showSpinner(); // Show spinner at the start of story loading
@@ -1163,42 +1216,18 @@ function displayStory(titleNorwegian) {
     }
   };
 
-  // Process story text into sentences
-  const standardizedNorwegian = selectedStory.norwegian.replace(/[“”«»]/g, '"');
-  const standardizedEnglish = selectedStory.english.replace(/[“”«»]/g, '"');
-  const sentenceRegex =
-    /(?:(["]?.+?(?<!\bMr)(?<!\bMrs)(?<!\bMs)(?<!\bDr)(?<!\bProf)(?<!\bJr)(?<!\bSr)(?<!\bSt)(?<!\bMt)[.!?]["]?)(?=\s|$)|(?:\.\.\."))/g;
-  let norwegianSentences = standardizedNorwegian.match(sentenceRegex) || [
-    standardizedNorwegian,
-  ];
-  let englishSentences = standardizedEnglish.match(sentenceRegex) || [
-    standardizedEnglish,
-  ];
+  const { norwegianSentences, englishSentences } = getStorySentencePairs(
+    selectedStory.norwegian,
+    selectedStory.english,
+  );
 
-  const combineSentences = (sentences, combineIfContains) => {
-    return sentences.reduce((acc, sentence) => {
-      const trimmedSentence = sentence.trim();
-      const lastSentence = acc[acc.length - 1] || "";
-
-      // Check if the previous sentence ends with a quote and the current sentence contains 'asked'
-      if (
-        acc.length > 0 &&
-        combineIfContains &&
-        combineIfContains.test(trimmedSentence) &&
-        /["”']$/.test(lastSentence)
-      ) {
-        acc[acc.length - 1] += " " + trimmedSentence;
-      } else if (acc.length > 0 && /^[a-zæøå]/.test(trimmedSentence)) {
-        acc[acc.length - 1] += " " + trimmedSentence;
-      } else {
-        acc.push(trimmedSentence);
-      }
-      return acc;
-    }, []);
-  };
-
-  norwegianSentences = combineSentences(norwegianSentences);
-  englishSentences = combineSentences(englishSentences, /\basked\b/i);
+  if (norwegianSentences.length !== englishSentences.length) {
+    console.warn("Story sentence alignment mismatch.", {
+      title: selectedStory.titleEnglish,
+      norwegianCount: norwegianSentences.length,
+      englishCount: englishSentences.length,
+    });
+  }
 
   finalizeContent();
   loadStoryImage(selectedStory);
