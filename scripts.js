@@ -639,9 +639,11 @@ function clearInput(refreshCurrentView = true) {
   if (typeSelect && typeSelect.value === "stories") {
     const cefrEl = document.getElementById("cefr-select");
     const genreEl = document.getElementById("genre-select");
+    const favoritesEl = document.getElementById("story-favorites-select");
 
     if (cefrEl) cefrEl.value = "";
     if (genreEl) genreEl.value = "";
+    if (favoritesEl) favoritesEl.value = "";
 
     if (refreshCurrentView) {
       // Clearing filters/search on the Stories tab is the deliberate
@@ -2158,6 +2160,7 @@ function handleTypeChange(type, options = {}) {
   const shouldRenderInitialContent = options.renderInitialContent !== false;
   // Give the page a dedicated class while Word Game is selected.
   document.body.classList.toggle("word-game-mode", type === "word-game");
+  document.body.classList.toggle("stories-mode", type === "stories");
   // Same idea for My Stats — the stylesheets use this to keep the My Words
   // button as a labeled pill beside the type dropdown at ≤1024px instead
   // of the icon-only circle meant to share a row with the search bar,
@@ -2190,15 +2193,22 @@ function handleTypeChange(type, options = {}) {
   // Filter containers for POS, Genre, and CEFR
   const posFilterContainer = document.querySelector(".pos-filter");
   const genreFilterContainer = document.getElementById("genre-filter"); // Get the Genre filter container
+  const storyFavoritesFilterContainer = document.getElementById(
+    "story-favorites-filter",
+  );
   const cefrFilterContainer = document.querySelector(".cefr-filter"); // Get the CEFR filter container
 
   // Filter dropdowns for POS, Genre, and CEFR
   const posSelect = document.getElementById("pos-select");
   const genreSelect = document.getElementById("genre-select");
+  const storyFavoritesSelect = document.getElementById(
+    "story-favorites-select",
+  );
   const cefrSelect = document.getElementById("cefr-select"); // Get the CEFR filter dropdown
   const cefrLock = document.getElementById("lock-icon");
 
   removeStoryHeader();
+  storyFavoritesFilterContainer.style.display = "none";
   gameEnglishFilterContainer.style.display = "none";
   gameEnglishSelect.style.display = "none"; // Hide random button
 
@@ -2225,6 +2235,8 @@ function handleTypeChange(type, options = {}) {
   if (type === "stories") {
     genreFilterContainer.style.display = "inline-flex"; // Show genre dropdown in story mode
     genreSelect.value = ""; // Reset to default genre
+    storyFavoritesFilterContainer.style.display = "inline-flex";
+    storyFavoritesSelect.value = "";
 
     searchBarWrapper.style.display = "inline-flex"; // Hide search-bar-wrapper
     posFilterContainer.style.display = "none";

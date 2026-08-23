@@ -722,9 +722,11 @@ ul {
 }
 
 .stories-detail-container {
+  align-items: flex-end;
   display: flex; /* Use flexbox layout */
   gap: 6px;
   margin-left: 10px;
+  padding-top: 34px;
 }
 
 .stories-genre {
@@ -769,6 +771,7 @@ ul {
   cursor: pointer;
   height: 100%;
   min-height: 90px;
+  position: relative;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
@@ -788,6 +791,7 @@ ul {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   margin: 0 0 10px 0;
   overflow: hidden;
+  position: relative;
   transition:
     box-shadow 0.2s ease,
     transform 0.2s ease;
@@ -818,6 +822,27 @@ ul {
 
 .story-recommendation .story-card-link {
   cursor: pointer;
+}
+
+/*
+ * Reuses the exact My Words star button/icon. It is a sibling of the link,
+ * not nested inside it, so the two interactive targets remain valid and a
+ * star click can never open the story.
+ */
+.story-card-favorite-button {
+  position: absolute;
+  right: 11px;
+  top: 5px;
+  z-index: 2;
+}
+
+.story-recommendation .story-card-favorite-button {
+  top: 31px;
+}
+
+.story-list-empty-state {
+  margin-top: 0;
+  text-align: center;
 }
 
 .stories-list-item p {

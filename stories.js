@@ -576,6 +576,60 @@ function getRecommendedStory() {
   return candidates[0];
 }
 
+function isFavoriteStoriesFilterActive() {
+  return document.getElementById("story-favorites-select")?.value === "favorites";
+}
+
+function updateStoryFavoriteButton(button, titleNorwegian) {
+  const isSaved = Boolean(
+    window.StoryFavoritesAPI?.isSaved?.(titleNorwegian),
+  );
+  const action = isSaved ? "Remove" : "Add";
+  const destination = isSaved ? "from favorite stories" : "to favorite stories";
+
+  button.classList.toggle("is-saved", isSaved);
+  button.setAttribute("aria-pressed", String(isSaved));
+  button.setAttribute(
+    "aria-label",
+    `${action} ${titleNorwegian} ${destination}`,
+  );
+  button.title = `${action} ${titleNorwegian} ${destination}`;
+  button.querySelector("i").className = `${isSaved ? "fas" : "far"} fa-star`;
+}
+
+function createStoryFavoriteButton(story) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className =
+    "word-list-favorite-button story-card-favorite-button";
+  button.dataset.storyTitle = story.titleNorwegian;
+  button.innerHTML = '<i aria-hidden="true"></i>';
+
+  updateStoryFavoriteButton(button, story.titleNorwegian);
+
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    window.StoryFavoritesAPI?.toggle?.(story.titleNorwegian);
+  });
+
+  return button;
+}
+
+window.addEventListener("story-favorites:updated", () => {
+  document
+    .querySelectorAll(".story-card-favorite-button")
+    .forEach((button) =>
+      updateStoryFavoriteButton(button, button.dataset.storyTitle || ""),
+    );
+
+  // An unfavorited card should leave a Favorites-only view immediately.
+  // Remote changes from another signed-in device use the same path.
+  if (isStoriesTabActive() && isFavoriteStoriesFilterActive()) {
+    displayStoryList();
+  }
+});
+
 /*
  * Build the shared title+detail markup for a story card. Used by both the
  * regular story list and the recommendation banner, so they always stay
@@ -665,6 +719,7 @@ function createStoryRecommendationElement(story) {
 
   wrapper.appendChild(label);
   wrapper.appendChild(storyLink);
+  wrapper.appendChild(createStoryFavoriteButton(story));
 
   return wrapper;
 }
@@ -697,6 +752,7 @@ async function displayStoryList(
     .getElementById("genre-select")
     .value.toLowerCase()
     .trim();
+  const showFavoritesOnly = isFavoriteStoriesFilterActive();
 
   // Stories search only changes after a deliberate submit. The input can
   // contain a new unfinished query while this list retains the last one.
@@ -717,6 +773,9 @@ async function displayStoryList(
       ? story.CEFR && story.CEFR.trim().toUpperCase() === selectedCEFR
       : true;
     const hasNorwegian = story.norwegian && story.norwegian.trim() !== "";
+    const matchesFavorites =
+      !showFavoritesOnly ||
+      Boolean(window.StoryFavoritesAPI?.isSaved?.(story.titleNorwegian));
     // NEW: title search across ES + EN titles, like JP
     const matchesSearch =
       !searchText ||
@@ -725,7 +784,13 @@ async function displayStoryList(
       (story.titleEnglish &&
         story.titleEnglish.toLowerCase().includes(searchText));
 
-    return genreMatch && cefrMatch && hasNorwegian && matchesSearch;
+    return (
+      genreMatch &&
+      cefrMatch &&
+      hasNorwegian &&
+      matchesSearch &&
+      matchesFavorites
+    );
   });
 
   // Ability-weighted, read-penalized, deterministic-per-seed ordering (see
@@ -772,7 +837,7 @@ async function displayStoryList(
   // ▶ NEW: populate <ul id="stories"> with <li> items (JP mirror)
   const container = document.getElementById("results-container");
   const hasActiveStoryFilter = Boolean(
-    searchText || selectedCEFR || selectedGenre,
+    searchText || selectedCEFR || selectedGenre || showFavoritesOnly,
   );
   if (hasActiveStoryFilter) {
     const activeFilterChips = [
@@ -784,6 +849,9 @@ async function displayStoryList(
         : "",
       selectedCEFR
         ? `<span class="story-results-filter-summary story-results-cefr-filter" title="CEFR ${escapeHTML(selectedCEFR)}"><span class="cefr-value ${getStoryCefrClass(selectedCEFR)}" aria-hidden="true">${escapeHTML(selectedCEFR)}</span><span class="story-results-filter-name">${escapeHTML(getCefrLabel(selectedCEFR) || selectedCEFR)}</span></span>`
+        : "",
+      showFavoritesOnly
+        ? `<span class="story-results-filter-summary story-results-favorites-filter"><span class="story-results-genre-icon" aria-hidden="true"><i class="fas fa-star"></i></span><span class="story-results-filter-name">Favorites</span></span>`
         : "",
     ]
       .filter(Boolean)
@@ -822,6 +890,7 @@ async function displayStoryList(
     const li = document.createElement("li");
     li.className = "stories-list-item";
     li.appendChild(createStoryCardLink(story));
+    li.appendChild(createStoryFavoriteButton(story));
     storyItems.appendChild(li);
   });
 
@@ -847,7 +916,16 @@ async function displayStoryList(
     container.appendChild(createStoryRecommendationElement(recommendedStory));
   }
 
-  container.appendChild(storyList);
+  if (totalMatchingStories > 0) {
+    container.appendChild(storyList);
+  } else {
+    const emptyState = document.createElement("div");
+    emptyState.className = "definition error-message story-list-empty-state";
+    emptyState.innerHTML = showFavoritesOnly
+      ? `<h2>No Favorite Stories Yet</h2><p>Use the star on a story card to save it for later.</p>`
+      : `<h2>No Stories Found</h2><p>Try a different search or filter.</p>`;
+    container.appendChild(emptyState);
+  }
 
   if (regularVisibleCount < regularStories.length) {
     const loadMore = document.createElement("div");
@@ -1258,6 +1336,10 @@ function handleGenreChange() {
   displayStoryList(filteredStories);
 }
 
+function handleStoryFavoritesFilterChange() {
+  displayStoryList();
+}
+
 function storiesBackBtn() {
   // JP parity: stop and remove any playing audio from the sticky header
   const stickyHeader = document.getElementById("sticky-header");
@@ -1279,8 +1361,10 @@ function storiesBackBtn() {
   // 1) Capture current CEFR/Genre BEFORE changing the UI
   const cefrElBefore = document.getElementById("cefr-select");
   const genreElBefore = document.getElementById("genre-select");
+  const favoritesElBefore = document.getElementById("story-favorites-select");
   const savedCEFR = cefrElBefore ? cefrElBefore.value : "";
   const savedGenre = genreElBefore ? genreElBefore.value : "";
+  const savedFavorites = favoritesElBefore ? favoritesElBefore.value : "";
 
   // 2) Clear ONLY the search box (mirror JP)
   const searchEl =
@@ -1302,8 +1386,10 @@ function storiesBackBtn() {
   // 4) Re-grab the (possibly re-rendered) selects and restore values
   const cefrElAfter = document.getElementById("cefr-select");
   const genreElAfter = document.getElementById("genre-select");
+  const favoritesElAfter = document.getElementById("story-favorites-select");
   if (cefrElAfter) cefrElAfter.value = savedCEFR;
   if (genreElAfter) genreElAfter.value = savedGenre;
+  if (favoritesElAfter) favoritesElAfter.value = savedFavorites;
 
   // 5) Render the list using the restored dropdowns
   displayStoryList();

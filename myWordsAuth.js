@@ -121,6 +121,7 @@
     "norwegian-dictionary-ability-v1",
     "norwegian-dictionary-game-level-v1",
     "norwegian-dictionary-daily-practice-v2",
+    "norwegian-dictionary-favorite-stories-v1",
   ];
 
   function clearLocalUserDataAndReload() {
@@ -683,6 +684,10 @@
         if (typeof data.showEnglish === "boolean") {
           window.EnglishVisibilityAPI?.replaceState?.(data.showEnglish);
         }
+
+        if (typeof data.favoriteStoriesPayload === "string") {
+          window.StoryFavoritesAPI?.reconcile?.(data.favoriteStoriesPayload);
+        }
       },
       (error) => {
         console.warn("Live sync for My Words was interrupted.", error);
@@ -729,6 +734,10 @@
     try {
       const snapshot = await getUserDocRef(userId).get();
       const remoteData = snapshot.exists ? snapshot.data() : {};
+      const mergedStoryFavoritesPayload =
+        window.StoryFavoritesAPI?.reconcile?.(
+          remoteData.favoriteStoriesPayload,
+        ) ?? window.StoryFavoritesAPI?.getPayload?.();
 
       const hasShardedProgress =
         remoteData.progressSchemaVersion >= window.ProgressSharding.SCHEMA_VERSION;
@@ -990,6 +999,9 @@
         streak: mergedStreak,
         dailyPractice: mergedDailyPractice,
         showEnglish: mergedShowEnglish,
+        ...(typeof mergedStoryFavoritesPayload === "string"
+          ? { favoriteStoriesPayload: mergedStoryFavoritesPayload }
+          : {}),
       });
       saveProgressCursor(userId, newestCursor);
       return newestCursor;
@@ -1157,6 +1169,19 @@
       },
       { defer: event.detail?.deferRemote === true },
     );
+  });
+
+  // Fired by storyFavorites.js after a local toggle or when a newer local
+  // tombstone needs to repair stale account data from another device.
+  window.addEventListener("story-favorites:updated", (event) => {
+    if (
+      event.detail?.syncRemote === false ||
+      typeof event.detail?.payload !== "string"
+    ) {
+      return;
+    }
+
+    scheduleProfilePush({ favoriteStoriesPayload: event.detail.payload });
   });
 
   window.addEventListener("progress:round-complete", () => {

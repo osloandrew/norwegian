@@ -574,6 +574,20 @@ body.my-stats-mode .cefr-filter-group {
     width: 100%;
   }
 
+  /* Four story filters are clearer as a balanced two-by-two grid than as
+     four compressed pills (which reduced the Level control to its arrow). */
+  body.stories-mode .selectors-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.stories-mode .type-filter,
+  body.stories-mode .genre-filter,
+  body.stories-mode .cefr-filter-group,
+  body.stories-mode .cefr-filter {
+    width: 100%;
+  }
+
   .type-filter,
   .pos-filter,
   .cefr-filter,

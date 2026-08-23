@@ -89,15 +89,15 @@
     />
     <link
       rel="stylesheet"
-      href="styles/20-results-and-story-quiz.css?v=91034a8b85"
+      href="styles/20-results-and-story-quiz.css?v=201a5d3f56"
     />
     <link
       rel="stylesheet"
-      href="styles/30-stories-and-word-lists.css?v=5c96af9da6"
+      href="styles/30-stories-and-word-lists.css?v=a59ed6a1a1"
     />
     <link
       rel="stylesheet"
-      href="styles/35-navigation.css?v=d5485e0c91"
+      href="styles/35-navigation.css?v=17c082e7a6"
     />
     <link
       rel="stylesheet"
@@ -403,6 +403,23 @@
                 <option value="science fiction">Science Fiction</option>
                 <option value="technology">Technology</option>
                 <option value="travel">Travel</option>
+              </select>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+
+            <!-- Favorite Stories Selector -->
+            <div
+              class="genre-filter story-favorites-filter"
+              id="story-favorites-filter"
+              aria-label="Filter favorite stories"
+              style="display: none"
+            >
+              <select
+                id="story-favorites-select"
+                onchange="handleStoryFavoritesFilterChange()"
+              >
+                <option value="">All Stories</option>
+                <option value="favorites">Favorites</option>
               </select>
               <i class="fas fa-chevron-down"></i>
             </div>
@@ -880,15 +897,16 @@
     <script src="englishVisibility.js?v=b7799fc88b" defer></script>
     <script src="pronunciation.js?v=c057d68508" defer></script>
     <script src="wordList.js?v=bdc4b99371" defer></script>
-    <script src="myWordsAuth.js?v=df4b640a22" defer></script>
+    <script src="storyFavorites.js?v=c152eb5155" defer></script>
+    <script src="myWordsAuth.js?v=a7f10895ef" defer></script>
     <script src="noRandom.js?v=dd11769910" defer></script>
-    <script src="scripts.js?v=c250e4ee8f" defer></script>
-    <script src="wordGame.js?v=dc1d13da36" defer></script>
+    <script src="scripts.js?v=e87641a133" defer></script>
+    <script src="wordGame.js?v=61764049ec" defer></script>
     <script src="placementTest.js?v=34512a65ac" defer></script>
     <script src="streak.js?v=ddb26efe7e" defer></script>
-    <script src="stories.js?v=dbe2116662" defer></script>
+    <script src="stories.js?v=d9b1de4257" defer></script>
     <script src="storyQuiz.js?v=42c70f88d5" defer></script>
-    <script src="myStats.js?v=39333a17d7" defer></script>
+    <script src="myStats.js?v=2778937dd8" defer></script>
 
     <!--
       Registered after "load" (not deferred alongside the app scripts
