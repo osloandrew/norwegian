@@ -4241,6 +4241,13 @@ function loadStateFromURL() {
   const checkDataLoaded = setInterval(displayWordIfLoaded, 100);
 }
 
+function normalizeResultCardMatchValue(value) {
+  return String(value ?? "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
 // Function to handle clicking on a search result card
 function handleCardClick(event, word, pos, engelsk, definisjon) {
   // Filter to count only visible elements with the specific card class
@@ -4256,13 +4263,18 @@ function handleCardClick(event, word, pos, engelsk, definisjon) {
 
   // Filter results by word, POS (part of speech), and the English translation
   const clickedResult = results.filter((r) => {
-    const wordMatch = r.ord.toLowerCase().trim() === word.toLowerCase().trim();
+    const wordMatch =
+      normalizeResultCardMatchValue(r.ord) ===
+      normalizeResultCardMatchValue(word);
     const genderMatch =
-      r.gender.toLowerCase().trim() === pos.toLowerCase().trim();
+      normalizeResultCardMatchValue(r.gender) ===
+      normalizeResultCardMatchValue(pos);
     const engelskMatch =
-      r.engelsk.toLowerCase().trim() === engelsk.toLowerCase().trim();
+      normalizeResultCardMatchValue(r.engelsk) ===
+      normalizeResultCardMatchValue(engelsk);
     const definisjonMatch =
-      r.definisjon.toLowerCase().trim() === definisjon.toLowerCase().trim();
+      normalizeResultCardMatchValue(r.definisjon) ===
+      normalizeResultCardMatchValue(definisjon);
 
     return wordMatch && genderMatch && engelskMatch && definisjonMatch;
   });
