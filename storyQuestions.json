@@ -76,48 +76,48 @@
   "Blå soner": {
     "questions": [
       {
-        "prompt": "Hvor mange blå soner finnes det i verden, ifølge teksten?",
+        "prompt": "Hva sier teksten om forskningsgrunnlaget for de såkalte blå sonene?",
         "options": [
-          "Tre",
-          "Fire",
-          "Fem",
-          "Sju"
+          "Områdene har ulik grad av forskningsstøtte, og selve begrepet diskuteres fortsatt",
+          "Alle fem områdene er like godt dokumentert som steder med ekstraordinær levealder",
+          "Forskerne er enige om områdene, men uenige bare om hvilke matvarer som forklarer levealderen",
+          "Begrepet er vitenskapelig avvist, selv om det fortsatt brukes i populærkulturen"
         ],
-        "correctIndex": 2,
-        "sourceSentence": "Det finnes fem slike steder: Okinawa i Japan, Sardinia i Italia, Nicoya i Costa Rica, Ikaria i Hellas og Loma Linda i USA."
+        "correctIndex": 0,
+        "sourceSentence": "Forskningen støtter ikke alle disse områdene like sterkt, og forskere diskuterer fortsatt hvordan «blå soner» bør defineres."
       },
       {
-        "prompt": "Hva spiser folk mye av i blå soner?",
+        "prompt": "Hvilke typer forklaringer undersøker forskere på den høye levealderen i enkelte av områdene?",
         "options": [
-          "Kjøtt, ost, brød og søtsaker",
-          "Grønnsaker, frukt, bønner og nøtter",
-          "Fisk, egg, meieriprodukter og ris",
-          "Frukt, kjøtt, poteter og kornprodukter"
+          "Både livsstil, sosiale forhold, gener, miljø og lokale forhold",
+          "Først og fremst kosthold og fysisk aktivitet, siden genetikk ikke nevnes som relevant",
+          "Hovedsakelig familieforhold og religiøs praksis",
+          "Bare biologiske faktorer fordi livsstilsdata er for usikre"
         ],
-        "correctIndex": 1,
-        "sourceSentence": "I blå soner spiser folk mye grønnsaker, frukt, bønner og nøtter."
+        "correctIndex": 0,
+        "sourceSentence": "Kosthold, fysisk aktivitet, familie og sosiale forhold kan spille en rolle, men også gener, miljø og lokale forhold."
       },
       {
-        "prompt": "I teksten betyr ordet «hemmeligheten» omtrent det samme som:",
+        "prompt": "Hvorfor er det vanskelig å vite hvor mye én bestemt vane betyr for levealderen?",
         "options": [
-          "Løsningen som er lett å se med det samme",
-          "Noe skjult som forklarer hvorfor",
-          "En oppskrift på mat",
-          "Et sted man ikke kan besøke"
+          "Fordi mange faktorer virker sammen gjennom et helt liv",
+          "Fordi vanene i de ulike områdene er nesten identiske",
+          "Fordi forskere ikke kan undersøke kosthold eller fysisk aktivitet over tid",
+          "Fordi levealderen hovedsakelig bestemmes av tilfeldigheter"
         ],
-        "correctIndex": 1,
-        "sourceSentence": "Hva er hemmeligheten?"
+        "correctIndex": 0,
+        "sourceSentence": "Samtidig er det vanskelig å vite hvor mye én bestemt vane betyr, fordi mange faktorer virker sammen gjennom et helt liv."
       },
       {
-        "prompt": "Hva sier teksten om sosiale bånd i blå soner?",
+        "prompt": "Hvordan mener teksten at ideen om blå soner bør brukes?",
         "options": [
-          "De er svake fordi folk jobber mye",
-          "Familie og venner spiller en viktig rolle",
-          "Folk bor alene det meste av tiden",
-          "De har ikke tid til venner"
+          "Som et utgangspunkt for spørsmål, ikke som en ferdig oppskrift på et langt liv",
+          "Som en praktisk oppskrift dersom man kombinerer kosthold, aktivitet og sterke sosiale bånd",
+          "Som et bevis på at bestemte livsstilsvaner virker på samme måte i alle befolkninger",
+          "Som en metode for å rangere hvilke land som har den sunneste livsstilen"
         ],
-        "correctIndex": 1,
-        "sourceSentence": "I tillegg har de sterke sosiale bånd. Familie og venner spiller en viktig rolle, og de tar seg tid til å være sammen."
+        "correctIndex": 0,
+        "sourceSentence": "Men den bør brukes som et utgangspunkt for spørsmål, ikke som en ferdig oppskrift på hvordan alle kan leve lenger."
       }
     ]
   },
@@ -220,37 +220,37 @@
   "Flaksens rolle i historien": {
     "questions": [
       {
-        "prompt": "Why did some kings win wars, according to the text?",
+        "prompt": "What example does the text give of luck affecting an army?",
         "options": [
-          "The weather was on their side",
-          "They became ill at the wrong time",
-          "A storm destroyed their fleet",
-          "They planned everything perfectly"
+          "One army may have good luck with the weather while another loses ships in a storm",
+          "One army may have better weapons while another has more soldiers",
+          "One army may arrive early while another chooses a different route",
+          "One army may win because its leader has planned every detail"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Noen konger vant krig fordi været var på deres side."
+        "sourceSentence": "En hær kan ha hatt flaks med været, mens en annen har mistet skip i en storm."
       },
       {
         "prompt": "Why can an expedition succeed, according to the text?",
         "options": [
-          "The ship gets good wind",
-          "The ship meets strong headwinds",
-          "The crew has to change its route",
-          "A storm arrives during the journey"
+          "Because the wind is good and the ship arrives safely",
+          "Because the travelers know exactly what weather to expect",
+          "Because the route is shorter than anyone planned",
+          "Because the ship avoids every possible accident"
         ],
         "correctIndex": 0,
-        "sourceSentence": "For eksempel kan en oppdagelsesreise bli vellykket fordi skipet får god vind."
+        "sourceSentence": "En oppdagelsesreise kan for eksempel lykkes fordi vinden er god og skipet kommer trygt fram."
       },
       {
-        "prompt": "According to the text, what can luck decide about a person?",
+        "prompt": "What is the main point the text makes about luck and planning?",
         "options": [
-          "Whether they become famous or forgotten",
-          "Whether their plans turn out exactly as expected",
-          "Whether they are remembered for success or for failure",
-          "Whether they have the chance to make important decisions"
+          "Plans and skills matter, but chance events can also affect the result",
+          "Luck matters more than planning in most important historical events",
+          "Careful planning can remove the influence of chance almost completely",
+          "Historical outcomes mainly depend on whether leaders are lucky or unlucky"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Lykke kan derfor bestemme om en person blir berømt eller glemt."
+        "sourceSentence": "Flaks betyr ikke at planer og ferdigheter er uviktige. Det betyr bare at tilfeldige hendelser også kan påvirke resultatet."
       }
     ]
   },
@@ -2549,48 +2549,48 @@
   "Fermentert mat": {
     "questions": [
       {
-        "prompt": "Hva illustrerer de norske eksemplene på fermentering om metodens historiske funksjon?",
+        "prompt": "Hva er det viktig å skille mellom når fermentert mat omtales som helsefremmende?",
         "options": [
-          "At fermentering bidro til å bevare mat og sikre næring gjennom lange, harde vintre",
-          "At fermentering først og fremst ble brukt for å utvikle sterkere og mer komplekse smaker",
-          "At norske fermenteringstradisjoner oppstod etter at asiatiske metoder ble introdusert",
-          "At fermentering gjorde det mulig å erstatte ferske råvarer med importert mat om vinteren"
+          "Mellom fermentert mat generelt og produkter som faktisk er probiotiske",
+          "Mellom tradisjonell fermentering og industriell fermentering",
+          "Mellom mat som er fermentert med bakterier og mat som er fermentert med gjær",
+          "Mellom fermentert mat med lang holdbarhet og fermentert mat med kort holdbarhet"
         ],
         "correctIndex": 0,
-        "sourceSentence": "I Norge er surstrømning og rakfisk eksempler på hvordan fermentering ble brukt for å sikre tilgang på næring gjennom de lange, harde vintrene."
+        "sourceSentence": "Her er det viktig å skille mellom fermentert mat og probiotika."
       },
       {
-        "prompt": "Hvilke mikroorganismer nevner teksten som ansvarlige for fermenteringsprosessen?",
+        "prompt": "Hva sier teksten om forskningen på helseeffekter av fermentert mat?",
         "options": [
-          "Bakterier, gjær og mugg",
-          "Virus og parasitter",
-          "Alger og sopp",
-          "Insekter og larver"
+          "Enkelte produkter kan ha positive effekter, men resultatene varierer mellom produkter og studier",
+          "De fleste fermenterte produkter har den samme dokumenterte effekten på tarmfloraen",
+          "Forskningen viser først og fremst at levende mikroorganismer forebygger kronisk sykdom",
+          "Resultatene er mest usikre for tradisjonelle produkter, men tydelige for moderne produkter"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Fermentering innebærer en kontrollert prosess der mikroorganismer som bakterier, gjær og mugg bryter ned sukker og andre stoffer i maten."
+        "sourceSentence": "Forskning tyder på at enkelte fermenterte matvarer kan ha positive helseeffekter, men resultatene varierer mellom produkter og studier."
       },
       {
-        "prompt": "Hva sier teksten at probiotika i fermentert mat kan bidra til?",
+        "prompt": "Hvorfor er fermentering mindre forutsigbar enn mange andre matlagingsmetoder, ifølge teksten?",
         "options": [
-          "En sunn tarmflora",
-          "Bedre opptak av enkelte næringsstoffer uten å påvirke tarmfloraen",
-          "Lengre holdbarhet på maten gjennom sterkere immunforsvar hos den som spiser den",
-          "Lavere sukkerinnhold i mange fermenterte produkter"
+          "Fordi levende mikroorganismer påvirker prosessen samtidig som flere forhold må kontrolleres",
+          "Fordi råvarene ikke kan måles eller kontrolleres før fermenteringen begynner",
+          "Fordi temperatur og saltinnhold har liten betydning sammenlignet med tilfeldige forhold",
+          "Fordi fermentering vanligvis foregår uten kunnskap om hvilke mikroorganismer som er til stede"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Mange fermenterte produkter inneholder probiotika, som bidrar til å opprettholde en sunn tarmflora."
+        "sourceSentence": "Temperatur, tid, saltinnhold og råvarer påvirker resultatet, samtidig som levende mikroorganismer gjør prosessen mindre forutsigbar enn mange andre matlagingsmetoder."
       },
       {
-        "prompt": "Hvorfor beskriver teksten fermentering som både en vitenskap og en kunst?",
+        "prompt": "Hva fremhever teksten som den historiske betydningen av fermentering?",
         "options": [
-          "Fordi prosessen krever presis kontroll, men også forståelse for naturlig variasjon",
-          "Fordi vitenskapen forklarer mikroorganismene, mens kunsten først og fremst gjelder smaken",
-          "Fordi moderne fermentering følger faste regler, mens tradisjonelle metoder bygger på improvisasjon",
-          "Fordi temperatur og salt kan måles nøyaktig, mens selve fermenteringstiden som regel må gjettes"
+          "At mennesker i årtusener har brukt den til å endre smak, bevare råvarer og utnytte lokale ressurser",
+          "At den gjorde det mulig å produsere mat uten tilgang til ferske råvarer",
+          "At den først og fremst utviklet seg som en metode for å forbedre næringsinnholdet i mat",
+          "At den spredte seg globalt fordi fermenterte produkter var enklere å transportere enn annen mat"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Prosessen krever presisjon – temperaturen, tiden og mengden salt må være perfekt balansert – men også en forståelse av de subtile, uforutsigbare elementene som naturen bringer med seg."
+        "sourceSentence": "Når vi spiser fermentert mat, møter vi ikke bare en moderne mattrend, men en teknologi mennesker har brukt i årtusener for å forandre smak, gjøre råvarer mer holdbare og utnytte lokale ressurser."
       }
     ]
   },
@@ -2719,37 +2719,37 @@
   "Formell norsk": {
     "questions": [
       {
-        "prompt": "According to the text, how should a formal letter or email typically end?",
+        "prompt": "When can Norwegian be a little more formal, according to the text?",
         "options": [
-          "With \"Med vennlig hilsen\"",
-          "With \"Takk for sist\"",
-          "With \"Vi snakkes\"",
-          "With \"Ha en fin kveld\""
+          "At work, in an application, or when writing to someone you do not know",
+          "Only when speaking to teachers, bosses, or older people",
+          "Whenever you write an email, even to close friends",
+          "Mostly when you use difficult words and formal titles"
         ],
         "correctIndex": 0,
-        "sourceSentence": "og vi avslutter gjerne med «Med vennlig hilsen»."
+        "sourceSentence": "På jobb, i en søknad eller når vi skriver til noen vi ikke kjenner, kan språket være litt mer formelt."
       },
       {
-        "prompt": "According to the text, when is it common to use informal Norwegian?",
+        "prompt": "What does the text say is most important in more formal communication?",
         "options": [
-          "When talking with friends",
-          "When talking to a teacher",
-          "When writing to an employer",
-          "When at a job interview"
+          "Being clear, polite, and paying attention to the tone",
+          "Using longer sentences and more difficult vocabulary",
+          "Avoiding first names and using formal titles instead",
+          "Following one fixed set of formal expressions"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Når vi snakker med venner, bruker vi ofte uformelt språk."
+        "sourceSentence": "Det viktigste er å være tydelig, høflig og passe på tonen."
       },
       {
-        "prompt": "Why is it important to be able to use formal Norwegian, according to the text?",
+        "prompt": "How do Norwegians usually address teachers and bosses when speaking, according to the text?",
         "options": [
-          "Because it shows respect",
-          "Because it is required by law",
-          "Because informal Norwegian is disappearing",
-          "Because it makes you sound smarter than others"
+          "By first name and with «du»",
+          "By surname and with «De»",
+          "By job title instead of name",
+          "With «De» at first and «du» only after permission"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Å kunne bruke formelt norsk er viktig, fordi det viser respekt."
+        "sourceSentence": "Når nordmenn snakker sammen, bruker de vanligvis fornavn og «du», også med lærere og sjefer."
       }
     ]
   },
@@ -3299,48 +3299,48 @@
   "Hannah Arendt": {
     "questions": [
       {
-        "prompt": "Hvorfor måtte Arendt flykte fra Tyskland i 1933?",
+        "prompt": "Hvorfor flyktet Hannah Arendt fra Tyskland i 1933?",
         "options": [
-          "Fordi hun var jødisk da nazistene tok makten",
-          "Fordi universitetet utviste henne etter en konflikt om undervisningen",
-          "Fordi hun ønsket å arbeide videre med filosofi i Frankrike",
-          "Fordi hun ble anklaget for å støtte kommunistiske grupper"
+          "Fordi nazistene kom til makten",
+          "Fordi hun fikk en fast stilling ved et universitet i Frankrike",
+          "Fordi hun ønsket å studere amerikansk politikk",
+          "Fordi Tyskland allerede var okkupert av utenlandske styrker"
         ],
         "correctIndex": 0,
-        "sourceSentence": "På grunn av sin jødiske bakgrunn ble Arendt tvunget til å flykte fra Tyskland da nazistene kom til makten i 1933."
+        "sourceSentence": "Da nazistene kom til makten i 1933, flyktet hun fra Tyskland."
       },
       {
-        "prompt": "Hva skjedde med Arendt etter at hun først flyktet til Frankrike?",
+        "prompt": "Hva undersøkte Arendt i Totalitarismens opprinnelse?",
         "options": [
-          "Hun ble værende i Frankrike til etter krigen",
-          "Hun måtte flykte videre til USA i 1941",
-          "Hun reiste tilbake til Tyskland etter noen få år",
-          "Hun flyttet videre til Palestina før krigen"
-        ],
-        "correctIndex": 1,
-        "sourceSentence": "men i 1941 måtte hun flykte videre til USA for å unnslippe de nazistiske okkupasjonsstyrkene"
-      },
-      {
-        "prompt": "Hva handler boken Eichmann i Jerusalem om?",
-        "options": [
-          "Arendts erfaringer som flyktning fra Tyskland",
-          "Rettssaken mot Adolf Eichmann og Arendts analyse av den",
-          "Forholdet mellom Arendt og Martin Heidegger",
-          "Utviklingen av totalitarismen i USA etter krigen"
-        ],
-        "correctIndex": 1,
-        "sourceSentence": "der Arendt rapporterte fra rettssaken mot Adolf Eichmann, en av nazilederne som var ansvarlig for Holocaust"
-      },
-      {
-        "prompt": "Hva mente Arendt med uttrykket «ondskapens banalitet»?",
-        "options": [
-          "At vanlige mennesker kan gjøre grusomme ting når de følger ordre uten kritisk refleksjon",
-          "At mennesker kan bli vant til grusomhet når den gjentas ofte nok i et system",
-          "At ideologisk overbevisning kan gjøre alvorlige handlinger lettere å rettferdiggjøre",
-          "At totalitære systemer kan gjøre det vanskelig å se konsekvensene av egne handlinger"
+          "Hvordan totalitære styresett kunne vokse fram",
+          "Hvordan demokratier kunne unngå økonomiske kriser",
+          "Hvordan politiske flyktninger tilpasset seg livet i USA",
+          "Hvordan filosofien utviklet seg i Tyskland etter krigen"
         ],
         "correctIndex": 0,
-        "sourceSentence": "som beskrev hvordan vanlige mennesker kan begå grusomme handlinger uten nødvendigvis å være ondskapsfulle, men heller fordi de blindt følger ordre"
+        "sourceSentence": "I Totalitarismens opprinnelse undersøkte hun hvordan totalitære styresett kunne vokse fram."
+      },
+      {
+        "prompt": "Hva legger den nye teksten vekt på i forklaringen av «ondskapens banalitet»?",
+        "options": [
+          "At et menneske kan delta i fryktelige handlinger uten kritisk refleksjon og likevel være ansvarlig",
+          "At onde handlinger blir mindre alvorlige når de utføres som en del av et system",
+          "At mennesker som følger ordre ikke kan holdes moralsk ansvarlige for konsekvensene",
+          "At grusomme handlinger først og fremst skyldes sterk ideologisk overbevisning"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Hun var opptatt av hvordan et menneske kunne delta i fryktelige handlinger uten å stoppe opp og tenke kritisk over det han gjorde, samtidig som personen fortsatt var ansvarlig for handlingene sine."
+      },
+      {
+        "prompt": "Hvorfor blir Arendts tekster fortsatt lest, ifølge teksten?",
+        "options": [
+          "Fordi de stiller vanskelige spørsmål om politikk, moral og ansvar",
+          "Fordi de gir en entydig forklaring på hvorfor totalitære regimer oppstår",
+          "Fordi de hovedsakelig beskriver hennes eget liv som flyktning",
+          "Fordi de argumenterer for én bestemt politisk ideologi"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Arendt døde i New York i 1975, men tekstene hennes blir fremdeles lest fordi de stiller vanskelige spørsmål om politikk, moral og ansvar."
       }
     ]
   },
@@ -3384,37 +3384,37 @@
   "Dvale": {
     "questions": [
       {
-        "prompt": "Why do some animals hibernate, according to the text?",
+        "prompt": "Which animals does the text give as examples of true hibernation in Norway?",
         "options": [
-          "Because winter is cold and food is hard to find",
-          "Because winter days are shorter and animals need more sleep",
-          "Because many animals cannot move safely on snow",
-          "Because animals need to save energy for having young in spring"
+          "Hedgehogs and many bats",
+          "Bears and hedgehogs",
+          "Bears and many bats",
+          "Foxes and hedgehogs"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Om vinteren er det kaldt, og mange dyr finner ikke mat."
+        "sourceSentence": "Piggsvin og mange flaggermus er eksempler på dyr som går i ekte dvale i Norge."
       },
       {
-        "prompt": "What does the bear do before it goes into hibernation?",
+        "prompt": "What does the bear do instead of going into true hibernation?",
         "options": [
-          "It eats as much as possible",
-          "It finds a cave or a safe place",
-          "It travels south to a warmer place",
-          "It builds a nest high in a tree"
-        ],
-        "correctIndex": 1,
-        "sourceSentence": "Den finner en hule eller et trygt sted før vinteren kommer."
-      },
-      {
-        "prompt": "What happens when the bear wakes up in spring?",
-        "options": [
-          "It is usually very hungry",
-          "It is tired and looks for another place to sleep",
-          "It is thirsty and stays close to its den",
-          "It has plenty of energy and starts looking for a mate"
+          "It goes into a den and enters winter sleep",
+          "It stays active but eats much less food",
+          "It sleeps outdoors for short periods",
+          "It travels to a warmer area for the winter"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Da er den ofte veldig sulten og leter etter mat."
+        "sourceSentence": "Den går i hi og sover vintersøvn."
+      },
+      {
+        "prompt": "How is a bear's winter sleep different from true hibernation, according to the text?",
+        "options": [
+          "Its body temperature does not fall as much",
+          "Its heart stops slowing down after a few days",
+          "It wakes up every night to look for food",
+          "Its body uses more energy than when it is active"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Kroppen arbeider langsommere, men temperaturen synker ikke like mye som hos dyr i dvale."
       }
     ]
   },
@@ -6304,37 +6304,37 @@
   "Nynorsk": {
     "questions": [
       {
-        "prompt": "Who created Nynorsk?",
+        "prompt": "What was Nynorsk first called?",
         "options": [
-          "Henrik Ibsen",
-          "Edvard Munch",
-          "Ivar Aasen",
-          "Knut Hamsun"
+          "Landsmål",
+          "Bokmål",
+          "Riksmål",
+          "Vestnorsk"
         ],
-        "correctIndex": 2,
-        "sourceSentence": "Nynorsk ble laget på 1800-tallet av Ivar Aasen."
+        "correctIndex": 0,
+        "sourceSentence": "Det ble først kalt landsmål, og i 1929 fikk det navnet nynorsk."
       },
       {
-        "prompt": "Where do people mostly use Nynorsk today?",
+        "prompt": "How did Ivar Aasen develop the written language that became Nynorsk?",
         "options": [
-          "Mostly in Oslo and Eastern Norway",
-          "In Western Norway and parts of Central Norway",
-          "Mostly in Northern Norway and along the Swedish border",
-          "Across Norway, with no strong regional differences"
+          "He studied many Norwegian dialects and used features they had in common",
+          "He simplified Danish and replaced foreign words with Norwegian ones",
+          "He chose one Western Norwegian dialect and made it the national standard",
+          "He combined Bokmål with Swedish and Danish spelling rules"
         ],
-        "correctIndex": 1,
-        "sourceSentence": "I dag bruker folk nynorsk mest på Vestlandet og i deler av Midt-Norge."
+        "correctIndex": 0,
+        "sourceSentence": "Han reiste rundt i Norge og undersøkte mange norske dialekter. På grunnlag av fellestrekk i dialektene laget han et nytt skriftspråk."
       },
       {
-        "prompt": "What did Ivar Aasen do to create Nynorsk?",
+        "prompt": "What does the text emphasize about the relationship between Nynorsk and dialects?",
         "options": [
-          "He translated Danish books into a new language",
-          "He made a new grammar from Swedish and Danish",
-          "He copied old Norse words from history books",
-          "He traveled Norway collecting words and grammar from dialects"
+          "Nynorsk is a written language, not one particular dialect",
+          "Nynorsk is the written form of one traditional Western Norwegian dialect",
+          "People who write Nynorsk normally speak roughly the same dialect",
+          "Nynorsk is mainly a system for writing dialect exactly as it is spoken"
         ],
-        "correctIndex": 3,
-        "sourceSentence": "Han reiste rundt i Norge og samlet ord og grammatikk fra mange dialekter."
+        "correctIndex": 0,
+        "sourceSentence": "Nynorsk er et skriftspråk, ikke én bestemt dialekt, så personer som skriver nynorsk kan snakke svært forskjellige dialekter."
       }
     ]
   },
@@ -10943,48 +10943,48 @@
   "Det samiske folket": {
     "questions": [
       {
-        "prompt": "Hvilken dato er samenes nasjonaldag?",
+        "prompt": "Hva er Sápmi, ifølge teksten?",
         "options": [
-          "6. februar",
-          "17. mai",
-          "1. januar",
-          "24. desember"
+          "Det tradisjonelle samiske bosettingsområdet i deler av Norge, Sverige, Finland og Russland",
+          "Navnet på det samiske folkevalgte organet i Norge",
+          "En fellesbetegnelse på de samiske språkene som brukes i Norden",
+          "Et område i Nord-Norge der reindrift er den eneste tradisjonelle næringen"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Samene har også sin egen nasjonaldag, 6. februar, som blir feiret med flagg, musikk og kulturarrangementer."
+        "sourceSentence": "Samene er et urfolk med tradisjonelle bosettingsområder i Norge, Sverige, Finland og Russland. Dette området kalles Sápmi."
       },
       {
-        "prompt": "Hva heter den tradisjonelle samiske drakten?",
+        "prompt": "Hvilke samiske språk beskrives som de mest brukte i Norge?",
         "options": [
-          "Kofte",
-          "Bunad",
-          "Kjole",
-          "Kappe"
+          "Nordsamisk, lulesamisk og sørsamisk",
+          "Nordsamisk, skoltesamisk og umesamisk",
+          "Lulesamisk, pitesamisk og enaresamisk",
+          "Sørsamisk, skoltesamisk og kildinsamisk"
         ],
         "correctIndex": 0,
-        "sourceSentence": "For mange samer er kofte, den tradisjonelle samedrakten, et symbol på stolthet og tilhørighet."
+        "sourceSentence": "I Norge er nordsamisk, lulesamisk og sørsamisk de mest brukte, mens flere andre samiske språk også arbeides med å styrke."
       },
       {
-        "prompt": "Hvorfor er noen samiske språk truet, ifølge teksten?",
+        "prompt": "Hva kan samiske kofter blant annet vise, ifølge teksten?",
         "options": [
-          "Fordi det er få mennesker som fortsatt snakker dem",
-          "Fordi språkene mangler et etablert skriftsystem",
-          "Fordi de brukes mest i skolen og mindre i familiene",
-          "Fordi de har blitt erstattet av ett felles samisk standardspråk"
+          "Tilhørighet til et område eller en familie",
+          "Hvilket samisk språk personen vanligvis skriver",
+          "Om personen arbeider med reindrift",
+          "Om personen bor innenfor eller utenfor Sápmi"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Det finnes flere samiske språk, og noen av dem er truet fordi få mennesker snakker dem."
+        "sourceSentence": "Samiske kofter finnes i mange lokale varianter, og klærne kan blant annet vise tilhørighet til et område eller en familie."
       },
       {
-        "prompt": "Hva gir Sametinget samene, ifølge teksten?",
+        "prompt": "Hva var en følge av fornorskningspolitikken som teksten nevner?",
         "options": [
-          "En stemme i politiske spørsmål",
-          "Full myndighet over de fleste lover som gjelder samiske områder",
-          "Et eget politisk system uavhengig av norske myndigheter",
-          "Direkte kontroll over de fleste naturressurser i områder der samer bor"
+          "At mange samer mistet språk eller skjulte den samiske bakgrunnen sin",
+          "At de samiske språkene ble samlet til ett felles skriftspråk",
+          "At reindrift ble den viktigste næringen for de fleste samer",
+          "At Sametinget overtok ansvaret for undervisning i hele Sápmi"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Sametinget i Norge gir samene en stemme i politiske spørsmål, og det hjelper til med å ta vare på samisk kultur og språk."
+        "sourceSentence": "I Norge førte fornorskningspolitikken til at mange samer mistet språk eller skjulte den samiske bakgrunnen sin."
       }
     ]
   },
@@ -11065,48 +11065,48 @@
   "Planters hemmelige energi": {
     "questions": [
       {
-        "prompt": "Hvor i planten skjer fotosyntesen, ifølge teksten?",
+        "prompt": "Hva bruker planten vann, karbondioksid og sollys til i fotosyntesen?",
         "options": [
-          "I kloroplastene som finnes i plantenes blader",
-          "I røttene, der planten tar opp vann og mineraler",
-          "I stengelen, der vann og næringsstoffer transporteres",
-          "I blomstene, der planten produserer frø og formerer seg"
+          "Til å lage sukker, samtidig som oksygen blir frigitt",
+          "Til å lage oksygen som senere omdannes til sukker",
+          "Til å bygge klorofyll som deretter lagrer karbondioksid",
+          "Til å produsere vann og sukker inne i røttene"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Prosessen skjer i celler som kalles kloroplaster, som finnes i plantenes blader."
+        "sourceSentence": "Ved hjelp av sollys omdanner den disse stoffene til sukker, og oksygen blir frigitt."
       },
       {
-        "prompt": "Hva heter de to hoveddelene av fotosyntesen?",
+        "prompt": "Hva er klorofyllets rolle, ifølge teksten?",
         "options": [
-          "Lysreaksjonen og mørkereaksjonen (Calvin-syklusen)",
-          "Lysreaksjonen og celleåndingen",
-          "Karbondioksidfasen og oksygenfasen",
-          "Fotosyntesen og Calvin-reaksjonen"
+          "Det fanger opp energi fra lyset",
+          "Det transporterer vann fra røttene til bladene",
+          "Det lagrer sukkeret planten produserer",
+          "Det frigir karbondioksid fra bladcellene"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Fotosyntese kan deles inn i to hoveddeler. Den første delen kalles lysreaksjonen."
+        "sourceSentence": "De inneholder klorofyll, det grønne stoffet som fanger opp energi fra lyset."
       },
       {
-        "prompt": "Hva er klorofyll, ifølge teksten?",
+        "prompt": "Hva er hovedideen i fotosyntesen slik teksten forklarer den?",
         "options": [
-          "Et grønt stoff som fanger sollyset",
-          "Et stoff som planten bruker til å lagre ferdig sukker i bladene",
-          "En gass som planten tar opp fra jorden for å produsere energi",
-          "Et pigment som først og fremst beskytter planten mot for mye vann"
+          "Lysenergi blir omgjort til kjemisk energi",
+          "Kjemisk energi blir omgjort til varme og lys",
+          "Oksygen blir omgjort til energi inne i bladene",
+          "Karbondioksid blir omgjort direkte til sollys"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Kloroplastene inneholder et grønt stoff som heter klorofyll, og det er klorofyllet som fanger sollyset."
+        "sourceSentence": "Fotosyntesen består egentlig av mange kjemiske reaksjoner, men for å forstå hovedideen er det nok å vite at lysenergi blir omgjort til kjemisk energi."
       },
       {
-        "prompt": "Hvorfor er fotosyntese viktig for hele økosystemet, ifølge teksten?",
+        "prompt": "Hvorfor er fotosyntesen viktig langt utover selve planten?",
         "options": [
-          "Den gir plantene energi og danner grunnlag for mat til dyr og mennesker",
-          "Den gjør at planter kan ta opp vann og mineraler direkte fra jorda",
-          "Den sørger for at planter holder samme temperatur gjennom hele året",
-          "Den gjør at planter kan vokse uten lys når de har lagret nok næring"
+          "Planter danner grunnlaget for mange næringskjeder og fotosyntesen har produsert det meste av oksygenet i atmosfæren",
+          "Fotosyntesen gjør at planter kan leve uten vann og samtidig produsere mat til dyr",
+          "Prosessen hindrer karbondioksid i å finnes i atmosfæren og holder temperaturen stabil",
+          "Den gjør at alle organismer kan produsere sin egen energi direkte fra sollys"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Ikke bare gir den planter energi til å vokse, men den gir også mat til dyr og mennesker."
+        "sourceSentence": "Planter er grunnlaget for mange næringskjeder, og fotosyntesen har produsert det meste av oksygenet i atmosfæren."
       }
     ]
   },
@@ -13486,48 +13486,48 @@
   "Svarte hull": {
     "questions": [
       {
-        "prompt": "Hva er de tre hovedkomponentene i et svart hull, ifølge teksten?",
+        "prompt": "Hva kalles grensen rundt et svart hull som ingenting kan komme ut igjen fra etter å ha passert den?",
         "options": [
-          "Hendelseshorisonten, singulariteten og akkresjonsskiven",
-          "Kjernen, skallet og overflaten",
-          "Tyngdekraften, lyset og materien",
-          "Stjernen, planeten og månen"
+          "Hendelseshorisonten",
+          "Singulariteten",
+          "Akkresjonsskiven",
+          "Gravitasjonssonen"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Et svart hull har tre hovedkomponenter: hendelseshorisonten, singulariteten og akkresjonsskiven."
+        "sourceSentence": "Denne grensen kalles hendelseshorisonten."
       },
       {
-        "prompt": "Når ble det første bildet av et svart hull tatt, ifølge teksten?",
+        "prompt": "Hvordan kan astronomer oppdage et svart hull selv om det ikke kan sees direkte?",
         "options": [
-          "2015",
-          "2017",
-          "2019",
-          "2022"
-        ],
-        "correctIndex": 2,
-        "sourceSentence": "I 2019 fikk vi for første gang se et bilde av et svart hull i galaksen M87, takket være Event Horizon Telescope-prosjektet."
-      },
-      {
-        "prompt": "I teksten betyr «hendelseshorisonten»:",
-        "options": [
-          "Grensen der lys og materie ikke lenger kan slippe ut",
-          "Området der materie samler seg før den faller inn",
-          "Det ekstremt tette sentrum av det svarte hullet",
-          "Banen der lys kan sirkle rundt hullet uten å falle inn"
+          "Ved å studere hvordan det påvirker stjerner, gass og andre objekter i nærheten",
+          "Ved å måle lyset som sendes ut direkte fra hendelseshorisonten",
+          "Ved å observere singulariteten gjennom kraftige romteleskoper",
+          "Ved å se hvordan det reflekterer lys fra andre galakser"
         ],
         "correctIndex": 0,
-        "sourceSentence": "Hendelseshorisonten er grensen rundt det svarte hullet der lyset og materien blir fanget."
+        "sourceSentence": "Likevel kan astronomer oppdage det ved å studere hvordan det påvirker stjerner, gass og andre objekter i nærheten."
       },
       {
-        "prompt": "Hvorfor regnes svarte hull som viktige utover astrofysikken, ifølge teksten?",
+        "prompt": "Hva presiserer teksten om en akkresjonsskive?",
         "options": [
-          "Fordi de setter grunnleggende forestillinger om fysikk og tid på prøve",
-          "Fordi de viser hvor klassisk fysikk gir mer presise beskrivelser enn relativitetsteorien",
-          "Fordi de lar forskere observere hva som skjer med materie etter hendelseshorisonten",
-          "Fordi de gir direkte observasjonsbevis for hvordan universet begynte"
+          "Den er ikke en del av selve det svarte hullet, og ikke alle svarte hull har en synlig skive",
+          "Den ligger innenfor hendelseshorisonten og finnes rundt alle svarte hull",
+          "Den består av lys som slipper ut fra selve det svarte hullet",
+          "Den er navnet på området der singulariteten møter hendelseshorisonten"
         ],
         "correctIndex": 0,
-        "sourceSentence": "De utfordrer vår forståelse av fysikkens lover og tidens natur."
+        "sourceSentence": "En slik skive er altså ikke en del av selve det svarte hullet, og ikke alle svarte hull har en synlig akkresjonsskive."
+      },
+      {
+        "prompt": "Hva viste bildet som Event Horizon Telescope offentliggjorde i 2019?",
+        "options": [
+          "En mørk skygge omgitt av lys fra svært varm gass",
+          "Selve singulariteten i sentrum av M87*",
+          "Lys som kom direkte ut gjennom hendelseshorisonten",
+          "En synlig overflate rundt det svarte hullet"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Bildet viste ikke selve det svarte hullet, men en mørk «skygge» omgitt av lys fra svært varm gass."
       }
     ]
   },
