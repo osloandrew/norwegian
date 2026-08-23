@@ -1919,10 +1919,29 @@ async function search(queryOverride = null, options = {}) {
       return rankDifference || compareByCefrThenHeadword(a, b);
     });
 
+    // Ordbøkene is a fallback layer, not part of the local study dataset.
+    // Consult its official Bokmålsordboka API for the submitted form and
+    // merge only headword/word-class combinations that the CSV does not
+    // already provide. An active CEFR filter excludes these entries because
+    // Ordbøkene does not assign CEFR levels and guessing one would make the
+    // filter misleading.
+    if (!selectedCEFR && window.Ordbokene?.lookup) {
+      const officialLookup = await window.Ordbokene.lookup(originalQuery, {
+        selectedPOS,
+      });
+      matchingResults = window.Ordbokene.mergeEntries(
+        matchingResults,
+        officialLookup,
+      );
+    }
+
     if (matchingResults.length === 1) {
       // Update URL and title for a single result
       const singleResult = matchingResults[0];
-      if (wordSearchResolution.reason === "exact") {
+      if (
+        wordSearchResolution.reason === "exact" &&
+        !singleResult._ordbokene
+      ) {
         // renderWordDefinition (which reads this `word` param back out on a
         // fresh load/refresh) matches it against each individual
         // comma-separated variant in a CSV row's `ord` field, not the row's
@@ -3007,10 +3026,13 @@ function displaySearchResults(
     result.gender = WordClass.formatWordClassLabel(result.gender);
     // Directly handle the POS based on the gender field
     result.pos = WordClass.getWordClass(result.gender);
+    const isOrdbokeneResult = Boolean(result._ordbokene);
 
     // null for word classes that don't inflect (adverb, preposition, ...)
     // or for entries without a verified noun/verb/adjective paradigm.
-    const inflections = window.Inflections?.getForms(result) || null;
+    const inflections = isOrdbokeneResult
+      ? null
+      : window.Inflections?.getForms(result) || null;
 
     const dictionaryEntryDomKey = getDictionaryEntryDomKey(result);
 
@@ -3046,7 +3068,9 @@ function displaySearchResults(
       .replace(/'/g, "\\'")
       .replace(/"/g, "&quot;")
       .replace(/\r?\n|\r/g, ""); // Escapes single quotes, double quotes, and removes newlines
-    const hasSentencesPlaceholder = `<button class="sentence-btn english-toggle-btn" style="display: none;" onclick="event.stopPropagation(); toggleEnglishTranslations('${dictionaryEntryDomKey}')">Show English</button>`;
+    const hasSentencesPlaceholder = isOrdbokeneResult
+      ? ""
+      : `<button class="sentence-btn english-toggle-btn" style="display: none;" onclick="event.stopPropagation(); toggleEnglishTranslations('${dictionaryEntryDomKey}')">Show English</button>`;
 
     const escapedGender = result.gender.replace(/'/g, "\\'").trim();
     const escapedEngelsk = result.engelsk.replace(/'/g, "\\'").trim();
@@ -3061,6 +3085,22 @@ function displaySearchResults(
       .replace(/"/g, "&quot;")
       .replace(/\r?\n|\r/g, " ");
     const handleCardClickArgs = `'${escapedWord}', '${escapedGender}', '${escapedEngelsk}', '${escapedDefinisjon}'`;
+    const cardActivation = isOrdbokeneResult
+      ? `handleOrdbokeneCardClick(event, ${Number(
+          result._ordbokene.articleId,
+        )})`
+      : `handleCardClick(event, ${handleCardClickArgs})`;
+    const ordbokeneSourceLink = isOrdbokeneResult
+      ? `<a
+          class="ordbokene-source-link"
+          href="${escapeHTML(result._ordbokene.url)}"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Entry from Bokmålsordboka, published by Språkrådet and the University of Bergen"
+          onclick="event.stopPropagation()"
+          onkeydown="event.stopPropagation()"
+        ><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>Ordbøkene</a>`
+      : "";
 
     htmlString += `
 <div
@@ -3068,10 +3108,11 @@ function displaySearchResults(
   data-word="${escapedWord}"
   data-pos="${result.pos}"
   data-engelsk="${result.engelsk}"
+  data-source="${isOrdbokeneResult ? "ordbokene" : "local"}"
   tabindex="0"
   role="button"
-  onclick="if (!window.getSelection().toString()) handleCardClick(event, ${handleCardClickArgs})"
-  onkeydown="if ((event.key === 'Enter' || event.key === ' ') && !window.getSelection().toString()) { event.preventDefault(); handleCardClick(event, ${handleCardClickArgs}) }">
+  onclick="if (!window.getSelection().toString()) ${cardActivation}"
+  onkeydown="if ((event.key === 'Enter' || event.key === ' ') && !window.getSelection().toString()) { event.preventDefault(); ${cardActivation} }">
                 <div class="${multipleResultsDefinitionHeader}">
                 <h2 class="word-gender ${multipleResultsWordgender}">
                   <div lang="nb" class="word-text-block">
@@ -3126,6 +3167,11 @@ function displaySearchResults(
                     : ""
                 }
                 </div>
+                ${
+                  multipleResults && isOrdbokeneResult
+                    ? `<div class="ordbokene-source ordbokene-source-summary">${ordbokeneSourceLink}</div>`
+                    : ""
+                }
                 <div class="definition-content ${multipleResultsHiddenContent}"> <!-- Apply the hidden class conditionally -->
                     ${
                       result.engelsk
@@ -3160,16 +3206,20 @@ function displaySearchResults(
                           )}</span></p>`
                         : ""
                     }
-                    <div class="definition-actions-row">
-                      <button
-                        type="button"
-                        class="report-issue-btn"
-                        onclick="event.stopPropagation(); openWordCardFeedbackDialog(this, '${escapedWord}', '${result.pos}', '${result.CEFR || ""}')"
-                        onkeydown="event.stopPropagation()"
-                      ><i class="fas fa-flag"></i> Report an issue</button>
-                      ${renderInflectionsToggleButton(inflections)}
-                    </div>
-                    ${renderInflectionsTableWrapper(inflections)}
+                    ${
+                      isOrdbokeneResult
+                        ? `<div class="ordbokene-source">Source: ${ordbokeneSourceLink}</div>`
+                        : `<div class="definition-actions-row">
+                            <button
+                              type="button"
+                              class="report-issue-btn"
+                              onclick="event.stopPropagation(); openWordCardFeedbackDialog(this, '${escapedWord}', '${result.pos}', '${result.CEFR || ""}')"
+                              onkeydown="event.stopPropagation()"
+                            ><i class="fas fa-flag"></i> Report an issue</button>
+                            ${renderInflectionsToggleButton(inflections)}
+                          </div>
+                          ${renderInflectionsTableWrapper(inflections)}`
+                    }
                 </div>
                 </div>
                                 <!-- Show "Show Sentences" button only if sentences exist -->
@@ -3224,6 +3274,7 @@ function displaySearchResults(
   if (
     defaultResult &&
     results[0] &&
+    !results[0]._ordbokene &&
     typeof window.attachSingleResultMyWordsControls === "function"
   ) {
     window.attachSingleResultMyWordsControls(results[0]);
@@ -4243,6 +4294,39 @@ function handleCardClick(event, word, pos, engelsk, definisjon) {
     ? document.getElementById("cefr-select").value.toUpperCase()
     : "";
   updateURL("", "words", pos, selectedCEFR, null, word.split(",")[0].trim());
+}
+
+// Open an official fallback card without inserting it into the shared CSV
+// array (and therefore without leaking it into My Words, Word Game, CEFR
+// filters, or exports). The current search URL is intentionally retained:
+// refreshing returns to the reproducible lookup that fetched this article.
+function handleOrdbokeneCardClick(event, articleId) {
+  const visibleCards = Array.from(
+    resultsContainer.querySelectorAll(
+      ".definition.multiple-results-definition:not(.word-list-header)",
+    ),
+  ).filter((card) => card.offsetParent !== null);
+
+  if (visibleCards.length <= 1) return;
+
+  const entry = window.Ordbokene?.getEntry(articleId);
+  if (!entry) return;
+
+  resultsContainer.innerHTML = "";
+
+  if (latestMultipleResults) {
+    const backDiv = document.createElement("div");
+    backDiv.className = "back-navigation";
+    backDiv.tabIndex = 0;
+    backDiv.setAttribute("role", "button");
+    backDiv.innerHTML = `<i class="fas fa-chevron-left"></i> Back to Results for "${escapeHTML(
+      latestMultipleResults,
+    )}"`;
+    resultsContainer.appendChild(backDiv);
+  }
+
+  clearInput();
+  displaySearchResults([entry]);
 }
 
 // Initialization of the dictionary data and event listeners

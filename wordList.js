@@ -700,7 +700,11 @@
     cards.forEach((card, index) => {
       const entry = entries[index];
 
-      if (!entry) {
+      // Ordbøkene fallback cards deliberately remain outside the local CSV
+      // collection: My Words and its Firebase payload depend on the richer
+      // local translation/CEFR fields. Keep the card layout, but do not offer
+      // a star that would save an incomplete study entry.
+      if (!entry || entry._ordbokene || card.dataset.source === "ordbokene") {
         return;
       }
 

@@ -95,6 +95,65 @@
   justify-content: center; /* Vertically center the word and gender within their container */
 }
 
+/* Official fallback entries use the same definition-card structure as CSV
+   entries. Their provenance stays intentionally quieter than the word,
+   class, definition, and examples, while remaining available beside both
+   compact and expanded cards. */
+.ordbokene-source {
+  color: var(--color-text-muted);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  grid-column: 1 / -1;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+  margin-top: 14px;
+}
+
+.ordbokene-source-summary {
+  margin: 7px 0 0;
+  text-align: right;
+}
+
+/* These fallback cards have no English/CEFR companion fields, so letting
+   pronunciation and etymology span the existing two-column details grid
+   avoids a narrow empty second column—especially on phones. */
+.single-result-definition[data-source="ordbokene"]
+  .definition-content
+  > .pronunciation,
+.single-result-definition[data-source="ordbokene"]
+  .definition-content
+  > .etymology {
+  grid-column: 1 / -1;
+}
+
+.ordbokene-source-link {
+  color: inherit;
+  font-weight: 500;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition:
+    color 0.2s ease,
+    text-decoration-color 0.2s ease;
+}
+
+.ordbokene-source-link:hover,
+.ordbokene-source-link:focus-visible {
+  color: #526c91;
+  text-decoration-color: #aab8ca;
+}
+
+.definition-content .ordbokene-source-link i,
+.ordbokene-source-link i {
+  color: inherit;
+  display: inline-block;
+  font-size: 9px;
+  margin: 0 5px 0 0;
+  text-align: initial;
+  vertical-align: baseline;
+  width: auto;
+}
+
 ol,
 ul {
   list-style-type: square;
