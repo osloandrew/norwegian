@@ -19,8 +19,8 @@ cascade. Their order in `index.html` remains intentional.
    word-list table components.
 6. `35-navigation.css` — base and responsive behavior for the shared
    mode/filter/search toolbar and its Word Game controls.
-7. `50-late-feature-components.css` — later My Words, sentence-header, and
-   report/feedback dialog refinements.
+7. `45-feedback-dialog.css` — the shared report-an-issue modal used by word
+   definitions and Word Game.
 
 ## Refactoring rules
 
@@ -36,6 +36,6 @@ cascade. Their order in `index.html` remains intentional.
   changes.
 
 The document shell, shared navigation, Word Game, result views, Stories, and
-word lists now own their responsive behavior. The remaining late-feature file
-is intentionally last in the cascade until its component rules are merged into
-their owning files in a focused pass.
+word lists own their base and responsive behavior. Cross-feature components
+with a genuine shared owner, such as the feedback dialog, remain in focused
+files of their own.
