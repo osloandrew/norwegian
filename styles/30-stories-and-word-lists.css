@@ -516,19 +516,29 @@
     margin-top: 10px;
   }
 
-  #word-list .word-list-row .word-list-norwegian {
+  :is(#word-list, .game-summary-missed, .my-stats-trouble)
+    .word-list-row
+    .word-list-norwegian {
     font-size: 12px;
     padding: 6px;
   }
 
-  #word-list .word-list-row .word-list-english {
+  :is(#word-list, .game-summary-missed, .my-stats-trouble)
+    .word-list-row
+    .word-list-english {
     font-size: 10px;
     padding: 6px;
   }
 
-  #word-list .word-list-row .word-list-class,
-  #word-list .word-list-row .word-list-level,
-  #word-list .word-list-row .word-list-strength {
+  :is(#word-list, .game-summary-missed, .my-stats-trouble)
+    .word-list-row
+    .word-list-class,
+  :is(#word-list, .game-summary-missed, .my-stats-trouble)
+    .word-list-row
+    .word-list-level,
+  :is(#word-list, .game-summary-missed, .my-stats-trouble)
+    .word-list-row
+    .word-list-strength {
     padding: 2px;
   }
 
@@ -547,7 +557,9 @@
     padding: 2px 5px;
   }
 
-  #word-list .word-list-row .word-list-favorite {
+  :is(#word-list, .game-summary-missed, .my-stats-trouble)
+    .word-list-row
+    .word-list-favorite {
     padding: 2px;
   }
 
@@ -726,7 +738,8 @@ p.word-list-empty-copy {
 }
 
 @media (max-width: 1024px) {
-  #word-list .word-list-table {
+  :is(#word-list, .game-summary-missed, .my-stats-trouble)
+    .word-list-table {
     border-spacing: 0 8px;
   }
 }
