@@ -17,8 +17,8 @@ cascade. Their order in `index.html` remains intentional.
    results, story reading, and story quiz rules.
 5. `30-stories-and-word-lists.css` — story-list utilities and word-list table
    components.
-6. `40-responsive-and-mode-overrides.css` — the original responsive and
-   desktop mode overrides, kept late in the cascade.
+6. `40-responsive-and-mode-overrides.css` — remaining feature/navigation
+   responsive rules and desktop mode overrides, kept late in the cascade.
 7. `50-late-feature-components.css` — later My Words, sentence-header, and
    report/feedback dialog refinements.
 
@@ -35,6 +35,6 @@ cascade. Their order in `index.html` remains intentional.
 - Update a file's cache-busting query value in `index.html` whenever that file
   changes.
 
-The document shell is the first extracted shared layer. The next cleanup target
-is to colocate responsive rules with their features, one component at a time,
-with before/after desktop and mobile checks.
+The document shell now owns its responsive behavior. Continue colocating the
+remaining responsive rules with their features, one component at a time, with
+before/after desktop and mobile checks.

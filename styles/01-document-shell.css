@@ -2,8 +2,8 @@
  * Document shell
  * --------------
  * Page-level sizing, typography, and chrome shared by every app mode.
- * Responsive and mode-specific overrides remain in
- * 40-responsive-and-mode-overrides.css so they stay late in the cascade.
+ * Shell-owned responsive rules live at the bottom of this file. Feature and
+ * navigation overrides remain in 40-responsive-and-mode-overrides.css.
  */
 
 html {
@@ -79,4 +79,56 @@ footer p a:hover {
 footer .copyright {
   color: var(--color-text-secondary);
   font-size: 12px;
+}
+
+@media (max-width: 1024px) {
+  header,
+  footer {
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  header {
+    padding: 10px 15px;
+  }
+
+  footer {
+    padding: 10px 20px;
+  }
+
+  footer p,
+  footer .copyright {
+    font-size: 11px;
+  }
+
+  footer p {
+    margin: 0;
+  }
+
+  body.word-game-mode {
+    min-height: 100svh;
+    overflow-x: hidden;
+    overflow-x: clip;
+  }
+
+  body.word-game-mode footer {
+    display: none;
+  }
+
+  body.word-game-mode header {
+    padding: 6px 12px;
+  }
+
+  body.word-game-mode #site-title {
+    font-size: clamp(28px, 7vw, 38px) !important;
+    line-height: 1.1;
+    margin: 0;
+  }
+}
+
+/* Short game viewports hide the complete header to preserve play space. */
+@media (max-width: 1024px) and (max-height: 700px) {
+  body.word-game-mode header {
+    display: none;
+  }
 }
