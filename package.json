@@ -2,9 +2,11 @@
   "name": "norwegian-dictionary",
   "private": true,
   "version": "1.0.0",
-  "description": "Norwegian Dictionary — vanilla JS/HTML/CSS static site, no build step.",
+  "description": "Norwegian Dictionary — vanilla JS/HTML/CSS with automated crawlable-page builds.",
   "scripts": {
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "build:pages": "python3 scripts/build-static-pages.py",
+    "validate:pages": "python3 scripts/validate-static-pages.py"
   },
   "engines": {
     "node": ">=18"

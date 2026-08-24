@@ -28,10 +28,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 STORIES_CSV = ROOT / "norwegianStories.csv"
-STORY_DIR = ROOT / "story"
-
 PRODUCTION_ORIGIN = "https://osloandrew.github.io"
 SITE_PATH = "/norwegian/"
+# From story/<slug>/, this reaches the site root under both GitHub Pages and
+# a repository-root local preview.
+PAGE_BASE_HREF = "../../"
 
 BATCH_TEST_TITLES = None  # filled in from CSV in main() — first 3 + any with special chars
 
@@ -61,8 +62,13 @@ def find_free_port() -> int:
         return s.getsockname()[1]
 
 
+class QuietHandler(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, format: str, *args: object) -> None:
+        return
+
+
 def start_server(root: Path, port: int) -> http.server.ThreadingHTTPServer:
-    handler = lambda *args, **kwargs: http.server.SimpleHTTPRequestHandler(
+    handler = lambda *args, **kwargs: QuietHandler(
         *args, directory=str(root), **kwargs
     )
     server = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
@@ -71,7 +77,7 @@ def start_server(root: Path, port: int) -> http.server.ThreadingHTTPServer:
     return server
 
 
-def capture(titles: list[str]) -> None:
+def capture(titles: list[str], output_root: Path = ROOT) -> None:
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
@@ -157,13 +163,13 @@ def capture(titles: list[str]) -> None:
                 )
                 html = html.replace(
                     "<head>",
-                    f'<head>\n    <base href="{SITE_PATH}">'
+                    f'<head>\n    <base href="{PAGE_BASE_HREF}">'
                     f'\n    <script>window.__PRELOADED_STORY__ = {preload_json};</script>',
                     1,
                 )
                 html = html.replace(origin, PRODUCTION_ORIGIN)
 
-                out_dir = STORY_DIR / slug
+                out_dir = output_root / "story" / slug
                 out_dir.mkdir(parents=True, exist_ok=True)
                 (out_dir / "index.html").write_text(
                     "<!doctype html>\n" + html, encoding="utf-8"
@@ -192,6 +198,12 @@ def main() -> None:
     group.add_argument("--batch-test", action="store_true")
     group.add_argument("--titles", nargs="+")
     group.add_argument("--all", action="store_true")
+    parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=ROOT,
+        help="Site root beneath which story/<slug>/index.html is written.",
+    )
     args = parser.parse_args()
 
     all_titles = load_all_titles(STORIES_CSV)
@@ -209,7 +221,7 @@ def main() -> None:
     else:
         titles = all_titles
 
-    capture(titles)
+    capture(titles, args.output_root.resolve())
 
 
 if __name__ == "__main__":

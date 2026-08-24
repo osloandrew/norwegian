@@ -1,3 +1,14 @@
 .DS_Store
 __pycache__/
 *.pyc
+
+# Disposable GitHub Pages build output. These paths remain tracked during
+# the no-downtime migration from branch publishing; after the Actions-based
+# deployment is confirmed, they can be removed from source control without
+# being accidentally re-added by a local build.
+word/
+story/
+stories/
+sitemap.xml
+page-manifest.json
+build/

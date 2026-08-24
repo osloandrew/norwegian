@@ -17,9 +17,6 @@ from pathlib import Path
 
 SITE = "https://osloandrew.github.io/norwegian"
 ROOT = Path(__file__).resolve().parent
-WORD_DIR = ROOT / "word"
-STORY_DIR = ROOT / "story"
-OUTPUT_FILE = ROOT / "sitemap.xml"
 
 SITEMAP_NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9"
 MAX_SITEMAP_URLS = 50_000
@@ -81,14 +78,14 @@ def write_sitemap(urls: list[str], output_file: Path) -> None:
     temporary_file.replace(output_file)
 
 
-def write_page_manifest(word_slugs: list[str], story_slugs: list[str]) -> None:
+def write_page_manifest(site_root: Path, word_slugs: list[str], story_slugs: list[str]) -> None:
     # Lets the client answer "does a pretty page exist for this word/story"
     # instantly and offline (see updateURL() in scripts.js) instead of
     # guessing or probing the network on every click. Compact on purpose —
     # this ships to every visitor's browser on load.
     import json
 
-    manifest_path = ROOT / "page-manifest.json"
+    manifest_path = site_root / "page-manifest.json"
     manifest_path.write_text(
         json.dumps({"words": word_slugs, "stories": story_slugs}, separators=(",", ":")),
         encoding="utf-8",
@@ -96,21 +93,36 @@ def write_page_manifest(word_slugs: list[str], story_slugs: list[str]) -> None:
     print(f"Wrote {manifest_path} ({manifest_path.stat().st_size} bytes)")
 
 
-def main() -> None:
-    word_slugs = captured_slugs(WORD_DIR)
-    story_slugs = captured_slugs(STORY_DIR)
+def build(site_root: Path = ROOT) -> None:
+    word_slugs = captured_slugs(site_root / "word")
+    story_slugs = captured_slugs(site_root / "story")
     word_urls = [f"{SITE}/word/{slug}/" for slug in word_slugs]
     story_urls = [f"{SITE}/story/{slug}/" for slug in story_slugs]
 
     urls = list(dict.fromkeys(CORE_URLS + word_urls + story_urls))
 
-    write_sitemap(urls, OUTPUT_FILE)
-    write_page_manifest(word_slugs, story_slugs)
+    output_file = site_root / "sitemap.xml"
+    write_sitemap(urls, output_file)
+    write_page_manifest(site_root, word_slugs, story_slugs)
 
-    print(f"Wrote {OUTPUT_FILE} with {len(urls)} URLs.")
+    print(f"Wrote {output_file} with {len(urls)} URLs.")
     print(f"  {len(CORE_URLS)} core app views")
     print(f"  {len(word_urls)} word pages")
     print(f"  {len(story_urls)} story pages")
+
+
+def main() -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--site-root",
+        type=Path,
+        default=ROOT,
+        help="Site root containing generated word/ and story/ directories.",
+    )
+    args = parser.parse_args()
+    build(args.site_root.resolve())
 
 
 if __name__ == "__main__":

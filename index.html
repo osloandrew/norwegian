@@ -942,8 +942,8 @@
           // own location, not the document's <base href> the way normal
           // relative URLs do (confirmed empirically in Chrome) — harmless
           // here on the site root, but on a captured /word/<slug>/ or
-          // /story/<slug>/ page (each with its own <base href="/norwegian/">
-          // so its other relative asset references work) it registered a
+          // /story/<slug>/ page (each with its own directory-relative
+          // <base href> so its other relative asset references work) it registered a
           // broken service worker scoped to that page's own nested path,
           // 404ing on a sw.js that was never there.
           //

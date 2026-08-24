@@ -33,10 +33,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 WORDS_CSV = ROOT / "norwegianWords.csv"
-WORD_DIR = ROOT / "word"
-
 PRODUCTION_ORIGIN = "https://osloandrew.github.io"
 SITE_PATH = "/norwegian/"
+# From word/<slug>/, this reaches the site root whether the site itself is
+# mounted at /norwegian/ (GitHub Pages) or / (local preview).
+PAGE_BASE_HREF = "../../"
 
 # A deliberately diverse sample — homographs of varying size, a multi-word
 # expression, an accented multi-word expression with a comma-separated alt
@@ -89,8 +90,13 @@ def find_free_port() -> int:
         return s.getsockname()[1]
 
 
+class QuietHandler(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, format: str, *args: object) -> None:
+        return
+
+
 def start_server(root: Path, port: int) -> http.server.ThreadingHTTPServer:
-    handler = lambda *args, **kwargs: http.server.SimpleHTTPRequestHandler(
+    handler = lambda *args, **kwargs: QuietHandler(
         *args, directory=str(root), **kwargs
     )
     server = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
@@ -99,7 +105,7 @@ def start_server(root: Path, port: int) -> http.server.ThreadingHTTPServer:
     return server
 
 
-def capture(words: list[str]) -> None:
+def capture(words: list[str], output_root: Path = ROOT) -> None:
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
@@ -111,11 +117,10 @@ def capture(words: list[str]) -> None:
         sys.exit(1)
 
     # Served nested under /norwegian/, matching GitHub Pages' actual project
-    # path — so <base href="/norwegian/"> (what every captured page ships
-    # with, since production needs it to resolve relative asset/data
-    # fetches correctly from a nested /word/<slug>/ page) works identically
-    # here during capture and after deployment. The symlink is read-only
-    # from the server's perspective; nothing is ever written through it.
+    # path. Captured pages use a directory-relative <base>, so that same HTML
+    # also works when VS Code previews the repository at the server root.
+    # The symlink is read-only from the server's perspective; nothing is ever
+    # written through it.
     tmp_dir_ctx = tempfile.TemporaryDirectory(prefix="norwegian-capture-")
     tmp_dir = Path(tmp_dir_ctx.name)
     (tmp_dir / "norwegian").symlink_to(ROOT)
@@ -190,7 +195,7 @@ def capture(words: list[str]) -> None:
 
                 html = page.evaluate("document.documentElement.outerHTML")
                 html = html.replace(
-                    "<head>", f'<head>\n    <base href="{SITE_PATH}">', 1
+                    "<head>", f'<head>\n    <base href="{PAGE_BASE_HREF}">', 1
                 )
                 # canonical/og:url/og:image were built (correctly) against
                 # this capture session's local origin — the only fix left
@@ -198,7 +203,7 @@ def capture(words: list[str]) -> None:
                 # portion after it is already right.
                 html = html.replace(origin, PRODUCTION_ORIGIN)
 
-                out_dir = WORD_DIR / slug
+                out_dir = output_root / "word" / slug
                 out_dir.mkdir(parents=True, exist_ok=True)
                 (out_dir / "index.html").write_text(
                     "<!doctype html>\n" + html, encoding="utf-8"
@@ -233,6 +238,12 @@ def main() -> None:
     group.add_argument(
         "--all", action="store_true", help="Capture every word in norwegianWords.csv."
     )
+    parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=ROOT,
+        help="Site root beneath which word/<slug>/index.html is written.",
+    )
     args = parser.parse_args()
 
     if args.batch_test:
@@ -242,7 +253,7 @@ def main() -> None:
     else:
         words = load_all_primary_words(WORDS_CSV)
 
-    capture(words)
+    capture(words, args.output_root.resolve())
 
 
 if __name__ == "__main__":

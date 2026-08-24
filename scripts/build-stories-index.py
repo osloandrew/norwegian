@@ -20,9 +20,14 @@ import threading
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-OUTPUT = ROOT / "stories" / "index.html"
 PRODUCTION_ORIGIN = "https://osloandrew.github.io"
 SITE_PATH = "/norwegian/"
+# From stories/, this reaches the site root under both GitHub Pages and a
+# repository-root local preview.
+PAGE_BASE_HREF = "../"
+# A crawlable snapshot must be reproducible. The live app still assigns each
+# visitor its normal personal shuffle seed whenever it renders the list.
+STATIC_STORY_SHUFFLE_SEED = 20260824
 
 
 def find_free_port() -> int:
@@ -31,7 +36,12 @@ def find_free_port() -> int:
         return s.getsockname()[1]
 
 
-def main() -> None:
+class QuietHandler(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, format: str, *args: object) -> None:
+        return
+
+
+def build(output_root: Path = ROOT) -> None:
     from playwright.sync_api import sync_playwright
 
     tmp_dir_ctx = tempfile.TemporaryDirectory(prefix="norwegian-capture-")
@@ -39,7 +49,7 @@ def main() -> None:
     (tmp_dir / "norwegian").symlink_to(ROOT)
 
     port = find_free_port()
-    handler = lambda *a, **kw: http.server.SimpleHTTPRequestHandler(
+    handler = lambda *a, **kw: QuietHandler(
         *a, directory=str(tmp_dir), **kw
     )
     server = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
@@ -51,15 +61,31 @@ def main() -> None:
         with sync_playwright() as p:
             browser = p.chromium.launch()
             page = browser.new_page()
-
-            page.goto(f"{base_url}?type=words", wait_until="load")
-            page.wait_for_function(
-                "typeof fetchAndLoadStoryData === 'function'", timeout=15000
+            page.add_init_script(
+                f"""() => {{
+                    localStorage.setItem(
+                        'norwegian-dictionary-story-shuffle-seed-v1',
+                        '{STATIC_STORY_SHUFFLE_SEED}'
+                    );
+                    sessionStorage.removeItem(
+                        'norwegian-dictionary-session-recommendation-v1'
+                    );
+                    Math.random = () => 0;
+                }}"""
             )
-            page.evaluate("() => fetchAndLoadStoryData()")
+
+            # Enter through the real Stories route so its normal route setup,
+            # ordering, recommendation, metadata, and search UI all run before
+            # capture. Calling displayStoryList() from the dictionary route
+            # skipped part of that behavior and could capture a different card
+            # order even though the card component itself was identical.
+            page.goto(f"{base_url}?type=stories", wait_until="load")
+            page.wait_for_selector(
+                "#stories .story-card-link", state="visible", timeout=30000
+            )
             page.evaluate(
-                "() => { showLandingCard(false); restoreSearchContainerInner(); "
-                "displayStoryList(storyResults, {visibleCount: storyResults.length}); }"
+                "() => displayStoryList(storyResults, "
+                "{visibleCount: storyResults.length})"
             )
             page.wait_for_timeout(300)
 
@@ -176,18 +202,33 @@ def main() -> None:
 
             html_out = page.evaluate("document.documentElement.outerHTML")
             html_out = html_out.replace(
-                "<head>", f'<head>\n    <base href="{SITE_PATH}">', 1
+                "<head>", f'<head>\n    <base href="{PAGE_BASE_HREF}">', 1
             )
             html_out = html_out.replace(origin, PRODUCTION_ORIGIN)
 
-            OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-            OUTPUT.write_text("<!doctype html>\n" + html_out, encoding="utf-8")
-            print(f"Wrote {OUTPUT}")
+            output = output_root / "stories" / "index.html"
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_text("<!doctype html>\n" + html_out, encoding="utf-8")
+            print(f"Wrote {output}")
 
             browser.close()
     finally:
         server.shutdown()
         tmp_dir_ctx.cleanup()
+
+
+def main() -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=ROOT,
+        help="Site root beneath which stories/index.html is written.",
+    )
+    args = parser.parse_args()
+    build(args.output_root.resolve())
 
 
 if __name__ == "__main__":

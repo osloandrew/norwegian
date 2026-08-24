@@ -3694,6 +3694,19 @@ function renderWordDefinition(word, selectedPOS = "") {
           : true;
 
     return wordMatch && posMatch;
+  }).sort((left, right) => {
+    // A spelling can be both its own headword and an alternative spelling
+    // on an earlier CSV row (for example "annen" is also listed under
+    // "andre, annen"). A direct /word/annen/ render must use the true
+    // "annen" row for its title, metadata, and canonical URL, regardless
+    // of CSV order. Keep all homographs visible; only put an exact primary
+    // headword ahead of rows where the requested spelling is secondary.
+    const isPrimary = (entry) =>
+      String(entry.ord || "")
+        .split(",")[0]
+        .trim()
+        .toLowerCase() === trimmedWord;
+    return Number(isPrimary(right)) - Number(isPrimary(left));
   });
   if (matchingResults.length > 0) {
     displaySearchResults(matchingResults);

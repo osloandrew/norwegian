@@ -346,11 +346,11 @@ function updateStoryMetadata(story, imageFileURL = "") {
 }
 
 function updateStoriesListMetadata() {
-  const storiesURL = new URL(APP_ROOT_URL);
-
-  storiesURL.search = "";
-  storiesURL.hash = "";
-  storiesURL.searchParams.set("type", "stories");
+  // The unfiltered list has a real crawlable /stories/ page. Use that as
+  // the canonical even when this metadata is being applied to the legacy
+  // ?type=stories route, matching the pretty-path preference already used
+  // for individual words and stories.
+  const storiesURL = new URL("stories/", APP_ROOT_URL);
 
   const pageTitle = "Norwegian Stories with English Translations";
 
