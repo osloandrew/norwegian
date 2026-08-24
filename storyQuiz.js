@@ -13,7 +13,10 @@
 
   function loadStoryQuestions() {
     if (!dataPromise) {
-      dataPromise = fetch(DATA_URL, { cache: "default" })
+      // Anchored to APP_ROOT_URL (scripts.js) — see the identical fix on
+      // inflections.js's loadSnapshot for why a bare relative path here
+      // breaks after in-app navigation.
+      dataPromise = fetch(new URL(DATA_URL, APP_ROOT_URL), { cache: "default" })
         .then((response) => (response.ok ? response.json() : {}))
         .catch((error) => {
           console.warn("Story questions could not be loaded.", error);

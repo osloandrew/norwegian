@@ -1066,7 +1066,12 @@
     if (loadFailed) return Promise.resolve(null);
     if (snapshotPromise) return snapshotPromise;
 
-    snapshotPromise = fetch(DATA_URL, { cache: "default" })
+    // Anchored to APP_ROOT_URL (scripts.js), not left as a bare relative
+    // path — on the plain app shell (no <base> tag), that resolves against
+    // document.baseURI, which pushState drags along with it after any
+    // in-app navigation, turning this into a request nested under whatever
+    // word/story page the learner is currently on.
+    snapshotPromise = fetch(new URL(DATA_URL, APP_ROOT_URL), { cache: "default" })
       .then((response) => {
         if (!response.ok) {
           throw new Error(`Inflection data request failed (${response.status})`);

@@ -32,20 +32,23 @@ MAX_SITEMAP_BYTES = 50 * 1024 * 1024
 # now properly served by the individual /word/<slug>/ pages instead.
 CORE_URLS = [
     f"{SITE}/",
+    f"{SITE}/stories/",
     f"{SITE}/?type=sentences",
-    f"{SITE}/?type=stories",
     f"{SITE}/?type=word-game",
     f"{SITE}/?type=pronunciation",
 ]
 
 
-def captured_page_urls(directory: Path, url_prefix: str) -> list[str]:
+def captured_slugs(directory: Path) -> list[str]:
     if not directory.is_dir():
         return []
-    slugs = sorted(
+    return sorted(
         p.name for p in directory.iterdir() if p.is_dir() and (p / "index.html").is_file()
     )
-    return [f"{SITE}/{url_prefix}/{slug}/" for slug in slugs]
+
+
+def captured_page_urls(directory: Path, url_prefix: str) -> list[str]:
+    return [f"{SITE}/{url_prefix}/{slug}/" for slug in captured_slugs(directory)]
 
 
 def write_sitemap(urls: list[str], output_file: Path) -> None:
@@ -78,13 +81,31 @@ def write_sitemap(urls: list[str], output_file: Path) -> None:
     temporary_file.replace(output_file)
 
 
+def write_page_manifest(word_slugs: list[str], story_slugs: list[str]) -> None:
+    # Lets the client answer "does a pretty page exist for this word/story"
+    # instantly and offline (see updateURL() in scripts.js) instead of
+    # guessing or probing the network on every click. Compact on purpose —
+    # this ships to every visitor's browser on load.
+    import json
+
+    manifest_path = ROOT / "page-manifest.json"
+    manifest_path.write_text(
+        json.dumps({"words": word_slugs, "stories": story_slugs}, separators=(",", ":")),
+        encoding="utf-8",
+    )
+    print(f"Wrote {manifest_path} ({manifest_path.stat().st_size} bytes)")
+
+
 def main() -> None:
-    word_urls = captured_page_urls(WORD_DIR, "word")
-    story_urls = captured_page_urls(STORY_DIR, "story")
+    word_slugs = captured_slugs(WORD_DIR)
+    story_slugs = captured_slugs(STORY_DIR)
+    word_urls = [f"{SITE}/word/{slug}/" for slug in word_slugs]
+    story_urls = [f"{SITE}/story/{slug}/" for slug in story_slugs]
 
     urls = list(dict.fromkeys(CORE_URLS + word_urls + story_urls))
 
     write_sitemap(urls, OUTPUT_FILE)
+    write_page_manifest(word_slugs, story_slugs)
 
     print(f"Wrote {OUTPUT_FILE} with {len(urls)} URLs.")
     print(f"  {len(CORE_URLS)} core app views")

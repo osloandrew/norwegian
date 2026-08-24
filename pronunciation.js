@@ -6,9 +6,14 @@ function buildAudioResourceUrl(directory, fileName) {
   // `/norwegian/`. A hard-coded deployment prefix makes one of those two
   // environments fail. Encoding the filename also keeps spaces, Norwegian
   // letters, `#`, and other path-sensitive characters inside one file name.
+  //
+  // APP_ROOT_URL (scripts.js), not document.baseURI directly: on the plain
+  // app shell (no <base> tag), baseURI resolves to document.URL, which
+  // pushState silently drags along with it after any in-app navigation —
+  // APP_ROOT_URL is captured once, before that can happen, and stays fixed.
   return new URL(
     `Resources/${directory}/${encodeURIComponent(fileName)}.m4a`,
-    document.baseURI,
+    APP_ROOT_URL,
   ).href;
 }
 

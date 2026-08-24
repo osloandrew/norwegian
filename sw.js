@@ -41,6 +41,17 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request)),
+    fetch(event.request).catch(async () => {
+      // caches.match() resolves to undefined for anything not precached —
+      // true of nearly everything, since only the two icons above are.
+      // respondWith(undefined) throws ("Failed to convert value to
+      // 'Response'"), turning an ordinary failure (e.g. a request the
+      // browser cancelled because a newer navigation superseded it) into
+      // an uncaught exception and a hard network-error response instead of
+      // just letting that fetch quietly lose. Response.error() reports the
+      // same "nothing to serve" outcome without the throw.
+      const cached = await caches.match(event.request);
+      return cached || Response.error();
+    }),
   );
 });

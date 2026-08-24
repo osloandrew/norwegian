@@ -97,7 +97,14 @@ const CSV_URL = "norwegianStories.csv";
 const STORY_CACHE_KEY = "storyDataNorwegian";
 const STORY_CACHE_TIME_KEY = "storyDataTimestampNorwegian";
 const STORY_CACHE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours, matching scripts.js
-const STORY_LIST_INITIAL_SIZE = 25;
+// 74, not a rounder number: displayStoryList() below already subtracts one
+// slot when a recommended-story card is present (regularVisibleCount =
+// visibleCount - recommendedSlots), so this needs to itself be even for the
+// no-recommendation case (74 regular cards = 37 complete two-column rows)
+// and odd once the recommendation's own slot is subtracted (73 regular +
+// 1 recommendation = 74 total either way) — otherwise the last row is
+// short one card.
+const STORY_LIST_INITIAL_SIZE = 74;
 const STORY_LIST_BATCH_SIZE = 24;
 // A genuine title search should feel complete, not like browsing a paginated
 // catalogue. This cap still protects the initial view when a broad term
@@ -120,9 +127,12 @@ function formatStoryGenre(genre) {
   return value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
 }
 
+function getStoryWordCount(story) {
+  return (String(story.norwegian || "").match(/[\p{L}\p{M}]+/gu) || []).length;
+}
+
 function getStoryReadingTimeLabel(story) {
-  const wordCount = (String(story.norwegian || "").match(/[\p{L}\p{M}]+/gu) || [])
-    .length;
+  const wordCount = getStoryWordCount(story);
   const shortestMinutes = Math.max(
     1,
     Math.ceil(wordCount / STORY_READING_WORDS_PER_MINUTE_FAST),
@@ -175,7 +185,9 @@ function cacheStoryData(entries) {
 }
 
 async function fetchFreshStoryData() {
-  const response = await fetch(CSV_URL);
+  // Anchored to APP_ROOT_URL rather than left as a bare relative path —
+  // see the identical fix on fetchAndLoadDictionaryData in scripts.js.
+  const response = await fetch(new URL(CSV_URL, APP_ROOT_URL));
 
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
@@ -283,14 +295,13 @@ function setCanonicalURL(url) {
 }
 
 function createStoryURL(titleNorwegian) {
-  const storyURL = new URL(window.location.href);
-
-  storyURL.search = "";
-  storyURL.hash = "";
-  storyURL.searchParams.set("type", "story");
-  storyURL.searchParams.set("story", titleNorwegian);
-
-  return storyURL.href;
+  // APP_ROOT_URL (not window.location.href) — see updateWordMetadata's
+  // canonical fix in scripts.js for why: this must always be the pretty
+  // /story/<slug>/ page, even when running on some other current page.
+  return new URL(
+    `story/${slugifyWordForURL(titleNorwegian)}/`,
+    APP_ROOT_URL,
+  ).href;
 }
 
 function updateStoryMetadata(story, imageFileURL = "") {
@@ -315,10 +326,10 @@ function updateStoryMetadata(story, imageFileURL = "") {
   const storyURL = createStoryURL(norwegianTitle);
 
   const socialImageURL = imageFileURL
-    ? new URL(imageFileURL, window.location.href).href
+    ? new URL(imageFileURL, APP_ROOT_URL).href
     : new URL(
         "Resources/Icons/android-chrome-512x512.png",
-        window.location.href,
+        APP_ROOT_URL,
       ).href;
 
   document.title = pageTitle;
@@ -335,7 +346,7 @@ function updateStoryMetadata(story, imageFileURL = "") {
 }
 
 function updateStoriesListMetadata() {
-  const storiesURL = new URL(window.location.href);
+  const storiesURL = new URL(APP_ROOT_URL);
 
   storiesURL.search = "";
   storiesURL.hash = "";
@@ -349,7 +360,7 @@ function updateStoriesListMetadata() {
 
   const socialImageURL = new URL(
     "Resources/Icons/android-chrome-512x512.png",
-    window.location.href,
+    APP_ROOT_URL,
   ).href;
 
   document.title = pageTitle;
@@ -544,6 +555,44 @@ function getStoryOrder() {
   return order;
 }
 
+// Picking pool[0] every time would show the exact same story to every
+// new/anonymous visitor forever, since nothing about them varies the sort.
+// Instead pick randomly among the easiest/shortest few, and remember the
+// pick in sessionStorage so it stays put across re-renders within one
+// visit (switching filters, returning from a story) rather than reshuffling
+// underneath the learner — a new tab/session gets a fresh random pick.
+const SESSION_RECOMMENDATION_POOL_SIZE = 8;
+const SESSION_RECOMMENDATION_KEY =
+  "norwegian-dictionary-session-recommendation-v1";
+
+function pickSessionRecommendation(sortedCandidates) {
+  const pool = sortedCandidates.slice(0, SESSION_RECOMMENDATION_POOL_SIZE);
+
+  try {
+    const storedTitle = window.sessionStorage.getItem(
+      SESSION_RECOMMENDATION_KEY,
+    );
+    const stillEligible = pool.find(
+      (story) => story.titleNorwegian === storedTitle,
+    );
+    if (stillEligible) return stillEligible;
+  } catch (error) {
+    // sessionStorage unavailable (private browsing, etc.) — fall through
+    // to a fresh pick below; it just won't stay stable across re-renders.
+  }
+
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  try {
+    window.sessionStorage.setItem(
+      SESSION_RECOMMENDATION_KEY,
+      pick.titleNorwegian,
+    );
+  } catch (error) {
+    // Non-fatal — the pick just won't persist across re-renders.
+  }
+  return pick;
+}
+
 /*
  * The single best-ranked story for the learner right now — same ordering
  * that drives the full list below, so the "Recommended for you" banner and
@@ -554,16 +603,32 @@ function getStoryOrder() {
 function getRecommendedStory() {
   const ability = window.WordGameHelpers?.getAbilityScore?.();
 
-  if (!Number.isFinite(ability)) {
-    return null;
-  }
-
   const candidates = storyResults.filter(
     (story) => story.CEFR && story.titleNorwegian,
   );
 
   if (!candidates.length) {
     return null;
+  }
+
+  if (!Number.isFinite(ability)) {
+    // No ability estimate yet (placement not completed) — a brand-new
+    // visitor still gets a starting point instead of 360 undifferentiated
+    // options, just an objective one rather than a personalized one:
+    // easiest CEFR level, then shortest read among those. See
+    // createStoryRecommendationElement's isPersonalized check for the
+    // label this pairs with — it must not claim to be "for you" when
+    // nothing about the visitor informed the pick.
+    const easiestShortest = candidates
+      .slice()
+      .sort((a, b) => {
+        const cefrDiff =
+          (CEFR_ORDER[a.CEFR] ?? Infinity) - (CEFR_ORDER[b.CEFR] ?? Infinity);
+        return cefrDiff !== 0
+          ? cefrDiff
+          : getStoryWordCount(a) - getStoryWordCount(b);
+      });
+    return pickSessionRecommendation(easiestShortest);
   }
 
   const order = getStoryOrder();
@@ -701,9 +766,21 @@ function createStoryRecommendationElement(story) {
   // No "your level: X" claim here — the story's own CEFR badge (rendered
   // by createStoryCardLink below) already carries that as descriptive
   // metadata. The learner's ability estimate is otherwise invisible.
+  //
+  // Same finite-ability check getRecommendedStory() used to pick this
+  // story in the first place — recomputed rather than threaded through as
+  // a parameter, so this stays correct even if some future caller starts
+  // passing it a story from somewhere else. A visitor with no placement
+  // history yet gets an honest "start here", never a claim of
+  // personalization that didn't happen.
+  const isPersonalized = Number.isFinite(
+    window.WordGameHelpers?.getAbilityScore?.(),
+  );
   const label = document.createElement("div");
   label.className = "story-recommendation-label";
-  label.innerHTML = `<i class="fas fa-star" aria-hidden="true"></i> Recommended for you`;
+  label.innerHTML = isPersonalized
+    ? `<i class="fas fa-star" aria-hidden="true"></i> Recommended for you`
+    : `<i class="fas fa-star" aria-hidden="true"></i> New to Norwegian? Start here`;
 
   const storyLink = createStoryCardLink(story);
   storyLink.classList.add("story-recommendation-link");
@@ -733,13 +810,13 @@ async function displayStoryList(
   removeStoryHeader();
   clearContainer(); // Clear previous results
 
-  // Reset the page title and URL to the main list view
+  // Reset the page title and URL to the main list view. APP_ROOT_URL,
+  // not window.location — see returnToLandingPage in scripts.js.
   document.title = "Stories - Norwegian Dictionary";
-  history.replaceState(
-    {},
-    "",
-    `${window.location.origin}${window.location.pathname}`,
-  );
+  const listURL = new URL(APP_ROOT_URL);
+  listURL.search = "";
+  listURL.hash = "";
+  history.replaceState({}, "", listURL);
   updateURL(null, "stories", null);
   updateStoriesListMetadata();
 
@@ -825,13 +902,16 @@ async function displayStoryList(
   const showAllSearchMatches =
     Boolean(searchText) &&
     totalMatchingStories <= STORY_LIST_SHOW_ALL_MATCHES_THRESHOLD;
-  const recommendedSlots = recommendedStory ? 1 : 0;
+  // No slot subtraction for the recommendation card: it's appended to
+  // container as a sibling *before* storyList below, never as a grid item
+  // inside #stories, so it never actually occupies one of the grid's own
+  // slots. Subtracting one here left #stories with an odd regular-card
+  // count whenever a recommendation was showing, stranding a single card
+  // alone on the last row of the two-column grid (see the identical fix
+  // in scripts/build-stories-index.py's static capture).
   const regularVisibleCount = showAllSearchMatches
     ? regularStories.length
-    : Math.min(
-        regularStories.length,
-        Math.max(0, visibleCount - recommendedSlots),
-      );
+    : Math.min(regularStories.length, visibleCount);
   const visibleStories = regularStories.slice(0, regularVisibleCount);
 
   // ▶ NEW: populate <ul id="stories"> with <li> items (JP mirror)
@@ -839,6 +919,21 @@ async function displayStoryList(
   const hasActiveStoryFilter = Boolean(
     searchText || selectedCEFR || selectedGenre || showFavoritesOnly,
   );
+
+  // Prefer the real /stories/ page's URL for the plain, unfiltered list —
+  // same "use the pretty path when the address bar wouldn't be lying about
+  // what's on screen" rule as updateURL()'s prettyWordURL/prettyStoryURL
+  // (scripts.js). A *filtered* list intentionally keeps the query-string
+  // URL above: /stories/ reloaded would show the unfiltered static list,
+  // not this filtered one, so pointing there would be actively wrong, not
+  // just less pretty.
+  if (!hasActiveStoryFilter) {
+    const prettyStoriesURL = new URL("stories/", APP_ROOT_URL);
+    if (window.location.href !== prettyStoriesURL.href) {
+      window.history.pushState({}, "", prettyStoriesURL);
+    }
+  }
+
   if (hasActiveStoryFilter) {
     const activeFilterChips = [
       showFavoritesOnly
@@ -1217,13 +1312,16 @@ function displayStory(titleNorwegian) {
       player.controls = true;
       player.className = "stories-audio-player";
       player.preload = "metadata";
-      player.src = `Resources/Audio/${enc}.m4a`;
+      // Anchored to APP_ROOT_URL — see fetchFreshStoryData's identical fix
+      // above for why a bare relative path here breaks after in-app
+      // navigation.
+      player.src = new URL(`Resources/Audio/${enc}.m4a`, APP_ROOT_URL).href;
       player.onerror = () => {
         // try mp3, then give up quietly
         if (player.src.endsWith(".m4a")) {
           player.onerror = () =>
             console.warn("[AUDIO]", "mp3 also missing for:", rawTitle);
-          player.src = `Resources/Audio/${enc}.mp3`;
+          player.src = new URL(`Resources/Audio/${enc}.mp3`, APP_ROOT_URL).href;
         }
       };
       slot.innerHTML = "";
@@ -1426,9 +1524,14 @@ function getStoryImageCandidates(titleEnglish) {
   );
   const imageExtensions = ["png", "webp", "jpg", "avif", "jpeg", "gif"];
 
+  // Anchored to APP_ROOT_URL — see fetchFreshStoryData's identical fix
+  // above for why a bare relative path here breaks after in-app
+  // navigation.
   return encodedTitles.flatMap((encoded) =>
     imageExtensions.map(
-      (extension) => `Resources/Images/${encoded}.${extension}`,
+      (extension) =>
+        new URL(`Resources/Images/${encoded}.${extension}`, APP_ROOT_URL)
+          .href,
     ),
   );
 }
@@ -1475,9 +1578,22 @@ function isStoriesTabActive() {
 
 window.addEventListener("DOMContentLoaded", async () => {
   const currentURL = new URL(window.location.href);
+  // parsePathState (scripts.js, already executed by DOMContentLoaded time —
+  // it's deferred and loads earlier) recognizes /story/<slug>/ pretty paths
+  // the same way loadStateFromURL() does for /word/<slug>/.
+  const pathState = parsePathState(currentURL.pathname);
+
+  // /stories/ (and /stories/index.html) is the pretty equivalent of
+  // ?type=stories — same normalization as parsePathState's own
+  // index.html-stripping, just for the one route it doesn't otherwise
+  // recognize (it has no <slug> segment to match /story/<slug>/ against).
+  const isPrettyStoriesListPath = /\/stories\/(?:index\.html)?$/.test(
+    currentURL.pathname,
+  );
 
   const requestedType = currentURL.searchParams.get("type");
-  const requestedStory = currentURL.searchParams.get("story");
+  const queryStory = currentURL.searchParams.get("story");
+  const requestedStory = queryStory || Boolean(pathState?.story);
 
   /*
    * Story data is unnecessary on the homepage, dictionary,
@@ -1486,20 +1602,117 @@ window.addEventListener("DOMContentLoaded", async () => {
    * If a user later selects Stories without reloading, the existing
    * handleTypeChange("stories") code loads the data at that point.
    */
-  if (requestedType === "stories" || requestedStory) {
+  if (requestedType === "stories" || requestedStory || isPrettyStoriesListPath) {
     const typeSelect = document.getElementById("type-select");
     if (typeSelect) {
       typeSelect.value = "stories";
       typeSelect.disabled = true;
     }
 
-    await fetchAndLoadStoryData();
+    // A captured /story/<slug>/ page embeds this one story's full data
+    // directly (window.__PRELOADED_STORY__ — see
+    // scripts/capture-story-pages.py) so displayStory() can render — and
+    // wire up its buttons, which only bind via addEventListener and so
+    // never survive static capture — immediately, instead of blocking on
+    // fetchAndLoadStoryData()'s full CSV fetch. On a cold connection with
+    // no cache yet (exactly the state a first-time visitor arriving from
+    // Google search is in), that fetch can take long enough to leave
+    // every control on the page inert for a noticeable stretch, even
+    // though the static markup looks complete.
+    const preloaded = window.__PRELOADED_STORY__;
+    const preloadedMatches =
+      preloaded &&
+      pathState?.story &&
+      !queryStory &&
+      slugifyWordForURL(preloaded.titleNorwegian) === pathState.story;
 
-    if (requestedStory) {
-      displayStory(requestedStory);
+    if (preloadedMatches) {
+      // Kick off the real fetch first, unawaited, so storyResults ends up
+      // fully populated for in-app navigation afterward — its own cached
+      // (localStorage) fast path assigns storyResults synchronously right
+      // here if a cache hit exists, before the preload injection below
+      // even runs. Only genuinely cold loads (no cache yet) actually rely
+      // on the injected single-story fallback.
+      fetchAndLoadStoryData();
+      if (
+        !storyResults.some(
+          (story) => story.titleNorwegian === preloaded.titleNorwegian,
+        )
+      ) {
+        storyResults = [preloaded, ...storyResults];
+      }
+      displayStory(preloaded.titleNorwegian);
     } else {
-      handleTypeChange("stories");
+      await fetchAndLoadStoryData();
+
+      if (requestedStory) {
+        // A path-sourced story is a slug ("svarte-hull") — storyResults is
+        // guaranteed loaded now, so this always resolves to the real title
+        // ("Svarte hull") before displayStory() needs an exact match.
+        const resolvedStory = queryStory
+          ? queryStory
+          : resolveSlugToText(
+              storyResults,
+              pathState.story,
+              (story) => story.titleNorwegian,
+            );
+        displayStory(resolvedStory);
+      } else if (!isPrettyStoriesListPath) {
+        handleTypeChange("stories");
+      }
     }
+
+    if (!preloadedMatches && !requestedStory && isPrettyStoriesListPath) {
+      // Same toolbar setup handleTypeChange("stories") does (genre/CEFR/
+      // favorites filters visible, POS hidden, search enabled) — but not
+      // handleTypeChange itself: it also calls updateURL(), which would
+      // overwrite the pretty /stories/ URL already correctly in the
+      // address bar with the query-string form, and it would call
+      // displayStoryList() (unless told not to), replacing this page's
+      // own complete render (74 visible, all 359 regular cards present
+      // behind "Show More Stories" — see scripts/build-stories-index.py)
+      // with a fresh 74-only one. A visitor who clicks into Stories from
+      // the landing page should see the exact same toolbar a mode-switch
+      // gives them; this is that, without either side effect.
+      const genreFilterContainer = document.getElementById("genre-filter");
+      const genreSelect = document.getElementById("genre-select");
+      const storyFavoritesFilterContainer = document.getElementById(
+        "story-favorites-filter",
+      );
+      const storyFavoritesSelect = document.getElementById(
+        "story-favorites-select",
+      );
+      const searchBarWrapper = document.getElementById("search-bar-wrapper");
+      const posFilterContainer = document.querySelector(".pos-filter");
+      const randomBtn = document.getElementById("my-words-nav-btn");
+      const cefrLock = document.getElementById("lock-icon");
+      const cefrSelect = document.getElementById("cefr-select");
+      const cefrFilterContainer = document.querySelector(".cefr-filter");
+
+      document.body.classList.add("stories-mode");
+      if (genreFilterContainer) genreFilterContainer.style.display = "inline-flex";
+      if (genreSelect) genreSelect.value = "";
+      if (storyFavoritesFilterContainer)
+        storyFavoritesFilterContainer.style.display = "inline-flex";
+      if (storyFavoritesSelect) storyFavoritesSelect.value = "";
+      if (searchBarWrapper) searchBarWrapper.style.display = "inline-flex";
+      if (posFilterContainer) posFilterContainer.style.display = "none";
+      if (randomBtn) randomBtn.style.display = "block";
+      if (cefrLock) cefrLock.style.display = "none";
+      if (cefrSelect) {
+        cefrSelect.disabled = false;
+        cefrSelect.value = "";
+      }
+      if (cefrFilterContainer) cefrFilterContainer.classList.remove("disabled");
+      enableSearchControls();
+    }
+    // else: the static /stories/ page already has its own complete render
+    // baked in (74 visible, all 359 regular cards present behind the
+    // "Show More Stories" toggle — see scripts/build-stories-index.py) —
+    // calling handleTypeChange here would replace it with
+    // handleTypeChange's own fresh 74-only render, destroying the part
+    // of the list a crawler would otherwise see.
+    // storyResults is still loaded above so search/filters work if used.
   }
 
   // The shared toolbar's Enter/search-button handlers submit Story search.

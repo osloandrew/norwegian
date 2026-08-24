@@ -2444,7 +2444,10 @@ let minimalPairsAnswered = false;
 function loadMinimalPairsData() {
   if (minimalPairsDataPromise) return minimalPairsDataPromise;
 
-  minimalPairsDataPromise = fetch("norwegianSounds.csv")
+  // Anchored to APP_ROOT_URL (scripts.js) — a bare relative path here
+  // resolves against document.baseURI, which pushState drags along with
+  // it after any in-app navigation on the base-tag-less app shell.
+  minimalPairsDataPromise = fetch(new URL("norwegianSounds.csv", APP_ROOT_URL))
     .then((response) => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);

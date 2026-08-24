@@ -621,8 +621,28 @@
             >
           </a>
 
-          <!-- Norwegian Stories -->
-          <a class="button-container" href="?type=stories">
+          <!-- Norwegian Stories: real href for crawlers (they read the
+               attribute directly, never run onclick), but a real click
+               checks the static page actually exists first and falls back
+               to the JS-rendered stories view if not — same content
+               either way, just not a dead link if stories/ is ever
+               missing/misconfigured. -->
+          <a
+            class="button-container"
+            href="stories/"
+            onclick="
+              event.preventDefault();
+              fetch('stories/', { method: 'HEAD' })
+                .then((r) => {
+                  if (r.ok) {
+                    location.href = 'stories/';
+                  } else {
+                    selectType('stories');
+                  }
+                })
+                .catch(() => selectType('stories'));
+            "
+          >
             <div class="landing-card-icon-chip">
               <img
                 class="landing-card-image"
@@ -880,7 +900,7 @@
       forms" section. Its larger Norsk Ordbank snapshot is fetched later,
       after the main dictionary is usable, so this script remains cheap.
     -->
-    <script src="inflections.js?v=e7241b38da"></script>
+    <script src="inflections.js?v=a69d157025"></script>
     <script src="expressionPatterns.js?v=c3e526a723"></script>
     <script src="sentenceFormMatching.js?v=cb56c8a3e2"></script>
     <script src="spacedRepetition.js?v=93b4b95907"></script>
@@ -895,18 +915,18 @@
       them un-deferred used to.
     -->
     <script src="englishVisibility.js?v=b7799fc88b" defer></script>
-    <script src="pronunciation.js?v=c057d68508" defer></script>
-    <script src="wordList.js?v=310c4c8707" defer></script>
+    <script src="pronunciation.js?v=4707ea5ebb" defer></script>
+    <script src="wordList.js?v=ac1952fac1" defer></script>
     <script src="storyFavorites.js?v=c152eb5155" defer></script>
     <script src="myWordsAuth.js?v=a7f10895ef" defer></script>
     <script src="noRandom.js?v=dd11769910" defer></script>
     <script src="ordbokene.js?v=c8d50278e6" defer></script>
-    <script src="scripts.js?v=dfb94d9ae1" defer></script>
-    <script src="wordGame.js?v=1fe257ca5f" defer></script>
+    <script src="scripts.js?v=7486e6e7d9" defer></script>
+    <script src="wordGame.js?v=67b4bd2960" defer></script>
     <script src="placementTest.js?v=34512a65ac" defer></script>
     <script src="streak.js?v=ddb26efe7e" defer></script>
-    <script src="stories.js?v=1f109d6395" defer></script>
-    <script src="storyQuiz.js?v=42c70f88d5" defer></script>
+    <script src="stories.js?v=e3c6fbd37c" defer></script>
+    <script src="storyQuiz.js?v=573ee6b872" defer></script>
     <script src="myStats.js?v=2778937dd8" defer></script>
 
     <!--
@@ -918,7 +938,24 @@
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js").catch((error) => {
+          // register() resolves a relative scriptURL against the page's
+          // own location, not the document's <base href> the way normal
+          // relative URLs do (confirmed empirically in Chrome) — harmless
+          // here on the site root, but on a captured /word/<slug>/ or
+          // /story/<slug>/ page (each with its own <base href="/norwegian/">
+          // so its other relative asset references work) it registered a
+          // broken service worker scoped to that page's own nested path,
+          // 404ing on a sw.js that was never there.
+          //
+          // APP_ROOT_URL (scripts.js), not document.baseURI: on the plain
+          // app shell (no <base> tag) baseURI resolves to document.URL,
+          // and an in-app pushState upgrade can already have happened by
+          // the time "load" fires (e.g. landing on ?type=story&story=X
+          // auto-upgrades to its pretty path during DOMContentLoaded,
+          // which always completes before "load" does) — APP_ROOT_URL is
+          // captured once, before any pushState can run, and stays fixed.
+          const swURL = new URL("sw.js", APP_ROOT_URL).href;
+          navigator.serviceWorker.register(swURL).catch((error) => {
             console.warn("Service worker registration failed.", error);
           });
         });
