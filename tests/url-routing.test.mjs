@@ -19,7 +19,11 @@ function createRoutingContext(manifestWords = []) {
     URL,
     String,
     APP_ROOT_URL: "http://127.0.0.1:3000/",
-    STATIC_FEATURE_ROUTES: {},
+    STATIC_FEATURE_ROUTES: {
+      sentences: "sentences/",
+      "word-game": "word-game/",
+      pronunciation: "pronunciation/",
+    },
     pageManifest: { words: new Set(manifestWords), stories: new Set() },
     window: {
       location: { pathname: "/" },
@@ -51,4 +55,39 @@ test("the empty Words mode uses the application root", () => {
   context.updateURL("", "words", "", "");
 
   assert.equal(getPushedURL(), "http://127.0.0.1:3000/");
+});
+
+test("a sentence search keeps state on the pretty feature route", () => {
+  const { context, getPushedURL } = createRoutingContext();
+
+  context.updateURL("eple", "sentences", "", "");
+
+  assert.equal(
+    getPushedURL(),
+    "http://127.0.0.1:3000/sentences/?query=eple",
+  );
+});
+
+test("a random sentence returns to the clean feature route", () => {
+  const { context, getPushedURL } = createRoutingContext();
+
+  context.updateURL("", "sentences", "", "");
+
+  assert.equal(getPushedURL(), "http://127.0.0.1:3000/sentences/");
+});
+
+test("a Words search does not repeat the default mode in the query string", () => {
+  const { context, getPushedURL } = createRoutingContext();
+
+  context.updateURL("eple", "words", "", "");
+
+  assert.equal(getPushedURL(), "http://127.0.0.1:3000/?query=eple");
+});
+
+test("JS-only modes retain an explicit type parameter", () => {
+  const { context, getPushedURL } = createRoutingContext();
+
+  context.updateURL("", "my-stats", "", "");
+
+  assert.equal(getPushedURL(), "http://127.0.0.1:3000/?type=my-stats");
 });

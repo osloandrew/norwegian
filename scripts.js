@@ -1497,6 +1497,12 @@ async function randomWord() {
   let filteredResults;
 
   if (type === "sentences") {
+    // A random sentence is a transient state of the sentence feature, not
+    // the previous submitted search. Keep the address at the feature route
+    // (plus a real CEFR filter, when selected) so refresh/share never claims
+    // that the cleared search is still active.
+    updateURL("", "sentences", "", selectedCEFR);
+
     // Filter results that contain example sentences (for the 'sentences' type)
     filteredResults = results.filter((r) => r.eksempel); // Assuming sentences are stored under the 'eksempel' key
 
@@ -1653,7 +1659,6 @@ async function search(queryOverride = null, options = {}) {
       ? document.getElementById("cefr-select").value.toUpperCase()
       : "";
 
-    cleanURL("word-list");
     updateURL(originalQuery, "word-list", selectedPOS, selectedCEFR);
     showLandingCard(false);
     renderWordList();
@@ -1712,8 +1717,6 @@ async function search(queryOverride = null, options = {}) {
   });
 
   if (updateHistory) {
-    cleanURL(type);
-
     // Update the URL with the search parameters
     updateURL(originalQuery, type, selectedPOS, selectedCEFR); // Preserve what the visitor typed
   }
@@ -2313,9 +2316,6 @@ function handleTypeChange(type, options = {}) {
     .value.toLowerCase()
     .trim();
 
-  // Clear any remnants from other types in the URL
-  cleanURL(type);
-
   // Container to update and other UI elements
   const searchContainerInner = document.getElementById(
     "search-container-inner",
@@ -2575,17 +2575,6 @@ function handleTypeChange(type, options = {}) {
       showLandingCard(true);
     }
   }
-}
-
-// Helper function to clear the URL of remnants from other types
-function cleanURL(type) {
-  const url = new URL(window.location);
-  url.searchParams.delete("query");
-  url.searchParams.delete("pos");
-  url.searchParams.delete("story");
-  url.searchParams.delete("word");
-  url.searchParams.set("type", type);
-  window.history.pushState({}, "", url);
 }
 
 // Handle change in CEFR filter
@@ -4199,21 +4188,14 @@ function updateURL(
   // (.../word/forgjeves/?type=words&word=knoll — not a page that exists).
   // Any interactive navigation belongs at the app root regardless of which
   // static page it was triggered from.
-  const url = new URL(APP_ROOT_URL);
+  const appRootURL = new URL(APP_ROOT_URL);
+  appRootURL.search = "";
+  appRootURL.hash = "";
+  const featureRoute = STATIC_FEATURE_ROUTES[type] || "";
+  const url = featureRoute
+    ? new URL(featureRoute, appRootURL)
+    : new URL(appRootURL);
   const primaryWord = getPrimaryWordForURL(word);
-
-  // If the address bar is already showing the correct pretty path for this
-  // exact word/story (e.g. a visitor landed directly on /story/ateisme/
-  // and displayStory() is about to call this as part of rendering it),
-  // don't overwrite it with the uglier query-string form below — pushState
-  // is skipped for that one case, everything else in this function (title,
-  // metadata) still runs normally.
-  const currentPathState = parsePathState(window.location.pathname);
-  const alreadyOnPrettyPath =
-    (primaryWord &&
-      currentPathState?.word === slugifyWordForURL(primaryWord)) ||
-    (story && currentPathState?.story === slugifyWordForURL(story)) ||
-    (STATIC_FEATURE_ROUTES[type] && currentPathState?.type === type);
 
   // Set or remove the query parameter
   if (query) {
@@ -4222,16 +4204,10 @@ function updateURL(
     url.searchParams.delete("query");
   }
 
-  // The empty Words view is the homepage, so keep its canonical route clean.
-  // Non-empty searches and filtered views retain their explicit type state.
-  const isDefaultWordsView =
-    type === "words" &&
-    !query &&
-    !selectedPOS &&
-    !selectedCEFR &&
-    !story &&
-    !primaryWord;
-  if (type && !isDefaultWordsView) {
+  // The path already identifies Words (/) and every captured feature route,
+  // so a duplicate type parameter only belongs to JS-only modes.
+  const pathEncodesType = type === "words" || Boolean(featureRoute);
+  if (type && !pathEncodesType) {
     url.searchParams.set("type", type);
   } else {
     url.searchParams.delete("type");
@@ -4275,8 +4251,9 @@ function updateURL(
       : null;
 
     // Update the URL without reloading the page.
-    if (!alreadyOnPrettyPath) {
-      window.history.pushState({}, "", prettyWordURL || url);
+    const targetURL = prettyWordURL || url;
+    if (window.location.href !== targetURL.href) {
+      window.history.pushState({}, "", targetURL);
     }
 
     // Apply the matching word's unique SEO metadata.
@@ -4308,14 +4285,11 @@ function updateURL(
     story && pageManifest.stories.has(slugifyWordForURL(story))
       ? new URL(`story/${slugifyWordForURL(story)}/`, APP_ROOT_URL)
       : null;
-  const prettyFeatureURL =
-    STATIC_FEATURE_ROUTES[type] && !query && !selectedPOS && !selectedCEFR
-      ? new URL(STATIC_FEATURE_ROUTES[type], APP_ROOT_URL)
-      : null;
+  const targetURL = prettyStoryURL || url;
 
-  // Update the URL without reloading the page
-  if (!alreadyOnPrettyPath) {
-    window.history.pushState({}, "", prettyStoryURL || prettyFeatureURL || url);
+  // Update the URL without reloading the page.
+  if (window.location.href !== targetURL.href) {
+    window.history.pushState({}, "", targetURL);
   }
 }
 
@@ -4961,11 +4935,10 @@ document.addEventListener("click", async (event) => {
     displaySearchResults(formMatches, word);
     // A click can originate from a single-word definition page (URL has
     // ?word=...) -- including a word's own definition referencing itself,
-    // e.g. "danser" -> "person som danser". cleanURL clears that stale
-    // `word` param the same way search() does before its own updateURL,
-    // so this multi-result view survives a reload/share instead of
-    // snapping back to the single entry the click started from.
-    cleanURL("words");
+    // e.g. "danser" -> "person som danser". updateURL rebuilds state from
+    // the app root, clearing that stale `word` param so this multi-result
+    // view survives a reload/share instead of snapping back to the single
+    // entry the click started from.
     updateURL(word, "words", "", "");
     return;
   }

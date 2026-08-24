@@ -308,7 +308,41 @@ def behavior_smoke_check(browser: Browser, base_url: str, word: str, story: str)
         if urllib.parse.urlparse(page.url).path != expected_word_path:
             raise AssertionError("An alternative-spelling random word did not use its primary pretty path")
 
-        page.goto(f"{base_url}?type=sentences", wait_until="load")
+        feature_path = urllib.parse.urlparse(base_url).path + "sentences/"
+        page.goto(f"{base_url}sentences/", wait_until="load")
+        page.wait_for_function(
+            "() => document.querySelector('#type-select')?.value === 'sentences'",
+            timeout=60_000,
+        )
+        page.locator("#search-bar").fill("eple")
+        page.locator("#search-btn").click()
+        page.wait_for_function(
+            "expectedPath => location.pathname === expectedPath && new URLSearchParams(location.search).get('query') === 'eple' && !new URLSearchParams(location.search).has('type')",
+            arg=feature_path,
+        )
+        page.wait_for_selector('.sentence-results-query', state="visible")
+
+        page.locator("#search-bar").fill("")
+        page.locator("#search-btn").click()
+        page.wait_for_function(
+            "expectedPath => location.pathname === expectedPath && location.search === ''",
+            arg=feature_path,
+        )
+        page.wait_for_selector(".random-sentence-header", state="visible")
+
+        page.goto(base_url, wait_until="load")
+        page.wait_for_function(
+            "() => typeof results !== 'undefined' && results.length > 0",
+            timeout=60_000,
+        )
+        page.locator("#search-bar").fill("eple")
+        page.locator("#search-btn").click()
+        page.wait_for_function(
+            "expectedPath => location.pathname === expectedPath && new URLSearchParams(location.search).get('query') === 'eple' && !new URLSearchParams(location.search).has('type')",
+            arg=urllib.parse.urlparse(base_url).path,
+        )
+
+        page.goto(f"{base_url}sentences/", wait_until="load")
         page.wait_for_function(
             "() => document.querySelector('#type-select')?.value === 'sentences'",
             timeout=60_000,
