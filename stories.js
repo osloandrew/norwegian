@@ -305,6 +305,7 @@ function createStoryURL(titleNorwegian) {
 }
 
 function updateStoryMetadata(story, imageFileURL = "") {
+  setSiteTitleSemanticHeading(false);
   const norwegianTitle = (story.titleNorwegian || "").trim();
   const englishTitle = (story.titleEnglish || "").trim();
   const cefrLevel = (story.CEFR || "").trim().toUpperCase();
@@ -346,6 +347,7 @@ function updateStoryMetadata(story, imageFileURL = "") {
 }
 
 function updateStoriesListMetadata() {
+  setSiteTitleSemanticHeading(true);
   // The unfiltered list has a real crawlable /stories/ page. Use that as
   // the canonical even when this metadata is being applied to the legacy
   // ?type=stories route, matching the pretty-path preference already used
@@ -1368,7 +1370,7 @@ function displayStory(titleNorwegian) {
       const titleNode = document.createElement("div");
       titleNode.className = "sticky-title-container";
       titleNode.innerHTML = `
-  <h2 lang="nb" class="sticky-title-japanese">${selectedStory.titleNorwegian}</h2>
+  <h1 lang="nb" class="sticky-title-japanese">${selectedStory.titleNorwegian}</h1>
   ${
     selectedStory.titleNorwegian !== selectedStory.titleEnglish
       ? `<p lang="en" class="sticky-title-english">${selectedStory.titleEnglish}</p>`

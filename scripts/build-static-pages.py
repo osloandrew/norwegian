@@ -89,6 +89,7 @@ def build(site_root: Path, *, prune: bool = True, stamp_assets: bool = True) -> 
 
     run([sys.executable, "scripts/capture-word-pages.py", "--all", "--output-root", str(site_root)])
     run([sys.executable, "scripts/capture-story-pages.py", "--all", "--output-root", str(site_root)])
+    run([sys.executable, "scripts/capture-feature-pages.py", "--output-root", str(site_root)])
 
     # The list capture converts its links to pretty paths only when the
     # manifest confirms those pages exist, so generate the manifest first.

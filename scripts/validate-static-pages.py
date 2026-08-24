@@ -16,6 +16,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = "https://osloandrew.github.io/norwegian"
+FEATURE_PAGES = {
+    "sentences": "Results for",
+    "word-game": "How much Norwegian do you know?",
+    "pronunciation": "sentence-box-practice",
+}
 LOCAL_ASSET_RE = re.compile(r'(?:src|href)="([^":?#]+\.(?:js|css)(?:\?v=[^"]*)?)"')
 CANONICAL_RE = re.compile(r'<link rel="canonical" href="([^"]+)">')
 
@@ -106,27 +111,40 @@ def validate(source_root: Path, site_root: Path) -> tuple[int, int, int]:
         *(f"{SITE}/word/{slug}/" for slug in words),
         *(f"{SITE}/story/{slug}/" for slug in stories),
         f"{SITE}/stories/",
+        *(f"{SITE}/{feature}/" for feature in FEATURE_PAGES),
     }
     if not expected_urls.issubset(set(locations)):
         raise ValidationError("Sitemap is missing captured-page URLs")
+    if any("?type=" in location for location in locations):
+        raise ValidationError("Sitemap still contains a query-string feature URL")
 
     index_source = (source_root / "index.html").read_text(encoding="utf-8")
     shared_assets = local_assets(index_source)
     # Every page is captured from this shell. Checking all 29k documents is
     # intentional: a partial or interrupted build must never deploy.
     for slug, word in words.items():
+        page = site_root / "word" / slug / "index.html"
         validate_page(
-            site_root / "word" / slug / "index.html",
+            page,
             f"{SITE}/word/{slug}/",
             shared_assets,
             word,
             "../../",
         )
+        page_source = page.read_text(encoding="utf-8")
+        if '<h1 class="word-gender' not in page_source or page_source.count("<h1") != 1:
+            raise ValidationError(f"Word content heading is not the page H1 in {page}")
     for slug, title in stories.items():
         page = site_root / "story" / slug / "index.html"
         validate_page(page, f"{SITE}/story/{slug}/", shared_assets, title, "../../")
-        if "window.__PRELOADED_STORY__" not in page.read_text(encoding="utf-8"):
+        page_source = page.read_text(encoding="utf-8")
+        if "window.__PRELOADED_STORY__" not in page_source:
             raise ValidationError(f"Story preload is missing from {page}")
+        if (
+            '<h1 lang="nb" class="sticky-title-japanese">' not in page_source
+            or page_source.count("<h1") != 1
+        ):
+            raise ValidationError(f"Story content heading is not the page H1 in {page}")
 
     stories_index = site_root / "stories" / "index.html"
     validate_page(
@@ -136,6 +154,14 @@ def validate(source_root: Path, site_root: Path) -> tuple[int, int, int]:
         next(iter(stories.values())),
         "../",
     )
+    for feature, required_text in FEATURE_PAGES.items():
+        validate_page(
+            site_root / feature / "index.html",
+            f"{SITE}/{feature}/",
+            shared_assets,
+            required_text,
+            "../",
+        )
     return len(words), len(stories), len(locations)
 
 

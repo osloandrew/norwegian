@@ -44,9 +44,10 @@ header {
   position: relative;
 }
 
-header h1 {
+#site-title {
   font-family: "Grenze Gotisch", serif;
   font-size: 50px;
+  font-weight: bold;
   user-select: none;
 }
 

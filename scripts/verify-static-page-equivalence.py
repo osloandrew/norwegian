@@ -30,7 +30,7 @@ SITE_PATH = "/norwegian/"
 VIEWPORT = {"width": 1280, "height": 900}
 SCREENSHOT_STYLE = (
     "*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}"
-    "#story-image-slot,.story-quiz-section{display:none!important}"
+    "#story-image-slot,.story-quiz-section,#waveform,#user-waveform{display:none!important}"
 )
 STATIC_STORY_SHUFFLE_SEED = 20260824
 
@@ -183,6 +183,63 @@ def stories_index_visual_check(browser: Browser, base_url: str) -> None:
         static_context.close()
 
 
+def feature_visual_check(browser: Browser, base_url: str, feature: str, ready_selector: str) -> None:
+    dynamic = browser.new_page(viewport=VIEWPORT)
+    dynamic.add_init_script("Math.random = () => 0")
+    static_context = browser.new_context(java_script_enabled=False, viewport=VIEWPORT)
+    static = static_context.new_page()
+    try:
+        dynamic.goto(f"{base_url}?type={feature}", wait_until="load")
+        dynamic.wait_for_selector(ready_selector, state="visible", timeout=60_000)
+        dynamic.wait_for_timeout(250)
+
+        static.goto(f"{base_url}{feature}/", wait_until="load")
+        static.wait_for_selector(ready_selector, state="visible")
+        compare_png(
+            static.locator("#main-content").screenshot(animations="disabled", style=SCREENSHOT_STYLE),
+            dynamic.locator("#main-content").screenshot(animations="disabled", style=SCREENSHOT_STYLE),
+            feature,
+        )
+        canonical = static.locator('link[rel="canonical"]').get_attribute("href")
+        if canonical != f"https://osloandrew.github.io/norwegian/{feature}/":
+            raise AssertionError(f"{feature}: wrong static canonical {canonical!r}")
+    finally:
+        dynamic.close()
+        static_context.close()
+
+
+def heading_semantics_pixel_check(browser: Browser, base_url: str, word: str, story: str) -> None:
+    page = browser.new_page(viewport=VIEWPORT)
+    replace_tag = """selectorAndTag => {
+        const [selector, tagName] = selectorAndTag;
+        const current = document.querySelector(selector);
+        if (!current) throw new Error(`Missing heading: ${selector}`);
+        const replacement = document.createElement(tagName);
+        for (const attribute of current.attributes) {
+            replacement.setAttribute(attribute.name, attribute.value);
+        }
+        replacement.innerHTML = current.innerHTML;
+        current.replaceWith(replacement);
+    }"""
+    try:
+        page.goto(f"{base_url}?type=words&word={urllib.parse.quote(word)}", wait_until="load")
+        page.wait_for_selector("#results-container h1.word-gender", state="visible", timeout=30_000)
+        header_new = page.locator("header").screenshot(animations="disabled", style=SCREENSHOT_STYLE)
+        word_new = page.locator("#results-container").screenshot(animations="disabled", style=SCREENSHOT_STYLE)
+        page.evaluate(replace_tag, ["#site-title", "h1"])
+        page.evaluate(replace_tag, ["#results-container h1.word-gender", "h2"])
+        compare_png(header_new, page.locator("header").screenshot(animations="disabled", style=SCREENSHOT_STYLE), "site title semantic tag")
+        compare_png(word_new, page.locator("#results-container").screenshot(animations="disabled", style=SCREENSHOT_STYLE), "word heading semantic tag")
+
+        page.goto(f"{base_url}?type=stories&story={urllib.parse.quote(story)}", wait_until="load")
+        page.wait_for_selector("#story-content h1.sticky-title-japanese", state="visible", timeout=30_000)
+        story_new = page.locator("#story-content").screenshot(animations="disabled", style=SCREENSHOT_STYLE)
+        page.evaluate(replace_tag, ["#story-content h1.sticky-title-japanese", "h2"])
+        compare_png(story_new, page.locator("#story-content").screenshot(animations="disabled", style=SCREENSHOT_STYLE), "story heading semantic tag")
+    finally:
+        page.close()
+
+
 def behavior_smoke_check(browser: Browser, base_url: str, word: str, story: str) -> None:
     page = browser.new_page(viewport=VIEWPORT)
     try:
@@ -211,6 +268,56 @@ def behavior_smoke_check(browser: Browser, base_url: str, word: str, story: str)
         show_more.click()
         if page.locator(".story-index-hidden").count() >= hidden_before:
             raise AssertionError("Captured stories index's Show More button is not interactive")
+
+        feature_selectors = {
+            "sentences": "#results-container .sentence-container",
+            "word-game": "#results-container .game-intro-card",
+            "pronunciation": "#results-container .sentence-box-practice",
+        }
+        for feature, selector in feature_selectors.items():
+            page.goto(f"{base_url}{feature}/", wait_until="load")
+            page.wait_for_selector(selector, state="visible", timeout=60_000)
+            if feature == "pronunciation":
+                # Pronunciation deliberately is not a visible dropdown option;
+                # requiring the select value to equal it would change today's UI.
+                page.wait_for_function(
+                    "typeof results !== 'undefined' && results.length > 0",
+                    timeout=60_000,
+                )
+            else:
+                page.wait_for_function(
+                    "feature => document.querySelector('#type-select')?.value === feature",
+                    arg=feature,
+                    timeout=60_000,
+                )
+            canonical_path = urllib.parse.urlparse(
+                page.locator('link[rel="canonical"]').get_attribute("href") or ""
+            ).path
+            if not canonical_path.endswith(f"/{feature}/"):
+                raise AssertionError(f"Captured {feature} page lost its canonical URL")
+
+        page.goto(base_url, wait_until="load")
+        page.wait_for_function(
+            "() => typeof results !== 'undefined' && results.length > 0 && pageManifest.words.has('vuggesang')",
+            timeout=60_000,
+        )
+        page.evaluate(
+            "() => updateURL('', 'words', 'noun', '', null, 'vuggesang, voggesang')"
+        )
+        expected_word_path = urllib.parse.urlparse(base_url).path + "word/vuggesang/"
+        if urllib.parse.urlparse(page.url).path != expected_word_path:
+            raise AssertionError("An alternative-spelling random word did not use its primary pretty path")
+
+        page.goto(f"{base_url}?type=sentences", wait_until="load")
+        page.wait_for_function(
+            "() => document.querySelector('#type-select')?.value === 'sentences'",
+            timeout=60_000,
+        )
+        page.locator("#type-select").select_option("words")
+        page.wait_for_function(
+            "expectedPath => location.pathname === expectedPath && location.search === ''",
+            arg=urllib.parse.urlparse(base_url).path,
+        )
     finally:
         page.close()
 
@@ -239,7 +346,10 @@ def main() -> None:
     overlay_root = serve_root if args.root_mount else serve_root / "norwegian"
     if not args.root_mount:
         overlay_root.mkdir()
-    generated_names = {"word", "story", "stories", "sitemap.xml", "page-manifest.json"}
+    generated_names = {
+        "word", "story", "stories", "sentences", "word-game", "pronunciation",
+        "sitemap.xml", "page-manifest.json"
+    }
     for source_item in source_root.iterdir():
         if source_item.name in generated_names:
             continue
@@ -267,6 +377,10 @@ def main() -> None:
             for story in stories:
                 story_visual_check(browser, base_url, story)
             stories_index_visual_check(browser, base_url)
+            feature_visual_check(browser, base_url, "sentences", "#results-container .sentence-container")
+            feature_visual_check(browser, base_url, "word-game", "#results-container .game-intro-card")
+            feature_visual_check(browser, base_url, "pronunciation", "#results-container .sentence-box-practice")
+            heading_semantics_pixel_check(browser, base_url, words[0], stories[0])
             behavior_smoke_check(browser, base_url, words[0], stories[0])
             browser.close()
     finally:
@@ -274,7 +388,7 @@ def main() -> None:
         temporary.cleanup()
     print(
         f"Verified exact rendering for {len(words)} word page(s), "
-        f"{len(stories)} story page(s), and the stories index, plus "
+        f"{len(stories)} story page(s), the stories index, and three feature pages, plus "
         "interactive upgrade behavior."
     )
 

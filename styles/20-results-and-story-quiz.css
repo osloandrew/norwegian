@@ -683,9 +683,12 @@ ul {
   color: var(--color-heading);
   cursor: pointer;
   margin: -5px 0px 0px 0px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition:
     color 0.2s ease,
     text-shadow 0.2s ease;
+  white-space: nowrap;
 }
 
 #site-title:hover {
@@ -796,7 +799,10 @@ ul {
   font-weight: 400;
   letter-spacing: 0.5px;
   margin: 0 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-transform: uppercase;
+  white-space: normal;
 }
 
 .sticky-title-english {

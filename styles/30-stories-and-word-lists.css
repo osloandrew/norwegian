@@ -33,10 +33,17 @@
 
 .word-gender {
   align-items: flex;
+  color: var(--color-heading-accent);
   display: flex;
+  font-size: 30px;
+  font-weight: bold;
   justify-content: space-between;
   line-height: 1.2;
+  margin: -5px 0;
+  overflow: hidden;
   overflow-wrap: break-word;
+  text-overflow: ellipsis;
+  white-space: normal;
   word-break: break-word;
 }
 

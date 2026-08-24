@@ -9,6 +9,9 @@ __pycache__/
 word/
 story/
 stories/
+sentences/
+word-game/
+pronunciation/
 sitemap.xml
 page-manifest.json
 build/

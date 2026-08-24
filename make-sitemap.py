@@ -30,9 +30,9 @@ MAX_SITEMAP_BYTES = 50 * 1024 * 1024
 CORE_URLS = [
     f"{SITE}/",
     f"{SITE}/stories/",
-    f"{SITE}/?type=sentences",
-    f"{SITE}/?type=word-game",
-    f"{SITE}/?type=pronunciation",
+    f"{SITE}/sentences/",
+    f"{SITE}/word-game/",
+    f"{SITE}/pronunciation/",
 ]
 
 

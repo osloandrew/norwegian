@@ -83,3 +83,35 @@ test("a direct lookup ranks a true headword before an earlier alternative spelli
   assert.equal(metadata.ord, "annen");
   assert.equal(rendered[1].ord, "andre, annen");
 });
+
+test("definition clicks prefer a unique exact closed-class headword", () => {
+  const helperStart = source.indexOf(
+    "const INFLECTING_DEFINITION_WORD_CLASSES",
+  );
+  const helperEnd = source.indexOf(
+    'document.addEventListener("click", async (event)',
+    helperStart,
+  );
+  assert.notEqual(helperStart, -1);
+  assert.notEqual(helperEnd, -1);
+
+  const helperContext = vm.createContext({
+    Set,
+    WordClass: {
+      getWordClass: (gender) => gender,
+    },
+  });
+  vm.runInContext(source.slice(helperStart, helperEnd), helperContext);
+
+  const conjunction = { ord: "eller", gender: "conjunction" };
+  const noun = { ord: "danser", gender: "noun" };
+  assert.equal(
+    helperContext.getDefinitiveExactDefinitionMatch([conjunction]),
+    conjunction,
+  );
+  assert.equal(helperContext.getDefinitiveExactDefinitionMatch([noun]), null);
+  assert.equal(
+    helperContext.getDefinitiveExactDefinitionMatch([conjunction, noun]),
+    null,
+  );
+});

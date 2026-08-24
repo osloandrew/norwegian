@@ -481,7 +481,21 @@
       match.nodeIndex === alignment.matchOrder?.[0] &&
       compatible.some(({ candidate }) => candidate.wordClass === "verb")
     ) {
-      return compatible.find(({ candidate }) => candidate.wordClass === "verb");
+      // Expression citations normally spell an inflecting verb as its
+      // infinitive ("kaste til ulvene", "vokse på trær").  A fixed
+      // closed-class word can nevertheless be identical to an inflected
+      // form of an unrelated verb: "eller" (or) is also the present of the
+      // rare verb "elle".  Being the first matched component is not enough
+      // to reinterpret that literal conjunction as a finite verb.  A real
+      // finite reading is still selected above when the sentence supplies
+      // explicit verb context, while an ordinary citation-form verb has a
+      // candidate whose lemma is the authored token itself.
+      const citationVerb = compatible.find(
+        ({ candidate }) =>
+          candidate.wordClass === "verb" &&
+          candidate.lemma === match.node.normalized,
+      );
+      if (citationVerb) return citationVerb;
     }
     // A word right after a placeholder is preferred as a verb (a finite verb
     // that "fronted" past a variable slot), but only when nothing else fits
@@ -505,9 +519,7 @@
       const only = compatible[0];
       if (
         only.candidate.wordClass === "verb" &&
-        (match.nodeIndex === 0 ||
-          VERB_CONTEXT.has(preceding) ||
-          only.candidate.lemma !== match.node.normalized)
+        VERB_CONTEXT.has(preceding)
       ) {
         return only;
       }
@@ -850,7 +862,10 @@
       const previous = nodes[index - 1];
       const next = nodes[index + 1];
       const previousIsVerb = previous?.candidates?.some(
-        (candidate) => candidate.wordClass === "verb",
+        (candidate) =>
+          candidate.wordClass === "verb" &&
+          candidate.lemma === previous.normalized &&
+          !candidate.estimated,
       );
       const previousIsPreposition = PREPOSITIONS.has(previous?.normalized);
       const nextCandidateClasses = new Set(

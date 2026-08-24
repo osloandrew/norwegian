@@ -211,6 +211,35 @@ const fixed = await context.ExpressionPatterns.getAnalysis(fixedEntry);
 assert.equal(fixed.forms.sourceType, "expression-fixed");
 assert.equal(value(fixed.forms, "Fixed expression"), "a cappella");
 
+// Both words in this fixed expression collide with unrelated verb forms:
+// "eller" is the present of "elle", and "ei" is the imperative of "eie".
+// Exact literal agreement with the entry's example is not evidence that
+// either token is functioning as that verb. The whole expression must stay
+// fixed so sentence retrieval and highlighting cannot drift onto forms of
+// those unrelated verbs.
+const orNotEntry = {
+  ord: "eller ei",
+  gender: "expression",
+  definisjon: "eller ikke",
+  eksempel: "Hun skulle si ifra, om det passet eller ei.",
+};
+const orNot = await context.ExpressionPatterns.getAnalysis(orNotEntry);
+assert.equal(orNot.forms.sourceType, "expression-fixed");
+assert.equal(value(orNot.forms, "Fixed expression"), "eller ei");
+assert.equal(
+  orNot.patterns[0].nodes.every((node) => node.selected === undefined),
+  true,
+);
+assert.equal(orNot.matcher.test(orNotEntry.eksempel), true);
+assert.equal(orNot.matcher.test("Hun eller kanskje eier huset."), false);
+const orNotHighlight = orNot.matcher.highlight(orNotEntry.eksempel);
+assert.match(orNotHighlight, />eller<\/span>/u);
+assert.match(orNotHighlight, />ei<\/span>/u);
+assert.deepEqual(
+  [...orNot.searchAlternatives[0].map((forms) => [...forms])],
+  [["eller"], ["ei"]],
+);
+
 const nominalEntry = {
   ord: "amerikansk bison",
   gender: "expression",
