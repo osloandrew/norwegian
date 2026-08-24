@@ -12,6 +12,9 @@ let results = [];
 // starting over from /. Capturing it once, now, before any pushState has
 // run, keeps it correct regardless of how many navigations follow.
 const APP_ROOT_URL = document.baseURI;
+// Runtime-only readiness state. Keep this off the DOM so captured static
+// pages cannot serialize a stale "ready" marker into their HTML.
+window.__APP_READY__ = false;
 
 const STATIC_FEATURE_ROUTES = Object.freeze({
   sentences: "sentences/",
@@ -4427,6 +4430,7 @@ function loadStateFromURL() {
         // Render only matching results by filtering directly within renderWordDefinition
         renderWordDefinition(resolvedWord, selectedPOS);
 
+        window.__APP_READY__ = true;
         clearInterval(checkDataLoaded); // Stop checking once data is loaded
         return; // Exit function to prevent further handling
       }
@@ -4506,6 +4510,7 @@ function loadStateFromURL() {
         showLandingCard(true);
       }
 
+      window.__APP_READY__ = true;
       clearInterval(checkDataLoaded); // Stop checking once data is loaded
     }
   }
@@ -4778,13 +4783,9 @@ window.onload = function () {
       // Stories are initialized by stories.js and must not be rendered twice.
       if (!initialStoryRoute) {
         loadStateFromURL();
+      } else {
+        window.__APP_READY__ = true;
       }
-
-      // A populated `results` array only means Papa Parse has finished; URL
-      // restoration and the matching initial render happen immediately after
-      // that. Expose the end of the whole initialization sequence so browser
-      // checks (and any future integrations) do not race that final restore.
-      document.documentElement.dataset.appReady = "true";
     }
   }, 100);
 

@@ -298,7 +298,7 @@ def behavior_smoke_check(browser: Browser, base_url: str, word: str, story: str)
 
         page.goto(base_url, wait_until="load")
         page.wait_for_function(
-            "() => document.documentElement.dataset.appReady === 'true' && pageManifest.words.has('vuggesang')",
+            "() => window.__APP_READY__ === true && pageManifest.words.has('vuggesang')",
             timeout=60_000,
         )
         page.evaluate(
@@ -315,7 +315,7 @@ def behavior_smoke_check(browser: Browser, base_url: str, word: str, story: str)
             timeout=60_000,
         )
         page.wait_for_function(
-            "() => document.documentElement.dataset.appReady === 'true'",
+            "() => window.__APP_READY__ === true",
             timeout=60_000,
         )
         page.locator("#search-bar").fill("eple")
@@ -336,15 +336,21 @@ def behavior_smoke_check(browser: Browser, base_url: str, word: str, story: str)
 
         page.goto(base_url, wait_until="load")
         page.wait_for_function(
-            "() => document.documentElement.dataset.appReady === 'true'",
+            "() => window.__APP_READY__ === true",
             timeout=60_000,
         )
         page.locator("#search-bar").fill("eple")
         page.locator("#search-btn").click()
-        page.wait_for_function(
-            "expectedPath => location.pathname === expectedPath && new URLSearchParams(location.search).get('query') === 'eple' && !new URLSearchParams(location.search).has('type')",
-            arg=urllib.parse.urlparse(base_url).path,
-        )
+        current_url = urllib.parse.urlparse(page.url)
+        current_query = urllib.parse.parse_qs(current_url.query)
+        if (
+            current_url.path != urllib.parse.urlparse(base_url).path
+            or current_query.get("query") != ["eple"]
+            or "type" in current_query
+        ):
+            raise AssertionError(
+                f"Words search did not preserve the root route: {page.url}"
+            )
 
         page.goto(f"{base_url}sentences/", wait_until="load")
         page.wait_for_function(
@@ -355,7 +361,7 @@ def behavior_smoke_check(browser: Browser, base_url: str, word: str, story: str)
         # the select value alone can become true before the live app has
         # completed its async URL restoration.
         page.wait_for_function(
-            "() => document.documentElement.dataset.appReady === 'true'",
+            "() => window.__APP_READY__ === true",
             timeout=60_000,
         )
         page.locator("#type-select").select_option("words")
