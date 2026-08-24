@@ -8,7 +8,17 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const snapshot = JSON.parse(
   fs.readFileSync(path.join(root, "inflections-data.json"), "utf8"),
 );
-const context = vm.createContext({ console, Map, Promise, Set });
+// inflections.js's loadSnapshot() resolves its fetch URL against
+// APP_ROOT_URL (scripts.js) — a real page always has it defined by the
+// time a table can be opened, so the fixture models the same fixed root.
+const context = vm.createContext({
+  console,
+  Map,
+  Promise,
+  Set,
+  URL,
+  APP_ROOT_URL: "http://127.0.0.1:3000/",
+});
 context.window = context;
 context.self = context;
 context.__BOKMAL_INFLECTIONS_DATA__ = snapshot;
@@ -510,6 +520,8 @@ const lazyContext = vm.createContext({
   Map,
   Promise,
   Set,
+  URL,
+  APP_ROOT_URL: "http://127.0.0.1:3000/",
   fetch: async () => ({
     ok: true,
     json: async () => snapshot,

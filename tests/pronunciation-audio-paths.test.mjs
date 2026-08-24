@@ -11,6 +11,12 @@ function loadBuilders(baseURI) {
   const context = vm.createContext({
     console,
     document: { baseURI },
+    // pronunciation.js resolves against APP_ROOT_URL (scripts.js), not
+    // document.baseURI directly — see buildAudioResourceUrl. In a real
+    // page this is set once, before any navigation, to the same value
+    // document.baseURI had at that moment, which is what a fresh load
+    // (what these fixtures model) looks like too.
+    APP_ROOT_URL: baseURI,
     Promise,
     URL,
   });
