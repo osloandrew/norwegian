@@ -1687,15 +1687,23 @@ async function search(queryOverride = null, options = {}) {
   const selectedPOS = document.getElementById("pos-select")
     ? document.getElementById("pos-select").value.toLowerCase()
     : "";
+  const selectedCEFR = document.getElementById("cefr-select")
+    ? document.getElementById("cefr-select").value.toUpperCase()
+    : ""; // Fetch the selected CEFR level
+  const type = selector;
+
+  // Reflect submitted input immediately. Word resolution can lazily load
+  // the inflection index, which is useful for rendering the best match but
+  // must not delay browser history or make the Search button appear inert.
+  if (updateHistory) {
+    updateURL(originalQuery, type, selectedPOS, selectedCEFR);
+  }
+
   const wordSearchResolution =
     selector === "words"
       ? await resolveWordSearchQuery(originalQuery, selectedPOS)
       : { query: originalQuery, queries: [originalQuery], reason: "exact" };
   const query = wordSearchResolution.query;
-  const selectedCEFR = document.getElementById("cefr-select")
-    ? document.getElementById("cefr-select").value.toUpperCase()
-    : ""; // Fetch the selected CEFR level
-  const type = document.getElementById("type-select").value; // Get the search type (words or sentences)
   const normalizedQueries = wordSearchResolution.queries.map(normalizeSearchText);
 
   // Build the "No Matches" message based on filters
@@ -1715,11 +1723,6 @@ async function search(queryOverride = null, options = {}) {
     }
     return result;
   });
-
-  if (updateHistory) {
-    // Update the URL with the search parameters
-    updateURL(originalQuery, type, selectedPOS, selectedCEFR); // Preserve what the visitor typed
-  }
 
   // Show the spinner at the start of the search
   showSpinner();
@@ -4776,6 +4779,12 @@ window.onload = function () {
       if (!initialStoryRoute) {
         loadStateFromURL();
       }
+
+      // A populated `results` array only means Papa Parse has finished; URL
+      // restoration and the matching initial render happen immediately after
+      // that. Expose the end of the whole initialization sequence so browser
+      // checks (and any future integrations) do not race that final restore.
+      document.documentElement.dataset.appReady = "true";
     }
   }, 100);
 

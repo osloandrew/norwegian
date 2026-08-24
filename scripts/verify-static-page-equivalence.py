@@ -298,7 +298,7 @@ def behavior_smoke_check(browser: Browser, base_url: str, word: str, story: str)
 
         page.goto(base_url, wait_until="load")
         page.wait_for_function(
-            "() => typeof results !== 'undefined' && results.length > 0 && pageManifest.words.has('vuggesang')",
+            "() => document.documentElement.dataset.appReady === 'true' && pageManifest.words.has('vuggesang')",
             timeout=60_000,
         )
         page.evaluate(
@@ -312,6 +312,10 @@ def behavior_smoke_check(browser: Browser, base_url: str, word: str, story: str)
         page.goto(f"{base_url}sentences/", wait_until="load")
         page.wait_for_function(
             "() => document.querySelector('#type-select')?.value === 'sentences'",
+            timeout=60_000,
+        )
+        page.wait_for_function(
+            "() => document.documentElement.dataset.appReady === 'true'",
             timeout=60_000,
         )
         page.locator("#search-bar").fill("eple")
@@ -332,7 +336,7 @@ def behavior_smoke_check(browser: Browser, base_url: str, word: str, story: str)
 
         page.goto(base_url, wait_until="load")
         page.wait_for_function(
-            "() => typeof results !== 'undefined' && results.length > 0",
+            "() => document.documentElement.dataset.appReady === 'true'",
             timeout=60_000,
         )
         page.locator("#search-bar").fill("eple")
@@ -345,6 +349,13 @@ def behavior_smoke_check(browser: Browser, base_url: str, word: str, story: str)
         page.goto(f"{base_url}sentences/", wait_until="load")
         page.wait_for_function(
             "() => document.querySelector('#type-select')?.value === 'sentences'",
+            timeout=60_000,
+        )
+        # The captured page already contains the rendered Sentences UI, so
+        # the select value alone can become true before the live app has
+        # completed its async URL restoration.
+        page.wait_for_function(
+            "() => document.documentElement.dataset.appReady === 'true'",
             timeout=60_000,
         )
         page.locator("#type-select").select_option("words")
