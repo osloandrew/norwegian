@@ -97,6 +97,12 @@ assert.deepEqual(
 // Guard the UI contract: the card control reuses the word favorite class and
 // remains a sibling of the story link rather than an invalid nested button.
 const storiesSource = fs.readFileSync(path.join(root, "stories.js"), "utf8");
+
+assert.match(
+  storiesSource,
+  /function updateStoriesListMetadata\(\)[\s\S]*?new URL\("stories\/", APP_ROOT_URL\)/,
+  "the crawlable stories index should be the canonical list URL",
+);
 assert.match(
   storiesSource,
   /word-list-favorite-button story-card-favorite-button/,
