@@ -4264,6 +4264,7 @@ function updateURL(
     const metadataEntry = findWordEntryForMetadata(primaryWord, selectedPOS);
 
     updateWordMetadata(metadataEntry);
+    window.trackPageView?.();
 
     return;
   }
@@ -4295,6 +4296,7 @@ function updateURL(
   if (window.location.href !== targetURL.href) {
     window.history.pushState({}, "", targetURL);
   }
+  window.trackPageView?.();
 }
 
 // Helper function to capitalize and format type correctly
@@ -4429,6 +4431,7 @@ function loadStateFromURL() {
         renderWordDefinition(resolvedWord, selectedPOS);
 
         window.__APP_READY__ = true;
+        window.trackPageView?.();
         clearInterval(checkDataLoaded); // Stop checking once data is loaded
         return; // Exit function to prevent further handling
       }
@@ -4509,6 +4512,7 @@ function loadStateFromURL() {
       }
 
       window.__APP_READY__ = true;
+      window.trackPageView?.();
       clearInterval(checkDataLoaded); // Stop checking once data is loaded
     }
   }
@@ -4783,6 +4787,7 @@ window.onload = function () {
         loadStateFromURL();
       } else {
         window.__APP_READY__ = true;
+        window.trackPageView?.();
       }
     }
   }, 100);
@@ -4819,6 +4824,7 @@ window.onload = function () {
 
 window.addEventListener("popstate", () => {
   loadStateFromURL(); // Re-load everything based on current URL
+  window.trackPageView?.();
 });
 
 // Fully emulates the click-to-expand behavior for a single result: shows

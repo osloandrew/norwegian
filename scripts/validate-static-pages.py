@@ -111,12 +111,22 @@ def validate(source_root: Path, site_root: Path) -> tuple[int, int, int]:
         *(f"{SITE}/word/{slug}/" for slug in words),
         *(f"{SITE}/story/{slug}/" for slug in stories),
         f"{SITE}/stories/",
+        f"{SITE}/updates/",
         *(f"{SITE}/{feature}/" for feature in FEATURE_PAGES),
     }
     if not expected_urls.issubset(set(locations)):
         raise ValidationError("Sitemap is missing captured-page URLs")
     if any("?type=" in location for location in locations):
         raise ValidationError("Sitemap still contains a query-string feature URL")
+
+    updates_page = site_root / "updates" / "index.html"
+    if not updates_page.is_file():
+        raise ValidationError("Missing generated Updates page")
+    updates_source = updates_page.read_text(encoding="utf-8")
+    if f'<link rel="canonical" href="{SITE}/updates/">' not in updates_source:
+        raise ValidationError("Updates page has the wrong canonical URL")
+    if '<base href="../">' not in updates_source or "What's New" not in updates_source:
+        raise ValidationError("Updates page is missing its crawlable content or site base")
 
     index_source = (source_root / "index.html").read_text(encoding="utf-8")
     shared_assets = local_assets(index_source)

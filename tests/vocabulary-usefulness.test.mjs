@@ -103,17 +103,35 @@ vm.runInContext(
 
 const nearbyCore = { ord: "core-nearby", rank: 100, difficulty: 500 };
 const distantCore = { ord: "core-distant", rank: 200, difficulty: 100 };
+const distantHarderCore = { ord: "core-harder", rank: 300, difficulty: 900 };
 const nearbyRare = { ord: "rare-nearby", rank: null, difficulty: 500 };
 assert.deepEqual(
   [...coreContext.getCoreVocabularyCandidatePool([
     nearbyCore,
     distantCore,
+    distantHarderCore,
     nearbyRare,
   ])],
-  [nearbyCore, distantCore],
+  [nearbyCore, distantHarderCore],
 );
-// Once no core word remains near the continuous ability estimate, the rare
-// candidate is admitted rather than the game being starved by distant words.
+vm.runInContext("abilityScore = 900", coreContext);
+const advancedNearbyCore = {
+  ord: "advanced-nearby",
+  rank: 400,
+  difficulty: 700,
+};
+assert.deepEqual(
+  [...coreContext.getCoreVocabularyCandidatePool([
+    distantCore,
+    nearbyCore,
+    advancedNearbyCore,
+    distantHarderCore,
+  ])],
+  [advancedNearbyCore, distantHarderCore],
+);
+// Once no suitably challenging core word remains, the complete pool is
+// admitted rather than the game being starved by distant beginner words.
+vm.runInContext("abilityScore = 500", coreContext);
 assert.deepEqual(
   [...coreContext.getCoreVocabularyCandidatePool([distantCore, nearbyRare])],
   [distantCore, nearbyRare],

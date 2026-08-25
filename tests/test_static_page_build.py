@@ -37,6 +37,7 @@ class StaticPageBuildTests(unittest.TestCase):
             ("https://example.test/norwegian/sentences/", "../", "https://example.test/norwegian/"),
             ("http://127.0.0.1:3000/word-game/", "../", "http://127.0.0.1:3000/"),
             ("https://example.test/norwegian/pronunciation/", "../", "https://example.test/norwegian/"),
+            ("https://example.test/norwegian/updates/", "../", "https://example.test/norwegian/"),
         ]
         for page_url, base_href, expected_root in cases:
             with self.subTest(page_url=page_url):
@@ -281,6 +282,7 @@ class StaticPageBuildTests(unittest.TestCase):
                 site_root / "sentences" / "index.html",
                 site_root / "word-game" / "index.html",
                 site_root / "pronunciation" / "index.html",
+                site_root / "updates" / "index.html",
                 site_root / "sitemap.xml",
                 site_root / "page-manifest.json",
             ):

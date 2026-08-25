@@ -33,6 +33,7 @@ CORE_URLS = [
     f"{SITE}/sentences/",
     f"{SITE}/word-game/",
     f"{SITE}/pronunciation/",
+    f"{SITE}/updates/",
 ]
 
 

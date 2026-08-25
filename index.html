@@ -85,7 +85,7 @@
     />
     <link
       rel="stylesheet"
-      href="styles/10-shell-landing-and-stats.css?v=4305564532"
+      href="styles/10-shell-landing-and-stats.css?v=ae4d7806a4"
     />
     <link
       rel="stylesheet"
@@ -174,40 +174,56 @@
     </noscript>
 
     <!-- Google Analytics -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-M5H81RF3DT"
-    ></script>
     <script>
+      const GA_MEASUREMENT_ID = "G-M5H81RF3DT";
+      const ANALYTICS_PRODUCTION_HOSTS = new Set(["osloandrew.github.io"]);
+      const analyticsEnabled = ANALYTICS_PRODUCTION_HOSTS.has(
+        window.location.hostname,
+      );
+
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);
       }
-      gtag("js", new Date());
-      gtag("config", "G-M5H81RF3DT");
 
-      // Minimal client-side error visibility: a JS exception in production
-      // previously produced no signal at all. Beacon uncaught errors and
-      // unhandled promise rejections to GA as events (message + location
-      // only — no user data) so at least something is discoverable.
-      //
-      // Truncated to a short length: an error message can embed whatever
-      // string triggered it (e.g. a search query or URL parameter), so
-      // this caps how much of that ever reaches GA rather than assuming
-      // error text is always safe to forward in full.
-      function sanitizeForBeacon(value) {
-        return String(value ?? "").slice(0, 120);
+      // Local previews and the Playwright static-page builder load this real
+      // document. Never let those sessions pollute production reporting.
+      if (analyticsEnabled) {
+        gtag("js", new Date());
+        gtag("config", GA_MEASUREMENT_ID, {
+          send_page_view: false,
+          allow_google_signals: false,
+          allow_ad_personalization_signals: false,
+        });
+
+        const analyticsScript = document.createElement("script");
+        analyticsScript.async = true;
+        analyticsScript.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+        document.head.appendChild(analyticsScript);
       }
+
+      function analyticsSourceName(value) {
+        if (!value) return "unknown";
+        try {
+          return new URL(value, window.location.href).pathname.split("/").pop() ||
+            "unknown";
+        } catch (error) {
+          return "unknown";
+        }
+      }
+
+      // Error messages can contain search text or other user input. Report
+      // only stable diagnostic categories, never the raw message/reason.
       window.addEventListener("error", (event) => {
-        gtag("event", "js_error", {
-          event_category: "error",
-          event_label: `${sanitizeForBeacon(event.message)} @ ${sanitizeForBeacon(event.filename)}:${event.lineno}`,
+        window.trackEvent?.("js_error", {
+          error_type: event.error?.name || "Error",
+          source_file: analyticsSourceName(event.filename),
+          line_number: Number(event.lineno) || 0,
         });
       });
       window.addEventListener("unhandledrejection", (event) => {
-        gtag("event", "js_unhandled_rejection", {
-          event_category: "error",
-          event_label: sanitizeForBeacon(event.reason),
+        window.trackEvent?.("js_unhandled_rejection", {
+          error_type: event.reason?.name || typeof event.reason,
         });
       });
 
@@ -220,11 +236,65 @@
       // gtag.js library has finished loading yet), so every deferred script
       // below — which all run after this one — can call this directly.
       window.trackEvent = function trackEvent(name, params) {
+        if (!analyticsEnabled) return;
         try {
           gtag("event", name, params || {});
         } catch (error) {
           // Analytics must never break the app it's instrumenting.
         }
+      };
+
+      let pendingPageView = null;
+      let lastPageLocation = "";
+      let lastPageViewKey = "";
+
+      function getAnalyticsScreenType(url) {
+        if (/\/word\/[^/]+\/?$/.test(url.pathname) || url.searchParams.has("word")) {
+          return "dictionary_entry";
+        }
+        if (/\/story\/[^/]+\/?$/.test(url.pathname) || url.searchParams.has("story")) {
+          return "story";
+        }
+        if (/\/stories\/?$/.test(url.pathname)) return "stories";
+        if (url.searchParams.has("query")) return "search_results";
+        return url.searchParams.get("type") || "home";
+      }
+
+      function getSafePageLocation() {
+        const url = new URL(window.location.href);
+        // These values originate in free-text inputs or content names. Keep
+        // useful route/filter structure without sending their raw contents.
+        for (const parameter of ["query", "word", "story", "feedback"]) {
+          url.searchParams.delete(parameter);
+        }
+        url.hash = "";
+        return url.href;
+      }
+
+      // updateURL() can perform several history changes while rendering one
+      // screen. Debouncing collapses those into one semantic page view after
+      // the final URL/title is in place.
+      window.trackPageView = function trackPageView() {
+        if (!analyticsEnabled) return;
+        window.clearTimeout(pendingPageView);
+        pendingPageView = window.setTimeout(() => {
+          const pageLocation = getSafePageLocation();
+          const currentURL = new URL(window.location.href);
+          const screenType = getAnalyticsScreenType(currentURL);
+          const pageViewKey = `${pageLocation}|${screenType}`;
+          if (pageViewKey === lastPageViewKey) return;
+
+          const params = {
+            page_location: pageLocation,
+            page_title: `Norwegian Dictionary - ${screenType}`,
+            screen_type: screenType,
+          };
+          if (lastPageLocation) params.page_referrer = lastPageLocation;
+
+          gtag("event", "page_view", params);
+          lastPageLocation = pageLocation;
+          lastPageViewKey = pageViewKey;
+        }, 0);
       };
     </script>
   </head>
@@ -794,13 +864,14 @@
           href="https://www.linkedin.com/in/afeinberg1/"
           target="_blank"
           rel="noopener noreferrer"
-          class="linkedin-btn"
+          class="footer-control linkedin-btn"
+          aria-label="Connect with me on LinkedIn"
         >
           <img
             src="Resources/Icons/linkedin-icon.png"
-            alt="LinkedIn Logo"
+            alt=""
             class="linkedin-icon"
-          /><span>Connect with me on LinkedIn</span>
+          /><span>LinkedIn</span>
         </a>
         <a href="https://www.buymeacoffee.com/afeinberg4l" class="coffee-btn">
           <img
@@ -812,17 +883,25 @@
         <button
           type="button"
           id="general-feedback-btn"
-          class="feedback-footer-btn"
+          class="footer-control feedback-footer-btn"
           onclick="openGeneralFeedbackDialog(this)"
         >
           <i class="fas fa-comment-dots" aria-hidden="true"></i>
           <span>Feedback</span>
         </button>
+        <a
+          id="updates-footer-link"
+          href="updates/"
+          class="footer-control updates-footer-link"
+        >
+          <i class="fas fa-clock-rotate-left" aria-hidden="true"></i>
+          <span>What's New</span>
+        </a>
 
         <!-- Site switcher -->
         <select
           id="site-switcher"
-          class="site-switcher-select"
+          class="footer-control site-switcher-select"
           aria-label="Go to another site"
         >
           <option value="">Other Languages</option>
@@ -881,17 +960,37 @@
       // Language site switcher -> navigates to https://osloandrew.github.io/{slug}/
       document.addEventListener("DOMContentLoaded", () => {
         const switcher = document.getElementById("site-switcher");
-        if (!switcher) return;
+        if (switcher) {
+          // Always start on the default (blank) option
+          switcher.value = "";
 
-        // Always start on the default (blank) option
-        switcher.value = "";
+          switcher.addEventListener("change", () => {
+            const slug = switcher.value;
+            if (!slug) return;
+            // Always go to the root-level language folder
+            location.href = `${location.origin}/${slug}/`;
+          });
+        }
 
-        switcher.addEventListener("change", () => {
-          const slug = switcher.value;
-          if (!slug) return;
-          // Always go to the root-level language folder
-          location.href = `${location.origin}/${slug}/`;
-        });
+        // Keep this correct after in-app navigation changes the visible URL
+        // to a nested /word/... or /story/... route.
+        const updatesLink = document.getElementById("updates-footer-link");
+        if (updatesLink && typeof APP_ROOT_URL !== "undefined") {
+          updatesLink.href = new URL("updates/", APP_ROOT_URL).href;
+        }
+
+        // Standalone pages can link back to the app and open its existing
+        // feedback dialog without duplicating the form or its submission logic.
+        const currentURL = new URL(location.href);
+        if (
+          currentURL.searchParams.get("feedback") === "1" &&
+          typeof openGeneralFeedbackDialog === "function"
+        ) {
+          const feedbackButton = document.getElementById("general-feedback-btn");
+          openGeneralFeedbackDialog(feedbackButton);
+          currentURL.searchParams.delete("feedback");
+          history.replaceState({}, "", currentURL);
+        }
       });
     </script>
 
@@ -935,11 +1034,11 @@
     <script src="pronunciation.js?v=4707ea5ebb" defer></script>
     <script src="wordList.js?v=ac1952fac1" defer></script>
     <script src="storyFavorites.js?v=c152eb5155" defer></script>
-    <script src="myWordsAuth.js?v=a7f10895ef" defer></script>
+    <script src="myWordsAuth.js?v=41bad2d480" defer></script>
     <script src="noRandom.js?v=dd11769910" defer></script>
-    <script src="ordbokene.js?v=c8d50278e6" defer></script>
-    <script src="scripts.js?v=27af9a9279" defer></script>
-    <script src="wordGame.js?v=dd741cc5a1" defer></script>
+    <script src="ordbokene.js?v=f0e1c0b8bc" defer></script>
+    <script src="scripts.js?v=5c3ac312f3" defer></script>
+    <script src="wordGame.js?v=46a3669d02" defer></script>
     <script src="placementTest.js?v=743c41a320" defer></script>
     <script src="streak.js?v=ddb26efe7e" defer></script>
     <script src="stories.js?v=aae01309d2" defer></script>

@@ -21,6 +21,9 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+        with:
+          # The Updates page reads opt-in [update] commits from Git history.
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -39,6 +42,7 @@ jobs:
             sentences
             word-game
             pronunciation
+            updates
             sitemap.xml
             page-manifest.json
             .pages-cache

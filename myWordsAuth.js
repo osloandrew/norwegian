@@ -104,6 +104,26 @@
   let profilePushTimeoutId = null;
   let wasSignedInThisSession = false;
 
+  const SIGN_IN_READY_TITLE =
+    "Sign in with Google to sync My Words across devices";
+  const SIGN_IN_LOADING_TITLE = "Preparing Google sign-in…";
+
+  // signInWithPopup must run directly inside a trusted click. If the Firebase
+  // SDK is first downloaded from that click and the popup starts only after
+  // the download promise resolves, installed web apps and stricter mobile
+  // browsers treat it as an unsolicited popup and block it. Keep both entry
+  // points disabled until Auth is ready so their eventual click can open the
+  // Google window synchronously.
+  function setSignInControlsReady(isReady) {
+    for (const button of [signInButton, signInNudgeSignInButton]) {
+      if (!button) continue;
+      button.disabled = !isReady;
+      button.title = isReady ? SIGN_IN_READY_TITLE : SIGN_IN_LOADING_TITLE;
+    }
+  }
+
+  setSignInControlsReady(false);
+
   // Words/streak/ability data saved locally must not leak into whichever
   // account signs in next on a shared device — mergeRemoteData() below
   // unions local state into the new account's cloud doc on next sign-in,
@@ -160,15 +180,34 @@
   // both call this, and only the first call does any work.
   function ensureAuthReady() {
     if (!authReadyPromise) {
-      authReadyPromise = loadFirebaseScripts().then(() => {
-        if (typeof firebase === "undefined") {
-          throw new Error("Firebase failed to load.");
-        }
-        initAuth();
-      });
+      authReadyPromise = loadFirebaseScripts()
+        .then(() => {
+          if (typeof firebase === "undefined") {
+            throw new Error("Firebase failed to load.");
+          }
+          initAuth();
+        })
+        .catch((error) => {
+          // Permit a later retry after a transient network/CDN failure.
+          authReadyPromise = null;
+          throw error;
+        });
     }
 
     return authReadyPromise;
+  }
+
+  function prepareAuth() {
+    setSignInControlsReady(false);
+    return ensureAuthReady()
+      .then(() => {
+        setSignInControlsReady(true);
+      })
+      .catch((error) => {
+        console.warn("Google sign-in could not be prepared.", error);
+        // Leave the controls disabled: clicking an unprepared control would
+        // only recreate the browser-blocked delayed-popup behavior.
+      });
   }
 
   function getUserDocRef(userId) {
@@ -1055,9 +1094,13 @@
         // ensureAuthReady() directly without this function) — the actual
         // funnel conversion moment, as opposed to onAuthStateChanged firing
         // again for a returning session.
-        window.trackEvent?.("sign_in_completed", {
-          is_new_user: Boolean(result?.additionalUserInfo?.isNewUser),
+        const isNewUser = Boolean(result?.additionalUserInfo?.isNewUser);
+        window.trackEvent?.(isNewUser ? "sign_up" : "login", {
+          method: "Google",
         });
+        // Retain the existing event during migration so current reports do
+        // not break while the recommended GA4 events begin collecting.
+        window.trackEvent?.("sign_in_completed", { is_new_user: isNewUser });
       })
       .catch((error) => {
         if (error?.code !== "auth/popup-closed-by-user") {
@@ -1065,6 +1108,26 @@
           window.alert("Google sign-in failed. Please try again.");
         }
       });
+  }
+
+  function handleInteractiveSignIn(source, button) {
+    window.trackEvent?.("sign_in_started", { source });
+    button.disabled = true;
+
+    // Auth is prepared before either sign-in control is enabled. Keeping this
+    // guard makes a future markup/state regression fail safely without trying
+    // to open a delayed popup outside the user gesture.
+    if (!auth) {
+      console.warn("Google sign-in was clicked before Auth was ready.");
+      prepareAuth();
+      return;
+    }
+
+    // Deliberately invoked synchronously from the click handler. Do not put an
+    // SDK-loading promise before this call: browsers would block the popup.
+    triggerSignIn().finally(() => {
+      button.disabled = false;
+    });
   }
 
   // Runs once, after the SDK scripts have finished loading.
@@ -1116,18 +1179,7 @@
   }
 
   signInButton?.addEventListener("click", () => {
-    window.trackEvent?.("sign_in_started", { source: "header" });
-    signInButton.disabled = true;
-
-    ensureAuthReady()
-      .then(triggerSignIn)
-      .catch((error) => {
-        console.warn("Google sign-in could not be loaded.", error);
-        window.alert("Google sign-in failed. Please try again.");
-      })
-      .finally(() => {
-        signInButton.disabled = false;
-      });
+    handleInteractiveSignIn("header", signInButton);
   });
 
   let wasSignedInBefore = false;
@@ -1138,9 +1190,14 @@
   }
 
   if (wasSignedInBefore) {
-    ensureAuthReady().catch((error) => {
-      console.warn("Could not restore your signed-in session.", error);
-    });
+    // Returning users restore immediately. First-time visitors wait until the
+    // initial page has loaded, then prepare Auth in the background so their
+    // eventual click still retains its browser user-activation permission.
+    prepareAuth();
+  } else if (document.readyState === "complete") {
+    prepareAuth();
+  } else {
+    window.addEventListener("load", prepareAuth, { once: true });
   }
 
   // Fired by wordList.js's saveMyWordsEntryIds() whenever My Words changes.
@@ -1250,19 +1307,8 @@
 
   signInNudgeSignInButton?.addEventListener("click", () => {
     window.trackEvent?.("sign_in_nudge_clicked");
-    window.trackEvent?.("sign_in_started", { source: "nudge" });
     dismissSignInNudge();
-    signInNudgeSignInButton.disabled = true;
-
-    ensureAuthReady()
-      .then(triggerSignIn)
-      .catch((error) => {
-        console.warn("Google sign-in could not be loaded.", error);
-        window.alert("Google sign-in failed. Please try again.");
-      })
-      .finally(() => {
-        signInNudgeSignInButton.disabled = false;
-      });
+    handleInteractiveSignIn("nudge", signInNudgeSignInButton);
   });
 
   // Called by wordGame.js after the first completed round — the moment a

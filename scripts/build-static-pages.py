@@ -292,6 +292,7 @@ def cached_site_is_complete(site_root: Path, snapshot_dir: Path) -> bool:
         return False
     required_files = [
         site_root / "stories" / "index.html",
+        site_root / "updates" / "index.html",
         site_root / "sitemap.xml",
         site_root / "page-manifest.json",
         *(site_root / folder / "index.html" for folder in FEATURE_PAGE_FOLDERS),
@@ -433,6 +434,17 @@ def build(
     snapshot_dir = (snapshot_dir or site_root / ".pages-cache").resolve()
     if stamp_assets:
         run([sys.executable, "scripts/stamp-asset-versions.py"])
+    # This inexpensive page is rebuilt on every deployment so newly pushed
+    # [update] commits appear immediately, even when the larger rendered-page
+    # cache is otherwise reusable.
+    run(
+        [
+            sys.executable,
+            "scripts/build-updates-page.py",
+            "--site-root",
+            str(site_root),
+        ]
+    )
 
     word_slugs = source_slugs(ROOT / "norwegianWords.csv", "ord", primary_word=True)
     story_slugs = source_slugs(ROOT / "norwegianStories.csv", "titleNorwegian")

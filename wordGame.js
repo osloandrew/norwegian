@@ -5404,13 +5404,19 @@ function getRawAbilityProximity(entry) {
   );
 }
 
-// CLARINO-ranked words are the useful core. As long as at least one unseen
-// core word is reasonably close to the learner's continuous ability estimate,
-// ordinary new-word draws stay inside that core. Once the nearby core is
-// exhausted, the complete dictionary reopens. This is deliberately based on
-// the smooth ability distance, not a CEFR-label cutoff. Saved My Words are
-// offered before this gate in fetchRandomWord, so an explicit user choice can
-// still introduce a rarer word at the selected Mix probability.
+// CLARINO-ranked words are the useful core. Prefer core words that are either
+// reasonably close to the learner's continuous ability estimate or harder
+// than it. The second condition keeps upward exploration smooth; the proximity
+// condition prevents a strong learner's ordinary new-word slots from being
+// consumed by beginner words merely because those words rank highly in a
+// frequency list. This is deliberately one-sided: unexpectedly difficult
+// words still have a small Gaussian-weighted route into rotation, while words
+// far below the learner add little practice value.
+//
+// Once that suitably challenging core is exhausted, the complete dictionary
+// reopens rather than starving the game. Due/relearning words never pass
+// through this gate, and saved My Words are offered before it in
+// fetchRandomWord, preserving both the review schedule and the selected Mix.
 function getCoreVocabularyCandidatePool(entries) {
   if (!vocabularyFrequencyEntries || entries.length === 0) return entries;
 
@@ -5419,12 +5425,15 @@ function getCoreVocabularyCandidatePool(entries) {
   );
   if (coreEntries.length === 0) return entries;
 
-  const hasNearbyCore = coreEntries.some(
+  const suitablyChallengingCore = coreEntries.filter(
     (entry) =>
+      getWordDifficultyAnchor(entry) >= abilityScore ||
       getRawAbilityProximity(entry) >= CORE_VOCABULARY_MIN_PROXIMITY,
   );
 
-  return hasNearbyCore ? coreEntries : entries;
+  return suitablyChallengingCore.length > 0
+    ? suitablyChallengingCore
+    : entries;
 }
 
 // useAbilityWeight is false for queues built from words the learner has

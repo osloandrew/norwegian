@@ -1614,89 +1614,80 @@ li {
 
 .links {
   display: flex;
-  flex-wrap: wrap; /* Avoid clipping/overflow on narrow screens */
-  gap: 10px; /* Space between the buttons */
-  margin: 10px 0 10px 0;
-  align-items: center; /* Vertically align both buttons */
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0;
+  align-items: center;
   justify-content: center;
 }
 
-.linkedin-btn {
+.footer-control {
   align-items: center;
-  background-color: white;
-  border: 1px solid var(--color-linkedin);
-  border-radius: 4px;
-  color: var(--color-linkedin);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border-blue-soft);
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: var(--color-primary);
   cursor: pointer;
   display: inline-flex;
   font-family: "Noto Sans", sans-serif;
   font-size: 13px;
-  padding: 2px 15px;
-  text-decoration: none;
-  height: 30px; /* Match height to the BuyMeACoffee image */
+  font-weight: 600;
+  gap: 8px;
+  height: 38px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0 14px;
   transition:
     background-color 0.2s ease,
-    color 0.2s ease;
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
-.linkedin-btn:hover {
-  background-color: var(--color-bg-subtle);
-  color: var(--color-linkedin);
+a.footer-control {
+  text-decoration: none;
 }
 
-.linkedin-btn:focus-visible,
+.footer-control:hover {
+  background-color: var(--color-bg-hover-blue);
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 5px rgba(13, 58, 105, 0.12);
+  color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.footer-control[aria-current="page"] {
+  background-color: var(--color-bg-hover-blue);
+  border-color: var(--color-primary);
+}
+
+.footer-control:focus-visible,
 .coffee-btn:focus-visible,
-.feedback-footer-btn:focus-visible,
-.site-switcher-select:focus-visible {
+footer a:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
 .linkedin-icon {
   height: auto;
-  margin-right: 8px;
-  width: 18px;
+  width: 16px;
 }
 
-/* Same pill shape/sizing as .linkedin-btn, but in the site's own primary
-   color rather than a third-party brand color, so it reads as "this
-   site's own control" rather than another external link. */
-.feedback-footer-btn {
-  align-items: center;
-  background-color: white;
-  border: 1px solid var(--color-primary);
-  border-radius: 4px;
-  color: var(--color-primary);
-  cursor: pointer;
-  display: inline-flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
-  gap: 8px;
-  height: 30px;
-  padding: 2px 15px;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
-}
-
-.feedback-footer-btn:hover {
-  background-color: var(--color-bg-subtle);
-}
-
-.feedback-footer-btn i {
+.feedback-footer-btn i,
+.updates-footer-link i {
   font-size: 14px;
 }
 
-.site-switcher-select {
-  background: var(--color-white);
-  border: 1px solid #052242;
-  border-radius: 6px;
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  letter-spacing: 0.3px;
-  padding: 5px;
-  text-transform: uppercase;
+.site-switcher-select.footer-control {
+  font-size: 13px;
+  padding-right: 10px;
+  text-transform: none;
+}
+
+.site-switcher-select.footer-control:hover {
+  transform: none;
 }
 
 /* Landing page, form, and footer responsive behavior. */
@@ -1713,6 +1704,13 @@ li {
 
   #landing-card h2 {
     font-size: 26px !important;
+    /* The global mobile h2 rule enables dictionary-style hyphenation for
+       long Norwegian words. This short English hero heading has natural
+       spaces and should wrap only between words, never as "vo-cabulary". */
+    hyphens: none;
+    overflow-wrap: normal;
+    text-wrap: balance;
+    word-break: normal;
   }
 
   #landing-card h3 {
@@ -1732,23 +1730,10 @@ li {
     padding: 6px 8px;
   }
 
-  .linkedin-btn {
-    border-radius: 4px;
+  .footer-control {
     font-size: 12px;
-    padding: 0px 10px 0px 10px !important;
-  }
-
-  .linkedin-btn::after {
-    content: "Connect";
-  }
-
-  .linkedin-btn span {
-    display: none;
-  }
-
-  .feedback-footer-btn {
-    font-size: 12px;
-    padding: 0px 10px;
+    height: 36px;
+    padding: 0 11px;
   }
 
   .landing-card-button-grid {

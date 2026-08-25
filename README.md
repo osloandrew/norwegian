@@ -54,6 +54,7 @@ When VS Code's **Show Preview** serves the repository at
 - `http://127.0.0.1:3000/sentences/`
 - `http://127.0.0.1:3000/word-game/`
 - `http://127.0.0.1:3000/pronunciation/`
+- `http://127.0.0.1:3000/updates/`
 
 The generated HTML uses directory-relative site bases, so these are the same
 files deployed at `/norwegian/word/...`, `/norwegian/story/...`,
@@ -76,6 +77,25 @@ GitHub Actions publishes on every push to `main`. For the workflow to publish,
 set **Settings → Pages → Build and deployment → Source** to **GitHub Actions**.
 Generated directories, `sitemap.xml`, and `page-manifest.json` are build
 artifacts; `.gitignore` prevents accidental commits.
+
+### Publishing an update
+
+The deployment builds the public **What's New** page automatically from Git
+history. To publish an entry, begin the commit subject with `[update]` and write
+the title for visitors after it:
+
+```text
+[update] Improved progress syncing between devices
+```
+
+The first paragraph of the commit body is shown as the optional description.
+The Git commit time is converted to Oslo time and shown beneath the date in
+24-hour `HH:MM` format, so multiple updates on the same day remain distinct
+and correctly ordered.
+Commits without the exact `[update]` prefix remain internal and never appear on
+the page. `updates.json` provides the initial sample only while Git history has
+no public updates; the first `[update]` commit replaces that sample. Later
+public commits are added above earlier ones without removing them.
 
 The deployed application revalidates `norwegianWords.csv` on every load. The
 browser can reuse its HTTP-cached copy when the file is unchanged, but after a
