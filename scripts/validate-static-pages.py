@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = "https://osloandrew.github.io/norwegian"
 FEATURE_PAGES = {
     "sentences": "Results for",
-    "word-game": "How much Norwegian do you know?",
+    "word-game": "Preparing Word Game",
     "pronunciation": "sentence-box-practice",
 }
 LOCAL_ASSET_RE = re.compile(r'(?:src|href)="([^":?#]+\.(?:js|css)(?:\?v=[^"]*)?)"')

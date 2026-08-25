@@ -141,6 +141,8 @@ let wordGameSessionQuestionsAnswered = 0;
 let wordGameSessionCorrectAnswers = 0;
 let wordGameSessionIncorrectAnswers = 0;
 let wordGameSessionStartedAt = 0;
+let wordGameMyWordsMixQuestionCount = 0;
+let wordGameMyWordsMixSavedQuestionCount = 0;
 // Distinct words answered incorrectly at least once this round — shown in
 // the "Words to review" list on the round summary screen. A word stays
 // listed even if later answered correctly, since it was still worth a
@@ -2433,6 +2435,8 @@ function renderWordGameIntro() {
       if (!MY_WORDS_SHARE_LEVELS.includes(share)) return;
 
       wordGameMyWordsShare = share;
+      wordGameMyWordsMixQuestionCount = 0;
+      wordGameMyWordsMixSavedQuestionCount = 0;
       saveMyWordsShare(share);
       renderWordGameIntro();
     });
@@ -3049,6 +3053,8 @@ function beginWordGameRound(mode, targetWords = 0, options = {}) {
   wordGameSessionQuestionsAnswered = 0;
   wordGameSessionCorrectAnswers = 0;
   wordGameSessionIncorrectAnswers = 0;
+  wordGameMyWordsMixQuestionCount = 0;
+  wordGameMyWordsMixSavedQuestionCount = 0;
   wordGameSessionStartedAt = Date.now();
   wordGameRoundActive = true;
   updateEndSessionToolbarButtonVisibility();
@@ -3074,6 +3080,8 @@ function resetTodayPracticeRoundAfterMidnight(wordObj) {
   wordGameSessionQuestionsAnswered = 0;
   wordGameSessionCorrectAnswers = 0;
   wordGameSessionIncorrectAnswers = 0;
+  wordGameMyWordsMixQuestionCount = 0;
+  wordGameMyWordsMixSavedQuestionCount = 0;
   wordGameSessionStartedAt = Date.now();
   incorrectWordQueue = [];
   recentAnswers = [];
@@ -3396,6 +3404,9 @@ async function startWordGame() {
     currentWord = firstWordInQueue.wordObj.ord;
     correctTranslation = firstWordInQueue.wordObj.engelsk;
     firstWordInQueue.shown = true;
+    if (!wordGameIsPlacementRound) {
+      recordMyWordsMixQuestion(isMyWordsEntry(firstWordInQueue.wordObj));
+    }
 
     if (firstWordInQueue.forceTypedRetry) {
       const randomWordObj = firstWordInQueue.wordObj;
@@ -5096,7 +5107,7 @@ async function fetchExampleSentence(wordObj, preferredIndex = null) {
 
 function getEligibleGameWords(
   selectedPOS,
-  { ignorePrevious = false } = {},
+  { ignorePrevious = false, allowIntroduced = false } = {},
 ) {
   const queuedForReintroduction = new Set(
     incorrectWordQueue.map((queued) => queued.wordObj),
@@ -5174,6 +5185,7 @@ function getEligibleGameWords(
     // prevents ordinary due/new repeats after an answer; this also excludes
     // early scheduled reviews already introduced during the same round.
     if (
+      !allowIntroduced &&
       wordGameMode === "session" &&
       wordGameSessionIntroducedWords.size < wordGameSessionTarget &&
       wordGameSessionIntroducedWords.has(entry)
@@ -5220,13 +5232,84 @@ function getEligibleGameWords(
 const STRENGTH_WEIGHT_CEILING = 6; // WordStrengthAPI values are 0-5
 const STRENGTH_WEIGHT_EXPONENT = 2; // squared — retune here if the curve needs adjusting
 
+// CLARINO's usefulness metadata is a separate, generated sidecar rather than
+// another norwegianWords.csv column. It is loaded only when a placement or
+// genuinely new-word draw first needs it, so dictionary browsing and review-
+// only sessions do not pay for an extra request. A failed request degrades to
+// neutral weights; vocabulary selection must never depend on this enhancement
+// being online or perfectly deployed.
+const VOCABULARY_FREQUENCY_DATA_VERSION = 1;
+const VOCABULARY_USEFULNESS_RANK_MIDPOINT = 750;
+const VOCABULARY_USEFULNESS_MAX_BOOST = 3;
+const CORE_VOCABULARY_MIN_PROXIMITY = 0.25;
+let vocabularyFrequencyRanks = null;
+let vocabularyFrequencyPromise = null;
+
+async function loadVocabularyFrequencyRanks() {
+  if (vocabularyFrequencyRanks) return vocabularyFrequencyRanks;
+  if (vocabularyFrequencyPromise) return vocabularyFrequencyPromise;
+
+  vocabularyFrequencyPromise = fetch(
+    new URL("vocabulary-frequency.json", APP_ROOT_URL),
+    { cache: "no-cache" },
+  )
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      if (
+        data?.version !== VOCABULARY_FREQUENCY_DATA_VERSION ||
+        !data.ranks ||
+        typeof data.ranks !== "object"
+      ) {
+        throw new Error("Unsupported vocabulary-frequency snapshot");
+      }
+      vocabularyFrequencyRanks = data.ranks;
+      return vocabularyFrequencyRanks;
+    })
+    .catch((error) => {
+      console.warn("Vocabulary usefulness ranks could not be loaded.", error);
+      vocabularyFrequencyRanks = Object.freeze({});
+      return vocabularyFrequencyRanks;
+    });
+
+  return vocabularyFrequencyPromise;
+}
+
+// A smooth, bounded rank curve: the very top of the CLARINO list receives
+// nearly 4x weight, rank 750 receives 2.5x, rank 3,000 receives 1.6x, and a
+// matched word near the bottom still gets a small boost. Unmatched dictionary
+// words remain fully available at weight 1 rather than being filtered out.
+function getVocabularyFrequencyRank(entry) {
+  if (!vocabularyFrequencyRanks) return null;
+
+  const ranks = String(entry?.ord ?? "")
+    .split(",")
+    .map((spelling) => vocabularyFrequencyRanks[normalizeGameAnswer(spelling)])
+    .filter((rank) => Number.isFinite(rank) && rank > 0);
+  return ranks.length > 0 ? Math.min(...ranks) : null;
+}
+
+function getVocabularyUsefulnessWeight(entry) {
+  const bestRank = getVocabularyFrequencyRank(entry);
+  if (!bestRank) return 1;
+
+  return (
+    1 +
+    VOCABULARY_USEFULNESS_MAX_BOOST /
+      (1 + bestRank / VOCABULARY_USEFULNESS_RANK_MIDPOINT)
+  );
+}
+
 // The scheduler first chooses an explicit queue (relearning, due, new, or
 // scheduled fallback). Strength then influences only the draw *within that
 // queue*, so an undrilled new word can no longer jump ahead of an overdue
-// review merely because its scalar weight is larger. My Words no longer
-// hooks in here — see MY_WORDS_SHARE_LEVELS and pickMyWordsQuotaWord below,
-// which decide *before* a queue is even chosen whether this question comes
-// from the saved list at all.
+// review merely because its scalar weight is larger. The cumulative My Words
+// quota is a separate user-directed allocation; on every remaining non-quota
+// slot, this queue order remains authoritative.
 
 // A Gaussian falloff centered on the learner's ability, in word-difficulty
 // units — this is what stands in for the old hard CEFR-level cutoff. A word
@@ -5292,14 +5375,44 @@ function countEntriesByCefr(entries) {
 function getAbilityProximityWeight(entry, cefrCounts) {
   if (abilityScore === null) return 1;
 
-  const distance = getWordDifficultyAnchor(entry) - abilityScore;
-  const gaussian = Math.exp(
-    -(distance * distance) / (2 * ABILITY_PROXIMITY_SIGMA * ABILITY_PROXIMITY_SIGMA),
-  );
+  const gaussian = getRawAbilityProximity(entry);
   const bandSize = cefrCounts?.[getWordCefrLabel(entry)] || 1;
   const perWordFloor = NEW_WORD_FLOOR_WEIGHT_BUDGET / bandSize;
 
   return Math.max(perWordFloor, gaussian);
+}
+
+function getRawAbilityProximity(entry) {
+  if (abilityScore === null) return 1;
+
+  const distance = getWordDifficultyAnchor(entry) - abilityScore;
+  return Math.exp(
+    -(distance * distance) /
+      (2 * ABILITY_PROXIMITY_SIGMA * ABILITY_PROXIMITY_SIGMA),
+  );
+}
+
+// CLARINO-ranked words are the useful core. As long as at least one unseen
+// core word is reasonably close to the learner's continuous ability estimate,
+// ordinary new-word draws stay inside that core. Once the nearby core is
+// exhausted, the complete dictionary reopens. This is deliberately based on
+// the smooth ability distance, not a CEFR-label cutoff. Saved My Words are
+// offered before this gate in fetchRandomWord, so an explicit user choice can
+// still introduce a rarer word at the selected Mix probability.
+function getCoreVocabularyCandidatePool(entries) {
+  if (!vocabularyFrequencyRanks || entries.length === 0) return entries;
+
+  const coreEntries = entries.filter(
+    (entry) => getVocabularyFrequencyRank(entry) !== null,
+  );
+  if (coreEntries.length === 0) return entries;
+
+  const hasNearbyCore = coreEntries.some(
+    (entry) =>
+      getRawAbilityProximity(entry) >= CORE_VOCABULARY_MIN_PROXIMITY,
+  );
+
+  return hasNearbyCore ? coreEntries : entries;
 }
 
 // useAbilityWeight is false for queues built from words the learner has
@@ -5313,17 +5426,25 @@ function getAbilityProximityWeight(entry, cefrCounts) {
 // computes it.
 function getGameWordWeight(
   entry,
-  { useAbilityWeight = true, cefrCounts = null } = {},
+  {
+    useAbilityWeight = true,
+    useUsefulnessWeight = false,
+    cefrCounts = null,
+  } = {},
 ) {
   const strength = window.WordStrengthAPI?.get?.(entry) ?? 0;
   const strengthWeight = Math.pow(
     STRENGTH_WEIGHT_CEILING - strength,
     STRENGTH_WEIGHT_EXPONENT,
   );
+  const abilityWeight = useAbilityWeight
+    ? getAbilityProximityWeight(entry, cefrCounts)
+    : 1;
+  const usefulnessWeight = useUsefulnessWeight
+    ? getVocabularyUsefulnessWeight(entry)
+    : 1;
 
-  return useAbilityWeight
-    ? strengthWeight * getAbilityProximityWeight(entry, cefrCounts)
-    : strengthWeight;
+  return strengthWeight * abilityWeight * usefulnessWeight;
 }
 
 /*
@@ -5351,7 +5472,10 @@ function pickWeightedGameWord(entries, weights) {
   return entries[entries.length - 1]; // floating-point rounding fallback
 }
 
-function pickPrioritizedGameWord(eligibleEntries, { useAbilityWeight = true } = {}) {
+function pickPrioritizedGameWord(
+  eligibleEntries,
+  { useAbilityWeight = true, useUsefulnessWeight = false } = {},
+) {
   // Only needed (and only worth the pass over eligibleEntries) when ability
   // weighting is actually in play — see getAbilityProximityWeight.
   const cefrCounts = useAbilityWeight
@@ -5361,7 +5485,11 @@ function pickPrioritizedGameWord(eligibleEntries, { useAbilityWeight = true } = 
   return pickWeightedGameWord(
     eligibleEntries,
     eligibleEntries.map((entry) =>
-      getGameWordWeight(entry, { useAbilityWeight, cefrCounts }),
+      getGameWordWeight(entry, {
+        useAbilityWeight,
+        useUsefulnessWeight,
+        cefrCounts,
+      }),
     ),
   );
 }
@@ -5372,8 +5500,9 @@ function pickPrioritizedGameWord(eligibleEntries, { useAbilityWeight = true } = 
 // renderWordGameIntro) and persisted across visits like any other
 // preference. Coarse quarters rather than a continuous slider: fine enough
 // to feel adjustable, coarse enough that the control never implies more
-// precision than a per-question coin-flip against what's often a handful of
-// saved words can actually deliver. The top level stops at 0.75, not 1, so
+// precision than a small saved list can actually deliver. The cumulative
+// quota below keeps the chosen share honest within each round. The top level
+// stops at 0.75, not 1, so
 // even at max intensity the ordinary spaced-repetition draw still gets a
 // guaranteed turn — a small saved list should never be able to fully starve
 // the rest of the game.
@@ -5422,39 +5551,54 @@ function saveMyWordsShare(share) {
 
 let wordGameMyWordsShare = loadMyWordsShare();
 
-// Rolled independently, once per question, *before* fetchRandomWord's
-// normal relearning/due/new/scheduled queue-priority pipeline ever runs —
-// so a hit here can preempt even an overdue relearning card, by design (the
-// whole point of a user-set share is that it means what it says).
-// candidateEntries is whatever pool this turn would otherwise have drawn
-// from (the full eligible pool normally, or just this round's
-// already-introduced words once a bounded session's word budget is spent —
-// see fetchRandomWord), so a My Words pick can never violate a session
-// round's promise of exactly N distinct words, and still respects the
-// active daily quest's own data requirements (audio, context sentence,
-// etc. — those are what shaped candidateEntries in the first place).
-function pickMyWordsQuotaWord(candidateEntries) {
-  if (wordGameMyWordsShare <= 0 || Math.random() >= wordGameMyWordsShare) {
-    return null;
-  }
-
-  const savedRecords = window.MyWordsAPI?.getSavedEntries?.() ?? [];
-  if (savedRecords.length === 0) return null;
-
-  const savedEntries = new Set(
-    savedRecords.map((savedRecord) => savedRecord.entry).filter(Boolean),
+function getSavedMyWordsEntries() {
+  return new Set(
+    (window.MyWordsAPI?.getSavedEntries?.() ?? [])
+      .map((savedRecord) => savedRecord.entry)
+      .filter(Boolean),
   );
+}
+
+function isMyWordsEntry(entry) {
+  return Boolean(entry) && getSavedMyWordsEntries().has(entry);
+}
+
+// A deterministic cumulative quota, not an independent random coin flip.
+// Every complete block of four questions therefore contains exactly one,
+// two, or three saved-word questions at 25%, 50%, or 75%, provided an
+// eligible saved word exists. Natural due/relearning appearances count. If
+// an earlier question cannot supply a saved word, the deficit can be recovered
+// later in that round. Every new round starts its count from zero.
+function shouldPrioritizeMyWordsQuestion() {
+  if (wordGameMyWordsShare <= 0) return false;
+
+  const nextQuestionCount = wordGameMyWordsMixQuestionCount + 1;
+  const targetSavedCount = Math.floor(
+    nextQuestionCount * wordGameMyWordsShare,
+  );
+  return wordGameMyWordsMixSavedQuestionCount < targetSavedCount;
+}
+
+function recordMyWordsMixQuestion(wasSavedWord) {
+  if (wordGameMyWordsShare <= 0) return;
+  wordGameMyWordsMixQuestionCount += 1;
+  if (wasSavedWord) wordGameMyWordsMixSavedQuestionCount += 1;
+}
+
+// During the distinct-word portion of a bounded round, callers may include
+// previously introduced saved words. Repeating one can lengthen the round,
+// but never changes its promise to introduce exactly N distinct words.
+function pickMyWordsQuotaWord(candidateEntries) {
+  if (wordGameMyWordsShare <= 0) return null;
+
+  const savedEntries = getSavedMyWordsEntries();
   const eligibleSaved = candidateEntries.filter((entry) =>
     savedEntries.has(entry),
   );
 
   if (eligibleSaved.length === 0) return null;
 
-  // No ability-proximity weighting here (see getGameWordWeight): the whole
-  // point of this draw is to deliberately override the new/due distinction,
-  // so CEFR-proximity pacing — which only ever makes sense for pacing *new*
-  // introductions — doesn't apply. Strength still does, so a saved word
-  // already mastered doesn't out-compete a saved word still being learned.
+  // Strength decides among multiple eligible saved candidates.
   return pickWeightedGameWord(
     eligibleSaved,
     eligibleSaved.map((entry) =>
@@ -5491,8 +5635,8 @@ function getNextGameQueueName(queues) {
 // let them practice rather than showing an empty screen. Only the nearest
 // upcoming reviews are considered, minimizing how far the scheduler is
 // pulled forward; correct answers in this fallback do not extend intervals.
-function pickNearestScheduledGameWord(entries) {
-  const nearest = entries
+function getNearestScheduledGameWords(entries) {
+  return entries
     .map((entry) => ({
       entry,
       dueAt:
@@ -5502,10 +5646,6 @@ function pickNearestScheduledGameWord(entries) {
     .sort((left, right) => left.dueAt - right.dueAt)
     .slice(0, Math.min(50, entries.length))
     .map(({ entry }) => entry);
-
-  // Already-scheduled words are calibrated review material, same reasoning
-  // as the due/relearning queues in fetchRandomWord — no ability weighting.
-  return pickPrioritizedGameWord(nearest, { useAbilityWeight: false });
 }
 
 // Words already-answered-correctly or already-introduced this round are
@@ -5575,20 +5715,23 @@ async function fetchRandomWord() {
   ) {
     currentWordQueueType = "session-filler";
 
-    // The My Words quota is rolled against the same review pool plain
-    // filler logic uses, never the wider dictionary — a bounded round's
-    // word budget is already spent at this point, so even a My Words hit
-    // here must stay within words this round already introduced (see
-    // pickMyWordsQuotaWord's own comment for why that matters).
+    // The word budget is already spent, so even a quota catch-up stays inside
+    // the round's introduced-word review pool.
+    const fillerCandidates = getFillerReviewCandidates();
+    const myWordsQuotaEntry = shouldPrioritizeMyWordsQuestion()
+      ? pickMyWordsQuotaWord(fillerCandidates)
+      : null;
     const fillerEntry =
-      pickMyWordsQuotaWord(getFillerReviewCandidates()) ??
-      pickWordGameSessionFillerWord();
+      myWordsQuotaEntry ?? pickWordGameSessionFillerWord();
 
     // getEligibleGameWords' previousWord check is bypassed on this path, so
     // it's kept in sync here instead — otherwise a later non-filler draw in
     // the same round wouldn't know a filler question was just shown.
     if (fillerEntry) {
       previousWord = fillerEntry.ord;
+      if (!wordGameIsPlacementRound) {
+        recordMyWordsMixQuestion(isMyWordsEntry(fillerEntry));
+      }
     }
 
     return fillerEntry;
@@ -5614,41 +5757,66 @@ async function fetchRandomWord() {
     return null;
   }
 
-  // Rolled before queue priority is even computed — see pickMyWordsQuotaWord
-  // for why a hit here can preempt relearning/due words, not just "new"
-  // ones.
-  const myWordsQuotaEntry = wordGameIsPlacementRound
-    ? null
-    : pickMyWordsQuotaWord(eligibleEntries);
-
   let selectedEntry;
   if (wordGameIsPlacementRound) {
+    await loadVocabularyFrequencyRanks();
     currentWordQueueType = "placement";
-    selectedEntry = pickPrioritizedGameWord(eligibleEntries, {
-      useAbilityWeight: true,
-    });
-  } else if (myWordsQuotaEntry) {
-    currentWordQueueType = "my-words-quota";
-    selectedEntry = myWordsQuotaEntry;
+    selectedEntry = pickPrioritizedGameWord(
+      getCoreVocabularyCandidatePool(eligibleEntries),
+      {
+        useAbilityWeight: true,
+        useUsefulnessWeight: true,
+      },
+    );
   } else {
-    const queues = buildGameWordQueues(eligibleEntries);
-    const queueName = getNextGameQueueName(queues);
-    currentWordQueueType = queueName;
-    // Ability weighting only shapes which unseen word gets introduced next
-    // (queue "new"). Due/relearning words already earned their turn via the
-    // SRS schedule, so they're drawn purely by strength — see
-    // getGameWordWeight for why letting CEFR distance deprioritize a due
-    // word would work against spaced repetition.
-    selectedEntry =
-      queueName === "scheduled"
-        ? pickNearestScheduledGameWord(queues.scheduled)
-        : pickPrioritizedGameWord(queues[queueName] ?? [], {
-            useAbilityWeight: queueName === "new",
-          });
+    // The Mix percentage is a round-level contract. Quota slots can draw
+    // from any exercise-compatible saved word, including one already shown
+    // this round; non-quota slots resume the scheduler's strict queue order.
+    const mixEligibleEntries = shouldPrioritizeMyWordsQuestion()
+      ? getEligibleGameWords(selectedPOS, { allowIntroduced: true })
+      : [];
+    const myWordsQuotaEntry = pickMyWordsQuotaWord(mixEligibleEntries);
+
+    if (myWordsQuotaEntry) {
+      selectedEntry = myWordsQuotaEntry;
+      currentWordQueueType =
+        window.WordStrengthAPI?.getSnapshot?.(myWordsQuotaEntry)?.queue ??
+        "new";
+    } else {
+      const queues = buildGameWordQueues(eligibleEntries);
+      const queueName = getNextGameQueueName(queues);
+      if (queueName === "new") {
+        await loadVocabularyFrequencyRanks();
+      }
+      currentWordQueueType = queueName;
+      const queueEntries =
+        queueName === "scheduled"
+          ? getNearestScheduledGameWords(queues.scheduled)
+          : queues[queueName] ?? [];
+      const ordinaryQueueEntries =
+        queueName === "new"
+          ? getCoreVocabularyCandidatePool(queueEntries)
+          : queueEntries;
+      // Ability weighting only shapes unseen words. Due and relearning words
+      // have already earned their priority through the scheduler.
+      selectedEntry =
+        queueName === "scheduled"
+          ? pickPrioritizedGameWord(ordinaryQueueEntries, {
+              useAbilityWeight: false,
+            })
+          : pickPrioritizedGameWord(ordinaryQueueEntries, {
+              useAbilityWeight: queueName === "new",
+              useUsefulnessWeight: queueName === "new",
+            });
+    }
   }
 
   if (!selectedEntry) {
     return null;
+  }
+
+  if (!wordGameIsPlacementRound) {
+    recordMyWordsMixQuestion(isMyWordsEntry(selectedEntry));
   }
 
   previousWord = selectedEntry.ord;

@@ -6,6 +6,12 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "placementTest.js"), "utf8");
+const featureCaptureSource = fs.readFileSync(
+  path.join(root, "scripts", "capture-feature-pages.py"),
+  "utf8",
+);
+assert.match(featureCaptureSource, /if feature == "word-game":/);
+assert.match(featureCaptureSource, /Preparing Word Game/);
 const starts = [];
 
 function makeButton(dataset = {}) {

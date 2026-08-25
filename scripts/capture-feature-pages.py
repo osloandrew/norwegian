@@ -72,6 +72,26 @@ def capture(output_root: Path) -> None:
                 )
                 page.wait_for_timeout(250)
 
+                # The Word Game entry screen depends on the visitor's saved
+                # placement status. Capturing a fresh browser's placement UI
+                # bakes that personalized state into HTML, so returning users
+                # see it flash before their local state is restored. Preserve
+                # only a neutral shell; the normal app startup replaces it
+                # with placement or the round picker for the actual visitor.
+                if feature == "word-game":
+                    page.evaluate(
+                        """
+                        () => {
+                          document.querySelector("#results-container").innerHTML = `
+                            <div class="game-intro-card word-game-loading-card">
+                              <h2 class="game-intro-heading">Preparing Word Game</h2>
+                              <p class="game-today-practice-note">Loading your next vocabulary practice…</p>
+                            </div>
+                          `;
+                        }
+                        """
+                    )
+
                 html_out = page.evaluate("document.documentElement.outerHTML")
                 html_out = html_out.replace(
                     "<head>", f'<head>\n    <base href="{PAGE_BASE_HREF}">', 1
