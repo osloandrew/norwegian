@@ -1546,9 +1546,17 @@ body.stories-mode .story-recommendation .cefr-value {
   }
 
   .sticky-row .story-card-favorite-button {
-    font-size: 16px;
-    height: 28px;
-    width: 28px;
+    /* Matches #speed-btn/#toggle-english-btn's own height (26px), not an
+       arbitrary size — the badge row and the button column in
+       #right-controls are separate flex columns stacked independently, so
+       any height mismatch between their first rows (this row vs. the
+       Speed button) throws off the *second* row's alignment too (Back
+       vs. Show English), even though nothing about the second row itself
+       changed. Was 28px — 2px taller than the 26px buttons beside it —
+       which is exactly why Back had drifted below Show English. */
+    font-size: 15px;
+    height: 26px;
+    width: 26px;
   }
 
   #sticky-header {
