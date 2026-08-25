@@ -48,6 +48,17 @@ for (const [structuredQuestionMode, expected] of [
   }
 }
 
+// A requested listening slot must fall through to a non-audio mode when the
+// selected word has no playable recording.
+assert.equal(
+  context.selectQuestionMode({
+    structuredQuestionMode: "listening",
+    ability: 500,
+    hasAudio: false,
+  }),
+  "forward",
+);
+
 // A bonus-round "typed-reverse" slot resolves through forceTypedReverse,
 // same as the original cascade's `forceTypedReverse ||` clause.
 for (let i = 0; i < 200; i++) {

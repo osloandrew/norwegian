@@ -77,6 +77,12 @@ set **Settings → Pages → Build and deployment → Source** to **GitHub Actio
 Generated directories, `sitemap.xml`, and `page-manifest.json` are build
 artifacts; `.gitignore` prevents accidental commits.
 
+The deployed application revalidates `norwegianWords.csv` on every load. The
+browser can reuse its HTTP-cached copy when the file is unchanged, but after a
+successful Pages deployment users receive the new dictionary rather than an
+IndexedDB copy that can remain stale for up to 24 hours. The last downloaded
+copy remains available as a fallback if the network is unavailable.
+
 The workflow caches a complete, validated render together with snapshots of
 `norwegianWords.csv`, `norwegianStories.csv`, and `storyQuestions.json`. On a
 compatible cache hit, the builder recaptures only pages whose rendered data

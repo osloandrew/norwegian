@@ -42,10 +42,13 @@ jobs:
             sitemap.xml
             page-manifest.json
             .pages-cache
-          # Data files are deliberately excluded: their stored snapshots are
-          # diffed by the builder. Any renderer, shell, or pronunciation-data
-          # change gets a new cache and therefore a safe full capture.
-          key: pages-v1-${{ hashFiles('index.html', '*.js', 'vendor/**', 'styles/**/*.css', 'scripts/**/*.py', 'make-sitemap.py', 'requirements-pages.txt', 'inflections-data.json', 'norwegianSounds.csv') }}
+          # Keep one restorable lineage per renderer, but give every data
+          # revision its own key. actions/cache entries are immutable: without
+          # the data suffix, each run would forever restore the first snapshot
+          # and the incremental diff would grow on every upload.
+          key: pages-v1-${{ hashFiles('index.html', '*.js', 'vendor/**', 'styles/**/*.css', 'scripts/**/*.py', 'make-sitemap.py', 'requirements-pages.txt', 'inflections-data.json', 'norwegianSounds.csv') }}-${{ hashFiles('norwegianWords.csv', 'norwegianStories.csv', 'storyQuestions.json') }}
+          restore-keys: |
+            pages-v1-${{ hashFiles('index.html', '*.js', 'vendor/**', 'styles/**/*.css', 'scripts/**/*.py', 'make-sitemap.py', 'requirements-pages.txt', 'inflections-data.json', 'norwegianSounds.csv') }}-
 
       - name: Install page builder
         run: |

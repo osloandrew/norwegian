@@ -361,6 +361,13 @@
       article?.body?.definitions,
       concepts,
     );
+    // Some Ordbøkene articles are only structural placeholders for a
+    // related entry (for example "befinne" points readers to "befinne seg").
+    // Pronunciation, etymology, examples, and inflections are useful metadata,
+    // but none of them tells a learner what the headword means. Do not turn
+    // those definition-less articles into fallback definition cards.
+    if (definitionContent.definitions.length === 0) return null;
+
     const etymology = unique(
       (article?.body?.etymology || [])
         .map((item) => renderStructuredText(item, concepts))

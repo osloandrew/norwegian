@@ -36,6 +36,23 @@ const runSection = (startMarker, endMarker) => {
 runSection("function normalizeGameWhitespace", "function uppercaseFirstNorwegian");
 runSection("const DAILY_PRACTICE_STORAGE_KEY", "let incorrectCount");
 
+assert.equal(
+  context.hasPlayableWordAudio({ ord: "hei", wordAudio: "X" }),
+  true,
+);
+assert.equal(
+  context.hasPlayableWordAudio({ ord: "jo ... jo", wordAudio: "X" }),
+  false,
+);
+assert.equal(
+  context.hasPlayableWordAudio({ ord: "jo … jo", wordAudio: "X" }),
+  false,
+);
+assert.equal(
+  context.hasPlayableWordAudio({ ord: "hei", wordAudio: "" }),
+  false,
+);
+
 const today = context.getDailyPracticeDateKey();
 const resetState = context.normalizeDailyPracticeState(
   { date: "1999-01-01", completedRounds: 2 },

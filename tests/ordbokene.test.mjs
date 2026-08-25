@@ -130,6 +130,31 @@ test("maps an exact Bokmålsordboka article into the local card fields", async (
   assert.equal(entry.etymologi, "fra tysk; av sir opprinnelig ‘pyntelig’");
 });
 
+test("omits placeholder articles with metadata but no definition content", () => {
+  const { api } = createContext();
+  const entry = api.articleToEntry(
+    {
+      article_id: 99999,
+      lemmas: [
+        {
+          lemma: "befinne",
+          inflection_class: "v1",
+          paradigm_info: [{ tags: ["VERB"] }],
+        },
+      ],
+      body: {
+        pronunciation: [{ text: "befi´nne" }],
+        etymology: [{ text: "fra tysk" }],
+        definitions: [],
+      },
+    },
+    {},
+    "exact",
+  );
+
+  assert.equal(entry, null);
+});
+
 test("resolves an inflected form to its official headword", async () => {
   const { api } = createContext();
   const result = await api.lookup("sirlige", { selectedPOS: "adjective" });

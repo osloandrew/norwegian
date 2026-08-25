@@ -813,7 +813,6 @@ function handleSearchButtonClick() {
 const WORD_CSV_DB_NAME = "wordDataCsvNorwegianV2";
 const WORD_CSV_DB_STORE = "csv";
 const WORD_CSV_DB_KEY = "wordDataCsv";
-const WORD_CSV_CACHE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours, matching stories.js
 
 // Legacy localStorage keys from before the cache moved to IndexedDB. The CSV
 // (now several MB) risked silently exceeding localStorage's much smaller
@@ -825,17 +824,6 @@ try {
   localStorage.removeItem("wordDataCsvTimestampNorwegianV2");
 } catch (cleanupError) {
   // Ignore — best-effort cleanup only.
-}
-
-// On a local dev/test server (not the deployed osloandrew.github.io site),
-// always fetch fresh CSV data instead of serving a stale cached copy — the
-// whole point of a local test environment is seeing edits to the CSV files
-// immediately, not up to 24h later. Duplicated in stories.js since each
-// file's cache is otherwise independent.
-function isLocalDevHost() {
-  return (
-    location.hostname === "127.0.0.1" || location.hostname === "localhost"
-  );
 }
 
 function openWordCSVDB() {
@@ -852,10 +840,11 @@ function openWordCSVDB() {
 // Read the cached raw CSV text (not parsed entries — a parsed copy of the
 // ~29,000-row dictionary would run several MB larger than the CSV itself
 // purely from repeated JSON key names).
-// Returns null on a cache miss, a read error, or if the cache is stale.
+// Returns null on a cache miss or read error. This copy is only an offline
+// fallback: every app load revalidates norwegianWords.csv with the server
+// before using it, so a successful Pages deployment is visible immediately.
 async function readCachedWordCSV() {
   if (!("indexedDB" in window)) return null;
-  if (isLocalDevHost()) return null;
 
   try {
     const db = await openWordCSVDB();
@@ -868,7 +857,6 @@ async function readCachedWordCSV() {
     db.close();
 
     if (!cached) return null;
-    if (Date.now() - cached.timestamp > WORD_CSV_CACHE_MAX_AGE) return null;
 
     return cached.text;
   } catch (error) {
@@ -887,7 +875,7 @@ async function cacheWordCSV(csvText) {
     await new Promise((resolve, reject) => {
       const tx = db.transaction(WORD_CSV_DB_STORE, "readwrite");
       tx.objectStore(WORD_CSV_DB_STORE).put(
-        { text: csvText, timestamp: Date.now() },
+        { text: csvText },
         WORD_CSV_DB_KEY,
       );
       tx.oncomplete = resolve;
@@ -930,13 +918,12 @@ function showDictionaryLoadError() {
 // Fetch the dictionary data from the file or server
 async function fetchAndLoadDictionaryData() {
   dictionaryLoadFailed = false;
-
-  const cachedCSV = await readCachedWordCSV();
-
-  if (cachedCSV) {
-    parseCSVData(cachedCSV);
-    return;
-  }
+  // Start the fallback read without putting it on the critical path. The
+  // network request below is deliberately made on every load; `no-cache`
+  // lets the browser use HTTP conditional requests (ETag/Last-Modified), so
+  // unchanged data is cheap while newly deployed words are never hidden by
+  // the former 24-hour IndexedDB freshness window.
+  const cachedCSVPromise = readCachedWordCSV();
 
   try {
     // Anchored to APP_ROOT_URL, not left as a bare relative path: on the
@@ -944,7 +931,10 @@ async function fetchAndLoadDictionaryData() {
     // against document.baseURI, which pushState silently drags along with
     // it once any in-app navigation has happened — turning this into a
     // request for .../word/hus/norwegianWords.csv instead of the real file.
-    const localResponse = await fetch(new URL("norwegianWords.csv", APP_ROOT_URL));
+    const localResponse = await fetch(
+      new URL("norwegianWords.csv", APP_ROOT_URL),
+      { cache: "no-cache" },
+    );
     if (!localResponse.ok)
       throw new Error(`HTTP error! Status: ${localResponse.status}`);
     const localData = await localResponse.text();
@@ -956,7 +946,15 @@ async function fetchAndLoadDictionaryData() {
       localError,
     );
 
-    // Fallback to Google Sheets CSV
+    // Preserve the last successfully downloaded dictionary when the user is
+    // offline or GitHub Pages is temporarily unreachable.
+    const cachedCSV = await cachedCSVPromise;
+    if (cachedCSV) {
+      parseCSVData(cachedCSV);
+      return;
+    }
+
+    // Final fallback to Google Sheets CSV.
     try {
       const response = await fetch(
         "https://docs.google.com/spreadsheets/d/e/2PACX-1vSl2GxGiiO3qfEuVM6EaAbx_AgvTTKfytLxI1ckFE6c35Dv8cfYdx30vLbPPxadAjeDaSBODkiMMJ8o/pub?output=csv",

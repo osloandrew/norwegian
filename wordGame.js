@@ -97,6 +97,22 @@ const BONUS_ROUND_SEQUENCE = Object.freeze([
   "listening",
   "typed-reverse",
 ]);
+
+// The CSV's wordAudio flag is broader than the set of files that can
+// actually be played. In particular, paired expressions written with an
+// ellipsis (for example "jo ... jo") have no single-word recording even
+// though their row is flagged. Keep that data quirk out of listening and
+// dictation questions, where audio is the only prompt.
+function hasPlayableWordAudio(wordObj) {
+  const word = String(wordObj?.ord ?? "").trim();
+  return (
+    wordObj?.wordAudio === "X" &&
+    word.length > 0 &&
+    !word.includes("...") &&
+    !word.includes("…")
+  );
+}
+
 let wordGameRoundActive = false; // false until the intro screen's mode is chosen
 let wordGameMode = null; // "session" | "infinite"
 let wordGameIsTodayPracticeRound = false;
@@ -3443,17 +3459,18 @@ async function startWordGame() {
 
   currentWord = randomWordObj;
   correctTranslation = randomWordObj.engelsk;
+  const hasAudio = hasPlayableWordAudio(randomWordObj);
 
   const structuredQuestionMode = wordGameIsTodayPracticeRound
     ? getDailyQuestQuestionMode(
         wordGameDailyQuestIndex,
         wordGameSessionQuestionsAnswered,
-        randomWordObj.wordAudio === "X",
+        hasAudio,
       )
     : wordGameIsBonusRound
       ? getBonusRoundQuestionMode(
           Math.max(0, wordGameSessionIntroducedWords.size - 1),
-          randomWordObj.wordAudio === "X",
+          hasAudio,
         )
       : null;
   const forceTypedReverse = structuredQuestionMode === "typed-reverse";
@@ -3465,7 +3482,7 @@ async function startWordGame() {
     structuredQuestionMode,
     forceTypedReverse,
     ability: abilityScore,
-    hasAudio: randomWordObj.wordAudio === "X",
+    hasAudio,
   });
   const isClozeQuestion = questionMode === "cloze";
   const isListeningQuestion = questionMode === "listening";
@@ -4960,8 +4977,12 @@ function getEligibleGameWords(
   const queuedForReintroduction = new Set(
     incorrectWordQueue.map((queued) => queued.wordObj),
   );
-  const dailyExercise = wordGameIsTodayPracticeRound
-    ? DAILY_QUESTS[wordGameDailyQuestIndex]?.exercise
+  const dailyQuestionMode = wordGameIsTodayPracticeRound
+    ? getDailyQuestQuestionMode(
+        wordGameDailyQuestIndex,
+        wordGameSessionQuestionsAnswered,
+        true,
+      )
     : null;
   const bonusExercise = wordGameIsBonusRound
     ? getBonusRoundQuestionMode(wordGameSessionIntroducedWords.size, true)
@@ -4999,7 +5020,7 @@ function getEligibleGameWords(
     }
 
     if (
-      (dailyExercise === "context" || bonusExercise === "cloze") &&
+      (dailyQuestionMode === "cloze" || bonusExercise === "cloze") &&
       (!String(entry?.eksempel ?? "").trim() ||
         BANNED_WORD_CLASSES.some((wordClass) =>
           gender.toLowerCase().startsWith(wordClass),
@@ -5008,7 +5029,10 @@ function getEligibleGameWords(
       return false;
     }
 
-    if (bonusExercise === "listening" && entry.wordAudio !== "X") {
+    if (
+      (dailyQuestionMode === "listening" || bonusExercise === "listening") &&
+      !hasPlayableWordAudio(entry)
+    ) {
       return false;
     }
 

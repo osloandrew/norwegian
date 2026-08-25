@@ -278,11 +278,12 @@ class StaticPageBuildTests(unittest.TestCase):
                 build_static_pages.cached_site_is_complete(site_root, snapshot_dir)
             )
 
-    def test_workflow_fingerprint_invalidates_shared_rendering_changes_only(self) -> None:
+    def test_workflow_cache_separates_renderer_and_data_fingerprints(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "pages.yml").read_text(
             encoding="utf-8"
         )
         key_line = next(line for line in workflow.splitlines() if "key: pages-v" in line)
+        renderer_fingerprint, data_fingerprint = key_line.split(" }}-${{ hashFiles(", 1)
 
         for renderer_input in (
             "index.html",
@@ -291,13 +292,15 @@ class StaticPageBuildTests(unittest.TestCase):
             "styles/**/*.css",
             "scripts/**/*.py",
         ):
-            self.assertIn(renderer_input, key_line)
+            self.assertIn(renderer_input, renderer_fingerprint)
         for incrementally_diffed_input in (
             "norwegianWords.csv",
             "norwegianStories.csv",
             "storyQuestions.json",
         ):
-            self.assertNotIn(incrementally_diffed_input, key_line)
+            self.assertNotIn(incrementally_diffed_input, renderer_fingerprint)
+            self.assertIn(incrementally_diffed_input, data_fingerprint)
+        self.assertIn("restore-keys:", workflow)
         self.assertIn("cancel-in-progress: true", workflow)
         self.assertIn("build-static-pages.py --incremental", workflow)
 
