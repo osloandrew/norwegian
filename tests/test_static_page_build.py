@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -40,6 +41,24 @@ class StaticPageBuildTests(unittest.TestCase):
         for page_url, base_href, expected_root in cases:
             with self.subTest(page_url=page_url):
                 self.assertEqual(urllib.parse.urljoin(page_url, base_href), expected_root)
+
+    def test_generated_page_ignores_do_not_hide_source_audio(self) -> None:
+        for audio_path in (
+            "Resources/Words/example.m4a",
+            "Resources/Sentences/example.m4a",
+            "Resources/Audio/example.m4a",
+        ):
+            with self.subTest(audio_path=audio_path):
+                result = subprocess.run(
+                    ["git", "check-ignore", "--no-index", "--quiet", audio_path],
+                    cwd=ROOT,
+                    check=False,
+                )
+                self.assertEqual(
+                    result.returncode,
+                    1,
+                    f"source audio must not be ignored: {audio_path}",
+                )
 
     def test_source_slugs_match_current_page_counts(self) -> None:
         words = build_static_pages.source_slugs(ROOT / "norwegianWords.csv", "ord", primary_word=True)

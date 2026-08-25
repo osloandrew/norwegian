@@ -64,6 +64,11 @@ let gameActive = false;
 // exactly as before within whichever round is active.
 const WORD_GAME_SESSION_WORD_COUNTS = [10, 20, 50];
 const DAILY_PRACTICE_STORAGE_KEY = "norwegian-dictionary-daily-practice-v2";
+const PLACEMENT_PRACTICE_WORD_COUNT = 10;
+const PLACEMENT_CALIBRATION_ANSWER_COUNT = 7;
+const PLACEMENT_CALIBRATION_INITIAL_STEP = 150;
+const PLACEMENT_CALIBRATION_STEP_DECAY = 0.72;
+const PLACEMENT_CALIBRATION_MIN_STEP = 30;
 const DAILY_QUEST_ROUND_TARGET = 10;
 const DAILY_QUESTS = Object.freeze([
   Object.freeze({
@@ -117,6 +122,10 @@ let wordGameRoundActive = false; // false until the intro screen's mode is chose
 let wordGameMode = null; // "session" | "infinite"
 let wordGameIsTodayPracticeRound = false;
 let wordGameIsBonusRound = false;
+let wordGameIsPlacementRound = false;
+let wordGamePlacementCalibrationEnabled = false;
+let wordGamePlacementCalibrationStep = PLACEMENT_CALIBRATION_INITIAL_STEP;
+let wordGamePlacementCalibrationWords = new Set();
 let wordGameTodayPracticeDate = null;
 let wordGameDailyQuestIndex = null;
 let wordGameEarnedDailyQuest = null;
@@ -789,6 +798,35 @@ function getExpectedSuccessProbability(wordDifficulty, ability) {
 function updateAbilityScore(wordObj, isCorrect) {
   if (abilityScore === null || !wordObj) return;
 
+  // Placement now happens inside the learner's first real practice round.
+  // Its first seven distinct words need to move the self-assessed starting
+  // estimate more quickly than ordinary long-term play, while retries of a
+  // missed word must not count as fresh placement evidence. After those
+  // seven words, the normal small Elo-style updates resume automatically.
+  const isFreshPlacementCalibrationWord =
+    typeof wordGameIsPlacementRound !== "undefined" &&
+    wordGameIsPlacementRound &&
+    wordGamePlacementCalibrationEnabled &&
+    wordGamePlacementCalibrationWords.size <
+      PLACEMENT_CALIBRATION_ANSWER_COUNT &&
+    !wordGamePlacementCalibrationWords.has(wordObj);
+
+  if (isFreshPlacementCalibrationWord) {
+    wordGamePlacementCalibrationWords.add(wordObj);
+    abilityScore = clampAbility(
+      abilityScore +
+        (isCorrect
+          ? wordGamePlacementCalibrationStep
+          : -wordGamePlacementCalibrationStep),
+    );
+    wordGamePlacementCalibrationStep = Math.max(
+      PLACEMENT_CALIBRATION_MIN_STEP,
+      wordGamePlacementCalibrationStep * PLACEMENT_CALIBRATION_STEP_DECAY,
+    );
+    saveAbilityState({ syncRemote: false, cloudPending: true });
+    return;
+  }
+
   const wordDifficulty = getWordDifficultyAnchor(wordObj);
   const expected = getExpectedSuccessProbability(wordDifficulty, abilityScore);
   const actual = isCorrect ? 1 : 0;
@@ -938,6 +976,22 @@ function renderStats(instructionHTML = "") {
          ${instructionMarkup}
        </div>`;
 
+  // Placement is assessment, not mastery practice. A miss helps tune the
+  // starting level and is saved for later review, but the live placement UI
+  // should never frame it as a debt that blocks completion.
+  const leftStatHTML = wordGameIsPlacementRound
+    ? ""
+    : `<div class="game-stats-correct-box">
+         <p class="game-stat-label">Correct in a row</p>
+         <p id="streak-count">${correctStreak}</p>
+       </div>`;
+  const rightStatHTML = wordGameIsPlacementRound
+    ? ""
+    : `<div class="game-stats-incorrect-box">
+         <p class="game-stat-label">Words to review</p>
+         <p id="review-count">${wordsToReview}</p>
+       </div>`;
+
   // Inject HTML only if it hasn't been rendered yet for this question.
   // .game-stats-wrapper (rather than .level-progress-bar-fill, which only
   // exists in infinite mode's layout) is the marker here since it's
@@ -950,15 +1004,9 @@ function renderStats(instructionHTML = "") {
     statsContainer.innerHTML = `
       <div class="game-stats-wrapper">
         <div class="game-stats-content" style="width: 100%;">
-          <div class="game-stats-correct-box">
-            <p class="game-stat-label">Correct in a row</p>
-            <p id="streak-count">${correctStreak}</p>
-          </div>
+          ${leftStatHTML}
           ${middleContentHTML}
-          <div class="game-stats-incorrect-box">
-            <p class="game-stat-label">Words to review</p>
-            <p id="review-count">${wordsToReview}</p>
-          </div>
+          ${rightStatHTML}
         </div>
       </div>
     `;
@@ -2182,6 +2230,11 @@ function renderLandingProgressSummary() {
 
 function startDailyQuestFromLanding() {
   selectType("word-game");
+  // selectType() enters startWordGame(), which renders placement for a
+  // first-time learner. Do not immediately replace that screen with the
+  // requested daily round; choosing a starting point will launch the new
+  // learner's calibrated first practice round instead.
+  if (!placementCompleted) return;
   beginTodayPracticeRound();
 }
 
@@ -2824,12 +2877,18 @@ function showMinimalPairsResults() {
     ?.addEventListener("click", renderWordGameIntro);
 }
 
-// A session round isn't actually done just because N distinct words have
-// been answered correctly at some point — a word that was missed and
-// requeued (see incorrectWordQueue in handleTranslationClick) has to be
-// answered correctly too before the round can end, or a miss could get
-// silently left behind unlearned.
+// Ordinary practice isn't done just because N distinct words were answered
+// correctly at some point: requeued misses must be cleared too. Placement is
+// intentionally different. A miss is assessment evidence, so ten answered
+// questions complete it regardless of correctness.
 function isWordGameRoundComplete() {
+  if (wordGameIsPlacementRound) {
+    return (
+      wordGameMode === "session" &&
+      wordGameSessionQuestionsAnswered >= wordGameSessionTarget
+    );
+  }
+
   return (
     wordGameMode === "session" &&
     wordGameSessionCorrectWords.size >= wordGameSessionTarget &&
@@ -2841,6 +2900,14 @@ function isWordGameRoundComplete() {
 // retry, says so explicitly — otherwise it reads as finished when clicking
 // Next Word won't actually end the round yet (see isWordGameRoundComplete).
 function getWordGameSessionProgressLabel() {
+  if (wordGameIsPlacementRound) {
+    const answered = Math.min(
+      wordGameSessionQuestionsAnswered,
+      wordGameSessionTarget,
+    );
+    return `Question ${answered} of ${wordGameSessionTarget}`;
+  }
+
   const correctSoFar = Math.min(
     wordGameSessionCorrectWords.size,
     wordGameSessionTarget,
@@ -2880,6 +2947,14 @@ function getWordGameSessionProgressLabel() {
 // always agree.
 function getWordGameSessionProgressPercent() {
   if (!wordGameSessionTarget) return 0;
+
+  if (wordGameIsPlacementRound) {
+    return (
+      (Math.min(wordGameSessionQuestionsAnswered, wordGameSessionTarget) /
+        wordGameSessionTarget) *
+      100
+    );
+  }
 
   const correctSoFar = Math.min(
     wordGameSessionCorrectWords.size,
@@ -2928,6 +3003,18 @@ function renderWordGameLoadingMessage() {
 // is untouched here and keeps working the same within whichever round is
 // active) and kicks off the first question.
 function beginWordGameRound(mode, targetWords = 0, options = {}) {
+  // Universal round-start gate. Most first-time entry points already pass
+  // through startWordGame() and render placement there, but keeping the
+  // same check at the round engine boundary covers homepage CTAs, daily
+  // quest actions, round-size buttons, and any future shortcut that calls
+  // beginWordGameRound() directly.
+  if (!placementCompleted && !options.placementRound) {
+    wordGameRoundActive = false;
+    updateEndSessionToolbarButtonVisibility();
+    window.PlacementTestAPI?.start?.();
+    return;
+  }
+
   if (!Array.isArray(results) || results.length === 0) {
     renderWordGameLoadingMessage();
     return;
@@ -2937,6 +3024,14 @@ function beginWordGameRound(mode, targetWords = 0, options = {}) {
   wordGameIsTodayPracticeRound = Boolean(options.todayPractice);
   wordGameIsBonusRound =
     !wordGameIsTodayPracticeRound && Boolean(options.bonusRound);
+  wordGameIsPlacementRound =
+    !wordGameIsTodayPracticeRound &&
+    !wordGameIsBonusRound &&
+    Boolean(options.placementRound);
+  wordGamePlacementCalibrationEnabled =
+    wordGameIsPlacementRound && options.placementCalibration !== false;
+  wordGamePlacementCalibrationStep = PLACEMENT_CALIBRATION_INITIAL_STEP;
+  wordGamePlacementCalibrationWords = new Set();
   wordGameTodayPracticeDate = wordGameIsTodayPracticeRound
     ? getDailyPracticeDateKey()
     : null;
@@ -3010,11 +3105,20 @@ function showWordGameRoundSummary() {
   const wasBoundedRound = wordGameMode === "session";
   const wasTodayPractice = wordGameIsTodayPracticeRound;
   const wasBonusRound = wordGameIsBonusRound;
+  const wasPlacementRound = wordGameIsPlacementRound;
   const roundWasComplete = isWordGameRoundComplete();
   const earnedDailyQuest =
     wasTodayPractice && roundWasComplete
       ? wordGameEarnedDailyQuest || completeDailyQuestRound()
       : null;
+  // Choosing a self-assessed starting point only seeds placement; it does
+  // not complete it. Commit completion only after all ten assessment
+  // questions have actually been answered. An early quit leaves the flag
+  // false, so every later Word Game entry returns to placement.
+  finalizePlacementCompletion(wasPlacementRound, roundWasComplete);
+  const wordsPracticedCount = wasPlacementRound
+    ? Math.min(wordGameSessionQuestionsAnswered, wordGameSessionTarget)
+    : wordGameSessionCorrectWords.size;
 
   // One cloud profile update per round instead of one per answer. Streak and
   // daily-practice events fired during this summary share the same debounce
@@ -3027,11 +3131,13 @@ function showWordGameRoundSummary() {
       ? "bonus"
       : wasTodayPractice
         ? "daily_quest"
-        : wasBoundedRound
-          ? "bounded"
-          : "infinite",
+        : wasPlacementRound
+          ? "placement_practice"
+          : wasBoundedRound
+            ? "bounded"
+            : "infinite",
     round_complete: roundWasComplete,
-    words_practiced: wordGameSessionCorrectWords.size,
+    words_practiced: wordsPracticedCount,
     questions_answered: wordGameSessionQuestionsAnswered,
     accuracy,
   });
@@ -3044,6 +3150,10 @@ function showWordGameRoundSummary() {
   wordGameRoundActive = false;
   wordGameIsTodayPracticeRound = false;
   wordGameIsBonusRound = false;
+  wordGameIsPlacementRound = false;
+  wordGamePlacementCalibrationEnabled = false;
+  wordGamePlacementCalibrationStep = PLACEMENT_CALIBRATION_INITIAL_STEP;
+  wordGamePlacementCalibrationWords = new Set();
   wordGameTodayPracticeDate = null;
   wordGameDailyQuestIndex = null;
   wordGameEarnedDailyQuest = null;
@@ -3082,7 +3192,7 @@ function showWordGameRoundSummary() {
   // so missed words look and behave exactly like they do on those pages —
   // same word-class/CEFR badges, strength meter, and My Words star.
   const missedWordsHTML =
-    missedWords.length > 0
+    !wasPlacementRound && missedWords.length > 0
       ? `
     <div class="game-summary-missed">
       <h3 class="game-summary-missed-heading">Words to review</h3>
@@ -3108,6 +3218,10 @@ function showWordGameRoundSummary() {
           ? `${uppercaseFirstNorwegian(earnedDailyQuest.reward)} earned!`
           : wasBonusRound && roundWasComplete
             ? "Bonus round complete!"
+          : wasPlacementRound && roundWasComplete
+            ? "First practice complete!"
+          : wasPlacementRound
+            ? "Good start!"
           : wasBoundedRound && roundWasComplete
             ? "Round complete!"
             : "Nice work!"
@@ -3125,8 +3239,8 @@ function showWordGameRoundSummary() {
       }
       <div class="game-summary-stats">
         <div class="game-summary-stat">
-          <p class="game-summary-stat-value">${wordGameSessionCorrectWords.size}</p>
-          <p class="game-summary-stat-label">Words practiced</p>
+          <p class="game-summary-stat-value">${wordsPracticedCount}</p>
+          <p class="game-summary-stat-label">${wasPlacementRound ? "Words assessed" : "Words practiced"}</p>
         </div>
         <div class="game-summary-stat">
           <p class="game-summary-stat-value">${accuracy}%</p>
@@ -3165,7 +3279,11 @@ function showWordGameRoundSummary() {
   document
     .getElementById("game-summary-restart-btn")
     ?.addEventListener("click", () => {
-      renderWordGameIntro();
+      if (!placementCompleted) {
+        window.PlacementTestAPI?.start?.();
+      } else {
+        renderWordGameIntro();
+      }
     });
 
   // Every completed/ended round is a chance the signed-out visitor now has
@@ -3455,18 +3573,24 @@ async function startWordGame() {
   correctTranslation = randomWordObj.engelsk;
   const hasAudio = hasPlayableWordAudio(randomWordObj);
 
-  const structuredQuestionMode = wordGameIsTodayPracticeRound
-    ? getDailyQuestQuestionMode(
-        wordGameDailyQuestIndex,
-        wordGameSessionQuestionsAnswered,
-        hasAudio,
-      )
-    : wordGameIsBonusRound
-      ? getBonusRoundQuestionMode(
-          Math.max(0, wordGameSessionIntroducedWords.size - 1),
+  // Keep the first practice round in recognition mode. It still uses the
+  // full game feedback and scheduler, but a consistent question format
+  // makes the seven calibration answers comparable and avoids dropping a
+  // brand-new learner straight into cloze or productive recall.
+  const structuredQuestionMode = wordGameIsPlacementRound
+    ? "forward"
+    : wordGameIsTodayPracticeRound
+      ? getDailyQuestQuestionMode(
+          wordGameDailyQuestIndex,
+          wordGameSessionQuestionsAnswered,
           hasAudio,
         )
-      : null;
+      : wordGameIsBonusRound
+        ? getBonusRoundQuestionMode(
+            Math.max(0, wordGameSessionIntroducedWords.size - 1),
+            hasAudio,
+          )
+        : null;
   const forceTypedReverse = structuredQuestionMode === "typed-reverse";
   // See SELECTION_MODES/selectQuestionMode above for the actual priority
   // and probability logic this consumes — cloze, then listening, then
@@ -4786,47 +4910,53 @@ async function handleTranslationClick(
       revealListeningWordText(wordObj);
     }
 
-    // Keep the durable lapse in WordStrengthAPI and also schedule a short
-    // retry after intervening questions in this active round. Repeat misses
-    // get a modestly longer gap without blocking other ready queue entries.
-    const existingQueueEntry = incorrectWordQueue.find(
-      (incorrectWord) => incorrectWord.wordObj === wordObj,
-    );
-    const baseGap = getWordGameReintroduceThreshold();
+    // Placement misses are already saved durably above so ordinary practice
+    // can review them later. They are not requeued inside placement itself:
+    // an assessment must sample the promised ten distinct words and finish,
+    // not require the learner to master every unknown word before leaving.
+    if (!wordGameIsPlacementRound) {
+      // Keep the durable lapse in WordStrengthAPI and also schedule a short
+      // retry after intervening questions in this active round. Repeat misses
+      // get a modestly longer gap without blocking other ready queue entries.
+      const existingQueueEntry = incorrectWordQueue.find(
+        (incorrectWord) => incorrectWord.wordObj === wordObj,
+      );
+      const baseGap = getWordGameReintroduceThreshold();
 
-    if (existingQueueEntry) {
-      existingQueueEntry.reviewAttempts += 1;
-      existingQueueEntry.availableAfterQuestion =
-        wordGameSessionQuestionsAnswered +
-        baseGap * Math.min(2, existingQueueEntry.reviewAttempts);
-      existingQueueEntry.shown = false;
-      // wasCloze/wasReverse/wasListening/clozedForm: not used here, only
-      // read later — see the flag map at the top of this function.
-      existingQueueEntry.wasCloze = isCloze;
-      existingQueueEntry.wasReverse = isReverse;
-      existingQueueEntry.wasListening = isListening;
-      existingQueueEntry.clozedForm = isCloze ? correctTranslation : null;
-      existingQueueEntry.requiresTypedMastery =
-        existingQueueEntry.requiresTypedMastery || wasTyped;
-      // Once the learner has passed the recognition scaffold, any further
-      // miss happened on the required typed retry, so keep retrying typing.
-      existingQueueEntry.forceTypedRetry =
-        existingQueueEntry.requiresTypedMastery &&
-        existingQueueEntry.forceTypedRetry;
-    } else {
-      incorrectWordQueue.push({
-        wordObj,
-        availableAfterQuestion:
-          wordGameSessionQuestionsAnswered + baseGap,
-        reviewAttempts: 1,
-        shown: false,
-        wasCloze: isCloze,
-        wasReverse: isReverse,
-        wasListening: isListening,
-        clozedForm: isCloze ? correctTranslation : null,
-        requiresTypedMastery: wasTyped,
-        forceTypedRetry: false,
-      });
+      if (existingQueueEntry) {
+        existingQueueEntry.reviewAttempts += 1;
+        existingQueueEntry.availableAfterQuestion =
+          wordGameSessionQuestionsAnswered +
+          baseGap * Math.min(2, existingQueueEntry.reviewAttempts);
+        existingQueueEntry.shown = false;
+        // wasCloze/wasReverse/wasListening/clozedForm: not used here, only
+        // read later — see the flag map at the top of this function.
+        existingQueueEntry.wasCloze = isCloze;
+        existingQueueEntry.wasReverse = isReverse;
+        existingQueueEntry.wasListening = isListening;
+        existingQueueEntry.clozedForm = isCloze ? correctTranslation : null;
+        existingQueueEntry.requiresTypedMastery =
+          existingQueueEntry.requiresTypedMastery || wasTyped;
+        // Once the learner has passed the recognition scaffold, any further
+        // miss happened on the required typed retry, so keep retrying typing.
+        existingQueueEntry.forceTypedRetry =
+          existingQueueEntry.requiresTypedMastery &&
+          existingQueueEntry.forceTypedRetry;
+      } else {
+        incorrectWordQueue.push({
+          wordObj,
+          availableAfterQuestion:
+            wordGameSessionQuestionsAnswered + baseGap,
+          reviewAttempts: 1,
+          shown: false,
+          wasCloze: isCloze,
+          wasReverse: isReverse,
+          wasListening: isListening,
+          clozedForm: isCloze ? correctTranslation : null,
+          requiresTypedMastery: wasTyped,
+          forceTypedRetry: false,
+        });
+      }
     }
   }
 
@@ -5487,10 +5617,17 @@ async function fetchRandomWord() {
   // Rolled before queue priority is even computed — see pickMyWordsQuotaWord
   // for why a hit here can preempt relearning/due words, not just "new"
   // ones.
-  const myWordsQuotaEntry = pickMyWordsQuotaWord(eligibleEntries);
+  const myWordsQuotaEntry = wordGameIsPlacementRound
+    ? null
+    : pickMyWordsQuotaWord(eligibleEntries);
 
   let selectedEntry;
-  if (myWordsQuotaEntry) {
+  if (wordGameIsPlacementRound) {
+    currentWordQueueType = "placement";
+    selectedEntry = pickPrioritizedGameWord(eligibleEntries, {
+      useAbilityWeight: true,
+    });
+  } else if (myWordsQuotaEntry) {
     currentWordQueueType = "my-words-quota";
     selectedEntry = myWordsQuotaEntry;
   } else {
@@ -5878,14 +6015,46 @@ function saveAbilityState({ syncRemote = true, cloudPending = false } = {}) {
   );
 }
 
-// Used by the placement test to seed/finalize the estimate, and available
-// for a learner to retake later — the only two ways abilityScore is ever
-// set directly, as opposed to the small per-answer drift in
-// updateAbilityScore.
+// Seeds/finalizes the estimate immediately before the first real practice
+// round (and before a learner-requested recalibration round later). Direct
+// answers then adapt it through updateAbilityScore.
 function completePlacementTest(score) {
   abilityScore = clampAbility(Math.round(score));
   placementCompleted = true;
   saveAbilityState();
+}
+
+function finalizePlacementCompletion(wasPlacementRound, roundWasComplete) {
+  if (wasPlacementRound && roundWasComplete) {
+    placementCompleted = true;
+  }
+}
+
+function seedPlacementEstimate(score) {
+  abilityScore = clampAbility(Math.round(score));
+  // Preserve true for an existing learner who is voluntarily retaking
+  // placement; preserve false for a first-time learner until question 10.
+  saveAbilityState();
+}
+
+function startPlacementPracticeRound(score, { calibrate = true } = {}) {
+  if (!Array.isArray(results) || results.length === 0) {
+    renderWordGameLoadingMessage();
+    return false;
+  }
+
+  if (calibrate) {
+    seedPlacementEstimate(score);
+  } else {
+    // "Skip placement" is an explicit opt-out and therefore the only path
+    // that marks a first-time learner complete before the round finishes.
+    completePlacementTest(score);
+  }
+  beginWordGameRound("session", PLACEMENT_PRACTICE_WORD_COUNT, {
+    placementRound: true,
+    placementCalibration: calibrate,
+  });
+  return true;
 }
 
 function replaceAbilityState(remoteScore, remotePlacementCompleted) {
@@ -5974,6 +6143,7 @@ window.WordGameHelpers = Object.freeze({
   getCefrAnchors: () => ({ ...CEFR_DIFFICULTY_ANCHOR }),
   getWordDifficulty: getWordDifficultyAnchor,
   completePlacement: completePlacementTest,
+  startPlacementRound: startPlacementPracticeRound,
   replaceAbility: replaceAbilityState,
   startWordGame,
   getVocabStrengthFilterOptions,
