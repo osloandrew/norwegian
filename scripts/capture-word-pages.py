@@ -183,7 +183,6 @@ def capture(words: list[str], output_root: Path = ROOT) -> None:
                     "(w) => { clearContainer(); renderWordDefinition(w, ''); }",
                     word,
                 )
-                page.wait_for_timeout(100)
 
                 match_count = page.evaluate(
                     "document.querySelectorAll('#results-container .definition').length"

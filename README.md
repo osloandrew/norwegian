@@ -72,11 +72,29 @@ assets, the page manifest, or the sitemap are inconsistent. Representative
 pages are also compared pixel-for-pixel with fresh JavaScript renders, followed
 by an interaction smoke test.
 
-GitHub Actions runs the full process on every push to `main`. For the workflow to
-publish, set **Settings → Pages → Build and deployment → Source** to **GitHub
-Actions**. Generated directories, `sitemap.xml`, and `page-manifest.json` are
-build artifacts: the workflow recreates them before every deployment and
-`.gitignore` prevents accidental commits.
+GitHub Actions publishes on every push to `main`. For the workflow to publish,
+set **Settings → Pages → Build and deployment → Source** to **GitHub Actions**.
+Generated directories, `sitemap.xml`, and `page-manifest.json` are build
+artifacts; `.gitignore` prevents accidental commits.
+
+The workflow caches a complete, validated render together with snapshots of
+`norwegianWords.csv`, `norwegianStories.csv`, and `storyQuestions.json`. On a
+compatible cache hit, the builder recaptures only pages whose rendered data
+changed:
+
+- word-row changes update the affected primary words plus any pages connected
+  through alternative spellings or homographs;
+- story-row changes update the affected story pages and rebuild the complete
+  story index;
+- question changes update the corresponding story pages.
+
+Deleted pages are pruned, and the sitemap, page manifest, full-site structural
+validation, representative pixel comparisons, and interaction checks still run
+before deployment. A missing/incomplete cache or any change to shared HTML,
+JavaScript, CSS, browser rendering code, or other renderer inputs automatically
+falls back to a complete capture. The first build for each new renderer
+fingerprint is therefore intentionally a full build; later data-only builds are
+incremental.
 
 To reproduce the complete production build locally:
 
@@ -86,7 +104,5 @@ python3 -m playwright install chromium
 npm run build:pages
 ```
 
-The build intentionally recaptures every word and story so a change to shared
-JavaScript, styling, or application markup cannot leave only part of the static
-site stale. It can take substantially longer than the normal local development
-loop.
+Pass `--incremental` to reproduce the cache-aware production behavior locally.
+Without that flag, the command intentionally recaptures every word and story.

@@ -1545,7 +1545,12 @@ function loadStoryImage(story) {
   const candidates = cachedPath
     ? [cachedPath]
     : getStoryImageCandidates(story.titleEnglish);
-  if (!slot || !candidates.length) return;
+  if (!slot) return;
+  if (!candidates.length) {
+    slot.dataset.storyImageState = "empty";
+    return;
+  }
+  slot.dataset.storyImageState = "loading";
 
   const image = new Image();
   let candidateIndex = 0;
@@ -1556,7 +1561,11 @@ function loadStoryImage(story) {
   image.decoding = "async";
 
   const tryNextCandidate = () => {
-    if (!slot.isConnected || candidateIndex >= candidates.length) return;
+    if (!slot.isConnected) return;
+    if (candidateIndex >= candidates.length) {
+      slot.dataset.storyImageState = "empty";
+      return;
+    }
     currentCandidate = candidates[candidateIndex];
     image.src = currentCandidate;
     candidateIndex += 1;
@@ -1566,6 +1575,7 @@ function loadStoryImage(story) {
     if (!slot.isConnected) return;
     storyImagePathCache.set(cacheKey, currentCandidate);
     slot.replaceChildren(image);
+    slot.dataset.storyImageState = "ready";
     updateStoryMetadata(story, image.src);
   });
 

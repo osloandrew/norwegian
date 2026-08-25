@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: github-pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -29,6 +29,24 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-pages.txt
 
+      - name: Restore compatible rendered pages
+        uses: actions/cache@v4
+        with:
+          path: |
+            word
+            story
+            stories
+            sentences
+            word-game
+            pronunciation
+            sitemap.xml
+            page-manifest.json
+            .pages-cache
+          # Data files are deliberately excluded: their stored snapshots are
+          # diffed by the builder. Any renderer, shell, or pronunciation-data
+          # change gets a new cache and therefore a safe full capture.
+          key: pages-v1-${{ hashFiles('index.html', '*.js', 'vendor/**', 'styles/**/*.css', 'scripts/**/*.py', 'make-sitemap.py', 'requirements-pages.txt', 'inflections-data.json', 'norwegianSounds.csv') }}
+
       - name: Install page builder
         run: |
           python -m pip install --requirement requirements-pages.txt
@@ -40,7 +58,7 @@ jobs:
           python -m unittest discover -s tests -p "test_*.py" -v
 
       - name: Capture the exact rendered application pages
-        run: python scripts/build-static-pages.py
+        run: python scripts/build-static-pages.py --incremental
 
       - name: Verify representative rendered pages
         run: |

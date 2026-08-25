@@ -105,6 +105,10 @@ def capture(titles: list[str], output_root: Path = ROOT) -> None:
         with sync_playwright() as p:
             browser = p.chromium.launch()
             page = browser.new_page()
+            # The live quiz shuffles answer options for learners. Static HTML
+            # must be reproducible so selectively rebuilding one story does
+            # not create arbitrary output differences.
+            page.add_init_script("Math.random = () => 0")
             console_errors = []
             page.on(
                 "console",
@@ -120,6 +124,14 @@ def capture(titles: list[str], output_root: Path = ROOT) -> None:
             page.wait_for_function(
                 "typeof fetchAndLoadStoryData === 'function'", timeout=15000
             )
+            # Dictionary loading also controls the shared search shell. If we
+            # serialize while it is still loading, otherwise-identical story
+            # captures randomly contain disabled controls and a loading
+            # placeholder depending on which fetch wins the race.
+            page.wait_for_function(
+                "typeof results !== 'undefined' && results.length > 0",
+                timeout=30_000,
+            )
             page.evaluate("() => fetchAndLoadStoryData()")
             story_count = page.evaluate("storyResults.length")
             print(f"Story data loaded ({story_count} stories).")
@@ -132,7 +144,20 @@ def capture(titles: list[str], output_root: Path = ROOT) -> None:
                     continue
 
                 page.evaluate("(t) => { displayStory(t); }", title)
-                page.wait_for_timeout(150)
+                page.wait_for_function(
+                    "document.getElementById('story-content')?.dataset."
+                    "storyQuizState === 'ready' || "
+                    "document.getElementById('story-content')?.dataset."
+                    "storyQuizState === 'empty'",
+                    timeout=15_000,
+                )
+                page.wait_for_function(
+                    "document.getElementById('story-image-slot')?.dataset."
+                    "storyImageState === 'ready' || "
+                    "document.getElementById('story-image-slot')?.dataset."
+                    "storyImageState === 'empty'",
+                    timeout=15_000,
+                )
 
                 has_content = page.evaluate(
                     "document.getElementById('story-content').children.length > 0"

@@ -5,8 +5,7 @@
 (function () {
   "use strict";
 
-  const DATA_VERSION = 1;
-  const DATA_URL = `storyQuestions.json?v=${DATA_VERSION}`;
+  const DATA_URL = "storyQuestions.json";
   const QUIZ_RESULTS_STORAGE_KEY = "norwegian-dictionary-quiz-results-v1";
 
   let dataPromise = null;
@@ -16,7 +15,11 @@
       // Anchored to APP_ROOT_URL (scripts.js) — see the identical fix on
       // inflections.js's loadSnapshot for why a bare relative path here
       // breaks after in-app navigation.
-      dataPromise = fetch(new URL(DATA_URL, APP_ROOT_URL), { cache: "default" })
+      // Revalidate the separately-deployed data file on each fresh page load.
+      // Its contents can change without storyQuiz.js changing, so a fixed
+      // query-string version would otherwise allow returning visitors to keep
+      // an obsolete question set after an incremental deployment.
+      dataPromise = fetch(new URL(DATA_URL, APP_ROOT_URL), { cache: "no-cache" })
         .then((response) => (response.ok ? response.json() : {}))
         .catch((error) => {
           console.warn("Story questions could not be loaded.", error);
@@ -202,9 +205,15 @@
   async function renderStoryComprehensionQuiz(storyContent, story) {
     if (!storyContent || !story) return;
 
+    // Static capture waits for this explicit state instead of guessing how
+    // long the JSON fetch will take. Set it before the first await so a second
+    // story render cannot accidentally observe the previous story's state.
+    storyContent.dataset.storyQuizState = "loading";
+
     const data = await loadStoryQuestions();
     const entry = data[story.titleNorwegian];
     if (!entry || !Array.isArray(entry.questions) || !entry.questions.length) {
+      storyContent.dataset.storyQuizState = "empty";
       return;
     }
 
@@ -221,6 +230,7 @@
       story.titleNorwegian,
       entry.questions,
     );
+    storyContent.dataset.storyQuizState = "ready";
   }
 
   window.renderStoryComprehensionQuiz = renderStoryComprehensionQuiz;

@@ -2,10 +2,8 @@
 __pycache__/
 *.pyc
 
-# Disposable GitHub Pages build output. These paths remain tracked during
-# the no-downtime migration from branch publishing; after the Actions-based
-# deployment is confirmed, they can be removed from source control without
-# being accidentally re-added by a local build.
+# Disposable GitHub Pages build output. The Actions workflow restores these
+# from its validated render cache when compatible; they are never source files.
 word/
 story/
 stories/
@@ -15,3 +13,4 @@ pronunciation/
 sitemap.xml
 page-manifest.json
 build/
+.pages-cache/
