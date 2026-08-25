@@ -5233,20 +5233,20 @@ const STRENGTH_WEIGHT_CEILING = 6; // WordStrengthAPI values are 0-5
 const STRENGTH_WEIGHT_EXPONENT = 2; // squared — retune here if the curve needs adjusting
 
 // CLARINO's usefulness metadata is a separate, generated sidecar rather than
-// another norwegianWords.csv column. It is loaded only when a placement or
-// genuinely new-word draw first needs it, so dictionary browsing and review-
-// only sessions do not pay for an extra request. A failed request degrades to
-// neutral weights; vocabulary selection must never depend on this enhancement
-// being online or perfectly deployed.
-const VOCABULARY_FREQUENCY_DATA_VERSION = 1;
+// another norwegianWords.csv column. Surface-form counts are aggregated into
+// entry records offline using unambiguous official Norsk Ordbank inflections;
+// the browser only loads the compact result when a placement or genuinely new-
+// word draw first needs it. A failed request degrades to neutral weights;
+// vocabulary selection must never depend on this enhancement being online.
+const VOCABULARY_FREQUENCY_DATA_VERSION = 2;
 const VOCABULARY_USEFULNESS_RANK_MIDPOINT = 750;
 const VOCABULARY_USEFULNESS_MAX_BOOST = 3;
 const CORE_VOCABULARY_MIN_PROXIMITY = 0.25;
-let vocabularyFrequencyRanks = null;
+let vocabularyFrequencyEntries = null;
 let vocabularyFrequencyPromise = null;
 
 async function loadVocabularyFrequencyRanks() {
-  if (vocabularyFrequencyRanks) return vocabularyFrequencyRanks;
+  if (vocabularyFrequencyEntries) return vocabularyFrequencyEntries;
   if (vocabularyFrequencyPromise) return vocabularyFrequencyPromise;
 
   vocabularyFrequencyPromise = fetch(
@@ -5262,18 +5262,18 @@ async function loadVocabularyFrequencyRanks() {
     .then((data) => {
       if (
         data?.version !== VOCABULARY_FREQUENCY_DATA_VERSION ||
-        !data.ranks ||
-        typeof data.ranks !== "object"
+        !data.entries ||
+        typeof data.entries !== "object"
       ) {
         throw new Error("Unsupported vocabulary-frequency snapshot");
       }
-      vocabularyFrequencyRanks = data.ranks;
-      return vocabularyFrequencyRanks;
+      vocabularyFrequencyEntries = data.entries;
+      return vocabularyFrequencyEntries;
     })
     .catch((error) => {
       console.warn("Vocabulary usefulness ranks could not be loaded.", error);
-      vocabularyFrequencyRanks = Object.freeze({});
-      return vocabularyFrequencyRanks;
+      vocabularyFrequencyEntries = Object.freeze({});
+      return vocabularyFrequencyEntries;
     });
 
   return vocabularyFrequencyPromise;
@@ -5283,14 +5283,26 @@ async function loadVocabularyFrequencyRanks() {
 // nearly 4x weight, rank 750 receives 2.5x, rank 3,000 receives 1.6x, and a
 // matched word near the bottom still gets a small boost. Unmatched dictionary
 // words remain fully available at weight 1 rather than being filtered out.
-function getVocabularyFrequencyRank(entry) {
-  if (!vocabularyFrequencyRanks) return null;
+function getVocabularyFrequencyEntryKey(entry) {
+  const primary = getPrimaryNorwegianForm(entry)
+    .normalize("NFC")
+    .trim()
+    .toLowerCase();
+  const gender = String(entry?.gender ?? "")
+    .normalize("NFC")
+    .trim()
+    .toLowerCase();
+  return `${primary}|${gender}`;
+}
 
-  const ranks = String(entry?.ord ?? "")
-    .split(",")
-    .map((spelling) => vocabularyFrequencyRanks[normalizeGameAnswer(spelling)])
-    .filter((rank) => Number.isFinite(rank) && rank > 0);
-  return ranks.length > 0 ? Math.min(...ranks) : null;
+function getVocabularyFrequencyRecord(entry) {
+  if (!vocabularyFrequencyEntries) return null;
+  return vocabularyFrequencyEntries[getVocabularyFrequencyEntryKey(entry)] ?? null;
+}
+
+function getVocabularyFrequencyRank(entry) {
+  const rank = getVocabularyFrequencyRecord(entry)?.rank;
+  return Number.isFinite(rank) && rank > 0 ? rank : null;
 }
 
 function getVocabularyUsefulnessWeight(entry) {
@@ -5400,7 +5412,7 @@ function getRawAbilityProximity(entry) {
 // offered before this gate in fetchRandomWord, so an explicit user choice can
 // still introduce a rarer word at the selected Mix probability.
 function getCoreVocabularyCandidatePool(entries) {
-  if (!vocabularyFrequencyRanks || entries.length === 0) return entries;
+  if (!vocabularyFrequencyEntries || entries.length === 0) return entries;
 
   const coreEntries = entries.filter(
     (entry) => getVocabularyFrequencyRank(entry) !== null,

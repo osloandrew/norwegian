@@ -195,11 +195,33 @@ def feature_visual_check(browser: Browser, base_url: str, feature: str, ready_se
 
         static.goto(f"{base_url}{feature}/", wait_until="load")
         static.wait_for_selector(ready_selector, state="visible")
-        compare_png(
-            static.locator("#main-content").screenshot(animations="disabled", style=SCREENSHOT_STYLE),
-            dynamic.locator("#main-content").screenshot(animations="disabled", style=SCREENSHOT_STYLE),
-            feature,
-        )
+        if feature == "word-game":
+            # Word Game is deliberately the one feature whose captured HTML
+            # must not be identical to a fresh browser's live UI. The live
+            # entry screen depends on saved placement state, so the capture
+            # contains a neutral shell that JavaScript replaces after reading
+            # the current visitor's state. Comparing that shell with the live
+            # first-time placement screen would reject the intended behavior.
+            static_loading_card = static.locator(
+                "#results-container .game-intro-card.word-game-loading-card"
+            )
+            if static_loading_card.count() != 1:
+                raise AssertionError("word-game: static page is missing its neutral loading card")
+            static_heading = (
+                static_loading_card.locator(".game-intro-heading").text_content() or ""
+            ).strip()
+            if static_heading != "Preparing Word Game":
+                raise AssertionError("word-game: static page has the wrong neutral loading state")
+            if dynamic.locator("#results-container .word-game-loading-card").count() != 0:
+                raise AssertionError("word-game: live page did not replace the neutral loading card")
+            if dynamic.locator("#results-container .placement-card").count() != 1:
+                raise AssertionError("word-game: fresh live page did not render placement")
+        else:
+            compare_png(
+                static.locator("#main-content").screenshot(animations="disabled", style=SCREENSHOT_STYLE),
+                dynamic.locator("#main-content").screenshot(animations="disabled", style=SCREENSHOT_STYLE),
+                feature,
+            )
         canonical = static.locator('link[rel="canonical"]').get_attribute("href")
         if canonical != f"https://osloandrew.github.io/norwegian/{feature}/":
             raise AssertionError(f"{feature}: wrong static canonical {canonical!r}")
@@ -277,6 +299,12 @@ def behavior_smoke_check(browser: Browser, base_url: str, word: str, story: str)
         for feature, selector in feature_selectors.items():
             page.goto(f"{base_url}{feature}/", wait_until="load")
             page.wait_for_selector(selector, state="visible", timeout=60_000)
+            if feature == "word-game":
+                page.wait_for_selector(
+                    "#results-container .word-game-loading-card",
+                    state="detached",
+                    timeout=60_000,
+                )
             if feature == "pronunciation":
                 # Pronunciation deliberately is not a visible dropdown option;
                 # requiring the select value to equal it would change today's UI.

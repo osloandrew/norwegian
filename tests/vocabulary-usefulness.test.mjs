@@ -10,14 +10,20 @@ const frequencyData = JSON.parse(
   fs.readFileSync(path.join(root, "vocabulary-frequency.json"), "utf8"),
 );
 
-assert.equal(frequencyData.version, 1);
-assert.equal(frequencyData.license, "CC BY 3.0");
-assert.equal(frequencyData.method, "exact-lowercase-dictionary-spelling-rank");
-assert.ok(frequencyData.matchedDictionarySpellings >= 3000);
-assert.ok(frequencyData.ranks.i < frequencyData.ranks.hus);
+assert.equal(frequencyData.version, 2);
+assert.ok(["CC BY 3.0", "CC BY-NC 4.0"].includes(frequencyData.license));
+assert.equal(
+  frequencyData.method,
+  "entry-counts-exact-then-unique-official-inflection",
+);
+assert.ok(frequencyData.matchedDictionaryEntries >= 3000);
+assert.ok(
+  frequencyData.entries["i|preposition"].rank <
+    frequencyData.entries["hus|et"].rank,
+);
 // The source documentation calls uppercase Foto a newspaper-credit artifact;
 // the lowercase-only build must not accidentally restore its top-50 rank.
-assert.ok(frequencyData.ranks.foto > 2000);
+assert.ok(frequencyData.entries["foto|et"].rank > 1000);
 
 const weightStart = wordGameSource.indexOf(
   "const VOCABULARY_FREQUENCY_DATA_VERSION",
@@ -32,28 +38,42 @@ assert.notEqual(weightEnd, -1);
 const context = vm.createContext({ Math, Number, Object, URL, console });
 context.window = context;
 context.normalizeGameAnswer = (value) => String(value).trim().toLowerCase();
+context.getPrimaryNorwegianForm = (entry) => String(entry?.ord ?? "").split(",")[0];
 vm.runInContext(
   wordGameSource.slice(weightStart, weightEnd),
   context,
   { filename: "wordGame.js" },
 );
 vm.runInContext(
-  `vocabularyFrequencyRanks = ${JSON.stringify(frequencyData.ranks)}`,
+  `vocabularyFrequencyEntries = ${JSON.stringify(frequencyData.entries)}`,
   context,
 );
 
-const topWeight = context.getVocabularyUsefulnessWeight({ ord: "i" });
-const commonWeight = context.getVocabularyUsefulnessWeight({ ord: "hus" });
-const rareWeight = context.getVocabularyUsefulnessWeight({ ord: "diplomatisk" });
-const unmatchedWeight = context.getVocabularyUsefulnessWeight({ ord: "xyzzy" });
+const topWeight = context.getVocabularyUsefulnessWeight({
+  ord: "i",
+  gender: "preposition",
+});
+const commonWeight = context.getVocabularyUsefulnessWeight({
+  ord: "hus",
+  gender: "et",
+});
+const rareWeight = context.getVocabularyUsefulnessWeight({
+  ord: "diplomatisk",
+  gender: "adjective",
+});
+const unmatchedWeight = context.getVocabularyUsefulnessWeight({
+  ord: "xyzzy",
+  gender: "noun",
+});
 
 assert.ok(topWeight > commonWeight);
 assert.ok(commonWeight > rareWeight);
 assert.ok(rareWeight > 1);
 assert.equal(unmatchedWeight, 1);
 assert.equal(
-  context.getVocabularyUsefulnessWeight({ ord: "xyzzy, i" }),
-  topWeight,
+  context.getVocabularyFrequencyRecord({ ord: "hus, huset", gender: "et" })
+    .rank,
+  frequencyData.entries["hus|et"].rank,
 );
 
 const coreStart = wordGameSource.indexOf("function getRawAbilityProximity");
@@ -69,7 +89,7 @@ vm.runInContext(
     let abilityScore = 500;
     const ABILITY_PROXIMITY_SIGMA = 140;
     const CORE_VOCABULARY_MIN_PROXIMITY = 0.25;
-    let vocabularyFrequencyRanks = {};
+    let vocabularyFrequencyEntries = {};
     function getWordDifficultyAnchor(entry) { return entry.difficulty; }
     function getVocabularyFrequencyRank(entry) { return entry.rank ?? null; }
   `,
