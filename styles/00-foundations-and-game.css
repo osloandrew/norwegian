@@ -2303,7 +2303,7 @@ h4 {
     margin-bottom: 10px !important;
   }
 
-  h1 {
+  #site-title {
     font-size: 10vw !important;
     margin-bottom: 10px;
     margin-top: -5px;

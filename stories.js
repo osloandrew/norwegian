@@ -1,5 +1,32 @@
 let storyResults = []; // Global variable to store the stories
 let currentSpeed = 1.0; // default speed
+
+// Bumped on every displayStory() call. finalizeContent's next-story
+// suggestion is appended from inside an async chain (after the comprehension
+// quiz's own fetch settles) — if the reader hits Back or opens a different
+// story before that resolves, the stale callback would otherwise append
+// "Keep Reading" onto whatever story is on screen by then instead of no-op'ing.
+let storyRenderToken = 0;
+
+// The last few stories actually opened this session (oldest first), used
+// only to keep "Keep Reading" from ping-ponging around a short loop (e.g.
+// A -> B -> A -> B): readStoryTitles' READ_STORY_WEIGHT_PENALTY only
+// softly deprioritizes a read story in the ability-weighted ranking, which
+// is the right amount of friction for the browse list (rereading is still
+// a normal thing to want) but not nearly enough to guarantee a chain of
+// "next" clicks can't double back within a couple of hops. This is a hard
+// exclusion instead, and deliberately in-memory/session-only rather than
+// persisted — it only needs to interrupt a loop happening right now, not
+// remember it forever.
+let recentStoryChain = [];
+const RECENT_STORY_CHAIN_LIMIT = 5;
+
+function recordStoryChainVisit(titleNorwegian) {
+  recentStoryChain.push(titleNorwegian);
+  if (recentStoryChain.length > RECENT_STORY_CHAIN_LIMIT) {
+    recentStoryChain.shift();
+  }
+}
 // isEnglishVisible/setEnglishVisible live in englishVisibility.js, shared
 // with Sentence Search and Pronunciation.
 
@@ -643,6 +670,125 @@ function getRecommendedStory() {
   return candidates[0];
 }
 
+/*
+ * Deliberately NOT ability-based — getRecommendedStory already answers
+ * "what's good for this reader overall" for the initial/browse-list
+ * suggestion; this answers a different question, "what's good to read
+ * right after *this specific story*." A reader currently on a B1 story
+ * gets steered toward more B1 (and similar genre) next, regardless of
+ * their broader ability estimate — deliberately reading a run of stories
+ * below one's estimated level is a normal thing to want, not something to
+ * override. Prefers an unread story over a reread when one's available
+ * (see the isUnread/isFresh pool cascade below), and recentStoryChain is
+ * still hard-excluded where possible — unread preference alone mostly
+ * prevents a short "next" loop, but isn't a full guarantee once the
+ * corpus (or an active filter) is close to exhausted, so it stays as a
+ * layered safety net rather than the primary defense. Returns null only
+ * if no other CEFR-tagged story exists at all.
+ */
+// One CEFR level of distance and a genre mismatch are treated as roughly
+// equally costly — so an exact-genre pick one level off from the current
+// story and a same-level pick in a different genre score the same, and
+// either can win depending on what's actually available. Tune this if
+// one signal should matter more than the other.
+const NEXT_STORY_GENRE_MISMATCH_PENALTY = 1;
+
+function normalizeStoryGenre(genre) {
+  return (genre || "").trim().toLowerCase();
+}
+
+// How good a fit `candidate` is as the next read right after
+// `currentStory` — purely a function of the two stories' CEFR level and
+// genre distance from each other, nothing about the reader's own ability.
+// Lower is better; 0 is an exact CEFR + genre match.
+function scoreNextStoryCandidate(candidate, currentStory) {
+  const cefrDistance =
+    currentStory.CEFR && candidate.CEFR
+      ? Math.abs(
+          (CEFR_ORDER[candidate.CEFR] ?? 0) -
+            (CEFR_ORDER[currentStory.CEFR] ?? 0),
+        )
+      : 0;
+  const genreMismatch =
+    normalizeStoryGenre(candidate.genre) ===
+    normalizeStoryGenre(currentStory.genre)
+      ? 0
+      : NEXT_STORY_GENRE_MISMATCH_PENALTY;
+  return cefrDistance + genreMismatch;
+}
+
+function getNextStorySuggestion(currentStory) {
+  const isEligible = (story) =>
+    story.CEFR &&
+    story.titleNorwegian &&
+    story.titleNorwegian !== currentStory.titleNorwegian;
+
+  const isUnread = (story) => !readStoryTitles.has(story.titleNorwegian);
+  const recentlyVisited = new Set(recentStoryChain);
+  const isFresh = (story) => !recentlyVisited.has(story.titleNorwegian);
+
+  const eligible = storyResults.filter(isEligible);
+
+  // Tried in order, most-preferred first — an unread story the reader
+  // hasn't just come from is the goal, but each condition is relaxed in
+  // turn rather than giving up, so a heavily-filtered or mostly-read
+  // corpus still gets *something* rather than no suggestion at all.
+  const pools = [
+    eligible.filter((s) => isUnread(s) && isFresh(s)),
+    eligible.filter(isUnread),
+    eligible.filter(isFresh),
+    eligible,
+  ];
+  const candidates = pools.find((pool) => pool.length > 0);
+
+  if (!candidates || !candidates.length) {
+    return null;
+  }
+
+  candidates.sort((a, b) => {
+    const scoreDiff =
+      scoreNextStoryCandidate(a, currentStory) -
+      scoreNextStoryCandidate(b, currentStory);
+    return scoreDiff !== 0
+      ? scoreDiff
+      : getStoryWordCount(a) - getStoryWordCount(b);
+  });
+
+  return candidates[0];
+}
+
+/*
+ * Appends the "Keep Reading" section below the comprehension quiz (or, for
+ * a story with no quiz, in the same spot — see finalizeContent in
+ * displayStory, which awaits renderStoryComprehensionQuiz before calling
+ * this, so it always lands after wherever the quiz ended up, whether or
+ * not one actually rendered). No-ops if there's no other story to suggest.
+ */
+function renderNextStorySuggestion(storyContent, currentStory) {
+  if (!storyContent) return;
+
+  const nextStory = getNextStorySuggestion(currentStory);
+  if (!nextStory) return;
+
+  const section = document.createElement("div");
+  section.className = "story-next-section";
+
+  const heading = document.createElement("h3");
+  heading.className = "story-next-heading";
+  heading.textContent = "Keep Reading";
+  section.appendChild(heading);
+
+  section.appendChild(
+    createStoryPromoCard(
+      nextStory,
+      `<i class="fas fa-arrow-right" aria-hidden="true"></i> Up next`,
+      "story-next-card",
+    ),
+  );
+
+  storyContent.appendChild(section);
+}
+
 function isFavoriteStoriesFilterActive() {
   return document.getElementById("story-favorites-select")?.value === "favorites";
 }
@@ -758,13 +904,60 @@ function createStoryCardLink(story) {
 }
 
 /*
+ * Shared card shape (eyebrow label, title/genre/CEFR link, favorite star)
+ * behind both the browse-list "Recommended for you" banner and the
+ * end-of-story "Keep Reading" suggestion — same underlying data
+ * presentation and click behavior, but they intentionally do NOT look
+ * identical: the browse-list banner needs to visually compete against a
+ * page full of plain white cards, while "Keep Reading" sits alone at the
+ * end of a story with nothing to compete against, so the same loud
+ * treatment there just reads as a distracting callout. extraClassName
+ * (see .story-next-card in CSS) is how the two diverge without touching
+ * each other's styling.
+ */
+function createStoryPromoCard(story, labelHTML, extraClassName) {
+  const wrapper = document.createElement("div");
+  wrapper.className = extraClassName
+    ? `story-recommendation ${extraClassName}`
+    : "story-recommendation";
+
+  const label = document.createElement("div");
+  label.className = "story-recommendation-label";
+  label.innerHTML = labelHTML;
+
+  const storyLink = createStoryCardLink(story);
+  storyLink.classList.add("story-recommendation-link");
+
+  // On the wrapper, not just storyLink, so the whole card is a click
+  // target — the eyebrow label and the padding around the link are part
+  // of the visible card too, and shouldn't be dead space. The favorite
+  // star is a real sibling button inside this same wrapper, so it's
+  // explicitly excluded here (its own handler also stops propagation —
+  // this check is just a second, cheap line of defense against the two
+  // interactive targets fighting over the same click).
+  wrapper.addEventListener("click", (event) => {
+    if (event.target.closest(".story-card-favorite-button")) return;
+
+    const modifiedClick =
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+    if (modifiedClick) return;
+
+    event.preventDefault();
+    displayStory(story.titleNorwegian);
+  });
+
+  wrapper.appendChild(label);
+  wrapper.appendChild(storyLink);
+  wrapper.appendChild(createStoryFavoriteButton(story));
+
+  return wrapper;
+}
+
+/*
  * Build the highlighted "recommended for your level" banner shown at the
  * top of the Stories page.
  */
 function createStoryRecommendationElement(story) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "story-recommendation";
-
   // No "your level: X" claim here — the story's own CEFR badge (rendered
   // by createStoryCardLink below) already carries that as descriptive
   // metadata. The learner's ability estimate is otherwise invisible.
@@ -778,29 +971,11 @@ function createStoryRecommendationElement(story) {
   const isPersonalized = Number.isFinite(
     window.WordGameHelpers?.getAbilityScore?.(),
   );
-  const label = document.createElement("div");
-  label.className = "story-recommendation-label";
-  label.innerHTML = isPersonalized
+  const labelHTML = isPersonalized
     ? `<i class="fas fa-star" aria-hidden="true"></i> Recommended for you`
     : `<i class="fas fa-star" aria-hidden="true"></i> New to Norwegian? Start here`;
 
-  const storyLink = createStoryCardLink(story);
-  storyLink.classList.add("story-recommendation-link");
-
-  storyLink.addEventListener("click", (event) => {
-    const modifiedClick =
-      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
-    if (modifiedClick) return;
-
-    event.preventDefault();
-    displayStory(storyLink.dataset.storyTitle);
-  });
-
-  wrapper.appendChild(label);
-  wrapper.appendChild(storyLink);
-  wrapper.appendChild(createStoryFavoriteButton(story));
-
-  return wrapper;
+  return createStoryPromoCard(story, labelHTML);
 }
 
 async function displayStoryList(
@@ -1150,6 +1325,9 @@ function displayStory(titleNorwegian) {
   }
 
   markStoryAsRead(selectedStory.titleNorwegian);
+  recordStoryChainVisit(selectedStory.titleNorwegian);
+
+  const renderToken = ++storyRenderToken;
 
   document.title = selectedStory.titleNorwegian + " - Norwegian Dictionary";
 
@@ -1190,6 +1368,7 @@ function displayStory(titleNorwegian) {
   sticky.innerHTML = `
   <div class="sticky-detail-container">
     <div class="sticky-row">
+      <div class="sticky-favorite-slot" id="sticky-favorite-slot"></div>
       <div class="sticky-genre" id="sticky-genre-slot"></div>
       <div class="sticky-cefr-label ${cefrClass}" id="sticky-cefr-slot" title="${selectedStory.CEFR ? getCefrTooltip(selectedStory.CEFR) : ""}">
         ${selectedStory.CEFR || "N/A"}
@@ -1205,6 +1384,14 @@ function displayStory(titleNorwegian) {
 
   const stickyHeaderEl = document.getElementById("sticky-header");
   const audioSlot = document.getElementById("sticky-audio-slot");
+
+  // Same star/click/sync behavior as the browse-list card star — it's
+  // already wired to story-favorites:updated, so favoriting from here
+  // stays in sync with the list (and other tabs/devices) for free.
+  const favoriteSlot = document.getElementById("sticky-favorite-slot");
+  if (favoriteSlot) {
+    favoriteSlot.appendChild(createStoryFavoriteButton(selectedStory));
+  }
 
   stickyHeaderEl.style.display = "flex";
   stickyHeaderEl.style.alignItems = "center";
@@ -1390,7 +1577,23 @@ function displayStory(titleNorwegian) {
     hideSpinner(); // Hide spinner after story content is displayed
     scheduleStoryUpgrades();
     if (storyContent && typeof renderStoryComprehensionQuiz === "function") {
-      renderStoryComprehensionQuiz(storyContent, selectedStory);
+      // Chained rather than fired alongside — renderStoryComprehensionQuiz
+      // awaits a fetch before it knows whether this story even has a quiz
+      // to append, so appending the next-story section unconditionally
+      // right here could land it above the quiz, or before a quiz-less
+      // story has settled at all. Waiting for that promise guarantees
+      // "Keep Reading" always ends up last, quiz or no quiz.
+      renderStoryComprehensionQuiz(storyContent, selectedStory).then(() => {
+        // The reader may have hit Back or opened a different story while
+        // that fetch was in flight — storyContent is the same persistent
+        // element either way, so without this check a stale callback would
+        // append "Keep Reading" onto whatever's on screen now instead of
+        // quietly doing nothing.
+        if (renderToken !== storyRenderToken) return;
+        renderNextStorySuggestion(storyContent, selectedStory);
+      });
+    } else if (storyContent) {
+      renderNextStorySuggestion(storyContent, selectedStory);
     }
   };
 
@@ -2301,8 +2504,14 @@ function resolveStoryWordEntries(normalizedWord) {
     // the verb "hjelpe" ("helps"); resolveWordSearchQuery would only ever
     // surface the former. Checking findLemmas independently, in addition
     // to the exact match, catches both.
+    // Skips entries whose headword is on the noRandom blocklist (e.g. "pule",
+    // the vulgar verb whose past participle "pult" collides with the
+    // innocuous noun "pult" — a story about classroom desks shouldn't pop
+    // up "fucked" as a hint). Same ord-based check scripts.js/wordGame.js
+    // use to keep these words out of the word game.
     const entries = [];
     const addEntry = (entry) => {
+      if (noRandom.includes(String(entry.ord || "").toLowerCase())) return;
       if (!entries.includes(entry)) entries.push(entry);
     };
 
@@ -2767,6 +2976,7 @@ function renderStoryWordPopoverContent(
     starButton.type = "button";
     starButton.className = "word-list-favorite-button story-word-popover-star";
     starButton.innerHTML = '<i aria-hidden="true"></i>';
+    starButton.myWordsEntry = entry;
     updateStoryWordPopoverStar(
       starButton,
       entry,
@@ -2918,8 +3128,28 @@ async function highlightKnownStoryWords() {
   });
 }
 
+// Keeps any already-open word popover's star in sync with a favorite made
+// or undone elsewhere (Word List, a search result star, another device via
+// remote sync) — otherwise a popover left open across such a change kept
+// showing its star's pre-change state until closed and reopened.
+function refreshOpenStoryWordPopoverStars() {
+  if (!activeStoryWordPopover) return;
+  activeStoryWordPopover
+    .querySelectorAll(".story-word-popover-star")
+    .forEach((button) => {
+      const entry = button.myWordsEntry;
+      if (!entry) return;
+      updateStoryWordPopoverStar(
+        button,
+        entry,
+        window.MyWordsAPI?.isSaved?.(entry) ?? false,
+      );
+    });
+}
+
 window.addEventListener("my-words:updated", () => {
   highlightKnownStoryWords();
+  refreshOpenStoryWordPopoverStars();
 });
 
 document.addEventListener("click", (event) => {

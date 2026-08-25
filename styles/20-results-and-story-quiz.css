@@ -708,6 +708,13 @@ ul {
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
   font-weight: bold;
+  /* Matches .sticky-genre's explicit height so the two badges are always
+     identically sized. Previously unset, this only *looked* the same as
+     the genre badge because the row's default align-items: stretch
+     happened to stretch this (height: auto) item to match — a coincidence
+     that broke as soon as a fixed-size third item (the favorite star)
+     needed align-items: center instead. */
+  height: 30px;
   justify-content: center; /* Center horizontally */
   max-width: 100%; /* Ensures they don't exceed the parent container */
   min-width: 25%;
@@ -730,7 +737,6 @@ ul {
 
 .sticky-genre {
   align-items: center; /* Center vertically */
-  align-self: flex-start;
   background-color: var(
     --color-bg-subtle
   ); /* Light background for genre badge */
@@ -776,8 +782,11 @@ ul {
 }
 
 .sticky-row {
+  align-items: center; /* the favorite star is taller than the genre/CEFR
+    badges beside it — without this they'd all share a top edge instead of
+    a shared center, making the star look like it hangs down past them */
   display: flex;
-  gap: 5px; /* Space between genre and CEFR */
+  gap: 5px; /* Space between favorite star, genre, and CEFR */
 }
 
 .sticky-title-container {
@@ -895,6 +904,7 @@ ul {
   border-left: 5px solid var(--color-primary);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer; /* the whole card is a click target, not just the link inside it */
   margin: 0 0 10px 0;
   overflow: hidden;
   position: relative;
@@ -924,6 +934,33 @@ ul {
 
 .story-recommendation-label i {
   color: #d9a441;
+}
+
+/* The end-of-story "Keep Reading" card reuses .story-recommendation's
+   shape but deliberately not its loud styling: that treatment exists to
+   win attention against a page full of plain white browse-list cards,
+   which isn't the situation here — this card is alone at the end of a
+   story, so the same blue fill/accent bar/shadow just reads as a
+   distracting callout instead of a quiet "up next" nudge. */
+.story-recommendation.story-next-card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border-light);
+  box-shadow: none;
+  transition: background-color 0.2s ease;
+}
+
+.story-recommendation.story-next-card:hover {
+  background-color: var(--color-bg-subtle);
+  box-shadow: none;
+  transform: none;
+}
+
+.story-recommendation.story-next-card .story-recommendation-label {
+  color: var(--color-text-muted);
+}
+
+.story-recommendation.story-next-card .story-recommendation-label i {
+  color: inherit;
 }
 
 .story-recommendation .story-card-link {
@@ -991,6 +1028,39 @@ body.stories-mode .story-card-favorite-button:hover::before {
 
 body.stories-mode .story-recommendation .story-card-favorite-button {
   top: 34px;
+}
+
+/* Reading-view sticky header: same star, genre, CEFR order as the
+   browse-list rail, just left-to-right in this single row instead of
+   stacked, since the sticky bar has no room to spare for an extra row.
+   The button is a normal flex item here (position: relative, not the
+   card's absolute overlay) — top/right must be reset or the card's
+   offsets would carry over and shift it out of the row. position:
+   relative (not static) keeps ::before's absolute hover circle
+   positioned against the button itself, not the sticky bar.
+   Both selectors are needed: body.stories-mode isn't reliably present on
+   a direct /story/<slug>/ page load (only set once the SPA's own type
+   switch runs), so the plain selector covers that case, while the
+   body-prefixed one is needed to out-specificity
+   body.stories-mode .story-card-favorite-button's own top/right when that
+   class *is* present. */
+.sticky-row .story-card-favorite-button,
+body.stories-mode .sticky-row .story-card-favorite-button {
+  position: relative;
+  top: auto;
+  right: auto;
+  flex: 0 0 auto;
+  /* The button's default 20px icon is sized for list rows — full-size
+     here it visually outweighs the much smaller 12px genre glyph beside
+     it, throwing off the equal 5px gaps the row's `gap` already gives
+     all three items (they only look uneven because of that size
+     mismatch, not the spacing itself). Sized to exactly match
+     .sticky-genre's height (30px base / 25px under the max-width:1024px
+     breakpoint below) rather than just visually approximating it, so the
+     three badges are identically sized at every width, not just close. */
+  font-size: 17px;
+  height: 30px;
+  width: 30px;
 }
 
 body.stories-mode .stories-genre,
@@ -1172,6 +1242,25 @@ body.stories-mode .story-recommendation .cefr-value {
 }
 
 .story-quiz-heading {
+  color: var(--color-heading);
+  font-family: "Noto Serif", serif;
+  font-size: 1.3em;
+  font-weight: 400;
+  margin: 0 0 0.75em 0;
+}
+
+/* Mirrors .story-quiz-section/.story-quiz-heading directly above it, so
+   the two read as one continuous "after the story" area rather than a
+   visually competing add-on — the .story-recommendation card underneath
+   (shared with the browse-list banner) is what actually gives it enough
+   presence to be noticed. */
+.story-next-section {
+  border-top: 1px solid var(--color-border-light);
+  margin-top: 1.5em !important;
+  padding-top: 1.5em;
+}
+
+.story-next-heading {
   color: var(--color-heading);
   font-family: "Noto Serif", serif;
   font-size: 1.3em;
@@ -1456,6 +1545,12 @@ body.stories-mode .story-recommendation .cefr-value {
     height: 25px;
   }
 
+  .sticky-row .story-card-favorite-button {
+    font-size: 16px;
+    height: 28px;
+    width: 28px;
+  }
+
   #sticky-header {
     border: none;
     gap: 0.5em;
@@ -1723,24 +1818,29 @@ body.stories-mode .story-recommendation .cefr-value {
   }
 
   .result-header.word-results-header,
-  .result-header.sentence-results-header {
+  .result-header.sentence-results-header,
+  .result-header.story-results-header {
     flex-wrap: wrap;
   }
 
   .word-results-header-copy,
-  .sentence-results-header-copy {
+  .sentence-results-header-copy,
+  .story-results-header-copy {
     flex: 1 1 210px;
   }
 
+  .story-results-filters,
   .search-results-filters {
     gap: 8px 12px;
     margin-top: 8px;
   }
 
+  .story-results-filter-summary,
   .search-results-filter-summary {
     min-width: 0;
   }
 
+  .story-results-filter-summary + .story-results-filter-summary,
   .search-results-filter-summary + .search-results-filter-summary {
     padding-left: 12px;
   }
