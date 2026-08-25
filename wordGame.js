@@ -841,17 +841,59 @@ function updateAbilityScore(wordObj, isCorrect) {
   saveAbilityState({ syncRemote: false, cloudPending: true });
 }
 
+function updateGameEnglishTranslationVisibility() {
+  document
+    .querySelectorAll(".game-cefr-spacer .game-english-translation")
+    .forEach((translationElement) => {
+      if (
+        translationElement.classList.contains(
+          "game-english-translation-required",
+        )
+      ) {
+        translationElement.style.display = "inline-block";
+        return;
+      }
+
+      translationElement.style.display = isEnglishVisible
+        ? "inline-block"
+        : "none";
+    });
+}
+
+function syncGameEnglishControls() {
+  const englishSelect = document.getElementById("game-english-select");
+  if (englishSelect) {
+    englishSelect.value = isEnglishVisible ? "show-english" : "hide-english";
+  }
+
+  const toggleButton = document.getElementById("game-english-toggle-btn");
+  if (!toggleButton) return;
+
+  const action = isEnglishVisible ? "Hide" : "Show";
+  const label = `${action} example translations`;
+  toggleButton.setAttribute("aria-label", label);
+  toggleButton.setAttribute("aria-pressed", String(isEnglishVisible));
+  toggleButton.title = label;
+  const visibleLabel = toggleButton.querySelector(
+    ".game-english-toggle-label",
+  );
+  if (visibleLabel) {
+    visibleLabel.textContent = `${action} translations`;
+  }
+}
+
 function toggleGameEnglish() {
   const englishSelect = document.getElementById("game-english-select");
+  if (!englishSelect) return;
   setEnglishVisible(englishSelect.value === "show-english");
+  syncGameEnglishControls();
+  updateGameEnglishTranslationVisibility();
+}
 
-  const translationElement = document.querySelector(
-    ".game-cefr-spacer .game-english-translation",
-  );
-
-  if (translationElement) {
-    translationElement.style.display = isEnglishVisible ? "block" : "none";
-  }
+function toggleGameEnglishButton() {
+  setEnglishVisible(!isEnglishVisible);
+  syncGameEnglishControls();
+  updateGameEnglishTranslationVisibility();
 }
 
 // Shared by every one-off audio-clip playback in the app (word/sentence
@@ -1042,6 +1084,7 @@ function renderStats(instructionHTML = "") {
   if (progressEl) {
     progressEl.textContent = getWordGameSessionProgressLabel();
   }
+
 }
 
 function normalizeGameWhitespace(value) {
@@ -2695,6 +2738,13 @@ function renderMinimalPairQuestion() {
     };
   }
 
+  // Minimal Pairs is deliberately separate from wordGameRoundActive's SRS
+  // bookkeeping, but its question-report action still belongs in the same
+  // compact overflow affordance as every other live question.
+  const roundMenu = document.getElementById("game-round-menu");
+  roundMenu?.classList.remove("hidden");
+  document.body.classList.add("word-game-round-active");
+
   const wordElement = document.querySelector(".game-word-audio");
   const replay = () => {
     playAudioTapFeedback(wordElement);
@@ -2812,6 +2862,12 @@ function handleMinimalPairAnswer(selectedWord, targetWord, pair) {
 function showMinimalPairsResults() {
   stopAllAudio();
   document.getElementById("game-report-issue")?.classList.add("hidden");
+  const roundMenu = document.getElementById("game-round-menu");
+  if (roundMenu) {
+    roundMenu.open = false;
+    roundMenu.classList.add("hidden");
+  }
+  document.body.classList.remove("word-game-round-active");
 
   // Only reachable once the queue is empty, which — since a miss requeues
   // instead of being dropped (see handleMinimalPairAnswer) — means every
@@ -2978,13 +3034,35 @@ function getWordGameSessionProgressPercent() {
 // question to report on outside a round (landing screen, daily quest
 // picker, placement test), so it follows the exact same lifecycle.
 function updateEndSessionToolbarButtonVisibility() {
+  document.body.classList.toggle(
+    "word-game-round-active",
+    wordGameRoundActive,
+  );
   document
     .getElementById("game-end-session-btn")
     ?.classList.toggle("hidden", !wordGameRoundActive);
   document
     .getElementById("game-report-issue")
     ?.classList.toggle("hidden", !wordGameRoundActive);
+  document
+    .getElementById("game-english-toggle-btn")
+    ?.classList.toggle("hidden", !wordGameRoundActive);
+
+  const roundMenu = document.getElementById("game-round-menu");
+  roundMenu?.classList.toggle("hidden", !wordGameRoundActive);
+  if (roundMenu) {
+    roundMenu.open =
+      wordGameRoundActive &&
+      window.matchMedia("(min-width: 1025px)").matches;
+  }
 }
+
+// A native <details> is a popover on compact screens, but its same action
+// panel is flattened into the desktop toolbar. Keep the native open state in
+// sync when a device rotates or the browser crosses the desktop breakpoint.
+window
+  .matchMedia("(min-width: 1025px)")
+  .addEventListener("change", updateEndSessionToolbarButtonVisibility);
 
 // The dictionary CSV (several MB) is still fetching/parsing for the first
 // few seconds after page load. Word Game's own entry screen (the mode
@@ -3360,6 +3438,7 @@ async function startWordGame() {
   // Search, Pronunciation, and Stories) instead of always defaulting to
   // "show-english".
   gameEnglishSelect.value = isEnglishVisible ? "show-english" : "hide-english";
+  syncGameEnglishControls();
 
   posSelect.value = ""; // Reset to "Part of Speech" option
   posFilterContainer.style.display = "none";
@@ -4405,9 +4484,9 @@ function renderClozeGameUI(
         ${
           clozeSentenceTranslation
             ? `<div class="sentence-pair">
-          <p class="game-english-translation" style="display: ${
-            isEnglishVisible ? "inline-block" : "none"
-          };">${clozeSentenceTranslation}</p>
+          <!-- Typed cloze needs this semantic cue to identify the missing
+               Norwegian form, regardless of the global translation setting. -->
+          <p class="game-english-translation game-english-translation-required" style="display: inline-block;">${clozeSentenceTranslation}</p>
         </div>`
             : ""
         }
@@ -5021,8 +5100,8 @@ async function handleTranslationClick(
     makeSentenceClickable(sentenceElement, completedSentence);
   } else if (exampleSentence && isCloze) {
     const translationHTML = `
-      <p class="game-english-translation" style="display: ${
-        isEnglishVisible ? "inline-block" : "none"
+      <p class="game-english-translation${wasTyped ? " game-english-translation-required" : ""}" style="display: ${
+        wasTyped || isEnglishVisible ? "inline-block" : "none"
       };">${sentenceTranslation}</p>`;
 
     document.querySelector(".game-cefr-spacer").innerHTML = `
@@ -6309,7 +6388,16 @@ document.addEventListener("keydown", function (event) {
 // at load time — visibility is handled separately by
 // updateEndSessionToolbarButtonVisibility().
 document.getElementById("game-end-session-btn")?.addEventListener("click", () => {
+  const roundMenu = document.getElementById("game-round-menu");
+  if (roundMenu) roundMenu.open = false;
   showWordGameRoundSummary();
+});
+
+// The report action opens a modal of its own; close the disclosure behind it
+// so focus returns to a settled toolbar when that dialog is dismissed.
+document.getElementById("game-report-issue")?.addEventListener("click", () => {
+  const roundMenu = document.getElementById("game-round-menu");
+  if (roundMenu) roundMenu.open = false;
 });
 
 window.DailyQuestAPI = Object.freeze({

@@ -641,11 +641,11 @@ li {
 .game-cefr-spacer {
   align-items: safe flex-end;
   display: flex;
-  flex: 0 0 70px;
+  flex: 0 0 60px;
   gap: 5px; /* Optional: Space between the elements */
-  height: 70px;
-  max-height: 70px;
-  min-height: 70px;
+  height: 60px;
+  max-height: 60px;
+  min-height: 60px;
   overflow-y: auto;
   text-align: center;
   flex-direction: row;
@@ -791,7 +791,7 @@ li {
   display: grid;
   grid-template-columns: minmax(72px, 1fr) auto minmax(72px, 1fr);
   gap: 10px;
-  min-height: 70px;
+  min-height: 58px;
   width: 100%;
 }
 
@@ -1188,11 +1188,11 @@ li {
 .game-word {
   align-items: safe center; /* Center short prompts; start long overflow safely. */
   display: flex;
-  flex: 0 0 8rem;
-  height: 8rem;
+  flex: 0 0 7rem;
+  height: 7rem;
   justify-content: safe center;
-  max-height: 8rem;
-  min-height: 8rem;
+  max-height: 7rem;
+  min-height: 7rem;
   overflow-x: hidden;
   overflow-y: auto;
   text-align: center;
@@ -2134,7 +2134,7 @@ p.game-summary-stat-label {
   display: flex;
   flex-direction: column; /* Stack the label and word vertically */
   font-size: 1.2em;
-  height: 290px;
+  height: 250px;
   justify-content: center; /* Center the content vertically */
   margin-bottom: 15px !important;
   overflow: hidden; /* Prevent overflowing content from changing layout */
@@ -2147,8 +2147,8 @@ p.game-summary-stat-label {
      which otherwise collapsed this into a tall, narrow sliver. */
   width: 100%;
   position: relative; /* Allow for flexible layout */
-  max-height: 290px;
-  min-height: 290px;
+  max-height: 250px;
+  min-height: 250px;
 }
 
 .gender {
@@ -2351,9 +2351,16 @@ h4 {
   }
 
   body.word-game-mode .game-word-card {
-    height: 268px;
-    max-height: 268px;
-    min-height: 268px;
+    height: 232px;
+    max-height: 232px;
+    min-height: 232px;
+  }
+
+  body.word-game-mode .game-word {
+    flex-basis: 6.5rem;
+    height: 6.5rem;
+    max-height: 6.5rem;
+    min-height: 6.5rem;
   }
 
   body.word-game-mode .game-grid {
@@ -2401,6 +2408,50 @@ h4 {
 
   .game-word-card {
     padding: 8px;
+  }
+}
+
+/* Keep the sole forward action in one stable, thumb-reachable location for
+   the entire question. Its disabled/enabled styling changes after grading,
+   but its position does not. Round summaries and the intro have no matching
+   container, so the dock naturally disappears on those screens. */
+@media (max-width: 600px) {
+  .game-typed-answer-input {
+    /* iOS Safari zooms the viewport when a focused form control is below
+       16px. Keep the answer field at the native no-zoom threshold. */
+    font-size: 16px;
+  }
+
+  body.word-game-mode.word-game-round-active #results-container {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+
+  body.word-game-mode
+    .game-next-button-container {
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    box-shadow: 0 8px 24px rgba(20, 38, 58, 0.22);
+    box-sizing: border-box;
+    left: 50%;
+    padding: 7px;
+    position: fixed;
+    transform: translateX(-50%);
+    width: calc(100vw - 18px);
+    z-index: 25;
+  }
+
+  body.word-game-mode
+    .game-next-button-container
+    #game-next-word-button,
+  body.word-game-mode
+    .game-typed-grid
+    ~ .game-next-button-container
+    #game-next-word-button {
+    margin-top: 0;
+    min-height: 52px;
+    padding: 13px 15px;
   }
 }
 

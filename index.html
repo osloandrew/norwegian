@@ -498,12 +498,12 @@
             <div
               class="game-english-filter"
               id="game-english-filter"
-              aria-label="Show or hide English"
+              aria-label="Show or hide example translations"
               style="display: none"
             >
               <select id="game-english-select" onchange="toggleGameEnglish()">
-                <option value="show-english">Show English</option>
-                <option value="hide-english">Hide English</option>
+                <option value="show-english">Show translations</option>
+                <option value="hide-english">Hide translations</option>
               </select>
               <i class="fas fa-chevron-down"></i>
             </div>
@@ -532,36 +532,42 @@
                      don't throw; never shown. -->
                 <i id="lock-icon" style="display: none"></i>
               </div>
-              <!-- Only shown mid-round, in any Word Game mode — see
-                   updateEndSessionToolbarButtonVisibility() in wordGame.js,
-                   which toggles the "hidden" class below, and the
-                   word-game-active scoping in styles.css. Sits where the
-                   CEFR filter (.cefr-filter, above) would otherwise be —
-                   the word game hides that dropdown entirely, so this has
-                   the room to live here on every screen size. -->
-              <button
-                type="button"
-                id="game-end-session-btn"
-                class="game-end-session-btn hidden"
-                aria-label="Quit this round early and see your stats"
-              >
-                Quit &amp; see stats
-              </button>
-              <!-- Only shown mid-round, in any Word Game mode — see
-                   updateEndSessionToolbarButtonVisibility() in wordGame.js,
-                   which toggles the "hidden" class below, and the
-                   word-game-active scoping in styles.css. There's no
-                   question in front of the learner to report on the
-                   landing screen, daily quest picker, or placement test. -->
-              <button
-                type="button"
-                id="game-report-issue"
-                class="toolbar-report-issue-btn hidden"
-                aria-label="Report an issue with this question"
-                title="Report an issue"
-              >
-                <i class="fas fa-flag" aria-hidden="true"></i>
-              </button>
+              <details id="game-round-menu" class="game-round-menu hidden">
+                <summary aria-label="More round options" title="More round options">
+                  <i class="fas fa-ellipsis-h" aria-hidden="true"></i>
+                </summary>
+                <div class="game-round-menu-panel">
+                  <button
+                    type="button"
+                    id="game-english-toggle-btn"
+                    class="game-english-toggle-btn hidden"
+                    aria-label="Show example translations"
+                    aria-pressed="false"
+                    title="Show example translations"
+                    onclick="toggleGameEnglishButton()"
+                  >
+                    <span aria-hidden="true">🇬🇧</span>
+                    <span class="game-english-toggle-label">Show translations</span>
+                  </button>
+                  <button
+                    type="button"
+                    id="game-report-issue"
+                    class="toolbar-report-issue-btn hidden"
+                  >
+                    <i class="fas fa-flag" aria-hidden="true"></i>
+                    <span>Report question</span>
+                  </button>
+                  <button
+                    type="button"
+                    id="game-end-session-btn"
+                    class="game-end-session-btn hidden"
+                    aria-label="Quit this round early and see your stats"
+                  >
+                    <i class="fas fa-chart-bar" aria-hidden="true"></i>
+                    <span>Quit &amp; see stats</span>
+                  </button>
+                </div>
+              </details>
             </div>
           </div>
 

@@ -342,6 +342,163 @@ body.my-stats-mode .cefr-filter-group {
   outline-offset: 2px;
 }
 
+.game-english-toggle-btn {
+  align-items: center;
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+  box-sizing: border-box;
+  cursor: pointer;
+  display: none;
+  flex: 0 0 42px;
+  font-size: 18px;
+  height: 42px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+  width: 42px;
+}
+
+.game-english-toggle-btn:hover,
+.game-english-toggle-btn[aria-pressed="true"] {
+  background-color: var(--color-bg-hover-blue);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.16);
+}
+
+.game-english-toggle-btn:focus-visible {
+  outline: 3px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+.game-round-menu {
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 101;
+}
+
+.game-round-menu > summary {
+  align-items: center;
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+  box-sizing: border-box;
+  color: var(--color-primary);
+  cursor: pointer;
+  display: flex;
+  height: 42px;
+  justify-content: center;
+  list-style: none;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+  width: 42px;
+}
+
+.game-round-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.game-round-menu > summary:focus-visible {
+  outline: 3px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+.game-round-menu > summary:hover,
+.game-round-menu[open] > summary {
+  background-color: var(--color-bg-hover-blue);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.16);
+}
+
+.game-round-menu > summary:active {
+  transform: scale(0.96);
+}
+
+.game-round-menu-panel {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(20, 38, 58, 0.24);
+  box-sizing: border-box;
+  display: grid;
+  gap: 4px;
+  min-width: 205px;
+  padding: 6px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 7px);
+  z-index: 102;
+}
+
+#search-container-inner.word-game-active
+  .game-round-menu-panel
+  .toolbar-report-issue-btn,
+#search-container-inner.word-game-active
+  .game-round-menu-panel
+  .game-end-session-btn {
+  align-items: center;
+  background-color: transparent;
+  border: 0;
+  border-radius: 7px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: var(--color-text);
+  display: flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  gap: 10px;
+  height: auto;
+  justify-content: flex-start;
+  letter-spacing: 0;
+  min-height: 42px;
+  padding: 9px 11px;
+  text-transform: none;
+  width: 100%;
+}
+
+#search-container-inner.word-game-active
+  .game-round-menu-panel
+  .toolbar-report-issue-btn:hover,
+#search-container-inner.word-game-active
+  .game-round-menu-panel
+  .game-end-session-btn:hover {
+  background-color: var(--color-bg-hover-blue);
+}
+
+.game-round-menu-panel .toolbar-report-issue-btn i {
+  color: var(--color-danger);
+  width: 16px;
+}
+
+.game-round-menu-panel .game-end-session-btn i {
+  color: var(--color-primary);
+  width: 16px;
+}
+
+/* Keep the open panel above the stats/card immediately below the toolbar,
+   including inside the mobile stacking context. */
+body.word-game-mode.word-game-round-active #search-container,
+body.word-game-mode.word-game-round-active #search-container-inner,
+body.word-game-mode.word-game-round-active .selectors-wrapper,
+body.word-game-mode.word-game-round-active .cefr-filter-group {
+  overflow: visible;
+}
+
+body.word-game-mode.word-game-round-active #search-container {
+  position: relative;
+  z-index: 100;
+}
+
+body.word-game-mode.word-game-round-active .cefr-filter-group {
+  flex: 0 0 auto;
+}
+
 .search-btn {
   align-items: center;
   background-color: var(--color-primary);
@@ -705,6 +862,17 @@ body.my-stats-mode .cefr-filter-group {
     padding: 4px 13px;
   }
 
+  body.word-game-mode .game-english-toggle-btn {
+    flex-basis: 38px;
+    height: 38px;
+    width: 38px;
+  }
+
+  body.word-game-mode .game-round-menu > summary {
+    height: 38px;
+    width: 38px;
+  }
+
   #search-container-inner.word-game-active #game-end-session-btn {
     align-self: stretch;
     flex: 0 0 auto;
@@ -726,6 +894,107 @@ body.my-stats-mode .cefr-filter-group {
   body.word-game-mode .game-english-filter > .fa-chevron-down {
     right: 10px;
   }
+}
+
+/* During a phone-sized round, keep the toolbar to one compact row: the
+   game selector plus a disclosure containing translations, report, and quit. */
+@media (max-width: 600px) {
+  body.word-game-mode.word-game-round-active .game-english-filter {
+    display: none !important;
+  }
+
+  body.word-game-mode.word-game-round-active
+    .game-english-toggle-btn:not(.hidden) {
+    display: flex;
+  }
+
+  body.word-game-mode.word-game-round-active .selectors-wrapper {
+    align-items: center;
+    grid-template-columns: minmax(0, 1fr) max-content;
+  }
+
+  body.word-game-mode.word-game-round-active .cefr-filter-group {
+    display: contents;
+  }
+
+  body.word-game-mode .game-round-menu > summary {
+    background-color: var(--color-primary);
+    border: 0;
+    border-radius: 15px;
+    box-shadow: none;
+    color: var(--color-white);
+  }
+
+  body.word-game-mode .game-round-menu > summary:hover,
+  body.word-game-mode .game-round-menu[open] > summary {
+    background-color: var(--color-link);
+    box-shadow: none;
+  }
+
+  body.word-game-mode .game-round-menu > summary:focus-visible {
+    outline-color: var(--color-primary);
+  }
+
+  #search-container-inner.word-game-active
+    .game-round-menu-panel
+    .game-english-toggle-btn:not(.hidden) {
+    align-items: center;
+    background-color: transparent;
+    border: 0;
+    border-radius: 7px;
+    box-shadow: none;
+    color: var(--color-text);
+    display: flex;
+    flex-basis: auto;
+    font-family: "Noto Sans", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    gap: 10px;
+    height: auto;
+    justify-content: flex-start;
+    line-height: normal;
+    min-height: 42px;
+    padding: 9px 11px;
+    width: 100%;
+  }
+
+  #search-container-inner.word-game-active
+    .game-round-menu-panel
+    .game-english-toggle-btn:hover,
+  #search-container-inner.word-game-active
+    .game-round-menu-panel
+    .game-english-toggle-btn[aria-pressed="true"] {
+    background-color: var(--color-bg-hover-blue);
+  }
+
+  #search-container-inner.word-game-active
+    .game-round-menu-panel
+    .game-english-toggle-btn:not(.hidden),
+  #search-container-inner.word-game-active
+    .game-round-menu-panel
+    .toolbar-report-issue-btn:not(.hidden),
+  #search-container-inner.word-game-active
+    .game-round-menu-panel
+    #game-end-session-btn:not(.hidden) {
+    font-family: "Noto Sans", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    height: auto;
+    letter-spacing: 0;
+    line-height: 1.25;
+    min-height: 42px;
+    padding: 9px 11px;
+    text-transform: none;
+  }
+
+  .game-round-menu-panel button > :first-child {
+    align-items: center;
+    display: inline-flex;
+    flex: 0 0 18px;
+    justify-content: center;
+    width: 18px;
+  }
+
 }
 
 /* Desktop navigation contract. */
@@ -824,6 +1093,73 @@ body.my-stats-mode .cefr-filter-group {
   body.word-game-mode .cefr-filter-group {
     flex: 0 0 auto;
     min-width: 0;
+  }
+
+  body.word-game-mode .game-english-filter {
+    flex: 0 0 210px;
+    width: 210px;
+  }
+
+  body.word-game-mode .game-english-filter select {
+    text-overflow: clip;
+    white-space: nowrap;
+  }
+
+  /* Desktop has room for the two round actions directly in the toolbar.
+     Flatten the mobile/tablet disclosure without duplicating controls. */
+  body.word-game-mode .game-round-menu:not(.hidden) {
+    display: flex;
+    position: static;
+  }
+
+  body.word-game-mode .game-round-menu > summary {
+    display: none;
+  }
+
+  body.word-game-mode .game-round-menu-panel {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+    padding: 0;
+    position: static;
+  }
+
+  #search-container-inner.word-game-active
+    .game-round-menu-panel
+    .game-end-session-btn {
+    background-color: var(--color-white);
+    border: 1.5px solid var(--color-primary);
+    color: var(--color-primary);
+    font-size: 10px;
+    height: 44px;
+    justify-content: center;
+    letter-spacing: 0.04em;
+    padding: 0 14px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    width: auto;
+    order: 1;
+  }
+
+  #search-container-inner.word-game-active
+    .game-round-menu-panel
+    .toolbar-report-issue-btn {
+    background-color: var(--color-bg-subtle);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    height: 44px;
+    justify-content: center;
+    padding: 0;
+    width: 44px;
+    order: 2;
+  }
+
+  .game-round-menu-panel .toolbar-report-issue-btn span,
+  .game-round-menu-panel .game-end-session-btn i {
+    display: none;
   }
 
   #search-container-inner.word-game-active #game-end-session-btn,

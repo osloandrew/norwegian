@@ -129,6 +129,19 @@ assert.match(source, /form\.classList\.contains\("is-answered"\)/);
 assert.match(source, /if \(event\.defaultPrevented\) return/);
 assert.doesNotMatch(source, /feedback\.innerHTML = `Correct answer:/);
 
+// Typed cloze relies on the English sentence as its semantic cue. It must
+// remain visible even when the learner's global translation preference is
+// hidden, both on initial render and after the answer is graded.
+assert.match(
+  source,
+  /game-english-translation game-english-translation-required/,
+);
+assert.match(source, /wasTyped \|\| isEnglishVisible/);
+assert.match(
+  source,
+  /translationElement\.classList\.contains\([\s\S]*?"game-english-translation-required"/,
+);
+
 const answerButtonMatches = source.match(
   /<button type="button" class="game-translation-card"/g,
 );
