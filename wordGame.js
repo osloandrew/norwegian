@@ -2151,18 +2151,12 @@ function renderLandingProgressSummary() {
   const { total, counts, dueCount } = getVocabProgressSummary();
 
   if (total === 0) {
-    container.innerHTML = `
-      <div class="landing-progress-summary-header">
-        <div>
-          <p class="landing-progress-summary-eyebrow">Your progress</p>
-          <h3 id="landing-progress-summary-heading">Vocabulary profile</h3>
-        </div>
-      </div>
-      <p class="landing-progress-summary-empty">Play the Word Game to start building your vocabulary profile — words you practice will show up here, grouped by how well you know them.</p>
-    `;
+    container.hidden = true;
+    container.innerHTML = "";
     return;
   }
 
+  container.hidden = false;
   container.innerHTML = `
     <div class="landing-progress-summary-header">
       <div>

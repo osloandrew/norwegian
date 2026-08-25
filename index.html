@@ -85,7 +85,7 @@
     />
     <link
       rel="stylesheet"
-      href="styles/10-shell-landing-and-stats.css?v=3224cf0640"
+      href="styles/10-shell-landing-and-stats.css?v=4305564532"
     />
     <link
       rel="stylesheet"
@@ -544,15 +544,35 @@
       <div id="loading-spinner" class="spinner" style="display: none"></div>
       <!-- Moved outside the results-container -->
       <div id="landing-card" class="definition">
-        <h2>
-          Welcome to the <br />
-          Norwegian Dictionary
-        </h2>
-        <p style="text-align: center">
-          Search for a word above, or explore by feature below.
+        <h2>Build your Norwegian vocabulary</h2>
+        <p class="landing-hero-copy">
+          Look up words, hear pronunciations, read short stories, and practice
+          at your level.
         </p>
-        <p id="landing-word-count" class="landing-word-count-badge">
-          Norwegian words, definitions, and example sentences.
+
+        <div class="landing-hero-actions" aria-label="Get started">
+          <button
+            type="button"
+            class="landing-hero-cta landing-hero-cta--primary"
+            onclick="startDailyQuestFromLanding()"
+          >
+            Start a 10-word round
+          </button>
+          <a
+            class="landing-hero-cta landing-hero-cta--secondary"
+            href="stories/"
+            onclick="
+              event.preventDefault();
+              selectType('stories');
+            "
+          >
+            Browse stories
+          </a>
+        </div>
+
+        <p id="landing-word-count" class="landing-proof-line">
+          30,000+ dictionary entries <span aria-hidden="true">·</span> 360
+          stories <span aria-hidden="true">·</span> Free to use
         </p>
 
         <section
@@ -565,7 +585,10 @@
           id="landing-progress-summary"
           class="landing-progress-summary"
           aria-labelledby="landing-progress-summary-heading"
+          hidden
         ></section>
+
+        <h3 class="landing-explore-heading">Explore more ways to learn</h3>
 
         <div class="landing-card-button-grid">
           <!-- Row 1: look things up (stateless reference — the same for
@@ -592,7 +615,7 @@
               />
             </div>
             <h3 class="landing-card-title">Words</h3>
-            <p>Look up Norwegian or English words with full definitions and examples.</p>
+            <p>Definitions, translations, forms, pronunciation, and examples.</p>
             <span class="landing-feature-tag landing-feature-tag--lookup"
               >📖 Definitions &amp; pronunciation</span
             >
@@ -615,7 +638,7 @@
               />
             </div>
             <h3 class="landing-card-title">Sentence Search</h3>
-            <p>Explore real sentences in context using your chosen words.</p>
+            <p>Find words in real sentences with audio.</p>
             <span class="landing-feature-tag landing-feature-tag--audio"
               >🔊 Audio for each sentence</span
             >
@@ -651,10 +674,7 @@
               />
             </div>
             <h3 class="landing-card-title">Norwegian Stories</h3>
-            <p>
-              Immerse yourself in fiction and non-fiction to deepen your
-              language skills.
-            </p>
+            <p>Read and listen by level, genre, and topic.</p>
             <span class="landing-feature-tag landing-feature-tag--narrated"
               >🎧 Narrated with audio</span
             >
@@ -680,10 +700,7 @@
               />
             </div>
             <h3 class="landing-card-title">Word Game</h3>
-            <p>
-              Practice vocabulary with a game that adapts to your level, from
-              Beginner to Advanced.
-            </p>
+            <p>Adaptive vocabulary practice that grows with you.</p>
             <span class="landing-feature-tag landing-feature-tag--streak"
               >🔥 Daily streak</span
             >
@@ -706,7 +723,7 @@
               />
             </div>
             <h3 class="landing-card-title">My Words</h3>
-            <p>Save words as you go, then review, practice, or export them.</p>
+            <p>Save words and practice them again later.</p>
             <span class="landing-feature-tag landing-feature-tag--sync"
               >☁ Synced across devices</span
             >
@@ -729,7 +746,7 @@
               />
             </div>
             <h3 class="landing-card-title">My Stats</h3>
-            <p>See your vocabulary breakdown, streaks, and trouble words.</p>
+            <p>Follow your progress, streaks, and difficult words.</p>
             <span class="landing-feature-tag landing-feature-tag--stats"
               >📊 Track your progress</span
             >
@@ -922,7 +939,7 @@
     <script src="noRandom.js?v=dd11769910" defer></script>
     <script src="ordbokene.js?v=c8d50278e6" defer></script>
     <script src="scripts.js?v=27af9a9279" defer></script>
-    <script src="wordGame.js?v=67b4bd2960" defer></script>
+    <script src="wordGame.js?v=e262c6da10" defer></script>
     <script src="placementTest.js?v=34512a65ac" defer></script>
     <script src="streak.js?v=ddb26efe7e" defer></script>
     <script src="stories.js?v=aae01309d2" defer></script>
