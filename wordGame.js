@@ -1196,14 +1196,10 @@ function getDisplayedAnswer(value) {
   return normalizeGameWhitespace(String(value ?? "").split(",")[0]);
 }
 
+// scripts.js (which defines escapeHTML) always loads before this file — see
+// index.html's script order.
 function escapeGameHTML(value) {
-  if (typeof escapeHTML === "function") return escapeHTML(value);
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return escapeHTML(value);
 }
 
 function getPrimaryNorwegianForm(entryOrValue) {
@@ -4716,7 +4712,7 @@ function updateTypedAnswerFeedback(isCorrect, correctAnswer, isNearMiss = false)
   if (bannerPlaceholder) {
     bannerPlaceholder.innerHTML =
       isCorrect && isNearMiss
-        ? `<div class="game-typed-answer-note"><p>Close enough — correct spelling: ${correctAnswer}</p></div>`
+        ? `<div class="game-typed-answer-note"><p>Close enough — correct spelling: ${escapeGameHTML(correctAnswer)}</p></div>`
         : "";
   }
 }

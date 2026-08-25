@@ -295,7 +295,12 @@
 
     saveMyWordsEntryIds({ syncRemote: false });
 
-    if (activeWordListView === "my") {
+    // Match replaceWordStrengths/mergeWordStrengths below: refresh whenever
+    // the Word List tab is visible at all, not just the My Words sub-view —
+    // a remote merge changes which rows show a filled star in "all" too.
+    const typeSelect = document.getElementById("type-select");
+
+    if (typeSelect?.value === "word-list") {
       renderWordList();
     }
 
@@ -1991,6 +1996,7 @@
   window.goToAllWords = goToAllWords;
   window.goToMyWords = goToMyWords;
   window.MyWordsAPI = Object.freeze({
+    STORAGE_KEY: MY_WORDS_STORAGE_KEY,
     getSavedEntries: getSavedWordStudyEntries,
     returnToMyWords: goToMyWords,
     isSaved: isMyWordsEntrySaved,
@@ -2000,6 +2006,7 @@
     reconcileEntryIds: reconcileMyWordsEntryIds,
   });
   window.WordStrengthAPI = Object.freeze({
+    STORAGE_KEY: WORD_STRENGTH_STORAGE_KEY,
     recordResult: recordWordStrengthResult,
     getAll: () => window.SpacedRepetition.cloneCollection(wordStrengths),
     replaceAll: replaceWordStrengths,

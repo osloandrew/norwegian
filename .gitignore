@@ -2,6 +2,10 @@
 __pycache__/
 *.pyc
 
+# axe-core (accessibility test tool, scripts/check-accessibility.py) —
+# installed via `npm install`, not part of the shipped app.
+/node_modules/
+
 # Disposable root-level GitHub Pages build output. The leading slashes are
 # intentional: an unanchored `sentences/` also hides Resources/Sentences on a
 # case-insensitive filesystem, preventing new source audio from being committed.

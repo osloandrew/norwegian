@@ -456,6 +456,7 @@
               <select
                 id="story-favorites-select"
                 onchange="handleStoryFavoritesFilterChange()"
+                aria-label="Filter favorite stories"
               >
                 <option value="">All Stories</option>
                 <option value="favorites">Favorites</option>
@@ -470,7 +471,11 @@
               aria-label="Filter by genre"
               style="display: none"
             >
-              <select id="genre-select" onchange="handleGenreChange()">
+              <select
+                id="genre-select"
+                onchange="handleGenreChange()"
+                aria-label="Filter by genre"
+              >
                 <option value="">Genre</option>
                 <option value="biography">Biography</option>
                 <option value="culture">Culture</option>
@@ -501,7 +506,11 @@
               aria-label="Show or hide example translations"
               style="display: none"
             >
-              <select id="game-english-select" onchange="toggleGameEnglish()">
+              <select
+                id="game-english-select"
+                onchange="toggleGameEnglish()"
+                aria-label="Show or hide example translations"
+              >
                 <option value="show-english">Show translations</option>
                 <option value="hide-english">Hide translations</option>
               </select>

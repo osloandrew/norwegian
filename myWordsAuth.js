@@ -134,14 +134,19 @@
   // the page reloads so every module's in-memory state — streak badge,
   // word list, ability/daily-practice caches — starts clean rather than
   // continuing to display data that's no longer stored.
+  // The my-words/word-strength/favorite-stories keys are read from their
+  // owning modules (loaded earlier — see index.html) rather than duplicated
+  // as literals, so a future rename there can't silently stop being cleared
+  // here. The remaining keys belong to modules that load after this one
+  // (wordGame.js, streak.js), so those stay literal.
   const LOCAL_USER_DATA_KEYS = [
-    "norwegian-dictionary-my-words-v1",
-    "norwegian-dictionary-word-strength-v1",
+    window.MyWordsAPI.STORAGE_KEY,
+    window.WordStrengthAPI.STORAGE_KEY,
     "norwegian-dictionary-streak-v1",
     "norwegian-dictionary-ability-v1",
     "norwegian-dictionary-game-level-v1",
     "norwegian-dictionary-daily-practice-v2",
-    "norwegian-dictionary-favorite-stories-v1",
+    window.StoryFavoritesAPI.STORAGE_KEY,
   ];
 
   function clearLocalUserDataAndReload() {

@@ -938,7 +938,10 @@ async function fetchAndLoadDictionaryData() {
     if (!localResponse.ok)
       throw new Error(`HTTP error! Status: ${localResponse.status}`);
     const localData = await localResponse.text();
-    await cacheWordCSV(localData);
+    // Not awaited: this is a best-effort offline cache (see its own
+    // try/catch above), not something the dictionary becoming usable
+    // should wait on.
+    cacheWordCSV(localData);
     parseCSVData(localData);
   } catch (localError) {
     console.error(
@@ -1277,6 +1280,32 @@ let feedbackDialogTriggerElement = null;
 function handleFeedbackDialogKeydown(event) {
   if (event.key === "Escape") {
     closeFeedbackDialog();
+    return;
+  }
+
+  // aria-modal="true" claims background content is inert to assistive tech,
+  // but nothing enforced that for a sighted keyboard user — Tab could walk
+  // straight past the dialog's own controls into the page behind it. Cycle
+  // focus between the dialog's first and last focusable elements instead.
+  if (event.key === "Tab") {
+    const dialog = document.querySelector(".feedback-dialog");
+    if (!dialog) return;
+
+    const focusable = dialog.querySelectorAll(
+      "button:not([disabled]), select, textarea, input, [tabindex]:not([tabindex='-1'])",
+    );
+    if (focusable.length === 0) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 }
 
