@@ -38,7 +38,9 @@ runSection("function shuffleArray", "// hasCompatibleGender lives");
 runSection("function getPhraseChoiceDisplay", "function loadAbilityState");
 runSection("function ensureUniqueDisplayedValues", "function displayPronunciation");
 
-assert.equal(context.getGameGenderLabel("noun - en-et"), "N - en-et");
+assert.equal(context.getGameGenderLabel("noun - en-et"), "noun - en-et");
+assert.equal(context.getGameGenderLabel("adjective"), "adjective");
+assert.equal(context.getGameGenderLabel("expression"), "expression");
 assert.equal(context.WordClass.hasCompatibleGender("noun - en", "en"), true);
 assert.equal(context.WordClass.hasCompatibleGender("noun - en", "et"), false);
 assert.equal(context.WordClass.hasCompatibleGender("en-et", "et"), true);

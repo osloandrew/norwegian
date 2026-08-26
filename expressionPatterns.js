@@ -1199,7 +1199,7 @@
         let position = 0;
         for (const span of ordered) {
           html += source.slice(position, span.start);
-          html += `<span style="color: #1f6fb3;">${source.slice(span.start, span.end)}</span>`;
+          html += `<span style="color: var(--color-interactive);">${source.slice(span.start, span.end)}</span>`;
           position = span.end;
         }
         return html + source.slice(position);

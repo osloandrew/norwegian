@@ -614,20 +614,38 @@ function getGameCefrLabelHTML(cefrLevel) {
 // Shared by renderWordGameUI and renderClozeGameUI's gender/word-class badge.
 function getGameGenderLabel(gender) {
   if (WordClass.isNounGender(gender)) {
-    return "N - " + WordClass.stripNounPrefix(gender);
+    return "noun - " + WordClass.stripNounPrefix(gender);
   }
   const normalizedGender = String(gender ?? "").toLowerCase();
-  if (normalizedGender.startsWith("adjective")) return "Adj";
-  if (normalizedGender.startsWith("adverb")) return "Adv";
-  if (normalizedGender.startsWith("conjunction")) return "Conj";
-  if (normalizedGender.startsWith("determiner")) return "Det";
-  if (normalizedGender.startsWith("expression")) return "Exp";
-  if (normalizedGender.startsWith("interjection")) return "Inter";
-  if (normalizedGender.startsWith("numeral")) return "Num";
-  if (normalizedGender.startsWith("possessive")) return "Poss";
-  if (normalizedGender.startsWith("preposition")) return "Prep";
-  if (normalizedGender.startsWith("pronoun")) return "Pron";
+  if (normalizedGender.startsWith("adjective")) return "adjective";
+  if (normalizedGender.startsWith("adverb")) return "adverb";
+  if (normalizedGender.startsWith("conjunction")) return "conjunction";
+  if (normalizedGender.startsWith("determiner")) return "determiner";
+  if (normalizedGender.startsWith("expression")) return "expression";
+  if (normalizedGender.startsWith("interjection")) return "interjection";
+  if (normalizedGender.startsWith("numeral")) return "numeral";
+  if (normalizedGender.startsWith("possessive")) return "possessive";
+  if (normalizedGender.startsWith("preposition")) return "preposition";
+  if (normalizedGender.startsWith("pronoun")) return "pronoun";
   return String(gender ?? "");
+}
+
+function focusGameQuestionPrompt({ typed = false } = {}) {
+  if (typed) return;
+  window.requestAnimationFrame(() => {
+    const prompt = document.querySelector(".game-instruction, .game-word");
+    if (!prompt) return;
+    const suppliedTabIndex = prompt.hasAttribute("tabindex");
+    if (!suppliedTabIndex) prompt.setAttribute("tabindex", "-1");
+    prompt.focus({ preventScroll: true });
+    if (!suppliedTabIndex) {
+      prompt.addEventListener(
+        "blur",
+        () => prompt.removeAttribute("tabindex"),
+        { once: true },
+      );
+    }
+  });
 }
 
 // Getting a CSS transition to restart reliably after a class toggle turned
@@ -942,20 +960,22 @@ function renderStats(instructionHTML = "") {
   const wordsToReview = incorrectWordQueue.length;
 
   // Purely descriptive of recent accuracy, not relative to any level
-  // threshold — there's nothing here to rise or fall from.
-  let fillColor = "#c7e3b6"; // default green
-  let fontColor = "#6b9461";
+  // threshold — there's nothing here to rise or fall from. Colors are
+  // literal (a plain JS var can't read a CSS custom property) but kept in
+  // sync with 00-foundations-and-game.css's tokens by name in each comment.
+  let fillColor = "#d7ecc9"; // matches --color-success-bg
+  let fontColor = "#254a1d"; // matches --color-success-text
 
   if (total === 0) {
     // Before the user answers any question
-    fillColor = "#ddd"; // neutral gray
-    fontColor = "#444"; // dark gray text
+    fillColor = "#e0e0e0"; // matches --color-surface-strong
+    fontColor = "#4a4a4a"; // matches --color-text-strong
   } else if (correctPercentage < 60) {
-    fillColor = "#e9a895"; // red
-    fontColor = "#b5634d";
+    fillColor = "#f0c1b3"; // matches --color-danger-bg
+    fontColor = "#6b2814"; // matches --color-danger-text
   } else if (correctPercentage < 85) {
-    fillColor = "#f2e29b"; // yellow
-    fontColor = "#a0881c";
+    fillColor = "#f2d96b"; // matches --color-level-mid
+    fontColor = "#b3541e"; // matches --color-streak-text
   }
 
   const isSessionRound = wordGameRoundActive && wordGameMode === "session";
@@ -990,13 +1010,13 @@ function renderStats(instructionHTML = "") {
     ? `<div class="game-stats-progress-wrapper" style="flex-grow: 1;">
          <p class="game-stat-label">Round progress</p>
          <div class="game-stats-accuracy-row">
-           <div class="game-session-progress-bg" style="border-radius: 10px; overflow: hidden; position: relative; display: flex; align-items: center;">
+           <div class="game-session-progress-bg" style="display: flex; align-items: center;">
              <div class="game-session-progress-fill" id="game-session-progress-fill"
                style="position: absolute; top: 0; left: 0; bottom: 0; width: ${getWordGameSessionProgressPercent()}%;"></div>
              <p class="game-session-progress-label" id="game-session-progress"
                style="position: relative; width: 100%; text-align: center; margin: 0; user-select: none;
                       font-family: 'Noto Sans', sans-serif; font-size: 14px; font-weight: 500;
-                      z-index: 1; color: #444;">
+                      z-index: 1; color: var(--color-text-strong);">
                ${getWordGameSessionProgressLabel()}
              </p>
            </div>
@@ -1006,7 +1026,7 @@ function renderStats(instructionHTML = "") {
     : `<div class="game-stats-progress-wrapper" style="flex-grow: 1;">
          <p class="game-stat-label">Recent accuracy</p>
          <div class="game-stats-accuracy-row">
-           <div class="level-progress-bar-bg" style="border-radius: 10px; overflow: hidden; position: relative;">
+           <div class="level-progress-bar-bg">
              <div class="level-progress-bar-fill"
                style="width: 0%; background-color: ${fillColor}; height: 100%;"></div>
              <p class="level-progress-label"
@@ -1022,14 +1042,17 @@ function renderStats(instructionHTML = "") {
 
   // Placement is assessment, not mastery practice. A miss helps tune the
   // starting level and is saved for later review, but the live placement UI
-  // should never frame it as a debt that blocks completion.
-  const leftStatHTML = wordGameIsPlacementRound
+  // should never frame it as a debt that blocks completion. Gated on
+  // calibration actually being enabled, not just wordGameIsPlacementRound —
+  // "skip placement" still starts this same round shape, but with no
+  // assessment happening, it should look and behave like ordinary practice.
+  const leftStatHTML = wordGamePlacementCalibrationEnabled
     ? ""
     : `<div class="game-stats-correct-box">
          <p class="game-stat-label">Correct in a row</p>
          <p id="streak-count">${correctStreak}</p>
        </div>`;
-  const rightStatHTML = wordGameIsPlacementRound
+  const rightStatHTML = wordGamePlacementCalibrationEnabled
     ? ""
     : `<div class="game-stats-incorrect-box">
          <p class="game-stat-label">Words to review</p>
@@ -2006,6 +2029,39 @@ function getTodayPracticeQueueSummary() {
   };
 }
 
+// One geometric drawing and one set of facet roles keep every reward crisp
+// and consistent at any size. Reward classes supply only the palette; quest
+// state classes control whether the marker is locked, active, or earned.
+function getDailyQuestGemMarkup(reward, extraClasses = "") {
+  const safeReward = ["emerald", "ruby", "sapphire"].includes(reward)
+    ? reward
+    : "sapphire";
+  const classNames = [
+    "game-daily-quest-gem",
+    `game-daily-quest-gem--${safeReward}`,
+    extraClasses,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return `
+    <svg class="${classNames}" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <path class="quest-gem-frame" d="M16 9h32l12 16-28 32L4 25 16 9Z"></path>
+      <path class="quest-gem-facet quest-gem-facet--top-left" d="M16 9h16l-8 16H4L16 9Z"></path>
+      <path class="quest-gem-facet quest-gem-facet--top-center" d="M32 9 40 25H24L32 9Z"></path>
+      <path class="quest-gem-facet quest-gem-facet--top-right" d="M32 9h16l12 16H40L32 9Z"></path>
+      <path class="quest-gem-facet quest-gem-facet--lower-left" d="M4 25h20l8 32L4 25Z"></path>
+      <path class="quest-gem-facet quest-gem-facet--lower-center" d="M24 25h16l-8 32-8-32Z"></path>
+      <path class="quest-gem-facet quest-gem-facet--lower-right" d="M40 25h20L32 57l8-32Z"></path>
+      <path class="quest-gem-highlight" d="m17 14-6 8h6l5-8h-5Z"></path>
+      <g class="quest-gem-earned-mark">
+        <circle cx="51" cy="13" r="9"></circle>
+        <path d="m47 13 2.6 2.6 5.2-5.2"></path>
+      </g>
+    </svg>
+  `;
+}
+
 function getDailyQuestMarkup(state) {
   return getDailyQuestStates(state)
     .map((quest, index) => {
@@ -2022,7 +2078,7 @@ function getDailyQuestMarkup(state) {
 
       return `
         <li class="game-daily-quest game-daily-quest--${status} game-daily-quest--${quest.reward}">
-          <span class="game-daily-quest-gem game-daily-quest-gem--${quest.reward}" aria-hidden="true"></span>
+          ${getDailyQuestGemMarkup(quest.reward)}
           <span class="game-daily-quest-copy">
             <span class="game-daily-quest-title">${quest.title}</span>
             <span class="game-daily-quest-target">${quest.description}</span>
@@ -2070,7 +2126,7 @@ function renderLandingDailyQuests() {
             : "locked";
         return `
           <span class="landing-daily-quest-step landing-daily-quest-step--${status}">
-            <span class="game-daily-quest-gem landing-daily-quest-gem game-daily-quest-gem--${quest.reward}" aria-hidden="true"></span>
+            ${getDailyQuestGemMarkup(quest.reward, "landing-daily-quest-gem")}
             <span>${uppercaseFirstNorwegian(quest.reward)}</span>
           </span>
         `;
@@ -2773,6 +2829,7 @@ function renderMinimalPairQuestion() {
     .getElementById("game-next-word-button")
     ?.addEventListener("click", advanceToNextMinimalPair);
 
+  focusGameQuestionPrompt();
   playMinimalPairWordAudio(targetWord);
 }
 
@@ -2936,9 +2993,12 @@ function showMinimalPairsResults() {
 // Ordinary practice isn't done just because N distinct words were answered
 // correctly at some point: requeued misses must be cleared too. Placement is
 // intentionally different. A miss is assessment evidence, so ten answered
-// questions complete it regardless of correctness.
+// questions complete it regardless of correctness. Only while calibration is
+// actually enabled, though — "skip placement" reuses this same round shape
+// with nothing being measured, so it should complete like ordinary practice
+// instead (requeuing misses until they're answered correctly).
 function isWordGameRoundComplete() {
-  if (wordGameIsPlacementRound) {
+  if (wordGamePlacementCalibrationEnabled) {
     return (
       wordGameMode === "session" &&
       wordGameSessionQuestionsAnswered >= wordGameSessionTarget
@@ -2956,7 +3016,7 @@ function isWordGameRoundComplete() {
 // retry, says so explicitly — otherwise it reads as finished when clicking
 // Next Word won't actually end the round yet (see isWordGameRoundComplete).
 function getWordGameSessionProgressLabel() {
-  if (wordGameIsPlacementRound) {
+  if (wordGamePlacementCalibrationEnabled) {
     const answered = Math.min(
       wordGameSessionQuestionsAnswered,
       wordGameSessionTarget,
@@ -3004,7 +3064,7 @@ function getWordGameSessionProgressLabel() {
 function getWordGameSessionProgressPercent() {
   if (!wordGameSessionTarget) return 0;
 
-  if (wordGameIsPlacementRound) {
+  if (wordGamePlacementCalibrationEnabled) {
     return (
       (Math.min(wordGameSessionQuestionsAnswered, wordGameSessionTarget) /
         wordGameSessionTarget) *
@@ -3313,7 +3373,7 @@ function showWordGameRoundSummary() {
         earnedDailyQuest
           ? `<div class="game-summary-gems" aria-label="Daily quests complete">
               <span class="game-summary-gem">
-                <span class="game-daily-quest-gem game-daily-quest-gem--${earnedDailyQuest.reward}" aria-hidden="true"></span>
+                ${getDailyQuestGemMarkup(earnedDailyQuest.reward, "game-daily-quest-gem--earned")}
                 <span>${uppercaseFirstNorwegian(earnedDailyQuest.reward)}</span>
               </span>
             </div>`
@@ -3479,7 +3539,7 @@ async function startWordGame() {
     currentWord = firstWordInQueue.wordObj.ord;
     correctTranslation = firstWordInQueue.wordObj.engelsk;
     firstWordInQueue.shown = true;
-    if (!wordGameIsPlacementRound) {
+    if (!wordGamePlacementCalibrationEnabled) {
       recordMyWordsMixQuestion(isMyWordsEntry(firstWordInQueue.wordObj));
     }
 
@@ -4371,6 +4431,7 @@ function renderWordGameUI(
   attachGameControls(wordObj, false);
 
   renderStats(instructionText); // Ensure stats are drawn once DOM is fully loaded
+  focusGameQuestionPrompt({ typed: isTyped });
   if (!isReverse) {
     playWordAudio(wordObj);
   }
@@ -4551,6 +4612,7 @@ function renderClozeGameUI(
   attachGameControls(wordObj, true);
 
   renderStats(instructionText); // Ensure stats bar is present after cloze loads too
+  focusGameQuestionPrompt({ typed: useTypedRecall });
 }
 
 // Shared by the cloze sentence and the reverse-flashcard prompt: both
@@ -4997,10 +5059,12 @@ async function handleTranslationClick(
     }
 
     // Placement misses are already saved durably above so ordinary practice
-    // can review them later. They are not requeued inside placement itself:
-    // an assessment must sample the promised ten distinct words and finish,
-    // not require the learner to master every unknown word before leaving.
-    if (!wordGameIsPlacementRound) {
+    // can review them later. They are not requeued while calibration is
+    // actually running: an assessment must sample the promised ten distinct
+    // words and finish, not require the learner to master every unknown
+    // word before leaving. Without live calibration (e.g. skipped
+    // placement), there's no such sampling need, so misses requeue as usual.
+    if (!wordGamePlacementCalibrationEnabled) {
       // Keep the durable lapse in WordStrengthAPI and also schedule a short
       // retry after intervening questions in this active round. Repeat misses
       // get a modestly longer gap without blocking other ready queue entries.
@@ -5825,7 +5889,7 @@ async function fetchRandomWord() {
     // the same round wouldn't know a filler question was just shown.
     if (fillerEntry) {
       previousWord = fillerEntry.ord;
-      if (!wordGameIsPlacementRound) {
+      if (!wordGamePlacementCalibrationEnabled) {
         recordMyWordsMixQuestion(isMyWordsEntry(fillerEntry));
       }
     }
@@ -5911,7 +5975,7 @@ async function fetchRandomWord() {
     return null;
   }
 
-  if (!wordGameIsPlacementRound) {
+  if (!wordGamePlacementCalibrationEnabled) {
     recordMyWordsMixQuestion(isMyWordsEntry(selectedEntry));
   }
 

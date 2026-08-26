@@ -146,7 +146,7 @@
           .map(
             (reward) => `
           <div class="my-stats-gems-tile">
-            <span class="game-daily-quest-gem game-daily-quest-gem--${reward} my-stats-gems-icon" aria-hidden="true"></span>
+            ${getDailyQuestGemMarkup(reward, "my-stats-gems-icon")}
             <p class="game-summary-stat-value">${(gemCounts[reward] ?? 0).toLocaleString("en-US")}</p>
             <p class="game-summary-stat-label">${reward.charAt(0).toUpperCase()}${reward.slice(1)}</p>
           </div>

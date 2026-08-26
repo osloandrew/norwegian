@@ -12,7 +12,7 @@
 
 .multiple-results-definition:hover {
   background-color: var(
-    --color-bg-row-hover
+    --color-wash-blue
   ); /* Hover effect same as word card */
 }
 
@@ -134,8 +134,8 @@
 
 .ordbokene-source-link:hover,
 .ordbokene-source-link:focus-visible {
-  color: #526c91;
-  text-decoration-color: #aab8ca;
+  color: var(--color-link-muted);
+  text-decoration-color: var(--color-link-muted-underline);
 }
 
 .definition-content .ordbokene-source-link i,
@@ -159,7 +159,7 @@ ul {
 
 .result-header {
   align-content: center;
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding: 25px;
@@ -197,7 +197,7 @@ ul {
    it's reached only after a deliberate action past the landing page, not
    the landing page itself. */
 .result-header-subtitle {
-  color: var(--color-text-secondary);
+  color: var(--color-text-strong);
   font-family: "Noto Sans", sans-serif;
   font-size: 14px;
   line-height: 1.6;
@@ -262,8 +262,8 @@ ul {
   padding: 10px; /* Enlarged for a more comfortable tap target */
   font-size: 14px !important; /* Icon size inside */
   border-radius: 4px; /* Same rounded corners */
-  background-color: var(--color-bg-subtle); /* Matches the default CEFR look */
-  color: var(--color-badge-text) !important; /* Icon color */
+  background-color: var(--color-surface-subtle); /* Matches the default CEFR look */
+  color: var(--color-text-strong) !important; /* Icon color */
   user-select: none; /* Same no-selection behavior */
   cursor: pointer;
   width: auto !important; /* Clickable */
@@ -276,14 +276,14 @@ ul {
 }
 
 .sentence-audio-icon:hover {
-  background-color: var(--color-bg-hover-strong);
+  background-color: var(--color-surface-strong);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* stronger shadow on hover */
   transform: translateY(-1px); /* tiny lift */
 }
 
 .sentence-box-practice {
   align-content: center;
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding: 25px;
@@ -293,13 +293,13 @@ ul {
 }
 
 .sentence-btn {
-  background-color: var(--color-white); /* Subtle, lighter background */
+  background-color: var(--color-surface); /* Subtle, lighter background */
   border: none;
   border-radius: 9px; /* Slightly rounded corners */
   box-shadow:
     0 4px 8px rgba(135, 135, 135, 0.2),
     0 2px 4px rgba(0, 0, 0, 0.1);
-  color: var(--color-danger-dark); /* Subtle maroon text */
+  color: var(--color-danger-text); /* Subtle maroon text */
   cursor: pointer; /* Pointer on hover */
   display: block; /* Block-level element to allow centering */
   font-family: "Noto Sans", sans-serif; /* Clean, modern font */
@@ -321,7 +321,7 @@ ul {
 
 .sentence-btn:hover {
   background-color: var(
-    --color-bg-hover
+    --color-surface-hover
   ); /* Slightly darker background on hover */
   box-shadow:
     0 6px 12px rgba(135, 135, 135, 0.3),
@@ -331,7 +331,7 @@ ul {
 .sentence-cefr-label {
   padding: 3px 7px; /* Smaller padding */
   font-size: 12px; /* Smaller font size */
-  color: var(--color-badge-text);
+  color: var(--color-text-strong);
   display: inline-block; /* Ensure the label takes up only the space it needs */
   font-weight: bold;
   border-radius: 4px;
@@ -348,21 +348,24 @@ ul {
   width: 38px;
 }
 
+/* Same simplified easy/medium/hard mapping as .game-cefr-label, onto the
+   same CEFR ramp steps — a third independent copy of this same 3-bucket
+   idea used to live here with its own slightly different colors. */
 .sentence-cefr-label.easy {
-  background-color: var(--color-success-bg); /* Green for 'A1, A2' */
+  background-color: var(--color-cefr-a2-bg);
 }
 
 .sentence-cefr-label.medium {
-  background-color: var(--color-level-mid); /* Yellow for 'B1, B2' */
+  background-color: var(--color-cefr-b2-bg);
 }
 
 .sentence-cefr-label.hard {
-  background-color: var(--color-danger-bg); /* Red for 'C' */
+  background-color: var(--color-cefr-c2-bg);
 }
 
 .sentence-box-english,
 .sentence-box-norwegian {
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 12.5px;
@@ -538,7 +541,7 @@ ul {
 .inflections-toggle-btn,
 .definition-toggle-btn {
   align-items: center;
-  background-color: var(--color-bg-subtle);
+  background-color: var(--color-surface-subtle);
   border: none;
   border-radius: 6px;
   color: var(--color-text-muted);
@@ -571,7 +574,7 @@ ul {
 .report-issue-btn:hover,
 .inflections-toggle-btn:hover,
 .definition-toggle-btn:hover {
-  background-color: #e5e5e5;
+  background-color: var(--color-surface-strong);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
@@ -636,12 +639,12 @@ ul {
 
 .inflections-table th,
 .inflections-table td {
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
   padding: 8px 10px;
 }
 
 .inflections-table th {
-  background-color: var(--color-table-header-bg);
+  background-color: var(--color-surface-subtle);
   color: var(--color-text-faint);
   font-size: 11px;
   font-weight: 500;
@@ -663,9 +666,9 @@ ul {
 }
 
 .inflections-hint a {
-  color: #526c91;
+  color: var(--color-link-muted);
   font-weight: 500;
-  text-decoration-color: #aab8ca;
+  text-decoration-color: var(--color-link-muted-underline);
   text-underline-offset: 2px;
 }
 
@@ -680,15 +683,11 @@ ul {
 }
 
 #site-title {
-  color: var(--color-heading);
+  color: var(--color-ink);
   cursor: pointer;
-  margin: -5px 0px 0px 0px;
-  overflow: hidden;
-  text-overflow: ellipsis;
   transition:
     color 0.2s ease,
     text-shadow 0.2s ease;
-  white-space: nowrap;
 }
 
 #site-title:hover {
@@ -699,10 +698,10 @@ ul {
 
 .sticky-cefr-label {
   align-items: center; /* Center vertically */
-  border: 1px solid var(--color-border-light); /* Lighter gray for a subtler border */
+  border: 1px solid var(--color-border); /* Lighter gray for a subtler border */
   border-radius: 4px;
   box-sizing: border-box; /* Includes padding and border in the width calculation */
-  color: var(--color-badge-text);
+  color: var(--color-text-strong);
   display: flex; /* Add Flexbox */
   flex: 1; /* Allows the children to take up equal and maximum space */
   font-family: "Noto Sans", sans-serif;
@@ -738,12 +737,12 @@ ul {
 .sticky-genre {
   align-items: center; /* Center vertically */
   background-color: var(
-    --color-bg-subtle
+    --color-surface-subtle
   ); /* Light background for genre badge */
-  border: 1px solid var(--color-border-light); /* Lighter gray for a subtler border */
+  border: 1px solid var(--color-border); /* Lighter gray for a subtler border */
   border-radius: 4px;
   box-sizing: border-box; /* Includes padding and border in the width calculation */
-  color: var(--color-badge-text);
+  color: var(--color-text-strong);
   display: flex; /* Add Flexbox */
   flex: 1; /* Allows the children to take up equal and maximum space */
   font-family: "Noto Sans", sans-serif;
@@ -766,10 +765,10 @@ ul {
 
 #sticky-header {
   align-items: center;
-  background-color: white;
+  background-color: var(--color-surface);
   border-top: 1px solid var(--color-border); /* Subtle gray border at the top */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  color: black;
+  color: var(--color-text);
   display: flex;
   gap: 1.5em;
   position: sticky;
@@ -779,6 +778,15 @@ ul {
   padding: 0.5em 1.5em;
   top: 0;
   z-index: 1000; /* Ensure it stays on top */
+}
+
+.sticky-favorite-slot {
+  /* A plain block div picks up a stray pixel of height from its own
+     inherited line-box on top of the button's actual size — display: flex
+     collapses that away so this slot's height exactly matches the
+     button's, instead of the row's total height being computed against a
+     phantom extra pixel. */
+  display: flex;
 }
 
 .sticky-row {
@@ -802,9 +810,9 @@ ul {
 }
 
 .sticky-title-japanese {
-  color: var(--color-text-alt-title);
+  color: var(--color-text-strong);
   font-size: 1.5em;
-  font-family: "Noto Serif", serif; /* Adjust to the appropriate English font */
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
   font-weight: 400;
   letter-spacing: 0.5px;
   margin: 0 auto;
@@ -846,11 +854,11 @@ ul {
 
 .stories-genre {
   align-self: center;
-  background-color: var(--color-bg-subtle); /* Green for 'A1, A2' */
+  background-color: var(--color-surface-subtle); /* Green for 'A1, A2' */
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 13px;
-  color: var(--color-badge-text);
+  color: var(--color-text-strong);
   font-weight: bold;
   text-align: center;
   text-transform: uppercase;
@@ -876,7 +884,7 @@ ul {
 }
 
 .stories-list-item {
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   margin: 0;
@@ -899,9 +907,9 @@ ul {
 }
 
 .story-recommendation {
-  background-color: #eaf3fc;
-  border: 1px solid #b7d8f5;
-  border-left: 5px solid var(--color-primary);
+  background-color: var(--color-wash-blue);
+  border: 1px solid var(--color-wash-blue-border);
+  border-left: 5px solid var(--color-ink);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   cursor: pointer; /* the whole card is a click target, not just the link inside it */
@@ -920,7 +928,7 @@ ul {
 
 .story-recommendation-label {
   align-items: center;
-  color: var(--color-primary);
+  color: var(--color-ink);
   display: flex;
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
@@ -943,14 +951,14 @@ ul {
    story, so the same blue fill/accent bar/shadow just reads as a
    distracting callout instead of a quiet "up next" nudge. */
 .story-recommendation.story-next-card {
-  background-color: var(--color-white);
-  border: 1px solid var(--color-border-light);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
   box-shadow: none;
   transition: background-color 0.2s ease;
 }
 
 .story-recommendation.story-next-card:hover {
-  background-color: var(--color-bg-subtle);
+  background-color: var(--color-surface-subtle);
   box-shadow: none;
   transform: none;
 }
@@ -1089,7 +1097,7 @@ body.stories-mode .story-recommendation .cefr-value {
 }
 
 .stories-list-item h2 {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -1133,10 +1141,10 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .stories-load-more-button,
 .search-results-load-more-button {
-  background-color: var(--color-primary);
-  border: 1px solid var(--color-primary);
+  background-color: var(--color-ink);
+  border: 1px solid var(--color-ink);
   border-radius: 7px;
-  color: var(--color-white);
+  color: var(--color-surface);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
   font-size: 13px;
@@ -1148,13 +1156,13 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .stories-load-more-button:hover,
 .search-results-load-more-button:hover {
-  background-color: var(--color-primary-active);
-  border-color: var(--color-primary-active);
+  background-color: var(--color-ink-active);
+  border-color: var(--color-ink-active);
 }
 
 .stories-load-more-button:focus-visible,
 .search-results-load-more-button:focus-visible {
-  outline: 2px solid var(--color-link);
+  outline: 2px solid var(--color-interactive);
   outline-offset: 3px;
 }
 
@@ -1197,9 +1205,9 @@ body.stories-mode .story-recommendation .cefr-value {
 
 #story-content {
   background: var(
-    --color-white
+    --color-surface
   ); /* Same white background as story list items */
-  border: 1px solid var(--color-border-light); /* Light border for separation */
+  border: 1px solid var(--color-border); /* Light border for separation */
   border-radius: 12px;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 10px;
   font-family: "Noto Serif", serif;
@@ -1236,14 +1244,14 @@ body.stories-mode .story-recommendation .cefr-value {
    rather than the bolder game-UI look used in the word game/placement test —
    this section is part of reading a story, not a separate mini-game. */
 .story-quiz-section {
-  border-top: 1px solid var(--color-border-light);
+  border-top: 1px solid var(--color-border);
   margin-top: 1.5em !important;
   padding-top: 1.5em;
 }
 
 .story-quiz-heading {
-  color: var(--color-heading);
-  font-family: "Noto Serif", serif;
+  color: var(--color-ink);
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
   font-size: 1.3em;
   font-weight: 400;
   margin: 0 0 0.75em 0;
@@ -1255,14 +1263,14 @@ body.stories-mode .story-recommendation .cefr-value {
    (shared with the browse-list banner) is what actually gives it enough
    presence to be noticed. */
 .story-next-section {
-  border-top: 1px solid var(--color-border-light);
+  border-top: 1px solid var(--color-border);
   margin-top: 1.5em !important;
   padding-top: 1.5em;
 }
 
 .story-next-heading {
-  color: var(--color-heading);
-  font-family: "Noto Serif", serif;
+  color: var(--color-ink);
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
   font-size: 1.3em;
   font-weight: 400;
   margin: 0 0 0.75em 0;
@@ -1278,7 +1286,7 @@ body.stories-mode .story-recommendation .cefr-value {
 }
 
 .story-quiz-prompt {
-  color: black;
+  color: var(--color-text);
   font-family: "Noto Serif", serif;
   font-size: 1.1em;
   margin-bottom: 0.85em;
@@ -1291,10 +1299,10 @@ body.stories-mode .story-recommendation .cefr-value {
 }
 
 .story-quiz-option-btn {
-  background-color: var(--color-white);
-  border: 1px solid var(--color-border-light);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  color: black;
+  color: var(--color-text);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1341,7 +1349,7 @@ body.stories-mode .story-recommendation .cefr-value {
 }
 
 .story-quiz-feedback-label {
-  color: black;
+  color: var(--color-text);
   font-family: "Noto Sans", sans-serif;
   font-weight: 600;
   margin: 0 0 0.5em 0;
@@ -1355,8 +1363,8 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .story-quiz-next-btn,
 .story-quiz-retry-btn {
-  background-color: var(--color-bg-light);
-  border: var(--color-border-neutral) 1px solid;
+  background-color: var(--color-surface-subtle);
+  border: var(--color-border) 1px solid;
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   color: var(--color-text-muted);
@@ -1379,7 +1387,7 @@ body.stories-mode .story-recommendation .cefr-value {
 }
 
 .story-quiz-results-score {
-  color: black;
+  color: var(--color-text);
   font-family: "Noto Sans", sans-serif;
   font-size: 1.1em;
   font-weight: 600;
@@ -1394,7 +1402,7 @@ body.stories-mode .story-recommendation .cefr-value {
 }
 
 .story-quiz-review-item {
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-border);
   padding: 14px 0;
 }
 
@@ -1408,7 +1416,7 @@ body.stories-mode .story-recommendation .cefr-value {
 }
 
 .story-quiz-review-prompt {
-  color: black;
+  color: var(--color-text);
   font-family: "Noto Serif", serif;
   font-weight: 600;
   margin: 0 0 0.5em 0;
@@ -1417,7 +1425,7 @@ body.stories-mode .story-recommendation .cefr-value {
 .story-quiz-review-answer,
 .story-quiz-review-correct-answer {
   align-items: center;
-  color: black;
+  color: var(--color-text);
   display: flex;
   font-family: "Noto Sans", sans-serif;
   font-size: 0.9em;
@@ -1537,12 +1545,23 @@ body.stories-mode .story-recommendation .cefr-value {
     margin-bottom: 10px;
   }
 
+  /* Horizontal-only trims (padding/gap, never the explicit height set
+     below) to claw a little width back for the audio player, which
+     shares this row on mobile — see #back-button/#speed-btn/
+     #toggle-english-btn's own mobile padding comment in
+     00-foundations-and-game.css for why. */
   .sticky-cefr-label {
     height: 25px !important;
+    padding: 3px 4px;
   }
 
   .sticky-genre {
     height: 25px;
+    padding: 3px 4px;
+  }
+
+  .sticky-row {
+    gap: 3px;
   }
 
   .sticky-row .story-card-favorite-button {
@@ -1561,8 +1580,8 @@ body.stories-mode .story-recommendation .cefr-value {
 
   #sticky-header {
     border: none;
-    gap: 0.5em;
-    padding: 0.25em 0.5em;
+    gap: 0.35em;
+    padding: 0.25em 0.35em;
   }
 
   .sticky-title-container {
@@ -1622,8 +1641,8 @@ body.stories-mode .story-recommendation .cefr-value {
 .result-header.word-results-header,
 .result-header.story-results-header {
   align-items: center;
-  background: linear-gradient(145deg, #f8fbfd 0%, #f1f6fa 100%);
-  border: 1px solid var(--color-border-blue-soft);
+  background: var(--color-wash-blue-pale);
+  border: 1px solid var(--color-wash-blue-border);
   border-radius: 14px;
   box-shadow: 0 6px 18px rgba(13, 58, 105, 0.08);
   box-sizing: border-box;
@@ -1641,7 +1660,7 @@ body.stories-mode .story-recommendation .cefr-value {
 .sentence-results-eyebrow,
 .word-results-eyebrow,
 .story-results-eyebrow {
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   font-family: "Noto Sans", sans-serif;
   font-size: 11px;
   font-weight: 600;
@@ -1653,7 +1672,7 @@ body.stories-mode .story-recommendation .cefr-value {
 .result-header.sentence-results-header h2,
 .result-header.word-results-header h2,
 .result-header.story-results-header h2 {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 20px;
   font-weight: 600;
@@ -1672,10 +1691,10 @@ body.stories-mode .story-recommendation .cefr-value {
 .sentence-results-count,
 .word-results-count,
 .story-results-count {
-  background-color: var(--color-white);
-  border: 1px solid var(--color-border-blue-soft);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-wash-blue-border);
   border-radius: 999px;
-  color: var(--color-primary);
+  color: var(--color-ink);
   flex: 0 0 auto;
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
@@ -1695,6 +1714,11 @@ body.stories-mode .story-recommendation .cefr-value {
   flex: 0 0 auto;
   flex-direction: column;
   gap: 8px;
+  /* Keeps this pinned to the right even when flex-wrap (see the ≤480px
+     rule below) puts it alone on its own line — a lone item on a wrapped
+     line has nothing for justify-content: space-between to space it
+     against, so it collapses to the line's start without this. */
+  margin-left: auto;
 }
 
 .sentence-results-header-copy,
@@ -1715,7 +1739,7 @@ body.stories-mode .story-recommendation .cefr-value {
 .story-results-filter-summary,
 .search-results-filter-summary {
   align-items: center;
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   cursor: default;
   display: inline-flex;
   font-family: "Noto Sans", sans-serif;
@@ -1734,7 +1758,7 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .story-results-filter-summary + .story-results-filter-summary,
 .search-results-filter-summary + .search-results-filter-summary {
-  border-left: 1px solid var(--color-border-blue-soft);
+  border-left: 1px solid var(--color-wash-blue-border);
   padding-left: 14px;
 }
 
@@ -1755,7 +1779,7 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .story-results-genre-icon {
   align-items: center;
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   display: inline-flex;
   flex: 0 0 auto;
   font-size: 13px;
@@ -1776,7 +1800,7 @@ body.stories-mode .story-recommendation .cefr-value {
 }
 
 .result-header.sentence-results-header .result-header-subtitle {
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   font-family: "Noto Sans", sans-serif;
   font-size: 13px;
   line-height: 1.45;
@@ -1792,11 +1816,11 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .sentence-results-actions .sentence-btn {
   align-items: center;
-  background-color: var(--color-white);
-  border: 1px solid var(--color-border-blue-soft);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-wash-blue-border);
   border-radius: 8px;
   box-shadow: none;
-  color: var(--color-primary);
+  color: var(--color-ink);
   display: inline-flex;
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
@@ -1811,7 +1835,7 @@ body.stories-mode .story-recommendation .cefr-value {
 }
 
 .sentence-results-actions .sentence-btn:hover {
-  background-color: var(--color-bg-hover);
+  background-color: var(--color-surface-hover);
   box-shadow: 0 2px 5px rgba(13, 58, 105, 0.1);
 }
 
@@ -1834,7 +1858,13 @@ body.stories-mode .story-recommendation .cefr-value {
   .word-results-header-copy,
   .sentence-results-header-copy,
   .story-results-header-copy {
-    flex: 1 1 210px;
+    /* Low enough that the row stays side-by-side (like desktop) on real
+       phone widths even next to sentence-results' wider two-line side
+       content (count pill + Show English button) — the title just wraps
+       to its own second line instead of forcing the whole row to stack.
+       flex-wrap above stays as a fallback for pathological long queries. */
+    flex: 1 1 140px;
+    min-width: 0;
   }
 
   .story-results-filters,

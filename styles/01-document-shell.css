@@ -19,7 +19,7 @@ html.reading {
 }
 
 body {
-  background-color: var(--color-bg-light);
+  background-color: var(--color-surface-subtle);
   display: flex;
   flex-direction: column;
   font-family: "Noto Serif", serif;
@@ -33,22 +33,58 @@ body {
 header,
 footer {
   background-color: var(--color-bg-chrome);
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   text-align: center;
 }
 
 header {
   letter-spacing: 0.05rem;
-  padding: 20px;
+  padding: 14px 20px 18px;
   position: relative;
+  box-shadow:
+    0 1px 0 rgba(13, 58, 105, 0.08),
+    0 4px 10px rgba(13, 58, 105, 0.06);
 }
 
 #site-title {
-  font-family: "Grenze Gotisch", serif;
-  font-size: 50px;
-  font-weight: bold;
+  align-items: center;
+  display: inline-flex;
+  flex-direction: column;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 38px;
+  font-weight: 600;
+  gap: 5px;
+  letter-spacing: -0.012em;
+  line-height: 1.08;
+  margin: 6px 0 0;
+  /* Overrides the shared h1{overflow:hidden} rule below — that clip exists
+     for h1s with dynamic, possibly-long text (e.g. word-entry titles) that
+     need single-line ellipsis truncation. This wordmark's text is fixed and
+     short, so it never needs truncating, and the clip has no headroom for
+     a serif face's g/y descenders once line-height is tight. */
+  overflow: visible;
   user-select: none;
+}
+
+.site-wordmark-name {
+  display: block;
+}
+
+.site-wordmark-descriptor {
+  color: var(--color-text-strong);
+  display: block;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-transform: none;
+}
+
+.site-wordmark-descriptor span {
+  color: var(--color-ink);
+  margin: 0 0.35em;
 }
 
 main {
@@ -67,18 +103,18 @@ footer p {
 }
 
 footer p a {
-  color: var(--color-link);
+  color: var(--color-interactive);
   font-weight: bold;
   text-decoration: none;
 }
 
 footer p a:hover {
-  color: var(--color-primary);
+  color: var(--color-ink);
   text-decoration: underline;
 }
 
 footer .copyright {
-  color: var(--color-text-secondary);
+  color: var(--color-text-strong);
   font-size: 12px;
 }
 
@@ -90,7 +126,7 @@ footer .copyright {
   }
 
   header {
-    padding: 10px 15px;
+    padding: 10px 15px 12px;
   }
 
   footer {
@@ -122,8 +158,24 @@ footer .copyright {
 
   body.word-game-mode #site-title {
     font-size: clamp(28px, 7vw, 38px) !important;
-    line-height: 1.1;
+    line-height: 1.3;
     margin: 0;
+    white-space: nowrap;
+  }
+
+  body.word-game-mode .site-wordmark-descriptor {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  #site-title {
+    font-size: 32px;
+  }
+
+  .site-wordmark-descriptor {
+    font-size: 11px;
+    letter-spacing: 0.08em;
   }
 }
 

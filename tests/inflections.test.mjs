@@ -407,7 +407,7 @@ const vedMatcher = context.SentenceFormMatching.createMatcher(vedForms);
 assert.equal(vedMatcher.test("Hun satt ved bordet og ventet."), true);
 assert.equal(
   vedMatcher.highlight(byEntry.eksempel),
-  'Jeg krysset elven <span style="color: #1f6fb3;">ved</span> å svømme.',
+  'Jeg krysset elven <span style="color: var(--color-interactive);">ved</span> å svømme.',
 );
 const collectedVedExamples = context.SentenceFormMatching.collectExamples(
   byEntry,
@@ -432,7 +432,7 @@ assert.equal(
   elskovMatcher.highlight(
     "De hadde funnet en gammel bok om elskovens historie.",
   ),
-  'De hadde funnet en gammel bok om <span style="color: #1f6fb3;">elskovens</span> historie.',
+  'De hadde funnet en gammel bok om <span style="color: var(--color-interactive);">elskovens</span> historie.',
 );
 const ugleMatcher = context.SentenceFormMatching.createMatcher(ugleSentenceForms);
 assert.equal(ugleMatcher.test("Den gamle ugla lettet og fløy forbi."), true);

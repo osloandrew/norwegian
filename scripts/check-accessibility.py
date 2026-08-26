@@ -44,10 +44,6 @@ FAILING_IMPACTS = {"critical", "serious"}
 # Pre-existing serious/critical violations, accepted for now so this check
 # can gate CI without blocking on a full redesign. Each needs real design
 # work, not a quick patch:
-#   - color-contrast traces back to shared tokens (--color-text-faint,
-#     --color-text-slate, --color-link in styles/00-foundations-and-game.css)
-#     used across dozens of places — fixing the token shifts contrast
-#     everywhere it's used, not just the pages listed here.
 #   - nested-interactive is the whole-card-clickable pattern (a
 #     role="button" div containing a real <button>, e.g. the English-toggle
 #     button inside a search result card) used on every result card in the
@@ -56,10 +52,7 @@ FAILING_IMPACTS = {"critical", "serious"}
 # once its underlying issue is actually fixed — a passing run with a stale
 # entry here just means the entry is unused, not that anything is masked.
 KNOWN_VIOLATIONS: set[tuple[str, str]] = {
-    ("Landing page", "color-contrast"),
-    ("Word lookup", "color-contrast"),
     ("Word lookup", "nested-interactive"),
-    ("Stories index", "color-contrast"),
 }
 
 # (label, path, ready_selector, extra readiness wait)

@@ -124,6 +124,21 @@
 
   setSignInControlsReady(false);
 
+  // An iOS "Add to Home Screen" install (and other installed/standalone
+  // PWAs) runs with no real popup window support: signInWithPopup's
+  // opener/postMessage channel back to this page never connects, so the
+  // sign-in can appear to proceed but onAuthStateChanged here never fires
+  // and mergeRemoteData() never runs — My Words, streak, and everything
+  // else stay stuck showing only this device's local state indefinitely.
+  // signInWithRedirect avoids the popup entirely (a plain top-level
+  // navigation this window survives) and works the same everywhere else.
+  function isStandaloneDisplayMode() {
+    return (
+      window.navigator.standalone === true ||
+      (window.matchMedia?.("(display-mode: standalone)").matches ?? false)
+    );
+  }
+
   // Words/streak/ability data saved locally must not leak into whichever
   // account signs in next on a shared device — mergeRemoteData() below
   // unions local state into the new account's cloud doc on next sign-in,
@@ -1090,22 +1105,35 @@
     }
   }
 
+  // Shared by both the popup's resolved result and the redirect result
+  // picked up after the page comes back from Google — same funnel-tracking
+  // moment either way, as opposed to onAuthStateChanged firing again for a
+  // returning session.
+  function trackSignInResult(result) {
+    const isNewUser = Boolean(result?.additionalUserInfo?.isNewUser);
+    window.trackEvent?.(isNewUser ? "sign_up" : "login", {
+      method: "Google",
+    });
+    // Retain the existing event during migration so current reports do
+    // not break while the recommended GA4 events begin collecting.
+    window.trackEvent?.("sign_in_completed", { is_new_user: isNewUser });
+  }
+
   function triggerSignIn() {
+    if (isStandaloneDisplayMode()) {
+      // The redirect itself navigates this window away immediately; the
+      // result is collected by getRedirectResult() in initAuth() on the
+      // next load, not from this promise.
+      return auth.signInWithRedirect(provider).catch((error) => {
+        console.warn("Google sign-in failed.", error);
+        window.alert("Google sign-in failed. Please try again.");
+      });
+    }
+
     return auth
       .signInWithPopup(provider)
       .then((result) => {
-        // Only reached by an explicit, successful sign-in click (never by
-        // the silent session-restore path below, which calls
-        // ensureAuthReady() directly without this function) — the actual
-        // funnel conversion moment, as opposed to onAuthStateChanged firing
-        // again for a returning session.
-        const isNewUser = Boolean(result?.additionalUserInfo?.isNewUser);
-        window.trackEvent?.(isNewUser ? "sign_up" : "login", {
-          method: "Google",
-        });
-        // Retain the existing event during migration so current reports do
-        // not break while the recommended GA4 events begin collecting.
-        window.trackEvent?.("sign_in_completed", { is_new_user: isNewUser });
+        trackSignInResult(result);
       })
       .catch((error) => {
         if (error?.code !== "auth/popup-closed-by-user") {
@@ -1142,6 +1170,22 @@
     auth = firebase.auth();
     db = firebase.firestore();
     provider = new firebase.auth.GoogleAuthProvider();
+
+    // Completes the signInWithRedirect flow started in triggerSignIn() for
+    // standalone/installed PWAs. onAuthStateChanged below fires with the
+    // signed-in user regardless of whether this resolves — it only exists
+    // to keep sign-in analytics tracking at parity with the popup path.
+    auth
+      .getRedirectResult()
+      .then((result) => {
+        if (result?.user) {
+          trackSignInResult(result);
+        }
+      })
+      .catch((error) => {
+        console.warn("Google sign-in failed.", error);
+        window.alert("Google sign-in failed. Please try again.");
+      });
 
     signOutButton?.addEventListener("click", async () => {
       window.trackEvent?.("sign_out");

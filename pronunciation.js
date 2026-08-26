@@ -257,9 +257,9 @@ function showRandomPronunciation() {
           class="button-pron" 
           id="stop-recording"
           style="
-            background-color: #e9a895;
-            border-color: #4f4f4f;
-            color: #4f4f4f"
+            background-color: var(--color-danger-bg);
+            border-color: var(--color-text-strong);
+            color: var(--color-text-strong)"
         >⏹️ Stop Recording</button> 
   </div>
       </div>
@@ -307,10 +307,10 @@ function showRandomPronunciation() {
 
       window.wavesurferUser = WaveSurfer.create({
         container: "#user-waveform",
-        waveColor: "#ccc",
-        progressColor: "#28a745",
+        waveColor: "#cccccc", // matches --color-border
+        progressColor: "#365f36", // matches --color-success
         height: 80,
-        cursorColor: "#28a745",
+        cursorColor: "#365f36", // matches --color-success
       });
       window.wavesurferUser.load(url);
 
@@ -351,10 +351,10 @@ function showRandomPronunciation() {
   }
   window.wavesurferNative = WaveSurfer.create({
     container: "#waveform",
-    waveColor: "#ccc",
-    progressColor: "#007bff",
+    waveColor: "#cccccc", // matches --color-border
+    progressColor: "#0d3a69", // matches --color-ink
     height: 80,
-    cursorColor: "#007bff",
+    cursorColor: "#0d3a69", // matches --color-ink
   });
   window.wavesurferNative.load(audioFile);
 
@@ -379,10 +379,10 @@ function showRandomPronunciation() {
 
   window.wavesurferUser = WaveSurfer.create({
     container: "#user-waveform",
-    waveColor: "#ccc",
-    progressColor: "#28a745",
+    waveColor: "#cccccc", // matches --color-border
+    progressColor: "#365f36", // matches --color-success
     height: 80,
-    cursorColor: "#28a745",
+    cursorColor: "#365f36", // matches --color-success
   });
   window.wavesurferUser.load(silenceUrl);
 }

@@ -77,31 +77,31 @@
     -->
     <link
       rel="stylesheet"
-      href="styles/00-foundations-and-game.css?v=dd48ebd5d0"
+      href="styles/00-foundations-and-game.css?v=ad8052fb6d"
     />
     <link
       rel="stylesheet"
-      href="styles/01-document-shell.css?v=38dacbfd77"
+      href="styles/01-document-shell.css?v=121a377943"
     />
     <link
       rel="stylesheet"
-      href="styles/10-shell-landing-and-stats.css?v=ae4d7806a4"
+      href="styles/10-shell-landing-and-stats.css?v=908041a888"
     />
     <link
       rel="stylesheet"
-      href="styles/20-results-and-story-quiz.css?v=79d4242fce"
+      href="styles/20-results-and-story-quiz.css?v=f4f500a76d"
     />
     <link
       rel="stylesheet"
-      href="styles/30-stories-and-word-lists.css?v=498ba7c575"
+      href="styles/30-stories-and-word-lists.css?v=f82005e5d4"
     />
     <link
       rel="stylesheet"
-      href="styles/35-navigation.css?v=17c082e7a6"
+      href="styles/35-navigation.css?v=1094865f78"
     />
     <link
       rel="stylesheet"
-      href="styles/45-feedback-dialog.css?v=ed1628cd16"
+      href="styles/45-feedback-dialog.css?v=447688cb93"
     />
     <link
       rel="apple-touch-icon"
@@ -133,14 +133,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Noto+Serif:wght@100..900&amp;display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Noto+Serif:wght@100..900&amp;display=swap"
       media="print"
       onload="this.media = 'all'"
     />
     <noscript>
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Noto+Serif:wght@100..900&amp;display=swap"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Noto+Serif:wght@100..900&amp;display=swap"
       />
     </noscript>
 
@@ -392,7 +392,10 @@
           }
         "
       >
-        Norwegian Dictionary
+        <span class="site-wordmark-name">Norwegian Dictionary</span>
+        <span class="site-wordmark-descriptor" aria-hidden="true"
+          >Words <span>·</span> Stories <span>·</span> Practice</span
+        >
       </h1>
     </header>
 
@@ -412,7 +415,7 @@
               <select
                 id="type-select"
                 aria-label="Search by words or sentences"
-                onchange="handleTypeChange(this.value)"
+                onchange="handleTypeChange(this.value, { userNavigation: true })"
               >
                 <option value="words">Words</option>
                 <option value="sentences">Sentences</option>
@@ -634,26 +637,6 @@
           Look up words, hear pronunciations, read short stories, and practice
           at your level.
         </p>
-
-        <div class="landing-hero-actions" aria-label="Get started">
-          <button
-            type="button"
-            class="landing-hero-cta landing-hero-cta--primary"
-            onclick="startDailyQuestFromLanding()"
-          >
-            Start a 10-word round
-          </button>
-          <a
-            class="landing-hero-cta landing-hero-cta--secondary"
-            href="stories/"
-            onclick="
-              event.preventDefault();
-              selectType('stories');
-            "
-          >
-            Browse stories
-          </a>
-        </div>
 
         <p id="landing-word-count" class="landing-proof-line">
           30,000+ dictionary entries <span aria-hidden="true">·</span> 360
@@ -1031,9 +1014,9 @@
       forms" section. Its larger Norsk Ordbank snapshot is fetched later,
       after the main dictionary is usable, so this script remains cheap.
     -->
-    <script src="inflections.js?v=a69d157025"></script>
-    <script src="expressionPatterns.js?v=937e6c16de"></script>
-    <script src="sentenceFormMatching.js?v=cb56c8a3e2"></script>
+    <script src="inflections.js?v=7bab173593"></script>
+    <script src="expressionPatterns.js?v=74753b40ba"></script>
+    <script src="sentenceFormMatching.js?v=43d9bafa37"></script>
     <script src="spacedRepetition.js?v=93b4b95907"></script>
     <script src="progressSharding.js?v=8722cafa38" defer></script>
 
@@ -1046,19 +1029,19 @@
       them un-deferred used to.
     -->
     <script src="englishVisibility.js?v=b7799fc88b" defer></script>
-    <script src="pronunciation.js?v=4707ea5ebb" defer></script>
-    <script src="wordList.js?v=ac1952fac1" defer></script>
+    <script src="pronunciation.js?v=163188f0a9" defer></script>
+    <script src="wordList.js?v=db21ab1d5c" defer></script>
     <script src="storyFavorites.js?v=c152eb5155" defer></script>
-    <script src="myWordsAuth.js?v=41bad2d480" defer></script>
+    <script src="myWordsAuth.js?v=3f4ea4bf8a" defer></script>
     <script src="noRandom.js?v=dd11769910" defer></script>
-    <script src="ordbokene.js?v=f0e1c0b8bc" defer></script>
-    <script src="scripts.js?v=5c3ac312f3" defer></script>
-    <script src="wordGame.js?v=46a3669d02" defer></script>
+    <script src="ordbokene.js?v=891867a5ad" defer></script>
+    <script src="scripts.js?v=59b9c23805" defer></script>
+    <script src="wordGame.js?v=5c7b4c8860" defer></script>
     <script src="placementTest.js?v=743c41a320" defer></script>
     <script src="streak.js?v=ddb26efe7e" defer></script>
-    <script src="stories.js?v=aae01309d2" defer></script>
-    <script src="storyQuiz.js?v=3b8314cb8b" defer></script>
-    <script src="myStats.js?v=2778937dd8" defer></script>
+    <script src="stories.js?v=3a4037f8af" defer></script>
+    <script src="storyQuiz.js?v=d3c1898343" defer></script>
+    <script src="myStats.js?v=316a961c85" defer></script>
 
     <!--
       Registered after "load" (not deferred alongside the app scripts

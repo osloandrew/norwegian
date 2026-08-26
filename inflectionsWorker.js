@@ -10,6 +10,7 @@
 // buildReverseIndexesOffMainThread(), which creates and talks to this
 // worker, and falls back to building the index on the main thread if this
 // file can't be loaded or throws.
+self.APP_ROOT_URL = new URL("./", self.location.href).href;
 importScripts("wordClass.js", "inflections.js");
 
 self.onmessage = async (event) => {

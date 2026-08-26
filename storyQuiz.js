@@ -79,7 +79,7 @@
     let answers = [];
     let shuffled = null;
 
-    function renderQuestion() {
+    function renderQuestion({ focusPrompt = false } = {}) {
       const question = questions[index];
       shuffled = shuffleOptions(question);
       root.innerHTML = `
@@ -100,6 +100,19 @@
         );
         optionsEl.appendChild(button);
       });
+
+      if (focusPrompt) {
+        const prompt = root.querySelector(".story-quiz-prompt");
+        if (prompt) {
+          prompt.setAttribute("tabindex", "-1");
+          prompt.focus({ preventScroll: true });
+          prompt.addEventListener(
+            "blur",
+            () => prompt.removeAttribute("tabindex"),
+            { once: true },
+          );
+        }
+      }
     }
 
     function handleAnswer(chosenIndex, chosenButton, optionsEl) {
@@ -147,7 +160,7 @@
         .addEventListener("click", () => {
           index += 1;
           if (index < questions.length) {
-            renderQuestion();
+            renderQuestion({ focusPrompt: true });
           } else {
             renderResults();
           }
@@ -192,7 +205,7 @@
           index = 0;
           score = 0;
           answers = [];
-          renderQuestion();
+          renderQuestion({ focusPrompt: true });
         });
     }
 

@@ -38,7 +38,7 @@
    since "an issue" isn't scoped to any one story there. */
 .story-report-issue-btn {
   align-items: center;
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border: 0.5px solid var(--color-border-input);
   border-radius: 6px;
   color: var(--color-text-strong);
@@ -72,8 +72,8 @@ html.reading .story-report-issue-btn {
 }
 
 .story-report-issue-btn:hover {
-  background-color: var(--color-bg-subtle);
-  border-color: var(--color-text-icon-muted);
+  background-color: var(--color-surface-subtle);
+  border-color: var(--color-text-muted);
 }
 
 .story-report-issue-btn:focus-visible {
@@ -87,7 +87,7 @@ html.reading .story-report-issue-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   color: var(--color-google-text);
   border: 1px solid var(--color-border-google);
   border-radius: 6px;
@@ -138,7 +138,7 @@ html.reading .story-report-issue-btn {
   height: 8px;
   border-radius: 50%;
   background-color: var(--color-streak-icon);
-  border: 1.5px solid var(--color-white);
+  border: 1.5px solid var(--color-surface);
 }
 
 .google-signin-btn:disabled::after {
@@ -150,11 +150,11 @@ html.reading .story-report-issue-btn {
    same way regardless of which page/scroll position triggered it. */
 .signin-nudge-banner {
   align-items: center;
-  background-color: var(--color-primary);
+  background-color: var(--color-ink);
   border-radius: 10px;
   bottom: 20px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  color: var(--color-white);
+  color: var(--color-surface);
   display: flex;
   font-family: "Noto Sans", sans-serif;
   gap: 12px;
@@ -180,10 +180,10 @@ html.reading .story-report-issue-btn {
 }
 
 .signin-nudge-signin-btn {
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border: none;
   border-radius: 6px;
-  color: var(--color-primary);
+  color: var(--color-ink);
   cursor: pointer;
   flex-shrink: 0;
   font-family: "Noto Sans", sans-serif;
@@ -194,7 +194,7 @@ html.reading .story-report-issue-btn {
 }
 
 .signin-nudge-signin-btn:hover {
-  background-color: var(--color-bg-blue-active);
+  background-color: var(--color-wash-blue-active);
 }
 
 .signin-nudge-signin-btn:disabled {
@@ -213,7 +213,7 @@ html.reading .story-report-issue-btn {
 }
 
 .signin-nudge-dismiss-btn:hover {
-  color: var(--color-white);
+  color: var(--color-surface);
 }
 
 @media (max-width: 600px) {
@@ -260,7 +260,7 @@ html.reading .story-report-issue-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border-google);
   border-radius: 6px;
   padding: 5px 10px 5px 5px;
@@ -401,13 +401,13 @@ input[type="text"]:disabled {
 
 input[type="text"]:focus + label,
 input[type="text"]:not(:placeholder-shown) + label {
-  color: var(--color-heading);
+  color: var(--color-ink);
   font-size: 12px;
   top: -10px;
 }
 
 .japanese-sentence {
-  color: black; /* Set a color for Japanese text */
+  color: var(--color-text); /* Set a color for Japanese text */
   font-family: "Noto Serif", serif; /* Adjust to the appropriate English font */
 }
 
@@ -433,7 +433,7 @@ input[type="text"]:not(:placeholder-shown) + label {
    positionStoryWordPopover in stories.js). Deliberately minimal: a gloss
    and a My Words star per sense, nothing else. */
 .story-word-popover {
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border-radius: 10px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
   display: flex;
@@ -478,7 +478,7 @@ input[type="text"]:not(:placeholder-shown) + label {
   appearance: none;
   background: none;
   border: none;
-  color: var(--color-heading-accent);
+  color: var(--color-interactive);
   cursor: pointer;
   font-size: 12px;
   font-style: normal;
@@ -487,7 +487,7 @@ input[type="text"]:not(:placeholder-shown) + label {
 }
 
 .story-word-popover-flag-btn:hover {
-  color: var(--color-primary);
+  color: var(--color-ink);
 }
 
 .story-word-popover-translation {
@@ -498,7 +498,7 @@ input[type="text"]:not(:placeholder-shown) + label {
 }
 
 .japanese-title {
-  color: var(--color-text-alt-title);
+  color: var(--color-text-strong);
   display: -webkit-box; /* Creates a block-level flex container */
   font-family: "Noto Serif", serif; /* Japanese-specific font */
   font-weight: 400;
@@ -511,7 +511,7 @@ input[type="text"]:not(:placeholder-shown) + label {
 }
 
 label {
-  color: var(--color-text-secondary);
+  color: var(--color-text-strong);
   left: 10px;
   pointer-events: none;
   position: absolute;
@@ -520,9 +520,15 @@ label {
 }
 
 #landing-card {
-  background-color: var(--color-white);
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  --landing-border: var(--color-wash-blue-border);
+  --landing-radius-control: 8px;
+  --landing-radius-panel: 10px;
+  --landing-radius-shell: 12px;
+  --landing-shadow-hover: 0 4px 12px rgba(13, 35, 55, 0.07);
+  background-color: var(--color-surface);
+  border: 1px solid var(--landing-border);
+  border-radius: var(--landing-radius-shell);
+  box-shadow: 0 4px 18px rgba(13, 35, 55, 0.06);
   margin: 20px auto;
   /* Wide enough for the dashboard sections and three feature columns to
      breathe on desktop, while the percentage width below preserves the
@@ -558,25 +564,24 @@ html.landing #landing-card {
   margin-bottom: auto;
 }
 
-/* Keep the decorative display face exclusive to the site logo. A restrained
-   serif gives the landing promise an editorial tone without changing the
-   recognizable brand above it. */
 #landing-card h2 {
-  color: var(--color-primary);
-  font-family: "Noto Serif", serif;
+  color: var(--color-ink);
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
   font-size: 32px !important;
   font-weight: 600;
-  margin-bottom: 10px;
+  margin: 0 0 10px;
   letter-spacing: -0.015em;
   user-select: none;
-  line-height: 1.2;
+  line-height: 1.3;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 /* Adjust the paragraph text inside the landing card to be more similar to definition content */
 #landing-card p {
   font-family: "Noto Sans", sans-serif;
   font-size: 14px !important; /* Matches the font size of other definition content */
-  color: var(--color-text-secondary); /* Similar color to definition content */
+  color: var(--color-text-strong); /* Similar color to definition content */
   line-height: 1.6; /* Increase line height for readability */
   text-align: left;
   user-select: none;
@@ -590,9 +595,9 @@ html.landing #landing-card {
   margin: 0 auto; /* Centering with smaller vertical margins */
   margin-bottom: 15px;
   margin-top: 15px;
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   color: var(
-    --color-primary
+    --color-ink
   ); /* Brand navy, matching the header/filters/badges rather
                       than a disconnected neutral gray */
   border: 1px solid #b7c9e2; /* Soft navy-tinted border instead of gray */
@@ -618,15 +623,15 @@ html.landing #landing-card {
 
 .landing-card-btn:hover {
   background-color: var(
-    --color-bg-hover-blue
+    --color-wash-blue
   ); /* Same navy tint as the icon chip/word-count
                                  badge, so hover reads as part of the same
                                  color family instead of a plain gray */
-  border-color: var(--color-primary);
+  border-color: var(--color-ink);
 }
 
 .landing-card-btn i {
-  color: var(--color-danger-dark);
+  color: var(--color-danger-text);
   margin-right: 8px; /* Adds space between the icon and text */
 }
 
@@ -648,10 +653,10 @@ html.landing #landing-card {
 .button-container {
   align-items: center;
   appearance: none;
-  background-color: #fbfcfe;
-  border: 1px solid #e3e8f0;
-  border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(13, 35, 55, 0.04);
+  background-color: var(--color-wash-blue-pale);
+  border: 1px solid var(--landing-border);
+  border-radius: var(--landing-radius-panel);
+  box-shadow: none;
   box-sizing: border-box;
   color: inherit;
   cursor: pointer;
@@ -669,13 +674,13 @@ html.landing #landing-card {
 }
 
 .button-container:hover {
-  border-color: #c3d2e8;
-  box-shadow: 0 5px 14px rgba(13, 35, 55, 0.07);
+  border-color: var(--color-interactive-muted);
+  box-shadow: var(--landing-shadow-hover);
   transform: translateY(-2px);
 }
 
 .button-container:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }
 
@@ -687,7 +692,7 @@ html.landing #landing-card {
 /* The tile's name — plain typography now that the card itself is the
    click target, rather than a bordered pill button nested inside it. */
 .landing-card-title {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 15px;
   font-weight: 700;
@@ -710,7 +715,7 @@ html.landing #landing-card {
    colors picked at random. */
 .landing-card-icon-chip {
   align-items: center;
-  background-color: #e7eef8;
+  background-color: var(--color-wash-blue);
   border-radius: 50%;
   display: flex;
   height: 56px;
@@ -736,80 +741,21 @@ html.landing #landing-card {
   width: fit-content;
 }
 
-/* The landing hero keeps the site's existing type and compact proportions,
-   but gives a new visitor one clear value proposition and two restrained
-   ways to begin before the returning-user dashboard appears below. */
+/* The landing hero introduces the product; the search above and guided daily
+   lesson below establish the page's primary learning path. */
 #landing-card p.landing-hero-copy {
-  color: var(--color-text-secondary);
+  color: var(--color-text-strong);
   margin: 4px auto 0;
   max-width: 560px;
   text-align: center;
 }
 
-.landing-hero-actions {
-  align-items: center;
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 18px;
-}
-
-.landing-hero-cta {
-  align-items: center;
-  border-radius: 8px;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  justify-content: center;
-  letter-spacing: var(--letter-spacing-caps);
-  min-height: 42px;
-  padding: 10px 16px;
-  text-decoration: none;
-  text-transform: uppercase;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.landing-hero-cta--primary {
-  background-color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
-  color: var(--color-white);
-}
-
-.landing-hero-cta--primary:hover {
-  background-color: var(--color-accent);
-  border-color: var(--color-accent);
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.22);
-}
-
-.landing-hero-cta--secondary {
-  background-color: var(--color-white);
-  border: 1px solid var(--color-border-blue-soft);
-  color: var(--color-primary);
-}
-
-.landing-hero-cta--secondary:hover {
-  background-color: var(--color-bg-hover-blue);
-  border-color: #b7c9e2;
-}
-
-.landing-hero-cta:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
 #landing-card p.landing-proof-line {
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   font-size: 11px !important;
   font-weight: 600;
   letter-spacing: 0.01em;
-  margin: 12px auto 0;
+  margin: 14px auto 0;
   text-align: center;
 }
 
@@ -819,7 +765,7 @@ html.landing #landing-card {
 }
 
 .landing-explore-heading {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 17px;
   font-weight: 600;
@@ -830,16 +776,6 @@ html.landing #landing-card {
 }
 
 @media (max-width: 480px) {
-  .landing-hero-actions {
-    align-items: stretch;
-    flex-direction: column;
-    margin-top: 15px;
-  }
-
-  .landing-hero-cta {
-    width: 100%;
-  }
-
   #landing-card p.landing-proof-line {
     line-height: 1.6;
   }
@@ -849,9 +785,9 @@ html.landing #landing-card {
    shown inside Word Game. It spans the landing card above the feature grid,
    so the day's most useful action is visible without displacing a tool tile. */
 .landing-daily-quests {
-  background: #f7f9fb;
-  border: 1px solid var(--color-border-blue-soft);
-  border-radius: 14px;
+  background: var(--color-wash-blue-pale);
+  border: 1px solid var(--landing-border);
+  border-radius: var(--landing-radius-panel);
   box-sizing: border-box;
   margin-top: 18px;
   padding: 15px;
@@ -867,27 +803,27 @@ html.landing #landing-card {
 }
 
 #landing-card p.landing-daily-quests-eyebrow {
-  color: var(--color-text-blue-muted);
+  color: var(--color-text-slate);
   font-size: 10px !important;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
   line-height: 1.2;
   margin: 0 0 3px;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 #landing-card .landing-daily-quests h3 {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 19px;
   font-weight: 600;
-  letter-spacing: var(--letter-spacing-caps-heading);
+  letter-spacing: 0;
   margin: 0;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 #landing-card p.landing-daily-quests-intro {
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   font-size: 12px !important;
   line-height: 1.45;
   margin: 5px 0 0;
@@ -895,9 +831,9 @@ html.landing #landing-card {
 }
 
 .landing-daily-quests-count {
-  background-color: #e8eff7;
+  background-color: var(--color-wash-blue);
   border-radius: 999px;
-  color: var(--color-primary);
+  color: var(--color-ink);
   flex: 0 0 auto;
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
@@ -925,7 +861,7 @@ html.landing #landing-card {
   align-items: center;
   background-color: transparent;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--landing-radius-control);
   color: #41566b;
   display: flex;
   flex-direction: column;
@@ -942,41 +878,41 @@ html.landing #landing-card {
 }
 
 .landing-daily-quest-gem {
-  flex-basis: 46px;
+  height: 46px;
   width: 46px;
 }
 
 .landing-daily-quest-step--locked {
-  background-color: var(--color-table-header-bg);
-  color: var(--color-text-faint);
+  background-color: var(--color-surface-subtle);
+  color: #6b6b6b;
 }
 
 .landing-daily-quest-step--locked .landing-daily-quest-gem {
-  filter: drop-shadow(0 4px 8px rgba(28, 42, 58, 0.15)) saturate(0.45)
-    opacity(0.6);
+  filter: none;
 }
 
 .landing-daily-quest-step--active {
-  background-color: var(--color-bg-quest-active);
-  border-color: #8daac7;
-  box-shadow: 0 3px 10px rgba(13, 58, 105, 0.12);
+  background-color: var(--color-wash-blue-active);
+  border-color: var(--color-wash-blue-active-border);
+  box-shadow: none;
   transform: translateY(-2px);
 }
 
 .landing-daily-quest-step--complete {
-  background-color: #f4f9f1;
-  border-color: #aac9a1;
+  background-color: var(--color-success-bg);
+  border-color: var(--color-success-border);
 }
 
 .landing-daily-quests-action {
   align-items: center;
-  background-color: var(--color-white);
-  border: 1px solid #d9e1e9;
-  border-radius: 10px;
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+  border-top: 1px solid var(--landing-border);
   display: flex;
   gap: 12px;
   justify-content: space-between;
-  padding: 9px 10px 9px 12px;
+  padding: 12px 0 0;
 }
 
 .landing-daily-quests-action > div {
@@ -986,7 +922,7 @@ html.landing #landing-card {
 }
 
 .landing-daily-quests-action strong {
-  color: #243f5a;
+  color: var(--color-text-emphasis);
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
 }
@@ -1000,13 +936,11 @@ html.landing #landing-card {
 
 .landing-daily-quests-action button {
   align-items: center;
-  background-color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  border-radius: 8px;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15); /* Resting affordance,
-     matching #game-next-word-button -- solid primary buttons elsewhere in
-     the app carry a shadow at rest too, not just bordered/white cards. */
-  color: var(--color-white);
+  background-color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  border-radius: var(--landing-radius-control);
+  box-shadow: none;
+  color: var(--color-surface);
   cursor: pointer;
   display: flex;
   flex: 0 0 auto;
@@ -1015,10 +949,10 @@ html.landing #landing-card {
   font-weight: 700;
   gap: 6px;
   justify-content: center;
-  letter-spacing: var(--letter-spacing-caps);
+  letter-spacing: 0;
   min-height: 38px;
   padding: 8px 12px;
-  text-transform: uppercase;
+  text-transform: none;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
@@ -1028,7 +962,7 @@ html.landing #landing-card {
 .landing-daily-quests-action button:hover {
   background-color: var(--color-accent);
   border-color: var(--color-accent);
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 3px 9px rgba(13, 35, 55, 0.14);
 }
 
 .landing-daily-quests-action button.is-bonus {
@@ -1042,7 +976,7 @@ html.landing #landing-card {
 }
 
 .landing-daily-quests-action button:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }
 
@@ -1075,13 +1009,11 @@ html.landing #landing-card {
 }
 
 .landing-progress-summary {
-  background: linear-gradient(
-    145deg,
-    var(--color-bg-quest-active) 0%,
-    #f4f7fb 100%
-  );
-  border: 1px solid var(--color-border-blue-soft);
-  border-radius: 14px;
+  /* Flat, matching .landing-daily-quests' own background exactly — these
+     two boxes stack directly on the landing page and read as one pair. */
+  background: var(--color-wash-blue-pale);
+  border: 1px solid var(--landing-border);
+  border-radius: var(--landing-radius-panel);
   box-sizing: border-box;
   margin-top: 14px;
   padding: 18px;
@@ -1097,29 +1029,29 @@ html.landing #landing-card {
 }
 
 #landing-card p.landing-progress-summary-eyebrow {
-  color: var(--color-text-blue-muted);
+  color: var(--color-text-slate);
   font-size: 10px !important;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
   line-height: 1.2;
   margin: 0 0 3px;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 #landing-card .landing-progress-summary h3 {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 19px;
   font-weight: 600;
-  letter-spacing: var(--letter-spacing-caps-heading);
+  letter-spacing: 0;
   margin: 0;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .landing-progress-summary-count {
-  background-color: #e8eff7;
+  background-color: var(--color-wash-blue);
   border-radius: 999px;
-  color: var(--color-primary);
+  color: var(--color-ink);
   flex: 0 0 auto;
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
@@ -1128,7 +1060,7 @@ html.landing #landing-card {
 }
 
 #landing-card p.landing-progress-summary-intro {
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   font-size: 12px !important;
   line-height: 1.45;
   margin: 5px 0 14px;
@@ -1136,14 +1068,14 @@ html.landing #landing-card {
 }
 
 #landing-card p.landing-progress-summary-empty {
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   font-size: 12px !important;
   line-height: 1.5;
   margin: 8px 0 0;
 }
 
 .landing-progress-bar {
-  background-color: var(--color-progress-track);
+  background-color: var(--color-surface-subtle);
   border-radius: 999px;
   display: flex;
   height: 10px;
@@ -1157,11 +1089,11 @@ html.landing #landing-card {
 
 /* Learning-to-mastered ladder, ordered light to dark. */
 .landing-progress-segment--0 {
-  background-color: #d7dee6;
+  background-color: var(--color-wash-blue-border);
 }
 
 .landing-progress-segment--1 {
-  background-color: #a9c6e8;
+  background-color: var(--color-wash-blue-border);
 }
 
 .landing-progress-segment--2 {
@@ -1169,7 +1101,7 @@ html.landing #landing-card {
 }
 
 .landing-progress-segment--3 {
-  background-color: #8fbf7f;
+  background-color: var(--color-success-border);
 }
 
 .landing-progress-segment--4 {
@@ -1193,7 +1125,7 @@ html.landing #landing-card {
 }
 
 .landing-progress-legend-item strong {
-  color: #243f5a;
+  color: var(--color-text-emphasis);
   font-weight: 700;
 }
 
@@ -1205,11 +1137,11 @@ html.landing #landing-card {
 }
 
 .landing-progress-legend-dot--0 {
-  background-color: #d7dee6;
+  background-color: var(--color-wash-blue-border);
 }
 
 .landing-progress-legend-dot--1 {
-  background-color: #a9c6e8;
+  background-color: var(--color-wash-blue-border);
 }
 
 .landing-progress-legend-dot--2 {
@@ -1217,7 +1149,7 @@ html.landing #landing-card {
 }
 
 .landing-progress-legend-dot--3 {
-  background-color: #8fbf7f;
+  background-color: var(--color-success-border);
 }
 
 .landing-progress-legend-dot--4 {
@@ -1226,14 +1158,15 @@ html.landing #landing-card {
 
 .landing-progress-summary-action {
   align-items: center;
-  background-color: var(--color-white);
-  border: 1px solid #d9e1e9;
-  border-radius: 10px;
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+  border-top: 1px solid var(--landing-border);
   display: flex;
   gap: 14px;
   justify-content: space-between;
   margin-top: 14px;
-  padding: 11px 12px 11px 14px;
+  padding: 12px 0 0;
 }
 
 .landing-progress-summary-action span {
@@ -1244,12 +1177,11 @@ html.landing #landing-card {
 
 .landing-progress-summary-action button {
   align-items: center;
-  background-color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  border-radius: 8px;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15); /* Resting affordance,
-     matching .landing-daily-quests-action button / #game-next-word-button. */
-  color: var(--color-white);
+  background-color: transparent;
+  border: 0;
+  border-radius: var(--landing-radius-control);
+  box-shadow: none;
+  color: var(--color-interactive);
   cursor: pointer;
   display: flex;
   flex: 0 0 auto;
@@ -1257,10 +1189,13 @@ html.landing #landing-card {
   font-size: 11px;
   font-weight: 700;
   justify-content: center;
-  letter-spacing: var(--letter-spacing-caps);
-  min-height: 36px;
-  padding: 8px 13px;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  min-height: 32px;
+  padding: 6px 4px;
+  text-decoration: underline;
+  text-decoration-color: var(--color-interactive-muted);
+  text-underline-offset: 3px;
+  text-transform: none;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
@@ -1268,13 +1203,13 @@ html.landing #landing-card {
 }
 
 .landing-progress-summary-action button:hover {
-  background-color: var(--color-accent);
-  border-color: var(--color-accent);
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.22);
+  background-color: transparent;
+  color: var(--color-ink);
+  text-decoration-color: currentColor;
 }
 
 .landing-progress-summary-action button:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }
 
@@ -1290,7 +1225,8 @@ html.landing #landing-card {
   }
 
   .landing-progress-summary-action button {
-    width: 100%;
+    align-self: flex-start;
+    width: auto;
   }
 }
 
@@ -1324,7 +1260,7 @@ html.landing #landing-card {
    .landing-daily-quests / .landing-progress-summary on the landing page,
    which the .my-stats paper is deliberately mirroring. */
 .my-stats-box {
-  background: var(--color-white);
+  background: var(--color-surface);
   border: 0;
   border-radius: 0;
   box-sizing: border-box;
@@ -1335,8 +1271,8 @@ html.landing #landing-card {
 }
 
 .my-stats-heading {
-  color: var(--color-primary);
-  font-family: "Noto Sans", sans-serif;
+  color: var(--color-ink);
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
   font-size: 24px;
   font-weight: 600;
   letter-spacing: 0;
@@ -1345,7 +1281,7 @@ html.landing #landing-card {
 }
 
 .my-stats-subheading {
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   font-family: "Noto Sans", sans-serif;
   font-size: 14px;
   line-height: 1.45;
@@ -1353,7 +1289,7 @@ html.landing #landing-card {
 }
 
 .my-stats-section-heading {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 16px;
   font-weight: 600;
@@ -1390,8 +1326,8 @@ html.landing #landing-card {
 }
 
 .my-stats-overview-grid .game-summary-stat {
-  background-color: #f8fbfd;
-  border: 1px solid var(--color-border-blue-soft);
+  background-color: var(--color-wash-blue-pale);
+  border: 1px solid var(--color-wash-blue-border);
   border-radius: 9px;
   padding: 12px 6px;
   text-align: center;
@@ -1433,8 +1369,8 @@ html.landing #landing-card {
 
 .my-stats-gems-tile {
   align-items: center;
-  background-color: #f8fbfd;
-  border: 1px solid var(--color-border-blue-soft);
+  background-color: var(--color-wash-blue-pale);
+  border: 1px solid var(--color-wash-blue-border);
   border-radius: 9px;
   display: flex;
   flex-direction: column;
@@ -1447,8 +1383,8 @@ html.landing #landing-card {
    intro screen's full quest cards) is too large for this compact tile --
    this scales it down to match .game-summary-stat-value's proportions. */
 .my-stats-gems-icon {
-  filter: drop-shadow(0 2px 4px rgba(28, 42, 58, 0.16)) saturate(0.72);
-  flex-basis: 30px;
+  filter: drop-shadow(0 2px 3px rgba(28, 42, 58, 0.14));
+  height: 30px;
   width: 30px;
 }
 
@@ -1465,7 +1401,7 @@ html.landing #landing-card {
 }
 
 .my-stats-vocabulary-intro {
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
   line-height: 1.45;
@@ -1476,7 +1412,7 @@ html.landing #landing-card {
    is always a <p> tag, and .definition p's global 20px otherwise beats
    this class's own 13px on specificity alone. */
 p.my-stats-empty {
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   font-family: "Noto Sans", sans-serif;
   font-size: 13px;
   line-height: 1.5;
@@ -1484,14 +1420,14 @@ p.my-stats-empty {
 }
 
 .my-stats-see-all-link {
-  color: var(--color-primary);
+  color: var(--color-ink);
   display: inline-block;
   font-family: "Noto Sans", sans-serif;
   font-size: 13px;
   font-weight: 600;
   margin-top: 14px;
   text-decoration: none;
-  text-decoration-color: var(--color-border-blue-soft);
+  text-decoration-color: var(--color-wash-blue-border);
   text-underline-offset: 4px;
 }
 
@@ -1511,8 +1447,8 @@ p.my-stats-empty {
 
 /* My Stats report surface and section-specific controls. */
 #my-stats.definition.my-stats {
-  background: var(--color-white);
-  border: 1px solid var(--color-border-blue-soft);
+  background: var(--color-surface);
+  border: 1px solid var(--color-wash-blue-border);
   border-radius: 14px;
   box-shadow: 0 4px 14px rgba(13, 58, 105, 0.05);
   gap: 0;
@@ -1522,13 +1458,13 @@ p.my-stats-empty {
 }
 
 .my-stats-header {
-  border-bottom: 1px solid var(--color-border-blue-soft);
+  border-bottom: 1px solid var(--color-wash-blue-border);
   padding: 24px;
   text-align: left;
 }
 
 .my-stats-eyebrow {
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   font-family: "Noto Sans", sans-serif;
   font-size: 11px;
   font-weight: 600;
@@ -1538,7 +1474,7 @@ p.my-stats-empty {
 }
 
 .my-stats-box + .my-stats-box {
-  border-top: 1px solid var(--color-border-blue-soft);
+  border-top: 1px solid var(--color-wash-blue-border);
 }
 
 .my-stats-overview-grid p.game-summary-stat-label,
@@ -1548,11 +1484,11 @@ p.my-stats-empty {
 }
 
 .my-stats-overview-action .game-summary-primary-btn {
-  background-color: var(--color-white);
-  border: 1px solid var(--color-border-blue-soft);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-wash-blue-border);
   border-radius: 8px;
   box-shadow: none;
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-size: 12px;
   font-weight: 600;
   padding: 10px 14px;
@@ -1560,8 +1496,8 @@ p.my-stats-empty {
 }
 
 .my-stats-overview-action .game-summary-primary-btn:hover {
-  background-color: var(--color-bg-hover);
-  border-color: var(--color-border-blue-soft);
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-wash-blue-border);
 }
 
 .my-stats-gems-tile p.game-summary-stat-value {
@@ -1593,8 +1529,8 @@ p.my-stats-empty {
 
 /* Progress bar container and fill */
 .level-progress-bar-bg {
-  background-color: var(--color-progress-track);
-  border-radius: 10px;
+  background-color: var(--color-surface-subtle);
+  border-radius: 999px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -1609,7 +1545,7 @@ p.my-stats-empty {
 }
 
 li {
-  color: var(--color-heading-accent);
+  color: var(--color-ink);
 }
 
 .links {
@@ -1623,11 +1559,11 @@ li {
 
 .footer-control {
   align-items: center;
-  background-color: var(--color-white);
-  border: 1px solid var(--color-border-blue-soft);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-wash-blue-border);
   border-radius: 8px;
   box-sizing: border-box;
-  color: var(--color-primary);
+  color: var(--color-ink);
   cursor: pointer;
   display: inline-flex;
   font-family: "Noto Sans", sans-serif;
@@ -1651,22 +1587,22 @@ a.footer-control {
 }
 
 .footer-control:hover {
-  background-color: var(--color-bg-hover-blue);
-  border-color: var(--color-primary);
+  background-color: var(--color-wash-blue);
+  border-color: var(--color-ink);
   box-shadow: 0 2px 5px rgba(13, 58, 105, 0.12);
-  color: var(--color-primary);
+  color: var(--color-ink);
   transform: translateY(-1px);
 }
 
 .footer-control[aria-current="page"] {
-  background-color: var(--color-bg-hover-blue);
-  border-color: var(--color-primary);
+  background-color: var(--color-wash-blue);
+  border-color: var(--color-ink);
 }
 
 .footer-control:focus-visible,
 .coffee-btn:focus-visible,
 footer a:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }
 

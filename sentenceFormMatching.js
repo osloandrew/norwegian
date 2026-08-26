@@ -50,7 +50,7 @@
           .replace(
             highlightPattern,
             (matchedText) =>
-              `<span style="color: #1f6fb3;">${matchedText}</span>`,
+              `<span style="color: var(--color-interactive);">${matchedText}</span>`,
           ),
     });
   }

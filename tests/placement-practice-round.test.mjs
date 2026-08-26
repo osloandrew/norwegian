@@ -175,7 +175,7 @@ assert.notEqual(completionEnd, -1);
 const completionContext = vm.createContext({ Math });
 vm.runInContext(
   `
-    let wordGameIsPlacementRound = true;
+    let wordGamePlacementCalibrationEnabled = true;
     let wordGameMode = "session";
     let wordGameSessionQuestionsAnswered = 10;
     let wordGameSessionTarget = 10;
@@ -192,14 +192,28 @@ vm.runInContext(
   { filename: "wordGame.js" },
 );
 
+// While calibration is actually running (a real, un-skipped placement
+// round), 10 answered questions complete it regardless of the 3
+// outstanding misses.
 assert.equal(completionContext.isWordGameRoundComplete(), true);
 assert.equal(
   completionContext.getWordGameSessionProgressLabel(),
   "Question 10 of 10",
 );
 assert.equal(completionContext.getWordGameSessionProgressPercent(), 100);
-vm.runInContext("wordGameIsPlacementRound = false", completionContext);
+
+// Skipped placement still runs this same round shape (wordGameIsPlacementRound
+// stays true — see the structuredQuestionMode assertion above), but with no
+// assessment actually happening, it must complete like ordinary practice:
+// the round isn't done while misses are still outstanding, and it reports
+// itself the same way ordinary practice would.
+vm.runInContext("wordGamePlacementCalibrationEnabled = false", completionContext);
 assert.equal(completionContext.isWordGameRoundComplete(), false);
+assert.equal(
+  completionContext.getWordGameSessionProgressLabel(),
+  "Word 3 of 10",
+);
+assert.equal(completionContext.getWordGameSessionProgressPercent(), 30);
 
 const answerHandlerStart = wordGameSource.indexOf(
   "async function handleTranslationClick",
@@ -214,7 +228,7 @@ const answerHandlerSource = wordGameSource.slice(
 );
 assert.match(
   answerHandlerSource,
-  /if \(!wordGameIsPlacementRound\) \{[\s\S]*incorrectWordQueue\.push/,
+  /if \(!wordGamePlacementCalibrationEnabled\) \{[\s\S]*incorrectWordQueue\.push/,
 );
 assert.match(
   wordGameSource,
@@ -222,11 +236,11 @@ assert.match(
 );
 assert.match(
   wordGameSource,
-  /const leftStatHTML = wordGameIsPlacementRound\s+\? ""/,
+  /const leftStatHTML = wordGamePlacementCalibrationEnabled\s+\? ""/,
 );
 assert.match(
   wordGameSource,
-  /const rightStatHTML = wordGameIsPlacementRound\s+\? ""/,
+  /const rightStatHTML = wordGamePlacementCalibrationEnabled\s+\? ""/,
 );
 
 // A starting-level choice seeds ability but leaves a first-time learner's

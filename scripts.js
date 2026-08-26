@@ -1599,9 +1599,12 @@ async function randomWord() {
     const selectedSentence = sentences[randomIndex];
     const selectedTranslation = translations[randomIndex] || "";
 
-    // Clear any existing highlights in the sentence
+    // Clear any existing highlights in the sentence. The parens in
+    // var(--color-interactive) must be escaped here — unescaped, they'd
+    // open a second capture group ahead of (.*?), shifting "$1" below to
+    // the literal token text instead of the highlighted phrase.
     const cleanedSentence = selectedSentence.replace(
-      /<span style="color: #1f6fb3;">(.*?)<\/span>/gi,
+      /<span style="color: var\(--color-interactive\);">(.*?)<\/span>/gi,
       "$1",
     );
 
@@ -2280,11 +2283,47 @@ function handlePOSChange() {
   }
 }
 
+function focusViewAfterNavigation(selector = "") {
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+
+  // Let synchronous route rendering settle before locating its new heading.
+  // Async views can pass a selector and invoke this helper again once their
+  // content arrives (the story reader does this after inserting its title).
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      const main = document.getElementById("main-content");
+      if (!main) return;
+
+      const requestedTarget = selector ? document.querySelector(selector) : null;
+      const target =
+        requestedTarget ||
+        Array.from(main.querySelectorAll("h1, h2")).find(
+          (heading) => heading.getClientRects().length > 0,
+        ) ||
+        main;
+
+      const suppliedTabIndex = target.hasAttribute("tabindex");
+      if (!suppliedTabIndex) target.setAttribute("tabindex", "-1");
+      target.focus({ preventScroll: true });
+
+      if (!suppliedTabIndex) {
+        target.addEventListener(
+          "blur",
+          () => target.removeAttribute("tabindex"),
+          { once: true },
+        );
+      }
+    });
+  });
+}
+
+window.focusViewAfterNavigation = focusViewAfterNavigation;
+
 function selectType(type) {
   // Set the dropdown value to match the selected type
   document.getElementById("type-select").value = type;
   // Call handleTypeChange with the type
-  handleTypeChange(type);
+  handleTypeChange(type, { userNavigation: true });
 }
 
 // Like Sentence Search's landing example, the Words card shows a real
@@ -2607,6 +2646,10 @@ function handleTypeChange(type, options = {}) {
       clearContainer();
       showLandingCard(true);
     }
+  }
+
+  if (options.userNavigation) {
+    focusViewAfterNavigation();
   }
 }
 
@@ -3341,7 +3384,7 @@ function displaySearchResults(
                     }
                     ${
                       result.CEFR
-                        ? `<p style="display: inline-flex; align-items: center; font-family: 'Noto Sans', sans-serif; font-weight: bold; text-transform: uppercase; font-size: 12px; color: #4F4F4F;"><i class="fa-solid fa-signal" style="margin-right: 5px;"></i><span style="text-align: center; min-width: 15px; display: inline-block; padding: 3px 7px; border-radius: 4px; background-color: ${getCefrColor(
+                        ? `<p style="display: inline-flex; align-items: center; font-family: 'Noto Sans', sans-serif; font-weight: bold; text-transform: uppercase; font-size: 12px; color: var(--color-text-strong);"><i class="fa-solid fa-signal" style="margin-right: 5px;"></i><span style="text-align: center; min-width: 15px; display: inline-block; padding: 3px 7px; border-radius: var(--radius-control); background-color: ${getCefrColor(
                             result.CEFR,
                           )};">${result.CEFR}</span><span style="margin-left: 6px; font-family: 'Noto Sans', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; color: var(--color-text-muted);">${getCefrLabel(
                             result.CEFR,
@@ -3589,18 +3632,23 @@ function getSentenceCefrLabelHTML(cefrLevel) {
     : "";
 }
 
+// Kept in sync with the CEFR ramp's darker step per family in
+// 00-foundations-and-game.css (--color-cefr-a2-bg / -b2-bg / -c2-bg) — the
+// same easy/medium/hard simplification .game-cefr-label and
+// .sentence-cefr-label use there. A plain JS function can't read a CSS
+// custom property directly, so if that ramp ever changes, update both.
 function getCefrColor(cefrLevel) {
   switch (cefrLevel) {
     case "A1":
     case "A2":
-      return "#C7E3B6"; // Green for 'easy'
+      return "#b3d8a3"; // matches --color-cefr-a2-bg
     case "B1":
     case "B2":
-      return "#F2D96B"; // Yellow for 'medium'
+      return "#f0d39a"; // matches --color-cefr-b2-bg
     case "C":
-      return "#E9A895"; // Red for 'hard'
+      return "#e0af92"; // matches --color-cefr-c2-bg
     default:
-      return "#ccc"; // Default background color
+      return "#e0e0e0"; // matches --color-surface-strong
   }
 }
 
@@ -3893,8 +3941,10 @@ function renderDefinitionSentenceResults(
 
   const primaryResultSet = new Set(primaryResults);
   const highlightedResults = matchingResults.slice(0, 10).map((result) => {
+    // Escaped parens — see the matching comment on the other strip site
+    // above; unescaped they'd shift "$1" off the highlighted phrase.
     const cleanSentence = result.eksempel.replace(
-      /<span style="color: #1f6fb3;">(.*?)<\/span>/gi,
+      /<span style="color: var\(--color-interactive\);">(.*?)<\/span>/gi,
       "$1",
     );
     const highlightMatcher = primaryResultSet.has(result)

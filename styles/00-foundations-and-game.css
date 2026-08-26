@@ -21,64 +21,108 @@
      larger caps text doesn't read as loud/overspaced. */
   --letter-spacing-caps: 0.04em;
   --letter-spacing-caps-heading: 0.02em;
-  /* Brand blues */
-  --color-primary: #0d3a69;
-  --color-primary-active: #092c50;
-  --color-heading: #293a78;
-  --color-heading-accent: #1c68b5;
-  --color-link: #3c88d4;
+  /* Word Game corner-radius scale: one value for controls (buttons, inputs,
+     badges) and one for cards/panels, so rounding reads as a deliberate
+     choice instead of each component picking its own number. */
+  --radius-control: 8px;
+  --radius-card: 12px;
+  /* Brand blues. Four stops instead of the six this used to be
+     (--color-heading merged into --color-ink, --color-heading-accent
+     merged into --color-interactive) — the retired two were only
+     cosmetically different from their survivors. --color-accent stays
+     distinct on purpose: it's the hover-lightening target for ink-colored
+     buttons, a real, load-bearing role rather than a duplicate. */
+  --color-ink: #0d3a69;
+  --color-ink-active: #092c50;
+  --color-interactive: #3c88d4;
   --color-accent: #4a99ff;
-  /* Text */
+  /* Pale-blue hover/active "wash" — replaces a couple dozen near-identical
+     one-off pale blues that had been invented ad hoc per component across
+     every stylesheet. */
+  --color-wash-blue: #eaf1fb;
+  --color-wash-blue-active: #d9e8ff;
+  --color-wash-blue-border: #cbd9e8;
+  /* Notably whiter than --color-wash-blue on purpose — the landing page's
+     Today's Quests / Vocabulary Profile dashboard cards, which want to read
+     as barely-tinted white, not as a hover state. Keep these two in sync;
+     don't fold this into --color-wash-blue, they're deliberately not the
+     same shade. */
+  --color-wash-blue-pale: #f7f9fb;
+  /* Border paired with --color-wash-blue-active on a card's active/selected
+     state (daily-quest tiles, in both the Word Game and the landing-page
+     preview of the same quests). */
+  --color-wash-blue-active-border: #8daac7;
+  /* A muted, lower-contrast cousin of --color-interactive for hover borders
+     and underlines that want a hint of "tappable" without the full-strength
+     link blue. */
+  --color-interactive-muted: #a9bdd5;
+  /* Text — five tiers instead of eleven. Every retired token merged into
+     a survivor within ~10 points of lightness of it. */
   --color-text: #333333;
   --color-text-strong: #4a4a4a;
-  --color-text-secondary: #555555;
   --color-text-muted: #666666;
-  --color-text-icon-muted: #6a6a6a;
-  --color-text-slate: #69737e;
-  --color-text-slate-soft: #5d6874;
-  --color-text-blue-muted: #52708f;
   --color-text-faint: #777777;
-  --color-text-alt-title: #3c3c3c;
-  --color-badge-text: #4f4f4f;
-  /* Neutral / borders / backgrounds */
-  --color-white: #ffffff;
-  --color-border: #cccccc;
-  --color-border-light: #dddddd;
-  --color-border-neutral: #bbbbbb;
-  --color-border-input: #a0a0a0;
-  --color-progress-track: #eeeeee;
-  --color-bg-subtle: #f0f0f0;
-  --color-bg-light: #f4f4f4;
-  --color-table-header-bg: #f5f5f5;
-  --color-bg-hover: #f7f7f7;
-  --color-bg-hover-strong: #e0e0e0;
+  --color-text-slate: #5d6874;
   --color-text-on-light-btn: #2a3a2f;
-  /* Status (danger, success, streak, favorite) */
+  /* A quieter, more desaturated link treatment for secondary/provenance
+     links (e.g. "via Ordbokene", inflection hints) that shouldn't compete
+     with primary content links. */
+  --color-link-muted: #526c91;
+  --color-link-muted-underline: #aab8ca;
+  /* Small emphasized labels/numbers on the landing page's dashboard-style
+     cards (daily-quest count, progress legend) — a muted slate-navy, softer
+     than --color-ink so it doesn't compete with real headings. */
+  --color-text-emphasis: #243f5a;
+  /* Neutral surfaces / borders */
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f4f4f4;
+  --color-surface-hover: #f7f7f7;
+  --color-surface-strong: #e0e0e0;
+  --color-border: #cccccc;
+  --color-border-input: #a0a0a0;
+  /* Status: danger/red and success/green, each four stops (base, text,
+     background, border) instead of a scattered handful of near-duplicate
+     pale variants per feature. */
   --color-danger: #951b1b;
-  --color-danger-dark: #5a1a1a;
   --color-danger-text: #6b2814;
-  --color-danger-bg: #e9a895;
-  --color-success-bg: #c7e3b6;
-  --color-success-text: #254a1d;
+  --color-danger-bg: #f0c1b3;
+  --color-danger-border: #c97861;
   --color-success: #365f36;
+  --color-success-text: #254a1d;
+  --color-success-bg: #d7ecc9;
+  --color-success-border: #7cab62;
+  /* Streak / favorite — already a coherent, low-duplication family; kept
+     as-is. */
   --color-streak-bg: #fff3e0;
   --color-streak-border: #f0c896;
   --color-streak-text: #b3541e;
   --color-streak-icon: #f2994a;
   --color-favorite: #a66c00;
   --color-level-mid: #f2d96b;
-  /* Feature-specific accents (bonus quests, pale-blue hover states) */
+  /* Feature-specific accents */
   --color-bonus: #5a3d82;
   --color-bonus-hover: #72529d;
-  --color-bg-hover-blue: #eaf1fb;
-  --color-bg-row-hover: #f2f9fd;
-  --color-bg-quest-active: #f8fbff;
   --color-bg-stat: #f7f9fc;
-  --color-bg-blue-active: #d9e8ff;
-  --color-border-blue-soft: #cbd9e8;
   --color-bg-chrome: #d2dce5;
-  /* Third-party brand colors */
-  --color-linkedin: #0a66c2;
+  /* CEFR difficulty ramp — three hue families (green/amber/rose-red), two
+     lightness steps each, A1 (easiest) through C2 (hardest). Each bg/text
+     pair is tuned together for contrast; don't cross-blend a bg from one
+     step with the text from another. */
+  --color-cefr-a1-bg: #cfe5c0;
+  --color-cefr-a1-text: #2a4d14;
+  --color-cefr-a2-bg: #b3d8a3;
+  --color-cefr-a2-text: #2f4f17;
+  --color-cefr-b1-bg: #f7e3b0;
+  --color-cefr-b1-text: #5c4b11;
+  --color-cefr-b2-bg: #f0d39a;
+  --color-cefr-b2-text: #604b0e;
+  --color-cefr-c1-bg: #e9c3b4;
+  --color-cefr-c1-text: #5a2d25;
+  --color-cefr-c2-bg: #e0af92;
+  --color-cefr-c2-text: #5a2e18;
+  /* Third-party brand colors — do not retarget these at app tokens above;
+     they're exact external specs (Google Sign-In button), not app palette
+     choices. */
   --color-border-google: #dadce0;
   --color-google-text: #3c4043;
 }
@@ -104,8 +148,8 @@
   left: 8px;
   z-index: 10000;
   padding: 10px 16px;
-  background: var(--color-primary);
-  color: #ffffff;
+  background: var(--color-ink);
+  color: var(--color-surface);
   border-radius: 4px;
   text-decoration: none;
   /* Off-screen by a multiple of the link's own rendered height, rather
@@ -121,7 +165,7 @@
 }
 
 a {
-  color: var(--color-link);
+  color: var(--color-interactive);
 }
 
 .alt-spelling {
@@ -141,8 +185,8 @@ audio {
 #back-button,
 #speed-btn,
 #toggle-english-btn {
-  background-color: var(--color-bg-light); /* Neutral light gray */
-  border: var(--color-border-neutral) 1px solid;
+  background-color: var(--color-surface-subtle); /* Neutral light gray */
+  border: var(--color-border) 1px solid;
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   color: var(--color-text-muted);
@@ -173,8 +217,8 @@ audio {
   line-height: 30px; /* Matches height for vertical centering */
   margin: 0 0 10px 0; /* Remove auto margin and set bottom margin only */
   margin-bottom: 10px;
-  background-color: var(--color-white); /* Subtle, lighter background */
-  color: var(--color-danger-dark); /* Subtle maroon text */
+  background-color: var(--color-surface); /* Subtle, lighter background */
+  color: var(--color-danger-text); /* Subtle maroon text */
   border-radius: 6px; /* Slightly rounded corners */
   padding: 8px 14px; /* Larger padding for a more clickable feel */
   font-family: "Noto Sans", sans-serif; /* Clean, modern font */
@@ -197,7 +241,7 @@ audio {
 
 .back-navigation:hover {
   background-color: var(
-    --color-bg-hover
+    --color-surface-hover
   ); /* Slightly darker background on hover */
   box-shadow:
     0 6px 12px rgba(135, 135, 135, 0.3),
@@ -220,13 +264,13 @@ button:disabled i {
 }
 
 .button-container i {
-  color: var(--color-primary);
+  color: var(--color-ink);
   margin-bottom: 10px;
 }
 
 .button-pron {
-  background-color: var(--color-bg-light); /* Neutral light gray */
-  border: var(--color-border-neutral) 1px solid;
+  background-color: var(--color-surface-subtle); /* Neutral light gray */
+  border: var(--color-border) 1px solid;
   border-radius: 5px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   color: var(--color-text-on-light-btn);
@@ -252,7 +296,7 @@ button:disabled i {
 
 .cefr-value {
   border-radius: 4px;
-  color: var(--color-badge-text); /* Default text color */
+  color: var(--color-text-strong); /* Default text color */
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
   font-weight: bold;
@@ -266,49 +310,49 @@ button:disabled i {
 
 .cefr-value.a1,
 .sticky-cefr-label.a1 {
-  background-color: #cfe5c0; /* Soft olive green for A1 (new grass) */
-  color: #2a4d14; /* Dark forest green for high contrast */
+  background-color: var(--color-cefr-a1-bg);
+  color: var(--color-cefr-a1-text);
 }
 
 .cefr-value.a2,
 .sticky-cefr-label.a2 {
-  background-color: #b3d8a3; /* Bright meadow green for A2 (spring leaves) */
-  color: #2f4f17; /* Deep moss green for high contrast */
+  background-color: var(--color-cefr-a2-bg);
+  color: var(--color-cefr-a2-text);
 }
 
 .cefr-value.b1,
 .sticky-cefr-label.b1 {
-  background-color: #f7e3b0; /* Gentle wheat yellow for B1 (warm sunlight) */
-  color: #5c4b11; /* Warm brown for legibility and contrast */
+  background-color: var(--color-cefr-b1-bg);
+  color: var(--color-cefr-b1-text);
 }
 
 .cefr-value.b2,
 .sticky-cefr-label.b2 {
-  background-color: #f0d39a; /* Brighter golden yellow for B2 (ripe fields) */
-  color: #604b0e; /* Rich amber brown for sharp contrast */
+  background-color: var(--color-cefr-b2-bg);
+  color: var(--color-cefr-b2-text);
 }
 
 .cefr-value.c1,
 .sticky-cefr-label.c1 {
-  background-color: #e9c3b4; /* Muted rose pink for C1 (wild roses) */
-  color: #5a2d25; /* Deep reddish-brown for readability and aesthetic balance */
+  background-color: var(--color-cefr-c1-bg);
+  color: var(--color-cefr-c1-text);
 }
 
 .cefr-value.c2,
 .sticky-cefr-label.c2 {
-  background-color: #e0af92; /* Bright terracotta orange for C2 (sunlit clay) */
-  color: #5a2e18; /* Burnt sienna for clear contrast */
+  background-color: var(--color-cefr-c2-bg);
+  color: var(--color-cefr-c2-text);
 }
 
 .cefr-value.cefr-unknown,
 .sticky-cefr-label.cefr-unknown {
-  background-color: var(--color-bg-hover-strong); /* Gray for unknown levels */
-  color: #444444; /* Dark charcoal gray for readability */
+  background-color: var(--color-surface-strong); /* Gray for unknown levels */
+  color: var(--color-text-strong);
 }
 
 .clickable-definition-word {
   cursor: pointer;
-  color: var(--color-link);
+  color: var(--color-interactive);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
@@ -351,7 +395,7 @@ button:disabled i {
 }
 
 .definition {
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
@@ -369,14 +413,14 @@ button:disabled i {
 }
 
 .vocabulary-loading-shell h2 {
-  color: var(--color-heading);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 22px;
   margin: 0;
 }
 
 .vocabulary-loading-shell .vocabulary-loading-description {
-  color: var(--color-text-secondary);
+  color: var(--color-text-strong);
   font-family: "Noto Sans", sans-serif;
   font-size: 15px;
   margin: 10px 0 24px;
@@ -393,9 +437,9 @@ button:disabled i {
   animation: vocabulary-loading-shimmer 1.4s ease-in-out infinite;
   background: linear-gradient(
     90deg,
-    var(--color-bg-light) 20%,
-    #e7eef6 50%,
-    var(--color-bg-light) 80%
+    var(--color-surface-subtle) 20%,
+    var(--color-wash-blue) 50%,
+    var(--color-surface-subtle) 80%
   );
   background-size: 200% 100%;
   border-radius: 999px;
@@ -462,7 +506,7 @@ li {
 .english,
 .etymology,
 .pronunciation {
-  color: var(--color-text-secondary) !important;
+  color: var(--color-text-strong) !important;
   font-size: 16px !important;
   font-weight: 500;
 }
@@ -487,7 +531,7 @@ li {
 
 .error-message {
   align-content: center;
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
@@ -504,7 +548,7 @@ li {
 }
 
 .error-message p {
-  color: var(--color-text-secondary);
+  color: var(--color-text-strong);
   font-size: 16px;
   line-height: 1.6;
 }
@@ -516,10 +560,10 @@ li {
 #game-banner-placeholder {
   align-self: baseline;
   background-color: #f8f8f8;
-  color: var(--color-badge-text); /* Gray color, matching the scorecard */
+  color: var(--color-text-strong); /* Gray color, matching the scorecard */
   text-align: center;
   padding: 0px 6px !important; /* Smaller padding for a more compact banner */
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   font-size: 16px !important; /* Smaller font size to fit the text on one line */
   font-family: "Noto Serif", serif; /* Using Noto Sans, sans-serif */
   margin: 0 1px; /* Reduced spacing between banner and the rest */
@@ -608,9 +652,9 @@ li {
   align-self: flex-start; /* Align the label to the left */
   padding: 3px 7px; /* Smaller padding */
   font-size: 12px; /* Smaller font size */
-  color: var(--color-badge-text);
+  color: var(--color-text-strong);
   font-weight: bold;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   text-align: center;
   text-transform: uppercase;
   font-family: "Noto Sans", sans-serif;
@@ -619,23 +663,27 @@ li {
   user-select: none; /* Prevent text selection */
 }
 
+/* Same three-family ramp as .cefr-value above, at each family's darker
+   step, so the game's simplified easy/medium/hard badge and the word-page
+   full six-level badge read as the same system rather than two
+   independently-chosen palettes. */
 .game-cefr-label.easy,
 .game-cefr-label.a1,
 .game-cefr-label.a2 {
-  background-color: var(--color-success-bg); /* Green for 'A1, A2' */
+  background-color: var(--color-cefr-a2-bg);
 }
 
 .game-cefr-label.medium,
 .game-cefr-label.b1,
 .game-cefr-label.b2 {
-  background-color: var(--color-level-mid); /* Yellow for 'B1, B2' */
+  background-color: var(--color-cefr-b2-bg);
 }
 
 .game-cefr-label.hard,
 .game-cefr-label.c,
 .game-cefr-label.c1,
 .game-cefr-label.c2 {
-  background-color: #ecb3a3; /* Red for 'C' */
+  background-color: var(--color-cefr-c2-bg);
 }
 
 .game-cefr-spacer {
@@ -671,7 +719,7 @@ li {
   background-color: var(
     --color-success-bg
   ) !important; /* Lighter olive green for correct */
-  color: white;
+  color: var(--color-surface);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -704,9 +752,9 @@ li {
 
 .game-gender {
   align-self: flex-start; /* Align the label to the left */
-  background-color: var(--color-bg-subtle);
-  border-radius: 4px;
-  color: var(--color-badge-text) !important;
+  background-color: var(--color-surface-subtle);
+  border-radius: var(--radius-control);
+  color: var(--color-text-strong) !important;
   font-family: "Noto Sans", sans-serif;
   padding: 3px 7px;
   font-size: 12px; /* Smaller font size */
@@ -723,7 +771,7 @@ li {
   background-color: var(
     --color-danger-bg
   ) !important; /* Lighter clay red for incorrect */
-  color: white;
+  color: var(--color-surface);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -820,12 +868,12 @@ li {
   margin-top: 15px;
   width: 100%;
   background-color: var(
-    --color-primary
+    --color-ink
   ); /* Match the site's primary action color */
-  color: var(--color-white);
-  border: 1px solid var(--color-primary);
+  color: var(--color-surface);
+  border: 1px solid var(--color-ink);
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* More prominent shadow */
-  border-radius: 6px; /* Slightly rounded corners */
+  border-radius: var(--radius-control);
   padding: 20px 15px;
   font-family: "Noto Sans", sans-serif; /* Clean, modern font */
   font-size: 14px; /* Smaller font size for subtlety */
@@ -855,15 +903,15 @@ li {
 
 #game-next-word-button:active {
   background-color: var(
-    --color-primary-active
+    --color-ink-active
   ); /* Darker background on click */
-  border-color: var(--color-primary-active);
+  border-color: var(--color-ink-active);
 }
 
 #game-next-word-button:disabled {
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  border-color: var(--color-primary);
+  background-color: var(--color-ink);
+  color: var(--color-surface);
+  border-color: var(--color-ink);
   cursor: not-allowed; /* Disabled cursor */
   box-shadow: none; /* No shadow when disabled */
   opacity: 0.4;
@@ -880,9 +928,9 @@ li {
   align-self: flex-end; /* Align to the top */
   padding: 3px 7px; /* Same padding as CEFR label */
   font-size: 12px; /* Same font size as CEFR label */
-  color: var(--color-badge-text);
+  color: var(--color-text-strong);
   font-weight: bold;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   text-transform: uppercase;
   font-family: "Noto Sans", sans-serif;
   white-space: nowrap; /* Prevent text wrapping */
@@ -927,16 +975,16 @@ li {
 
 /* Correct box styling */
 .game-stats-correct-box {
-  background-color: #d7ecc9; /* Softer/lighter than the original #c7e3b6 —
+  background-color: var(--color-success-bg); /* Softer/lighter than the original #c7e3b6 —
      less saturated so the stats row doesn't compete with the Norwegian
      word/sentence card below it; contrast against the text below only
      improves as the background lightens, so this stays well within
      WCAG AA. */
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   box-sizing: border-box;
   padding: 6px 10px;
   text-align: center;
-  color: white;
+  color: var(--color-surface);
   min-width: 60px; /* Ensure minimum size */
   max-width: 92px; /* Keep it compact — the label used to stretch this
      as wide as it needed to avoid wrapping at all; this caps it and lets
@@ -955,11 +1003,11 @@ li {
 .game-stats-incorrect-box {
   background-color: #f0c1b3; /* Softer/lighter than the original #e9a895,
      matching .game-stats-correct-box's tone-down above. */
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   box-sizing: border-box;
   padding: 6px 10px;
   text-align: center;
-  color: white;
+  color: var(--color-surface);
   min-width: 60px; /* Ensure minimum size */
   max-width: 92px;
   display: flex;
@@ -1009,11 +1057,11 @@ li {
 }
 
 .game-stats-correct-box .game-stat-label {
-  color: #3f6b35;
+  color: var(--color-success);
 }
 
 .game-stats-incorrect-box .game-stat-label {
-  color: #8a3f2c;
+  color: var(--color-danger-text);
 }
 
 .game-stats-progress-wrapper {
@@ -1028,9 +1076,9 @@ li {
 
 .game-translation-card {
   appearance: none;
-  background-color: white; /* Same as the word card */
+  background-color: var(--color-surface); /* Same as the word card */
   border: 1px solid var(--color-border); /* Same border */
-  border-radius: 10px; /* Same rounded corners */
+  border-radius: var(--radius-card); /* Same rounded corners */
   box-sizing: border-box;
   padding: 10px;
   position: relative; /* Anchors the correct/incorrect ::after badge */
@@ -1040,7 +1088,6 @@ li {
      clears the fixed card height below without needing to scroll. */
   font-size: 1.05em !important;
   color: var(--color-text); /* Same text color */
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Same shadow */
   transition: background-color 0.3s ease; /* Smooth hover effect */
   cursor: pointer; /* Make it clickable */
   display: flex;
@@ -1065,7 +1112,7 @@ li {
 }
 
 .game-translation-card:hover {
-  background-color: #e6f7ff; /* Hover effect same as word card */
+  background-color: var(--color-wash-blue); /* Hover effect same as word card */
 }
 
 /* Grading disables every answer card to prevent a second response. Keep the
@@ -1078,12 +1125,12 @@ li {
 }
 
 .game-translation-card:focus-visible {
-  outline: 3px solid var(--color-link);
+  outline: 3px solid var(--color-interactive);
   outline-offset: 3px;
 }
 
 /* Typed recall occupies the same answer area and uses the same type, border,
-   radius, shadow, and primary blue as the existing cards/buttons. It is a
+   radius, and primary blue as the existing cards/buttons. It is a
    new interaction, but not a new visual language. */
 .game-grid.game-typed-grid {
   align-content: start;
@@ -1105,11 +1152,9 @@ li {
 
 .game-typed-answer-input {
   appearance: none;
-  background-color: var(--color-white);
-  /* Match the prompt card directly above it. */
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-control);
   box-sizing: border-box;
   color: var(--color-text);
   font-family: "Noto Sans", sans-serif;
@@ -1124,15 +1169,14 @@ li {
 .game-typed-answer-input:focus,
 .game-typed-answer-input:focus-visible {
   border-color: var(--color-border);
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
   outline: none;
 }
 
 .game-typed-submit {
-  background-color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  border-radius: 10px;
-  color: var(--color-white);
+  background-color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  border-radius: var(--radius-control);
+  color: var(--color-surface);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
   font-size: 14px;
@@ -1147,7 +1191,7 @@ li {
 }
 
 .game-typed-submit:focus-visible {
-  outline: 3px solid var(--color-link);
+  outline: 3px solid var(--color-interactive);
   outline-offset: 3px;
 }
 
@@ -1157,13 +1201,13 @@ li {
 }
 
 .game-typed-answer-form.is-correct .game-typed-answer-input {
-  background-color: #edf7e7;
-  border-color: #7cab62;
+  background-color: var(--color-success-bg);
+  border-color: var(--color-success-border);
 }
 
 .game-typed-answer-form.is-incorrect .game-typed-answer-input {
-  background-color: #fbede9;
-  border-color: #c97861;
+  background-color: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
 }
 
 /* Rendered inside #game-banner-placeholder (see updateTypedAnswerFeedback,
@@ -1240,10 +1284,10 @@ li {
    decoration, with a slow pulse to draw the eye to it on first render. */
 .game-listening-icon {
   align-items: center;
-  background-color: var(--color-primary);
+  background-color: var(--color-ink);
   border-radius: 50%;
   box-shadow: 0 4px 10px rgba(13, 58, 105, 0.35);
-  color: var(--color-white);
+  color: var(--color-surface);
   /* Font Awesome's own base rule (.fas/.fa-solid) was winning the cascade
      and resolving this to display:block, which silently made
      align-items/justify-content inert (they only affect flex/grid
@@ -1285,7 +1329,7 @@ li {
 }
 
 .game-word-audio:hover .game-listening-icon {
-  background-color: var(--color-link);
+  background-color: var(--color-interactive);
   box-shadow: 0 6px 14px rgba(13, 58, 105, 0.45);
 }
 
@@ -1294,17 +1338,16 @@ li {
 }
 
 .game-word-audio:focus-visible .game-listening-icon {
-  outline: 3px solid var(--color-link);
+  outline: 3px solid var(--color-interactive);
   outline-offset: 3px;
 }
 
 /* Word Game intro screen — mode picker shown before every round. */
 .game-intro-card {
   align-items: center;
-  background-color: white;
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-card);
   color: var(--color-text);
   display: flex;
   flex-direction: column;
@@ -1314,8 +1357,8 @@ li {
 
 .game-today-practice {
   background: #f6f9fd;
-  border: 1px solid var(--color-border-blue-soft);
-  border-radius: 12px;
+  border: 1px solid var(--color-wash-blue-border);
+  border-radius: var(--radius-card);
   box-sizing: border-box;
   margin-bottom: 18px;
   padding: 18px;
@@ -1332,7 +1375,7 @@ li {
 }
 
 .game-today-practice-eyebrow {
-  color: var(--color-text-blue-muted);
+  color: var(--color-text-slate);
   font-family: "Noto Sans", sans-serif;
   font-size: 10px;
   font-weight: 700;
@@ -1347,14 +1390,14 @@ li {
 }
 
 .game-today-practice-count {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 1.1em;
   white-space: nowrap;
 }
 
 .game-today-practice-note {
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   font-family: "Noto Sans", sans-serif;
   font-size: 0.82em;
   margin: 9px 0 10px;
@@ -1397,10 +1440,10 @@ li {
 
 .game-today-practice-btn {
   align-items: center;
-  background-color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  border-radius: 8px;
-  color: var(--color-white);
+  background-color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  border-radius: var(--radius-control);
+  color: var(--color-surface);
   cursor: pointer;
   display: flex;
   font-family: "Noto Sans", sans-serif;
@@ -1445,7 +1488,7 @@ li {
 }
 
 .game-daily-quests-heading-row h3 {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 0.95em;
   font-weight: 600;
@@ -1471,9 +1514,9 @@ li {
 
 .game-daily-quest {
   align-items: center;
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border: 1px solid #d6dce2;
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -1488,46 +1531,129 @@ li {
 }
 
 .game-daily-quest--active {
-  background-color: var(--color-bg-quest-active);
-  border-color: #8daac7;
+  background-color: var(--color-wash-blue-active);
+  border-color: var(--color-wash-blue-active-border);
   box-shadow: 0 5px 16px rgba(13, 58, 105, 0.1);
   transform: translateY(-2px);
 }
 
 .game-daily-quest--locked {
-  background-color: var(--color-table-header-bg);
+  background-color: var(--color-surface-subtle);
   color: var(--color-text-faint);
 }
 
 .game-daily-quest--complete {
-  background-color: #f4f9f1;
-  border-color: #aac9a1;
+  background-color: var(--color-success-bg);
+  border-color: var(--color-success-border);
 }
 
 .game-daily-quest-gem {
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: contain;
-  filter: drop-shadow(0 4px 8px rgba(28, 42, 58, 0.3));
-  flex: 0 0 68px;
+  display: block;
+  filter: drop-shadow(0 3px 4px rgba(28, 42, 58, 0.18));
+  flex: 0 0 auto;
+  height: 68px;
+  overflow: visible;
   width: 68px;
 }
 
 .game-daily-quest-gem--emerald {
-  background-image: url("../Resources/Photos/emerald.webp");
+  --quest-gem-dark: #087158;
+  --quest-gem-edge: #075342;
+  --quest-gem-light: #66d6b0;
+  --quest-gem-mid: #19a77c;
 }
 
 .game-daily-quest-gem--ruby {
-  background-image: url("../Resources/Photos/ruby.webp");
+  --quest-gem-dark: #942f4a;
+  --quest-gem-edge: #712338;
+  --quest-gem-light: #f08da2;
+  --quest-gem-mid: #d14d69;
 }
 
 .game-daily-quest-gem--sapphire {
-  background-image: url("../Resources/Photos/sapphire.webp");
+  --quest-gem-dark: #315f9d;
+  --quest-gem-edge: #244875;
+  --quest-gem-light: #8db6e5;
+  --quest-gem-mid: #4d83c5;
+}
+
+.quest-gem-frame {
+  fill: var(--quest-gem-mid);
+  stroke: var(--quest-gem-edge);
+  stroke-linejoin: round;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.quest-gem-facet {
+  stroke: var(--quest-gem-edge);
+  stroke-linejoin: round;
+  stroke-width: 0.65;
+  vector-effect: non-scaling-stroke;
+}
+
+.quest-gem-facet--top-left,
+.quest-gem-facet--lower-right {
+  fill: var(--quest-gem-light);
+}
+
+.quest-gem-facet--top-center,
+.quest-gem-facet--lower-left {
+  fill: var(--quest-gem-mid);
+}
+
+.quest-gem-facet--top-right,
+.quest-gem-facet--lower-center {
+  fill: var(--quest-gem-dark);
+}
+
+.quest-gem-highlight {
+  fill: rgba(255, 255, 255, 0.72);
+}
+
+.quest-gem-earned-mark {
+  display: none;
+}
+
+.game-daily-quest--complete .quest-gem-earned-mark,
+.landing-daily-quest-step--complete .quest-gem-earned-mark,
+.game-daily-quest-gem--earned .quest-gem-earned-mark {
+  display: block;
+}
+
+.quest-gem-earned-mark circle {
+  fill: var(--color-surface);
+  stroke: #39735d;
+  stroke-width: 1.5;
+}
+
+.quest-gem-earned-mark path {
+  fill: none;
+  stroke: #39735d;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
 }
 
 .game-daily-quest--locked .game-daily-quest-gem {
-  filter: drop-shadow(0 4px 8px rgba(28, 42, 58, 0.15)) saturate(0.45)
-    opacity(0.6);
+  filter: none;
+}
+
+.game-daily-quest--locked .quest-gem-frame,
+.landing-daily-quest-step--locked .quest-gem-frame {
+  fill: var(--color-surface-subtle);
+  stroke: #8793a0;
+}
+
+.game-daily-quest--locked .quest-gem-facet,
+.landing-daily-quest-step--locked .quest-gem-facet {
+  fill: transparent;
+  stroke: #a2abb5;
+}
+
+.game-daily-quest--locked .quest-gem-highlight,
+.landing-daily-quest-step--locked .quest-gem-highlight {
+  display: none;
 }
 
 .game-daily-quest-copy {
@@ -1560,7 +1686,7 @@ li {
 }
 
 .game-daily-quest--complete .game-daily-quest-status {
-  color: #477340;
+  color: var(--color-success);
 }
 
 .game-intro-divider {
@@ -1585,7 +1711,7 @@ li {
 }
 
 .game-intro-heading {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 1.4em;
   font-weight: 600;
@@ -1610,11 +1736,10 @@ li {
 
 .game-intro-option {
   align-items: center;
-  background-color: white;
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-  color: var(--color-primary);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -1630,7 +1755,7 @@ li {
 }
 
 .game-intro-option:hover {
-  background-color: #f0f6ff;
+  background-color: var(--color-wash-blue);
   border-color: var(--color-accent);
 }
 
@@ -1650,8 +1775,8 @@ li {
 }
 
 .game-intro-option-infinite {
-  background-color: var(--color-primary);
-  color: var(--color-white);
+  background-color: var(--color-ink);
+  color: var(--color-surface);
   flex-direction: row;
   gap: 10px;
 }
@@ -1674,11 +1799,10 @@ li {
 
 .game-my-words-option {
   align-items: center;
-  background-color: white;
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-  color: var(--color-primary);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -1696,7 +1820,7 @@ li {
 }
 
 .game-my-words-option:hover {
-  background-color: #f0f6ff;
+  background-color: var(--color-wash-blue);
   border-color: var(--color-accent);
 }
 
@@ -1707,7 +1831,7 @@ li {
 .game-my-words-option.is-selected {
   background-color: var(--color-accent);
   border-color: var(--color-accent);
-  color: var(--color-white);
+  color: var(--color-surface);
 }
 
 .game-my-words-option-value {
@@ -1733,10 +1857,9 @@ li {
 }
 
 .placement-option-btn {
-  background-color: white;
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-card);
   color: var(--color-text);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
@@ -1749,21 +1872,21 @@ li {
 }
 
 .placement-option-btn:hover {
-  background-color: #f0f6ff;
+  background-color: var(--color-wash-blue);
   border-color: var(--color-accent);
 }
 
 .placement-option-btn:focus-visible {
-  outline: 3px solid var(--color-link);
+  outline: 3px solid var(--color-interactive);
   outline-offset: 2px;
 }
 
 .placement-start-btn {
   align-items: center;
-  background-color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  border-radius: 8px;
-  color: var(--color-white);
+  background-color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  border-radius: var(--radius-control);
+  color: var(--color-surface);
   cursor: pointer;
   display: flex;
   font-family: "Noto Sans", sans-serif;
@@ -1785,7 +1908,7 @@ li {
 }
 
 .placement-progress {
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   font-family: "Noto Sans", sans-serif;
   font-size: 0.82em;
   margin: 0 0 4px;
@@ -1796,7 +1919,7 @@ li {
 .placement-retake-link {
   background: none;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   color: var(--color-text-muted);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
@@ -1812,13 +1935,13 @@ li {
 }
 
 .placement-retake-link:hover {
-  background-color: var(--color-bg-subtle);
+  background-color: var(--color-surface-subtle);
   border-color: var(--color-accent);
   color: var(--color-accent);
 }
 
 .placement-retake-link:focus-visible {
-  outline: 3px solid var(--color-link);
+  outline: 3px solid var(--color-interactive);
   outline-offset: 2px;
 }
 
@@ -1841,7 +1964,7 @@ li {
   }
 
   .game-daily-quest-gem {
-    flex-basis: 54px;
+    height: 54px;
     width: 54px;
   }
 
@@ -1860,10 +1983,9 @@ li {
    35-navigation.css). */
 .game-summary-card {
   align-items: center;
-  background-color: white;
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-card);
   color: var(--color-text);
   display: flex;
   flex-direction: column;
@@ -1878,8 +2000,8 @@ li {
 }
 
 .game-summary-heading {
-  color: var(--color-primary);
-  font-family: "Noto Sans", sans-serif;
+  color: var(--color-ink);
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
   font-size: 1.4em;
   font-weight: 600;
   margin: 0 0 20px 0;
@@ -1897,7 +2019,7 @@ li {
   align-items: center;
   background-color: var(--color-bg-stat);
   border: 1px solid #d8dee5;
-  border-radius: 8px;
+  border-radius: var(--radius-card);
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -1914,7 +2036,7 @@ li {
 .game-summary-streak {
   align-items: center;
   background-color: var(--color-streak-bg);
-  border-radius: 8px;
+  border-radius: var(--radius-card);
   color: var(--color-streak-text);
   display: flex;
   flex-direction: column;
@@ -1951,7 +2073,7 @@ li {
 
 .game-summary-stat {
   background-color: var(--color-bg-stat);
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   padding: 14px 10px;
 }
 
@@ -1963,7 +2085,7 @@ li {
    flattening value and label to the same size and losing the
    big-number/small-label hierarchy entirely. */
 p.game-summary-stat-value {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 1.5em;
   font-weight: 700;
@@ -1980,11 +2102,11 @@ p.game-summary-stat-label {
 }
 
 .game-summary-primary-btn {
-  background-color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  border-radius: 6px;
+  background-color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  border-radius: var(--radius-control);
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-  color: var(--color-white);
+  color: var(--color-surface);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
   font-size: 14px;
@@ -2005,8 +2127,8 @@ p.game-summary-stat-label {
 }
 
 .game-summary-primary-btn:active {
-  background-color: var(--color-primary-active);
-  border-color: var(--color-primary-active);
+  background-color: var(--color-ink-active);
+  border-color: var(--color-ink-active);
 }
 
 /* Lists the specific words missed during the round — populated from
@@ -2083,8 +2205,8 @@ p.game-summary-stat-label {
    wordGame.js). Mirrors .level-progress-bar-bg/-fill's colors so the two
    read as the same component in different modes. */
 .game-session-progress-bg {
-  background-color: var(--color-progress-track);
-  border-radius: 10px;
+  background-color: var(--color-surface-subtle);
+  border-radius: 999px;
   flex-grow: 1;
   overflow: hidden;
   position: relative;
@@ -2125,11 +2247,10 @@ p.game-summary-stat-label {
 
 .game-word-card {
   align-items: center; /* Center the content horizontally */
-  background-color: white;
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   box-sizing: border-box;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
   color: var(--color-text);
   display: flex;
   flex-direction: column; /* Stack the label and word vertically */
@@ -2153,8 +2274,8 @@ p.game-summary-stat-label {
 
 .gender {
   align-self: flex-start; /* Align the label to the left */
-  background-color: var(--color-bg-subtle);
-  color: var(--color-text-icon-muted) !important;
+  background-color: var(--color-surface-subtle);
+  color: var(--color-text-muted) !important;
   font-family: "Noto Sans", sans-serif;
   padding: 3px 4px; /* Smaller padding */
   font-size: 10px; /* Smaller font size */
@@ -2168,14 +2289,19 @@ p.game-summary-stat-label {
 }
 
 h1 {
-  color: var(--color-heading);
+  color: var(--color-ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 h2 {
-  color: var(--color-heading-accent);
+  /* Darker than --color-interactive on purpose — this is the headword/
+     prompt-word display (word-entry pages, Word Game's prompt), never a
+     clickable link, so it needs a color that reads as "the word," not as
+     "tap me." */
+  color: var(--color-ink);
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
   font-size: 30px;
   font-weight: bold;
   margin: -5px 0 -5px 0;
@@ -2198,7 +2324,14 @@ h4 {
   #toggle-english-btn {
     font-size: 10px;
     min-width: 80px;
-    padding: 0.5em;
+    /* Horizontal-only trim (vertical padding unchanged, so button height —
+       carefully matched to the favorite-star row on the other side of the
+       header, see .sticky-row's comment — doesn't shift). Frees a little
+       width back to the audio player, which shares this row on mobile and
+       needs all the width it can get: iOS's native <audio controls>
+       widget collapses to a bare play button with no scrubber below some
+       undocumented internal width threshold. */
+    padding: 0.5em 0.35em;
   }
 
   .cefr-audio-block {
@@ -2301,13 +2434,6 @@ h4 {
 
   .game-word-card {
     margin-bottom: 10px !important;
-  }
-
-  #site-title {
-    font-size: 10vw !important;
-    margin-bottom: 10px;
-    margin-top: -5px;
-    white-space: nowrap;
   }
 
   h2 {
@@ -2430,7 +2556,7 @@ h4 {
     .game-next-button-container {
     background: rgba(255, 255, 255, 0.97);
     border: 1px solid var(--color-border);
-    border-radius: 10px;
+    border-radius: var(--radius-card);
     bottom: max(8px, env(safe-area-inset-bottom));
     box-shadow: 0 8px 24px rgba(20, 38, 58, 0.22);
     box-sizing: border-box;

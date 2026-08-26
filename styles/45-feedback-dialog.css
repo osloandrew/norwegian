@@ -17,7 +17,7 @@
 }
 
 .feedback-dialog {
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
@@ -28,7 +28,7 @@
 }
 
 .feedback-dialog h3 {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 16px;
   margin: 0 0 15px;
@@ -66,7 +66,7 @@
 
 .feedback-dialog select:focus-visible,
 .feedback-dialog textarea:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-ink);
   outline-offset: 1px;
 }
 
@@ -78,7 +78,7 @@
 }
 
 .feedback-dialog-status-error {
-  color: #b3261e;
+  color: var(--color-danger-text);
 }
 
 .feedback-dialog-actions {
@@ -99,19 +99,19 @@
 }
 
 .feedback-dialog-cancel {
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border-input);
   color: var(--color-text-strong);
 }
 
 .feedback-dialog-cancel:hover {
-  background-color: var(--color-bg-subtle);
+  background-color: var(--color-surface-subtle);
 }
 
 .feedback-dialog-submit {
-  background-color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  color: var(--color-white);
+  background-color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  color: var(--color-surface);
 }
 
 .feedback-dialog-submit:hover {

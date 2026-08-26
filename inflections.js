@@ -834,7 +834,9 @@
       return null;
     }
     try {
-      inflectionsWorker = new Worker("inflectionsWorker.js");
+      inflectionsWorker = new Worker(
+        new URL("inflectionsWorker.js?v=2", APP_ROOT_URL),
+      );
     } catch (error) {
       inflectionsWorkerFailed = true;
       inflectionsWorker = null;

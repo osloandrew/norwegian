@@ -6,7 +6,7 @@
 }
 
 .spinner {
-  color: var(--color-heading);
+  color: var(--color-ink);
   display: none;
   font-size: 20px;
   margin: 20px;
@@ -17,7 +17,7 @@
   animation: spin 0.8s linear infinite;
   border: 3px solid rgba(0, 0, 0, 0.3);
   border-radius: 50%;
-  border-top-color: var(--color-heading);
+  border-top-color: var(--color-ink);
   content: "";
   display: inline-block;
   height: 40px;
@@ -33,7 +33,7 @@
 
 .word-gender {
   align-items: flex;
-  color: var(--color-heading-accent);
+  color: var(--color-ink); /* Matches the headword, not a link */
   display: flex;
   font-size: 30px;
   font-weight: bold;
@@ -73,7 +73,7 @@
 }
 
 .word-list-header:hover {
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
 }
 
 .word-list-table-container {
@@ -112,12 +112,12 @@
 
 .word-list-row:focus-visible {
   box-shadow:
-    0 0 0 3px var(--color-link),
+    0 0 0 3px var(--color-interactive),
     0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .word-list-row td {
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   padding: 15px 25px;
   transition: background-color 0.2s ease;
 }
@@ -138,7 +138,7 @@
 }
 
 .word-list-row:hover td {
-  background-color: var(--color-bg-row-hover);
+  background-color: var(--color-wash-blue);
 }
 
 .word-list-controls {
@@ -165,11 +165,11 @@
 
 .word-list-strength-select {
   appearance: none;
-  background-color: var(--color-white);
-  border: 1px solid #dedede;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   box-sizing: border-box;
-  color: var(--color-danger-dark);
+  color: var(--color-danger-text);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
@@ -185,12 +185,12 @@
 }
 
 .word-list-strength-select:hover {
-  background-color: var(--color-bg-hover);
+  background-color: var(--color-surface-hover);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .word-list-strength-select:focus-visible {
-  outline: 2px solid var(--color-link);
+  outline: 2px solid var(--color-interactive);
   outline-offset: 2px;
 }
 
@@ -205,7 +205,7 @@
 }
 
 .word-list-export-controls .word-list-export-button {
-  border: 1px solid #dedede;
+  border: 1px solid var(--color-border);
   box-shadow: none;
   color: #6c4a4a;
   min-height: 44px;
@@ -213,19 +213,19 @@
 }
 
 .word-list-export-controls .word-list-export-button:hover {
-  background-color: var(--color-bg-hover);
+  background-color: var(--color-surface-hover);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .word-list-export-button {
   appearance: none;
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border: none;
   border-radius: 6px;
   box-shadow:
     0 4px 8px rgba(135, 135, 135, 0.2),
     0 2px 4px rgba(0, 0, 0, 0.1);
-  color: var(--color-danger-dark);
+  color: var(--color-danger-text);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
@@ -242,36 +242,36 @@
 }
 
 .word-list-export-button:hover {
-  background-color: var(--color-bg-row-hover);
+  background-color: var(--color-wash-blue);
   box-shadow:
     0 6px 12px rgba(135, 135, 135, 0.3),
     0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
 .word-list-export-button:focus-visible {
-  outline: 2px solid var(--color-link);
+  outline: 2px solid var(--color-interactive);
   outline-offset: 2px;
 }
 
 .word-list-export-button.is-active {
-  background-color: var(--color-primary);
-  color: var(--color-white);
+  background-color: var(--color-ink);
+  color: var(--color-surface);
   box-shadow:
     0 4px 8px rgba(13, 58, 105, 0.25),
     0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .word-list-export-button.is-active:hover {
-  background-color: var(--color-heading-accent);
+  background-color: var(--color-interactive);
 }
 
 .word-list-export-button.is-danger {
-  background-color: #fff5f5;
+  background-color: var(--color-danger-bg);
   color: var(--color-danger);
 }
 
 .word-list-export-button.is-danger:not(:disabled):hover {
-  background-color: #fde8e8;
+  background-color: var(--color-danger-bg);
 }
 
 .word-list-export-button:disabled {
@@ -281,7 +281,7 @@
 }
 
 .word-list-export-button:disabled:hover {
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   box-shadow: none;
 }
 
@@ -301,7 +301,7 @@
   background-color: transparent;
   border: none;
   border-radius: 50%;
-  color: var(--color-text-icon-muted);
+  color: var(--color-text-muted);
   cursor: pointer;
   display: inline-flex;
   font-size: 20px;
@@ -325,7 +325,7 @@
 }
 
 .word-list-favorite-button:focus-visible {
-  outline: 2px solid var(--color-link);
+  outline: 2px solid var(--color-interactive);
   outline-offset: 2px;
 }
 
@@ -341,7 +341,7 @@
  * Match the Norwegian heading in a Words multiple-result card.
  */
 .word-list-norwegian {
-  color: var(--color-heading-accent);
+  color: var(--color-ink); /* Matches the headword, not a link */
   font-family: "Noto Serif", serif;
   font-size: 20px;
   font-weight: 700;
@@ -355,14 +355,14 @@
 
 .word-list-word-link:focus-visible {
   border-radius: 4px;
-  outline: 3px solid var(--color-link);
+  outline: 3px solid var(--color-interactive);
   outline-offset: 3px;
 }
 /*
  * Match .english and .multiple-results-english.
  */
 .word-list-english {
-  color: var(--color-text-secondary);
+  color: var(--color-text-strong);
   font-family: "Noto Serif", serif;
   font-size: 16px;
   font-weight: 500;
@@ -390,7 +390,7 @@
  * The colored CEFR badge will be placed inside it.
  */
 .word-list-level {
-  color: var(--color-badge-text);
+  color: var(--color-text-strong);
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
   font-weight: 700;
@@ -402,7 +402,7 @@
 }
 
 .word-list-strength {
-  color: var(--color-badge-text);
+  color: var(--color-text-strong);
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
   text-align: center;
@@ -415,7 +415,7 @@
 }
 
 .word-strength-dot {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-size: 8px;
 }
 
@@ -437,8 +437,8 @@
 
 /* All Words / My Words behave as a view selector. */
 .word-list-control-group.word-list-view-controls {
-  background-color: #eef3f7;
-  border: 1px solid #dce5ed;
+  background-color: var(--color-wash-blue);
+  border: 1px solid var(--color-wash-blue-border);
   border-radius: 10px;
   flex-wrap: nowrap;
   gap: 4px;
@@ -459,8 +459,8 @@
 }
 
 .word-list-view-controls .word-list-export-button.is-active {
-  background-color: var(--color-primary);
-  color: var(--color-white);
+  background-color: var(--color-ink);
+  color: var(--color-surface);
   box-shadow: 0 2px 5px rgba(13, 58, 105, 0.22);
 }
 
@@ -600,7 +600,7 @@
 }
 
 .word-list-header-title {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 18px;
   font-weight: 600;
@@ -611,7 +611,7 @@
 
 p.word-list-header-description,
 p.word-list-empty-copy {
-  color: var(--color-text-slate-soft);
+  color: var(--color-text-slate);
   font-family: "Noto Sans", sans-serif;
   font-size: 13px;
   line-height: 1.45;
@@ -619,10 +619,10 @@ p.word-list-empty-copy {
 }
 
 .word-list-header-count {
-  background-color: var(--color-white);
-  border: 1px solid var(--color-border-blue-soft);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-wash-blue-border);
   border-radius: 999px;
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 12px;
   font-weight: 600;
@@ -635,7 +635,7 @@ p.word-list-empty-copy {
 }
 
 .word-list-empty-heading {
-  color: var(--color-primary);
+  color: var(--color-ink);
   font-family: "Noto Sans", sans-serif;
   font-size: 19px;
   font-weight: 600;
@@ -645,8 +645,8 @@ p.word-list-empty-copy {
 }
 
 #word-list .word-list-header {
-  background: linear-gradient(145deg, #f8fbfd 0%, #f1f6fa 100%);
-  border: 1px solid var(--color-border-blue-soft);
+  background: var(--color-wash-blue-pale);
+  border: 1px solid var(--color-wash-blue-border);
   border-radius: 14px;
   box-shadow: 0 6px 18px rgba(13, 58, 105, 0.08);
   gap: 16px;
@@ -674,7 +674,7 @@ p.word-list-empty-copy {
 
 #word-list .word-list-my-words-actions,
 #word-list .word-list-export-controls {
-  border-top: 1px solid var(--color-border-blue-soft);
+  border-top: 1px solid var(--color-wash-blue-border);
   padding-top: 14px;
   width: 100%;
 }
@@ -697,8 +697,8 @@ p.word-list-empty-copy {
 }
 
 #word-list .word-list-empty-state {
-  background: linear-gradient(145deg, #f8fbfd 0%, #f1f6fa 100%);
-  border: 1px solid var(--color-border-blue-soft);
+  background: var(--color-wash-blue-pale);
+  border: 1px solid var(--color-wash-blue-border);
   border-radius: 14px;
   box-shadow: none;
   margin: 0 10px;

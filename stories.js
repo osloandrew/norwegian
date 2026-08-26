@@ -763,12 +763,15 @@ function getNextStorySuggestion(currentStory) {
  * displayStory, which awaits renderStoryComprehensionQuiz before calling
  * this, so it always lands after wherever the quiz ended up, whether or
  * not one actually rendered). No-ops if there's no other story to suggest.
+ * Returns whether a section was actually appended, so callers can tell a
+ * genuine "nothing to suggest" apart from "storyResults isn't loaded yet"
+ * and retry later.
  */
 function renderNextStorySuggestion(storyContent, currentStory) {
-  if (!storyContent) return;
+  if (!storyContent) return false;
 
   const nextStory = getNextStorySuggestion(currentStory);
-  if (!nextStory) return;
+  if (!nextStory) return false;
 
   const section = document.createElement("div");
   section.className = "story-next-section";
@@ -787,6 +790,7 @@ function renderNextStorySuggestion(storyContent, currentStory) {
   );
 
   storyContent.appendChild(section);
+  return true;
 }
 
 function isFavoriteStoriesFilterActive() {
@@ -943,7 +947,7 @@ function createStoryPromoCard(story, labelHTML, extraClassName) {
     if (modifiedClick) return;
 
     event.preventDefault();
-    displayStory(story.titleNorwegian);
+    displayStory(story.titleNorwegian, { userNavigation: true });
   });
 
   wrapper.appendChild(label);
@@ -1179,7 +1183,7 @@ async function displayStoryList(
     if (modifiedClick) return;
 
     event.preventDefault();
-    displayStory(storyLink.dataset.storyTitle);
+    displayStory(storyLink.dataset.storyTitle, { userNavigation: true });
   });
 
   storyList.appendChild(storyItems);
@@ -1307,7 +1311,10 @@ function getStorySentencePairs(norwegianText, englishText) {
   };
 }
 
-function displayStory(titleNorwegian) {
+function displayStory(
+  titleNorwegian,
+  { userNavigation = false, storyDataPromise = null } = {},
+) {
   document.documentElement.classList.add("reading");
   showSpinner(); // Show spinner at the start of story loading
   const searchContainer = document.getElementById("search-container");
@@ -1575,7 +1582,27 @@ function displayStory(titleNorwegian) {
       listEl.style.display = "none"; // hide the list while reading
     }
     hideSpinner(); // Hide spinner after story content is displayed
+    if (userNavigation) {
+      window.focusViewAfterNavigation?.(".sticky-title-japanese");
+    }
     scheduleStoryUpgrades();
+
+    // storyDataPromise is only passed on the cold static-capture path (see
+    // the DOMContentLoaded handler below), where displayStory() is called
+    // against a storyResults array containing just this one preloaded
+    // story while the real catalog fetch is still in flight. If that race
+    // means getNextStorySuggestion() found no other story yet, wait for
+    // the catalog to actually finish loading and try exactly once more —
+    // otherwise "Keep Reading" is silently missing for the rest of the
+    // page's life, since nothing else ever re-invokes this render.
+    function retryNextStorySuggestionIfNeeded(rendered) {
+      if (rendered || !storyDataPromise) return;
+      storyDataPromise.then(() => {
+        if (renderToken !== storyRenderToken || !storyContent) return;
+        renderNextStorySuggestion(storyContent, selectedStory);
+      });
+    }
+
     if (storyContent && typeof renderStoryComprehensionQuiz === "function") {
       // Chained rather than fired alongside — renderStoryComprehensionQuiz
       // awaits a fetch before it knows whether this story even has a quiz
@@ -1590,10 +1617,14 @@ function displayStory(titleNorwegian) {
         // append "Keep Reading" onto whatever's on screen now instead of
         // quietly doing nothing.
         if (renderToken !== storyRenderToken) return;
-        renderNextStorySuggestion(storyContent, selectedStory);
+        retryNextStorySuggestionIfNeeded(
+          renderNextStorySuggestion(storyContent, selectedStory),
+        );
       });
     } else if (storyContent) {
-      renderNextStorySuggestion(storyContent, selectedStory);
+      retryNextStorySuggestionIfNeeded(
+        renderNextStorySuggestion(storyContent, selectedStory),
+      );
     }
   };
 
@@ -1683,7 +1714,10 @@ function storiesBackBtn() {
   const typeSel = document.getElementById("type-select");
   if (typeSel) typeSel.value = "stories";
   if (typeof handleTypeChange === "function") {
-    handleTypeChange("stories", { renderStories: false });
+    handleTypeChange("stories", {
+      renderStories: false,
+      userNavigation: true,
+    });
   }
 
   // 4) Re-grab the (possibly re-rendered) selects and restore values
@@ -1848,7 +1882,15 @@ window.addEventListener("DOMContentLoaded", async () => {
       // here if a cache hit exists, before the preload injection below
       // even runs. Only genuinely cold loads (no cache yet) actually rely
       // on the injected single-story fallback.
-      fetchAndLoadStoryData();
+      //
+      // Captured (not just fired) because on that genuinely-cold path
+      // storyResults is about to become a single-story array below, which
+      // makes a *later* fetchAndLoadStoryData() call return that stale
+      // array immediately (see its own storyResults.length short-circuit)
+      // instead of actually waiting for this fetch — so displayStory()
+      // needs this exact promise to know when the full catalog is really
+      // in, not just any call to the loader function.
+      const storyDataPromise = fetchAndLoadStoryData();
       if (
         !storyResults.some(
           (story) => story.titleNorwegian === preloaded.titleNorwegian,
@@ -1856,7 +1898,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       ) {
         storyResults = [preloaded, ...storyResults];
       }
-      displayStory(preloaded.titleNorwegian);
+      displayStory(preloaded.titleNorwegian, { storyDataPromise });
     } else {
       await fetchAndLoadStoryData();
 
