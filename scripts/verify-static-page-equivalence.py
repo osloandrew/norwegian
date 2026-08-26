@@ -392,7 +392,7 @@ def behavior_smoke_check(browser: Browser, base_url: str, word: str, story: str)
             "() => window.__APP_READY__ === true",
             timeout=60_000,
         )
-        page.locator("#type-select").select_option("words")
+        page.locator('#mode-nav a[data-mode="words"]').click()
         page.wait_for_function(
             "expectedPath => location.pathname === expectedPath && location.search === ''",
             arg=urllib.parse.urlparse(base_url).path,
