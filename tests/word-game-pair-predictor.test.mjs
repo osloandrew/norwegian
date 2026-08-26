@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
+import { loadWordGamePolicy } from "./load-word-game-policy.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "wordGame.js"), "utf8");
@@ -16,6 +17,7 @@ const context = vm.createContext({
   Set,
 });
 context.window = context;
+loadWordGamePolicy(root, context);
 context.localStorage = {
   getItem: (key) => stored.get(key) ?? null,
   setItem: (key, value) => stored.set(key, value),
@@ -26,6 +28,8 @@ context.WordStrengthAPI = {
     entry.skillSnapshots?.[skill] ?? entry.snapshot ?? null,
 };
 context.getWordDifficultyAnchor = (entry) => entry.difficulty;
+context.getPrimaryNorwegianForm = (entry) => String(entry?.ord ?? "");
+context.normalizeGameWhitespace = (value) => String(value ?? "").trim();
 context.getExpectedSuccessProbability = (difficulty, ability) =>
   1 / (1 + Math.exp((difficulty - ability) / 180));
 context.getTypedRecallProbability = () => 0.5;
@@ -198,6 +202,21 @@ assert.ok(
     stored.get("norwegian-dictionary-question-pair-predictor-v1"),
   ).modes.forward.attempts === 2,
 );
+assert.equal(
+  JSON.parse(stored.get("norwegian-dictionary-question-pair-predictor-v1"))
+    .skills.recognition.attempts,
+  2,
+);
+context.beginQuestionPrediction(nearAbility, "forward");
+context.recordQuestionPredictionOutcome(true, {
+  nearMiss: true,
+  wasTyped: true,
+});
+assert.equal(
+  JSON.parse(stored.get("norwegian-dictionary-question-pair-predictor-v1"))
+    .skills.recognition.nearMisses,
+  1,
+);
 
 vm.runInContext("wordGameIsPlacementRound = true", context);
 assert.deepEqual(
@@ -249,7 +268,9 @@ assert.match(
   /wordGameIsPlacementRound \? 1 : pairPlans\[index\]\.totalPairWeight/,
 );
 assert.match(source, /plannedMode: selectedPlannedMode/);
-assert.match(source, /recordQuestionPredictionOutcome\(answerWasCorrect\)/);
+assert.match(source, /recordQuestionPredictionOutcome\([\s\S]*?answerWasCorrect/);
 assert.match(source, /skill: answerSkill/);
+assert.match(source, /nearMiss: nearMissTypedMatch/);
+assert.match(source, /responseTimeMs/);
 
 console.log("word-game pair predictor tests passed");

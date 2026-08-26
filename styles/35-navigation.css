@@ -1043,7 +1043,12 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
   }
 
   .mode-tab {
+    /* Reserves the active pill's 1px border on every tab (transparent when
+       inactive) so gaining/losing that border on activation doesn't shift
+       the tab's box size. */
+    border: 1px solid transparent;
     border-radius: 10px;
+    box-sizing: border-box;
     flex: 0 0 auto;
     gap: 8px;
     padding: 10px 18px;
@@ -1058,10 +1063,14 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
     font-size: 14px;
   }
 
+  /* Active tab: a pale filled pill rather than a solid dark box, so it
+     reads as "current section" without the heavy contrast spike a full
+     --color-ink fill created. */
   .mode-tab.active,
   .mode-tab.active:hover {
-    background-color: var(--color-ink);
-    color: var(--color-surface);
+    background-color: var(--color-wash-blue-pale);
+    border: 1px solid var(--color-wash-blue-border);
+    color: var(--color-ink);
   }
 
   #search-container {

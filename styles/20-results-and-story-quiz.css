@@ -766,7 +766,10 @@ ul {
 #sticky-header {
   align-items: center;
   background-color: var(--color-surface);
-  border-top: 1px solid var(--color-border); /* Subtle gray border at the top */
+  /* No border-top: this always sits directly under #mode-nav, itself a
+     white surface (see #mode-nav's desktop rule in 35-navigation.css) — a
+     border here would draw a seam between two white bars instead of
+     reading as one continuous surface. */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   color: var(--color-text);
   display: flex;

@@ -1586,9 +1586,13 @@ async function randomWord() {
       (r) => !selectedCEFR || (r.CEFR && r.CEFR.toUpperCase() === selectedCEFR),
     );
 
-    // Exclude certain words here
+    // Exclude vulgar headwords and single-letter alphabet entries (e.g. "å"
+    // glossed as just "the letter å") from the random word feature — see
+    // noRandom.js/noRandomLetters.js.
     filteredResults = filteredResults.filter(
-      (r) => !noRandom.includes(r.ord.toLowerCase()),
+      (r) =>
+        !noRandom.includes(r.ord.toLowerCase()) &&
+        !noRandomLetters.includes(r.ord.toLowerCase()),
     );
   }
 

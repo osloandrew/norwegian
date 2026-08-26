@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
+import { loadWordGamePolicy } from "./load-word-game-policy.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const snapshot = JSON.parse(
@@ -10,12 +11,19 @@ const snapshot = JSON.parse(
 );
 const context = vm.createContext({ console, Map, Promise, Set });
 context.window = context;
+loadWordGamePolicy(root, context);
 context.self = context;
 context.__BOKMAL_INFLECTIONS_DATA__ = snapshot;
 context.BANNED_WORD_CLASSES = [];
 context.noRandom = [];
+context.noRandomLetters = [];
 
-for (const file of ["wordClass.js", "inflections.js", "expressionPatterns.js"]) {
+for (const file of [
+  "wordClass.js",
+  "inflections.js",
+  "expressionPatterns.js",
+  "sentenceFormMatching.js",
+]) {
   vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), context, {
     filename: file,
   });
@@ -55,6 +63,13 @@ const barTarget = await context.findClozeTarget({
   eksempel: "Barn samlet bar etter stengetid.",
 });
 assert.equal(barTarget.surfaceForm, "bar");
+assert.equal(
+  await context.isVariedClozeTargetUnambiguous(
+    { ord: "bar", gender: "noun - en" },
+    barTarget,
+  ),
+  false,
+);
 
 const legeTarget = await context.findClozeTarget({
   ord: "lege",
@@ -63,13 +78,44 @@ const legeTarget = await context.findClozeTarget({
 });
 assert.equal(legeTarget.surfaceForm, "lege");
 
-const ugleTarget = await context.findClozeTarget({
+const ugleEntry = {
   ord: "ugle",
   gender: "noun - ei",
   eksempel:
     "Vasene var uglasert og hadde en matt overflate. Ugla fløy forbi.",
-});
+};
+const ugleTarget = await context.findClozeTarget(ugleEntry);
 assert.equal(ugleTarget.surfaceForm, "Ugla");
+context.results = [ugleEntry];
+assert.equal(context.hasCompetingGameHomograph(ugleEntry), false);
+assert.equal(
+  await context.isVariedClozeTargetUnambiguous(ugleEntry, ugleTarget),
+  true,
+);
+context.results = [
+  ugleEntry,
+  {
+    ord: "skumring",
+    gender: "noun - en",
+    eksempel: "I skumringen så vi ugla fly over tunet.",
+    sentenceTranslation: "At dusk we saw the owl fly over the yard.",
+  },
+];
+const variedOwlTargets = await context.buildVariedGameContextTargets(ugleEntry);
+assert.equal(variedOwlTargets.length, 1);
+assert.equal(variedOwlTargets[0].surfaceForm, "ugla");
+assert.equal(variedOwlTargets[0].isVariedContext, true);
+const competingOwlSense = {
+  ord: "ugle",
+  gender: "noun - ei",
+  engelsk: "a different owl sense",
+};
+context.results = [ugleEntry, competingOwlSense];
+assert.equal(context.hasCompetingGameHomograph(ugleEntry), true);
+assert.deepEqual(
+  [...await context.buildVariedGameContextTargets(ugleEntry)],
+  [],
+);
 
 const drikkeEntry = {
   ord: "drikke",

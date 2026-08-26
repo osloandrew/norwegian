@@ -418,7 +418,7 @@ const GAME_MODES = Object.freeze({
         return;
       }
 
-      const clozeTarget = await findClozeTarget(wordObj);
+      const clozeTarget = await findPracticeClozeTarget(wordObj);
       if (!clozeTarget) {
         console.warn(
           "No reliable cloze target was found. Falling back to flashcard.",
@@ -429,7 +429,7 @@ const GAME_MODES = Object.freeze({
       }
 
       if (
-        getGameSentenceTranslation(wordObj, clozeTarget.sentenceIndex) &&
+        getClozeTargetTranslation(wordObj, clozeTarget) &&
         (plannedMode === "typed-cloze" ||
           (plannedMode === null && shouldUseTypedRecall(wordObj, "cloze")))
       ) {
@@ -595,17 +595,102 @@ function getWordGameReintroduceThreshold() {
   return Math.min(6, Math.max(2, Math.round(wordGameSessionTarget / 5)));
 }
 
-function applyCorrectRelearningResult(queueEntry, wasTyped, answeredQuestions) {
+function configureRelearningEntryMode(queueEntry, mode) {
+  queueEntry.nextMode = mode;
+  queueEntry.wasCloze = mode === "cloze" || mode === "typed-cloze";
+  queueEntry.wasReverse = mode === "reverse" || mode === "typed-reverse";
+  queueEntry.wasListening =
+    mode === "listening" || mode === "typed-listening";
+  queueEntry.forceTypedRetry = mode.startsWith("typed-");
+}
+
+function applyCorrectRelearningResult(
+  queueEntry,
+  wasTyped,
+  answeredQuestions,
+  answeredMode = queueEntry?.nextMode ?? null,
+) {
   if (!queueEntry) return "none";
 
-  if (queueEntry.requiresTypedMastery && !wasTyped) {
-    queueEntry.forceTypedRetry = true;
+  // A scaffold demonstrates useful supporting knowledge, but never repairs
+  // the skill that actually failed. Schedule the original exercise after a
+  // longer gap and require success there before removing the word.
+  if (
+    queueEntry.requiresOriginalSuccess &&
+    queueEntry.originalMode &&
+    answeredMode !== queueEntry.originalMode
+  ) {
+    configureRelearningEntryMode(queueEntry, queueEntry.originalMode);
+    queueEntry.requiresOriginalSuccess = false;
     queueEntry.shown = false;
-    queueEntry.availableAfterQuestion = answeredQuestions + 1;
+    queueEntry.availableAfterQuestion =
+      answeredQuestions + (queueEntry.originalRetryGap || 4);
+    return "keep-for-original";
+  }
+
+  if (queueEntry.requiresTypedMastery && !wasTyped) {
+    configureRelearningEntryMode(
+      queueEntry,
+      queueEntry.originalMode || "typed-reverse",
+    );
+    queueEntry.shown = false;
+    queueEntry.availableAfterQuestion =
+      answeredQuestions +
+      (queueEntry.originalMode ? queueEntry.originalRetryGap || 4 : 1);
     return "keep-for-typing";
   }
 
   return "remove";
+}
+
+function scheduleAdaptiveRecovery({
+  queueEntry = null,
+  wordObj,
+  failedMode,
+  predictedSuccess = 0.5,
+  responseTimeMs = null,
+  answeredQuestions,
+  baseGap,
+  clozedForm = null,
+  clozeSentence = "",
+  clozeSentenceTranslation = "",
+}) {
+  const reviewAttempts = (queueEntry?.reviewAttempts || 0) + 1;
+  const originalMode = queueEntry?.originalMode || failedMode;
+  const failedScaffold = Boolean(
+    queueEntry && failedMode !== originalMode,
+  );
+  const plan = window.WordGamePolicy.getRecoveryPlan({
+    failedMode: failedScaffold ? failedMode : originalMode,
+    predictedSuccess,
+    responseTimeMs,
+    reviewAttempts,
+    baseGap,
+  });
+  const entry = queueEntry || { wordObj };
+
+  entry.originalMode = originalMode;
+  entry.reviewAttempts = reviewAttempts;
+  entry.shown = false;
+  entry.originalRetryGap = plan.originalRetryGap;
+  entry.requiresTypedMastery = originalMode.startsWith("typed-");
+  if (clozedForm) entry.clozedForm = clozedForm;
+  if (clozeSentence) {
+    entry.clozeSentence = clozeSentence;
+    entry.clozeSentenceTranslation = clozeSentenceTranslation;
+  }
+
+  if (failedScaffold) {
+    // Failing the easier step is evidence to repeat that same scaffold; the
+    // original failed mode remains the graduation requirement.
+    entry.requiresOriginalSuccess = true;
+    configureRelearningEntryMode(entry, failedMode);
+  } else {
+    entry.requiresOriginalSuccess = plan.requiresOriginalSuccess;
+    configureRelearningEntryMode(entry, plan.nextMode);
+  }
+  entry.availableAfterQuestion = answeredQuestions + plan.initialGap;
+  return entry;
 }
 let wordDataStore = [];
 // MP3s, not the original WAVs — encoded at LAME -V2 (~91% smaller with no
@@ -805,12 +890,17 @@ function hideAllBanners() {
 }
 
 // Track correct/incorrect answers for each question, and nudge the ability
-// estimate from this one data point. This runs after every answer in every
-// mode — there's no batch evaluation window and no discrete "level" event,
-// just a continuous drift toward wherever the evidence points.
-function updateRecentAnswers(isCorrect, wordObj) {
+// estimate from this one data point. The mode and its learner-specific bias
+// let a difficult productive/listening miss count as weaker evidence against
+// general vocabulary ability than the same miss in recognition mode.
+function updateRecentAnswers(
+  isCorrect,
+  wordObj,
+  mode = "forward",
+  learnedExerciseBias = 0,
+) {
   recentAnswers.push(isCorrect ? 1 : 0);
-  updateAbilityScore(wordObj, isCorrect);
+  updateAbilityScore(wordObj, isCorrect, mode, learnedExerciseBias);
 }
 
 // Normalizes to one of CEFR_DIFFICULTY_ANCHOR's five keys, falling back to
@@ -857,10 +947,19 @@ function getWordDifficultyAnchor(entry) {
 // old 20-question batch accuracy check with something that adapts after
 // every single answer, in both bounded and endless rounds.
 function getExpectedSuccessProbability(wordDifficulty, ability) {
-  return 1 / (1 + Math.exp((wordDifficulty - ability) / ABILITY_LOGISTIC_SCALE));
+  return window.WordGamePolicy.getExpectedSuccessProbability(
+    wordDifficulty,
+    ability,
+    ABILITY_LOGISTIC_SCALE,
+  );
 }
 
-function updateAbilityScore(wordObj, isCorrect) {
+function updateAbilityScore(
+  wordObj,
+  isCorrect,
+  mode = "forward",
+  learnedExerciseBias = 0,
+) {
   if (abilityScore === null || !wordObj) return;
 
   // Placement now happens inside the learner's first real practice round.
@@ -892,13 +991,18 @@ function updateAbilityScore(wordObj, isCorrect) {
     return;
   }
 
-  const wordDifficulty = getWordDifficultyAnchor(wordObj);
-  const expected = getExpectedSuccessProbability(wordDifficulty, abilityScore);
-  const actual = isCorrect ? 1 : 0;
-
-  abilityScore = clampAbility(
-    abilityScore + ABILITY_K_FACTOR * (actual - expected),
-  );
+  abilityScore = window.WordGamePolicy.getAbilityAfterAnswer({
+    ability: abilityScore,
+    wordDifficulty: getWordDifficultyAnchor(wordObj),
+    isCorrect,
+    kFactor: ABILITY_K_FACTOR,
+    logisticScale: ABILITY_LOGISTIC_SCALE,
+    exerciseBias:
+      (window.WordGamePolicy.DEFAULT_MODE_BIASES[mode] ?? 0) +
+      learnedExerciseBias,
+    minimum: ABILITY_MIN,
+    maximum: ABILITY_MAX,
+  });
   // Keep the continuously-adaptive estimate durable locally after every
   // answer, but send it to Firestore once for the completed round below.
   saveAbilityState({ syncRemote: false, cloudPending: true });
@@ -1166,6 +1270,18 @@ function normalizeGameAnswer(value) {
   return normalizeGameWhitespace(value).toLocaleLowerCase("nb-NO");
 }
 
+// Excludes both vulgar headwords (noRandom.js) and single-letter alphabet
+// entries (noRandomLetters.js, e.g. "å" glossed as just "the letter å") from
+// random selection — quizzing a learner on either isn't a useful vocabulary
+// question. Story hints intentionally do NOT use this: they only apply the
+// vulgar-word half, since a story needs "å"'s real senses (infinitive
+// marker, "ah", "stream"), just not its random-pick eligibility. See
+// resolveStoryWordEntries in stories.js.
+function isExcludedFromRandomSelection(ord) {
+  const normalized = normalizeGameAnswer(ord);
+  return noRandom.includes(normalized) || noRandomLetters.includes(normalized);
+}
+
 // Folds the three Norwegian letters a learner is most likely to type without
 // their special character — æ/ø/å typed as ae/o/a on a keyboard that lacks
 // them — plus any other combining diacritic (accented loanwords), so those
@@ -1314,10 +1430,6 @@ function getTypedRecallProbability(wordObj, mode) {
   const snapshot =
     window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, skill) ??
     window.WordStrengthAPI?.getSnapshot?.(wordObj);
-  if (snapshot?.queue === "relearning") {
-    return 0;
-  }
-
   // A word that's failed unusually often relative to how many times it's
   // actually been tested (see SpacedRepetition.isChronicallyStruggling)
   // stays in scaffolded multiple-choice/cloze form regardless of its
@@ -1327,20 +1439,17 @@ function getTypedRecallProbability(wordObj, mode) {
   // dropped again too. Free play only: a structured round (daily quest/
   // bonus) that forces a typed question via forceTypedReverse bypasses this
   // function entirely, matching those rounds' own fixed-recipe design.
-  if (window.SpacedRepetition?.isChronicallyStruggling?.(snapshot?.record)) {
-    return 0;
-  }
-
   const predictedSuccess = predictQuestionSuccess(wordObj, mode);
-  const readinessProgress = Math.min(
-    1,
-    Math.max(
-      0,
-      (predictedSuccess - readiness.start) /
-        (readiness.full - readiness.start),
-    ),
+  return window.WordGamePolicy.getTypedRecallProbability(
+    predictedSuccess,
+    readiness,
+    {
+      isRelearning: snapshot?.queue === "relearning",
+      isChronicallyStruggling: Boolean(
+        window.SpacedRepetition?.isChronicallyStruggling?.(snapshot?.record),
+      ),
+    },
   );
-  return readiness.maximum * readinessProgress;
 }
 
 function shouldUseTypedRecall(wordObj, mode, randomValue = Math.random()) {
@@ -1348,64 +1457,30 @@ function shouldUseTypedRecall(wordObj, mode, randomValue = Math.random()) {
 }
 
 // --- On-device word/exercise success prediction --------------------------
-// This first predictor deliberately stays small and inspectable. It combines
-// the existing ability estimate, the word's personal SRS retrievability, and
-// a format difficulty prior. A per-format calibration bias learns online from
-// this learner's own answers. No answer history leaves the device and failure
-// to read/write storage degrades to the static priors.
+// This predictor deliberately stays small and inspectable. It combines the
+// ability estimate, skill-specific SRS retrievability, format/word/context
+// difficulty, and separate mode and skill calibration. Response time, near
+// misses, and likely guesses refine that calibration locally; no answer
+// history leaves the device, and storage failure degrades to static priors.
 const QUESTION_PAIR_PREDICTOR_STORAGE_KEY =
   "norwegian-dictionary-question-pair-predictor-v1";
-const QUESTION_PAIR_PREDICTOR_VERSION = 1;
+const QUESTION_PAIR_PREDICTOR_VERSION = 2;
 const QUESTION_PAIR_TARGET_SUCCESS = 0.85;
 const QUESTION_PAIR_TARGET_SIGMA = 0.1;
 const QUESTION_PAIR_CHALLENGE_FLOOR = 0.1;
 const QUESTION_PAIR_CALIBRATION_LIMIT = 1.5;
-const QUESTION_PAIR_MODE_BIAS = Object.freeze({
-  forward: 0.6,
-  cloze: 0.25,
-  listening: 0.1,
-  reverse: -0.2,
-  "typed-cloze": -0.45,
-  "typed-reverse": -0.65,
-  "typed-listening": -0.75,
-});
+const QUESTION_PAIR_MODE_BIAS = window.WordGamePolicy.DEFAULT_MODE_BIASES;
 
 function getQuestionSkillForMode(mode) {
-  if (mode === "cloze" || mode === "typed-cloze") return "context";
-  if (mode === "reverse" || mode === "typed-reverse") return "production";
-  if (mode === "listening" || mode === "typed-listening") return "listening";
-  return "recognition";
-}
-
-function clampProbability(value) {
-  return Math.min(0.98, Math.max(0.02, value));
-}
-
-function probabilityToLogOdds(value) {
-  const probability = clampProbability(value);
-  return Math.log(probability / (1 - probability));
-}
-
-function logOddsToProbability(value) {
-  return 1 / (1 + Math.exp(-value));
+  return window.WordGamePolicy.getQuestionSkill(mode);
 }
 
 function normalizeQuestionPairPredictorState(value) {
-  const modes = {};
-  for (const mode of Object.keys(QUESTION_PAIR_MODE_BIAS)) {
-    const storedMode = value?.modes?.[mode];
-    modes[mode] = {
-      attempts: Math.max(0, Math.floor(Number(storedMode?.attempts) || 0)),
-      bias: Math.min(
-        QUESTION_PAIR_CALIBRATION_LIMIT,
-        Math.max(
-          -QUESTION_PAIR_CALIBRATION_LIMIT,
-          Number(storedMode?.bias) || 0,
-        ),
-      ),
-    };
-  }
-  return { version: QUESTION_PAIR_PREDICTOR_VERSION, modes };
+  return window.WordGamePolicy.normalizePredictorState(value, {
+    version: QUESTION_PAIR_PREDICTOR_VERSION,
+    modeBiases: QUESTION_PAIR_MODE_BIAS,
+    calibrationLimit: QUESTION_PAIR_CALIBRATION_LIMIT,
+  });
 }
 
 function loadQuestionPairPredictorState() {
@@ -1414,7 +1489,10 @@ function loadQuestionPairPredictorState() {
       window.localStorage?.getItem(QUESTION_PAIR_PREDICTOR_STORAGE_KEY) ||
         "null",
     );
-    if (stored?.version === QUESTION_PAIR_PREDICTOR_VERSION) {
+    if (
+      stored?.version === 1 ||
+      stored?.version === QUESTION_PAIR_PREDICTOR_VERSION
+    ) {
       return normalizeQuestionPairPredictorState(stored);
     }
   } catch (_error) {
@@ -1436,6 +1514,29 @@ function saveQuestionPairPredictorState() {
   }
 }
 
+function getQuestionLearnedBias(wordObj, mode) {
+  const skill = getQuestionSkillForMode(mode);
+  const modeState = questionPairPredictorState.modes[mode];
+  const skillState = questionPairPredictorState.skills[skill];
+  return (
+    (modeState?.bias ?? 0) +
+    (skillState?.bias ?? 0) +
+    0.5 *
+      (window.WordGamePolicy.getCalibrationEvidenceBias(modeState, mode) +
+        window.WordGamePolicy.getCalibrationEvidenceBias(skillState, mode)) +
+    window.WordGamePolicy.getQuestionComplexityBias({
+      mode,
+      formLength: Array.from(getPrimaryNorwegianForm(wordObj)).length,
+      formTokenCount: normalizeGameWhitespace(
+        getPrimaryNorwegianForm(wordObj),
+      ).split(" ").length,
+      sentenceTokenCount: normalizeGameWhitespace(wordObj?.eksempel)
+        .split(" ")
+        .filter(Boolean).length,
+    })
+  );
+}
+
 function predictQuestionSuccess(wordObj, mode, now = Date.now()) {
   const effectiveAbility = Number.isFinite(abilityScore)
     ? abilityScore
@@ -1450,38 +1551,28 @@ function predictQuestionSuccess(wordObj, mode, now = Date.now()) {
     window.WordStrengthAPI?.getSnapshot?.(wordObj, now);
   const hasPersonalMemory = Boolean(snapshot?.record);
   const retrievability = Number(snapshot?.retrievability);
-  const memoryProbability =
-    hasPersonalMemory && Number.isFinite(retrievability)
-      ? 0.7 * clampProbability(retrievability) + 0.3 * abilityProbability
-      : abilityProbability;
   const modeBias = QUESTION_PAIR_MODE_BIAS[mode] ?? 0;
-  const learnedBias = questionPairPredictorState.modes[mode]?.bias ?? 0;
+  const learnedBias = getQuestionLearnedBias(wordObj, mode);
 
-  return clampProbability(
-    logOddsToProbability(
-      probabilityToLogOdds(memoryProbability) + modeBias + learnedBias,
-    ),
-  );
+  return window.WordGamePolicy.predictSuccess({
+    abilityProbability,
+    hasPersonalMemory,
+    retrievability,
+    modeBias,
+    learnedBias,
+  });
 }
 
 function getQuestionPairChallengeFit(predictedSuccess) {
-  const distance = predictedSuccess - QUESTION_PAIR_TARGET_SUCCESS;
-  const gaussian = Math.exp(
-    -(distance * distance) /
-      (2 * QUESTION_PAIR_TARGET_SIGMA * QUESTION_PAIR_TARGET_SIGMA),
-  );
-  return QUESTION_PAIR_CHALLENGE_FLOOR +
-    (1 - QUESTION_PAIR_CHALLENGE_FLOOR) * gaussian;
+  return window.WordGamePolicy.getChallengeFit(predictedSuccess, {
+    targetSuccess: QUESTION_PAIR_TARGET_SUCCESS,
+    sigma: QUESTION_PAIR_TARGET_SIGMA,
+    floor: QUESTION_PAIR_CHALLENGE_FLOOR,
+  });
 }
 
-const QUESTION_MODE_PREREQUISITE = Object.freeze({
-  cloze: "forward",
-  "typed-cloze": "cloze",
-  reverse: "cloze",
-  "typed-reverse": "reverse",
-  listening: "reverse",
-  "typed-listening": "listening",
-});
+const QUESTION_MODE_PREREQUISITE =
+  window.WordGamePolicy.DEFAULT_MODE_PREREQUISITES;
 const QUESTION_PROGRESSION_FLOOR = 0.15;
 const QUESTION_PROGRESSION_START = 0.65;
 const QUESTION_PROGRESSION_FULL = 0.9;
@@ -1494,43 +1585,19 @@ function getQuestionProgressionWeight(wordObj, mode) {
     wordObj,
     prerequisiteMode,
   );
-  const progress = Math.min(
-    1,
-    Math.max(
-      0,
-      (prerequisiteSuccess - QUESTION_PROGRESSION_START) /
-        (QUESTION_PROGRESSION_FULL - QUESTION_PROGRESSION_START),
-    ),
-  );
-  // Smoothstep avoids abrupt changes at either end. The non-zero floor is
-  // deliberate: this is a learning ladder, not a hard content lock.
-  const smoothProgress = progress * progress * (3 - 2 * progress);
-  return (
-    QUESTION_PROGRESSION_FLOOR +
-    (1 - QUESTION_PROGRESSION_FLOOR) * smoothProgress
-  );
+  return window.WordGamePolicy.getProgressionWeight(prerequisiteSuccess, {
+    floor: QUESTION_PROGRESSION_FLOOR,
+    start: QUESTION_PROGRESSION_START,
+    full: QUESTION_PROGRESSION_FULL,
+  });
 }
 
 function getQuestionSkillUrgencyWeight(wordObj, mode, now = Date.now()) {
   const overall = window.WordStrengthAPI?.getSnapshot?.(wordObj, now);
-  const hasActiveReview = Boolean(
-    overall?.record &&
-      (overall.queue === "relearning" || overall.isDue || overall.isApproaching),
-  );
-  if (!hasActiveReview) return 1;
-
   const skill = getQuestionSkillForMode(mode);
   const snapshot =
     window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, skill, now) ?? overall;
-  const need = Math.min(1, Math.max(0, Number(snapshot?.recallNeed) || 0));
-  if (snapshot?.queue === "relearning") return 0.65 + 0.35 * need;
-  if (snapshot?.isDue || snapshot?.queue === "due") {
-    return 0.5 + 0.5 * need;
-  }
-  if (snapshot?.isApproaching) return 0.25 + 0.5 * need;
-  // The mode remains possible, particularly when fixed-format rounds require
-  // it, but ordinary play strongly favors repairing the actually due skill.
-  return 0.05;
+  return window.WordGamePolicy.getSkillUrgencyWeight(overall, snapshot);
 }
 
 function beginQuestionPrediction(wordObj, mode) {
@@ -1538,29 +1605,55 @@ function beginQuestionPrediction(wordObj, mode) {
     mode,
     skill: getQuestionSkillForMode(mode),
     predictedSuccess: predictQuestionSuccess(wordObj, mode),
+    startedAt: Date.now(),
   };
 }
 
-function recordQuestionPredictionOutcome(wasCorrect) {
+function recordQuestionPredictionOutcome(
+  wasCorrect,
+  { nearMiss = false, wasTyped = false, wasScaffolded = false } = {},
+) {
   const prediction = currentQuestionPrediction;
-  if (!prediction || !(prediction.mode in QUESTION_PAIR_MODE_BIAS)) return;
+  if (!prediction || !(prediction.mode in QUESTION_PAIR_MODE_BIAS)) return null;
 
-  const modeState = questionPairPredictorState.modes[prediction.mode];
-  const learningRate = Math.max(
-    0.05,
-    0.3 / Math.sqrt(1 + modeState.attempts / 20),
-  );
-  const outcome = wasCorrect ? 1 : 0;
-  modeState.bias = Math.min(
-    QUESTION_PAIR_CALIBRATION_LIMIT,
-    Math.max(
-      -QUESTION_PAIR_CALIBRATION_LIMIT,
-      modeState.bias + learningRate * (outcome - prediction.predictedSuccess),
-    ),
-  );
-  modeState.attempts += 1;
+  const responseTimeMs = Math.max(0, Date.now() - prediction.startedAt);
+  const possiblyGuessed = !wasTyped && responseTimeMs < 900;
+  const evidenceWeight =
+    (possiblyGuessed ? 0.5 : 1) *
+    (wasScaffolded ? 0.7 : 1) *
+    (nearMiss ? 0.8 : 1);
+  const outcomeValue = nearMiss ? 0.8 : wasCorrect ? 1 : 0;
+  const calibrationOptions = {
+    calibrationLimit: QUESTION_PAIR_CALIBRATION_LIMIT,
+    evidenceWeight: evidenceWeight * 0.5,
+    outcomeValue,
+    responseTimeMs,
+    nearMiss,
+    possiblyGuessed,
+  };
+
+  questionPairPredictorState.modes[prediction.mode] =
+    window.WordGamePolicy.updateCalibrationMode(
+      questionPairPredictorState.modes[prediction.mode],
+      prediction.predictedSuccess,
+      wasCorrect,
+      calibrationOptions,
+    );
+  questionPairPredictorState.skills[prediction.skill] =
+    window.WordGamePolicy.updateCalibrationMode(
+      questionPairPredictorState.skills[prediction.skill],
+      prediction.predictedSuccess,
+      wasCorrect,
+      calibrationOptions,
+    );
   currentQuestionPrediction = null;
   saveQuestionPairPredictorState();
+  return {
+    ...prediction,
+    responseTimeMs,
+    nearMiss,
+    possiblyGuessed,
+  };
 }
 
 function addQuestionModeCandidate(candidates, mode, weight) {
@@ -1662,26 +1755,17 @@ function getQuestionModeCandidates(wordObj) {
 }
 
 function getQuestionPairPlan(wordObj) {
-  const candidates = getQuestionModeCandidates(wordObj).map((candidate) => {
-    const predictedSuccess = predictQuestionSuccess(wordObj, candidate.mode);
-    return {
-      ...candidate,
-      predictedSuccess,
-      pairWeight:
-        candidate.weight *
-        getQuestionPairChallengeFit(predictedSuccess) *
-        getQuestionProgressionWeight(wordObj, candidate.mode) *
-        getQuestionSkillUrgencyWeight(wordObj, candidate.mode),
-    };
-  });
-  const totalPairWeight = candidates.reduce(
-    (sum, candidate) => sum + candidate.pairWeight,
-    0,
+  return window.WordGamePolicy.buildQuestionPairPlan(
+    getQuestionModeCandidates(wordObj),
+    {
+      predict: (mode) => predictQuestionSuccess(wordObj, mode),
+      challengeFit: getQuestionPairChallengeFit,
+      progressionWeight: (mode) =>
+        getQuestionProgressionWeight(wordObj, mode),
+      urgencyWeight: (mode) =>
+        getQuestionSkillUrgencyWeight(wordObj, mode),
+    },
   );
-  return {
-    candidates,
-    totalPairWeight: totalPairWeight > 0 ? totalPairWeight : 1,
-  };
 }
 
 function chooseQuestionModeFromPlan(plan) {
@@ -1730,6 +1814,13 @@ function getGameSentenceTranslations(wordObj) {
 
 function getGameSentenceTranslation(wordObj, sentenceIndex = 0) {
   return getGameSentenceTranslations(wordObj)[sentenceIndex] || "";
+}
+
+function getClozeTargetTranslation(wordObj, clozeTarget) {
+  if (clozeTarget && Object.hasOwn(clozeTarget, "sentenceTranslation")) {
+    return normalizeGameWhitespace(clozeTarget.sentenceTranslation);
+  }
+  return getGameSentenceTranslation(wordObj, clozeTarget?.sentenceIndex ?? 0);
 }
 
 function uppercaseFirstNorwegian(value) {
@@ -2108,6 +2199,7 @@ function createClozeTarget(
   return {
     sentence,
     sentenceIndex,
+    sentenceTranslation: getGameSentenceTranslation(wordObj, sentenceIndex),
     surfaceForm,
     startIndex,
     endIndex,
@@ -2276,6 +2368,7 @@ async function findExpressionClozeTarget(wordObj, preferredForm = "") {
       target = {
         sentence,
         sentenceIndex,
+        sentenceTranslation: getGameSentenceTranslation(wordObj, sentenceIndex),
         surfaceForm: anchorSpan.surface,
         startIndex: anchorSpan.start,
         endIndex: anchorSpan.end,
@@ -2306,6 +2399,7 @@ async function findExpressionClozeTarget(wordObj, preferredForm = "") {
       target = {
         sentence,
         sentenceIndex,
+        sentenceTranslation: getGameSentenceTranslation(wordObj, sentenceIndex),
         surfaceForm: sentence.slice(match.start, match.end),
         startIndex: match.start,
         endIndex: match.end,
@@ -2393,6 +2487,144 @@ async function findClozeTarget(wordObj, preferredForm = "") {
   }
 
   return firstMatch;
+}
+
+const variedGameContextTargets = new WeakMap();
+
+function getGameHomographEntries(wordObj) {
+  if (!wordObj || typeof results === "undefined") return [wordObj].filter(Boolean);
+  const selectedLemmas = new Set(
+    getNorwegianEntryVariants(wordObj).map(normalizeGameAnswer).filter(Boolean),
+  );
+  return results.filter((entry) =>
+    getNorwegianEntryVariants(entry).some((variant) =>
+      selectedLemmas.has(normalizeGameAnswer(variant)),
+    ),
+  );
+}
+
+function hasCompetingGameHomograph(wordObj) {
+  return getGameHomographEntries(wordObj).some((entry) => entry !== wordObj);
+}
+
+async function isVariedClozeTargetUnambiguous(wordObj, clozeTarget) {
+  if (!wordObj || !clozeTarget) return false;
+  if (WordClass.getWordClass(wordObj.gender) === "expression") return true;
+  if (typeof window.Inflections?.findLemmas !== "function") return false;
+
+  // Resolve across every word class. Asking only for the intended class
+  // would hide precisely the cross-class homographs this gate must catch.
+  const resolution = await window.Inflections.findLemmas(
+    clozeTarget.surfaceForm,
+  );
+  if (!["exact", "possessive"].includes(resolution?.matchType)) return false;
+
+  const selectedLemmas = new Set(
+    getNorwegianEntryVariants(wordObj).map(normalizeGameAnswer).filter(Boolean),
+  );
+  const matches = resolution.matches || [];
+  return (
+    matches.length > 0 &&
+    matches.every(
+      (match) =>
+        match.wordClass === clozeTarget.wordClass &&
+        selectedLemmas.has(normalizeGameAnswer(match.lemma)),
+    )
+  );
+}
+
+async function buildVariedGameContextTargets(wordObj) {
+  // Morphology can distinguish many surface forms, but it cannot distinguish
+  // two dictionary senses with the same lemma. In that situation even a
+  // perfectly matched sentence form is not evidence for the intended sense,
+  // so variation stays disabled and the entry-owned sentence remains stable.
+  if (
+    !wordObj?.ord ||
+    hasCompetingGameHomograph(wordObj) ||
+    typeof window.SentenceFormMatching?.collectExamples !== "function"
+  ) {
+    return [];
+  }
+
+  const isExpression = WordClass.getWordClass(wordObj.gender) === "expression";
+  const homographs = getGameHomographEntries(wordObj);
+  let matcher;
+  let candidateEntries = results;
+
+  if (isExpression) {
+    const analysis = await window.ExpressionPatterns?.getAnalysis(wordObj);
+    if (!analysis?.matcher) return [];
+    matcher = analysis.matcher;
+    if (typeof getExpressionSentenceCandidates === "function") {
+      candidateEntries = getExpressionSentenceCandidates(wordObj, analysis);
+    }
+  } else {
+    const forms = await window.Inflections?.getSupplementalSentenceForms?.(
+      wordObj,
+      homographs,
+    );
+    if (!forms?.length) return [];
+    matcher = window.SentenceFormMatching.createMatcher(forms);
+  }
+
+  const { supplemental } = window.SentenceFormMatching.collectExamples(
+    wordObj,
+    candidateEntries,
+    matcher,
+    40,
+    homographs.filter((entry) => entry !== wordObj),
+  );
+  const targets = [];
+  for (const example of supplemental) {
+    const exampleEntry = {
+      ...wordObj,
+      eksempel: example.eksempel,
+      sentenceTranslation: example.sentenceTranslation || "",
+      sentenceAudio: example.sentenceAudio || "",
+    };
+    const target = await findClozeTarget(exampleEntry);
+    if (!target || !(await isVariedClozeTargetUnambiguous(wordObj, target))) {
+      continue;
+    }
+    target.isVariedContext = true;
+    targets.push(target);
+    if (targets.length >= 12) break;
+  }
+  return targets;
+}
+
+function getVariedGameContextTargets(wordObj) {
+  if (!wordObj || (typeof wordObj !== "object" && typeof wordObj !== "function")) {
+    return Promise.resolve([]);
+  }
+  if (!variedGameContextTargets.has(wordObj)) {
+    variedGameContextTargets.set(
+      wordObj,
+      buildVariedGameContextTargets(wordObj).catch((error) => {
+        console.warn("Could not build verified varied contexts.", error);
+        return [];
+      }),
+    );
+  }
+  return variedGameContextTargets.get(wordObj);
+}
+
+async function findPracticeClozeTarget(wordObj) {
+  const stableTarget = await findClozeTarget(wordObj);
+  if (!stableTarget) return null;
+
+  const contextSnapshot =
+    window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, "context") ?? null;
+  if (!window.WordGamePolicy.shouldUseVariedContext(contextSnapshot)) {
+    return stableTarget;
+  }
+
+  const variedTargets = await getVariedGameContextTargets(wordObj);
+  const index = window.WordGamePolicy.getVariedContextIndex(
+    contextSnapshot,
+    variedTargets.length,
+  );
+  return index >= 0 ? variedTargets[index] : stableTarget;
 }
 
 function formatCorrectClozeChoice(wordObj, clozeTarget) {
@@ -3946,8 +4178,16 @@ async function startWordGame() {
     if (firstWordInQueue.forceTypedRetry) {
       const randomWordObj = firstWordInQueue.wordObj;
       if (firstWordInQueue.wasCloze) {
+        const retryContextEntry = firstWordInQueue.clozeSentence
+          ? {
+              ...randomWordObj,
+              eksempel: firstWordInQueue.clozeSentence,
+              sentenceTranslation:
+                firstWordInQueue.clozeSentenceTranslation || "",
+            }
+          : randomWordObj;
         const clozeTarget = await findClozeTarget(
-          randomWordObj,
+          retryContextEntry,
           firstWordInQueue.clozedForm,
         );
         if (clozeTarget) {
@@ -3978,13 +4218,21 @@ async function startWordGame() {
 
     if (firstWordInQueue.wasCloze) {
       const randomWordObj = firstWordInQueue.wordObj;
+      const retryContextEntry = firstWordInQueue.clozeSentence
+        ? {
+            ...randomWordObj,
+            eksempel: firstWordInQueue.clozeSentence,
+            sentenceTranslation:
+              firstWordInQueue.clozeSentenceTranslation || "",
+          }
+        : randomWordObj;
 
       /*
        * Locate the same surface form that was used in the
        * original cloze question.
        */
       const clozeTarget = await findClozeTarget(
-        randomWordObj,
+        retryContextEntry,
         firstWordInQueue.clozedForm,
       );
 
@@ -4242,7 +4490,7 @@ function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
       displayedTranslation &&
       normalizeGameAnswer(displayedTranslation) !== correctIdentity &&
       startsWithUppercaseLetter(displayedTranslation) === isCapitalized &&
-      !noRandom.includes(normalizeGameAnswer(entry.ord))
+      !isExcludedFromRandomSelection(entry.ord)
     );
   });
 
@@ -4296,7 +4544,7 @@ function fetchIncorrectNorwegianWords(correctWord, CEFR, gender) {
     return (
       word &&
       normalizeGameAnswer(word) !== correctIdentity &&
-      !noRandom.includes(normalizeGameAnswer(entry.ord))
+      !isExcludedFromRandomSelection(entry.ord)
     );
   });
 
@@ -4572,6 +4820,7 @@ function attachTypedAnswerForm(
     isReverse = false,
     isListening = false,
     exampleSentenceIndex = null,
+    exampleSentenceTranslation = "",
   } = {},
 ) {
   const form = document.querySelector(".game-typed-answer-form");
@@ -4602,6 +4851,7 @@ function attachTypedAnswerForm(
       getTypedAcceptedAnswers(wordObj, isCloze, correctTranslation),
       exampleSentenceIndex,
       true,
+      exampleSentenceTranslation,
     );
   });
 
@@ -4894,8 +5144,12 @@ function renderClozeGameUI(
   // as a semantic anchor, in the same spot/markup the post-answer reveal
   // already uses (see the isCloze branch in handleTranslationClick) so the
   // English visibility toggle keeps working without extra wiring.
+  const targetSentenceTranslation = getClozeTargetTranslation(
+    wordObj,
+    clozeTarget,
+  );
   const clozeSentenceTranslation = useTypedRecall
-    ? getGameSentenceTranslation(wordObj, clozeTarget.sentenceIndex)
+    ? targetSentenceTranslation
     : "";
 
   // Rendered by renderStats() below -- see the matching comment in
@@ -4987,6 +5241,7 @@ function renderClozeGameUI(
       isCloze: true,
       clozeSentence: clozeTarget.sentence,
       exampleSentenceIndex: clozeTarget.sentenceIndex,
+      exampleSentenceTranslation: targetSentenceTranslation,
     });
   } else {
     document.querySelectorAll(".game-translation-card").forEach((card) => {
@@ -5003,6 +5258,8 @@ function renderClozeGameUI(
           false,
           [],
           clozeTarget.sentenceIndex,
+          false,
+          targetSentenceTranslation,
         );
       });
     });
@@ -5252,10 +5509,9 @@ function completeClozeSentence(clozeSentence) {
 //                 elsewhere) has now actually been satisfied — gates both
 //                 SRS credit and whether the relearning queue lets this
 //                 word go.
-// All four are also saved onto the relearning-queue entry on a miss
-// (wasCloze/wasReverse/wasListening below), purely so a later
-// reintroduction can show the word in the same mode it was missed in — see
-// the reintroduction branch near the top of startWordGame().
+// The adaptive recovery plan converts these flags into the next scaffold or
+// original-skill retry mode. The original failed mode remains stored
+// separately and must eventually be answered correctly before graduation.
 async function handleTranslationClick(
   selectedTranslation,
   wordObj,
@@ -5266,6 +5522,7 @@ async function handleTranslationClick(
   acceptedAnswers = [],
   exampleSentenceIndex = null,
   wasTyped = false,
+  exampleSentenceTranslation = "",
 ) {
   if (!gameActive) return; // Prevent further clicks if the game is not active
 
@@ -5329,12 +5586,45 @@ async function handleTranslationClick(
   const answerSkillSnapshot =
     window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, answerSkill) ??
     window.WordStrengthAPI?.getSnapshot?.(wordObj);
+  // Capture the rendered mode and its calibration before recording this
+  // outcome, since recordQuestionPredictionOutcome updates that bias and then
+  // clears currentQuestionPrediction. Ability should evaluate this answer
+  // against what the game believed immediately before the learner answered.
+  const answerMode =
+    currentQuestionPrediction?.mode ??
+    (isCloze
+      ? wasTyped
+        ? "typed-cloze"
+        : "cloze"
+      : isListening
+        ? wasTyped
+          ? "typed-listening"
+          : "listening"
+        : isReverse
+          ? wasTyped
+            ? "typed-reverse"
+            : "reverse"
+          : "forward");
+  const learnedExerciseBiasBeforeAnswer = getQuestionLearnedBias(
+    wordObj,
+    answerMode,
+  );
 
-  recordQuestionPredictionOutcome(answerWasCorrect);
+  const predictionEvidence = recordQuestionPredictionOutcome(
+    answerWasCorrect,
+    {
+      nearMiss: nearMissTypedMatch,
+      wasTyped,
+      wasScaffolded: currentWordQueueType === "relearning",
+    },
+  );
 
   resetTodayPracticeRoundAfterMidnight(wordObj);
   const { exampleSentence, sentenceTranslation } =
-    await fetchExampleSentence(wordObj, exampleSentenceIndex);
+    await fetchExampleSentence(wordObj, exampleSentenceIndex, {
+      preferredSentence: isCloze ? clozeSentence : "",
+      preferredTranslation: exampleSentenceTranslation,
+    });
   announceGameAnswer(answerWasCorrect, correctTranslationPart);
   const activeQueueEntry = incorrectWordQueue.find(
     (queued) => queued.wordObj === wordObj && queued.shown,
@@ -5356,18 +5646,22 @@ async function handleTranslationClick(
       }
     });
     correctStreak++; // Increment the streak
-    updateRecentAnswers(true, wordObj); // Track this correct answer
+    updateRecentAnswers(
+      true,
+      wordObj,
+      answerMode,
+      learnedExerciseBiasBeforeAnswer,
+    );
     window.WordStrengthAPI?.recordResult?.(wordObj, true, {
       skill: answerSkill,
       // A bounded-round filler or a skill shown ahead of its own approach
       // window is not a spaced retrieval and must not lengthen that skill's
-      // durable interval. A word that still requires typed mastery likewise
-      // earns no SRS credit for a multiple-choice-only correct answer.
+      // durable interval. A scaffold may strengthen its own skill, but the
+      // recovery queue independently keeps the originally failed skill open.
       credit:
         currentWordQueueType !== "session-filler" &&
         (answerSkillSnapshot?.queue !== "scheduled" ||
-          answerSkillSnapshot?.isApproaching) &&
-        !(activeQueueEntry?.requiresTypedMastery && !wasTyped),
+          answerSkillSnapshot?.isApproaching),
       deferRemote: true,
     });
     if (wordGameRoundActive) {
@@ -5398,6 +5692,7 @@ async function handleTranslationClick(
       activeQueueEntry,
       wasTyped,
       wordGameSessionQuestionsAnswered,
+      answerMode,
     );
     if (relearningResult === "remove" && indexInQueue !== -1) {
       incorrectWordQueue.splice(indexInQueue, 1);
@@ -5449,7 +5744,12 @@ async function handleTranslationClick(
       }
     });
     correctStreak = 0; // Reset the streak
-    updateRecentAnswers(false, wordObj); // Track this correct answer
+    updateRecentAnswers(
+      false,
+      wordObj,
+      answerMode,
+      learnedExerciseBiasBeforeAnswer,
+    );
     window.WordStrengthAPI?.recordResult?.(wordObj, false, {
       skill: answerSkill,
       deferRemote: true,
@@ -5487,41 +5787,21 @@ async function handleTranslationClick(
         (incorrectWord) => incorrectWord.wordObj === wordObj,
       );
       const baseGap = getWordGameReintroduceThreshold();
-
-      if (existingQueueEntry) {
-        existingQueueEntry.reviewAttempts += 1;
-        existingQueueEntry.availableAfterQuestion =
-          wordGameSessionQuestionsAnswered +
-          baseGap * Math.min(2, existingQueueEntry.reviewAttempts);
-        existingQueueEntry.shown = false;
-        // wasCloze/wasReverse/wasListening/clozedForm: not used here, only
-        // read later — see the flag map at the top of this function.
-        existingQueueEntry.wasCloze = isCloze;
-        existingQueueEntry.wasReverse = isReverse;
-        existingQueueEntry.wasListening = isListening;
-        existingQueueEntry.clozedForm = isCloze ? correctTranslation : null;
-        existingQueueEntry.requiresTypedMastery =
-          existingQueueEntry.requiresTypedMastery || wasTyped;
-        // Once the learner has passed the recognition scaffold, any further
-        // miss happened on the required typed retry, so keep retrying typing.
-        existingQueueEntry.forceTypedRetry =
-          existingQueueEntry.requiresTypedMastery &&
-          existingQueueEntry.forceTypedRetry;
-      } else {
-        incorrectWordQueue.push({
-          wordObj,
-          availableAfterQuestion:
-            wordGameSessionQuestionsAnswered + baseGap,
-          reviewAttempts: 1,
-          shown: false,
-          wasCloze: isCloze,
-          wasReverse: isReverse,
-          wasListening: isListening,
-          clozedForm: isCloze ? correctTranslation : null,
-          requiresTypedMastery: wasTyped,
-          forceTypedRetry: false,
-        });
-      }
+      const recoveryEntry = scheduleAdaptiveRecovery({
+        queueEntry: existingQueueEntry,
+        wordObj,
+        failedMode: answerMode,
+        predictedSuccess: predictionEvidence?.predictedSuccess ?? 0.5,
+        responseTimeMs: predictionEvidence?.responseTimeMs ?? null,
+        answeredQuestions: wordGameSessionQuestionsAnswered,
+        baseGap,
+        clozedForm: isCloze ? correctTranslation : null,
+        clozeSentence: isCloze ? clozeSentence : "",
+        clozeSentenceTranslation: isCloze
+          ? exampleSentenceTranslation
+          : "",
+      });
+      if (!existingQueueEntry) incorrectWordQueue.push(recoveryEntry);
     }
   }
 
@@ -5589,10 +5869,21 @@ async function handleTranslationClick(
   }
 }
 
-async function fetchExampleSentence(wordObj, preferredIndex = null) {
+async function fetchExampleSentence(
+  wordObj,
+  preferredIndex = null,
+  { preferredSentence = "", preferredTranslation = "" } = {},
+) {
   if (!wordObj || !wordObj.ord) {
     console.warn("Missing required fields for search:", wordObj);
-    return null;
+    return { exampleSentence: "", sentenceTranslation: "" };
+  }
+
+  if (normalizeGameWhitespace(preferredSentence)) {
+    return {
+      exampleSentence: normalizeGameWhitespace(preferredSentence),
+      sentenceTranslation: normalizeGameWhitespace(preferredTranslation),
+    };
   }
 
   // wordObj is already the exact dictionary entry the question was built
@@ -5604,22 +5895,13 @@ async function fetchExampleSentence(wordObj, preferredIndex = null) {
   // which can be a completely different sense with its own unrelated
   // example sentence — playing back audio/text that doesn't match what
   // the user actually just answered.
-  let matchingEntry = wordObj;
+  const matchingEntry = wordObj;
 
-  // Only fall back to searching the rest of the dataset if this exact
-  // entry has no example sentence of its own.
+  // Never borrow an example from a different dictionary row here. A spelling
+  // prefix is not a sense identifier in Norwegian, and doing so can attach a
+  // homograph's sentence to the word the learner actually answered.
   if (!matchingEntry.eksempel || matchingEntry.eksempel.trim() === "") {
-    matchingEntry = results.find(
-      (result) =>
-        result.eksempel &&
-        result.eksempel.toLowerCase().startsWith(wordObj.ord.toLowerCase()),
-    );
-    if (!matchingEntry) {
-      console.warn(
-        `No example sentence found in the entire dataset containing the word: ${wordObj.ord}`,
-      );
-      return null; // No example sentence found at all
-    }
+    return { exampleSentence: "", sentenceTranslation: "" };
   }
 
   // Split example sentences and remove any empty entries
@@ -5697,7 +5979,7 @@ function getEligibleGameWords(
     // per-level cutoff. A word far from the learner's ability isn't
     // excluded outright, just made vanishingly unlikely to be drawn.
 
-    if (noRandom.includes(normalizeGameAnswer(norwegianWord))) {
+    if (isExcludedFromRandomSelection(norwegianWord)) {
       return false;
     }
 
@@ -5872,10 +6154,10 @@ function getVocabularyFrequencyRank(entry) {
 
 function getVocabularyUsefulnessWeight(entry) {
   const weight = getVocabularyFrequencyRecord(entry)?.weight;
-  if (!Number.isFinite(weight)) return 1;
-
-  const frequencyValue = Math.min(1, Math.max(0, weight));
-  return 1 + VOCABULARY_USEFULNESS_MAX_BOOST * frequencyValue;
+  return window.WordGamePolicy.getUsefulnessWeight(
+    weight,
+    VOCABULARY_USEFULNESS_MAX_BOOST,
+  );
 }
 
 // The scheduler first chooses an explicit queue (relearning, due, approaching,
@@ -5960,9 +6242,9 @@ function getRawAbilityProximity(entry) {
   if (abilityScore === null) return 1;
 
   const distance = getWordDifficultyAnchor(entry) - abilityScore;
-  return Math.exp(
-    -(distance * distance) /
-      (2 * ABILITY_PROXIMITY_SIGMA * ABILITY_PROXIMITY_SIGMA),
+  return window.WordGamePolicy.getAbilityProximity(
+    distance,
+    ABILITY_PROXIMITY_SIGMA,
   );
 }
 
@@ -5981,22 +6263,14 @@ function getRawAbilityProximity(entry) {
 // through this gate, and saved My Words are offered before it in
 // fetchRandomWord, preserving both the review schedule and the selected Mix.
 function getCoreVocabularyCandidatePool(entries) {
-  if (!vocabularyFrequencyEntries || entries.length === 0) return entries;
-
-  const coreEntries = entries.filter(
-    (entry) => getVocabularyFrequencyRank(entry) !== null,
-  );
-  if (coreEntries.length === 0) return entries;
-
-  const suitablyChallengingCore = coreEntries.filter(
-    (entry) =>
-      getWordDifficultyAnchor(entry) >= abilityScore ||
-      getRawAbilityProximity(entry) >= CORE_VOCABULARY_MIN_PROXIMITY,
-  );
-
-  return suitablyChallengingCore.length > 0
-    ? suitablyChallengingCore
-    : entries;
+  return window.WordGamePolicy.getCoreCandidatePool(entries, {
+    frequencyDataAvailable: Boolean(vocabularyFrequencyEntries),
+    hasFrequency: (entry) => getVocabularyFrequencyRank(entry) !== null,
+    getDifficulty: getWordDifficultyAnchor,
+    ability: abilityScore,
+    getProximity: getRawAbilityProximity,
+    minimumProximity: CORE_VOCABULARY_MIN_PROXIMITY,
+  });
 }
 
 // useAbilityWeight is false for queues built from words the learner has
@@ -6020,15 +6294,19 @@ function getGameWordWeight(
   const strength = window.WordStrengthAPI?.get?.(entry) ?? 0;
   const recallNeed =
     window.WordStrengthAPI?.getSnapshot?.(entry)?.recallNeed ?? 0;
-  const memoryWeight = useRecallNeedWeight
-    ? Math.pow(
-        Math.max(RECALL_NEED_WEIGHT_FLOOR, recallNeed),
-        RECALL_NEED_WEIGHT_EXPONENT,
-      )
-    : Math.pow(
-        STRENGTH_WEIGHT_CEILING - strength,
-        STRENGTH_WEIGHT_EXPONENT,
-      );
+  const memoryWeight = window.WordGamePolicy.getMemoryWeight(
+    {
+      strength,
+      recallNeed,
+      useRecallNeed: useRecallNeedWeight,
+    },
+    {
+      strengthCeiling: STRENGTH_WEIGHT_CEILING,
+      strengthExponent: STRENGTH_WEIGHT_EXPONENT,
+      recallNeedExponent: RECALL_NEED_WEIGHT_EXPONENT,
+      recallNeedFloor: RECALL_NEED_WEIGHT_FLOOR,
+    },
+  );
   const abilityWeight = useAbilityWeight
     ? getAbilityProximityWeight(entry, cefrCounts)
     : 1;
@@ -6036,7 +6314,11 @@ function getGameWordWeight(
     ? getVocabularyUsefulnessWeight(entry)
     : 1;
 
-  return memoryWeight * abilityWeight * usefulnessWeight;
+  return window.WordGamePolicy.getWordWeight({
+    memoryWeight,
+    abilityWeight,
+    usefulnessWeight,
+  });
 }
 
 /*
@@ -6047,21 +6329,11 @@ function getGameWordWeight(
  * just this draw (see pickPrioritizedGameWord) only compute it once.
  */
 function pickWeightedGameWord(entries, weights) {
-  if (entries.length === 0) {
-    return null;
-  }
-
-  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-  let target = Math.random() * totalWeight;
-
-  for (let i = 0; i < entries.length; i++) {
-    target -= weights[i];
-    if (target < 0) {
-      return entries[i];
-    }
-  }
-
-  return entries[entries.length - 1]; // floating-point rounding fallback
+  const selectedIndex = window.WordGamePolicy.getWeightedIndex(
+    weights,
+    Math.random(),
+  );
+  return selectedIndex >= 0 ? entries[selectedIndex] ?? null : null;
 }
 
 function pickPrioritizedGameWord(
@@ -6175,13 +6447,11 @@ function isMyWordsEntry(entry) {
 // an earlier question cannot supply a saved word, the deficit can be recovered
 // later in that round. Every new round starts its count from zero.
 function shouldPrioritizeMyWordsQuestion() {
-  if (wordGameMyWordsShare <= 0) return false;
-
-  const nextQuestionCount = wordGameMyWordsMixQuestionCount + 1;
-  const targetSavedCount = Math.floor(
-    nextQuestionCount * wordGameMyWordsShare,
-  );
-  return wordGameMyWordsMixSavedQuestionCount < targetSavedCount;
+  return window.WordGamePolicy.shouldPrioritizeQuota({
+    share: wordGameMyWordsShare,
+    questionCount: wordGameMyWordsMixQuestionCount,
+    savedCount: wordGameMyWordsMixSavedQuestionCount,
+  });
 }
 
 function recordMyWordsMixQuestion(wasSavedWord) {
@@ -6229,27 +6499,13 @@ function getGameEntryQueue(entry, now = Date.now()) {
 }
 
 function buildGameWordQueues(eligibleEntries, now = Date.now()) {
-  const queues = {
-    relearning: [],
-    due: [],
-    approaching: [],
-    new: [],
-    scheduled: [],
-  };
-
-  for (const entry of eligibleEntries) {
-    const queue = getGameEntryQueue(entry, now);
-
-    queues[queue]?.push(entry);
-  }
-
-  return queues;
+  return window.WordGamePolicy.buildQueues(eligibleEntries, (entry) =>
+    getGameEntryQueue(entry, now),
+  );
 }
 
 function getNextGameQueueName(queues) {
-  return ["relearning", "due", "approaching", "new", "scheduled"].find(
-    (queueName) => queues[queueName]?.length > 0,
-  );
+  return window.WordGamePolicy.getNextQueueName(queues);
 }
 
 // When somebody deliberately starts a round with no due or new material,
@@ -6580,7 +6836,7 @@ function generatePhraseClozeDistractors(wordObj, clozeTarget) {
         !["noun", "adjective", "verb"].includes(
           candidateWordClass,
         )) &&
-      !noRandom.includes(normalizeGameAnswer(entry.ord))
+      !isExcludedFromRandomSelection(entry.ord)
     );
   });
 

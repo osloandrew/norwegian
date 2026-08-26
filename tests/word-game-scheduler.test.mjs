@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
+import { loadWordGamePolicy } from "./load-word-game-policy.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "wordGame.js"), "utf8");
@@ -29,6 +30,7 @@ const context = vm.createContext({
     },
   },
 });
+loadWordGamePolicy(root, context);
 
 vm.runInContext(source.slice(start, end), context, {
   filename: "wordGame.js",

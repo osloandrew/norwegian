@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
+import { loadWordGamePolicy } from "./load-word-game-policy.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wordGameSource = fs.readFileSync(path.join(root, "wordGame.js"), "utf8");
@@ -42,6 +43,7 @@ assert.notEqual(weightEnd, -1);
 
 const context = vm.createContext({ Math, Number, Object, URL, console });
 context.window = context;
+loadWordGamePolicy(root, context);
 context.normalizeGameAnswer = (value) => String(value).trim().toLowerCase();
 context.getPrimaryNorwegianForm = (entry) => String(entry?.ord ?? "").split(",")[0];
 vm.runInContext(
@@ -162,6 +164,8 @@ const coreEnd = wordGameSource.indexOf(
 assert.notEqual(coreStart, -1);
 assert.notEqual(coreEnd, -1);
 const coreContext = vm.createContext({ Math });
+coreContext.window = coreContext;
+loadWordGamePolicy(root, coreContext);
 vm.runInContext(
   `
     let abilityScore = 500;

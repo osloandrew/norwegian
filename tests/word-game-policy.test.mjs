@@ -1,0 +1,251 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import vm from "node:vm";
+import { fileURLToPath } from "node:url";
+import { loadWordGamePolicy } from "./load-word-game-policy.mjs";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const context = vm.createContext({ Math, Number, Object, Array });
+context.window = context;
+const policy = loadWordGamePolicy(root, context);
+const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+assert.ok(
+  html.indexOf("wordGamePolicy.js") < html.indexOf("wordGame.js?v="),
+  "The pure policy must load before the browser integration.",
+);
+
+assert.equal(policy.getQuestionSkill("forward"), "recognition");
+assert.equal(policy.getQuestionSkill("typed-cloze"), "context");
+assert.equal(policy.getQuestionSkill("reverse"), "production");
+assert.equal(policy.getQuestionSkill("typed-listening"), "listening");
+
+assert.ok(
+  policy.getExpectedSuccessProbability(300, 700, 220) >
+    policy.getExpectedSuccessProbability(900, 700, 220),
+);
+assert.ok(
+  policy.getAbilityAfterAnswer({
+    ability: 500,
+    wordDifficulty: 500,
+    isCorrect: true,
+    kFactor: 24,
+    logisticScale: 220,
+    minimum: 0,
+    maximum: 1000,
+  }) > 500,
+);
+const abilityUpdateFor = (isCorrect, exerciseBias) =>
+  policy.getAbilityAfterAnswer({
+    ability: 500,
+    wordDifficulty: 500,
+    isCorrect,
+    kFactor: 24,
+    logisticScale: 220,
+    exerciseBias,
+    minimum: 0,
+    maximum: 1000,
+  });
+const forwardBias = policy.DEFAULT_MODE_BIASES.forward;
+const typedProductionBias = policy.DEFAULT_MODE_BIASES["typed-reverse"];
+assert.ok(
+  abilityUpdateFor(false, typedProductionBias) >
+    abilityUpdateFor(false, forwardBias),
+  "A difficult production miss should lower general ability less.",
+);
+assert.ok(
+  abilityUpdateFor(true, typedProductionBias) >
+    abilityUpdateFor(true, forwardBias),
+  "A difficult production success should provide stronger ability evidence.",
+);
+assert.ok(
+  policy.getExerciseAdjustedSuccessProbability(0.5, forwardBias) >
+    policy.getExerciseAdjustedSuccessProbability(0.5, typedProductionBias),
+);
+
+const predictor = policy.normalizePredictorState({
+  modes: { forward: { attempts: 3.9, bias: 99 } },
+});
+assert.equal(predictor.modes.forward.attempts, 3);
+assert.equal(predictor.modes.forward.bias, 1.5);
+assert.equal(predictor.modes.reverse.attempts, 0);
+assert.equal(predictor.skills.production.attempts, 0);
+
+const abilityOnly = policy.predictSuccess({ abilityProbability: 0.6 });
+const remembered = policy.predictSuccess({
+  abilityProbability: 0.6,
+  hasPersonalMemory: true,
+  retrievability: 0.95,
+});
+assert.ok(remembered > abilityOnly);
+assert.ok(policy.getChallengeFit(0.85) > policy.getChallengeFit(0.45));
+assert.ok(policy.getProgressionWeight(0.95) > policy.getProgressionWeight(0.4));
+
+const dueOverall = { record: {}, queue: "due", isDue: true };
+const dueSkill = { queue: "due", isDue: true, recallNeed: 0.7 };
+const quietSkill = { queue: "scheduled", recallNeed: 0 };
+assert.ok(
+  policy.getSkillUrgencyWeight(dueOverall, dueSkill) >
+    policy.getSkillUrgencyWeight(dueOverall, quietSkill) * 10,
+);
+
+const calibratedCorrect = policy.updateCalibrationMode(
+  { attempts: 0, bias: 0 },
+  0.8,
+  true,
+);
+const calibratedMiss = policy.updateCalibrationMode(
+  calibratedCorrect,
+  0.8,
+  false,
+);
+assert.ok(calibratedCorrect.bias > 0);
+assert.ok(calibratedMiss.bias < calibratedCorrect.bias);
+assert.equal(calibratedMiss.attempts, 2);
+const fluentEvidence = policy.updateCalibrationMode(
+  { attempts: 0, bias: 0 },
+  0.8,
+  true,
+  { responseTimeMs: 4000 },
+);
+const hesitantNearMiss = policy.updateCalibrationMode(
+  fluentEvidence,
+  0.8,
+  true,
+  {
+    responseTimeMs: 16000,
+    nearMiss: true,
+    possiblyGuessed: true,
+    outcomeValue: 0.8,
+  },
+);
+assert.equal(hesitantNearMiss.exactCorrect, 1);
+assert.equal(hesitantNearMiss.nearMisses, 1);
+assert.equal(hesitantNearMiss.possibleGuesses, 1);
+assert.ok(
+  policy.getCalibrationEvidenceBias(hesitantNearMiss, "typed-reverse") < 0,
+);
+assert.ok(
+  policy.getQuestionComplexityBias({
+    mode: "typed-reverse",
+    formLength: 15,
+    formTokenCount: 2,
+  }) <
+    policy.getQuestionComplexityBias({
+      mode: "typed-reverse",
+      formLength: 4,
+      formTokenCount: 1,
+    }),
+);
+
+assert.equal(
+  policy.getTypedRecallProbability(
+    0.9,
+    { start: 0.7, full: 0.9, maximum: 1 },
+  ),
+  1,
+);
+assert.equal(
+  policy.getTypedRecallProbability(
+    0.9,
+    { start: 0.7, full: 0.9, maximum: 1 },
+    { isRelearning: true },
+  ),
+  0,
+);
+
+const pairPlan = policy.buildQuestionPairPlan(
+  [
+    { mode: "forward", weight: 0.5 },
+    { mode: "reverse", weight: 0.5 },
+  ],
+  {
+    predict: (mode) => (mode === "forward" ? 0.85 : 0.4),
+    progressionWeight: () => 1,
+    urgencyWeight: () => 1,
+  },
+);
+assert.ok(pairPlan.candidates[0].pairWeight > pairPlan.candidates[1].pairWeight);
+assert.ok(pairPlan.totalPairWeight > 0);
+
+assert.equal(policy.getUsefulnessWeight(1, 0.7), 1.7);
+assert.equal(policy.getUsefulnessWeight(Number.NaN, 0.7), 1);
+assert.ok(policy.getAbilityProximity(0, 140) > policy.getAbilityProximity(300, 140));
+assert.ok(
+  policy.getMemoryWeight({ recallNeed: 0.8, useRecallNeed: true }) >
+    policy.getMemoryWeight({ recallNeed: 0.2, useRecallNeed: true }),
+);
+assert.equal(
+  policy.getWordWeight({
+    memoryWeight: 2,
+    abilityWeight: 3,
+    usefulnessWeight: 1.5,
+  }),
+  9,
+);
+assert.equal(policy.getWeightedIndex([1, 3], 0), 0);
+assert.equal(policy.getWeightedIndex([1, 3], 0.99), 1);
+
+const entries = [{ queue: "scheduled" }, { queue: "due" }, { queue: "new" }];
+const queues = policy.buildQueues(entries, (entry) => entry.queue);
+assert.equal(policy.getNextQueueName(queues), "due");
+assert.deepEqual([...queues.new], [entries[2]]);
+
+const nearby = { core: true, difficulty: 500, proximity: 1 };
+const distantEasy = { core: true, difficulty: 100, proximity: 0.01 };
+const rare = { core: false, difficulty: 500, proximity: 1 };
+assert.deepEqual(
+  [...policy.getCoreCandidatePool([nearby, distantEasy, rare], {
+    frequencyDataAvailable: true,
+    hasFrequency: (entry) => entry.core,
+    getDifficulty: (entry) => entry.difficulty,
+    ability: 500,
+    getProximity: (entry) => entry.proximity,
+    minimumProximity: 0.25,
+  })],
+  [nearby],
+);
+
+assert.equal(
+  policy.shouldPrioritizeQuota({ share: 0.25, questionCount: 3, savedCount: 0 }),
+  true,
+);
+assert.equal(
+  policy.shouldPrioritizeQuota({ share: 0.25, questionCount: 3, savedCount: 1 }),
+  false,
+);
+
+const lowConfidenceRecovery = policy.getRecoveryPlan({
+  failedMode: "typed-listening",
+  predictedSuccess: 0.4,
+  baseGap: 4,
+});
+assert.equal(lowConfidenceRecovery.nextMode, "forward");
+assert.equal(lowConfidenceRecovery.requiresOriginalSuccess, true);
+const moderateRecovery = policy.getRecoveryPlan({
+  failedMode: "typed-listening",
+  predictedSuccess: 0.7,
+  baseGap: 4,
+});
+assert.equal(moderateRecovery.nextMode, "listening");
+const readyRecovery = policy.getRecoveryPlan({
+  failedMode: "typed-listening",
+  predictedSuccess: 0.85,
+  baseGap: 4,
+});
+assert.equal(readyRecovery.nextMode, "typed-listening");
+assert.ok(lowConfidenceRecovery.originalRetryGap >= 4);
+
+const earlyContext = { record: { successes: 2 } };
+const establishedContext = { record: { successes: 3 } };
+assert.equal(policy.shouldUseVariedContext(earlyContext), false);
+assert.equal(policy.shouldUseVariedContext(establishedContext), true);
+assert.equal(policy.getVariedContextIndex(establishedContext, 4), 0);
+assert.equal(
+  policy.getVariedContextIndex({ record: { successes: 6 } }, 4),
+  3,
+);
+assert.equal(policy.getVariedContextIndex(earlyContext, 4), -1);
+assert.equal(policy.getVariedContextIndex(establishedContext, 0), -1);
+
+console.log("word-game policy tests passed");

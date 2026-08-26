@@ -2557,8 +2557,13 @@ function resolveStoryWordEntries(normalizedWord) {
     // Skips entries whose headword is on the noRandom blocklist (e.g. "pule",
     // the vulgar verb whose past participle "pult" collides with the
     // innocuous noun "pult" — a story about classroom desks shouldn't pop
-    // up "fucked" as a hint). Same ord-based check scripts.js/wordGame.js
-    // use to keep these words out of the word game.
+    // up "fucked" as a hint). Deliberately NOT also filtered against
+    // noRandomLetters.js: that list keeps single-letter alphabet entries
+    // (e.g. "å" glossed as just "the letter å") out of the word game's
+    // random picks, but "å" is also, unrelatedly, a hugely common real word
+    // (the infinitive marker "to", the interjection "ah", the noun
+    // "stream") sharing that single-character spelling — a reader clicking
+    // it in a story needs those senses, not a blank popover.
     const entries = [];
     const addEntry = (entry) => {
       if (noRandom.includes(String(entry.ord || "").toLowerCase())) return;

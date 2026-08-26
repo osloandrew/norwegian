@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
+import { loadWordGamePolicy } from "./load-word-game-policy.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "wordGame.js"), "utf8");
@@ -10,6 +11,7 @@ const snapshots = new Map();
 const strengths = new Map();
 const context = vm.createContext({ Math, Number, Object });
 context.window = context;
+loadWordGamePolicy(root, context);
 context.WordStrengthAPI = {
   get: (entry) => strengths.get(entry) ?? 0,
   getSnapshot: (entry) => snapshots.get(entry) ?? null,
@@ -54,10 +56,13 @@ assert.ok(
     context.getGameWordWeight(fragile, { useAbilityWeight: false }),
 );
 
-assert.match(
-  source,
-  /\["relearning", "due", "approaching", "new", "scheduled"\]/,
-);
+assert.deepEqual([...context.WordGamePolicy.DEFAULT_QUEUE_PRIORITY], [
+  "relearning",
+  "due",
+  "approaching",
+  "new",
+  "scheduled",
+]);
 assert.match(
   source,
   /useRecallNeedWeight: \[\s*"relearning",\s*"due",\s*"approaching",\s*\]\.includes\(queueName\)/,

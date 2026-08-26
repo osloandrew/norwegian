@@ -1,11 +1,17 @@
+// Vulgar/explicit headwords excluded from anywhere a word could surface
+// without the reader deliberately searching for it: the word game's random
+// picks, the "random word" filter in scripts.js, and story-text hint
+// popovers (see stories.js's resolveStoryWordEntries — a story about
+// classroom desks shouldn't pop up "pult"'s vulgar homograph "pule" as a
+// hint). Single-letter alphabet entries (the dictionary's letter-name
+// definitions, e.g. "å") are a separate concern with different rules per
+// context — see noRandomLetters.js instead.
 const noRandom = [
-  "a",
   "aids",
   "alfons",
   "alfonseri",
   "analsex",
   "anus",
-  "b",
   "balle",
   "bedriten",
   "beføle",
@@ -21,8 +27,6 @@ const noRandom = [
   "bullshit",
   "bæsj",
   "bæsje",
-  "c",
-  "d",
   "dass",
   "dildo",
   "dong",
@@ -43,7 +47,6 @@ const noRandom = [
   "drittvær, dritvær",
   "dægern, dægeren",
   "dæven",
-  "e",
   "ejakulasjon",
   "ejakulere",
   "ekshibisjonisme",
@@ -148,7 +151,6 @@ const noRandom = [
   "kåt",
   "kåte opp",
   "kåte seg",
-  "l",
   "lidderlig",
   "ligg",
   "like forbanna",
@@ -171,7 +173,6 @@ const noRandom = [
   "møkkavær",
   "neger",
   "nekrofili",
-  "o",
   "offentlig hus",
   "omskjære",
   "omskåren, omskåret",
@@ -183,7 +184,6 @@ const noRandom = [
   "orgasmisk",
   "orgastisk",
   "orgie",
-  "p",
   "patte",
   "penetrere",
   "penis",
@@ -295,7 +295,4 @@ const noRandom = [
   "voldtektsforbryter",
   "voyeur",
   "voyeurisme",
-  "æ",
-  "ø",
-  "å",
 ];

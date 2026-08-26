@@ -3,11 +3,13 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
+import { loadWordGamePolicy } from "./load-word-game-policy.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "wordGame.js"), "utf8");
 const context = vm.createContext({ Date, JSON, Math, Number, Object, Set, String });
 context.window = context;
+loadWordGamePolicy(root, context);
 context.self = context;
 context.localStorage = { getItem: () => null, setItem: () => {} };
 vm.runInContext(fs.readFileSync(path.join(root, "wordClass.js"), "utf8"), context, {
