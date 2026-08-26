@@ -34,7 +34,7 @@ const runSection = (startMarker, endMarker) => {
 };
 
 runSection("function normalizeGameWhitespace", "function uppercaseFirstNorwegian");
-runSection("const DAILY_PRACTICE_STORAGE_KEY", "let incorrectCount");
+runSection("const DAILY_PRACTICE_STORAGE_KEY", "let incorrectWordQueue");
 
 assert.equal(
   context.hasPlayableWordAudio({ ord: "hei", wordAudio: "X" }),

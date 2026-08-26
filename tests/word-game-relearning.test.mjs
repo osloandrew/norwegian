@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "wordGame.js"), "utf8");
 const start = source.indexOf("function applyCorrectRelearningResult");
-const end = source.indexOf("let totalQuestions", start);
+const end = source.indexOf("let wordDataStore", start);
 
 assert.notEqual(start, -1);
 assert.notEqual(end, -1);
