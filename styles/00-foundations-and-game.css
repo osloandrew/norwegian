@@ -1019,9 +1019,7 @@ li {
 
 /* Incorrect box styling */
 .game-stats-incorrect-box {
-  background-color: var(
-    --color-danger-bg
-  ); /* Softer/lighter than the original #e9a895,
+  background-color: #f0c1b3; /* Softer/lighter than the original #e9a895,
      matching .game-stats-correct-box's tone-down above. */
   border-radius: var(--radius-card);
   box-sizing: border-box;
@@ -1487,6 +1485,11 @@ li {
   border-color: var(--color-accent);
 }
 
+.game-today-practice-btn.is-complete {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+}
+
 .game-today-practice-btn.is-bonus {
   background-color: var(--color-bonus);
   border-color: var(--color-bonus);
@@ -1891,6 +1894,41 @@ li {
 .placement-option-btn:focus-visible {
   outline: 3px solid var(--color-interactive);
   outline-offset: 2px;
+}
+
+.placement-start-btn {
+  align-items: center;
+  background-color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  border-radius: var(--radius-control);
+  color: var(--color-surface);
+  cursor: pointer;
+  display: flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  justify-content: center;
+  margin-top: 6px;
+  min-height: 44px;
+  padding: 10px 16px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  width: 100%;
+}
+
+.placement-start-btn:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.placement-progress {
+  color: var(--color-text-slate);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.82em;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .placement-retake-link {
@@ -2362,7 +2400,7 @@ h4 {
   }
 
   .game-stats-content {
-    margin: 0px 0px 5px 0px;
+    margin: 0px 0px 4px 0px;
   }
 
   .game-stats-progress-wrapper > .game-instruction {
@@ -2529,9 +2567,6 @@ h4 {
     padding-bottom: calc(76px + env(safe-area-inset-bottom));
   }
 
-  /* #mode-nav (the fixed bottom tab bar — styles/35-navigation.css) hides
-     itself for body.word-game-mode.word-game-round-active specifically so
-     it can't collide with this dock, which claims the same bottom edge. */
   body.word-game-mode .game-next-button-container {
     background: rgba(255, 255, 255, 0.97);
     border: 1px solid var(--color-border);

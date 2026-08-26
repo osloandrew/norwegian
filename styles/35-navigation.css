@@ -419,7 +419,23 @@ body.word-game-mode:not(.word-game-round-active) #search-container {
   width: 42px;
 }
 
-.game-english-toggle-btn:hover,
+/* Kept separate from the [aria-pressed="true"] rule below, not combined
+   into one selector list: a touch tap satisfies :hover too, and mobile
+   browsers commonly leave it applied after the tap ends (no pointer to
+   move away and clear it) instead of only for the pointer actually
+   resting over the button. Combined, that left the "hide" state looking
+   permanently highlighted/pressed after tapping it on a phone, real
+   state notwithstanding. Scoping :hover to hover-capable pointers avoids
+   that stuck look; [aria-pressed="true"] still always shows the active
+   background regardless of input type, which is correct — that one
+   reflects real state, not a transient pointer position. */
+@media (hover: hover) {
+  .game-english-toggle-btn:hover {
+    background-color: var(--color-wash-blue);
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.16);
+  }
+}
+
 .game-english-toggle-btn[aria-pressed="true"] {
   background-color: var(--color-wash-blue);
   box-shadow: 0 3px 7px rgba(0, 0, 0, 0.16);
@@ -878,13 +894,21 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
   }
 }
 
-/* During a phone-sized round, keep the toolbar to one compact row of
-   plain icon buttons — translations, report, and quit — the same
-   flattening desktop already does for Report/Quit (further below in this
-   file), just applied to all three controls and sized for a phone. No
-   more "..." disclosure hiding them: a control someone taps every round
-   shouldn't need an extra tap just to reveal it. */
-@media (max-width: 600px) {
+/* Keep the toolbar to one compact row of plain, equal-width labeled
+   buttons — translations, report, and quit — the same flattening desktop
+   already does for Report/Quit (further below in this file), just
+   applied to all three controls and sized for a phone/tablet. No more
+   "..." disclosure hiding them: a control someone taps every round
+   shouldn't need an extra tap just to reveal it. Matches #mode-nav's own
+   ≤1024px fixed-bottom-bar breakpoint, not a narrower phone-only one —
+   anything below 1025px that isn't covered here falls through to this
+   file's base (non-media) .game-round-menu-panel rules, which are a
+   real absolute-positioned popover meant for a genuine disclosure
+   trigger. This file no longer has one (the mobile summary button was
+   removed along with the rest of the <details> markup), so on a
+   601–1024px viewport that gap silently un-flattens these three buttons
+   back into that stray floating popover instead of the intended row. */
+@media (max-width: 1024px) {
   body.word-game-mode.word-game-round-active .game-english-filter {
     display: none !important;
   }
@@ -920,6 +944,10 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
     width: 100%;
   }
 
+  /* Fixed height (not min-height) so all three match exactly regardless
+     of label length — "Quit & see stats" wraps to a second line at this
+     width/font-size while the other two stay on one, and without a fixed
+     height that would make its button taller than its neighbors. */
   body.word-game-mode.word-game-round-active
     .game-english-toggle-btn:not(.hidden),
   #search-container-inner.word-game-active
@@ -932,9 +960,11 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
     box-shadow: none;
     display: flex;
     flex: 1 1 0;
-    height: 38px;
+    flex-direction: column;
+    gap: 3px;
+    height: 50px;
     justify-content: center;
-    padding: 0;
+    padding: 4px 2px;
     width: auto;
   }
 
@@ -944,17 +974,28 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
     border-color: var(--color-wash-blue-active-border);
   }
 
+  /* Fixed-height icon slot so the plain-text 🇬🇧 emoji (the translations
+     button's icon — everything else here is a FontAwesome glyph) centers
+     at the same visual size as the others instead of rendering shorter,
+     which is what made that one button read as "too short" before. */
   .game-round-menu-panel button > :first-child {
     align-items: center;
     display: inline-flex;
     font-size: 15px;
+    height: 18px;
     justify-content: center;
+    line-height: 1;
   }
 
   .game-round-menu-panel .game-english-toggle-label,
   .game-round-menu-panel .toolbar-report-issue-btn span,
   .game-round-menu-panel .game-end-session-btn span {
-    display: none;
+    display: block;
+    font-family: "Noto Sans", sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1.15;
+    text-align: center;
   }
 }
 
