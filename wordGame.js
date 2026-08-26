@@ -5,8 +5,6 @@ let correctTranslation;
 // filler/early-review answers do not lengthen an interval, while due, new,
 // and deliberate relearning answers do.
 let currentWordQueueType = null;
-let correctLevelAnswers = 0; // Track correct answers per level
-let correctCount = 0; // Tracks the total number of correct answers
 let correctStreak = 0; // Track the current streak of correct answers
 // CEFR labels remain purely descriptive metadata on individual words/stories
 // (see CEFR_DIFFICULTY_ANCHOR below) — the learner's own ability is a
@@ -291,7 +289,6 @@ function completeDailyQuestRound() {
   const savedState = saveDailyPracticeState(state);
   return savedState.earnedRewards.includes(quest.reward) ? quest : null;
 }
-let incorrectCount = 0; // Tracks the total number of incorrect answers
 // Short in-session relearning queue. Durable state and its due timestamp live
 // in WordStrengthAPI; this queue only supplies enough intervening questions
 // before a retry and remembers which exercise form was missed.
@@ -584,8 +581,6 @@ function applyCorrectRelearningResult(queueEntry, wasTyped, answeredQuestions) {
 
   return "remove";
 }
-
-let totalQuestions = 0; // Track total questions per level
 let wordDataStore = [];
 // MP3s, not the original WAVs — encoded at LAME -V2 (~91% smaller with no
 // audible difference for a short UI chime), since these three are
@@ -2915,11 +2910,7 @@ function handleMinimalPairAnswer(selectedWord, targetWord, pair) {
 function showMinimalPairsResults() {
   stopAllAudio();
   document.getElementById("game-report-issue")?.classList.add("hidden");
-  const roundMenu = document.getElementById("game-round-menu");
-  if (roundMenu) {
-    roundMenu.open = false;
-    roundMenu.classList.add("hidden");
-  }
+  document.getElementById("game-round-menu")?.classList.add("hidden");
   document.body.classList.remove("word-game-round-active");
 
   // Only reachable once the queue is empty, which — since a miss requeues
@@ -3103,22 +3094,19 @@ function updateEndSessionToolbarButtonVisibility() {
   document
     .getElementById("game-english-toggle-btn")
     ?.classList.toggle("hidden", !wordGameRoundActive);
+  // The translations toggle pill only means something once a round is
+  // actually asking questions — the intro/placement screen and the round
+  // summary have nothing to translate. .hidden's !important beats
+  // startWordGame()'s own inline display:inline-flex, which still runs
+  // unconditionally on every word-game entry.
+  document
+    .querySelector(".game-english-filter")
+    ?.classList.toggle("hidden", !wordGameRoundActive);
 
-  const roundMenu = document.getElementById("game-round-menu");
-  roundMenu?.classList.toggle("hidden", !wordGameRoundActive);
-  if (roundMenu) {
-    roundMenu.open =
-      wordGameRoundActive &&
-      window.matchMedia("(min-width: 1025px)").matches;
-  }
+  document
+    .getElementById("game-round-menu")
+    ?.classList.toggle("hidden", !wordGameRoundActive);
 }
-
-// A native <details> is a popover on compact screens, but its same action
-// panel is flattened into the desktop toolbar. Keep the native open state in
-// sync when a device rotates or the browser crosses the desktop breakpoint.
-window
-  .matchMedia("(min-width: 1025px)")
-  .addEventListener("change", updateEndSessionToolbarButtonVisibility);
 
 // The dictionary CSV (several MB) is still fetching/parsing for the first
 // few seconds after page load. Word Game's own entry screen (the mode
@@ -3441,7 +3429,6 @@ async function startWordGame() {
     "search-container-inner",
   ); // The container to update
   const searchBarWrapper = document.getElementById("search-bar-wrapper");
-  const randomBtn = document.getElementById("my-words-nav-btn");
 
   // Filter containers for POS and Genre
   const posFilterContainer = document.querySelector(".pos-filter");
@@ -3479,7 +3466,6 @@ async function startWordGame() {
   hideAllBanners(); // Hide banners before starting the new word
 
   searchBarWrapper.style.display = "none"; // Hide search-bar-wrapper
-  randomBtn.style.display = "none"; // Hide random button
 
   searchContainerInner.classList.add("word-game-active"); // Indicate word game is active
 
@@ -4917,7 +4903,6 @@ async function handleTranslationClick(
   const answerWasCorrect = exactAnswerMatch || nearMissTypedMatch;
 
   resetTodayPracticeRoundAfterMidnight(wordObj);
-  totalQuestions++; // Increment total questions for this level
   const { exampleSentence, sentenceTranslation } =
     await fetchExampleSentence(wordObj, exampleSentenceIndex);
   announceGameAnswer(answerWasCorrect, correctTranslationPart);
@@ -4940,9 +4925,7 @@ async function handleTranslationClick(
         card.classList.add("distractor-muted");
       }
     });
-    correctCount++; // Increment correct count globally
     correctStreak++; // Increment the streak
-    correctLevelAnswers++; // Increment correct count for this level
     updateRecentAnswers(true, wordObj); // Track this correct answer
     window.WordStrengthAPI?.recordResult?.(wordObj, true, {
       // A bounded-round filler or voluntary early review is not a spaced
@@ -5033,7 +5016,6 @@ async function handleTranslationClick(
         card.classList.add("distractor-muted");
       }
     });
-    incorrectCount++; // Increment incorrect count
     correctStreak = 0; // Reset the streak
     updateRecentAnswers(false, wordObj); // Track this correct answer
     window.WordStrengthAPI?.recordResult?.(wordObj, false, {
@@ -6394,17 +6376,29 @@ function replaceAbilityState(remoteScore, remotePlacementCompleted) {
 function resetGame(resetStreak = true) {
   currentWordQueueType = null;
   previousWord = null;
-  correctCount = 0; // Reset correct answers count
-  correctLevelAnswers = 0; // Reset correct answers for the current level
   if (resetStreak) {
     correctStreak = 0; // Reset the streak if the flag is true
   }
-  incorrectCount = 0; // Reset incorrect answers count
   incorrectWordQueue = [];
   recentAnswers = []; // Clear the recent answers array
-  totalQuestions = 0; // Reset total questions for the current level
   renderStats(); // Re-render the stats display to reflect the reset
 }
+
+// Navigating away from Word Game mid-round (via #mode-nav, a landing-page
+// card, browser back/forward, etc.) doesn't run the round-summary flow —
+// only quitting or finishing a round did, until now — so wordGameRoundActive
+// and its body class were left stuck true on every other page until the
+// visitor happened to re-enter Word Game (whose own entry branch in
+// handleTypeChange resets it as a side effect). Called from
+// handleTypeChange (scripts.js) whenever the new type isn't "word-game", so
+// leaving always ends whatever round was in progress, the same way quitting
+// or finishing one already does.
+function abandonWordGameRoundIfActive() {
+  if (!wordGameRoundActive) return;
+  wordGameRoundActive = false;
+  updateEndSessionToolbarButtonVisibility();
+}
+window.abandonWordGameRoundIfActive = abandonWordGameRoundIfActive;
 
 document.addEventListener("keydown", function (event) {
   if (document.getElementById("type-select").value !== "word-game") return;
@@ -6448,16 +6442,11 @@ document.addEventListener("keydown", function (event) {
 // at load time — visibility is handled separately by
 // updateEndSessionToolbarButtonVisibility().
 document.getElementById("game-end-session-btn")?.addEventListener("click", () => {
-  const roundMenu = document.getElementById("game-round-menu");
-  if (roundMenu) roundMenu.open = false;
+  // showWordGameRoundSummary() sets wordGameRoundActive = false and calls
+  // updateEndSessionToolbarButtonVisibility() itself, which closes
+  // #game-round-menu as part of hiding the whole round-options row — no
+  // need to do it here too.
   showWordGameRoundSummary();
-});
-
-// The report action opens a modal of its own; close the disclosure behind it
-// so focus returns to a settled toolbar when that dialog is dismissed.
-document.getElementById("game-report-issue")?.addEventListener("click", () => {
-  const roundMenu = document.getElementById("game-round-menu");
-  if (roundMenu) roundMenu.open = false;
 });
 
 window.DailyQuestAPI = Object.freeze({

@@ -191,6 +191,7 @@ def render_page(updates: list[Update], site_root: Path) -> str:
     foundation_css = asset_version(site_root, "styles/00-foundations-and-game.css")
     shell_css = asset_version(site_root, "styles/01-document-shell.css")
     footer_css = asset_version(site_root, "styles/10-shell-landing-and-stats.css")
+    navigation_css = asset_version(site_root, "styles/35-navigation.css")
     updates_css = asset_version(site_root, "styles/50-updates.css")
     entries = render_entries(updates)
     structured_data = json.dumps(
@@ -223,6 +224,7 @@ def render_page(updates: list[Update], site_root: Path) -> str:
     <link rel="stylesheet" href="{foundation_css}">
     <link rel="stylesheet" href="{shell_css}">
     <link rel="stylesheet" href="{footer_css}">
+    <link rel="stylesheet" href="{navigation_css}">
     <link rel="stylesheet" href="{updates_css}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -232,9 +234,42 @@ def render_page(updates: list[Update], site_root: Path) -> str:
   </head>
   <body>
     <a href="#main-content" class="skip-link">Skip to content</a>
-    <header class="updates-header">
-      <a class="updates-brand" href="./" aria-label="Norwegian Dictionary, return to home">Norwegian Dictionary</a>
+    <header>
+      <a id="site-title" href="./" aria-label="Norwegian Dictionary, return to home">
+        <span class="site-wordmark-name">Norwegian Dictionary</span>
+        <span class="site-wordmark-descriptor" aria-hidden="true">Words <span>&middot;</span> Stories <span>&middot;</span> Practice</span>
+      </a>
     </header>
+    <!-- Same #mode-nav as the main app shell (index.html) — see
+         styles/35-navigation.css, already linked above, for the top
+         tab strip / fixed bottom tab bar it renders as. Plain links
+         rather than the app's selectType()/goToMyWords() JS calls: this
+         is a separate static document with none of that loaded, so a
+         real navigation (into the live app, at each mode's own pretty
+         route) is the correct behavior here anyway. None marked active —
+         What's New isn't one of the five primary modes. -->
+    <nav id="mode-nav" aria-label="Primary">
+      <a class="mode-tab" data-mode="words" href="?type=words">
+        <span class="mode-tab-icon" style="mask-image: url(Resources/Photos/words.svg); -webkit-mask-image: url(Resources/Photos/words.svg)" aria-hidden="true"></span>
+        <span class="mode-tab-label">Words</span>
+      </a>
+      <a class="mode-tab" data-mode="sentences" href="sentences/">
+        <span class="mode-tab-icon" style="mask-image: url(Resources/Photos/sentences.svg); -webkit-mask-image: url(Resources/Photos/sentences.svg)" aria-hidden="true"></span>
+        <span class="mode-tab-label">Sentences</span>
+      </a>
+      <a class="mode-tab" data-mode="stories" href="stories/">
+        <span class="mode-tab-icon" style="mask-image: url(Resources/Photos/stories.svg); -webkit-mask-image: url(Resources/Photos/stories.svg)" aria-hidden="true"></span>
+        <span class="mode-tab-label">Stories</span>
+      </a>
+      <a class="mode-tab" data-mode="word-game" href="word-game/">
+        <span class="mode-tab-icon" style="mask-image: url(Resources/Photos/word-game.svg); -webkit-mask-image: url(Resources/Photos/word-game.svg)" aria-hidden="true"></span>
+        <span class="mode-tab-label">Word Game</span>
+      </a>
+      <a class="mode-tab" data-mode="word-list" href="?type=word-list">
+        <span class="mode-tab-icon" style="mask-image: url(Resources/Photos/bookmark.svg); -webkit-mask-image: url(Resources/Photos/bookmark.svg)" aria-hidden="true"></span>
+        <span class="mode-tab-label">My Words</span>
+      </a>
+    </nav>
     <main id="main-content" class="updates-main">
       <section class="updates-intro" aria-labelledby="updates-title">
         <p class="updates-eyebrow">Product updates</p>

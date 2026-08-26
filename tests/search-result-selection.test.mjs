@@ -74,6 +74,7 @@ test("a direct lookup ranks a true headword before an earlier alternative spelli
     },
     displaySearchResults: (entries) => { rendered = entries; },
     updateWordMetadata: (entry) => { metadata = entry; },
+    syncModeNav: () => {},
     escapeHTML: String,
   });
   vm.runInContext(source.slice(renderStart, renderEnd), renderContext);

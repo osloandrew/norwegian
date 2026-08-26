@@ -2319,6 +2319,22 @@ function focusViewAfterNavigation(selector = "") {
 
 window.focusViewAfterNavigation = focusViewAfterNavigation;
 
+// Keeps #mode-nav's tabs (the visible mode-switching UI — see index.html,
+// right after <header>) in sync with #type-select (the hidden internal
+// state store every mode-reading call site still trusts). Call this
+// anywhere #type-select's value is set, not just from handleTypeChange —
+// several call sites (window.onload, loadStateFromURL, renderWordDefinition,
+// stories.js's preload path) set it directly without going through
+// handleTypeChange.
+function syncModeNav(type) {
+  document.body.dataset.mode = type;
+  document.querySelectorAll(".mode-tab").forEach((tab) => {
+    const active = tab.dataset.mode === type;
+    tab.classList.toggle("active", active);
+    tab.setAttribute("aria-current", active ? "page" : "false");
+  });
+}
+
 function selectType(type) {
   // Set the dropdown value to match the selected type
   document.getElementById("type-select").value = type;
@@ -2372,9 +2388,16 @@ function disableSearchControls() {
 function handleTypeChange(type, options = {}) {
   // If type is not passed in (e.g., called from dropdown), get it from the dropdown
   type = type || document.getElementById("type-select").value;
+  syncModeNav(type);
   setSiteTitleSemanticHeading(true);
   const shouldRenderStories = options.renderStories !== false;
   const shouldRenderInitialContent = options.renderInitialContent !== false;
+  // Leaving Word Game for any other type ends whatever round was in
+  // progress instead of leaving it stuck active on every other page (see
+  // abandonWordGameRoundIfActive() in wordGame.js).
+  if (type !== "word-game") {
+    window.abandonWordGameRoundIfActive?.();
+  }
   // Give the page a dedicated class while Word Game is selected.
   document.body.classList.toggle("word-game-mode", type === "word-game");
   document.body.classList.toggle("stories-mode", type === "stories");
@@ -2393,7 +2416,6 @@ function handleTypeChange(type, options = {}) {
     "search-container-inner",
   ); // The container to update
   const searchBarWrapper = document.getElementById("search-bar-wrapper");
-  const randomBtn = document.getElementById("my-words-nav-btn");
   const gameEnglishFilterContainer = document.querySelector(
     ".game-english-filter",
   );
@@ -2454,7 +2476,6 @@ function handleTypeChange(type, options = {}) {
 
     searchBarWrapper.style.display = "inline-flex"; // Hide search-bar-wrapper
     posFilterContainer.style.display = "none";
-    randomBtn.style.display = "block"; // My Words is still useful from the story list
     cefrLock.style.display = "none";
 
     searchContainerInner.classList.remove("word-game-active");
@@ -2481,7 +2502,6 @@ function handleTypeChange(type, options = {}) {
     genreFilterContainer.style.display = "none"; // Hide genre dropdown in sentences mode
 
     searchBarWrapper.style.display = "inline-flex";
-    randomBtn.style.display = "block";
 
     searchContainerInner.classList.remove("word-game-active");
     gameActive = false;
@@ -2521,7 +2541,6 @@ function handleTypeChange(type, options = {}) {
     // Same UI adjustments you already had…
     genreFilterContainer.style.display = "none";
     searchBarWrapper.style.display = "inline-flex";
-    randomBtn.style.display = "block";
     posFilterContainer.style.display = "inline-flex";
     posSelect.disabled = true;
     cefrLock.style.display = "none";
@@ -2536,7 +2555,6 @@ function handleTypeChange(type, options = {}) {
     // not a browsable list — so every shared filter control is hidden
     // entirely, same treatment as Word Game's intro screen.
     genreFilterContainer.style.display = "none";
-    randomBtn.style.display = "block"; // My Words is still a useful jump from here
 
     searchBarWrapper.style.display = "none";
     disableSearchControls();
@@ -2558,12 +2576,6 @@ function handleTypeChange(type, options = {}) {
   } else if (type === "word-list") {
     // Hide controls that Word List does not use.
     genreFilterContainer.style.display = "none";
-    // Unlike every other type above, the "My Words" jump button is a
-    // no-op here — Word List (whose menu entry reads "My Words") is
-    // already the destination it links to. search-bar-wrapper's own
-    // flex-grow fills the freed space, same as it already does whenever
-    // this button is hidden elsewhere (e.g. Word Game).
-    randomBtn.style.display = "none";
 
     // Keep the shared search field visible.
     searchBarWrapper.style.display = "inline-flex";
@@ -2611,7 +2623,6 @@ function handleTypeChange(type, options = {}) {
     genreFilterContainer.style.display = "none"; // Hide genre dropdown
 
     searchBarWrapper.style.display = "inline-flex"; // Show search-bar-wrapper
-    randomBtn.style.display = "block"; // Show random button
 
     cefrLock.style.display = "none";
     gameActive = false;
@@ -3796,6 +3807,7 @@ function renderWordDefinition(word, selectedPOS = "") {
   // Switch the type selector back to "words"
   const typeSelect = document.getElementById("type-select");
   typeSelect.value = "words";
+  syncModeNav("words");
 
   // Re-enable the POS filter
   const posSelect = document.getElementById("pos-select");
@@ -4060,13 +4072,9 @@ async function fetchAndRenderSentences(
     if (sentenceContainer.style.display === "block") {
       sentenceContainer.style.display = "none";
       button.innerText = "Show Sentences";
-      button.classList.remove("hide");
-      button.classList.add("show");
     } else {
       sentenceContainer.style.display = "block";
       button.innerText = "Hide Sentences";
-      button.classList.remove("show");
-      button.classList.add("hide");
     }
     return;
   }
@@ -4518,6 +4526,7 @@ function loadStateFromURL() {
       // Continue with regular URL-based loading if no specific word is in the URL
       document.getElementById("search-bar").value = query;
       document.getElementById("type-select").value = type;
+      syncModeNav(type);
       if (selectedPOS) {
         document.getElementById("pos-select").value = selectedPOS;
       }
@@ -4730,7 +4739,6 @@ window.onload = function () {
 
   // Check if the buttons exist in the DOM
   const searchBtn = document.getElementById("search-btn");
-  const randomBtn = document.getElementById("my-words-nav-btn");
   const searchBar = document.getElementById("search-bar");
   const clearBtn = document.getElementById("clear-btn");
   const typeSelect = document.getElementById("type-select");
@@ -4745,6 +4753,7 @@ window.onload = function () {
   // link feel like navigation has succeeded even while its data is pending.
   if (routeNeedsVocabularyLoadingShell(initialVocabularyType, initialURL)) {
     typeSelect.value = initialVocabularyType;
+    syncModeNav(initialVocabularyType);
     document.body.classList.toggle(
       "word-game-mode",
       initialVocabularyType === "word-game",
@@ -4770,7 +4779,6 @@ window.onload = function () {
 
   if (
     searchBtn &&
-    randomBtn &&
     searchBar &&
     clearBtn &&
     posSelect &&
@@ -4782,13 +4790,10 @@ window.onload = function () {
       // out — restored to the normal search placeholder once loaded below,
       // or immediately for the stories route, which doesn't need this data.
       searchBar.placeholder = "Loading dictionary…";
-      randomBtn.disabled = true;
       posSelect.disabled = true;
       cefrSelect.disabled = true;
       typeSelect.disabled = true;
 
-      // randomBtn's own grayed/not-allowed styling comes from the global
-      // button:disabled rule in the stylesheets, same as searchBtn/clearBtn above.
       typeFilterContainer.classList.add("disabled");
       posFilterContainer.classList.add("disabled"); // Add the 'disabled' class to visually disable POS filter
       cefrFilterContainer.classList.add("disabled"); // Add the 'disabled' class to visually disable CEFR filter
@@ -4852,7 +4857,6 @@ window.onload = function () {
       // Enable the buttons and filters once data is fully loaded
       enableSearchControls();
       searchBar.placeholder = "Search in Norwegian or English";
-      randomBtn.disabled = false;
       typeSelect.disabled = false;
       posSelect.disabled = false;
       cefrSelect.disabled = false;

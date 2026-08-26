@@ -10,6 +10,50 @@
   text-transform: none;
 }
 
+/* My Stats moved out of the primary mode nav (#mode-nav — see
+   styles/35-navigation.css) since it's a read-only report, not a
+   browsing mode: a small icon button in the corner alongside the streak
+   badge/sign-in button is enough for something visited far less often. */
+/* A permanent tinted chip, not just a hover state — same visual language
+   as .streak-badge right next to it (background + border, always
+   visible), so it reads as a real control at a glance instead of
+   disappearing against the header until the pointer happens to land on
+   it. */
+.my-stats-header-btn {
+  align-items: center;
+  background-color: var(--color-wash-blue);
+  border: 0.5px solid var(--color-wash-blue-border);
+  border-radius: 6px;
+  color: var(--color-ink);
+  cursor: pointer;
+  display: flex;
+  flex-shrink: 0;
+  height: 34px;
+  justify-content: center;
+  padding: 0;
+  width: 34px;
+}
+
+.my-stats-header-btn:hover {
+  background-color: var(--color-wash-blue-active);
+  border-color: var(--color-wash-blue-active-border);
+}
+
+/* mask-image is set inline (index.html), not via a --custom-property
+   consumed here — see the matching comment on .mode-tab-icon in
+   styles/35-navigation.css for why. */
+.my-stats-header-icon {
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  background-color: currentColor;
+  height: 20px;
+  width: 20px;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+}
+
 /* Day-streak pill, sitting just left of the sign-in button/user pill inside
    #auth-container. Hidden (via the shared .hidden class) until there's an
    actual streak — see updateStreakBadge() in streak.js. */
@@ -1461,16 +1505,6 @@ p.my-stats-empty {
   border-bottom: 1px solid var(--color-wash-blue-border);
   padding: 24px;
   text-align: left;
-}
-
-.my-stats-eyebrow {
-  color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  margin: 0 0 4px;
-  text-transform: uppercase;
 }
 
 .my-stats-box + .my-stats-box {

@@ -172,6 +172,16 @@
   transform: translateY(0);
 }
 
+/* focusViewAfterNavigation() moves focus to the new view's heading after
+   route changes, purely so screen readers announce it -- the target isn't
+   interactive. Desktop Chromium's :focus-visible heuristics already hide
+   the ring for that kind of programmatic focus, but WebKit (all iOS
+   browsers, Chrome on iOS included) draws its default ring regardless, so
+   suppress it explicitly for this pattern. */
+[tabindex="-1"]:focus {
+  outline: none;
+}
+
 a {
   color: var(--color-interactive);
 }
@@ -910,9 +920,7 @@ li {
 }
 
 #game-next-word-button:active {
-  background-color: var(
-    --color-ink-active
-  ); /* Darker background on click */
+  background-color: var(--color-ink-active); /* Darker background on click */
   border-color: var(--color-ink-active);
 }
 
@@ -983,7 +991,9 @@ li {
 
 /* Correct box styling */
 .game-stats-correct-box {
-  background-color: var(--color-success-bg); /* Softer/lighter than the original #c7e3b6 —
+  background-color: var(
+    --color-success-bg
+  ); /* Softer/lighter than the original #c7e3b6 —
      less saturated so the stats row doesn't compete with the Norwegian
      word/sentence card below it; contrast against the text below only
      improves as the background lightens, so this stays well within
@@ -1009,7 +1019,9 @@ li {
 
 /* Incorrect box styling */
 .game-stats-incorrect-box {
-  background-color: #f0c1b3; /* Softer/lighter than the original #e9a895,
+  background-color: var(
+    --color-danger-bg
+  ); /* Softer/lighter than the original #e9a895,
      matching .game-stats-correct-box's tone-down above. */
   border-radius: var(--radius-card);
   box-sizing: border-box;
@@ -1475,11 +1487,6 @@ li {
   border-color: var(--color-accent);
 }
 
-.game-today-practice-btn.is-complete {
-  background-color: var(--color-success);
-  border-color: var(--color-success);
-}
-
 .game-today-practice-btn.is-bonus {
   background-color: var(--color-bonus);
   border-color: var(--color-bonus);
@@ -1497,12 +1504,11 @@ li {
 
 .game-daily-quests-heading-row h3 {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.95em;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 1.1em;
   font-weight: 600;
   letter-spacing: var(--letter-spacing-caps-heading);
   margin: 0;
-  text-transform: uppercase;
 }
 
 .game-daily-quests-heading-row > span {
@@ -1720,12 +1726,10 @@ li {
 
 .game-intro-heading {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
   font-size: 1.4em;
   font-weight: 600;
   letter-spacing: var(--letter-spacing-caps-heading);
   margin: 0 0 8px 0;
-  text-transform: uppercase;
 }
 
 .game-intro-subheading {
@@ -1887,41 +1891,6 @@ li {
 .placement-option-btn:focus-visible {
   outline: 3px solid var(--color-interactive);
   outline-offset: 2px;
-}
-
-.placement-start-btn {
-  align-items: center;
-  background-color: var(--color-ink);
-  border: 1px solid var(--color-ink);
-  border-radius: var(--radius-control);
-  color: var(--color-surface);
-  cursor: pointer;
-  display: flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  justify-content: center;
-  margin-top: 6px;
-  min-height: 44px;
-  padding: 10px 16px;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
-  width: 100%;
-}
-
-.placement-start-btn:hover {
-  background-color: var(--color-accent);
-  border-color: var(--color-accent);
-}
-
-.placement-progress {
-  color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.82em;
-  margin: 0 0 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
 .placement-retake-link {
@@ -2560,8 +2529,10 @@ h4 {
     padding-bottom: calc(76px + env(safe-area-inset-bottom));
   }
 
-  body.word-game-mode
-    .game-next-button-container {
+  /* #mode-nav (the fixed bottom tab bar — styles/35-navigation.css) hides
+     itself for body.word-game-mode.word-game-round-active specifically so
+     it can't collide with this dock, which claims the same bottom edge. */
+  body.word-game-mode .game-next-button-container {
     background: rgba(255, 255, 255, 0.97);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-card);
@@ -2576,9 +2547,7 @@ h4 {
     z-index: 25;
   }
 
-  body.word-game-mode
-    .game-next-button-container
-    #game-next-word-button,
+  body.word-game-mode .game-next-button-container #game-next-word-button,
   body.word-game-mode
     .game-typed-grid
     ~ .game-next-button-container

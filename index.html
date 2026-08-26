@@ -68,6 +68,12 @@
     <!-- PWA: installable to a home screen, see manifest.json and sw.js -->
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#0d3a69" />
+    <!-- Without this, iOS "Add to Home Screen" opens as a plain Safari
+         bookmark instead of a true standalone app: navigator.standalone and
+         the display-mode: standalone media query both stay false, so
+         myWordsAuth.js can't detect the context and route Google sign-in
+         away from signInWithPopup, which can't complete there. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
 
     <!-- Stylesheets -->
     <!--
@@ -316,6 +322,24 @@
 
       <div class="header-top-row">
         <div id="auth-container" class="auth-container">
+          <button
+            id="my-stats-header-btn"
+            type="button"
+            class="my-stats-header-btn"
+            aria-label="My Stats"
+            title="My Stats"
+            onclick="selectType('my-stats')"
+          >
+            <span
+              class="my-stats-header-icon"
+              style="
+                mask-image: url(Resources/Photos/stats.svg);
+                -webkit-mask-image: url(Resources/Photos/stats.svg);
+              "
+              aria-hidden="true"
+            ></span>
+          </button>
+
           <!-- Hidden until there's an actual streak to show — see
                updateStreakBadge() in streak.js. Lives inside #auth-container
                (rather than floating separately) purely for layout: it's
@@ -399,6 +423,99 @@
       </h1>
     </header>
 
+    <!-- Primary mode nav: a top tab strip on desktop, a fixed bottom tab bar
+         on mobile (this is an installable standalone PWA — see manifest.json —
+         so the native-app bottom-bar pattern fits). #type-select (in the
+         toolbar below) stays the real source of truth for "current mode";
+         these tabs just call the same selectType()/goToMyWords() helpers the
+         landing page's mode cards already use, and syncModeNav() (scripts.js)
+         keeps .active/aria-current in sync with it. My Stats deliberately
+         isn't here — it's a read-only report, not a browsing mode, so it
+         lives as a small icon in the header instead (see #my-stats-header-btn
+         above). -->
+    <nav id="mode-nav" aria-label="Primary">
+      <a
+        class="mode-tab"
+        data-mode="words"
+        href="?type=words"
+        onclick="event.preventDefault(); selectType('words');"
+      >
+        <span
+          class="mode-tab-icon"
+          style="
+            mask-image: url(Resources/Photos/words.svg);
+            -webkit-mask-image: url(Resources/Photos/words.svg);
+          "
+          aria-hidden="true"
+        ></span>
+        <span class="mode-tab-label">Words</span>
+      </a>
+      <a
+        class="mode-tab"
+        data-mode="sentences"
+        href="sentences/"
+        onclick="event.preventDefault(); selectType('sentences');"
+      >
+        <span
+          class="mode-tab-icon"
+          style="
+            mask-image: url(Resources/Photos/sentences.svg);
+            -webkit-mask-image: url(Resources/Photos/sentences.svg);
+          "
+          aria-hidden="true"
+        ></span>
+        <span class="mode-tab-label">Sentences</span>
+      </a>
+      <a
+        class="mode-tab"
+        data-mode="stories"
+        href="stories/"
+        onclick="event.preventDefault(); selectType('stories');"
+      >
+        <span
+          class="mode-tab-icon"
+          style="
+            mask-image: url(Resources/Photos/stories.svg);
+            -webkit-mask-image: url(Resources/Photos/stories.svg);
+          "
+          aria-hidden="true"
+        ></span>
+        <span class="mode-tab-label">Stories</span>
+      </a>
+      <a
+        class="mode-tab"
+        data-mode="word-game"
+        href="word-game/"
+        onclick="event.preventDefault(); selectType('word-game');"
+      >
+        <span
+          class="mode-tab-icon"
+          style="
+            mask-image: url(Resources/Photos/word-game.svg);
+            -webkit-mask-image: url(Resources/Photos/word-game.svg);
+          "
+          aria-hidden="true"
+        ></span>
+        <span class="mode-tab-label">Word Game</span>
+      </a>
+      <a
+        class="mode-tab"
+        data-mode="word-list"
+        href="#"
+        onclick="event.preventDefault(); goToMyWords();"
+      >
+        <span
+          class="mode-tab-icon"
+          style="
+            mask-image: url(Resources/Photos/bookmark.svg);
+            -webkit-mask-image: url(Resources/Photos/bookmark.svg);
+          "
+          aria-hidden="true"
+        ></span>
+        <span class="mode-tab-label">My Words</span>
+      </a>
+    </nav>
+
     <div id="sticky-header" class="hidden">
       <button id="back-button">← Back to Stories</button>
       <button id="toggle-english-btn" class="toggle-btn">Show English</button>
@@ -410,7 +527,14 @@
         <div id="search-container-inner">
           <!-- Grouped Selectors (Type and POS) -->
           <div class="selectors-wrapper">
-            <!-- Words/Sentences Selector -->
+            <!-- Mode state store, not a visible control — see #mode-nav
+                 (right after <header> above), which is now the actual UI for
+                 switching modes. Hidden via CSS (.type-filter { display: none }
+                 in styles/35-navigation.css) rather than removed: dozens of
+                 call sites across scripts.js/wordList.js/stories.js/
+                 wordGame.js/myStats.js still read #type-select.value as the
+                 source of truth for "current mode," so it stays a real
+                 <select> that selectType()/handleTypeChange() keep in sync. -->
             <div class="type-filter">
               <select
                 id="type-select"
@@ -544,10 +668,18 @@
                      don't throw; never shown. -->
                 <i id="lock-icon" style="display: none"></i>
               </div>
-              <details id="game-round-menu" class="game-round-menu hidden">
-                <summary aria-label="More round options" title="More round options">
-                  <i class="fas fa-ellipsis-h" aria-hidden="true"></i>
-                </summary>
+              <!-- Was a <details>/<summary> disclosure; both breakpoints
+                   now always flatten this into plain visible buttons
+                   whenever a round is active (see updateEndSessionToolbarButtonVisibility()
+                   in wordGame.js and the styles/35-navigation.css rules for
+                   .game-round-menu-panel), so there's no more collapsed
+                   state left to disclose — a plain div avoids <details>'
+                   own layout quirks (percentage widths on its content
+                   don't reliably resolve; non-summary content collapses to
+                   zero size without [open], even past its `display`
+                   override) that a real disclosure element still carries
+                   even when its native open/close behavior goes unused. -->
+              <div id="game-round-menu" class="game-round-menu hidden">
                 <div class="game-round-menu-panel">
                   <button
                     type="button"
@@ -579,7 +711,7 @@
                     <span>Quit &amp; see stats</span>
                   </button>
                 </div>
-              </details>
+              </div>
             </div>
           </div>
 
@@ -613,18 +745,6 @@
                 <i class="fas fa-search"></i>
               </button>
             </div>
-
-            <!-- My Words Button -->
-            <button
-              id="my-words-nav-btn"
-              class="my-words-nav-btn"
-              aria-label="Go to My Words"
-              onclick="goToMyWords()"
-              title="Go to My Words"
-            >
-              <i class="fas fa-star"></i>
-              <span class="my-words-nav-btn-label">My Words</span>
-            </button>
           </div>
         </div>
       </section>

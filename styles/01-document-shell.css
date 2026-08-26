@@ -119,6 +119,29 @@ footer .copyright {
 }
 
 @media (max-width: 1024px) {
+  /* Reserves scroll room below the page's real last content so it can
+     scroll clear of #mode-nav — the fixed bottom tab bar at this
+     breakpoint (styles/35-navigation.css). Applied to footer (the last
+     visible element in every mode except Word Game, which hides it) and
+     to main directly in Word Game mode instead: body itself has a fixed
+     height:100% (see the base `body` rule above), so its own
+     padding-bottom doesn't reach past content that already overflows
+     that fixed box — main's own intro/placement screens routinely do,
+     being taller than one viewport. Lifted back to 0 mid-round, when
+     #mode-nav hides itself to avoid colliding with the round's own fixed
+     "Next" button dock (00-foundations-and-game.css). */
+  footer {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+
+  body.word-game-mode main {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+
+  body.word-game-mode.word-game-round-active main {
+    padding-bottom: 0;
+  }
+
   header,
   footer {
     box-sizing: border-box;
@@ -130,7 +153,9 @@ footer .copyright {
   }
 
   footer {
-    padding: 10px 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 10px;
   }
 
   footer p,

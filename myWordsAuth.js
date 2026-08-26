@@ -132,10 +132,31 @@
   // else stay stuck showing only this device's local state indefinitely.
   // signInWithRedirect avoids the popup entirely (a plain top-level
   // navigation this window survives) and works the same everywhere else.
+  //
+  // navigator.standalone and the display-mode media query both require
+  // iOS to recognize apple-mobile-web-app-capable (see index.html) — icons
+  // added to the home screen before that tag existed, or other WebKit
+  // versions that just lag on this, can still report neither as true even
+  // though window.open is just as broken there. manifest.json's start_url
+  // tags every home-screen launch with utm_source=pwa as a fallback signal
+  // that doesn't depend on iOS reporting standalone status correctly.
+  // Captured once, here, while this script's top-level code runs on page
+  // load — well before any click could trigger the in-app navigation that
+  // rewrites the query string for its own routing and would erase it from
+  // the live URL by the time a sign-in click can happen.
+  let launchedFromHomeScreen = false;
+  try {
+    launchedFromHomeScreen =
+      new URLSearchParams(window.location.search).get("utm_source") === "pwa";
+  } catch (error) {
+    // Ignore — falls back to the live standalone checks below.
+  }
+
   function isStandaloneDisplayMode() {
     return (
       window.navigator.standalone === true ||
-      (window.matchMedia?.("(display-mode: standalone)").matches ?? false)
+      (window.matchMedia?.("(display-mode: standalone)")?.matches ?? false) ||
+      launchedFromHomeScreen
     );
   }
 

@@ -502,6 +502,8 @@
 .word-text-block {
   display: flex;
   flex-direction: column;
+  font-family: "Noto Serif", serif;
+  font-weight: 500;
 }
 
 @keyframes spin {
@@ -601,12 +603,12 @@
 
 .word-list-header-title {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 18px;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 24px;
   font-weight: 600;
-  letter-spacing: var(--letter-spacing-caps-heading);
+  letter-spacing: 0;
   margin: 0;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 p.word-list-header-description,
@@ -745,8 +747,7 @@ p.word-list-empty-copy {
 }
 
 @media (max-width: 1024px) {
-  :is(#word-list, .game-summary-missed, .my-stats-trouble)
-    .word-list-table {
+  :is(#word-list, .game-summary-missed, .my-stats-trouble) .word-list-table {
     border-spacing: 0 8px;
   }
 }

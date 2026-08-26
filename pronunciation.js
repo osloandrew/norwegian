@@ -286,7 +286,13 @@ function showRandomPronunciation() {
 
   startBtn.addEventListener("click", async () => {
     recordedChunks = [];
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (error) {
+      alert("Couldn't access the microphone. Please check permissions and try again.");
+      return;
+    }
     let options = { mimeType: "audio/mp4" };
     if (!MediaRecorder.isTypeSupported(options.mimeType)) {
       options = { mimeType: "audio/webm" }; // desktop fallback
@@ -314,10 +320,15 @@ function showRandomPronunciation() {
       });
       window.wavesurferUser.load(url);
 
-      computeSimilarity(audioFile, url).then((score) => {
-        document.getElementById("comparison-score").textContent =
-          `🎯 Similarity Score: ${score}%`;
-      });
+      computeSimilarity(audioFile, url)
+        .then((score) => {
+          document.getElementById("comparison-score").textContent =
+            `🎯 Similarity Score: ${score}%`;
+        })
+        .catch(() => {
+          document.getElementById("comparison-score").textContent =
+            "Couldn't compute a similarity score for this recording.";
+        });
 
       // after recording finishes
       playBtn.style.display = "inline-block";

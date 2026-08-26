@@ -1579,6 +1579,15 @@ body.stories-mode .story-recommendation .cefr-value {
   }
 
   #sticky-header {
+    /* Pin the left (badges/Back) and right (Speed/Show English) columns to
+       the row's top edge instead of centering them against the middle
+       audio column. iOS's native <audio controls> widget renders much
+       taller than Chromium's compact bar (the whole reason this is
+       mobile-only), and center alignment was dragging Back and Show
+       English down with it as the row grew -- flex-start keeps them
+       right under the badge/Speed row regardless of audio height, without
+       touching the audio slot's own width. */
+    align-items: flex-start;
     border: none;
     gap: 0.35em;
     padding: 0.25em 0.35em;

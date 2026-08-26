@@ -1435,14 +1435,6 @@
     return cleanWordListExportValue(value).replace(/\t/g, " ");
   }
 
-  function createWordListTag(value) {
-    return String(value ?? "")
-      .trim()
-      .toLocaleLowerCase("nb-NO")
-      .replace(/[^a-z0-9æøå]+/gi, "-")
-      .replace(/^-|-$/g, "");
-  }
-
   function exportWordListTSV() {
     const entries = getFilteredWordListEntries();
 

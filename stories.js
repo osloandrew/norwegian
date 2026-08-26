@@ -930,7 +930,6 @@ function createStoryPromoCard(story, labelHTML, extraClassName) {
   label.innerHTML = labelHTML;
 
   const storyLink = createStoryCardLink(story);
-  storyLink.classList.add("story-recommendation-link");
 
   // On the wrapper, not just storyLink, so the whole card is a click
   // target — the eyebrow label and the padding around the link are part
@@ -1401,7 +1400,6 @@ function displayStory(
   }
 
   stickyHeaderEl.style.display = "flex";
-  stickyHeaderEl.style.alignItems = "center";
 
   // Let left and right stay their natural size, middle (audioSlot) expand
   const left = stickyHeaderEl.querySelector(".sticky-detail-container");
@@ -1856,6 +1854,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (typeSelect) {
       typeSelect.value = "stories";
       typeSelect.disabled = true;
+      if (typeof syncModeNav === "function") syncModeNav("stories");
     }
 
     // A captured /story/<slug>/ page embeds this one story's full data
@@ -1941,7 +1940,6 @@ window.addEventListener("DOMContentLoaded", async () => {
       );
       const searchBarWrapper = document.getElementById("search-bar-wrapper");
       const posFilterContainer = document.querySelector(".pos-filter");
-      const randomBtn = document.getElementById("my-words-nav-btn");
       const cefrLock = document.getElementById("lock-icon");
       const cefrSelect = document.getElementById("cefr-select");
       const cefrFilterContainer = document.querySelector(".cefr-filter");
@@ -1954,7 +1952,6 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (storyFavoritesSelect) storyFavoritesSelect.value = "";
       if (searchBarWrapper) searchBarWrapper.style.display = "inline-flex";
       if (posFilterContainer) posFilterContainer.style.display = "none";
-      if (randomBtn) randomBtn.style.display = "block";
       if (cefrLock) cefrLock.style.display = "none";
       if (cefrSelect) {
         cefrSelect.disabled = false;
