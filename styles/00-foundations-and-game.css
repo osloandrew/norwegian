@@ -34,7 +34,15 @@
      buttons, a real, load-bearing role rather than a duplicate. */
   --color-ink: #0d3a69;
   --color-ink-active: #092c50;
-  --color-interactive: #3c88d4;
+  /* This is --color-heading-accent's old value, not --color-link's: the
+     two merged candidates gave ~3.7:1 (--color-link, #3c88d4) vs ~5.7:1
+     (--color-heading-accent, #1c68b5) against a white card, and
+     --color-interactive is used as plain text color (links, the
+     clickable-word spans in definitions) where WCAG AA needs 4.5:1. Don't
+     lighten this back toward #3c88d4 without re-checking contrast — that
+     exact regression (axe's color-contrast rule, "Word lookup" page) is
+     why this comment exists. */
+  --color-interactive: #1c68b5;
   --color-accent: #4a99ff;
   /* Pale-blue hover/active "wash" — replaces a couple dozen near-identical
      one-off pale blues that had been invented ad hoc per component across
