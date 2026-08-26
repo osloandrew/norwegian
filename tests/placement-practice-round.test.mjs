@@ -79,7 +79,7 @@ assert.match(wordGameSource, /PLACEMENT_CALIBRATION_ANSWER_COUNT = 7/);
 assert.match(wordGameSource, /First practice complete!/);
 assert.match(
   wordGameSource,
-  /const structuredQuestionMode = wordGameIsPlacementRound\s+\? "forward"/,
+  /function getStructuredQuestionModeForWord[\s\S]*?if \(wordGameIsPlacementRound\) return "forward";/,
 );
 
 // Homepage CTAs both route through startDailyQuestFromLanding. Entering the

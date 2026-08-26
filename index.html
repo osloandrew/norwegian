@@ -713,6 +713,31 @@
                 </div>
               </div>
             </div>
+
+            <!-- Frequency Selector: My Words only. Reuses .genre-filter's
+                 box styling (like .story-favorites-filter does for Stories)
+                 and lives inside .selectors-wrapper alongside it, so this
+                 row keeps the exact same three-pill measurements — and the
+                 same one-row wrapping on mobile — as the Stories filter
+                 row, instead of introducing its own sizing or its own
+                 line. -->
+            <div
+              class="genre-filter frequency-filter"
+              id="frequency-filter"
+              aria-label="Sort by word frequency"
+              style="display: none"
+            >
+              <select
+                id="frequency-select"
+                onchange="search()"
+                aria-label="Sort by word frequency"
+              >
+                <option value="">Frequency</option>
+                <option value="common-first">Common first</option>
+                <option value="rarest-first">Rarest first</option>
+              </select>
+              <i class="fas fa-chevron-down"></i>
+            </div>
           </div>
 
           <!-- Grouped Search Bar and Random Button -->
@@ -991,12 +1016,15 @@
             class="linkedin-icon"
           /><span>LinkedIn</span>
         </a>
-        <a href="https://www.buymeacoffee.com/afeinberg4l" class="coffee-btn">
-          <img
-            src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=afeinberg4l&button_colour=0d3a69&font_colour=ffffff&font_family=Lato&outline_colour=ffffff&coffee_colour=FFDD00"
-            class="coffee-img"
-            alt="Buy me a coffee"
-          />
+        <a
+          href="https://www.buymeacoffee.com/afeinberg4l"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="footer-control coffee-btn"
+          aria-label="Buy me a coffee"
+        >
+          <i class="fas fa-mug-hot" aria-hidden="true"></i>
+          <span>Buy me a coffee</span>
         </a>
         <button
           type="button"
@@ -1022,7 +1050,7 @@
           class="footer-control site-switcher-select"
           aria-label="Go to another site"
         >
-          <option value="">Other Languages</option>
+          <option value="">Languages</option>
           <option value="croatian">Croatian</option>
           <option value="german">German</option>
           <option value="hebrew">Hebrew</option>
@@ -1137,7 +1165,7 @@
     <script src="inflections.js?v=7bab173593"></script>
     <script src="expressionPatterns.js?v=74753b40ba"></script>
     <script src="sentenceFormMatching.js?v=43d9bafa37"></script>
-    <script src="spacedRepetition.js?v=93b4b95907"></script>
+    <script src="spacedRepetition.js?v=aacb8dea67"></script>
     <script src="progressSharding.js?v=8722cafa38" defer></script>
 
     <!--
@@ -1150,13 +1178,13 @@
     -->
     <script src="englishVisibility.js?v=b7799fc88b" defer></script>
     <script src="pronunciation.js?v=163188f0a9" defer></script>
-    <script src="wordList.js?v=db21ab1d5c" defer></script>
+    <script src="wordList.js?v=afc57925d0" defer></script>
     <script src="storyFavorites.js?v=c152eb5155" defer></script>
     <script src="myWordsAuth.js?v=3f4ea4bf8a" defer></script>
     <script src="noRandom.js?v=dd11769910" defer></script>
     <script src="ordbokene.js?v=891867a5ad" defer></script>
     <script src="scripts.js?v=59b9c23805" defer></script>
-    <script src="wordGame.js?v=5c7b4c8860" defer></script>
+    <script src="wordGame.js?v=a7e63be12a" defer></script>
     <script src="placementTest.js?v=743c41a320" defer></script>
     <script src="streak.js?v=ddb26efe7e" defer></script>
     <script src="stories.js?v=3a4037f8af" defer></script>

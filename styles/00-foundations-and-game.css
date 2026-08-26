@@ -392,22 +392,6 @@ button:disabled i {
   overflow: visible; /* Let text overflow if necessary */
 }
 
-.coffee-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid transparent; /* No visible border but ensures alignment */
-  border-radius: 4px;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
-}
-
-.coffee-img {
-  max-height: 30px; /* Adjust the height of the image to align with the LinkedIn button */
-  width: auto;
-}
-
 .default-hidden-content {
   display: none;
 }

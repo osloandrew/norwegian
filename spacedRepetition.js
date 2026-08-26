@@ -5,10 +5,23 @@
   // previous implementation stored a timeless integer from 0-5; these
   // records instead keep enough information to answer two separate
   // questions: how stable is this memory, and is it due for retrieval now?
-  const STORAGE_VERSION = 2;
+  const STORAGE_VERSION = 3;
+  const SKILL_IDS = Object.freeze([
+    "recognition",
+    "production",
+    "listening",
+    "context",
+  ]);
   const DAY_MS = 24 * 60 * 60 * 1000;
   const RELEARNING_DELAY_MS = 10 * 60 * 1000;
   const TARGET_RETENTION = 0.9;
+  // Reviews begin to enter the game softly before the exact 90% review
+  // point. At 91% predicted recall the need is zero; it then grows
+  // continuously through the due point and toward certainty as the memory
+  // decays. The small preview band removes a hard due/not-due cliff without
+  // making freshly reviewed words eligible again immediately.
+  const REVIEW_APPROACH_RETENTION = 0.91;
+  const RECALL_NEED_RANGE = 0.3;
   const MIN_STABILITY_DAYS = 0.25;
   const MAX_STABILITY_DAYS = 3650;
   const VALID_STATES = new Set(["learning", "review", "relearning"]);
@@ -131,6 +144,44 @@
     };
   }
 
+  function isMemoryRecord(value) {
+    return Boolean(
+      value &&
+        typeof value === "object" &&
+        !Array.isArray(value) &&
+        value.skills &&
+        typeof value.skills === "object" &&
+        !Array.isArray(value.skills),
+    );
+  }
+
+  // Version 3 stores independent evidence for each exercise skill. Every
+  // earlier scalar/record becomes recognition evidence only: carrying it
+  // into production, listening, or context would manufacture mastery the
+  // learner never demonstrated.
+  function normalizeMemory(value, now = Date.now()) {
+    const skills = {};
+
+    if (isMemoryRecord(value)) {
+      for (const skill of SKILL_IDS) {
+        const record = normalizeRecord(value.skills[skill], now);
+        if (record) skills[skill] = record;
+      }
+    } else {
+      const recognition = normalizeRecord(value, now);
+      if (recognition) skills.recognition = recognition;
+    }
+
+    if (Object.keys(skills).length === 0) return null;
+    return {
+      skills,
+      updatedAt: Math.max(
+        0,
+        ...Object.values(skills).map((record) => record.updatedAt),
+      ),
+    };
+  }
+
   function normalizeCollection(records, now = Date.now()) {
     if (!records || typeof records !== "object" || Array.isArray(records)) {
       return {};
@@ -139,7 +190,7 @@
     const normalized = {};
 
     for (const [entryId, value] of Object.entries(records)) {
-      const record = normalizeRecord(value, now);
+      const record = normalizeMemory(value, now);
 
       if (record) {
         normalized[entryId] = record;
@@ -153,11 +204,24 @@
     return record ? { ...record } : null;
   }
 
+  function cloneMemory(memory) {
+    if (!memory) return null;
+    return {
+      skills: Object.fromEntries(
+        Object.entries(memory.skills || {}).map(([skill, record]) => [
+          skill,
+          cloneRecord(record),
+        ]),
+      ),
+      updatedAt: memory.updatedAt,
+    };
+  }
+
   function cloneCollection(records) {
     return Object.fromEntries(
       Object.entries(records || {}).map(([entryId, record]) => [
         entryId,
-        cloneRecord(record),
+        cloneMemory(record),
       ]),
     );
   }
@@ -182,7 +246,27 @@
     );
   }
 
-  function getSnapshot(record, now = Date.now()) {
+  function getRecallNeed(record, now = Date.now()) {
+    const normalized = normalizeRecord(record, now);
+    if (!normalized) return 0;
+
+    const retrievability = getRetrievability(normalized, now);
+    const continuousNeed = clamp(
+      (REVIEW_APPROACH_RETENTION - retrievability) / RECALL_NEED_RANGE,
+      0,
+      1,
+    );
+    // Legacy records are intentionally due once but have no trustworthy last
+    // review time. Give every due record at least the need it would have at
+    // the normal 90% target rather than treating migrated history as fresh.
+    const dueFloor =
+      normalized.dueAt <= now
+        ? (REVIEW_APPROACH_RETENTION - TARGET_RETENTION) / RECALL_NEED_RANGE
+        : 0;
+    return clamp(Math.max(continuousNeed, dueFloor), 0, 1);
+  }
+
+  function getRecordSnapshot(record, now = Date.now()) {
     const normalized = normalizeRecord(record, now);
 
     if (!normalized) {
@@ -190,13 +274,20 @@
         record: null,
         queue: "new",
         isDue: false,
+        isApproaching: false,
         retrievability: 0,
+        recallNeed: 0,
         strength: null,
       };
     }
 
     const isDue = normalized.dueAt <= now;
     const retrievability = getRetrievability(normalized, now);
+    const recallNeed = getRecallNeed(normalized, now);
+    const isApproaching =
+      !isDue &&
+      normalized.state !== "relearning" &&
+      retrievability < REVIEW_APPROACH_RETENTION;
     // Stability measures durable maturity; retrievability makes the visible
     // meter fall when a word has not been recalled for a long time.
     const maturity = clamp(
@@ -215,8 +306,69 @@
       record: cloneRecord(normalized),
       queue,
       isDue,
+      isApproaching,
       retrievability,
+      recallNeed,
       strength: clamp(strength, 0, 5),
+    };
+  }
+
+  function getSkillSnapshot(value, skill, now = Date.now()) {
+    if (!SKILL_IDS.includes(skill)) {
+      return getRecordSnapshot(null, now);
+    }
+    const memory = normalizeMemory(value, now);
+    return getRecordSnapshot(memory?.skills?.[skill] ?? null, now);
+  }
+
+  function getSnapshot(value, now = Date.now()) {
+    const memory = normalizeMemory(value, now);
+    if (!memory) return getRecordSnapshot(null, now);
+
+    const skillSnapshots = Object.fromEntries(
+      SKILL_IDS.map((skill) => [
+        skill,
+        getRecordSnapshot(memory.skills[skill] ?? null, now),
+      ]),
+    );
+    const practiced = SKILL_IDS.map((skill) => ({
+      skill,
+      snapshot: skillSnapshots[skill],
+    })).filter(({ snapshot }) => snapshot.record);
+    const queuePriority = { relearning: 0, due: 1, scheduled: 2, new: 3 };
+    const mostUrgent = practiced.reduce((best, candidate) => {
+      if (!best) return candidate;
+      const bestPriority = queuePriority[best.snapshot.queue] ?? 3;
+      const candidatePriority = queuePriority[candidate.snapshot.queue] ?? 3;
+      if (candidatePriority !== bestPriority) {
+        return candidatePriority < bestPriority ? candidate : best;
+      }
+      return candidate.snapshot.recallNeed > best.snapshot.recallNeed
+        ? candidate
+        : best;
+    }, null);
+
+    return {
+      record: mostUrgent?.snapshot.record ?? null,
+      memory: cloneMemory(memory),
+      skill: mostUrgent?.skill ?? null,
+      skills: skillSnapshots,
+      queue: mostUrgent?.snapshot.queue ?? "new",
+      isDue: practiced.some(({ snapshot }) => snapshot.isDue),
+      isApproaching:
+        !practiced.some(({ snapshot }) => snapshot.isDue) &&
+        practiced.some(({ snapshot }) => snapshot.isApproaching),
+      retrievability: Math.min(
+        ...practiced.map(({ snapshot }) => snapshot.retrievability),
+      ),
+      recallNeed: Math.max(
+        ...practiced.map(({ snapshot }) => snapshot.recallNeed),
+      ),
+      // A single high recognition score must not advertise overall mastery
+      // once another practiced skill has exposed a weaker memory.
+      strength: Math.min(
+        ...practiced.map(({ snapshot }) => snapshot.strength),
+      ),
     };
   }
 
@@ -333,7 +485,35 @@
       : scheduleIncorrect(record, now);
   }
 
-  function mergeRecordValues(localValue, remoteValue, now = Date.now()) {
+  function recordSkillResult(
+    value,
+    skill,
+    isCorrect,
+    now = Date.now(),
+  ) {
+    if (!SKILL_IDS.includes(skill)) return normalizeMemory(value, now);
+
+    const memory = normalizeMemory(value, now) ?? {
+      skills: {},
+      updatedAt: 0,
+    };
+    memory.skills[skill] = recordResult(
+      memory.skills[skill] ?? null,
+      isCorrect,
+      now,
+    );
+    memory.updatedAt = Math.max(
+      0,
+      ...Object.values(memory.skills).map((record) => record.updatedAt),
+    );
+    return cloneMemory(memory);
+  }
+
+  function mergeScheduledRecordValues(
+    localValue,
+    remoteValue,
+    now = Date.now(),
+  ) {
     const localStructured = isStructuredRecord(localValue);
     const remoteStructured = isStructuredRecord(remoteValue);
 
@@ -368,6 +548,24 @@
     );
   }
 
+  function mergeRecordValues(localValue, remoteValue, now = Date.now()) {
+    const local = normalizeMemory(localValue, now);
+    const remote = normalizeMemory(remoteValue, now);
+    if (!local) return cloneMemory(remote);
+    if (!remote) return cloneMemory(local);
+
+    const skills = {};
+    for (const skill of SKILL_IDS) {
+      const merged = mergeScheduledRecordValues(
+        local.skills[skill],
+        remote.skills[skill],
+        now,
+      );
+      if (merged) skills[skill] = merged;
+    }
+    return normalizeMemory({ skills }, now);
+  }
+
   function mergeCollections(localRecords, remoteRecords, now = Date.now()) {
     const merged = {};
     const local = localRecords || {};
@@ -389,15 +587,23 @@
 
   window.SpacedRepetition = Object.freeze({
     STORAGE_VERSION,
+    SKILL_IDS,
     DAY_MS,
     RELEARNING_DELAY_MS,
+    TARGET_RETENTION,
+    REVIEW_APPROACH_RETENTION,
     normalizeRecord,
+    normalizeMemory,
     normalizeCollection,
     cloneRecord,
+    cloneMemory,
     cloneCollection,
     getRetrievability,
+    getRecallNeed,
+    getSkillSnapshot,
     getSnapshot,
     recordResult,
+    recordSkillResult,
     mergeRecordValues,
     mergeCollections,
     isChronicallyStruggling,

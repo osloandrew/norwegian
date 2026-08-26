@@ -352,13 +352,46 @@ function compareByCefrThenHeadword(a, b) {
   return String(a.ord).localeCompare(String(b.ord), "nb");
 }
 
+// wordGame.js (loaded before this file's search ever runs) blends three
+// corpora into a per-entry frequency rank and exposes it here.
+function getFrequencyRankForSort(entry) {
+  const rank = window.WordGameHelpers?.getVocabularyFrequencyRank?.(entry);
+  return Number.isFinite(rank) && rank > 0 ? rank : null;
+}
+
+// CEFR remains the primary signal across the whole dictionary, same as
+// before frequency was ever consulted here -- it's deliberately curated,
+// while a *missing* frequency record on one side is frequently just a
+// morphological collision artifact, not real evidence of rarity (e.g.
+// "egg" (et, "egg", A1) shares every inflected form with either "egg" (ei,
+// "blade edge", B2) or the unrelated verb "egge", so the far more common
+// "et egg" can end up with zero recorded evidence). Frequency only breaks
+// a tie *within* the same CEFR band, in place of the old plain alphabetical
+// order -- a smaller, band-scoped role rather than overriding CEFR outright.
+function compareByCefrThenFrequencyThenHeadword(a, b) {
+  const cefrDifference = (CEFR_ORDER[a.CEFR] || 99) - (CEFR_ORDER[b.CEFR] || 99);
+  if (cefrDifference) return cefrDifference;
+
+  const frequencyRankA = getFrequencyRankForSort(a);
+  const frequencyRankB = getFrequencyRankForSort(b);
+  if (frequencyRankA !== null && frequencyRankB !== null) {
+    return frequencyRankA - frequencyRankB;
+  }
+  // Same band, at least one side unattested: some evidence still beats
+  // none before falling back to plain alphabetical.
+  if (frequencyRankA !== null) return -1;
+  if (frequencyRankB !== null) return 1;
+
+  return compareByCefrThenHeadword(a, b);
+}
+
 function compareWordSearchResults(a, b, query, inflectedLemmas) {
   const rankDifference =
     getSearchMatchRank(a, query, inflectedLemmas) -
     getSearchMatchRank(b, query, inflectedLemmas);
   if (rankDifference) return rankDifference;
 
-  return compareByCefrThenHeadword(a, b);
+  return compareByCefrThenFrequencyThenHeadword(a, b);
 }
 
 function editDistanceWithinLimit(first, second, limit) {
@@ -2008,6 +2041,12 @@ async function search(queryOverride = null, options = {}) {
       return;
     }
 
+    // wordGame.js already kicks this fetch off unconditionally at script
+    // load, so this is normally a no-op await on an already-resolved,
+    // cached promise -- it only matters for a URL-triggered search that
+    // happens to race the initial page load.
+    await window.WordGameHelpers?.loadVocabularyFrequencyRanks?.();
+
     // Precompute the match strategy (and, for literal searches, the regexes)
     // once per query variation rather than once per dictionary row -- these
     // only depend on `variation`, not on `r`, so rebuilding them ~29k times
@@ -2077,7 +2116,7 @@ async function search(queryOverride = null, options = {}) {
 
     matchingResults.sort((a, b) => {
       const rankDifference = matchRankByEntry.get(a) - matchRankByEntry.get(b);
-      return rankDifference || compareByCefrThenHeadword(a, b);
+      return rankDifference || compareByCefrThenFrequencyThenHeadword(a, b);
     });
 
     // Ordbøkene is a fallback layer, not part of the local study dataset.
@@ -2433,6 +2472,9 @@ function handleTypeChange(type, options = {}) {
     "story-favorites-filter",
   );
   const cefrFilterContainer = document.querySelector(".cefr-filter"); // Get the CEFR filter container
+  const frequencyFilterContainer = document.getElementById(
+    "frequency-filter",
+  ); // My Words-only sort by word frequency
 
   // Filter dropdowns for POS, Genre, and CEFR
   const posSelect = document.getElementById("pos-select");
@@ -2442,11 +2484,15 @@ function handleTypeChange(type, options = {}) {
   );
   const cefrSelect = document.getElementById("cefr-select"); // Get the CEFR filter dropdown
   const cefrLock = document.getElementById("lock-icon");
+  const frequencySelect = document.getElementById("frequency-select");
 
   removeStoryHeader();
   storyFavoritesFilterContainer.style.display = "none";
   gameEnglishFilterContainer.style.display = "none";
   gameEnglishSelect.style.display = "none"; // Hide random button
+  // My Words is the only tab with a Frequency sort — reset it to hidden
+  // before any type-specific branch runs, same as Genre/Favorites above.
+  if (frequencyFilterContainer) frequencyFilterContainer.style.display = "none";
 
   // Reset the shared CEFR filter (and its wrapping group) to their default
   // visible state before any type-specific branch runs. Only the word-game
@@ -2599,6 +2645,12 @@ function handleTypeChange(type, options = {}) {
 
     // Word List does not use the level-lock button.
     cefrLock.style.display = "none";
+
+    // Show the Frequency sort — the one filter that's only meaningful here.
+    if (frequencyFilterContainer) {
+      frequencyFilterContainer.style.display = "inline-flex";
+    }
+    if (frequencySelect) frequencySelect.value = "";
 
     // Hide the landing page and start the Word List module.
     showLandingCard(false);
@@ -3375,7 +3427,9 @@ function displaySearchResults(
                         : ""
                     }
                     ${
-                      result.wordAudio === "X" && !result.ord.includes("...")
+                      result.wordAudio === "X" &&
+                      result.ord.trim().toLowerCase() !== "hrmf" &&
+                      !result.ord.includes("...")
                         ? `<p class="pronunciation">
                             <i class="fas fa-volume-up sentence-audio-icon"
                         data-sentence="${result.ord

@@ -1201,6 +1201,11 @@ body.stories-mode .story-recommendation .cefr-value {
 .story-recommendation .japanese-title {
   font-size: 15px;
   line-height: 1.25;
+  /* Matches this context's own line-height (2 x 1.25em), overriding the
+     base rule's 2.6em -- see .japanese-title's comment in
+     10-shell-landing-and-stats.css for why this is a plain max-height
+     instead of -webkit-line-clamp. */
+  max-height: 2.5em;
 }
 
 #story-content {

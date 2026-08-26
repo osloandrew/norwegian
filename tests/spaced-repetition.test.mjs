@@ -17,6 +17,15 @@ vm.runInContext(
 const scheduler = context.SpacedRepetition;
 const NOW = Date.UTC(2026, 7, 16, 12);
 const DAY = scheduler.DAY_MS;
+assert.equal(scheduler.TARGET_RETENTION, 0.9);
+assert.equal(scheduler.REVIEW_APPROACH_RETENTION, 0.91);
+assert.equal(scheduler.STORAGE_VERSION, 3);
+assert.deepEqual([...scheduler.SKILL_IDS], [
+  "recognition",
+  "production",
+  "listening",
+  "context",
+]);
 
 // Legacy scalar strengths retain approximate maturity but are due once,
 // because version 1 never recorded when the learner last saw them.
@@ -25,6 +34,12 @@ assert.equal(legacyMastered.state, "review");
 assert.equal(legacyMastered.stabilityDays, 30);
 assert.equal(legacyMastered.dueAt, NOW);
 assert.equal(scheduler.getSnapshot(legacyMastered, NOW).queue, "due");
+const migratedMemory = scheduler.normalizeMemory(legacyMastered, NOW);
+assert.deepEqual(Object.keys(migratedMemory.skills), ["recognition"]);
+assert.equal(
+  scheduler.getSkillSnapshot(migratedMemory, "production", NOW).queue,
+  "new",
+);
 
 const legacyFailed = scheduler.normalizeRecord(0, NOW);
 assert.equal(legacyFailed.state, "relearning");
@@ -43,6 +58,26 @@ const secondSuccess = scheduler.recordResult(firstSuccess, true, NOW + DAY);
 assert.equal(secondSuccess.state, "review");
 assert.equal(secondSuccess.stabilityDays, 3);
 assert.equal(secondSuccess.dueAt, NOW + 4 * DAY);
+
+// Recall need grows continuously as memory decays. A review becomes softly
+// eligible shortly before the exact 90% target, rather than changing from
+// wholly unavailable to mandatory at one timestamp.
+const comfortablyEarly = scheduler.getSnapshot(secondSuccess, NOW + 3.5 * DAY);
+assert.equal(comfortablyEarly.isApproaching, false);
+assert.equal(comfortablyEarly.recallNeed, 0);
+const approaching = scheduler.getSnapshot(secondSuccess, NOW + 3.8 * DAY);
+assert.equal(approaching.queue, "scheduled");
+assert.equal(approaching.isApproaching, true);
+assert.ok(approaching.recallNeed > 0);
+const exactlyDue = scheduler.getSnapshot(secondSuccess, secondSuccess.dueAt);
+assert.equal(exactlyDue.queue, "due");
+assert.equal(exactlyDue.isApproaching, false);
+assert.ok(exactlyDue.recallNeed > approaching.recallNeed);
+const substantiallyForgotten = scheduler.getRecallNeed(
+  secondSuccess,
+  NOW + 8 * DAY,
+);
+assert.ok(substantiallyForgotten > exactlyDue.recallNeed);
 
 // Visible strength is time-sensitive rather than permanent.
 const freshStrength = scheduler.getSnapshot(secondSuccess, NOW + DAY).strength;
@@ -64,10 +99,47 @@ assert.equal(
   "scheduled",
 );
 assert.equal(scheduler.getSnapshot(lapsed, lapsed.dueAt).queue, "relearning");
+assert.equal(
+  scheduler.getSnapshot(lapsed, lapsed.dueAt - 1).isApproaching,
+  false,
+);
 
 const repaired = scheduler.recordResult(lapsed, true, lapsed.dueAt);
 assert.equal(repaired.state, "learning");
 assert.ok(repaired.stabilityDays <= 3);
+
+// Each exercise skill owns independent durable evidence. Recognition success
+// neither creates nor schedules production/listening/context mastery.
+const recognized = scheduler.recordSkillResult(
+  null,
+  "recognition",
+  true,
+  NOW,
+);
+assert.deepEqual(Object.keys(recognized.skills), ["recognition"]);
+const produced = scheduler.recordSkillResult(
+  recognized,
+  "production",
+  false,
+  NOW + DAY,
+);
+assert.equal(produced.skills.recognition.successes, 1);
+assert.equal(produced.skills.production.lapses, 1);
+assert.equal(produced.skills.listening, undefined);
+const composite = scheduler.getSnapshot(
+  produced,
+  NOW + DAY + scheduler.RELEARNING_DELAY_MS,
+);
+assert.equal(composite.strength, 0);
+assert.equal(composite.skill, "production");
+assert.equal(
+  scheduler.getSkillSnapshot(produced, "recognition", NOW + DAY).queue,
+  "due",
+);
+assert.equal(
+  scheduler.getSkillSnapshot(produced, "context", NOW + DAY).queue,
+  "new",
+);
 
 // Device reconciliation follows the newest answer, not the highest historic
 // score. Thus a later lapse survives an older mastered copy.
@@ -82,13 +154,39 @@ const newerLapse = {
   updatedAt: NOW + 5 * DAY,
 };
 const merged = scheduler.mergeRecordValues(olderMastery, newerLapse, NOW);
-assert.equal(merged.state, "relearning");
-assert.equal(merged.updatedAt, newerLapse.updatedAt);
+assert.equal(merged.skills.recognition.state, "relearning");
+assert.equal(merged.skills.recognition.updatedAt, newerLapse.updatedAt);
 
 // A structured record also wins over an unmigrated scalar from an older
 // client, regardless of that scalar's nominal strength.
 const structuredWins = scheduler.mergeRecordValues(newerLapse, 5, NOW);
-assert.equal(structuredWins.state, "relearning");
-assert.equal(structuredWins.updatedAt, newerLapse.updatedAt);
+assert.equal(structuredWins.skills.recognition.state, "relearning");
+assert.equal(
+  structuredWins.skills.recognition.updatedAt,
+  newerLapse.updatedAt,
+);
+
+// Cloud/device merges reconcile each skill separately instead of selecting
+// one whole-word record and discarding newer evidence in another direction.
+const localSkills = scheduler.recordSkillResult(
+  recognized,
+  "context",
+  true,
+  NOW + 2 * DAY,
+);
+const remoteSkills = scheduler.recordSkillResult(
+  recognized,
+  "listening",
+  false,
+  NOW + 3 * DAY,
+);
+const mergedSkills = scheduler.mergeRecordValues(
+  localSkills,
+  remoteSkills,
+  NOW + 3 * DAY,
+);
+assert.equal(mergedSkills.skills.context.successes, 1);
+assert.equal(mergedSkills.skills.listening.lapses, 1);
+assert.equal(mergedSkills.skills.recognition.successes, 1);
 
 console.log("spaced-repetition tests passed");

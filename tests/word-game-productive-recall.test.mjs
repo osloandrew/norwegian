@@ -6,17 +6,26 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "wordGame.js"), "utf8");
-const context = vm.createContext({ Math, Object, Set, String });
+const context = vm.createContext({ Date, JSON, Math, Number, Object, Set, String });
 context.window = context;
 context.self = context;
+context.localStorage = { getItem: () => null, setItem: () => {} };
 vm.runInContext(fs.readFileSync(path.join(root, "wordClass.js"), "utf8"), context, {
   filename: "wordClass.js",
 });
 
 let snapshot = null;
+const requestedSkills = [];
 context.WordStrengthAPI = {
   getSnapshot: () => snapshot,
+  getSkillSnapshot: (_word, skill) => {
+    requestedSkills.push(skill);
+    return snapshot;
+  },
 };
+context.getWordDifficultyAnchor = (entry) => entry.difficulty ?? 700;
+context.getExpectedSuccessProbability = (difficulty, ability) =>
+  1 / (1 + Math.exp((difficulty - ability) / 180));
 
 const runSection = (startMarker, endMarker) => {
   const start = source.indexOf(startMarker);
@@ -28,26 +37,39 @@ const runSection = (startMarker, endMarker) => {
   });
 };
 
-runSection("const TYPED_RECALL_PROBABILITY", "let previousWord");
+runSection("const TYPED_RECALL_READINESS", "let previousWord");
+vm.runInContext(
+  "var abilityScore = 700; var CEFR_DIFFICULTY_ANCHOR = { A1: 100 };",
+  context,
+);
 runSection("function normalizeGameWhitespace", "function uppercaseFirstNorwegian");
 runSection("function getGamePromptLengthClass", "function getTypedAnswerMarkup");
 runSection("function getTypedAnswerMarkup", "// mode:");
 
-const word = { ord: "fremtid, framtid" };
+const word = { ord: "fremtid, framtid", difficulty: 700 };
 
 snapshot = { queue: "new", strength: null };
 assert.equal(context.getTypedRecallProbability(word, "cloze"), 0);
 assert.equal(context.getTypedRecallProbability(word, "reverse"), 0);
 
-snapshot = { queue: "due", strength: 2 };
-assert.equal(context.getTypedRecallProbability(word, "cloze"), 0.25);
-assert.equal(context.getTypedRecallProbability(word, "reverse"), 0);
-assert.equal(context.shouldUseTypedRecall(word, "cloze", 0.24), true);
-assert.equal(context.shouldUseTypedRecall(word, "cloze", 0.25), false);
-
-snapshot = { queue: "due", strength: 3 };
-assert.equal(context.getTypedRecallProbability(word, "cloze"), 0.5);
-assert.equal(context.getTypedRecallProbability(word, "reverse"), 0.35);
+const easyWord = { ...word, difficulty: 300 };
+snapshot = { queue: "due", record: {}, retrievability: 0.9 };
+assert.equal(context.getTypedRecallProbability(easyWord, "cloze"), 1);
+const reverseTypedProbability = context.getTypedRecallProbability(
+  easyWord,
+  "reverse",
+);
+assert.ok(reverseTypedProbability > 0 && reverseTypedProbability < 0.9);
+assert.equal(
+  context.shouldUseTypedRecall(easyWord, "reverse", reverseTypedProbability - 0.01),
+  true,
+);
+assert.equal(
+  context.shouldUseTypedRecall(easyWord, "reverse", reverseTypedProbability),
+  false,
+);
+assert.ok(requestedSkills.includes("context"));
+assert.ok(requestedSkills.includes("production"));
 
 snapshot = { queue: "relearning", strength: 5 };
 assert.equal(context.getTypedRecallProbability(word, "cloze"), 0);
@@ -79,6 +101,20 @@ context.results = [
 assert.deepEqual(
   [...context.getTypedAcceptedAnswers(bathroomTarget, false, "")],
   ["bad", "baderom"],
+);
+const ifTarget = {
+  ord: "hvis",
+  engelsk: "if",
+  gender: "conjunction",
+};
+context.results = [
+  ifTarget,
+  { ord: "om", engelsk: "whether, if", gender: "conjunction" },
+  { ord: "om", engelsk: "hum", gender: "en" },
+];
+assert.deepEqual(
+  [...context.getTypedAcceptedAnswers(ifTarget, false, "")],
+  ["hvis", "om"],
 );
 
 // Typed-recall fuzzy matching: near-misses (missing æ/ø/å, a small typo)

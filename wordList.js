@@ -13,6 +13,7 @@
       searchInput: document.getElementById("search-bar"),
       posSelect: document.getElementById("pos-select"),
       cefrSelect: document.getElementById("cefr-select"),
+      frequencySelect: document.getElementById("frequency-select"),
     };
   }
 
@@ -424,13 +425,14 @@
     // spaced. A correct answer there is useful exposure, but not evidence
     // that should lengthen the durable interval. A failure always counts.
     if (isCorrect && options.credit === false) {
-      return window.SpacedRepetition.cloneRecord(
+      return window.SpacedRepetition.cloneMemory(
         wordStrengths[entryId] || null,
       );
     }
 
-    wordStrengths[entryId] = window.SpacedRepetition.recordResult(
+    wordStrengths[entryId] = window.SpacedRepetition.recordSkillResult(
       wordStrengths[entryId],
+      options.skill ?? "recognition",
       isCorrect,
     );
 
@@ -439,7 +441,7 @@
       deferRemote: Boolean(options.deferRemote),
     });
 
-    return window.SpacedRepetition.cloneRecord(wordStrengths[entryId]);
+    return window.SpacedRepetition.cloneMemory(wordStrengths[entryId]);
   }
 
   function toggleMyWordsEntry(entry) {
@@ -1096,7 +1098,8 @@
    * the matching entries.
    */
   function getFilteredWordListEntries() {
-    const { searchInput, posSelect, cefrSelect } = getWordListFilterElements();
+    const { searchInput, posSelect, cefrSelect, frequencySelect } =
+      getWordListFilterElements();
 
     const searchText = normalizeWordListText(
       searchInput ? searchInput.value : "",
@@ -1107,6 +1110,8 @@
     const selectedCEFR = String(cefrSelect ? cefrSelect.value : "")
       .trim()
       .toUpperCase();
+
+    const frequencySort = String(frequencySelect ? frequencySelect.value : "");
 
     if (!Array.isArray(results)) {
       return [];
@@ -1157,6 +1162,18 @@
         return norwegian.includes(searchText) || english.includes(searchText);
       })
       .sort((firstEntry, secondEntry) => {
+        if (frequencySort === "common-first" || frequencySort === "rarest-first") {
+          const frequencyComparison = compareByWordFrequency(
+            firstEntry,
+            secondEntry,
+            frequencySort,
+          );
+
+          if (frequencyComparison !== 0) {
+            return frequencyComparison;
+          }
+        }
+
         const norwegianComparison = norwegianCollator.compare(
           String(firstEntry.ord ?? ""),
           String(secondEntry.ord ?? ""),
@@ -1171,6 +1188,27 @@
           String(secondEntry.engelsk ?? ""),
         );
       });
+  }
+
+  // Ranks come from vocabulary-frequency.json (see wordGame.js), where rank 1
+  // is the most common word and larger ranks are rarer. Entries missing from
+  // that dataset (proper nouns, technical terms, anything below its corpus
+  // cutoff) have no rank at all — those always sort after every ranked entry,
+  // regardless of direction, rather than being guessed into either end.
+  function compareByWordFrequency(firstEntry, secondEntry, direction) {
+    const getRank = window.WordGameHelpers?.getVocabularyFrequencyRank;
+    if (typeof getRank !== "function") return 0;
+
+    const firstRank = getRank(firstEntry);
+    const secondRank = getRank(secondEntry);
+
+    if (firstRank === null && secondRank === null) return 0;
+    if (firstRank === null) return 1;
+    if (secondRank === null) return -1;
+
+    return direction === "common-first"
+      ? firstRank - secondRank
+      : secondRank - firstRank;
   }
 
   /**
@@ -1911,6 +1949,28 @@
     }
 
     renderWordList();
+    ensureVocabularyFrequencyLoaded();
+  }
+
+  // The Frequency select's ranks live in vocabulary-frequency.json, fetched
+  // lazily by wordGame.js. Word List doesn't otherwise touch that file, so
+  // without this the first "Common first"/"Rarest first" pick on a fresh
+  // page load would render with the fetch still in flight (silently falling
+  // back to alphabetical, via compareByWordFrequency's "not loaded yet"
+  // guard) until some other feature happened to trigger the same load.
+  function ensureVocabularyFrequencyLoaded() {
+    const load = window.WordGameHelpers?.loadVocabularyFrequencyRanks;
+    if (typeof load !== "function") return;
+
+    load().then(() => {
+      const { frequencySelect, typeSelect } = getWordListFilterElements();
+      if (
+        frequencySelect?.value &&
+        typeSelect?.value === "word-list"
+      ) {
+        renderWordList();
+      }
+    });
   }
 
   function resolveMyWordsEntry(entry) {
@@ -2013,12 +2073,18 @@
       ).strength;
     },
     getRecord: (entry) =>
-      window.SpacedRepetition.cloneRecord(
+      window.SpacedRepetition.cloneMemory(
         wordStrengths[getMyWordsEntryId(entry)] || null,
       ),
     getSnapshot: (entry, now = Date.now()) =>
       window.SpacedRepetition.getSnapshot(
         wordStrengths[getMyWordsEntryId(entry)],
+        now,
+      ),
+    getSkillSnapshot: (entry, skill, now = Date.now()) =>
+      window.SpacedRepetition.getSkillSnapshot(
+        wordStrengths[getMyWordsEntryId(entry)],
+        skill,
         now,
       ),
   });

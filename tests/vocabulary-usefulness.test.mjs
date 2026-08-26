@@ -10,13 +10,18 @@ const frequencyData = JSON.parse(
   fs.readFileSync(path.join(root, "vocabulary-frequency.json"), "utf8"),
 );
 
-assert.equal(frequencyData.version, 2);
-assert.ok(["CC BY 3.0", "CC BY-NC 4.0"].includes(frequencyData.license));
+assert.equal(frequencyData.version, 4);
+assert.equal(frequencyData.sources.clarino.license, "CC BY-NC 4.0");
+assert.equal(
+  frequencyData.sources.clarino.sourceFile,
+  "clarino-aviskorpus-bokmal-top-100000.tsv",
+);
 assert.equal(
   frequencyData.method,
   "entry-counts-exact-then-unique-official-inflection",
 );
-assert.ok(frequencyData.matchedDictionaryEntries >= 3000);
+assert.ok(frequencyData.sources.clarino.sourceLexicalForms >= 50000);
+assert.ok(frequencyData.matchedDictionaryEntries >= 14000);
 assert.ok(
   frequencyData.entries["i|preposition"].rank <
     frequencyData.entries["hus|et"].rank,
@@ -45,7 +50,7 @@ vm.runInContext(
   { filename: "wordGame.js" },
 );
 vm.runInContext(
-  `vocabularyFrequencyEntries = ${JSON.stringify(frequencyData.entries)}`,
+  `vocabularyFrequencyEntries = ${JSON.stringify(frequencyData.entries)};`,
   context,
 );
 
@@ -69,12 +74,85 @@ const unmatchedWeight = context.getVocabularyUsefulnessWeight({
 assert.ok(topWeight > commonWeight);
 assert.ok(commonWeight > rareWeight);
 assert.ok(rareWeight > 1);
+assert.ok(topWeight <= 1.7);
+// "i" is an extremely common word across all three blended registers, but
+// blending is a mean across sources rather than a single corpus's max, so
+// this only requires it to be near the top of the boost range, not at it.
+assert.ok(topWeight > 1.6);
+assert.ok(commonWeight < 1.7);
 assert.equal(unmatchedWeight, 1);
+const expectedCommonWeight =
+  1 + 0.7 * frequencyData.entries["hus|et"].weight;
+assert.ok(Math.abs(commonWeight - expectedCommonWeight) < 1e-9);
 assert.equal(
   context.getVocabularyFrequencyRecord({ ord: "hus, huset", gender: "et" })
     .rank,
   frequencyData.entries["hus|et"].rank,
 );
+
+// getWordDifficultyAnchor: the real function, run in the same context (which
+// already has the real getVocabularyFrequencyRecord/EntryKey and the real
+// committed frequency data loaded above) plus a plain CEFR_DIFFICULTY_ANCHOR
+// literal, since that table's real definition lives elsewhere in the file.
+context.CEFR_DIFFICULTY_ANCHOR = { A1: 100, A2: 300, B1: 500, B2: 700, C: 900 };
+const difficultyStart = wordGameSource.indexOf("function getWordCefrLabel");
+const difficultyEnd = wordGameSource.indexOf(
+  "// Elo/logistic-style update",
+  difficultyStart,
+);
+assert.notEqual(difficultyStart, -1);
+assert.notEqual(difficultyEnd, -1);
+vm.runInContext(
+  wordGameSource.slice(difficultyStart, difficultyEnd),
+  context,
+  { filename: "wordGame.js" },
+);
+
+// A matched word's difficulty is nudged from its band center by exactly the
+// documented formula, using its real committed bandPercentile.
+const husBandPercentile = frequencyData.entries["hus|et"].bandPercentile;
+const husDifficulty = context.getWordDifficultyAnchor({
+  ord: "hus",
+  gender: "et",
+  CEFR: "B1",
+});
+const expectedHusDifficulty = 500 - (husBandPercentile - 0.5) * 2 * 80;
+assert.ok(Math.abs(husDifficulty - expectedHusDifficulty) < 1e-9);
+
+// A word with no frequency record at all falls back to the plain band
+// center, unchanged from before this refinement existed.
+assert.equal(
+  context.getWordDifficultyAnchor({ ord: "xyzzy", gender: "noun", CEFR: "B1" }),
+  500,
+);
+
+// The nudge can never cross into a neighboring band: even at the percentile
+// extremes (0 and 1), difficulty stays strictly inside [center-80, center+80].
+// Reassigning through vm.runInContext (not a direct `context.x =` property
+// set) matters here: vocabularyFrequencyEntries was declared with `let`
+// inside the earlier slice, and a vm context's `let`/`const` bindings live
+// in a lexical environment separate from the context object's own
+// properties, so only a script run in the same context can reach it.
+vm.runInContext(
+  `vocabularyFrequencyEntries = ${JSON.stringify({
+    "mostcommonb1|noun": { bandPercentile: 1 },
+    "rarestb1|noun": { bandPercentile: 0 },
+  })};`,
+  context,
+);
+const easiestB1 = context.getWordDifficultyAnchor({
+  ord: "mostcommonb1",
+  gender: "noun",
+  CEFR: "B1",
+});
+const hardestB1 = context.getWordDifficultyAnchor({
+  ord: "rarestb1",
+  gender: "noun",
+  CEFR: "B1",
+});
+assert.ok(easiestB1 > 500 - 80 - 1e-9 && easiestB1 < 500);
+assert.ok(hardestB1 < 500 + 80 + 1e-9 && hardestB1 > 500);
+assert.ok(easiestB1 < hardestB1);
 
 const coreStart = wordGameSource.indexOf("function getRawAbilityProximity");
 const coreEnd = wordGameSource.indexOf(

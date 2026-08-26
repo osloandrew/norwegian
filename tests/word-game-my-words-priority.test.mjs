@@ -21,6 +21,10 @@ context.MyWordsAPI = {
 };
 context.getGameWordWeight = () => 1;
 context.pickWeightedGameWord = (entries) => entries[0] ?? null;
+context.pickPrioritizedGameWord = (entries) => entries[0] ?? null;
+context.buildGameWordQueues = (entries) => ({ new: entries });
+context.getNextGameQueueName = () => "new";
+context.getNearestScheduledGameWords = (entries) => entries;
 vm.runInContext(
   `
     let wordGameMyWordsMixQuestionCount = 0;

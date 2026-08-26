@@ -543,15 +543,24 @@ input[type="text"]:not(:placeholder-shown) + label {
 
 .japanese-title {
   color: var(--color-text-strong);
-  display: -webkit-box; /* Creates a block-level flex container */
+  display: block;
   font-family: "Noto Serif", serif; /* Japanese-specific font */
   font-weight: 400;
   font-size: 14px;
+  line-height: 1.3;
+  /* Caps this at 2 lines without -webkit-line-clamp: on WebKit/Blink,
+     -webkit-line-clamp's own generated box comes out a hair short of what
+     the font's real descenders need, so g/j/p/q/y on the clamped line get
+     sheared flat -- reproduced directly (a plain max-height + overflow box
+     at the same line-height renders every descender intact, only the
+     -webkit-box/-webkit-line-clamp combination clips them, regardless of
+     how much extra line-height or padding is added). No title in
+     norwegianStories.csv is long enough to actually need the ellipsis
+     -webkit-line-clamp would have added at this width, so a hard 2-line
+     cap loses nothing today; it's here only as a future safety net. */
+  max-height: 2.6em;
   overflow: hidden; /* Hides the overflowing text */
-  text-overflow: ellipsis; /* Adds ellipses when text overflows */
   letter-spacing: 0.1px;
-  -webkit-box-orient: vertical; /* Specifies vertical stacking of lines */
-  -webkit-line-clamp: 2; /* Limits the text to 1 line */
 }
 
 label {
@@ -1634,7 +1643,6 @@ a.footer-control {
 }
 
 .footer-control:focus-visible,
-.coffee-btn:focus-visible,
 footer a:focus-visible {
   outline: 2px solid var(--color-ink);
   outline-offset: 2px;
@@ -1702,8 +1710,9 @@ footer a:focus-visible {
 
   .footer-control {
     font-size: 12px;
+    gap: 6px;
     height: 36px;
-    padding: 0 11px;
+    padding: 0 8px;
   }
 
   .landing-card-button-grid {
@@ -1717,9 +1726,8 @@ footer a:focus-visible {
   .links {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
     justify-content: center;
     margin: 5px 0 5px 0;
-    padding: 0 20px;
   }
 }

@@ -1,9 +1,15 @@
 let activeAudio = [];
 let currentWord;
 let correctTranslation;
+// The ordinary selector now chooses a word and exercise together. This holds
+// the exercise half of that pair until startWordGame renders the selected
+// word. Renderers overwrite currentQuestionPrediction with the mode they
+// actually show, so cloze fallbacks and relearning remain correctly measured.
+let plannedQuestionMode = null;
+let currentQuestionPrediction = null;
 // Identifies which scheduler queue supplied the current question. Correct
-// filler/early-review answers do not lengthen an interval, while due, new,
-// and deliberate relearning answers do.
+// pure-filler/scheduled-fallback answers do not lengthen an interval, while
+// due, approaching, new, and deliberate relearning answers do.
 let currentWordQueueType = null;
 let correctStreak = 0; // Track the current streak of correct answers
 // CEFR labels remain purely descriptive metadata on individual words/stories
@@ -103,14 +109,16 @@ const BONUS_ROUND_SEQUENCE = Object.freeze([
 
 // The CSV's wordAudio flag is broader than the set of files that can
 // actually be played. In particular, paired expressions written with an
-// ellipsis (for example "jo ... jo") have no single-word recording even
-// though their row is flagged. Keep that data quirk out of listening and
-// dictation questions, where audio is the only prompt.
+// ellipsis (for example "jo ... jo") and the interjection "hrmf" have no
+// single-word recording even though their rows are flagged. Keep those data
+// quirks out of listening and dictation questions, where audio is the only
+// prompt.
 function hasPlayableWordAudio(wordObj) {
   const word = String(wordObj?.ord ?? "").trim();
   return (
     wordObj?.wordAudio === "X" &&
     word.length > 0 &&
+    word.toLowerCase() !== "hrmf" &&
     !word.includes("...") &&
     !word.includes("…")
   );
@@ -362,10 +370,10 @@ const LISTENING_PROBABILITY = {
 // dictation — hear the word, type what you heard, no English shown at all)
 // ramps on the same shape as reverse: it's unaided production too, just from
 // audio instead of an English gloss.
-const TYPED_RECALL_PROBABILITY = Object.freeze({
-  cloze: Object.freeze({ 2: 0.25, 3: 0.5, 4: 0.75, 5: 1 }),
-  reverse: Object.freeze({ 3: 0.35, 4: 0.65, 5: 0.9 }),
-  listening: Object.freeze({ 3: 0.35, 4: 0.65, 5: 0.9 }),
+const TYPED_RECALL_READINESS = Object.freeze({
+  cloze: Object.freeze({ start: 0.72, full: 0.9, maximum: 1 }),
+  reverse: Object.freeze({ start: 0.78, full: 0.94, maximum: 0.9 }),
+  listening: Object.freeze({ start: 0.78, full: 0.94, maximum: 0.9 }),
 });
 
 // --- Game-mode registry ---------------------------------------------------
@@ -396,7 +404,11 @@ const GAME_MODES = Object.freeze({
     // Moved verbatim from startWordGame's old inline cloze branch — same
     // fallback-to-forward-flashcard behavior on every failure path,
     // preserved exactly per the "don't change the fallback quirk" call.
-    async renderQuestion({ wordObj, fallbackTranslations }) {
+    async renderQuestion({
+      wordObj,
+      fallbackTranslations,
+      plannedMode = null,
+    }) {
       if (
         BANNED_WORD_CLASSES.some((b) =>
           wordObj.gender?.toLowerCase().startsWith(b),
@@ -418,7 +430,8 @@ const GAME_MODES = Object.freeze({
 
       if (
         getGameSentenceTranslation(wordObj, clozeTarget.sentenceIndex) &&
-        shouldUseTypedRecall(wordObj, "cloze")
+        (plannedMode === "typed-cloze" ||
+          (plannedMode === null && shouldUseTypedRecall(wordObj, "cloze")))
       ) {
         renderClozeGameUI(
           wordObj,
@@ -464,8 +477,15 @@ const GAME_MODES = Object.freeze({
     // cloze/reverse's typed variants, which need a saved sentence
     // translation as the learner's only semantic anchor) — the audio itself
     // is the whole prompt, replayable as many times as needed.
-    async renderQuestion({ wordObj, fallbackTranslations }) {
-      if (shouldUseTypedRecall(wordObj, "listening")) {
+    async renderQuestion({
+      wordObj,
+      fallbackTranslations,
+      plannedMode = null,
+    }) {
+      if (
+        plannedMode === "typed-listening" ||
+        (plannedMode === null && shouldUseTypedRecall(wordObj, "listening"))
+      ) {
         renderWordGameUI(wordObj, [], false, "typed-listening");
         return;
       }
@@ -479,10 +499,16 @@ const GAME_MODES = Object.freeze({
     freePlayProbability: (ctx) =>
       interpolateByAbility(ctx.ability, REVERSE_FLASHCARD_PROBABILITY) ?? 0.25,
     instructionText: () => "Choose the Norwegian word",
-    async renderQuestion({ wordObj, forceTypedReverse }) {
+    async renderQuestion({
+      wordObj,
+      forceTypedReverse,
+      plannedMode = null,
+    }) {
       if (
         getGameSentenceTranslation(wordObj, 0) &&
-        (forceTypedReverse || shouldUseTypedRecall(wordObj, "reverse"))
+        (forceTypedReverse ||
+          plannedMode === "typed-reverse" ||
+          (plannedMode === null && shouldUseTypedRecall(wordObj, "reverse")))
       ) {
         renderWordGameUI(wordObj, [], false, "typed-reverse");
         return;
@@ -797,8 +823,32 @@ function getWordCefrLabel(entry) {
   return CEFR_DIFFICULTY_ANCHOR[cefr] !== undefined ? cefr : "B1";
 }
 
+// How far a per-word frequency-based nudge may move a word within its own
+// CEFR band, in the same units as CEFR_DIFFICULTY_ANCHOR. CEFR bands are
+// hand-curated ground truth for real difficulty (grammar, abstractness);
+// frequency only refines *position within* a band, since a word's frequency
+// alone can't be trusted to reorder bands (a common but grammatically
+// advanced word shouldn't get rated as easy as an actual A1 word). Kept
+// safely under half the 200-unit spacing between band centers (leaving a
+// 40-unit gap even at both bands' extremes), so a nudged word can never
+// numerically cross into a neighboring band.
+const DIFFICULTY_BAND_NUDGE_RANGE = 80;
+
+// The band anchor is the primary difficulty signal; a word's blended
+// frequency rank (see VOCABULARY_FREQUENCY_DATA.md), when available, nudges
+// it within the band via bandPercentile — a 0-1 position among only the
+// other words in the *same* band, not the whole dictionary. This single
+// function feeds the Elo-style ability rating (updateAbilityScore), exercise
+// selection (predictQuestionSuccess), and word-selection weighting
+// (getRawAbilityProximity/getCoreVocabularyCandidatePool) — refining it here
+// refines all three at once. Words with no frequency record at all fall
+// back to the plain band center, exactly as before.
 function getWordDifficultyAnchor(entry) {
-  return CEFR_DIFFICULTY_ANCHOR[getWordCefrLabel(entry)];
+  const bandCenter = CEFR_DIFFICULTY_ANCHOR[getWordCefrLabel(entry)];
+  const bandPercentile = getVocabularyFrequencyRecord(entry)?.bandPercentile;
+  if (!Number.isFinite(bandPercentile)) return bandCenter;
+
+  return bandCenter - (bandPercentile - 0.5) * 2 * DIFFICULTY_BAND_NUDGE_RANGE;
 }
 
 // Elo/logistic-style update: predicts the probability the learner gets a
@@ -1214,6 +1264,13 @@ function getDisplayedAnswer(value) {
   return normalizeGameWhitespace(String(value ?? "").split(",")[0]);
 }
 
+function getEnglishEntryVariants(entry) {
+  return String(entry?.engelsk ?? "")
+    .split(",")
+    .map(normalizeGameAnswer)
+    .filter(Boolean);
+}
+
 // scripts.js (which defines escapeHTML) always loads before this file — see
 // index.html's script order.
 function escapeGameHTML(value) {
@@ -1250,13 +1307,14 @@ function getNorwegianEntryVariants(entry) {
 }
 
 function getTypedRecallProbability(wordObj, mode) {
-  const probabilities = TYPED_RECALL_PROBABILITY[mode];
-  if (!probabilities) return 0;
+  const readiness = TYPED_RECALL_READINESS[mode];
+  if (!readiness) return 0;
 
-  const snapshot = window.WordStrengthAPI?.getSnapshot?.(wordObj);
-  // New and relearning words stay supported by choices. This also makes the
-  // feature a no-op when durable study data is unavailable.
-  if (!snapshot || snapshot.queue === "new" || snapshot.queue === "relearning") {
+  const skill = getQuestionSkillForMode(mode);
+  const snapshot =
+    window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, skill) ??
+    window.WordStrengthAPI?.getSnapshot?.(wordObj);
+  if (snapshot?.queue === "relearning") {
     return 0;
   }
 
@@ -1269,15 +1327,367 @@ function getTypedRecallProbability(wordObj, mode) {
   // dropped again too. Free play only: a structured round (daily quest/
   // bonus) that forces a typed question via forceTypedReverse bypasses this
   // function entirely, matching those rounds' own fixed-recipe design.
-  if (window.SpacedRepetition?.isChronicallyStruggling?.(snapshot.record)) {
+  if (window.SpacedRepetition?.isChronicallyStruggling?.(snapshot?.record)) {
     return 0;
   }
 
-  return probabilities[snapshot.strength] ?? 0;
+  const predictedSuccess = predictQuestionSuccess(wordObj, mode);
+  const readinessProgress = Math.min(
+    1,
+    Math.max(
+      0,
+      (predictedSuccess - readiness.start) /
+        (readiness.full - readiness.start),
+    ),
+  );
+  return readiness.maximum * readinessProgress;
 }
 
 function shouldUseTypedRecall(wordObj, mode, randomValue = Math.random()) {
   return randomValue < getTypedRecallProbability(wordObj, mode);
+}
+
+// --- On-device word/exercise success prediction --------------------------
+// This first predictor deliberately stays small and inspectable. It combines
+// the existing ability estimate, the word's personal SRS retrievability, and
+// a format difficulty prior. A per-format calibration bias learns online from
+// this learner's own answers. No answer history leaves the device and failure
+// to read/write storage degrades to the static priors.
+const QUESTION_PAIR_PREDICTOR_STORAGE_KEY =
+  "norwegian-dictionary-question-pair-predictor-v1";
+const QUESTION_PAIR_PREDICTOR_VERSION = 1;
+const QUESTION_PAIR_TARGET_SUCCESS = 0.85;
+const QUESTION_PAIR_TARGET_SIGMA = 0.1;
+const QUESTION_PAIR_CHALLENGE_FLOOR = 0.1;
+const QUESTION_PAIR_CALIBRATION_LIMIT = 1.5;
+const QUESTION_PAIR_MODE_BIAS = Object.freeze({
+  forward: 0.6,
+  cloze: 0.25,
+  listening: 0.1,
+  reverse: -0.2,
+  "typed-cloze": -0.45,
+  "typed-reverse": -0.65,
+  "typed-listening": -0.75,
+});
+
+function getQuestionSkillForMode(mode) {
+  if (mode === "cloze" || mode === "typed-cloze") return "context";
+  if (mode === "reverse" || mode === "typed-reverse") return "production";
+  if (mode === "listening" || mode === "typed-listening") return "listening";
+  return "recognition";
+}
+
+function clampProbability(value) {
+  return Math.min(0.98, Math.max(0.02, value));
+}
+
+function probabilityToLogOdds(value) {
+  const probability = clampProbability(value);
+  return Math.log(probability / (1 - probability));
+}
+
+function logOddsToProbability(value) {
+  return 1 / (1 + Math.exp(-value));
+}
+
+function normalizeQuestionPairPredictorState(value) {
+  const modes = {};
+  for (const mode of Object.keys(QUESTION_PAIR_MODE_BIAS)) {
+    const storedMode = value?.modes?.[mode];
+    modes[mode] = {
+      attempts: Math.max(0, Math.floor(Number(storedMode?.attempts) || 0)),
+      bias: Math.min(
+        QUESTION_PAIR_CALIBRATION_LIMIT,
+        Math.max(
+          -QUESTION_PAIR_CALIBRATION_LIMIT,
+          Number(storedMode?.bias) || 0,
+        ),
+      ),
+    };
+  }
+  return { version: QUESTION_PAIR_PREDICTOR_VERSION, modes };
+}
+
+function loadQuestionPairPredictorState() {
+  try {
+    const stored = JSON.parse(
+      window.localStorage?.getItem(QUESTION_PAIR_PREDICTOR_STORAGE_KEY) ||
+        "null",
+    );
+    if (stored?.version === QUESTION_PAIR_PREDICTOR_VERSION) {
+      return normalizeQuestionPairPredictorState(stored);
+    }
+  } catch (_error) {
+    // A private/restricted storage context should not block the game.
+  }
+  return normalizeQuestionPairPredictorState(null);
+}
+
+let questionPairPredictorState = loadQuestionPairPredictorState();
+
+function saveQuestionPairPredictorState() {
+  try {
+    window.localStorage?.setItem(
+      QUESTION_PAIR_PREDICTOR_STORAGE_KEY,
+      JSON.stringify(questionPairPredictorState),
+    );
+  } catch (_error) {
+    // The in-memory calibration still improves this visit.
+  }
+}
+
+function predictQuestionSuccess(wordObj, mode, now = Date.now()) {
+  const effectiveAbility = Number.isFinite(abilityScore)
+    ? abilityScore
+    : CEFR_DIFFICULTY_ANCHOR.A1;
+  const abilityProbability = getExpectedSuccessProbability(
+    getWordDifficultyAnchor(wordObj),
+    effectiveAbility,
+  );
+  const skill = getQuestionSkillForMode(mode);
+  const snapshot =
+    window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, skill, now) ??
+    window.WordStrengthAPI?.getSnapshot?.(wordObj, now);
+  const hasPersonalMemory = Boolean(snapshot?.record);
+  const retrievability = Number(snapshot?.retrievability);
+  const memoryProbability =
+    hasPersonalMemory && Number.isFinite(retrievability)
+      ? 0.7 * clampProbability(retrievability) + 0.3 * abilityProbability
+      : abilityProbability;
+  const modeBias = QUESTION_PAIR_MODE_BIAS[mode] ?? 0;
+  const learnedBias = questionPairPredictorState.modes[mode]?.bias ?? 0;
+
+  return clampProbability(
+    logOddsToProbability(
+      probabilityToLogOdds(memoryProbability) + modeBias + learnedBias,
+    ),
+  );
+}
+
+function getQuestionPairChallengeFit(predictedSuccess) {
+  const distance = predictedSuccess - QUESTION_PAIR_TARGET_SUCCESS;
+  const gaussian = Math.exp(
+    -(distance * distance) /
+      (2 * QUESTION_PAIR_TARGET_SIGMA * QUESTION_PAIR_TARGET_SIGMA),
+  );
+  return QUESTION_PAIR_CHALLENGE_FLOOR +
+    (1 - QUESTION_PAIR_CHALLENGE_FLOOR) * gaussian;
+}
+
+const QUESTION_MODE_PREREQUISITE = Object.freeze({
+  cloze: "forward",
+  "typed-cloze": "cloze",
+  reverse: "cloze",
+  "typed-reverse": "reverse",
+  listening: "reverse",
+  "typed-listening": "listening",
+});
+const QUESTION_PROGRESSION_FLOOR = 0.15;
+const QUESTION_PROGRESSION_START = 0.65;
+const QUESTION_PROGRESSION_FULL = 0.9;
+
+function getQuestionProgressionWeight(wordObj, mode) {
+  const prerequisiteMode = QUESTION_MODE_PREREQUISITE[mode];
+  if (!prerequisiteMode) return 1;
+
+  const prerequisiteSuccess = predictQuestionSuccess(
+    wordObj,
+    prerequisiteMode,
+  );
+  const progress = Math.min(
+    1,
+    Math.max(
+      0,
+      (prerequisiteSuccess - QUESTION_PROGRESSION_START) /
+        (QUESTION_PROGRESSION_FULL - QUESTION_PROGRESSION_START),
+    ),
+  );
+  // Smoothstep avoids abrupt changes at either end. The non-zero floor is
+  // deliberate: this is a learning ladder, not a hard content lock.
+  const smoothProgress = progress * progress * (3 - 2 * progress);
+  return (
+    QUESTION_PROGRESSION_FLOOR +
+    (1 - QUESTION_PROGRESSION_FLOOR) * smoothProgress
+  );
+}
+
+function getQuestionSkillUrgencyWeight(wordObj, mode, now = Date.now()) {
+  const overall = window.WordStrengthAPI?.getSnapshot?.(wordObj, now);
+  const hasActiveReview = Boolean(
+    overall?.record &&
+      (overall.queue === "relearning" || overall.isDue || overall.isApproaching),
+  );
+  if (!hasActiveReview) return 1;
+
+  const skill = getQuestionSkillForMode(mode);
+  const snapshot =
+    window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, skill, now) ?? overall;
+  const need = Math.min(1, Math.max(0, Number(snapshot?.recallNeed) || 0));
+  if (snapshot?.queue === "relearning") return 0.65 + 0.35 * need;
+  if (snapshot?.isDue || snapshot?.queue === "due") {
+    return 0.5 + 0.5 * need;
+  }
+  if (snapshot?.isApproaching) return 0.25 + 0.5 * need;
+  // The mode remains possible, particularly when fixed-format rounds require
+  // it, but ordinary play strongly favors repairing the actually due skill.
+  return 0.05;
+}
+
+function beginQuestionPrediction(wordObj, mode) {
+  currentQuestionPrediction = {
+    mode,
+    skill: getQuestionSkillForMode(mode),
+    predictedSuccess: predictQuestionSuccess(wordObj, mode),
+  };
+}
+
+function recordQuestionPredictionOutcome(wasCorrect) {
+  const prediction = currentQuestionPrediction;
+  if (!prediction || !(prediction.mode in QUESTION_PAIR_MODE_BIAS)) return;
+
+  const modeState = questionPairPredictorState.modes[prediction.mode];
+  const learningRate = Math.max(
+    0.05,
+    0.3 / Math.sqrt(1 + modeState.attempts / 20),
+  );
+  const outcome = wasCorrect ? 1 : 0;
+  modeState.bias = Math.min(
+    QUESTION_PAIR_CALIBRATION_LIMIT,
+    Math.max(
+      -QUESTION_PAIR_CALIBRATION_LIMIT,
+      modeState.bias + learningRate * (outcome - prediction.predictedSuccess),
+    ),
+  );
+  modeState.attempts += 1;
+  currentQuestionPrediction = null;
+  saveQuestionPairPredictorState();
+}
+
+function addQuestionModeCandidate(candidates, mode, weight) {
+  if (!(weight > 0)) return;
+  const existing = candidates.find((candidate) => candidate.mode === mode);
+  if (existing) {
+    existing.weight += weight;
+  } else {
+    candidates.push({ mode, weight });
+  }
+}
+
+function splitTypedQuestionMode(candidates, wordObj, mode, weight) {
+  const typedProbability = getTypedRecallProbability(wordObj, mode);
+  const typedMode = `typed-${mode}`;
+  const typedIsUsable =
+    mode === "listening" || Boolean(getGameSentenceTranslation(wordObj, 0));
+  if (!typedIsUsable || !(typedMode in QUESTION_PAIR_MODE_BIAS)) {
+    addQuestionModeCandidate(candidates, mode, weight);
+    return;
+  }
+  addQuestionModeCandidate(
+    candidates,
+    typedMode,
+    weight * typedProbability,
+  );
+  addQuestionModeCandidate(
+    candidates,
+    mode,
+    weight * (1 - typedProbability),
+  );
+}
+
+function getStructuredQuestionModeForWord(wordObj) {
+  const hasAudio = hasPlayableWordAudio(wordObj);
+  if (wordGameIsPlacementRound) return "forward";
+  if (wordGameIsTodayPracticeRound) {
+    return getDailyQuestQuestionMode(
+      wordGameDailyQuestIndex,
+      wordGameSessionQuestionsAnswered,
+      hasAudio,
+    );
+  }
+  if (wordGameIsBonusRound) {
+    return getBonusRoundQuestionMode(
+      wordGameSessionIntroducedWords.size,
+      hasAudio,
+    );
+  }
+  return null;
+}
+
+function getQuestionModeCandidates(wordObj) {
+  const candidates = [];
+  const structuredMode = getStructuredQuestionModeForWord(wordObj);
+  if (structuredMode === "typed-reverse") {
+    return [{ mode: "typed-reverse", weight: 1 }];
+  }
+  if (structuredMode) {
+    if (["cloze", "listening", "reverse"].includes(structuredMode)) {
+      splitTypedQuestionMode(candidates, wordObj, structuredMode, 1);
+    } else {
+      addQuestionModeCandidate(candidates, structuredMode, 1);
+    }
+    return candidates;
+  }
+
+  const hasAudio = hasPlayableWordAudio(wordObj);
+  const listeningProbability = hasAudio
+    ? interpolateByAbility(abilityScore, LISTENING_PROBABILITY) ?? 0.25
+    : 0;
+  const reverseProbability =
+    interpolateByAbility(abilityScore, REVERSE_FLASHCARD_PROBABILITY) ?? 0.25;
+  const clozeWeight = 0.5;
+  const listeningWeight = 0.5 * listeningProbability;
+  const reverseWeight =
+    0.5 * (1 - listeningProbability) * reverseProbability;
+  let forwardWeight = 1 - clozeWeight - listeningWeight - reverseWeight;
+  const canAttemptCloze =
+    Boolean(String(wordObj?.eksempel ?? "").trim()) &&
+    !BANNED_WORD_CLASSES.some((wordClass) =>
+      String(wordObj?.gender ?? "").toLowerCase().startsWith(wordClass),
+    );
+
+  if (canAttemptCloze) {
+    splitTypedQuestionMode(candidates, wordObj, "cloze", clozeWeight);
+  } else {
+    forwardWeight += clozeWeight;
+  }
+  splitTypedQuestionMode(
+    candidates,
+    wordObj,
+    "listening",
+    listeningWeight,
+  );
+  splitTypedQuestionMode(candidates, wordObj, "reverse", reverseWeight);
+  addQuestionModeCandidate(candidates, "forward", forwardWeight);
+  return candidates;
+}
+
+function getQuestionPairPlan(wordObj) {
+  const candidates = getQuestionModeCandidates(wordObj).map((candidate) => {
+    const predictedSuccess = predictQuestionSuccess(wordObj, candidate.mode);
+    return {
+      ...candidate,
+      predictedSuccess,
+      pairWeight:
+        candidate.weight *
+        getQuestionPairChallengeFit(predictedSuccess) *
+        getQuestionProgressionWeight(wordObj, candidate.mode) *
+        getQuestionSkillUrgencyWeight(wordObj, candidate.mode),
+    };
+  });
+  const totalPairWeight = candidates.reduce(
+    (sum, candidate) => sum + candidate.pairWeight,
+    0,
+  );
+  return {
+    candidates,
+    totalPairWeight: totalPairWeight > 0 ? totalPairWeight : 1,
+  };
+}
+
+function chooseQuestionModeFromPlan(plan) {
+  if (!plan?.candidates?.length) return "forward";
+  const weights = plan.candidates.map((candidate) => candidate.pairWeight);
+  return pickWeightedGameWord(plan.candidates, weights)?.mode ?? "forward";
 }
 
 function getTypedAcceptedAnswers(wordObj, isCloze, correctAnswer) {
@@ -1298,8 +1708,7 @@ function getTypedAcceptedAnswers(wordObj, isCloze, correctAnswer) {
   // answer has to support one of the articles shown on the question card.
   for (const candidate of results) {
     if (
-      normalizeGameAnswer(getDisplayedAnswer(candidate?.engelsk)) !==
-        targetEnglish ||
+      !getEnglishEntryVariants(candidate).includes(targetEnglish) ||
       !WordClass.hasCompatibleGender(wordObj?.gender, candidate?.gender)
     ) {
       continue;
@@ -3500,6 +3909,11 @@ async function startWordGame() {
     return;
   }
 
+  // A new question must never inherit the unrendered plan or calibration
+  // record from a question the learner left midway through.
+  plannedQuestionMode = null;
+  currentQuestionPrediction = null;
+
   // Cloze questions use synchronous exact-form lookups once a question is
   // selected. Resolve the compact official snapshot once up front; a pending
   // background preload is reused, and a failed load simply makes cloze fall
@@ -3709,31 +4123,27 @@ async function startWordGame() {
   // full game feedback and scheduler, but a consistent question format
   // makes the seven calibration answers comparable and avoids dropping a
   // brand-new learner straight into cloze or productive recall.
-  const structuredQuestionMode = wordGameIsPlacementRound
-    ? "forward"
-    : wordGameIsTodayPracticeRound
-      ? getDailyQuestQuestionMode(
-          wordGameDailyQuestIndex,
-          wordGameSessionQuestionsAnswered,
-          hasAudio,
-        )
-      : wordGameIsBonusRound
-        ? getBonusRoundQuestionMode(
-            Math.max(0, wordGameSessionIntroducedWords.size - 1),
-            hasAudio,
-          )
-        : null;
-  const forceTypedReverse = structuredQuestionMode === "typed-reverse";
-  // See SELECTION_MODES/selectQuestionMode above for the actual priority
-  // and probability logic this consumes — cloze, then listening, then
-  // reverse, each either named by a structured round or drawn from its own
-  // ability-scaled coin flip in free play, with forward as the default.
-  const questionMode = selectQuestionMode({
-    structuredQuestionMode,
-    forceTypedReverse,
-    ability: abilityScore,
-    hasAudio,
-  });
+  // fetchRandomWord chose this exercise together with the word. Keep the old
+  // selector as a defensive fallback for a direct/legacy caller that returns
+  // a word without a plan.
+  const structuredQuestionMode = getStructuredQuestionModeForWord(
+    randomWordObj,
+  );
+  const selectedPlannedMode = plannedQuestionMode;
+  const forceTypedReverse =
+    selectedPlannedMode === "typed-reverse" ||
+    structuredQuestionMode === "typed-reverse";
+  const plannedTopLevelMode = selectedPlannedMode?.startsWith("typed-")
+    ? selectedPlannedMode.slice("typed-".length)
+    : selectedPlannedMode;
+  const questionMode =
+    plannedTopLevelMode ??
+    selectQuestionMode({
+      structuredQuestionMode,
+      forceTypedReverse,
+      ability: abilityScore,
+      hasAudio,
+    });
   const isClozeQuestion = questionMode === "cloze";
   const isListeningQuestion = questionMode === "listening";
   const isReverseQuestion = questionMode === "reverse";
@@ -3769,6 +4179,7 @@ async function startWordGame() {
     wordObj: randomWordObj,
     fallbackTranslations,
     forceTypedReverse,
+    plannedMode: selectedPlannedMode,
   });
 
   // Render the updated stats box. Safe to call unconditionally even though
@@ -4237,6 +4648,8 @@ function renderWordGameUI(
   const isReverse = mode === "reverse" || mode === "typed-reverse";
   const isListening = mode === "listening" || isDictation;
 
+  beginQuestionPrediction(wordObj, mode);
+
   // Each render replaces the previous question entirely, so nothing still
   // references earlier entries — reset instead of growing forever.
   wordDataStore = [];
@@ -4465,6 +4878,11 @@ function renderClozeGameUI(
 
     return;
   }
+
+  beginQuestionPrediction(
+    wordObj,
+    useTypedRecall ? "typed-cloze" : "cloze",
+  );
 
   const sentenceWithBlank =
     clozeTarget.sentence.slice(0, clozeTarget.startIndex) +
@@ -4901,6 +5319,18 @@ async function handleTranslationClick(
           normalizeGameAnswer(correctTranslationPart),
         ));
   const answerWasCorrect = exactAnswerMatch || nearMissTypedMatch;
+  const answerSkill = isCloze
+    ? "context"
+    : isListening
+      ? "listening"
+      : isReverse
+        ? "production"
+        : "recognition";
+  const answerSkillSnapshot =
+    window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, answerSkill) ??
+    window.WordStrengthAPI?.getSnapshot?.(wordObj);
+
+  recordQuestionPredictionOutcome(answerWasCorrect);
 
   resetTodayPracticeRoundAfterMidnight(wordObj);
   const { exampleSentence, sentenceTranslation } =
@@ -4928,14 +5358,16 @@ async function handleTranslationClick(
     correctStreak++; // Increment the streak
     updateRecentAnswers(true, wordObj); // Track this correct answer
     window.WordStrengthAPI?.recordResult?.(wordObj, true, {
-      // A bounded-round filler or voluntary early review is not a spaced
-      // retrieval and therefore must not lengthen the durable interval.
-      // The second clause is wasTyped from the flag map above: a word that
-      // still requires typed mastery doesn't earn SRS credit for a
-      // multiple-choice-only correct answer.
-      credit: !["session-filler", "scheduled"].includes(
-        currentWordQueueType,
-      ) && !(activeQueueEntry?.requiresTypedMastery && !wasTyped),
+      skill: answerSkill,
+      // A bounded-round filler or a skill shown ahead of its own approach
+      // window is not a spaced retrieval and must not lengthen that skill's
+      // durable interval. A word that still requires typed mastery likewise
+      // earns no SRS credit for a multiple-choice-only correct answer.
+      credit:
+        currentWordQueueType !== "session-filler" &&
+        (answerSkillSnapshot?.queue !== "scheduled" ||
+          answerSkillSnapshot?.isApproaching) &&
+        !(activeQueueEntry?.requiresTypedMastery && !wasTyped),
       deferRemote: true,
     });
     if (wordGameRoundActive) {
@@ -5019,6 +5451,7 @@ async function handleTranslationClick(
     correctStreak = 0; // Reset the streak
     updateRecentAnswers(false, wordObj); // Track this correct answer
     window.WordStrengthAPI?.recordResult?.(wordObj, false, {
+      skill: answerSkill,
       deferRemote: true,
     });
     if (wordGameRoundActive) {
@@ -5352,16 +5785,26 @@ function getEligibleGameWords(
 
 const STRENGTH_WEIGHT_CEILING = 6; // WordStrengthAPI values are 0-5
 const STRENGTH_WEIGHT_EXPONENT = 2; // squared — retune here if the curve needs adjusting
+const RECALL_NEED_WEIGHT_EXPONENT = 1.5;
+const RECALL_NEED_WEIGHT_FLOOR = 0.02;
 
-// CLARINO's usefulness metadata is a separate, generated sidecar rather than
-// another norwegianWords.csv column. Surface-form counts are aggregated into
-// entry records offline using unambiguous official Norsk Ordbank inflections;
-// the browser only loads the compact result when a placement or genuinely new-
-// word draw first needs it. A failed request degrades to neutral weights;
-// vocabulary selection must never depend on this enhancement being online.
-const VOCABULARY_FREQUENCY_DATA_VERSION = 2;
-const VOCABULARY_USEFULNESS_RANK_MIDPOINT = 750;
-const VOCABULARY_USEFULNESS_MAX_BOOST = 3;
+// Vocabulary usefulness metadata is a separate, generated sidecar rather than
+// another norwegianWords.csv column. It blends three registers — CLARINO
+// newspaper text, OpenSubtitles conversational text, and NB N-gram digibok
+// book text — so no single corpus's quirks (e.g. newspaper over-representing
+// politics/journalism vocabulary) dominate the signal; see
+// VOCABULARY_FREQUENCY_DATA.md for the blend method. Surface-form counts are
+// aggregated into entry records offline using unambiguous official Norsk
+// Ordbank inflections. Loading is kicked off unconditionally at script load
+// (see the bottom of this file) since it now also refines per-word
+// difficulty (getWordDifficultyAnchor) for the Elo-style ability rating on
+// every answer, not just new-word/placement selection — the two narrower
+// awaits below remain as a safety net for whichever comes first. A failed or
+// not-yet-resolved request degrades to neutral weights and the plain CEFR
+// band center; neither ability rating nor vocabulary selection may ever
+// depend on this enhancement being online.
+const VOCABULARY_FREQUENCY_DATA_VERSION = 4;
+const VOCABULARY_USEFULNESS_MAX_BOOST = 0.7;
 const CORE_VOCABULARY_MIN_PROXIMITY = 0.25;
 let vocabularyFrequencyEntries = null;
 let vocabularyFrequencyPromise = null;
@@ -5400,10 +5843,11 @@ async function loadVocabularyFrequencyRanks() {
   return vocabularyFrequencyPromise;
 }
 
-// A smooth, bounded rank curve: the very top of the CLARINO list receives
-// nearly 4x weight, rank 750 receives 2.5x, rank 3,000 receives 1.6x, and a
-// matched word near the bottom still gets a small boost. Unmatched dictionary
-// words remain fully available at weight 1 rather than being filtered out.
+// Frequency primarily decides which unseen words enter the core pool (see
+// getCoreVocabularyCandidatePool). Once admitted, it is deliberately only a
+// secondary signal: the blended, pre-normalized weight supplies at most a
+// 1.7x boost, leaving personal memory need, challenge fit, and ability
+// proximity dominant. Unmatched dictionary words retain a neutral weight of 1.
 function getVocabularyFrequencyEntryKey(entry) {
   const primary = getPrimaryNorwegianForm(entry)
     .normalize("NFC")
@@ -5427,22 +5871,19 @@ function getVocabularyFrequencyRank(entry) {
 }
 
 function getVocabularyUsefulnessWeight(entry) {
-  const bestRank = getVocabularyFrequencyRank(entry);
-  if (!bestRank) return 1;
+  const weight = getVocabularyFrequencyRecord(entry)?.weight;
+  if (!Number.isFinite(weight)) return 1;
 
-  return (
-    1 +
-    VOCABULARY_USEFULNESS_MAX_BOOST /
-      (1 + bestRank / VOCABULARY_USEFULNESS_RANK_MIDPOINT)
-  );
+  const frequencyValue = Math.min(1, Math.max(0, weight));
+  return 1 + VOCABULARY_USEFULNESS_MAX_BOOST * frequencyValue;
 }
 
-// The scheduler first chooses an explicit queue (relearning, due, new, or
-// scheduled fallback). Strength then influences only the draw *within that
-// queue*, so an undrilled new word can no longer jump ahead of an overdue
-// review merely because its scalar weight is larger. The cumulative My Words
-// quota is a separate user-directed allocation; on every remaining non-quota
-// slot, this queue order remains authoritative.
+// The scheduler first chooses an explicit queue (relearning, due, approaching,
+// new, or scheduled fallback). Continuous recall need then influences the draw
+// within review queues; the old coarse 0-5 strength remains only for pools
+// whose purpose is not SRS urgency. The cumulative My Words quota is a
+// separate user-directed allocation; on every remaining non-quota slot, this
+// queue order remains authoritative.
 
 // A Gaussian falloff centered on the learner's ability, in word-difficulty
 // units — this is what stands in for the old hard CEFR-level cutoff. A word
@@ -5525,9 +5966,10 @@ function getRawAbilityProximity(entry) {
   );
 }
 
-// CLARINO-ranked words are the useful core. Prefer core words that are either
-// reasonably close to the learner's continuous ability estimate or harder
-// than it. The second condition keeps upward exploration smooth; the proximity
+// Words ranked by any of the three blended frequency sources are the useful
+// core. Prefer core words that are either reasonably close to the learner's
+// continuous ability estimate or harder than it. The second condition keeps
+// upward exploration smooth; the proximity
 // condition prevents a strong learner's ordinary new-word slots from being
 // consumed by beginner words merely because those words rank highly in a
 // frequency list. This is deliberately one-sided: unexpectedly difficult
@@ -5571,14 +6013,22 @@ function getGameWordWeight(
   {
     useAbilityWeight = true,
     useUsefulnessWeight = false,
+    useRecallNeedWeight = false,
     cefrCounts = null,
   } = {},
 ) {
   const strength = window.WordStrengthAPI?.get?.(entry) ?? 0;
-  const strengthWeight = Math.pow(
-    STRENGTH_WEIGHT_CEILING - strength,
-    STRENGTH_WEIGHT_EXPONENT,
-  );
+  const recallNeed =
+    window.WordStrengthAPI?.getSnapshot?.(entry)?.recallNeed ?? 0;
+  const memoryWeight = useRecallNeedWeight
+    ? Math.pow(
+        Math.max(RECALL_NEED_WEIGHT_FLOOR, recallNeed),
+        RECALL_NEED_WEIGHT_EXPONENT,
+      )
+    : Math.pow(
+        STRENGTH_WEIGHT_CEILING - strength,
+        STRENGTH_WEIGHT_EXPONENT,
+      );
   const abilityWeight = useAbilityWeight
     ? getAbilityProximityWeight(entry, cefrCounts)
     : 1;
@@ -5586,7 +6036,7 @@ function getGameWordWeight(
     ? getVocabularyUsefulnessWeight(entry)
     : 1;
 
-  return strengthWeight * abilityWeight * usefulnessWeight;
+  return memoryWeight * abilityWeight * usefulnessWeight;
 }
 
 /*
@@ -5616,7 +6066,11 @@ function pickWeightedGameWord(entries, weights) {
 
 function pickPrioritizedGameWord(
   eligibleEntries,
-  { useAbilityWeight = true, useUsefulnessWeight = false } = {},
+  {
+    useAbilityWeight = true,
+    useUsefulnessWeight = false,
+    useRecallNeedWeight = false,
+  } = {},
 ) {
   // Only needed (and only worth the pass over eligibleEntries) when ability
   // weighting is actually in play — see getAbilityProximityWeight.
@@ -5624,16 +6078,25 @@ function pickPrioritizedGameWord(
     ? countEntriesByCefr(eligibleEntries)
     : null;
 
-  return pickWeightedGameWord(
-    eligibleEntries,
-    eligibleEntries.map((entry) =>
-      getGameWordWeight(entry, {
-        useAbilityWeight,
-        useUsefulnessWeight,
-        cefrCounts,
-      }),
-    ),
-  );
+  const pairPlans = eligibleEntries.map(getQuestionPairPlan);
+  const weights = eligibleEntries.map((entry, index) => {
+    const wordWeight = getGameWordWeight(entry, {
+      useAbilityWeight,
+      useUsefulnessWeight,
+      useRecallNeedWeight,
+      cefrCounts,
+    });
+    // Placement is an assessment sample, not adaptive practice: its word
+    // draw must not drift toward the target practice-success rate.
+    return (
+      wordWeight *
+      (wordGameIsPlacementRound ? 1 : pairPlans[index].totalPairWeight)
+    );
+  });
+  const selectedEntry = pickWeightedGameWord(eligibleEntries, weights);
+  const selectedIndex = eligibleEntries.indexOf(selectedEntry);
+  plannedQuestionMode = chooseQuestionModeFromPlan(pairPlans[selectedIndex]);
+  return selectedEntry;
 }
 
 // --- My Words mix ---------------------------------------------------------
@@ -5740,26 +6203,42 @@ function pickMyWordsQuotaWord(candidateEntries) {
 
   if (eligibleSaved.length === 0) return null;
 
-  // Strength decides among multiple eligible saved candidates.
-  return pickWeightedGameWord(
-    eligibleSaved,
-    eligibleSaved.map((entry) =>
-      getGameWordWeight(entry, { useAbilityWeight: false }),
+  // The quota decides that this slot belongs to My Words. Scheduler order and
+  // continuous review urgency operate only inside that saved-word pool, so
+  // the selected percentage remains exact.
+  const queues = buildGameWordQueues(eligibleSaved);
+  const queueName = getNextGameQueueName(queues);
+  const queueEntries =
+    queueName === "scheduled"
+      ? getNearestScheduledGameWords(queues.scheduled)
+      : queues[queueName] ?? [];
+  return pickPrioritizedGameWord(queueEntries, {
+    useAbilityWeight: false,
+    useRecallNeedWeight: ["relearning", "due", "approaching"].includes(
+      queueName,
     ),
-  );
+  });
+}
+
+function getGameEntryQueue(entry, now = Date.now()) {
+  const snapshot = window.WordStrengthAPI?.getSnapshot?.(entry, now);
+  if (snapshot?.queue === "scheduled" && snapshot.isApproaching) {
+    return "approaching";
+  }
+  return snapshot?.queue ?? "new";
 }
 
 function buildGameWordQueues(eligibleEntries, now = Date.now()) {
   const queues = {
     relearning: [],
     due: [],
+    approaching: [],
     new: [],
     scheduled: [],
   };
 
   for (const entry of eligibleEntries) {
-    const queue =
-      window.WordStrengthAPI?.getSnapshot?.(entry, now)?.queue ?? "new";
+    const queue = getGameEntryQueue(entry, now);
 
     queues[queue]?.push(entry);
   }
@@ -5768,7 +6247,7 @@ function buildGameWordQueues(eligibleEntries, now = Date.now()) {
 }
 
 function getNextGameQueueName(queues) {
-  return ["relearning", "due", "new", "scheduled"].find(
+  return ["relearning", "due", "approaching", "new", "scheduled"].find(
     (queueName) => queues[queueName]?.length > 0,
   );
 }
@@ -5782,7 +6261,7 @@ function getNearestScheduledGameWords(entries) {
     .map((entry) => ({
       entry,
       dueAt:
-        window.WordStrengthAPI?.getRecord?.(entry)?.dueAt ??
+        window.WordStrengthAPI?.getSnapshot?.(entry)?.record?.dueAt ??
         Number.POSITIVE_INFINITY,
     }))
     .sort((left, right) => left.dueAt - right.dueAt)
@@ -5831,10 +6310,9 @@ function pickWordGameSessionFillerWord() {
   const reviewCandidates = getFillerReviewCandidates();
 
   if (reviewCandidates.length > 0) {
-    return pickWeightedGameWord(
-      reviewCandidates,
-      reviewCandidates.map(getGameWordWeight),
-    );
+    return pickPrioritizedGameWord(reviewCandidates, {
+      useAbilityWeight: false,
+    });
   }
 
   // Nothing correct yet to review (e.g. every introduced word so far has
@@ -5846,7 +6324,7 @@ function pickWordGameSessionFillerWord() {
   );
 
   return introduced.length > 0
-    ? introduced[Math.floor(Math.random() * introduced.length)]
+    ? pickPrioritizedGameWord(introduced, { useAbilityWeight: false })
     : null;
 }
 
@@ -5870,6 +6348,11 @@ async function fetchRandomWord() {
     // it's kept in sync here instead — otherwise a later non-filler draw in
     // the same round wouldn't know a filler question was just shown.
     if (fillerEntry) {
+      if (!plannedQuestionMode) {
+        plannedQuestionMode = chooseQuestionModeFromPlan(
+          getQuestionPairPlan(fillerEntry),
+        );
+      }
       previousWord = fillerEntry.ord;
       if (!wordGamePlacementCalibrationEnabled) {
         recordMyWordsMixQuestion(isMyWordsEntry(fillerEntry));
@@ -5921,9 +6404,7 @@ async function fetchRandomWord() {
 
     if (myWordsQuotaEntry) {
       selectedEntry = myWordsQuotaEntry;
-      currentWordQueueType =
-        window.WordStrengthAPI?.getSnapshot?.(myWordsQuotaEntry)?.queue ??
-        "new";
+      currentWordQueueType = getGameEntryQueue(myWordsQuotaEntry);
     } else {
       const queues = buildGameWordQueues(eligibleEntries);
       const queueName = getNextGameQueueName(queues);
@@ -5949,12 +6430,23 @@ async function fetchRandomWord() {
           : pickPrioritizedGameWord(ordinaryQueueEntries, {
               useAbilityWeight: queueName === "new",
               useUsefulnessWeight: queueName === "new",
+              useRecallNeedWeight: [
+                "relearning",
+                "due",
+                "approaching",
+              ].includes(queueName),
             });
     }
   }
 
   if (!selectedEntry) {
     return null;
+  }
+
+  if (!plannedQuestionMode) {
+    plannedQuestionMode = chooseQuestionModeFromPlan(
+      getQuestionPairPlan(selectedEntry),
+    );
   }
 
   if (!wordGamePlacementCalibrationEnabled) {
@@ -6477,6 +6969,8 @@ window.WordGameHelpers = Object.freeze({
   getVocabProgressSummary,
   buildVocabProgressBarMarkup,
   getVocabDueLabel,
+  loadVocabularyFrequencyRanks,
+  getVocabularyFrequencyRank,
 });
 
 // Keeps the vocabulary profile widget live if strength records change while
@@ -6488,3 +6982,12 @@ window.addEventListener("word-strength:updated", () => {
 });
 
 renderLandingDailyQuests();
+// Frequency data now feeds getWordDifficultyAnchor for every answer's Elo
+// rating update, not just new-word/placement draws (see the two narrower
+// `await loadVocabularyFrequencyRanks()` calls above) — kick off the fetch
+// unconditionally here so it has virtually always resolved by the time a
+// learner reaches their first real answer, even in an all-review session
+// that would otherwise never trigger it. Never awaited: a slow/failed
+// request must not block the landing page, and every consumer already
+// degrades to the plain band center when this hasn't resolved yet.
+loadVocabularyFrequencyRanks();

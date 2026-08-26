@@ -9,6 +9,8 @@
     "build:updates": "python3 scripts/build-updates-page.py",
     "build:frequency": "python3 scripts/build-vocabulary-frequency.py",
     "export:frequency": "python3 scripts/export-clarino-frequency.py",
+    "export:frequency:opensubtitles": "python3 scripts/export-opensubtitles-frequency.py",
+    "export:frequency:nb-ngram": "python3 scripts/export-nb-ngram-frequency.py",
     "validate:pages": "python3 scripts/validate-static-pages.py",
     "test:a11y": "python3 scripts/check-accessibility.py"
   },

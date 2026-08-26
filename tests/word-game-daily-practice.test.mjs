@@ -49,6 +49,14 @@ assert.equal(
   false,
 );
 assert.equal(
+  context.hasPlayableWordAudio({ ord: "hrmf", wordAudio: "X" }),
+  false,
+);
+assert.equal(
+  context.hasPlayableWordAudio({ ord: " HRMF ", wordAudio: "X" }),
+  false,
+);
+assert.equal(
   context.hasPlayableWordAudio({ ord: "hei", wordAudio: "" }),
   false,
 );
