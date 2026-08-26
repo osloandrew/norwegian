@@ -1400,6 +1400,17 @@ function displayStory(
   }
 
   stickyHeaderEl.style.display = "flex";
+  // Pre-rendered story pages (story/<slug>/index.html, captured by
+  // scripts/capture-word-pages.py) freeze a snapshot of this element's
+  // inline style attribute, including whatever align-items this code used
+  // to set at capture time. That baked-in value survives untouched here
+  // otherwise -- setting .style.display above only touches that one
+  // property, it doesn't clear others already present in the attribute --
+  // so every already-captured page keeps the old value forever regardless
+  // of what this function does going forward. Clear it explicitly so the
+  // mobile stylesheet's own #sticky-header rule (see 20-results-and-
+  // story-quiz.css) is what decides this, on every page alike.
+  stickyHeaderEl.style.removeProperty("align-items");
 
   // Let left and right stay their natural size, middle (audioSlot) expand
   const left = stickyHeaderEl.querySelector(".sticky-detail-container");
