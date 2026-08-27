@@ -181,6 +181,53 @@ class StaticPageBuildTests(unittest.TestCase):
         self.assertTrue(plan.rebuild_story_index)
         self.assertFalse(plan.rebuild_features)
 
+    def test_story_csv_files_are_diffed_independently_by_own_columns(self) -> None:
+        """Two story CSVs with different schemas (e.g. the authentic catalog's
+        extra source/license columns) must each be compared against their own
+        prior revision, not merged into one column set — see the
+        independent-diffing note on plan_incremental_build."""
+        empty_words = self.csv_dataset(("ord",), [])
+        original_fields = ("titleNorwegian", "norwegian", "english")
+        old_original = self.csv_dataset(
+            original_fields,
+            [
+                ("Delt tittel", "Gammel norsk.", "Old English."),
+                ("Kun original", "Uendret.", "Unchanged."),
+            ],
+        )
+        new_original = self.csv_dataset(
+            original_fields,
+            [
+                ("Delt tittel", "Ny norsk.", "New English."),
+                ("Kun original", "Uendret.", "Unchanged."),
+            ],
+        )
+        authentic_fields = ("titleNorwegian", "norwegian", "english", "source", "license")
+        old_authentic = self.csv_dataset(
+            authentic_fields,
+            [("Kun autentisk", "Autentisk tekst.", "Authentic text.", "vg.no", "CC-BY")],
+        )
+        new_authentic = self.csv_dataset(
+            authentic_fields,
+            # Only the license column changes; norwegian/english text is
+            # identical. This would be invisible if rows were compared using
+            # only the original catalog's columns.
+            [("Kun autentisk", "Autentisk tekst.", "Authentic text.", "vg.no", "CC-BY-SA")],
+        )
+
+        plan = build_static_pages.plan_incremental_build(
+            empty_words,
+            empty_words,
+            (old_original, old_authentic),
+            (new_original, new_authentic),
+            {},
+            {},
+        )
+
+        self.assertEqual(set(plan.stories), {"Delt tittel", "Kun autentisk"})
+        self.assertNotIn("Kun original", plan.stories)
+        self.assertTrue(plan.stories_changed)
+
     def test_question_only_change_does_not_rebuild_story_index(self) -> None:
         empty_words = self.csv_dataset(("ord",), [])
         stories = self.csv_dataset(
@@ -323,11 +370,7 @@ class StaticPageBuildTests(unittest.TestCase):
             "scripts/**/*.py",
         ):
             self.assertIn(renderer_input, renderer_fingerprint)
-        for incrementally_diffed_input in (
-            "norwegianWords.csv",
-            "norwegianStories.csv",
-            "storyQuestions.json",
-        ):
+        for incrementally_diffed_input in build_static_pages.SNAPSHOT_FILENAMES:
             self.assertNotIn(incrementally_diffed_input, renderer_fingerprint)
             self.assertIn(incrementally_diffed_input, data_fingerprint)
         self.assertIn("restore-keys:", workflow)

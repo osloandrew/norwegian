@@ -50,7 +50,7 @@ jobs:
           # revision its own key. actions/cache entries are immutable: without
           # the data suffix, each run would forever restore the first snapshot
           # and the incremental diff would grow on every upload.
-          key: pages-v1-${{ hashFiles('index.html', '*.js', 'vendor/**', 'styles/**/*.css', 'scripts/**/*.py', 'make-sitemap.py', 'requirements-pages.txt', 'inflections-data.json', 'norwegianSounds.csv') }}-${{ hashFiles('norwegianWords.csv', 'norwegianStories.csv', 'storyQuestions.json') }}
+          key: pages-v1-${{ hashFiles('index.html', '*.js', 'vendor/**', 'styles/**/*.css', 'scripts/**/*.py', 'make-sitemap.py', 'requirements-pages.txt', 'inflections-data.json', 'norwegianSounds.csv') }}-${{ hashFiles('norwegianWords.csv', 'norwegianStories.csv', 'norwegianAuthenticStories.csv', 'storyQuestions.json') }}
           restore-keys: |
             pages-v1-${{ hashFiles('index.html', '*.js', 'vendor/**', 'styles/**/*.css', 'scripts/**/*.py', 'make-sitemap.py', 'requirements-pages.txt', 'inflections-data.json', 'norwegianSounds.csv') }}-
 
