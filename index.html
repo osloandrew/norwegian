@@ -87,7 +87,7 @@
     />
     <link
       rel="stylesheet"
-      href="styles/01-document-shell.css?v=7327f07144"
+      href="styles/01-document-shell.css?v=ad804a478c"
     />
     <link
       rel="stylesheet"
@@ -95,7 +95,7 @@
     />
     <link
       rel="stylesheet"
-      href="styles/20-results-and-story-quiz.css?v=b89400e568"
+      href="styles/20-results-and-story-quiz.css?v=88fea8108a"
     />
     <link
       rel="stylesheet"
@@ -302,6 +302,76 @@
           lastPageViewKey = pageViewKey;
         }, 0);
       };
+
+      // Core Web Vitals, measured natively (PerformanceObserver) rather than
+      // via the third-party web-vitals library: LCP and CLS are both simple
+      // to get right without it, and the app otherwise avoids external
+      // runtime dependencies where a native API already covers the need.
+      // "fid_ms" is deliberately not called INP — real INP needs to track
+      // every interaction for the session and report the worst one, which is
+      // a lot more machinery than a first pass here needs; this is only the
+      // first interaction's delay (the old FID metric), a narrower but still
+      // useful proxy for "did the page feel responsive right away." Set up
+      // as early as possible (this is the first script in <head>) so the
+      // `buffered: true` observers below catch entries from the very start
+      // of navigation, not just from whenever this code happened to run.
+      // Gated on PerformanceObserver support only, not analyticsEnabled —
+      // same as the error listeners above, trackEvent()'s own internal
+      // check already no-ops the actual report on a non-production host,
+      // and observing costs nothing on its own.
+      if ("PerformanceObserver" in window) {
+        let webVitalsReported = false;
+        let lcpMs = null;
+        let clsScore = 0;
+        let fidMs = null;
+
+        try {
+          new PerformanceObserver((list) => {
+            const entries = list.getEntries();
+            const lastEntry = entries[entries.length - 1];
+            if (lastEntry) lcpMs = lastEntry.startTime;
+          }).observe({ type: "largest-contentful-paint", buffered: true });
+        } catch (error) {
+          // Unsupported in this browser — lcpMs stays null, just omitted below.
+        }
+
+        try {
+          new PerformanceObserver((list) => {
+            for (const entry of list.getEntries()) {
+              if (!entry.hadRecentInput) clsScore += entry.value;
+            }
+          }).observe({ type: "layout-shift", buffered: true });
+        } catch (error) {
+          // Unsupported — clsScore stays 0.
+        }
+
+        try {
+          new PerformanceObserver((list) => {
+            const entry = list.getEntries()[0];
+            if (entry) fidMs = entry.processingStart - entry.startTime;
+          }).observe({ type: "first-input", buffered: true });
+        } catch (error) {
+          // Unsupported — fidMs stays null.
+        }
+
+        // LCP and CLS can both keep changing right up until the visitor
+        // stops looking, so — same as the official web-vitals library —
+        // this reports once, on whichever fires first: the tab being hidden
+        // (covers switching tabs/apps) or the page actually unloading.
+        const reportWebVitals = () => {
+          if (webVitalsReported) return;
+          webVitalsReported = true;
+          const params = { cls: Math.round(clsScore * 1000) / 1000 };
+          if (lcpMs !== null) params.lcp_ms = Math.round(lcpMs);
+          if (fidMs !== null) params.fid_ms = Math.round(fidMs);
+          window.trackEvent?.("web_vitals", params);
+        };
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "hidden") reportWebVitals();
+        });
+        window.addEventListener("pagehide", reportWebVitals, { once: true });
+      }
     </script>
   </head>
 
@@ -322,13 +392,15 @@
 
       <div class="header-top-row">
         <div id="auth-container" class="auth-container">
-          <button
+          <!-- Real href for crawlers/no-JS/middle-click; a plain click runs
+               selectType('my-stats') instead of a full page load — see
+               initializeNavigation() in scripts.js. -->
+          <a
             id="my-stats-header-btn"
-            type="button"
             class="my-stats-header-btn"
             aria-label="My Stats"
             title="My Stats"
-            onclick="selectType('my-stats')"
+            href="?type=my-stats"
           >
             <span
               class="my-stats-header-icon"
@@ -338,7 +410,7 @@
               "
               aria-hidden="true"
             ></span>
-          </button>
+          </a>
 
           <!-- Hidden until there's an actual streak to show — see
                updateStreakBadge() in streak.js. Lives inside #auth-container
@@ -404,42 +476,44 @@
         </div>
       </div>
 
-      <h1
+      <!-- Real href for crawlers/no-JS/middle-click; a plain click runs
+           returnToLandingPage() instead — see initializeNavigation() in
+           scripts.js. -->
+      <a
         id="site-title"
-        tabindex="0"
-        role="link"
         aria-label="Norwegian Dictionary, return to home"
-        onclick="returnToLandingPage()"
-        onkeydown="
-          if (event.key === 'Enter') {
-            returnToLandingPage();
-          }
-        "
+        href="./"
       >
         <span class="site-wordmark-name">Norwegian Dictionary</span>
         <span class="site-wordmark-descriptor" aria-hidden="true"
           >Words <span>·</span> Stories <span>·</span> Practice</span
         >
-      </h1>
+      </a>
     </header>
 
     <!-- Primary mode nav: a top tab strip on desktop, a fixed bottom tab bar
          on mobile (this is an installable standalone PWA — see manifest.json —
-         so the native-app bottom-bar pattern fits). #type-select (in the
-         toolbar below) stays the real source of truth for "current mode";
-         these tabs just call the same selectType()/goToMyWords() helpers the
-         landing page's mode cards already use, and syncModeNav() (scripts.js)
-         keeps .active/aria-current in sync with it. My Stats deliberately
-         isn't here — it's a read-only report, not a browsing mode, so it
-         lives as a small icon in the header instead (see #my-stats-header-btn
-         above). -->
+         so the native-app bottom-bar pattern fits). Each tab carries a real,
+         correct href — crawlers, no-JS visitors, and middle-click/ctrl-click
+         (open in new tab) all get a working destination straight from the
+         attribute — but a plain left-click is intercepted in
+         initializeNavigation() (scripts.js) to run the same instant,
+         no-reload selectType()/goToMyWords() transition #type-select's
+         onchange already uses, rather than doing a full page load. My Stats
+         deliberately isn't here — it's a read-only report, not a browsing
+         mode, so it lives as a small link in the header instead (see
+         #my-stats-header-btn above).
+
+         These hrefs are relative, which only resolves correctly against the
+         site root on a freshly served page. Once the SPA has pushState'd to
+         a pretty path (a story, a word card, ...) there's no <base> tag here
+         to anchor them the way a captured static page has, so a
+         middle-click/ctrl-click taken at face value would open the wrong
+         page. scripts.js's anchorAppNavigationLinks() rewrites each href to
+         an absolute, APP_ROOT_URL-anchored URL once at load, before any
+         pushState can run — see that function for why this matters. -->
     <nav id="mode-nav" aria-label="Primary">
-      <a
-        class="mode-tab"
-        data-mode="words"
-        href="?type=words"
-        onclick="event.preventDefault(); selectType('words');"
-      >
+      <a class="mode-tab" data-mode="words" href="?type=words">
         <span
           class="mode-tab-icon"
           style="
@@ -450,12 +524,7 @@
         ></span>
         <span class="mode-tab-label">Words</span>
       </a>
-      <a
-        class="mode-tab"
-        data-mode="sentences"
-        href="sentences/"
-        onclick="event.preventDefault(); selectType('sentences');"
-      >
+      <a class="mode-tab" data-mode="sentences" href="sentences/">
         <span
           class="mode-tab-icon"
           style="
@@ -466,12 +535,7 @@
         ></span>
         <span class="mode-tab-label">Sentences</span>
       </a>
-      <a
-        class="mode-tab"
-        data-mode="stories"
-        href="stories/"
-        onclick="event.preventDefault(); selectType('stories');"
-      >
+      <a class="mode-tab" data-mode="stories" href="stories/">
         <span
           class="mode-tab-icon"
           style="
@@ -482,12 +546,7 @@
         ></span>
         <span class="mode-tab-label">Stories</span>
       </a>
-      <a
-        class="mode-tab"
-        data-mode="word-game"
-        href="word-game/"
-        onclick="event.preventDefault(); selectType('word-game');"
-      >
+      <a class="mode-tab" data-mode="word-game" href="word-game/">
         <span
           class="mode-tab-icon"
           style="
@@ -498,12 +557,7 @@
         ></span>
         <span class="mode-tab-label">Word Game</span>
       </a>
-      <a
-        class="mode-tab"
-        data-mode="word-list"
-        href="#"
-        onclick="event.preventDefault(); goToMyWords();"
-      >
+      <a class="mode-tab" data-mode="word-list" href="?type=word-list">
         <span
           class="mode-tab-icon"
           style="
@@ -527,14 +581,20 @@
         <div id="search-container-inner">
           <!-- Grouped Selectors (Type and POS) -->
           <div class="selectors-wrapper">
-            <!-- Mode state store, not a visible control — see #mode-nav
-                 (right after <header> above), which is now the actual UI for
-                 switching modes. Hidden via CSS (.type-filter { display: none }
-                 in styles/35-navigation.css) rather than removed: dozens of
-                 call sites across scripts.js/wordList.js/stories.js/
-                 wordGame.js/myStats.js still read #type-select.value as the
-                 source of truth for "current mode," so it stays a real
-                 <select> that selectType()/handleTypeChange() keep in sync. -->
+            <!-- Legacy mode mirror, not a visible control — see #mode-nav
+                 (right after <header> above), which is the actual UI for
+                 switching modes, and getCurrentMode() in scripts.js, the
+                 real, canonical answer to "what mode is active right now"
+                 (it reads body.dataset.mode, which syncModeNav() sets on
+                 every navigation). Nothing reads this <select>'s value
+                 anymore — selectType()/handleTypeChange() still write it on
+                 every navigation purely so it doesn't silently drift from
+                 reality for anything that inspects the DOM directly (a
+                 test, a browser extension, ...). Hidden via CSS
+                 (.type-filter { display: none } in styles/35-navigation.css)
+                 rather than removed, since removing it outright would also
+                 mean auditing every static-page generator template that
+                 still expects it to exist. -->
             <div class="type-filter">
               <select
                 id="type-select"
@@ -811,14 +871,16 @@
                the other. -->
 
           <!-- Words: the whole card is the click target (not a nested
-               button) — see .button-container in styles.css. -->
+               button) — see .button-container in styles.css. Real href for
+               crawlers, no-JS visitors, and middle/ctrl-click; a plain left
+               click intentionally opens a stable sample lookup instead (see
+               the "sample-word" handler in initializeNavigation(),
+               scripts.js). -->
           <a
             class="button-container"
             href="?type=words"
-            onclick="
-              event.preventDefault();
-              openLandingWordSearch('apple');
-            "
+            data-navigation-action="sample-word"
+            data-sample-word="apple"
           >
             <div class="landing-card-icon-chip">
               <img
@@ -835,14 +897,7 @@
           </a>
 
           <!-- Sentence Search -->
-          <a
-            class="button-container"
-            href="sentences/"
-            onclick="
-              event.preventDefault();
-              selectType('sentences');
-            "
-          >
+          <a class="button-container" data-mode="sentences" href="sentences/">
             <div class="landing-card-icon-chip">
               <img
                 class="landing-card-image"
@@ -857,28 +912,11 @@
             >
           </a>
 
-          <!-- Norwegian Stories: real href for crawlers (they read the
-               attribute directly, never run onclick), but a real click
-               checks the static page actually exists first and falls back
-               to the JS-rendered stories view if not — same content
-               either way, just not a dead link if stories/ is ever
-               missing/misconfigured. -->
-          <a
-            class="button-container"
-            href="stories/"
-            onclick="
-              event.preventDefault();
-              fetch('stories/', { method: 'HEAD' })
-                .then((r) => {
-                  if (r.ok) {
-                    location.href = 'stories/';
-                  } else {
-                    selectType('stories');
-                  }
-                })
-                .catch(() => selectType('stories'));
-            "
-          >
+          <!-- Norwegian Stories: real href for crawlers (and no-JS/
+               middle-click), but a plain click runs the same in-page
+               selectType('stories') transition #mode-nav's Stories tab
+               uses instead of a full page load. -->
+          <a class="button-container" data-mode="stories" href="stories/">
             <div class="landing-card-icon-chip">
               <img
                 class="landing-card-image"
@@ -897,14 +935,7 @@
                your own spaced-repetition state, saved words, and streaks). -->
 
           <!-- Word Game -->
-          <a
-            class="button-container"
-            href="word-game/"
-            onclick="
-              event.preventDefault();
-              selectType('word-game');
-            "
-          >
+          <a class="button-container" data-mode="word-game" href="word-game/">
             <div class="landing-card-icon-chip">
               <img
                 class="landing-card-image"
@@ -922,12 +953,9 @@
           <!-- My Words: the "Word List" card used to live here too, but
                #type-select now treats them as one destination (My Words
                tab first, All Words one click away inside) — see
-               handleTypeChange's word-list branch in scripts.js. -->
-          <button
-            type="button"
-            class="button-container"
-            onclick="goToMyWords()"
-          >
+               handleTypeChange's word-list branch in scripts.js. A plain
+               click runs goToMyWords(), same as the #mode-nav My Words tab. -->
+          <a class="button-container" data-mode="word-list" href="?type=word-list">
             <div class="landing-card-icon-chip">
               <img
                 class="landing-card-image"
@@ -940,17 +968,10 @@
             <span class="landing-feature-tag landing-feature-tag--sync"
               >☁ Synced across devices</span
             >
-          </button>
+          </a>
 
           <!-- My Stats -->
-          <a
-            class="button-container"
-            href="?type=my-stats"
-            onclick="
-              event.preventDefault();
-              selectType('my-stats');
-            "
-          >
+          <a class="button-container" data-mode="my-stats" href="?type=my-stats">
             <div class="landing-card-icon-chip">
               <img
                 class="landing-card-image"
@@ -1178,20 +1199,20 @@
     -->
     <script src="englishVisibility.js?v=b7799fc88b" defer></script>
     <script src="pronunciation.js?v=e0bab555ae" defer></script>
-    <script src="wordList.js?v=cc1f1957e1" defer></script>
+    <script src="wordList.js?v=f572810917" defer></script>
     <script src="storyFavorites.js?v=c152eb5155" defer></script>
     <script src="myWordsAuth.js?v=5a7e056f83" defer></script>
     <script src="noRandom.js?v=98d37ff6b5" defer></script>
     <script src="noRandomLetters.js?v=10acb8ddad" defer></script>
     <script src="ordbokene.js?v=891867a5ad" defer></script>
-    <script src="scripts.js?v=2a3dbf4427" defer></script>
+    <script src="scripts.js?v=2d4117dd84" defer></script>
     <script src="wordGamePolicy.js?v=aeb6d0620a" defer></script>
-    <script src="wordGame.js?v=f113884c59" defer></script>
+    <script src="wordGame.js?v=161ffcd1e5" defer></script>
     <script src="placementTest.js?v=6c8283e689" defer></script>
     <script src="streak.js?v=ddb26efe7e" defer></script>
-    <script src="stories.js?v=0f5f8965a6" defer></script>
-    <script src="storyQuiz.js?v=d3c1898343" defer></script>
-    <script src="myStats.js?v=316a961c85" defer></script>
+    <script src="stories.js?v=91a8139f5d" defer></script>
+    <script src="storyQuiz.js?v=61077b8ea7" defer></script>
+    <script src="myStats.js?v=4899ad7deb" defer></script>
 
     <!--
       Registered after "load" (not deferred alongside the app scripts

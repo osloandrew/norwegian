@@ -290,8 +290,7 @@
   }
 
   function initMyStats() {
-    const typeSelect = document.getElementById("type-select");
-    if (!typeSelect || typeSelect.value !== "my-stats") {
+    if (getCurrentMode() !== "my-stats") {
       return;
     }
 

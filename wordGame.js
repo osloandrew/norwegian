@@ -3774,12 +3774,14 @@ function beginTodayPracticeRound() {
   const progress = getDailyPracticeProgress();
 
   if (progress >= DAILY_QUESTS.length) {
+    window.trackEvent?.("quest_started", { bonus: true });
     beginWordGameRound("session", DAILY_QUEST_ROUND_TARGET, {
       bonusRound: true,
     });
     return;
   }
 
+  window.trackEvent?.("quest_started", { bonus: false, quest_index: progress });
   beginWordGameRound("session", DAILY_QUEST_ROUND_TARGET, {
     dailyQuestIndex: progress,
     todayPractice: true,
@@ -4644,6 +4646,8 @@ function beginWordGameRound(mode, targetWords = 0, options = {}) {
     return;
   }
 
+  window.reportTimeToFirstExercise?.();
+
   wordGameMode = mode;
   wordGameIsTodayPracticeRound = Boolean(options.todayPractice);
   wordGameIsBonusRound =
@@ -4791,6 +4795,12 @@ function showWordGameRoundSummary() {
     window.trackEvent?.("daily_quest_complete", {
       reward: earnedDailyQuest.reward,
     });
+  }
+  if (wasPlacementRound) {
+    window.trackEvent?.(
+      roundWasComplete ? "tutorial_complete" : "placement_abandoned",
+      { content_type: "placement", questions_answered: wordGameSessionQuestionsAnswered },
+    );
   }
 
   wordGameRoundActive = false;
@@ -8342,6 +8352,10 @@ function startPlacementPracticeRound(score, { calibrate = true } = {}) {
     // that marks a first-time learner complete before the round finishes.
     completePlacementTest(score);
   }
+  window.trackEvent?.("tutorial_begin", {
+    content_type: "placement",
+    skipped: !calibrate,
+  });
   beginWordGameRound("session", PLACEMENT_PRACTICE_WORD_COUNT, {
     placementRound: true,
     placementCalibration: calibrate,
@@ -8377,13 +8391,19 @@ function resetGame(resetStreak = true) {
 // or finishing one already does.
 function abandonWordGameRoundIfActive() {
   if (!wordGameRoundActive) return;
+  if (wordGameIsPlacementRound) {
+    window.trackEvent?.("placement_abandoned", {
+      content_type: "placement",
+      questions_answered: wordGameSessionQuestionsAnswered,
+    });
+  }
   wordGameRoundActive = false;
   updateEndSessionToolbarButtonVisibility();
 }
 window.abandonWordGameRoundIfActive = abandonWordGameRoundIfActive;
 
 document.addEventListener("keydown", function (event) {
-  if (document.getElementById("type-select").value !== "word-game") return;
+  if (getCurrentMode() !== "word-game") return;
   if (event.altKey || event.ctrlKey || event.metaKey) return;
 
   const target = event.target;
@@ -8477,9 +8497,13 @@ renderLandingDailyQuests();
 // Frequency data now feeds getWordDifficultyAnchor for every answer's Elo
 // rating update, not just new-word/placement draws (see the two narrower
 // `await loadVocabularyFrequencyRanks()` calls above) — kick off the fetch
-// unconditionally here so it has virtually always resolved by the time a
-// learner reaches their first real answer, even in an all-review session
-// that would otherwise never trigger it. Never awaited: a slow/failed
-// request must not block the landing page, and every consumer already
-// degrades to the plain band center when this hasn't resolved yet.
-loadVocabularyFrequencyRanks();
+// here (via deferUntilNeeded(), scripts.js — idle callback, or immediately
+// on the first sign of real intent: a search-bar focus/input, or any
+// mode-nav/landing-card click) so it's virtually always resolved by the
+// time a learner reaches their first real answer, even in an all-review
+// session that would otherwise never trigger it — without also being one
+// more multi-MB fetch competing with a landing page that hasn't shown any
+// interest in Word Game yet. Never awaited: a slow/failed request must not
+// block anything, and every consumer already degrades to the plain band
+// center when this hasn't resolved yet.
+deferUntilNeeded(loadVocabularyFrequencyRanks);

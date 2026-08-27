@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "scripts.js"), "utf8");
-const functionStart = source.indexOf("async function fetchAndLoadDictionaryData(");
+const functionStart = source.indexOf("async function fetchAndLoadDictionaryDataOnce(");
 const functionEnd = source.indexOf("// Parse the CSV data", functionStart);
 const functionSource = source.slice(functionStart, functionEnd);
 

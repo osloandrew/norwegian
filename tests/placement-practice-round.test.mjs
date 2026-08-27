@@ -275,7 +275,20 @@ assert.notEqual(placementStateStart, -1);
 assert.notEqual(placementStateEnd, -1);
 
 const placementStateCalls = [];
-const placementStateContext = vm.createContext({ placementStateCalls });
+const trackedEvents = [];
+const placementStateContext = vm.createContext({
+  placementStateCalls,
+  window: {
+    // Mirrors the JSON round-trip placementState() already needs below:
+    // params built by code running inside the vm context belong to a
+    // different realm's Object.prototype, so assert.deepEqual against a
+    // plain outer-realm object literal fails structural-but-not-
+    // reference-equal even when the data is identical.
+    trackEvent(name, params) {
+      trackedEvents.push([name, JSON.parse(JSON.stringify(params || {}))]);
+    },
+  },
+});
 vm.runInContext(
   `
     let abilityScore = null;
@@ -309,6 +322,10 @@ assert.deepEqual(
   JSON.parse(JSON.stringify(placementStateContext.placementState())),
   { abilityScore: 420, placementCompleted: false },
 );
+assert.deepEqual(trackedEvents.pop(), [
+  "tutorial_begin",
+  { content_type: "placement", skipped: false },
+]);
 placementStateContext.finalizePlacementCompletion(true, false);
 assert.equal(placementStateContext.placementState().placementCompleted, false);
 placementStateContext.finalizePlacementCompletion(true, true);
@@ -317,6 +334,10 @@ assert.equal(placementStateContext.placementState().placementCompleted, true);
 vm.runInContext("placementCompleted = false", placementStateContext);
 placementStateContext.startPlacementPracticeRound(60, { calibrate: false });
 assert.equal(placementStateContext.placementState().placementCompleted, true);
+assert.deepEqual(trackedEvents.pop(), [
+  "tutorial_begin",
+  { content_type: "placement", skipped: true },
+]);
 
 assert.match(
   wordGameSource,

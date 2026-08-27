@@ -49,6 +49,7 @@ header {
 
 #site-title {
   align-items: center;
+  color: inherit;
   display: inline-flex;
   flex-direction: column;
   font-family: "Fraunces", Georgia, "Times New Roman", serif;
@@ -64,7 +65,14 @@ header {
      short, so it never needs truncating, and the clip has no headroom for
      a serif face's g/y descenders once line-height is tight. */
   overflow: visible;
+  text-decoration: none;
   user-select: none;
+}
+
+#site-title:focus-visible {
+  border-radius: 4px;
+  outline: 3px solid var(--color-interactive);
+  outline-offset: 4px;
 }
 
 .site-wordmark-name {

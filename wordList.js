@@ -299,9 +299,7 @@
     // Match replaceWordStrengths/mergeWordStrengths below: refresh whenever
     // the Word List tab is visible at all, not just the My Words sub-view —
     // a remote merge changes which rows show a filled star in "all" too.
-    const typeSelect = document.getElementById("type-select");
-
-    if (typeSelect?.value === "word-list") {
+    if (getCurrentMode() === "word-list") {
       renderWordList();
     }
 
@@ -388,9 +386,7 @@
     wordStrengths = window.SpacedRepetition.normalizeCollection(strengths);
     saveWordStrengths({ syncRemote: false });
 
-    const typeSelect = document.getElementById("type-select");
-
-    if (typeSelect?.value === "word-list") {
+    if (getCurrentMode() === "word-list") {
       renderWordList();
     }
   }
@@ -402,9 +398,7 @@
     );
     saveWordStrengths({ syncRemote: false });
 
-    const typeSelect = document.getElementById("type-select");
-
-    if (typeSelect?.value === "word-list") {
+    if (getCurrentMode() === "word-list") {
       renderWordList();
     }
 
@@ -456,6 +450,14 @@
       myWordsEntryIds.delete(entryId);
     } else {
       myWordsEntryIds.add(entryId);
+      window.trackEvent?.("select_content", { content_type: "word_saved" });
+      // Approximates a one-time "reached 3 saved words" milestone by size
+      // alone, not a persisted flag: correct for the overwhelming majority
+      // of learners, who don't remove a word and re-save another to land
+      // back on exactly 3.
+      if (myWordsEntryIds.size === 3) {
+        window.trackEvent?.("first_three_words_saved");
+      }
     }
 
     myWordsEntryTimestamps[entryId] = Date.now();
@@ -1898,10 +1900,8 @@
    * - The user changes Word Class
    */
   function renderWordList() {
-    const typeSelect = document.getElementById("type-select");
-
     // Do not replace another tab's content.
-    if (!typeSelect || typeSelect.value !== "word-list") {
+    if (getCurrentMode() !== "word-list") {
       return;
     }
 
@@ -1957,9 +1957,7 @@
    * Entry point called by handleTypeChange("word-list").
    */
   function initWordList() {
-    const typeSelect = document.getElementById("type-select");
-
-    if (!typeSelect || typeSelect.value !== "word-list") {
+    if (getCurrentMode() !== "word-list") {
       return;
     }
 
@@ -1978,11 +1976,8 @@
     if (typeof load !== "function") return;
 
     load().then(() => {
-      const { frequencySelect, typeSelect } = getWordListFilterElements();
-      if (
-        frequencySelect?.value &&
-        typeSelect?.value === "word-list"
-      ) {
+      const { frequencySelect } = getWordListFilterElements();
+      if (frequencySelect?.value && getCurrentMode() === "word-list") {
         renderWordList();
       }
     });

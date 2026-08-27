@@ -224,16 +224,17 @@ ul {
   width: 50%;
 }
 
-/* My Words (body.word-list-mode, see scripts.js's handleTypeChange) and the
-   Word Game intro/summary screens (body.word-game-mode without
-   .word-game-round-active — an actual round keeps the narrower default
-   width above, which suits its single-question layout better) should read
-   as roughly as wide as the landing page's own #landing-card, rather than
-   the narrower default above meant for a word/sentence definition. Scoped
-   to min-width:601px so it doesn't fight the width:97.5% mobile override
-   just below. */
+/* My Words (body.word-list-mode, see scripts.js's handleTypeChange), My
+   Stats (body.my-stats-mode), and the Word Game intro/summary screens
+   (body.word-game-mode without .word-game-round-active — an actual round
+   keeps the narrower default width above, which suits its single-question
+   layout better) should read as roughly as wide as the landing page's own
+   #landing-card, rather than the narrower default above meant for a
+   word/sentence definition. Scoped to min-width:601px so it doesn't fight
+   the width:97.5% mobile override just below. */
 @media (min-width: 601px) {
   body.word-list-mode #results-container,
+  body.my-stats-mode #results-container,
   body.word-game-mode:not(.word-game-round-active) #results-container {
     max-width: 920px;
     width: 90%;

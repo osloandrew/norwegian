@@ -50,16 +50,23 @@ const FEATURE_METADATA = Object.freeze({
 // fire-and-forget at load — nothing waits on it, since the query-string
 // fallback is always correct in the meantime.
 const pageManifest = { words: new Set(), stories: new Set() };
-fetch("page-manifest.json")
-  .then((response) => (response.ok ? response.json() : null))
-  .then((data) => {
-    if (!data) return;
-    data.words?.forEach((slug) => pageManifest.words.add(slug));
-    data.stories?.forEach((slug) => pageManifest.stories.add(slug));
-  })
-  .catch(() => {
-    // No pretty-path upgrade this session; query-string URLs still work.
-  });
+// Deferred via deferUntilNeeded() (defined below, but hoisted — plain
+// function declarations are available throughout the module regardless of
+// where they're called from) rather than fetched immediately: 395KB
+// nothing on the page actually waits on, so it shouldn't compete with the
+// critical initial paint either.
+deferUntilNeeded(() => {
+  fetch(new URL("page-manifest.json", APP_ROOT_URL))
+    .then((response) => (response.ok ? response.json() : null))
+    .then((data) => {
+      if (!data) return;
+      data.words?.forEach((slug) => pageManifest.words.add(slug));
+      data.stories?.forEach((slug) => pageManifest.stories.add(slug));
+    })
+    .catch(() => {
+      // No pretty-path upgrade this session; query-string URLs still work.
+    });
+});
 // isEnglishVisible/setEnglishVisible live in englishVisibility.js, shared
 // with Pronunciation and Stories.
 let latestMultipleResults = null;
@@ -564,6 +571,16 @@ function setWordCanonicalURL(url) {
 function setSiteTitleSemanticHeading(isHeading) {
   const current = document.getElementById("site-title");
   if (!current) return;
+
+  // #site-title is now a real <a> (see index.html) rather than an <h1> this
+  // function used to toggle in place. replaceWith() below only copies
+  // attributes, not the click listener initializeNavigation() attaches —
+  // swapping tags would silently turn every click into a full page reload
+  // instead of the instant in-page transition. Leave the link alone rather
+  // than replace a working navigation control with a non-interactive
+  // heading or div.
+  if (current.tagName === "A") return;
+
   const desiredTag = isHeading ? "H1" : "DIV";
   if (current.tagName === desiredTag) return;
 
@@ -714,19 +731,20 @@ function showLandingCard(show) {
   }
 }
 
-// Function to navigate back to the landing card when the H1 is clicked
+// Navigates back to the landing page when the wordmark is clicked. An empty
+// search bar is exactly what makes handleTypeChange("words") show the
+// landing card (see its "words" branch below) rather than search results,
+// so clearing it first and reusing the same selectType() every other tab
+// uses gets the landing page as an instant in-page transition — no reload
+// needed. updateURL() (called inside handleTypeChange) already anchors to
+// APP_ROOT_URL rather than window.location.pathname, so this still lands on
+// the app's actual root even when clicked from a pretty static page like
+// /word/forgjeves/, the same way every other nav link already does.
 function returnToLandingPage() {
-  // APP_ROOT_URL (not window.location.pathname) so this goes to the
-  // app's actual root even when clicked from a pretty static page like
-  // /word/forgjeves/ — otherwise it would "return home" by reloading that
-  // same word page instead of navigating away from it. baseURI carries the
-  // *current* query string on pages with no <base> tag (i.e. today's app
-  // root), so that's stripped explicitly rather than assumed away.
-  const baseUrl = new URL(APP_ROOT_URL);
-  baseUrl.search = "";
-  baseUrl.hash = "";
-  window.history.pushState({}, "", baseUrl);
-  window.location.reload();
+  const searchBar = document.getElementById("search-bar");
+  if (searchBar) searchBar.value = "";
+  selectType("words");
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
 }
 
 // Search only runs on a deliberate submit: the Enter key here, or the
@@ -787,9 +805,9 @@ function clearInput(refreshCurrentView = true) {
     searchEl.dataset.submittedStoryQuery = "";
   }
 
-  const typeSelect = document.getElementById("type-select");
+  const currentMode = getCurrentMode();
 
-  if (typeSelect && typeSelect.value === "stories") {
+  if (currentMode === "stories") {
     const cefrEl = document.getElementById("cefr-select");
     const genreEl = document.getElementById("genre-select");
     const favoritesEl = document.getElementById("story-favorites-select");
@@ -806,7 +824,7 @@ function clearInput(refreshCurrentView = true) {
       reshuffleStoryOrder();
       displayStoryList();
     }
-  } else if (typeSelect && typeSelect.value === "word-list") {
+  } else if (currentMode === "word-list") {
     renderWordList();
   }
 }
@@ -820,7 +838,7 @@ function handleSearchButtonClick() {
     return;
   }
 
-  const type = document.getElementById("type-select").value;
+  const type = getCurrentMode();
 
   if (type === "word-list") {
     // Nothing to search or randomize here when the field is empty.
@@ -947,8 +965,23 @@ function showDictionaryLoadError() {
   main.insertBefore(banner, main.firstChild.nextSibling);
 }
 
+// Deferring this fetch on the landing page (see window.onload below) means
+// it can now be triggered from more than one place — an idle callback, a
+// search-bar focus, a mode-nav click — any of which could race the others.
+// Memoizing here, the same way loadVocabularyFrequencyRanks() (wordGame.js)
+// already does, means every caller just shares the one real request instead
+// of each kicking off its own redundant multi-MB fetch.
+let dictionaryLoadPromise = null;
+
+function fetchAndLoadDictionaryData() {
+  if (!dictionaryLoadPromise) {
+    dictionaryLoadPromise = fetchAndLoadDictionaryDataOnce();
+  }
+  return dictionaryLoadPromise;
+}
+
 // Fetch the dictionary data from the file or server
-async function fetchAndLoadDictionaryData() {
+async function fetchAndLoadDictionaryDataOnce() {
   dictionaryLoadFailed = false;
   // Start the fallback read without putting it on the critical path. The
   // network request below is deliberately made on every load; `no-cache`
@@ -1528,7 +1561,7 @@ async function randomWord() {
 
   randomWord.lastCallTimestamp = now; // Update the timestamp for the last call
 
-  const type = document.getElementById("type-select").value;
+  const type = getCurrentMode();
   const selectedPOS = document.getElementById("pos-select")
     ? document.getElementById("pos-select").value.toLowerCase()
     : "";
@@ -1717,7 +1750,7 @@ async function search(queryOverride = null, options = {}) {
 
   document.getElementById("search-bar").dataset.originalQuery = originalQuery;
 
-  const selector = document.getElementById("type-select").value;
+  const selector = getCurrentMode();
 
   // Word List performs its own search and filtering.
   if (selector === "word-list") {
@@ -1824,6 +1857,15 @@ async function search(queryOverride = null, options = {}) {
 
     // Render the matching stories
     displayStoryList(matchingResults);
+
+    // Browsing the full list (no query) isn't a deliberate search.
+    if (query) {
+      window.trackEvent?.("search", {
+        mode: "stories",
+        result_count: matchingResults.length,
+        success: matchingResults.length > 0,
+      });
+    }
   } else if (type === "sentences") {
     if (!query) {
       resultsContainer.innerHTML = `
@@ -2013,6 +2055,12 @@ async function search(queryOverride = null, options = {}) {
       { sentenceResultSubtitle },
     );
 
+    window.trackEvent?.("search", {
+      mode: "sentences",
+      result_count: combined.length,
+      success: combined.length > 0,
+    });
+
     console.timeEnd("[Sentences] query");
     hideSpinner();
     return;
@@ -2165,6 +2213,11 @@ async function search(queryOverride = null, options = {}) {
       }
       // Display this single result directly
       displaySearchResults([singleResult], query); // Display only this single result
+      window.trackEvent?.("search", {
+        mode: "words",
+        result_count: 1,
+        success: true,
+      });
       hideSpinner(); // Hide the spinner
       return;
     }
@@ -2265,11 +2318,25 @@ async function search(queryOverride = null, options = {}) {
         wireFlagMissingWordButton();
       }
 
+      // No exact match either way — inexactWordMatches are fallback
+      // suggestions, not what was searched for, so this still counts as a
+      // failed search.
+      window.trackEvent?.("search", {
+        mode: "words",
+        result_count: inexactWordMatches.length,
+        success: false,
+      });
+
       hideSpinner();
       return;
     }
 
     displaySearchResults(matchingResults, query); // Render word-specific results
+    window.trackEvent?.("search", {
+      mode: "words",
+      result_count: matchingResults.length,
+      success: true,
+    });
   }
   hideSpinner(); // Hide the spinner
 }
@@ -2302,7 +2369,7 @@ function handlePOSChange() {
     ? document.getElementById("cefr-select").value.toUpperCase()
     : "";
 
-  const activeType = document.getElementById("type-select").value;
+  const activeType = getCurrentMode();
 
   // Word List uses the selected Word Class to filter its table.
   if (activeType === "word-list") {
@@ -2361,20 +2428,68 @@ function focusViewAfterNavigation(selector = "") {
 
 window.focusViewAfterNavigation = focusViewAfterNavigation;
 
-// Keeps #mode-nav's tabs (the visible mode-switching UI — see index.html,
-// right after <header>) in sync with #type-select (the hidden internal
-// state store every mode-reading call site still trusts). Call this
-// anywhere #type-select's value is set, not just from handleTypeChange —
-// several call sites (window.onload, loadStateFromURL, renderWordDefinition,
-// stories.js's preload path) set it directly without going through
-// handleTypeChange.
+// The one canonical place to ask "what mode is the app in right now" —
+// scripts.js/wordList.js/stories.js/wordGame.js/myStats.js all used to
+// answer that by reading document.getElementById("type-select").value
+// directly, ~18 separate times. body.dataset.mode (set below, by
+// syncModeNav — the one function every navigation path already funnels
+// through) is already the real, always-current answer; this just gives it
+// a name so nothing needs to touch the DOM, or know #type-select exists,
+// to ask. #type-select itself stays in the DOM and selectType() still
+// writes its value, purely as a legacy mirror — nothing should read from
+// it going forward.
+function getCurrentMode() {
+  return document.body.dataset.mode || "words";
+}
+window.getCurrentMode = getCurrentMode;
+
+// The one function that applies a mode change to the DOM — #mode-nav's tabs
+// (the visible mode-switching UI — see index.html, right after <header>),
+// body.dataset.mode (the state getCurrentMode() above reads), and the
+// body.<mode>-mode classes the stylesheets key off for mode-specific layout
+// (word-game-mode, stories-mode, my-stats-mode, word-list-mode). These used
+// to be four independently hand-maintained copies of the same decision:
+// handleTypeChange() set them; window.onload's early loading-shell set
+// word-game-mode/my-stats-mode/word-list-mode again for the pre-data-load
+// paint (never stories-mode — that route skips the loading shell
+// entirely, so this copy silently omitted it); loadStateFromURL's direct
+// word-game-URL path set a third copy of word-game-mode; and stories.js's
+// own pretty-/stories/-path branch set stories-mode a fourth time, since
+// nothing else did for that specific entry point. Call this anywhere the
+// active mode changes, not just from handleTypeChange — several call
+// sites (window.onload, loadStateFromURL, renderWordDefinition, stories.js's
+// preload path) call it directly.
 function syncModeNav(type) {
   document.body.dataset.mode = type;
+  document.body.classList.toggle("word-game-mode", type === "word-game");
+  document.body.classList.toggle("stories-mode", type === "stories");
+  // Same idea for My Stats — the stylesheets use this to keep the My Words
+  // button as a labeled pill beside the type dropdown at ≤1024px instead
+  // of the icon-only circle meant to share a row with the search bar,
+  // which My Stats hides entirely.
+  document.body.classList.toggle("my-stats-mode", type === "my-stats");
+  // Lets the stylesheets widen #results-container for My Words/Word List —
+  // see the matching body.word-list-mode rule in
+  // styles/20-results-and-story-quiz.css.
+  document.body.classList.toggle("word-list-mode", type === "word-list");
   document.querySelectorAll(".mode-tab").forEach((tab) => {
     const active = tab.dataset.mode === type;
     tab.classList.toggle("active", active);
     tab.setAttribute("aria-current", active ? "page" : "false");
   });
+
+  // Every navigation path (mode-tab clicks, the dropdown, browser
+  // back/forward, a direct word URL) sets the active mode by calling this
+  // function — including the ones that bypass handleTypeChange entirely
+  // (see the comment above). displayStory() is the only thing that ever
+  // enters the story reader, and it never calls syncModeNav(), so it's safe
+  // to unconditionally undo that reader state here: stop its audio, hide
+  // #story-viewer/#story-content, hide the sticky header, and drop
+  // html.reading. Previously that cleanup only happened inside
+  // storiesBackBtn() (the in-page "Back to Stories" button), so leaving a
+  // story any other way left the whole reader — audio included — sitting
+  // on screen underneath whatever the new tab rendered.
+  window.resetStoryReaderView?.();
 }
 
 function selectType(type) {
@@ -2396,6 +2511,101 @@ async function openLandingWordSearch(query) {
   await search(query, { updateHistory: false });
   if (searchBar) searchBar.value = "";
   window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+}
+
+// The header/landing links (#site-title, #my-stats-header-btn, .mode-tab,
+// .button-container) ship with plain relative hrefs so crawlers, no-JS
+// visitors, and a middle-click/ctrl-click (open in new tab) all get a real
+// destination straight from the attribute. That resolution is only correct
+// on a freshly served page, though: once the SPA has pushState'd to a
+// pretty path (a story, a word card, ...) there's no <base> tag here to
+// anchor them the way a captured static page has, so the browser would
+// resolve "?type=words" or "./" against that pretty path instead of the
+// site root. Rewriting each href to an absolute, APP_ROOT_URL-anchored URL
+// once here — before any pushState has run — sidesteps that entirely.
+function anchorAppNavigationLinks() {
+  document
+    .querySelectorAll(
+      "#site-title, #my-stats-header-btn, .mode-tab, .button-container",
+    )
+    .forEach((link) => {
+      const href = link.getAttribute("href");
+      if (!href) return;
+      link.href = new URL(href, APP_ROOT_URL).href;
+    });
+}
+
+function isPlainLeftClick(event) {
+  return (
+    !event.defaultPrevented &&
+    event.button === 0 &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey
+  );
+}
+
+// A plain left-click on `link` runs `handler()` in-page instead of letting
+// the browser follow its href — same instant, no-reload transition the app
+// has always used. Anything else (a modifier held, the middle button, an
+// already-handled event) is left alone so the real href still does its job:
+// opening in a new tab, letting a crawler/no-JS visitor follow it, etc.
+function interceptNavigationClick(link, handler) {
+  link.addEventListener("click", (event) => {
+    if (!isPlainLeftClick(event)) return;
+    event.preventDefault();
+    handler();
+  });
+}
+
+function initializeNavigation() {
+  anchorAppNavigationLinks();
+
+  const siteTitle = document.getElementById("site-title");
+  if (siteTitle) {
+    interceptNavigationClick(siteTitle, returnToLandingPage);
+  }
+
+  const myStatsHeaderBtn = document.getElementById("my-stats-header-btn");
+  if (myStatsHeaderBtn) {
+    interceptNavigationClick(myStatsHeaderBtn, () => selectType("my-stats"));
+  }
+
+  // Shared by #mode-nav's tabs and the landing page's mode cards — both
+  // carry the same data-mode values and both should behave identically.
+  // My Words (data-mode="word-list") goes through goToMyWords() (wordList.js)
+  // rather than a plain selectType(), matching its existing dedicated
+  // "My Words" default view — every other mode just switches directly.
+  // Scoped to these two classes rather than a bare "[data-mode]": syncModeNav()
+  // sets body.dataset.mode too, which reflects as a data-mode attribute on
+  // <body> itself. A bare attribute selector here would match that and
+  // attach this click-interception to <body> — since body is an ancestor of
+  // every element on the page, every single click anywhere (a word-game
+  // answer, a story quiz option, ...) would then bubble into it and force a
+  // selectType() navigation.
+  document
+    .querySelectorAll(".mode-tab[data-mode], .button-container[data-mode]")
+    .forEach((link) => {
+      const mode = link.dataset.mode;
+      interceptNavigationClick(link, () => {
+        if (mode === "word-list") {
+          window.goToMyWords?.();
+        } else {
+          selectType(mode);
+        }
+      });
+    });
+
+  // The landing Words card intentionally opens a stable sample lookup
+  // rather than just switching to a blank Words view.
+  document
+    .querySelectorAll('[data-navigation-action="sample-word"]')
+    .forEach((link) => {
+      interceptNavigationClick(link, () =>
+        openLandingWordSearch(link.dataset.sampleWord || "apple"),
+      );
+    });
 }
 
 // Visual disabled/enabled styling (grayed text, not-allowed cursor) comes
@@ -2428,8 +2638,8 @@ function disableSearchControls() {
 
 // Handle change in search type (words/sentences)
 function handleTypeChange(type, options = {}) {
-  // If type is not passed in (e.g., called from dropdown), get it from the dropdown
-  type = type || document.getElementById("type-select").value;
+  // If type is not passed in, fall back to the currently active mode.
+  type = type || getCurrentMode();
   syncModeNav(type);
   setSiteTitleSemanticHeading(true);
   const shouldRenderStories = options.renderStories !== false;
@@ -2440,18 +2650,6 @@ function handleTypeChange(type, options = {}) {
   if (type !== "word-game") {
     window.abandonWordGameRoundIfActive?.();
   }
-  // Give the page a dedicated class while Word Game is selected.
-  document.body.classList.toggle("word-game-mode", type === "word-game");
-  document.body.classList.toggle("stories-mode", type === "stories");
-  // Same idea for My Stats — the stylesheets use this to keep the My Words
-  // button as a labeled pill beside the type dropdown at ≤1024px instead
-  // of the icon-only circle meant to share a row with the search bar,
-  // which My Stats hides entirely.
-  document.body.classList.toggle("my-stats-mode", type === "my-stats");
-  // Lets the stylesheets widen #results-container for My Words/Word List —
-  // see the matching body.word-list-mode rule in
-  // styles/20-results-and-story-quiz.css.
-  document.body.classList.toggle("word-list-mode", type === "word-list");
   const query = document
     .getElementById("search-bar")
     .value.toLowerCase()
@@ -2729,7 +2927,7 @@ function handleCEFRChange() {
     .getElementById("search-bar")
     .value.toLowerCase()
     .trim();
-  const type = document.getElementById("type-select").value;
+  const type = getCurrentMode();
   const selectedCEFR = document
     .getElementById("cefr-select")
     .value.toUpperCase();
@@ -4621,11 +4819,8 @@ function loadStateFromURL() {
         // Same reasoning as handleTypeChange's word-game branch: treat
         // this as a fresh entry (e.g. via browser back/forward) and show
         // the mode-picker intro again rather than resuming silently.
+        // syncModeNav(type) above already applied body.word-game-mode.
         wordGameRoundActive = false;
-        // handleTypeChange isn't called on this direct-URL path, so mirror
-        // its body class toggle here too (the stylesheets scope mobile rules
-        // to body.word-game-mode).
-        document.body.classList.toggle("word-game-mode", true);
         startWordGame();
       } else if (type === "pronunciation") {
         handleTypeChange("pronunciation"); // 👈 ensure pronunciation tab is restored
@@ -4797,8 +4992,78 @@ function handleOrdbokeneCardClick(event, articleId) {
   displaySearchResults([entry]);
 }
 
+// "Time to first interactive exercise" — the roadmap's own stated measure
+// of whether a new visitor reaches something worth doing quickly. Fires
+// once per page load, the first time any Word Game round actually begins
+// (placement, a daily quest, bonus, or ordinary practice all funnel through
+// beginWordGameRound() — see its call in wordGame.js). performance.now()
+// is time since navigation start, not since this function happened to run,
+// so it genuinely reflects page-load-to-first-exercise.
+let firstExerciseReported = false;
+function reportTimeToFirstExercise() {
+  if (firstExerciseReported) return;
+  firstExerciseReported = true;
+  window.trackEvent?.("time_to_first_exercise", {
+    ms: Math.round(performance.now()),
+  });
+}
+window.reportTimeToFirstExercise = reportTimeToFirstExercise;
+
+// Runs `loader` once, as soon as either the browser has spare idle time or
+// something happens that signals real intent — whichever comes first — so
+// a heavy fetch deferred off the landing page's critical path still starts
+// automatically for a visitor who just lingers, without waiting on the
+// (generous) idle timeout for one who's clearly about to use it.
+// navigator.connection is Chromium-only (no Safari/Firefox support as of
+// this writing) — no signal just means this returns false, same as any
+// other feature-detection gap elsewhere in this codebase.
+function prefersReducedData() {
+  const connection = navigator.connection;
+  if (!connection) return false;
+  if (connection.saveData) return true;
+  return ["slow-2g", "2g"].includes(connection.effectiveType);
+}
+
+function deferUntilNeeded(loader) {
+  let started = false;
+  const start = () => {
+    if (started) return;
+    started = true;
+    loader();
+  };
+
+  // A visitor who's explicitly asked for less data (Save-Data), or is on a
+  // connection slow enough that "idle" isn't a meaningful signal, shouldn't
+  // have this start on its own — only a real interaction below should
+  // trigger it. Skips requestIdleCallback entirely rather than just pushing
+  // its timeout out further, since idle time arrives on a slow connection
+  // too; it just shouldn't be read as "go ahead and fetch this."
+  if (!prefersReducedData()) {
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(start, { timeout: 2000 });
+    } else {
+      window.setTimeout(start, 1000);
+    }
+  }
+
+  const searchBar = document.getElementById("search-bar");
+  searchBar?.addEventListener("focus", start, { once: true });
+  searchBar?.addEventListener("input", start, { once: true });
+  // Capture phase: #mode-nav's links and the landing cards each navigate
+  // away immediately on click (see interceptNavigationClick), so this must
+  // see the click before that happens, not after.
+  document
+    .getElementById("mode-nav")
+    ?.addEventListener("click", start, { once: true, capture: true });
+  document
+    .querySelector(".landing-card-button-grid")
+    ?.addEventListener("click", start, { once: true, capture: true });
+}
+
 // Initialization of the dictionary data and event listeners
 window.onload = function () {
+  initializeNavigation();
+
   const initialURL = new URL(window.location.href);
   const initialType = initialURL.searchParams.get("type");
   const initialVocabularyType = initialType || "words";
@@ -4826,18 +5091,6 @@ window.onload = function () {
   if (routeNeedsVocabularyLoadingShell(initialVocabularyType, initialURL)) {
     typeSelect.value = initialVocabularyType;
     syncModeNav(initialVocabularyType);
-    document.body.classList.toggle(
-      "word-game-mode",
-      initialVocabularyType === "word-game",
-    );
-    document.body.classList.toggle(
-      "my-stats-mode",
-      initialVocabularyType === "my-stats",
-    );
-    document.body.classList.toggle(
-      "word-list-mode",
-      initialVocabularyType === "word-list",
-    );
     showVocabularyLoadingShell(initialVocabularyType);
   }
 
@@ -4889,8 +5142,22 @@ window.onload = function () {
   }
 
   const loadDictionaryData = () => fetchAndLoadDictionaryData();
+  // A visitor landing on plain "/" — no search, no word/story, nothing
+  // routeNeedsVocabularyLoadingShell() above needed a loading shell for —
+  // doesn't need the ~2.5MB (gzipped) dictionary CSV for anything the
+  // landing page itself renders (the daily-quest and progress-summary
+  // widgets read localStorage/cloud state, not `results`). Deferring it
+  // here means a visitor who looks and leaves never pays for it at all,
+  // while deferUntilNeeded()'s idle callback still warms it automatically
+  // for anyone who lingers, and its interaction listeners start it
+  // immediately the moment intent is real (typing, or switching tabs).
+  const isPlainWordsLanding =
+    !initialStoryRoute &&
+    !routeNeedsVocabularyLoadingShell(initialVocabularyType, initialURL);
   if (initialStoryRoute) {
     window.setTimeout(loadDictionaryData, 1000);
+  } else if (isPlainWordsLanding) {
+    deferUntilNeeded(loadDictionaryData);
   } else {
     loadDictionaryData();
   }

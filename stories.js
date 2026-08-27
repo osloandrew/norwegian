@@ -1362,6 +1362,39 @@ function getStorySentencePairs(norwegianText, englishText) {
   };
 }
 
+// Fires once per story, the first time the reader scrolls past the
+// halfway point of the page. Page scroll depth stands in for reading
+// progress here — while html.reading is active the story is effectively
+// the whole page (search/filters are hidden), so this needs no separate
+// per-element geometry. `renderToken` guards against a listener from a
+// previous story (or one abandoned mid-load) firing after the reader has
+// moved on — see storyRenderToken's other uses below for the same pattern.
+let storyReadingProgressHandler = null;
+function trackStoryReadingProgress(renderToken) {
+  if (storyReadingProgressHandler) {
+    window.removeEventListener("scroll", storyReadingProgressHandler);
+    storyReadingProgressHandler = null;
+  }
+
+  const handler = () => {
+    if (renderToken !== storyRenderToken) {
+      window.removeEventListener("scroll", handler);
+      return;
+    }
+    const scrollable =
+      document.documentElement.scrollHeight - window.innerHeight;
+    if (scrollable <= 0 || window.scrollY / scrollable < 0.5) return;
+
+    window.trackEvent?.("story_50pct_read", {});
+    window.removeEventListener("scroll", handler);
+    if (storyReadingProgressHandler === handler) {
+      storyReadingProgressHandler = null;
+    }
+  };
+  storyReadingProgressHandler = handler;
+  window.addEventListener("scroll", handler, { passive: true });
+}
+
 function displayStory(
   titleNorwegian,
   { userNavigation = false, storyDataPromise = null } = {},
@@ -1385,7 +1418,13 @@ function displayStory(
   markStoryAsRead(selectedStory.titleNorwegian);
   recordStoryChainVisit(selectedStory.titleNorwegian);
 
+  window.trackEvent?.("story_opened", {
+    cefr: selectedStory.CEFR || "",
+    genre: selectedStory.genre || "",
+  });
+
   const renderToken = ++storyRenderToken;
+  trackStoryReadingProgress(renderToken);
 
   document.title = selectedStory.titleNorwegian + " - Norwegian Dictionary";
 
@@ -1584,6 +1623,11 @@ function displayStory(
       slot.innerHTML = "";
       slot.appendChild(player);
       player.playbackRate = currentSpeed; // ensure it starts at the saved speed
+      player.addEventListener(
+        "play",
+        () => window.trackEvent?.("story_audio_played", {}),
+        { once: true },
+      );
     }
   }
 
@@ -1737,23 +1781,65 @@ function handleStoryFavoritesFilterChange() {
   displayStoryList();
 }
 
+// Stops and removes any playing audio from the story sticky header. Story
+// audio players live outside the shared activeAudio/stopAllAudio() system
+// (wordGame.js), so anywhere the story reader is left needs to call this
+// explicitly or the clip just keeps playing under the next view.
+function stopStoryAudio() {
+  const stickyHeader = document.getElementById("sticky-header");
+  if (!stickyHeader) return;
+
+  const players = stickyHeader.querySelectorAll(
+    "audio, .stories-audio-player",
+  );
+  players.forEach((p) => {
+    if (typeof p.pause === "function") p.pause();
+    try {
+      p.currentTime = 0;
+    } catch (_) {}
+    p.remove();
+  });
+  const toggles = stickyHeader.querySelector(".toggle-buttons-container");
+  if (toggles) toggles.remove();
+}
+
+// The single place that un-does everything displayStory() does to enter the
+// reader (see html.reading.add / #story-content population there): stops
+// its audio, hides #story-viewer, clears the rendered story out of
+// #story-content, hides the sticky header, and — same as displayStoryList()
+// already does when returning to the story list — restores #results-container,
+// which displayStory() hides outright while reading (there's no story list
+// to show underneath the reader). Every other mode (Sentences, Word Game, My
+// Words, ...) renders its content into that same #results-container, so
+// leaving it display:none meant those modes looked entirely blank, even
+// though handleTypeChange() had otherwise switched to them correctly.
+// Previously this cleanup only ran inside storiesBackBtn() — the explicit
+// in-page "Back to Stories" button — so leaving a story any other way (a
+// top-nav tab, the wordmark, My Stats, browser back/forward) left the whole
+// reader, audio included, sitting on screen (Words happened to still look
+// fine, since an empty Words view shows the separate #landing-card instead
+// of #results-container). Called from syncModeNav() (scripts.js), the one
+// function every navigation path already funnels through.
+function resetStoryReaderView() {
+  stopStoryAudio();
+  document.documentElement.classList.remove("reading");
+  const storyViewer = document.getElementById("story-viewer");
+  const storyContent = document.getElementById("story-content");
+  const stickyHeader = document.getElementById("sticky-header");
+  const listEl = document.getElementById("results-container");
+  if (storyViewer) storyViewer.style.display = "none";
+  if (storyContent) storyContent.innerHTML = "";
+  if (stickyHeader) stickyHeader.classList.add("hidden");
+  if (listEl) listEl.style.display = "block";
+  if (storyReadingProgressHandler) {
+    window.removeEventListener("scroll", storyReadingProgressHandler);
+    storyReadingProgressHandler = null;
+  }
+}
+
 function storiesBackBtn() {
   // JP parity: stop and remove any playing audio from the sticky header
-  const stickyHeader = document.getElementById("sticky-header");
-  if (stickyHeader) {
-    const players = stickyHeader.querySelectorAll(
-      "audio, .stories-audio-player",
-    );
-    players.forEach((p) => {
-      if (typeof p.pause === "function") p.pause();
-      try {
-        p.currentTime = 0;
-      } catch (_) {}
-      p.remove();
-    });
-    const toggles = stickyHeader.querySelector(".toggle-buttons-container");
-    if (toggles) toggles.remove();
-  }
+  stopStoryAudio();
 
   // 1) Capture current CEFR/Genre BEFORE changing the UI
   const cefrElBefore = document.getElementById("cefr-select");
@@ -1793,9 +1879,6 @@ function storiesBackBtn() {
 
   // 5) Render the list using the restored dropdowns
   displayStoryList();
-
-  // 6) Exit reading mode
-  document.documentElement.classList.remove("reading");
 }
 
 // Helper function to remove the story header
@@ -1884,8 +1967,7 @@ function loadStoryImage(story) {
 }
 
 function isStoriesTabActive() {
-  const typeSelect = document.getElementById("type-select");
-  return typeSelect && typeSelect.value === "stories";
+  return getCurrentMode() === "stories";
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
@@ -2009,7 +2091,8 @@ window.addEventListener("DOMContentLoaded", async () => {
       const cefrSelect = document.getElementById("cefr-select");
       const cefrFilterContainer = document.querySelector(".cefr-filter");
 
-      document.body.classList.add("stories-mode");
+      // body.stories-mode is already applied — the isPrettyStoriesListPath
+      // branch above already called syncModeNav("stories"), which sets it.
       if (genreFilterContainer) genreFilterContainer.style.display = "inline-flex";
       if (genreSelect) genreSelect.value = "";
       if (storyFavoritesFilterContainer)

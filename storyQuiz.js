@@ -169,6 +169,10 @@
 
     function renderResults() {
       saveQuizResult(titleNorwegian, score, questions.length);
+      window.trackEvent?.("story_quiz_complete", {
+        score,
+        total: questions.length,
+      });
 
       const reviewHTML = answers
         .map(
