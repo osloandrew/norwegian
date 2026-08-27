@@ -771,11 +771,12 @@
       search: "",
       pos: "",
       cefr: "",
+      view: "all",
     };
 
     // Switch back to Word List.
     typeSelect.value = "word-list";
-    handleTypeChange("word-list");
+    handleTypeChange("word-list", { wordListView: savedState.view });
 
     /*
      * handleTypeChange() resets the filters, so restore the saved values
@@ -853,6 +854,7 @@
       search: searchInput.value,
       pos: posSelect ? posSelect.value : "",
       cefr: cefrSelect ? cefrSelect.value : "",
+      view: activeWordListView,
     };
 
     /*

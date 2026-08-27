@@ -20,12 +20,17 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from story_sources import STORY_CSV_NAMES, existing_story_csv_paths
 
 ROOT = Path(__file__).resolve().parent.parent
-SNAPSHOT_VERSION = 1
+SNAPSHOT_VERSION = 2
+# STORY_CSV_NAMES (norwegianStories.csv, norwegianAuthenticStories.csv — see
+# story_sources.py) are both snapshotted and diffed independently, same as
+# every other source file here; the second is optional (see
+# read_csv_dataset_or_empty) so a checkout without it still builds.
 SNAPSHOT_FILENAMES = (
     "norwegianWords.csv",
-    "norwegianStories.csv",
+    *STORY_CSV_NAMES,
     "storyQuestions.json",
 )
 FEATURE_PAGE_FOLDERS = ("sentences", "word-game", "pronunciation")
@@ -113,6 +118,19 @@ def read_csv_dataset(path: Path) -> CsvDataset:
     return CsvDataset(fieldnames, tuple(rows))
 
 
+EMPTY_CSV_DATASET = CsvDataset((), ())
+
+
+def read_csv_dataset_or_empty(path: Path) -> CsvDataset:
+    """Like read_csv_dataset, but a missing or genuinely empty file (an
+    optional story CSV that doesn't exist on this fork, or its own empty
+    snapshot placeholder — see write_snapshot) reads as EMPTY_CSV_DATASET
+    rather than raising."""
+    if not path.is_file() or path.stat().st_size == 0:
+        return EMPTY_CSV_DATASET
+    return read_csv_dataset(path)
+
+
 def read_questions(path: Path) -> dict[str, object]:
     try:
         questions = json.loads(path.read_text(encoding="utf-8"))
@@ -177,11 +195,17 @@ def story_rows(
 def plan_incremental_build(
     old_words: CsvDataset,
     new_words: CsvDataset,
-    old_stories: CsvDataset,
-    new_stories: CsvDataset,
+    old_stories: tuple[CsvDataset, ...],
+    new_stories: tuple[CsvDataset, ...],
     old_questions: dict[str, object],
     new_questions: dict[str, object],
 ) -> IncrementalPlan:
+    """old_stories/new_stories are one CsvDataset per file in STORY_CSV_NAMES,
+    same order, diffed independently and merged — see story_sources.py.
+    Independent diffing (rather than concatenating rows into one dataset)
+    matters because the two files have different columns: mixing rows would
+    lose the authentic CSV's source/license/image columns from the change
+    signature entirely."""
     old_word_index = word_render_index(old_words)
     new_word_index = word_render_index(new_words)
     old_primaries = primary_words(old_words)
@@ -198,8 +222,14 @@ def plan_incremental_build(
         )
     )
 
-    old_story_rows = story_rows(old_stories)
-    new_story_rows = story_rows(new_stories)
+    old_story_rows: dict[str, tuple] = {}
+    new_story_rows: dict[str, tuple] = {}
+    stories_changed = False
+    for old_dataset, new_dataset in zip(old_stories, new_stories):
+        old_story_rows.update(story_rows(old_dataset))
+        new_story_rows.update(story_rows(new_dataset))
+        if old_dataset.signature != new_dataset.signature:
+            stories_changed = True
     affected_story_titles = {
         title
         for title in set(old_story_rows) | set(new_story_rows)
@@ -222,7 +252,7 @@ def plan_incremental_build(
         words=affected_words,
         stories=affected_stories,
         words_changed=old_words.signature != new_words.signature,
-        stories_changed=old_stories.signature != new_stories.signature,
+        stories_changed=stories_changed,
         questions_changed=old_questions != new_questions,
     )
 
@@ -246,7 +276,15 @@ def write_snapshot(snapshot_dir: Path) -> None:
     snapshot_dir.mkdir(parents=True, exist_ok=True)
     for name, destination in snapshot_paths(snapshot_dir).items():
         temporary = destination.with_suffix(destination.suffix + ".tmp")
-        shutil.copyfile(ROOT / name, temporary)
+        source = ROOT / name
+        if source.is_file():
+            shutil.copyfile(source, temporary)
+        else:
+            # Optional story CSV (norwegianAuthenticStories.csv) absent on
+            # this fork — an empty placeholder snapshot, not a missing file,
+            # so snapshot_is_available()'s all-files-present check still
+            # passes and later reads see EMPTY_CSV_DATASET / no slugs.
+            temporary.write_bytes(b"")
         temporary.replace(destination)
     metadata = snapshot_dir / "metadata.json"
     temporary_metadata = metadata.with_suffix(".json.tmp")
@@ -262,9 +300,11 @@ def cached_site_is_complete(site_root: Path, snapshot_dir: Path) -> bool:
         expected_words = source_slugs(
             snapshot_dir / "norwegianWords.csv", "ord", primary_word=True
         )
-        expected_stories = source_slugs(
-            snapshot_dir / "norwegianStories.csv", "titleNorwegian"
-        )
+        expected_stories: set[str] = set()
+        for story_csv_name in STORY_CSV_NAMES:
+            expected_stories |= source_slugs(
+                snapshot_dir / story_csv_name, "titleNorwegian"
+            )
     except (BuildError, OSError):
         return False
 
@@ -381,8 +421,8 @@ def incremental_capture(site_root: Path, snapshot_dir: Path) -> IncrementalPlan:
     plan = plan_incremental_build(
         read_csv_dataset(paths["norwegianWords.csv"]),
         read_csv_dataset(ROOT / "norwegianWords.csv"),
-        read_csv_dataset(paths["norwegianStories.csv"]),
-        read_csv_dataset(ROOT / "norwegianStories.csv"),
+        tuple(read_csv_dataset_or_empty(paths[name]) for name in STORY_CSV_NAMES),
+        tuple(read_csv_dataset_or_empty(ROOT / name) for name in STORY_CSV_NAMES),
         read_questions(paths["storyQuestions.json"]),
         read_questions(ROOT / "storyQuestions.json"),
     )
@@ -447,7 +487,9 @@ def build(
     )
 
     word_slugs = source_slugs(ROOT / "norwegianWords.csv", "ord", primary_word=True)
-    story_slugs = source_slugs(ROOT / "norwegianStories.csv", "titleNorwegian")
+    story_slugs: set[str] = set()
+    for story_csv_path in existing_story_csv_paths(ROOT):
+        story_slugs |= source_slugs(story_csv_path, "titleNorwegian")
     can_build_incrementally = (
         incremental
         and snapshot_is_available(snapshot_dir)

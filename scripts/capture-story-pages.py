@@ -16,7 +16,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import csv
 import http.server
 import json
 import re
@@ -26,8 +25,9 @@ import tempfile
 import threading
 from pathlib import Path
 
+from story_sources import load_all_story_titles
+
 ROOT = Path(__file__).resolve().parent.parent
-STORIES_CSV = ROOT / "norwegianStories.csv"
 PRODUCTION_ORIGIN = "https://osloandrew.github.io"
 SITE_PATH = "/norwegian/"
 # From story/<slug>/, this reaches the site root under both GitHub Pages and
@@ -44,16 +44,6 @@ def slugify(word: str) -> str:
     word = "".join(ch for ch in word if ch.isalnum() or ch == "-")
     word = re.sub(r"-{2,}", "-", word)
     return word.strip("-")
-
-
-def load_all_titles(csv_path: Path) -> list[str]:
-    seen = {}
-    with csv_path.open(newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            title = (row.get("titleNorwegian") or "").strip()
-            if title and title.lower() not in seen:
-                seen[title.lower()] = title
-    return list(seen.values())
 
 
 def find_free_port() -> int:
@@ -231,7 +221,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    all_titles = load_all_titles(STORIES_CSV)
+    all_titles = load_all_story_titles(ROOT)
 
     if args.batch_test:
         # First 2 plus anything with an apostrophe/quote or accented char —

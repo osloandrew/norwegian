@@ -1263,6 +1263,33 @@ body.stories-mode .story-recommendation .cefr-value {
   margin-bottom: 20px; /* Margin for each sentence couplet */
 }
 
+/* CC BY-SA-style attribution for stories adapted from norwegianAuthenticStories.csv
+   (see buildStorySourceCreditHTML in stories.js). Quiet, like .ordbokene-source. */
+.story-source-credit {
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  padding-top: 14px;
+}
+
+.story-source-credit a {
+  color: inherit;
+  font-weight: 500;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition:
+    color 0.2s ease,
+    text-decoration-color 0.2s ease;
+}
+
+.story-source-credit a:hover,
+.story-source-credit a:focus-visible {
+  color: var(--color-link-muted);
+  text-decoration-color: var(--color-link-muted-underline);
+}
+
 /* Reserves the image's display height before it loads, so the sentences
    below don't visibly jump down once it arrives. Slightly over-reserves for
    images whose aspect ratio would otherwise render shorter than 250px. */

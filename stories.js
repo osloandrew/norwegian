@@ -118,6 +118,13 @@ const genreIcons = {
 };
 
 const CSV_URL = "norwegianStories.csv";
+// A second, separate catalog of stories adapted from real, human-written web
+// sources (see scripts/import-authentic-story.py and
+// AUTHENTIC_STORIES_DATA.md) rather than originally written for the app.
+// Kept in its own CSV/file rather than mixed into norwegianStories.csv so
+// the two remain independently editable and attributable. Optional: forks
+// of this app that don't have the file simply see zero authentic stories.
+const AUTHENTIC_CSV_URL = "norwegianAuthenticStories.csv";
 // Prefixed: all language-site forks share one origin (osloandrew.github.io),
 // so localStorage is shared across them too — an unprefixed key here would
 // let a visit to another language site overwrite this one's cached data.
@@ -171,6 +178,42 @@ function getStoryReadingTimeLabel(story) {
   return `${shortestMinutes}\u2013${longestMinutes} min read`;
 }
 
+// CC BY-SA (and similar) licenses require attribution wherever the work is
+// reused \u2014 a story adapted from norwegianAuthenticStories.csv carries its
+// source, author, and license in these fields (see
+// scripts/import-authentic-story.py); stories written for the app have none
+// of them, so this renders nothing for those.
+function buildStorySourceCreditHTML(story) {
+  const sourceUrl = String(story.textSourceUrl || "").trim();
+  if (!sourceUrl) return "";
+
+  const sourceName = String(story.textSourceName || "").trim();
+  const author = String(story.textSourceAuthor || "").trim();
+  const license = String(story.textSourceLicense || "").trim();
+  const imageUrl = String(story.imageSourceUrl || "").trim();
+  const imageLicense = String(story.imageLicense || "").trim();
+  const imageCredit = String(story.imageCredit || "").trim();
+
+  const normalizeLicense = (value) => value.replace(/[\s-]/g, "").toLowerCase();
+  const imageLicenseDiffers =
+    imageUrl && imageLicense && normalizeLicense(imageLicense) !== normalizeLicense(license);
+
+  const bylineHTML = author ? ` by ${escapeHTML(author)}` : "";
+  const imageClauseHTML = imageLicenseDiffers
+    ? ` Header image licensed ${escapeHTML(imageLicense)}${
+        imageCredit ? ` (${escapeHTML(imageCredit)})` : ""
+      }.`
+    : "";
+
+  return `
+    <div class="story-source-credit">
+      Adapted from <a href="${escapeHTML(sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHTML(sourceName || sourceUrl)}</a>${bylineHTML}${
+        license ? `, ${escapeHTML(license)}` : ""
+      }.${imageClauseHTML}
+    </div>
+  `;
+}
+
 // On a local dev/test server (not the deployed osloandrew.github.io site),
 // always fetch fresh CSV data instead of serving a stale cached copy — the
 // whole point of a local test environment is seeing edits to the CSV files
@@ -211,21 +254,30 @@ function cacheStoryData(entries) {
   }
 }
 
-async function fetchFreshStoryData() {
+async function fetchStoryCSV(url) {
   // Anchored to APP_ROOT_URL rather than left as a bare relative path —
   // see the identical fix on fetchAndLoadDictionaryData in scripts.js.
-  const response = await fetch(new URL(CSV_URL, APP_ROOT_URL));
-
+  const response = await fetch(new URL(url, APP_ROOT_URL));
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }
-
   const csvText = await response.text();
-  const parsed = Papa.parse(csvText, {
-    header: true,
-    skipEmptyLines: true,
-  }).data;
-  const entries = normalizeStoryEntries(parsed);
+  return Papa.parse(csvText, { header: true, skipEmptyLines: true }).data;
+}
+
+async function fetchFreshStoryData() {
+  const [originalRows, authenticRows] = await Promise.all([
+    fetchStoryCSV(CSV_URL),
+    // Optional: absent on forks that haven't adopted this catalog yet, or
+    // simply not deployed here. A missing/broken file should not take down
+    // the (required) original story catalog alongside it.
+    fetchStoryCSV(AUTHENTIC_CSV_URL).catch((error) => {
+      console.warn("Authentic story data could not be loaded.", error);
+      return [];
+    }),
+  ]);
+
+  const entries = normalizeStoryEntries([...originalRows, ...authenticRows]);
 
   cacheStoryData(entries);
   return entries;
@@ -1562,6 +1614,8 @@ function displayStory(
     </div>
   `;
     }
+
+    contentHTML += buildStorySourceCreditHTML(selectedStory);
 
     const storyViewer = document.getElementById("story-viewer");
     const storyContent = document.getElementById("story-content");

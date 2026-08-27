@@ -13,6 +13,7 @@ import urllib.parse
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from story_sources import existing_story_csv_paths
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = "https://osloandrew.github.io/norwegian"
@@ -88,7 +89,9 @@ def validate_page(
 
 def validate(source_root: Path, site_root: Path) -> tuple[int, int, int]:
     words = source_values(source_root / "norwegianWords.csv", "ord", primary_word=True)
-    stories = source_values(source_root / "norwegianStories.csv", "titleNorwegian")
+    stories: dict[str, str] = {}
+    for story_csv_path in existing_story_csv_paths(source_root):
+        stories.update(source_values(story_csv_path, "titleNorwegian"))
     generated_words = page_slugs(site_root, "word")
     generated_stories = page_slugs(site_root, "story")
     if generated_words != set(words):
