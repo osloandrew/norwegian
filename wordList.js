@@ -528,12 +528,20 @@
     const snapshot = window.SpacedRepetition.getSnapshot(
       wordStrengths[entryId],
     );
-    const strengthValue = snapshot.strength;
 
-    if (strengthValue === null) {
+    if (snapshot.strength === null) {
       cell.textContent = "—";
       return cell;
     }
+
+    // Floor a practiced word's displayed strength at 1, matching
+    // getWordProgressTierId's own floor (wordGame.js) — the raw 0 that
+    // strength can read right after a miss is real and still drives game
+    // word-selection weighting, but showing it as "0 filled dots" here
+    // would visually contradict the "Learning" tier that word is already
+    // counted under everywhere else, breaking the 1-1 correlation between
+    // this dot count and the vocabulary-profile category labels.
+    const strengthValue = Math.max(1, snapshot.strength);
 
     const dueLabel = snapshot.isDue
       ? "Review due now"

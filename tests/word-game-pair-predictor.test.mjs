@@ -51,6 +51,11 @@ vm.runInContext(
     var wordGameDailyQuestIndex = 0;
     var wordGameSessionQuestionsAnswered = 0;
     var wordGameSessionIntroducedWords = new Set();
+    var PLACEMENT_QUESTION_PLAN = [
+      "forward", "forward", "forward", "listening", "reverse",
+      "listening", "typed-reverse", "forward", "typed-reverse",
+      "typed-listening"
+    ];
     var LISTENING_PROBABILITY = { B2: 0.35 };
     var REVERSE_FLASHCARD_PROBABILITY = { B2: 0.45 };
     var BANNED_WORD_CLASSES = [];
@@ -272,6 +277,30 @@ assert.deepEqual(
   [...context.getQuestionModeCandidates(nearAbility)].map((item) => item.mode),
   ["forward"],
 );
+vm.runInContext("wordGameSessionQuestionsAnswered = 3", context);
+assert.deepEqual(
+  [...context.getQuestionModeCandidates(nearAbility)].map((item) => item.mode),
+  ["listening"],
+);
+vm.runInContext("wordGameSessionQuestionsAnswered = 6", context);
+assert.deepEqual(
+  [...context.getQuestionModeCandidates(nearAbility)].map((item) => item.mode),
+  ["typed-reverse"],
+);
+vm.runInContext("wordGameSessionQuestionsAnswered = 9", context);
+assert.deepEqual(
+  [...context.getQuestionModeCandidates(nearAbility)].map((item) => item.mode),
+  ["typed-listening"],
+);
+assert.equal(
+  context.getPlacementQuestionMode({ ...nearAbility, audio: false }),
+  "forward",
+);
+context.getGameSentenceTranslation = () => "";
+vm.runInContext("wordGameSessionQuestionsAnswered = 6", context);
+assert.equal(context.getPlacementQuestionMode(nearAbility), "reverse");
+context.getGameSentenceTranslation = (entry) => entry.translation ?? "";
+vm.runInContext("wordGameSessionQuestionsAnswered = 0", context);
 
 vm.runInContext(
   "wordGameIsPlacementRound = false; wordGameIsTodayPracticeRound = true",
@@ -293,6 +322,18 @@ assert.deepEqual(
 );
 
 vm.runInContext("wordGameIsBonusRound = false", context);
+context.getActiveA0SupportIntensity = () => 1;
+context.getA0RecognitionEvidence = () => 0;
+assert.deepEqual(
+  [...context.getQuestionModeCandidates(nearAbility)].map((item) => item.mode),
+  ["forward"],
+);
+context.getA0RecognitionEvidence = () => 2;
+const progressingA0Candidates = context.getQuestionModeCandidates(nearAbility);
+assert.ok(
+  progressingA0Candidates.some((item) => item.mode !== "forward"),
+);
+context.getActiveA0SupportIntensity = () => 0;
 const noAudioCandidates = context.getQuestionModeCandidates({
   ...nearAbility,
   audio: false,

@@ -1492,6 +1492,124 @@ li {
   border-color: var(--color-bonus-hover);
 }
 
+/* Advanced choices are intentionally one disclosure below the recommended
+   daily round. The selected My Words percentage remains visible once open,
+   without requiring a separate settings destination. */
+.game-more-practice {
+  border-top: 1px solid var(--color-border);
+  margin-top: 24px;
+  padding-top: 4px;
+  text-align: left;
+  width: 100%;
+}
+
+.game-more-practice > summary {
+  align-items: center;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.82em;
+  font-weight: 700;
+  justify-content: space-between;
+  letter-spacing: 0.04em;
+  list-style: none;
+  padding: 14px 0;
+  text-transform: uppercase;
+}
+
+.game-more-practice > summary::-webkit-details-marker {
+  display: none;
+}
+
+.game-more-practice > summary::after {
+  color: var(--color-text-faint);
+  content: "+";
+  font-size: 1.35em;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.game-more-practice[open] > summary::after {
+  content: "−";
+}
+
+.game-more-practice > summary:focus-visible,
+.game-secondary-drill-btn:focus-visible {
+  outline: 3px solid var(--color-interactive);
+  outline-offset: 3px;
+}
+
+.game-more-practice-content {
+  display: grid;
+  gap: 22px;
+  padding: 3px 0 2px;
+}
+
+.game-my-words-mix,
+.game-custom-rounds,
+.game-secondary-drill {
+  border-top: 1px solid var(--color-border);
+  padding-top: 18px;
+}
+
+.game-option-heading-row {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+}
+
+.game-option-heading-row h3 {
+  color: var(--color-ink);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.82em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.game-option-heading-row p {
+  color: var(--color-text-muted);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.82em;
+  line-height: 1.4;
+  margin: 5px 0 0;
+}
+
+.game-option-heading-row p strong {
+  color: var(--color-ink);
+  font-weight: 650;
+}
+
+.game-secondary-drill-btn {
+  align-items: center;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.72em;
+  font-weight: 700;
+  gap: 6px;
+  letter-spacing: 0.03em;
+  padding: 9px 11px;
+  text-transform: uppercase;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.game-secondary-drill-btn:hover {
+  background-color: var(--color-wash-blue);
+  border-color: var(--color-accent);
+  color: var(--color-ink);
+}
+
 .game-daily-quests {
   text-align: left;
   width: 100%;
@@ -1898,26 +2016,26 @@ li {
 
 .placement-retake-link {
   background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
+  border: 0;
   color: var(--color-text-muted);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
-  font-size: 0.85em;
-  letter-spacing: var(--letter-spacing-caps);
-  margin-top: 18px;
-  padding: 9px 18px;
-  text-transform: uppercase;
+  font-size: 0.76em;
+  letter-spacing: 0.02em;
+  justify-self: start;
+  margin: -4px 0 0;
+  padding: 4px 0;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
   transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease;
+    color 0.2s ease,
+    text-decoration-color 0.2s ease;
 }
 
 .placement-retake-link:hover {
-  background-color: var(--color-surface-subtle);
-  border-color: var(--color-accent);
   color: var(--color-accent);
+  text-decoration-color: currentColor;
 }
 
 .placement-retake-link:focus-visible {
@@ -1969,22 +2087,59 @@ li {
   color: var(--color-text);
   display: flex;
   flex-direction: column;
-  padding: 30px 20px;
+  padding: 32px 24px 24px;
   text-align: center;
 }
 
-.game-summary-icon {
-  color: var(--color-level-mid);
-  font-size: 2.2em;
+.game-summary-hero {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
   margin-bottom: 10px;
+}
+
+.game-summary-check {
+  align-items: center;
+  background-color: var(--color-success-bg);
+  border: 1px solid var(--color-success-border);
+  border-radius: 50%;
+  color: var(--color-success);
+  display: inline-flex;
+  font-size: 1.15em;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.game-summary-check--listening {
+  background-color: var(--color-wash-blue);
+  border-color: var(--color-wash-blue-border);
+  color: var(--color-ink);
+}
+
+.game-summary-reward-gem {
+  filter: drop-shadow(0 4px 6px rgba(28, 42, 58, 0.16));
+  height: 58px;
+  width: 58px;
+}
+
+p.game-summary-eyebrow {
+  color: var(--color-text-slate);
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
 }
 
 .game-summary-heading {
   color: var(--color-ink);
   font-family: "Fraunces", Georgia, "Times New Roman", serif;
-  font-size: 1.4em;
+  font-size: 1.55em;
   font-weight: 600;
-  margin: 0 0 20px 0;
+  margin: 0 0 18px;
 }
 
 .game-summary-gems {
@@ -2016,13 +2171,16 @@ li {
 .game-summary-streak {
   align-items: center;
   background-color: var(--color-streak-bg);
+  border: 1px solid var(--color-streak-border);
   border-radius: var(--radius-card);
   color: var(--color-streak-text);
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin: -8px 0 20px 0;
-  padding: 10px 16px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin: -2px 0 16px;
+  padding: 8px 0px;
   width: 100%;
 }
 
@@ -2041,20 +2199,27 @@ li {
   color: #8a5a2e;
   font-size: 0.8em;
   margin: 0;
+  width: 100%;
 }
 
 .game-summary-stats {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-bottom: 25px;
+  margin-bottom: 18px;
   width: 100%;
 }
 
 .game-summary-stat {
-  background-color: var(--color-bg-stat);
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  padding: 14px 10px;
+  padding: 13px 10px;
+}
+
+.game-summary-stat:first-child {
+  background-color: var(--color-wash-blue);
+  border-color: var(--color-wash-blue-border);
 }
 
 /* The "p." tag qualifier isn't decorative — both are always literally
@@ -2085,20 +2250,55 @@ p.game-summary-stat-label {
   background-color: var(--color-ink);
   border: 1px solid var(--color-ink);
   border-radius: var(--radius-control);
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: none;
   color: var(--color-surface);
   cursor: pointer;
   font-family: "Noto Sans", sans-serif;
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 650;
   letter-spacing: 0.04em;
-  padding: 15px;
+  padding: 13px 16px;
   text-transform: uppercase;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease;
   user-select: none;
   width: 100%;
+}
+
+.game-summary-actions {
+  display: grid;
+  gap: 9px;
+  margin-bottom: 18px;
+  width: 100%;
+}
+
+.game-summary-secondary-btn {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.82em;
+  font-weight: 650;
+  padding: 11px 16px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  width: 100%;
+}
+
+.game-summary-secondary-btn:hover {
+  background-color: var(--color-wash-blue);
+  border-color: var(--color-accent);
+  color: var(--color-ink);
+}
+
+.game-summary-secondary-btn:focus-visible,
+.game-summary-primary-btn:focus-visible {
+  outline: 3px solid var(--color-interactive);
+  outline-offset: 3px;
 }
 
 .game-summary-primary-btn:hover {
@@ -2118,9 +2318,51 @@ p.game-summary-stat-label {
    just gives the wrapping table a shorter cap than the page-wide 70vh on
    .word-list-table-container, since it sits inside a summary card. */
 .game-summary-missed {
-  margin-bottom: 20px;
+  border-top: 1px solid var(--color-border);
+  margin: 0;
+  padding-top: 4px;
   text-align: left;
   width: 100%;
+}
+
+.game-summary-missed > summary {
+  align-items: center;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 0.8em;
+  font-weight: 700;
+  justify-content: space-between;
+  letter-spacing: 0.04em;
+  list-style: none;
+  padding: 13px 0;
+  text-transform: uppercase;
+}
+
+.game-summary-missed > summary::-webkit-details-marker {
+  display: none;
+}
+
+.game-summary-missed > summary::after {
+  color: var(--color-text-faint);
+  content: "+";
+  font-size: 1.35em;
+  font-weight: 400;
+}
+
+.game-summary-missed[open] > summary::after {
+  content: "−";
+}
+
+.game-summary-missed > summary span {
+  background-color: var(--color-surface-subtle);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  font-size: 0.9em;
+  margin-left: auto;
+  margin-right: 10px;
+  padding: 2px 7px;
 }
 
 .game-summary-missed-heading {

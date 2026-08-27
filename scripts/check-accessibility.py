@@ -41,24 +41,11 @@ VIEWPORT = {"width": 1280, "height": 900}
 AXE_RUN_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"]
 FAILING_IMPACTS = {"critical", "serious"}
 
-# Pre-existing serious/critical violations, accepted for now so this check
-# can gate CI without blocking on a full redesign. Each needs real design
-# work, not a quick patch:
-#   - nested-interactive is the whole-card-clickable pattern (a
-#     role="button" div containing a real <button>, e.g. the English-toggle
-#     button inside a search result card) used on every result card in the
-#     app — safely restructuring it needs its own pass.
-# Still printed below as "[known]", not silently dropped. Remove an entry
-# once its underlying issue is actually fixed — a passing run with a stale
-# entry here just means the entry is unused, not that anything is masked.
-KNOWN_VIOLATIONS: set[tuple[str, str]] = {
-    ("Word lookup", "nested-interactive"),
-}
-
 # (label, path, ready_selector, extra readiness wait)
 ROUTES: list[tuple[str, str, str, float]] = [
     ("Landing page", "/", "#landing-card", 0),
     ("Word lookup", "/?type=words&word=forgjeves", "#results-container .definition", 0),
+    ("Word search results", "/?query=hygge", "#results-container .multiple-results-definition", 0),
     ("Sentence search", "/?type=sentences", "#results-container .sentence-container", 0),
     ("Stories index", "/?type=stories", "#stories .story-card-link", 0),
     ("Story reader", "/?type=stories&story=Bakeriet", "#story-content .japanese-sentence", 0),
@@ -111,9 +98,8 @@ def check_route(page: Page, base_url: str, label: str, path: str, ready_selector
 
     failing = []
     for violation in violations:
-        is_known = (label, violation["id"]) in KNOWN_VIOLATIONS
-        is_failing = violation["impact"] in FAILING_IMPACTS and not is_known
-        marker = "known" if is_known else ("FAIL" if is_failing else "info")
+        is_failing = violation["impact"] in FAILING_IMPACTS
+        marker = "FAIL" if is_failing else "info"
         print(
             f"  [{marker}] {label}: {violation['id']} ({violation['impact']}) — "
             f"{violation['help']} [{len(violation['nodes'])} element(s)]"

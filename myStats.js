@@ -27,26 +27,44 @@
     return document.getElementById("results-container");
   }
 
+  // Records are now multi-skill memories (see spacedRepetition.js's
+  // normalizeMemory: { skills: { recognition, production, listening,
+  // context }, updatedAt }) rather than a single scheduled record, so
+  // there's no top-level dueAt to compare directly. Reuse
+  // SpacedRepetition.getSnapshot the same way wordGame.js's
+  // getVocabProgressSummary does — its aggregate `isDue` is already true
+  // when any practiced skill is due — evaluated once at `now` and once at
+  // the horizon so "due this week" excludes words already due now.
   function getUpcomingDueCount(days, now = Date.now()) {
     const dayMs = window.SpacedRepetition?.DAY_MS ?? 24 * 60 * 60 * 1000;
     const horizon = now + days * dayMs;
     const records = Object.values(window.WordStrengthAPI?.getAll?.() ?? {});
+    const isDueBy = (record, timestamp) =>
+      Boolean(window.SpacedRepetition?.getSnapshot?.(record, timestamp)?.isDue);
 
     return records.filter(
-      (record) => record.dueAt > now && record.dueAt <= horizon,
+      (record) => !isDueBy(record, now) && isDueBy(record, horizon),
     ).length;
   }
 
-  // Every word ever missed at least once, ranked by how many times —
-  // record.lapses is tracked on every incorrect answer (see
-  // spacedRepetition.js's scheduleIncorrect) but wasn't surfaced anywhere
-  // in the UI before this page.
+  // A memory's lapses are tracked per skill (see spacedRepetition.js's
+  // scheduleIncorrect), so a word's total is the sum across whichever
+  // skills it's been practiced in.
+  function getTotalLapses(record) {
+    return Object.values(record?.skills ?? {}).reduce(
+      (sum, skillRecord) => sum + (skillRecord?.lapses ?? 0),
+      0,
+    );
+  }
+
+  // Every word ever missed at least once, ranked by how many times.
   function getTroubleEntries(limit = MAX_TROUBLE_WORDS_SHOWN) {
     const allRecords = window.WordStrengthAPI?.getAll?.() ?? {};
 
     return Object.entries(allRecords)
-      .filter(([, record]) => (record.lapses ?? 0) > 0)
-      .sort((a, b) => b[1].lapses - a[1].lapses)
+      .map(([entryId, record]) => [entryId, getTotalLapses(record)])
+      .filter(([, lapses]) => lapses > 0)
+      .sort((a, b) => b[1] - a[1])
       .slice(0, limit)
       .map(([entryId]) => window.WordListAPI?.getEntryById?.(entryId))
       .filter(Boolean);

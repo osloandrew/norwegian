@@ -28,7 +28,7 @@
     container.innerHTML = `
       <div class="game-intro-card placement-card">
         <h2 class="game-intro-heading">How much Norwegian do you know?</h2>
-        <p class="game-intro-subheading">Choose a starting point, then begin a 10-word practice round. We’ll fine-tune it from your first answers.</p>
+        <p class="game-intro-subheading">Choose a starting point, then begin a 10-word practice round. We’ll fine-tune it from recognition, listening, and recall.</p>
         <div class="placement-option-list">
           ${SELF_ASSESSMENT_OPTIONS.map(
             (option, index) => `

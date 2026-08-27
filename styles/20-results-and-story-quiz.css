@@ -11,9 +11,7 @@
 }
 
 .multiple-results-definition:hover {
-  background-color: var(
-    --color-wash-blue
-  ); /* Hover effect same as word card */
+  background-color: var(--color-wash-blue); /* Hover effect same as word card */
 }
 
 /* The word, gender and definition */
@@ -22,6 +20,19 @@
   flex-direction: row; /* Horizontally aligns the word and definition */
   justify-content: space-between;
   align-items: center;
+}
+
+/* The compact header, rather than the full card, is the result activator.
+   Expanded cards contain independent controls, so this keeps keyboard focus
+   and activation out of their interactive hierarchy. */
+.multiple-results-definition-header[role="button"] {
+  cursor: pointer;
+}
+
+.multiple-results-definition-header[role="button"]:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--color-link-muted);
+  outline-offset: 4px;
 }
 
 /* The definition */
@@ -278,7 +289,9 @@ ul {
   padding: 10px; /* Enlarged for a more comfortable tap target */
   font-size: 14px !important; /* Icon size inside */
   border-radius: 4px; /* Same rounded corners */
-  background-color: var(--color-surface-subtle); /* Matches the default CEFR look */
+  background-color: var(
+    --color-surface-subtle
+  ); /* Matches the default CEFR look */
   color: var(--color-text-strong) !important; /* Icon color */
   user-select: none; /* Same no-selection behavior */
   cursor: pointer;
@@ -716,6 +729,7 @@ ul {
   align-items: center; /* Center vertically */
   border: 1px solid var(--color-border); /* Lighter gray for a subtler border */
   border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   box-sizing: border-box; /* Includes padding and border in the width calculation */
   color: var(--color-text-strong);
   display: flex; /* Add Flexbox */
@@ -777,6 +791,7 @@ ul {
   ); /* Light background for genre badge */
   border: 1px solid var(--color-border); /* Lighter gray for a subtler border */
   border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   box-sizing: border-box; /* Includes padding and border in the width calculation */
   color: var(--color-text-strong);
   display: flex; /* Add Flexbox */

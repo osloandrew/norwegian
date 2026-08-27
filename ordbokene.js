@@ -553,10 +553,9 @@
     );
   }
 
-  // Avoid duplicating a local headword/same-word-class entry. When the query
-  // itself is only an inflected form in Ordbøkene, put the official lemma
-  // first; otherwise local exact entries retain priority and any additional
-  // official inflection matches follow them.
+  // Avoid duplicating a local headword/same-word-class entry. Ordbøkene is
+  // a fallback layer, so its entries -- exact or inflected -- always sort
+  // after every local (CSV) entry, never ahead of or interleaved with them.
   function mergeEntries(localEntries, lookupResult) {
     const local = Array.isArray(localEntries) ? localEntries : [];
     const external = (lookupResult?.entries || []).filter(
@@ -572,9 +571,7 @@
       (entry) => entry._ordbokene?.matchType !== "exact",
     );
 
-    return lookupResult?.hasExactArticles
-      ? [...exact, ...local, ...inflected]
-      : [...inflected, ...local];
+    return [...local, ...exact, ...inflected];
   }
 
   window.Ordbokene = Object.freeze({

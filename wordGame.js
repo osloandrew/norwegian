@@ -73,6 +73,35 @@ const PLACEMENT_CALIBRATION_ANSWER_COUNT = 7;
 const PLACEMENT_CALIBRATION_INITIAL_STEP = 150;
 const PLACEMENT_CALIBRATION_STEP_DECAY = 0.72;
 const PLACEMENT_CALIBRATION_MIN_STEP = 30;
+// Placement is a short diagnostic embedded in a useful first practice
+// session, not a vocabulary exam. Start with familiar multiple-choice
+// recognition, then sample listening and productive recall after the
+// estimate has had a few chances to adjust. Each next word is still drawn
+// around the continually updated estimate, so the plan is adaptive in both
+// difficulty and skill rather than being a fixed ten-item quiz.
+//
+// Keep three forward questions at the beginning: a learner who genuinely has
+// no Norwegian should not meet dictation before they have seen the game
+// once. The later forward checkpoints help separate a broad vocabulary gap
+// from a weaker listening or production skill without making one difficult
+// modality dominate the general ability estimate.
+const PLACEMENT_QUESTION_PLAN = Object.freeze([
+  "forward",
+  "forward",
+  "forward",
+  "listening",
+  "reverse",
+  "listening",
+  "typed-reverse",
+  "forward",
+  "typed-reverse",
+  "typed-listening",
+]);
+// A sub-second four-choice answer is useful evidence, but can also be a
+// lucky click. Match the predictor's existing likely-guess threshold and
+// give a fast correct multiple-choice response partial, rather than full,
+// placement influence. Typed answers deliberately never take this path.
+const PLACEMENT_LIKELY_GUESS_OUTCOME = 0.65;
 const DAILY_QUEST_ROUND_TARGET = 10;
 const DAILY_QUESTS = Object.freeze([
   Object.freeze({
@@ -151,6 +180,13 @@ let wordGameMyWordsMixQuestionCount = 0;
 let wordGameMyWordsMixSavedQuestionCount = 0;
 let wordGameReviewPortfolioQuestionCount = 0;
 let wordGameReviewPortfolioReviewCount = 0;
+// A round snapshots its current A0 support intensity so its pacing does not
+// visibly change halfway through. The next round recomputes it from durable
+// SRS history, which makes the overall transition smooth without a separate
+// A0 mode or completion flag.
+let wordGameA0SupportIntensity = 0;
+let wordGameA0PacingQuestionCount = 0;
+let wordGameA0ReinforcementQuestionCount = 0;
 // Distinct words answered incorrectly at least once this round — shown in
 // the "Words to review" list on the round summary screen. A word stays
 // listed even if later answered correctly, since it was still worth a
@@ -428,6 +464,24 @@ const GAME_MODES = Object.freeze({
         );
         renderWordGameUI(wordObj, fallbackTranslations, false);
         return;
+      }
+
+      const a0SupportIntensity = getActiveA0SupportIntensity();
+      if (a0SupportIntensity > 0.05) {
+        const sentenceVocabularySuccess =
+          await getRenderedSentenceVocabularySuccess(clozeTarget);
+        // At the start of learning, a cloze sentence should mostly contain
+        // words the learner can already follow. This gate fades away with
+        // A0 support and simply uses the normal forward card when no safe
+        // context is available.
+        const minimumSentenceSuccess = 0.55 + 0.25 * a0SupportIntensity;
+        if (
+          Number.isFinite(sentenceVocabularySuccess) &&
+          sentenceVocabularySuccess < minimumSentenceSuccess
+        ) {
+          renderWordGameUI(wordObj, fallbackTranslations, false);
+          return;
+        }
       }
 
       const correctChoice = formatCorrectClozeChoice(wordObj, clozeTarget);
@@ -721,17 +775,73 @@ function scheduleAdaptiveRecovery({
   return entry;
 }
 let wordDataStore = [];
-// MP3s, not the original WAVs — encoded at LAME -V2 (~91% smaller with no
-// audible difference for a short UI chime), since these three are
-// instantiated unconditionally for every visitor on every page, not just
-// word-game players.
-let goodChime = new Audio("Resources/Audio/goodChime.mp3");
-let badChime = new Audio("Resources/Audio/badChime.mp3");
-let popChime = new Audio("Resources/Audio/popChime.mp3");
+// MP3s, not WAVs — encoded at LAME -V2 (~91% smaller with no audible
+// difference for a short UI chime), since all six are instantiated
+// unconditionally for every visitor on every page, not just word-game
+// players. goodChime/badChime/queueClearedChime/roundCompleteChime/
+// streakChime share one synthesized bell voice and a common C-major tonal
+// palette (goodChime/queueClearedChime/roundCompleteChime/streakChime all
+// resolve upward through the same family of intervals; badChime is the one
+// deliberately falling, duller motif) so they read as one cohesive kit.
+// popChime is the original pre-existing file — kept as-is by request after
+// a synthesized replacement was tried and rejected as too high and chirpy.
+let goodChime = new Audio("Resources/Audio/goodChime.mp3?v=cd9567be7c");
+let badChime = new Audio("Resources/Audio/badChime.mp3?v=b14562da64");
+let popChime = new Audio("Resources/Audio/popChime.mp3?v=e74ec8eaaa");
+// Milestone chimes: rarer, bigger moments (streak, queue cleared, round
+// complete) than the per-answer three above, but same voice and palette.
+let streakChime = new Audio("Resources/Audio/streakChime.mp3?v=abda44554f");
+let queueClearedChime = new Audio(
+  "Resources/Audio/queueClearedChime.mp3?v=9a05e08c72",
+);
+let roundCompleteChime = new Audio(
+  "Resources/Audio/roundCompleteChime.mp3?v=0a276b8d1c",
+);
 
 goodChime.volume = 0.2;
 badChime.volume = 0.2;
 popChime.volume = 0.2;
+streakChime.volume = 0.2;
+queueClearedChime.volume = 0.2;
+roundCompleteChime.volume = 0.2;
+
+// Two chimes should never play at once — a rarer, bigger moment (a streak,
+// the round ending) needs to win outright over a routine one (the plain
+// per-answer ding) rather than get muddied by playing on top of it. Higher
+// number wins; a lower- or equal-priority chime already playing gets cut off
+// by anything ranked higher, and a lower-priority request arriving while a
+// higher one is still playing is simply dropped rather than queued.
+const CHIME_PRIORITY = {
+  pop: 1,
+  answer: 2, // goodChime / badChime — routine per-answer feedback
+  queueCleared: 3,
+  streak: 4,
+  roundComplete: 5, // the round just ended; nothing should step on this
+};
+let activeChime = null;
+let activeChimePriority = -Infinity;
+function playChime(audio, priority) {
+  if (
+    activeChime &&
+    activeChime !== audio &&
+    !activeChime.paused &&
+    !activeChime.ended &&
+    activeChimePriority >= priority
+  ) {
+    return;
+  }
+  if (activeChime && activeChime !== audio) {
+    activeChime.pause();
+  }
+  audio.currentTime = 0;
+  // Interrupting a chime (the .pause() above) rejects its own in-flight
+  // play() promise with an AbortError — expected once chimes can cut each
+  // other off, not a real failure, so it's swallowed rather than left as an
+  // unhandled rejection.
+  audio.play().catch(() => {});
+  activeChime = audio;
+  activeChimePriority = priority;
+}
 
 const gameContainer = document.getElementById("results-container"); // Assume this is where you'll display the game
 const statsContainer = document.getElementById("game-session-stats"); // New container for session stats
@@ -876,12 +986,14 @@ function showBanner(type, level) {
     const randomIndex = Math.floor(Math.random() * streakMessages.length);
     message = streakMessages[randomIndex].replace("{X}", level);
     bannerHTML = `<div class="game-streak-banner"><p>${message}</p></div>`;
+    playChime(streakChime, CHIME_PRIORITY.streak);
   } else if (type === "clearedPracticeWords") {
     const randomIndex = Math.floor(
       Math.random() * clearedPracticeMessages.length,
     );
     message = clearedPracticeMessages[randomIndex];
     bannerHTML = `<div class="game-cleared-practice-banner"><p>${message}</p></div>`;
+    playChime(queueClearedChime, CHIME_PRIORITY.queueCleared);
   } else if (type === "savedWord") {
     const randomIndex = Math.floor(Math.random() * savedWordMessages.length);
 
@@ -927,6 +1039,7 @@ function updateRecentAnswers(
   mode = "forward",
   learnedExerciseBias = 0,
   outcomeValue = isCorrect ? 1 : 0,
+  placementEvidence = null,
 ) {
   recentAnswers.push(isCorrect ? 1 : 0);
   updateAbilityScore(
@@ -935,6 +1048,7 @@ function updateRecentAnswers(
     mode,
     learnedExerciseBias,
     outcomeValue,
+    placementEvidence,
   );
 }
 
@@ -995,6 +1109,7 @@ function updateAbilityScore(
   mode = "forward",
   learnedExerciseBias = 0,
   outcomeValue = isCorrect ? 1 : 0,
+  placementEvidence = null,
 ) {
   if (abilityScore === null || !wordObj) return;
 
@@ -1013,12 +1128,31 @@ function updateAbilityScore(
 
   if (isFreshPlacementCalibrationWord) {
     wordGamePlacementCalibrationWords.add(wordObj);
-    abilityScore = clampAbility(
-      abilityScore +
-        (isCorrect
-          ? wordGamePlacementCalibrationStep
-          : -wordGamePlacementCalibrationStep),
+    const likelyGuessedMultipleChoice = Boolean(
+      placementEvidence?.possiblyGuessed && !placementEvidence?.wasTyped,
     );
+    const placementOutcome =
+      likelyGuessedMultipleChoice && isCorrect
+        ? Math.min(outcomeValue, PLACEMENT_LIKELY_GUESS_OUTCOME)
+        : outcomeValue;
+
+    // Unlike the old +/- step, this uses the same exercise bias as ordinary
+    // play. A miss on the short typed-production sample therefore says less
+    // about general vocabulary knowledge than a miss on recognition, while
+    // the mode and skill predictors retain their own calibration evidence.
+    abilityScore = window.WordGamePolicy.getAbilityAfterAnswer({
+      ability: abilityScore,
+      wordDifficulty: getWordDifficultyAnchor(wordObj),
+      isCorrect,
+      outcomeValue: placementOutcome,
+      kFactor: wordGamePlacementCalibrationStep,
+      logisticScale: ABILITY_LOGISTIC_SCALE,
+      exerciseBias:
+        (window.WordGamePolicy.DEFAULT_MODE_BIASES[mode] ?? 0) +
+        learnedExerciseBias,
+      minimum: ABILITY_MIN,
+      maximum: ABILITY_MAX,
+    });
     wordGamePlacementCalibrationStep = Math.max(
       PLACEMENT_CALIBRATION_MIN_STEP,
       wordGamePlacementCalibrationStep * PLACEMENT_CALIBRATION_STEP_DECAY,
@@ -1462,6 +1596,18 @@ function getNorwegianEntryVariants(entry) {
 function getTypedRecallProbability(wordObj, mode, exercise = null) {
   const readiness = TYPED_RECALL_READINESS[mode];
   if (!readiness) return 0;
+
+  const a0SupportIntensity =
+    typeof getActiveA0SupportIntensity === "function"
+      ? getActiveA0SupportIntensity()
+      : 0;
+  if (
+    a0SupportIntensity > 0.05 &&
+    typeof getA0RecognitionEvidence === "function" &&
+    getA0RecognitionEvidence(wordObj) < 2
+  ) {
+    return 0;
+  }
 
   const skill = getQuestionSkillForMode(mode);
   const snapshot =
@@ -2005,9 +2151,37 @@ function splitTypedQuestionMode(candidates, wordObj, mode, weight) {
   );
 }
 
+function getPlacementQuestionMode(wordObj) {
+  const questionIndex = Math.max(
+    0,
+    Math.floor(Number(wordGameSessionQuestionsAnswered) || 0),
+  );
+  const plannedMode =
+    PLACEMENT_QUESTION_PLAN[questionIndex] ?? "forward";
+
+  // The normal renderer can safely fall back from a failed cloze build, but
+  // listening and typed recall need a usable prompt before rendering. Keep
+  // the placement's promised skill sample whenever the data supports it and
+  // use a meaningful lower-friction alternative when it does not.
+  if (
+    (plannedMode === "listening" || plannedMode === "typed-listening") &&
+    !hasPlayableWordAudio(wordObj)
+  ) {
+    return "forward";
+  }
+  if (
+    plannedMode === "typed-reverse" &&
+    !getGameSentenceTranslation(wordObj, 0)
+  ) {
+    return "reverse";
+  }
+
+  return plannedMode;
+}
+
 function getStructuredQuestionModeForWord(wordObj) {
   const hasAudio = hasPlayableWordAudio(wordObj);
-  if (wordGameIsPlacementRound) return "forward";
+  if (wordGameIsPlacementRound) return getPlacementQuestionMode(wordObj);
   if (wordGameIsTodayPracticeRound) {
     return getDailyQuestQuestionMode(
       wordGameDailyQuestIndex,
@@ -2031,6 +2205,13 @@ function getQuestionModeCandidates(wordObj) {
     return [{ mode: "typed-reverse", weight: 1 }];
   }
   if (structuredMode) {
+    // Placement's modes are deliberately prescribed. In particular, its two
+    // listening samples are multiple choice and its short production samples
+    // are typed; allowing ordinary typed-readiness randomness here could turn
+    // a first listening exposure into dictation or omit production entirely.
+    if (wordGameIsPlacementRound) {
+      return [{ mode: structuredMode, weight: 1 }];
+    }
     if (["cloze", "listening", "reverse"].includes(structuredMode)) {
       splitTypedQuestionMode(candidates, wordObj, structuredMode, 1);
     } else {
@@ -2045,10 +2226,30 @@ function getQuestionModeCandidates(wordObj) {
     : 0;
   const reverseProbability =
     interpolateByAbility(abilityScore, REVERSE_FLASHCARD_PROBABILITY) ?? 0.25;
-  const clozeWeight = 0.5;
-  const listeningWeight = 0.5 * listeningProbability;
-  const reverseWeight =
+  let clozeWeight = 0.5;
+  let listeningWeight = 0.5 * listeningProbability;
+  let reverseWeight =
     0.5 * (1 - listeningProbability) * reverseProbability;
+  const a0SupportIntensity =
+    typeof getActiveA0SupportIntensity === "function"
+      ? getActiveA0SupportIntensity()
+      : 0;
+  if (a0SupportIntensity > 0.05) {
+    const recognitionEvidence =
+      typeof getA0RecognitionEvidence === "function"
+        ? getA0RecognitionEvidence(wordObj)
+        : 0;
+    // A completely new word remains recognition-only. Once recognition has
+    // begun to stick, the other modes gain their ordinary share smoothly;
+    // typed recall has its own stricter readiness gate below.
+    if (recognitionEvidence < 1) {
+      return [{ mode: "forward", weight: 1 }];
+    }
+    const familiarity = Math.min(1, recognitionEvidence / 2);
+    clozeWeight *= 1 - a0SupportIntensity * (1 - familiarity);
+    listeningWeight *= familiarity;
+    reverseWeight *= familiarity;
+  }
   let forwardWeight = 1 - clozeWeight - listeningWeight - reverseWeight;
   const canAttemptCloze =
     Boolean(String(wordObj?.eksempel ?? "").trim()) &&
@@ -3616,6 +3817,13 @@ function renderWordGameIntro() {
   const dailyButtonLabel = dailyComplete
     ? "Start bonus round"
     : `Start ${activeQuest.reward} round`;
+  const morePracticeWasOpen = Boolean(
+    document.querySelector(".game-more-practice")?.open,
+  );
+  const myWordsMixSummary =
+    wordGameMyWordsShare === 0
+      ? "Off"
+      : `${getMyWordsShareValueLabel(wordGameMyWordsShare)} · ${getMyWordsShareDescriptionLabel(wordGameMyWordsShare)}`;
 
   setGameContainerHTML(`
     <div class="game-intro-card">
@@ -3627,7 +3835,7 @@ function renderWordGameIntro() {
           </div>
           <strong class="game-today-practice-count">${dailyProgress} / ${DAILY_QUESTS.length} rounds</strong>
         </div>
-        <p class="game-today-practice-note">${nextLabel}</p>
+        <p class="game-today-practice-note">${nextLabel} · 10 questions</p>
         <div
           class="game-today-practice-progress"
           role="progressbar"
@@ -3654,89 +3862,91 @@ function renderWordGameIntro() {
         </ol>
       </section>
 
-      ${
-        hasSavedMyWords
-          ? `
-      <div class="game-intro-divider"><span>My Words mix</span></div>
-      <p class="game-intro-subheading">How often should questions pull from words you've saved?</p>
-      <div class="game-my-words-options">
-        ${MY_WORDS_SHARE_LEVELS.map(
-          (share) => `
-          <button
-            type="button"
-            class="game-my-words-option${share === wordGameMyWordsShare ? " is-selected" : ""}"
-            data-share="${share}"
-            aria-pressed="${share === wordGameMyWordsShare}"
-          >
-            <span class="game-my-words-option-value">${getMyWordsShareValueLabel(share)}</span>
-            <span class="game-my-words-option-label">${getMyWordsShareDescriptionLabel(share)}</span>
+      <details class="game-more-practice"${morePracticeWasOpen ? " open" : ""}>
+        <summary>More practice options</summary>
+        <div class="game-more-practice-content">
+          ${
+            hasSavedMyWords
+              ? `
+          <section class="game-my-words-mix" aria-labelledby="game-my-words-mix-heading">
+            <div class="game-option-heading-row">
+              <div>
+                <h3 id="game-my-words-mix-heading">My Words in practice</h3>
+                <p>Saved words: <strong>${myWordsMixSummary}</strong></p>
+              </div>
+            </div>
+            <div class="game-my-words-options">
+              ${MY_WORDS_SHARE_LEVELS.map(
+                (share) => `
+                <button
+                  type="button"
+                  class="game-my-words-option${share === wordGameMyWordsShare ? " is-selected" : ""}"
+                  data-share="${share}"
+                  aria-pressed="${share === wordGameMyWordsShare}"
+                >
+                  <span class="game-my-words-option-value">${getMyWordsShareValueLabel(share)}</span>
+                  <span class="game-my-words-option-label">${getMyWordsShareDescriptionLabel(share)}</span>
+                </button>
+              `,
+              ).join("")}
+            </div>
+          </section>
+          `
+              : ""
+          }
+
+          <section class="game-custom-rounds" aria-labelledby="game-custom-rounds-heading">
+            <div class="game-option-heading-row">
+              <div>
+                <h3 id="game-custom-rounds-heading">Custom round</h3>
+                <p>Choose a length, or keep going.</p>
+              </div>
+            </div>
+            <div class="game-intro-options">
+              ${WORD_GAME_SESSION_WORD_COUNTS.map(
+                (count) => `
+                <button
+                  type="button"
+                  class="game-intro-option"
+                  data-mode="session"
+                  data-count="${count}"
+                >
+                  <span class="game-intro-option-count">${count}</span>
+                  <span class="game-intro-option-label">words</span>
+                </button>
+              `,
+              ).join("")}
+              <button
+                type="button"
+                class="game-intro-option game-intro-option-infinite"
+                data-mode="infinite"
+              >
+                <i class="fas fa-infinity" aria-hidden="true"></i>
+                <span class="game-intro-option-label">Endless</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- Minimal pairs is deliberately separate from spaced repetition:
+               it is a short listening drill and does not change progress. -->
+          <section class="game-secondary-drill" aria-labelledby="game-secondary-drill-heading">
+            <div class="game-option-heading-row">
+              <div>
+                <h3 id="game-secondary-drill-heading">Listening drill</h3>
+                <p>Hear a word and choose between similar sounds.</p>
+              </div>
+              <button type="button" class="game-secondary-drill-btn" id="game-minimal-pairs-btn">
+                <i class="fas fa-headphones" aria-hidden="true"></i>
+                Minimal pairs
+              </button>
+            </div>
+          </section>
+
+          <button type="button" id="retake-placement-btn" class="placement-retake-link">
+            Retake placement test
           </button>
-        `,
-        ).join("")}
-      </div>
-      `
-          : ""
-      }
-
-      <div class="game-intro-divider"><span>Choose another round</span></div>
-      <p class="game-intro-subheading">Pick a goal, or keep going for as long as you like.</p>
-      <div class="game-intro-options">
-        ${WORD_GAME_SESSION_WORD_COUNTS.map(
-          (count) => `
-          <button
-            type="button"
-            class="game-intro-option"
-            data-mode="session"
-            data-count="${count}"
-          >
-            <span class="game-intro-option-count">${count}</span>
-            <span class="game-intro-option-label">words</span>
-          </button>
-        `,
-        ).join("")}
-        <button
-          type="button"
-          class="game-intro-option game-intro-option-infinite"
-          data-mode="infinite"
-        >
-          <i class="fas fa-infinity" aria-hidden="true"></i>
-          <span class="game-intro-option-label">Endless</span>
-        </button>
-      </div>
-
-      <!-- Deliberately separate from the rest of the word game: no ability
-           score, no SRS/relearning queue, no My Words, nothing saved after
-           the round ends — see startMinimalPairsGame() below. -->
-      <div class="game-intro-divider"><span>Practice sound distinctions</span></div>
-      <p class="game-intro-subheading">Hear a word, then pick which of two similar-sounding words you heard.</p>
-      <!-- .game-today-practice-btn, not .game-intro-option: this is meant
-           to read as a primary action the same weight as "Start emerald
-           round" above, not another small round-size pill alongside
-           10/20/50/Endless. That button sits inset inside .game-today-
-           practice's own 18px padding + 1px border, which this card
-           doesn't otherwise have — wrapping in the same class (colors and
-           shadow stripped via inline style, so it doesn't look like a
-           second nested card) reuses its exact box geometry rather than
-           guessing the inset as a hardcoded margin that could drift out of
-           sync with it later. -->
-      <div
-        class="game-today-practice"
-        style="background: transparent; border-color: transparent; box-shadow: none; margin-bottom: 0;"
-      >
-        <button
-          type="button"
-          class="game-today-practice-btn"
-          id="game-minimal-pairs-btn"
-          style="margin-top: 0;"
-        >
-          <i class="fas fa-headphones" aria-hidden="true"></i>
-          Minimal Pairs
-        </button>
-      </div>
-
-      <button type="button" id="retake-placement-btn" class="placement-retake-link">
-        Retake placement test
-      </button>
+        </div>
+      </details>
     </div>
   `);
 
@@ -4105,8 +4315,7 @@ function handleMinimalPairAnswer(selectedWord, targetWord, pair) {
 
   if (isCorrect) {
     minimalPairsMasteredCount++;
-    goodChime.currentTime = 0;
-    goodChime.play();
+    playChime(goodChime, CHIME_PRIORITY.answer);
   } else {
     // Back of the queue, not dropped — this pair will come up again later
     // in the round instead of just being logged and moved past. Combined
@@ -4123,8 +4332,7 @@ function handleMinimalPairAnswer(selectedWord, targetWord, pair) {
     if (!alreadyMissed) {
       minimalPairsMissed.push({ ...pair, targetWord, selectedWord });
     }
-    badChime.currentTime = 0;
-    badChime.play();
+    playChime(badChime, CHIME_PRIORITY.answer);
   }
 
   announceGameAnswer(isCorrect, targetWord);
@@ -4186,7 +4394,10 @@ function showMinimalPairsResults() {
 
   setGameContainerHTML(`
     <div class="game-summary-card">
-      <div class="game-summary-icon"><i class="fas fa-headphones" aria-hidden="true"></i></div>
+      <div class="game-summary-hero">
+        <span class="game-summary-check game-summary-check--listening" aria-hidden="true"><i class="fas fa-headphones"></i></span>
+        <p class="game-summary-eyebrow">Listening drill complete</p>
+      </div>
       <h2 class="game-summary-heading">Minimal Pairs complete!</h2>
       <div class="game-summary-stats">
         <div class="game-summary-stat">
@@ -4202,13 +4413,15 @@ function showMinimalPairsResults() {
           <p class="game-summary-stat-label">Accuracy</p>
         </div>
       </div>
+      <div class="game-summary-actions">
+        <button type="button" class="game-summary-primary-btn" id="game-minimal-pairs-again-btn">
+          Play again
+        </button>
+        <button type="button" class="game-summary-secondary-btn" id="game-minimal-pairs-back-btn">
+          Practice menu
+        </button>
+      </div>
       ${missedListHTML}
-      <button type="button" class="game-summary-primary-btn" id="game-minimal-pairs-again-btn">
-        Play again
-      </button>
-      <button type="button" class="placement-retake-link" id="game-minimal-pairs-back-btn">
-        Back to Word Game
-      </button>
     </div>
   `);
 
@@ -4232,6 +4445,14 @@ function isWordGameRoundComplete() {
     return (
       wordGameMode === "session" &&
       wordGameSessionQuestionsAnswered >= wordGameSessionTarget
+    );
+  }
+
+  if (typeof hasActiveA0Support === "function" && hasActiveA0Support()) {
+    return (
+      wordGameMode === "session" &&
+      wordGameSessionCorrectAnswers >= wordGameSessionTarget &&
+      incorrectWordQueue.length === 0
     );
   }
 
@@ -4259,6 +4480,18 @@ function getWordGameSessionProgressLabel() {
     wordGameSessionTarget,
   );
   const pendingReview = incorrectWordQueue.length;
+
+  if (typeof hasActiveA0Support === "function" && hasActiveA0Support()) {
+    const a0CorrectSoFar = Math.min(
+      wordGameSessionCorrectAnswers,
+      wordGameSessionTarget,
+    );
+    if (a0CorrectSoFar >= wordGameSessionTarget && pendingReview > 0) {
+      const word = pendingReview === 1 ? "word" : "words";
+      return `${a0CorrectSoFar} of ${wordGameSessionTarget} — ${pendingReview} ${word} to review`;
+    }
+    return `Practice: ${a0CorrectSoFar} of ${wordGameSessionTarget}`;
+  }
 
   if (wordGameIsTodayPracticeRound) {
     const quest = DAILY_QUESTS[wordGameDailyQuestIndex];
@@ -4309,6 +4542,16 @@ function getWordGameSessionProgressPercent() {
       (Math.min(wordGameSessionQuestionsAnswered, wordGameSessionTarget) /
         wordGameSessionTarget) *
       100
+    );
+  }
+
+  if (typeof hasActiveA0Support === "function" && hasActiveA0Support()) {
+    const completed = Math.min(
+      wordGameSessionCorrectAnswers,
+      wordGameSessionTarget,
+    );
+    return (
+      (completed / (wordGameSessionTarget + incorrectWordQueue.length)) * 100
     );
   }
 
@@ -4434,6 +4677,10 @@ function beginWordGameRound(mode, targetWords = 0, options = {}) {
   wordGameMyWordsMixSavedQuestionCount = 0;
   wordGameReviewPortfolioQuestionCount = 0;
   wordGameReviewPortfolioReviewCount = 0;
+  wordGameA0SupportIntensity =
+    typeof getA0SupportIntensity === "function" ? getA0SupportIntensity() : 0;
+  wordGameA0PacingQuestionCount = 0;
+  wordGameA0ReinforcementQuestionCount = 0;
   wordGameSessionStartedAt = Date.now();
   wordGameRoundActive = true;
   updateEndSessionToolbarButtonVisibility();
@@ -4463,6 +4710,10 @@ function resetTodayPracticeRoundAfterMidnight(wordObj) {
   wordGameMyWordsMixSavedQuestionCount = 0;
   wordGameReviewPortfolioQuestionCount = 0;
   wordGameReviewPortfolioReviewCount = 0;
+  wordGameA0SupportIntensity =
+    typeof getA0SupportIntensity === "function" ? getA0SupportIntensity() : 0;
+  wordGameA0PacingQuestionCount = 0;
+  wordGameA0ReinforcementQuestionCount = 0;
   wordGameSessionStartedAt = Date.now();
   incorrectWordQueue = [];
   recentAnswers = [];
@@ -4495,7 +4746,13 @@ function showWordGameRoundSummary() {
   const wasTodayPractice = wordGameIsTodayPracticeRound;
   const wasBonusRound = wordGameIsBonusRound;
   const wasPlacementRound = wordGameIsPlacementRound;
+  const completedRoundMode = wordGameMode;
+  const completedRoundTarget = wordGameSessionTarget;
+  const completedDailyQuestIndex = wordGameDailyQuestIndex;
   const roundWasComplete = isWordGameRoundComplete();
+  if (roundWasComplete) {
+    playChime(roundCompleteChime, CHIME_PRIORITY.roundComplete);
+  }
   const earnedDailyQuest =
     wasTodayPractice && roundWasComplete
       ? wordGameEarnedDailyQuest || completeDailyQuestRound()
@@ -4583,8 +4840,8 @@ function showWordGameRoundSummary() {
   const missedWordsHTML =
     !wasPlacementRound && missedWords.length > 0
       ? `
-    <div class="game-summary-missed">
-      <h3 class="game-summary-missed-heading">Words to review</h3>
+    <details class="game-summary-missed">
+      <summary>Words to review <span>${missedWords.length}</span></summary>
       <div class="word-list-table-container game-summary-missed-table-container">
         <table class="word-list-table" aria-label="Words to review">
           <tbody id="game-summary-missed-table-body"></tbody>
@@ -4595,13 +4852,51 @@ function showWordGameRoundSummary() {
           ? `<p class="game-summary-missed-more">+ ${missedWords.length - MAX_MISSED_WORDS_SHOWN} more</p>`
           : ""
       }
-    </div>
+    </details>
   `
       : "";
 
+  const nextDailyQuest = DAILY_QUESTS[getDailyPracticeProgress()];
+  let primaryActionLabel = "Keep practicing";
+  let primaryActionKind = "repeat";
+  if (wasTodayPractice && roundWasComplete) {
+    primaryActionLabel = nextDailyQuest
+      ? `Start ${nextDailyQuest.reward} round`
+      : "Start bonus round";
+    primaryActionKind = "next-daily";
+  } else if (wasTodayPractice) {
+    const quest = DAILY_QUESTS[completedDailyQuestIndex];
+    primaryActionLabel = `Repeat ${quest?.reward ?? "daily"} round`;
+    primaryActionKind = "repeat-daily";
+  } else if (wasBonusRound) {
+    primaryActionLabel = "Repeat bonus round";
+    primaryActionKind = "repeat-bonus";
+  } else if (wasPlacementRound) {
+    primaryActionLabel = roundWasComplete
+      ? "Start today’s practice"
+      : "Continue placement";
+    primaryActionKind = roundWasComplete ? "next-daily" : "placement";
+  } else if (completedRoundMode === "session") {
+    primaryActionLabel = `Repeat ${completedRoundTarget}-word round`;
+  }
+
+  const summaryEyebrow = earnedDailyQuest
+    ? "Daily quest complete"
+    : wasPlacementRound
+      ? "Your first practice session"
+      : roundWasComplete
+        ? "Practice complete"
+        : "Practice summary";
+  const summaryIcon = earnedDailyQuest
+    ? getDailyQuestGemMarkup(earnedDailyQuest.reward, "game-summary-reward-gem")
+    : `<span class="game-summary-check" aria-hidden="true"><i class="fas fa-check"></i></span>`;
+
   setGameContainerHTML(`
     <div class="game-summary-card">
-      <div class="game-summary-icon"><i class="fas fa-trophy" aria-hidden="true"></i></div>
+      <div class="game-summary-hero">
+        ${summaryIcon}
+        <p class="game-summary-eyebrow">${summaryEyebrow}</p>
+      </div>
       <h2 class="game-summary-heading">${
         earnedDailyQuest
           ? `${uppercaseFirstNorwegian(earnedDailyQuest.reward)} earned!`
@@ -4616,16 +4911,6 @@ function showWordGameRoundSummary() {
             : "Nice work!"
       }</h2>
       ${streakBannerHTML}
-      ${
-        earnedDailyQuest
-          ? `<div class="game-summary-gems" aria-label="Daily quests complete">
-              <span class="game-summary-gem">
-                ${getDailyQuestGemMarkup(earnedDailyQuest.reward, "game-daily-quest-gem--earned")}
-                <span>${uppercaseFirstNorwegian(earnedDailyQuest.reward)}</span>
-              </span>
-            </div>`
-          : ""
-      }
       <div class="game-summary-stats">
         <div class="game-summary-stat">
           <p class="game-summary-stat-value">${wordsPracticedCount}</p>
@@ -4644,10 +4929,15 @@ function showWordGameRoundSummary() {
           <p class="game-summary-stat-label">Time</p>
         </div>
       </div>
+      <div class="game-summary-actions">
+        <button type="button" class="game-summary-primary-btn" id="game-summary-restart-btn">
+          ${primaryActionLabel}
+        </button>
+        <button type="button" class="game-summary-secondary-btn" id="game-summary-menu-btn">
+          Practice menu
+        </button>
+      </div>
       ${missedWordsHTML}
-      <button type="button" class="game-summary-primary-btn" id="game-summary-restart-btn">
-        Start a new round
-      </button>
     </div>
   `);
 
@@ -4668,12 +4958,31 @@ function showWordGameRoundSummary() {
   document
     .getElementById("game-summary-restart-btn")
     ?.addEventListener("click", () => {
-      if (!placementCompleted) {
-        window.PlacementTestAPI?.start?.();
-      } else {
-        renderWordGameIntro();
+      switch (primaryActionKind) {
+        case "next-daily":
+          beginTodayPracticeRound();
+          break;
+        case "repeat-daily":
+          beginWordGameRound("session", DAILY_QUEST_ROUND_TARGET, {
+            todayPractice: true,
+          });
+          break;
+        case "repeat-bonus":
+          beginWordGameRound("session", DAILY_QUEST_ROUND_TARGET, {
+            bonusRound: true,
+          });
+          break;
+        case "placement":
+          window.PlacementTestAPI?.start?.();
+          break;
+        default:
+          beginWordGameRound(completedRoundMode, completedRoundTarget);
       }
     });
+
+  document
+    .getElementById("game-summary-menu-btn")
+    ?.addEventListener("click", renderWordGameIntro);
 
   // Every completed/ended round is a chance the signed-out visitor now has
   // more worth protecting (a longer streak, more saved words) than they did
@@ -4782,8 +5091,7 @@ async function startWordGame() {
   if (firstWordInQueue) {
     currentWordQueueType = "relearning";
     // Play the popChime when reintroducing an incorrect word
-    popChime.currentTime = 0; // Reset audio to the beginning
-    popChime.play(); // Play the pop sound
+    playChime(popChime, CHIME_PRIORITY.pop);
 
     // Reintroduce the word
     currentWord = firstWordInQueue.wordObj.ord;
@@ -6250,6 +6558,14 @@ async function handleTranslationClick(
   const answerSkillSnapshot =
     window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, answerSkill) ??
     window.WordStrengthAPI?.getSnapshot?.(wordObj);
+  // The first time an A0 learner meets a word is an introduction, even though
+  // the existing card still asks for recognition. Preserve the correction and
+  // future review record on a miss, but do not let that first unknown answer
+  // create the same ability drop or in-round retry debt as a failed retrieval.
+  const a0FirstExposure =
+    hasActiveA0Support() &&
+    currentWordQueueType === "new" &&
+    !answerSkillSnapshot?.record;
   // Capture the rendered mode and its calibration before recording this
   // outcome, since recordQuestionPredictionOutcome updates that bias and then
   // clears currentQuestionPrediction. Ability should evaluate this answer
@@ -6316,8 +6632,7 @@ async function handleTranslationClick(
 
   if (answerWasCorrect) {
     playSentenceAudio(exampleSentence);
-    goodChime.currentTime = 0; // Reset audio to the beginning
-    goodChime.play(); // Play the chime sound when correct
+    playChime(goodChime, CHIME_PRIORITY.answer);
     // Mark the selected card as green (correct)
     cards.forEach((card) => {
       const cardText = isCloze
@@ -6336,6 +6651,10 @@ async function handleTranslationClick(
       answerMode,
       learnedExerciseBiasBeforeAnswer,
       learningOutcome,
+      {
+        possiblyGuessed: predictionEvidence?.possiblyGuessed,
+        wasTyped,
+      },
     );
     window.WordStrengthAPI?.recordResult?.(wordObj, true, {
       skill: answerSkill,
@@ -6414,8 +6733,10 @@ async function handleTranslationClick(
   } else {
     playSentenceAudio(exampleSentence);
     const answerChime = morphologyNearMiss ? popChime : badChime;
-    answerChime.currentTime = 0;
-    answerChime.play();
+    const answerChimePriority = morphologyNearMiss
+      ? CHIME_PRIORITY.pop
+      : CHIME_PRIORITY.answer;
+    playChime(answerChime, answerChimePriority);
     // Mark the incorrect card as red
     cards.forEach((card) => {
       const cardText = isCloze
@@ -6436,12 +6757,20 @@ async function handleTranslationClick(
       wordObj,
       answerMode,
       learnedExerciseBiasBeforeAnswer,
-      learningOutcome,
+      a0FirstExposure ? Math.max(learningOutcome, 0.6) : learningOutcome,
+      {
+        possiblyGuessed: predictionEvidence?.possiblyGuessed,
+        wasTyped,
+      },
     );
     window.WordStrengthAPI?.recordResult?.(wordObj, false, {
       skill: answerSkill,
-      evidenceWeight: srsEvidenceWeight,
-      outcomeValue: learningOutcome,
+      evidenceWeight: a0FirstExposure
+        ? Math.min(srsEvidenceWeight, 0.35)
+        : srsEvidenceWeight,
+      outcomeValue: a0FirstExposure
+        ? Math.max(learningOutcome, 0.6)
+        : learningOutcome,
       deferRemote: true,
     });
     if (wordGameRoundActive) {
@@ -6474,7 +6803,7 @@ async function handleTranslationClick(
     // words and finish, not require the learner to master every unknown
     // word before leaving. Without live calibration (e.g. skipped
     // placement), there's no such sampling need, so misses requeue as usual.
-    if (!wordGamePlacementCalibrationEnabled) {
+    if (!wordGamePlacementCalibrationEnabled && !a0FirstExposure) {
       // Keep the durable lapse in WordStrengthAPI and also schedule a short
       // retry after intervening questions in this active round. Repeat misses
       // get a modestly longer gap without blocking other ready queue entries.
@@ -6669,6 +6998,29 @@ function getEligibleGameWords(
       return false;
     }
 
+    // Placement has a small intentional skill plan. Filter only the entries
+    // that cannot support its next planned prompt; the ordinary placement
+    // selector can then keep adapting item difficulty instead of silently
+    // changing a listening/typed slot after the word has already been drawn.
+    const placementExercise = wordGameIsPlacementRound
+      ? PLACEMENT_QUESTION_PLAN[
+          Math.max(0, Math.floor(Number(wordGameSessionQuestionsAnswered) || 0))
+        ] ?? "forward"
+      : null;
+    if (
+      (placementExercise === "listening" ||
+        placementExercise === "typed-listening") &&
+      !hasPlayableWordAudio(entry)
+    ) {
+      return false;
+    }
+    if (
+      placementExercise === "typed-reverse" &&
+      !getGameSentenceTranslation(entry, 0)
+    ) {
+      return false;
+    }
+
     // No CEFR gate here by design: word selection is a smooth,
     // ability-proximity-weighted draw (see getGameWordWeight), not a hard
     // per-level cutoff. A word far from the learner's ability isn't
@@ -6855,6 +7207,99 @@ function getVocabularyUsefulnessWeight(entry) {
   );
 }
 
+// --- Continuous A0 support ----------------------------------------------
+// This deliberately derives support from durable evidence already owned by
+// WordStrengthAPI. There is no A0 curriculum, user setting, or one-time
+// graduation flag: as a learner accumulates broad, retained recognition and
+// their ability rises, every support weight below simply fades toward 1.
+function getA0LearningSummary() {
+  const memories = Object.values(window.WordStrengthAPI?.getAll?.() ?? {});
+  const establishedRecognitionCount = memories.filter((memory) => {
+    const recognition = memory?.skills?.recognition;
+    return (
+      recognition?.state !== "relearning" &&
+      Number(recognition?.successEvidence) >= 2
+    );
+  }).length;
+  return {
+    introducedCount: memories.length,
+    establishedRecognitionCount,
+  };
+}
+
+function getA0SupportIntensity() {
+  const summary = getA0LearningSummary();
+  return window.WordGamePolicy.getA0SupportIntensity({
+    ability: Number.isFinite(abilityScore)
+      ? abilityScore
+      : CEFR_DIFFICULTY_ANCHOR.A1,
+    ...summary,
+  });
+}
+
+function getActiveA0SupportIntensity() {
+  if (wordGameIsPlacementRound) return 0;
+  return wordGameRoundActive
+    ? wordGameA0SupportIntensity
+    : getA0SupportIntensity();
+}
+
+function hasActiveA0Support() {
+  return getActiveA0SupportIntensity() > 0.05;
+}
+
+function getA0VocabularyWeight(entry, supportIntensity) {
+  if (!(supportIntensity > 0)) return 1;
+  const frequencyWeight = window.WordGamePolicy.getA0FrequencyWeight(
+    getVocabularyFrequencyRecord(entry)?.weight,
+    supportIntensity,
+  );
+  const cefrWeight = window.WordGamePolicy.getA0CefrWeight(
+    getWordCefrLabel(entry),
+    supportIntensity,
+  );
+  return frequencyWeight * cefrWeight;
+}
+
+function getA0RecognitionEvidence(wordObj) {
+  const record = window.WordStrengthAPI?.getSkillSnapshot?.(
+    wordObj,
+    "recognition",
+  )?.record;
+  return Math.max(0, Number(record?.successEvidence) || 0);
+}
+
+function getA0ReinforcementCandidates(entries) {
+  return entries.filter((entry) => {
+    const snapshot = window.WordStrengthAPI?.getSnapshot?.(entry);
+    return (
+      snapshot?.queue === "scheduled" &&
+      !snapshot.isApproaching &&
+      Boolean(snapshot.record)
+    );
+  });
+}
+
+function shouldPrioritizeA0Reinforcement(candidates) {
+  if (!hasActiveA0Support() || candidates.length === 0) return false;
+  return window.WordGamePolicy.shouldPrioritizeQuota({
+    share: window.WordGamePolicy.getA0ReinforcementShare(
+      getActiveA0SupportIntensity(),
+    ),
+    questionCount: wordGameA0PacingQuestionCount,
+    savedCount: wordGameA0ReinforcementQuestionCount,
+  });
+}
+
+function recordA0PacingQuestion(queueName) {
+  if (!hasActiveA0Support()) return;
+  if (queueName !== "new" && queueName !== "a0-reinforcement") return;
+  wordGameA0PacingQuestionCount += 1;
+  if (queueName === "a0-reinforcement") {
+    wordGameA0ReinforcementQuestionCount += 1;
+  }
+}
+
 // The scheduler first chooses an explicit queue (relearning, due, approaching,
 // new, or scheduled fallback). Continuous recall need then influences the draw
 // within review queues; the old coarse 0-5 strength remains only for pools
@@ -6983,6 +7428,7 @@ function getGameWordWeight(
     useAbilityWeight = true,
     useUsefulnessWeight = false,
     useRecallNeedWeight = false,
+    a0SupportIntensity = 0,
     cefrCounts = null,
   } = {},
 ) {
@@ -7008,12 +7454,18 @@ function getGameWordWeight(
   const usefulnessWeight = useUsefulnessWeight
     ? getVocabularyUsefulnessWeight(entry)
     : 1;
+  const a0VocabularyWeight = getA0VocabularyWeight(
+    entry,
+    a0SupportIntensity,
+  );
 
-  return window.WordGamePolicy.getWordWeight({
+  return (
+    window.WordGamePolicy.getWordWeight({
     memoryWeight,
     abilityWeight,
     usefulnessWeight,
-  });
+    }) * a0VocabularyWeight
+  );
 }
 
 /*
@@ -7044,6 +7496,11 @@ function pickPrioritizedGameWord(
   const cefrCounts = useAbilityWeight
     ? countEntriesByCefr(eligibleEntries)
     : null;
+  // A0 frequency/CEFR shaping applies only when introducing a word. Due
+  // reviews keep their scheduler-earned priority regardless of proficiency.
+  const a0SupportIntensity = useAbilityWeight
+    ? getActiveA0SupportIntensity()
+    : 0;
 
   const pairPlans = eligibleEntries.map(getQuestionPairPlan);
   const weights = eligibleEntries.map((entry, index) => {
@@ -7051,6 +7508,7 @@ function pickPrioritizedGameWord(
       useAbilityWeight,
       useUsefulnessWeight,
       useRecallNeedWeight,
+      a0SupportIntensity,
       cefrCounts,
     });
     // Placement is an assessment sample, not adaptive practice: its word
@@ -7415,34 +7873,55 @@ async function fetchRandomWord() {
       currentWordQueueType = getGameEntryQueue(myWordsQuotaEntry);
     } else {
       const queueName = getPortfolioGameQueueName(queues, reviewShare);
+      const a0ReinforcementCandidates =
+        queueName === "new" && hasActiveA0Support()
+          ? getA0ReinforcementCandidates(
+              getEligibleGameWords(selectedPOS, { allowIntroduced: true }),
+            )
+          : [];
+      const a0ReinforcementEntry = shouldPrioritizeA0Reinforcement(
+        a0ReinforcementCandidates,
+      )
+        ? pickPrioritizedGameWord(a0ReinforcementCandidates, {
+            useAbilityWeight: false,
+          })
+        : null;
       if (queueName === "new") {
         await loadVocabularyFrequencyRanks();
       }
-      currentWordQueueType = queueName;
-      const queueEntries =
-        queueName === "scheduled"
-          ? getNearestScheduledGameWords(queues.scheduled)
-          : queues[queueName] ?? [];
-      const ordinaryQueueEntries =
-        queueName === "new"
-          ? getCoreVocabularyCandidatePool(queueEntries)
-          : queueEntries;
-      // Ability weighting only shapes unseen words. Due and relearning words
-      // have already earned their priority through the scheduler.
-      selectedEntry =
-        queueName === "scheduled"
-          ? pickPrioritizedGameWord(ordinaryQueueEntries, {
-              useAbilityWeight: false,
-            })
-          : pickPrioritizedGameWord(ordinaryQueueEntries, {
-              useAbilityWeight: queueName === "new",
-              useUsefulnessWeight: queueName === "new",
-              useRecallNeedWeight: [
-                "relearning",
-                "due",
-                "approaching",
-              ].includes(queueName),
-            });
+      if (a0ReinforcementEntry) {
+        // A scheduled word is deliberately brought forward as a gentle
+        // within-session reinforcement. It receives normal answer feedback,
+        // but never extends its durable interval (see handleTranslationClick).
+        selectedEntry = a0ReinforcementEntry;
+        currentWordQueueType = "a0-reinforcement";
+      } else {
+        currentWordQueueType = queueName;
+        const queueEntries =
+          queueName === "scheduled"
+            ? getNearestScheduledGameWords(queues.scheduled)
+            : queues[queueName] ?? [];
+        const ordinaryQueueEntries =
+          queueName === "new"
+            ? getCoreVocabularyCandidatePool(queueEntries)
+            : queueEntries;
+        // Ability weighting only shapes unseen words. Due and relearning words
+        // have already earned their priority through the scheduler.
+        selectedEntry =
+          queueName === "scheduled"
+            ? pickPrioritizedGameWord(ordinaryQueueEntries, {
+                useAbilityWeight: false,
+              })
+            : pickPrioritizedGameWord(ordinaryQueueEntries, {
+                useAbilityWeight: queueName === "new",
+                useUsefulnessWeight: queueName === "new",
+                useRecallNeedWeight: [
+                  "relearning",
+                  "due",
+                  "approaching",
+                ].includes(queueName),
+              });
+      }
     }
   }
 
@@ -7461,6 +7940,7 @@ async function fetchRandomWord() {
   }
   if (!wordGameIsPlacementRound) {
     recordReviewPortfolioQuestion(currentWordQueueType);
+    recordA0PacingQuestion(currentWordQueueType);
   }
 
   previousWord = selectedEntry.ord;

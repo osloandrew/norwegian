@@ -100,6 +100,71 @@
     return clamp(ability + kFactor * (actual - expected), minimum, maximum);
   }
 
+  // A0 support is a continuous amount of scaffolding, not a second learner
+  // mode. Ability, breadth of encountered words, and retained recognition
+  // each make a separate, smoothly fading contribution. Existing learners
+  // with an established SRS history therefore enter at little or no support,
+  // while a genuine new learner starts near 1 without needing a curriculum
+  // file or a one-time "A0 complete" switch.
+  function smoothstep(value) {
+    const progress = clamp(Number(value) || 0, 0, 1);
+    return progress * progress * (3 - 2 * progress);
+  }
+
+  function getA0SupportIntensity({
+    ability,
+    introducedCount = 0,
+    establishedRecognitionCount = 0,
+    abilityStart = 100,
+    abilityEnd = 380,
+    introducedTarget = 80,
+    establishedTarget = 35,
+  } = {}) {
+    const abilityProgress = clamp(
+      (Number(ability) - abilityStart) / (abilityEnd - abilityStart),
+      0,
+      1,
+    );
+    const introducedProgress = clamp(
+      Number(introducedCount) / introducedTarget,
+      0,
+      1,
+    );
+    const retainedProgress = clamp(
+      Number(establishedRecognitionCount) / establishedTarget,
+      0,
+      1,
+    );
+    return 1 - smoothstep(
+      0.45 * abilityProgress +
+        0.3 * introducedProgress +
+        0.25 * retainedProgress,
+    );
+  }
+
+  function getA0ReinforcementShare(supportIntensity) {
+    return 0.7 * clamp(Number(supportIntensity) || 0, 0, 1);
+  }
+
+  function getA0FrequencyWeight(frequencyValue, supportIntensity) {
+    const frequency = clamp(Number(frequencyValue) || 0, 0, 1);
+    const support = clamp(Number(supportIntensity) || 0, 0, 1);
+    return 1 + 7 * support * frequency;
+  }
+
+  function getA0CefrWeight(cefr, supportIntensity) {
+    const support = clamp(Number(supportIntensity) || 0, 0, 1);
+    const fullSupportWeights = {
+      A1: 1,
+      A2: 0.18,
+      B1: 0.05,
+      B2: 0.02,
+      C: 0.01,
+    };
+    const supportedWeight = fullSupportWeights[String(cefr).toUpperCase()] ?? 0.05;
+    return 1 - support + support * supportedWeight;
+  }
+
   function getQuestionSkill(mode) {
     if (mode === "cloze" || mode === "typed-cloze") return "context";
     if (mode === "reverse" || mode === "typed-reverse") return "production";
@@ -782,6 +847,11 @@
     getExpectedSuccessProbability,
     getExerciseAdjustedSuccessProbability,
     getAbilityAfterAnswer,
+    smoothstep,
+    getA0SupportIntensity,
+    getA0ReinforcementShare,
+    getA0FrequencyWeight,
+    getA0CefrWeight,
     getQuestionSkill,
     normalizePredictorState,
     getCalibrationEvidenceBias,

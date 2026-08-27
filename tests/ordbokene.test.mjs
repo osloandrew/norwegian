@@ -165,7 +165,7 @@ test("resolves an inflected form to its official headword", async () => {
   assert.equal(result.entries[0]._ordbokene.matchType, "inflected");
 });
 
-test("puts an official inflection resolution ahead of a misleading local form", async () => {
+test("keeps a local form ahead of an official inflection resolution", async () => {
   const { api } = createContext();
   const lookup = await api.lookup("sirlige");
   const localForm = {
@@ -176,8 +176,8 @@ test("puts an official inflection resolution ahead of a misleading local form", 
 
   const merged = api.mergeEntries([localForm], lookup);
   assert.equal(merged.length, 2);
-  assert.equal(merged[0].ord, "sirlig");
-  assert.equal(merged[1], localForm);
+  assert.equal(merged[0], localForm);
+  assert.equal(merged[1].ord, "sirlig");
 });
 
 test("does not duplicate a local headword of the same word class", async () => {
@@ -290,8 +290,8 @@ test("keeps single-word entries from different word classes distinct", () => {
   });
 
   assert.equal(merged.length, 2);
-  assert.equal(merged[0], officialVerb);
-  assert.equal(merged[1], localNoun);
+  assert.equal(merged[0], localNoun);
+  assert.equal(merged[1], officialVerb);
 });
 
 test("prefers CSV numerals over official determiner classifications", () => {

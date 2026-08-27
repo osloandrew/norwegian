@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
+import { loadWordGamePolicy } from "./load-word-game-policy.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "placementTest.js"), "utf8");
@@ -79,7 +80,15 @@ assert.match(wordGameSource, /PLACEMENT_CALIBRATION_ANSWER_COUNT = 7/);
 assert.match(wordGameSource, /First practice complete!/);
 assert.match(
   wordGameSource,
-  /function getStructuredQuestionModeForWord[\s\S]*?if \(wordGameIsPlacementRound\) return "forward";/,
+  /const PLACEMENT_QUESTION_PLAN = Object\.freeze\(\[[\s\S]*?"listening"[\s\S]*?"typed-reverse"[\s\S]*?"typed-listening"[\s\S]*?\]\);/,
+);
+assert.match(
+  wordGameSource,
+  /function getStructuredQuestionModeForWord[\s\S]*?if \(wordGameIsPlacementRound\) return getPlacementQuestionMode\(wordObj\);/,
+);
+assert.match(
+  wordGameSource,
+  /PLACEMENT_LIKELY_GUESS_OUTCOME = 0\.65/,
 );
 
 // Homepage CTAs both route through startDailyQuestFromLanding. Entering the
@@ -234,8 +243,10 @@ const answerHandlerSource = wordGameSource.slice(
 );
 assert.match(
   answerHandlerSource,
-  /if \(!wordGamePlacementCalibrationEnabled\) \{[\s\S]*incorrectWordQueue\.push/,
+  /if \(!wordGamePlacementCalibrationEnabled && !a0FirstExposure\) \{[\s\S]*incorrectWordQueue\.push/,
 );
+assert.match(answerHandlerSource, /const a0FirstExposure =/);
+assert.match(answerHandlerSource, /Math\.min\(srsEvidenceWeight, 0\.35\)/);
 assert.match(
   wordGameSource,
   /currentWordQueueType = "placement";[\s\S]*pickPrioritizedGameWord/,
@@ -311,5 +322,86 @@ assert.match(
   wordGameSource,
   /if \(!placementCompleted\) \{\s*window\.PlacementTestAPI\?\.start\?\.\(\)/,
 );
+
+// Placement now uses the regular mode-aware expectation model. A fast
+// correct four-choice answer is intentionally partial evidence, while a
+// typed response keeps its full weight because it cannot be a lucky tap.
+const abilityUpdateStart = wordGameSource.indexOf("function updateAbilityScore");
+const abilityUpdateEnd = wordGameSource.indexOf(
+  "function updateGameEnglishTranslationVisibility",
+  abilityUpdateStart,
+);
+assert.notEqual(abilityUpdateStart, -1);
+assert.notEqual(abilityUpdateEnd, -1);
+
+const abilityUpdateContext = vm.createContext({ Math, Number, Set });
+abilityUpdateContext.window = abilityUpdateContext;
+loadWordGamePolicy(root, abilityUpdateContext);
+vm.runInContext(
+  `
+    let abilityScore = 500;
+    const ABILITY_MIN = 0;
+    const ABILITY_MAX = 1000;
+    const ABILITY_LOGISTIC_SCALE = 220;
+    const PLACEMENT_CALIBRATION_ANSWER_COUNT = 7;
+    const PLACEMENT_CALIBRATION_INITIAL_STEP = 150;
+    const PLACEMENT_CALIBRATION_STEP_DECAY = 0.72;
+    const PLACEMENT_CALIBRATION_MIN_STEP = 30;
+    const PLACEMENT_LIKELY_GUESS_OUTCOME = 0.65;
+    let wordGameIsPlacementRound = true;
+    let wordGamePlacementCalibrationEnabled = true;
+    let wordGamePlacementCalibrationWords = new Set();
+    let wordGamePlacementCalibrationStep = PLACEMENT_CALIBRATION_INITIAL_STEP;
+    function clampAbility(value) { return Math.max(ABILITY_MIN, Math.min(ABILITY_MAX, value)); }
+    function getWordDifficultyAnchor(entry) { return entry.difficulty; }
+    function saveAbilityState() {}
+    function resetPlacementAbility() {
+      abilityScore = 500;
+      wordGamePlacementCalibrationWords = new Set();
+      wordGamePlacementCalibrationStep = PLACEMENT_CALIBRATION_INITIAL_STEP;
+    }
+    function currentAbility() { return abilityScore; }
+  `,
+  abilityUpdateContext,
+);
+vm.runInContext(
+  wordGameSource.slice(abilityUpdateStart, abilityUpdateEnd),
+  abilityUpdateContext,
+  { filename: "wordGame.js" },
+);
+
+const placementWord = { difficulty: 500 };
+abilityUpdateContext.updateAbilityScore(
+  placementWord,
+  true,
+  "forward",
+  0,
+  1,
+  { possiblyGuessed: true, wasTyped: false },
+);
+const fastMultipleChoiceAbility = abilityUpdateContext.currentAbility();
+abilityUpdateContext.resetPlacementAbility();
+abilityUpdateContext.updateAbilityScore(
+  placementWord,
+  true,
+  "forward",
+  0,
+  1,
+  { possiblyGuessed: false, wasTyped: false },
+);
+const deliberateMultipleChoiceAbility = abilityUpdateContext.currentAbility();
+abilityUpdateContext.resetPlacementAbility();
+abilityUpdateContext.updateAbilityScore(
+  placementWord,
+  true,
+  "typed-reverse",
+  0,
+  1,
+  { possiblyGuessed: true, wasTyped: true },
+);
+const typedAbility = abilityUpdateContext.currentAbility();
+
+assert.ok(deliberateMultipleChoiceAbility > fastMultipleChoiceAbility + 40);
+assert.ok(typedAbility > fastMultipleChoiceAbility + 40);
 
 console.log("placement practice-round checks passed");

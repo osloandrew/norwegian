@@ -836,8 +836,7 @@ function handleSearchButtonClick() {
 
   stopAllAudio();
   randomWord();
-  popChime.currentTime = 0;
-  popChime.play();
+  playChime(popChime, CHIME_PRIORITY.pop);
 }
 
 // Prefixed: all language-site forks share one origin (osloandrew.github.io),
@@ -3350,6 +3349,19 @@ function displaySearchResults(
           result._ordbokene.articleId,
         )})`
       : `handleCardClick(event, ${handleCardClickArgs})`;
+    // A result card expands into a definition containing real controls
+    // (save, report, and word-form buttons). Keep the card itself a neutral
+    // container and put its keyboard/click activation on the compact header
+    // only. Giving the outer card role="button" would nest those controls in
+    // an interactive ancestor, which is invalid and confusing to assistive
+    // technology. A single result is already open, so it needs no activator.
+    const cardActivationAttributes = multipleResults
+      ? `
+          tabindex="0"
+          role="button"
+          onclick="if (!window.getSelection().toString()) ${cardActivation}"
+          onkeydown="if ((event.key === 'Enter' || event.key === ' ') && !window.getSelection().toString()) { event.preventDefault(); ${cardActivation} }"`
+      : "";
     const ordbokeneSourceLink = isOrdbokeneResult
       ? `<a
           class="ordbokene-source-link"
@@ -3370,11 +3382,8 @@ function displaySearchResults(
   data-pos="${result.pos}"
   data-engelsk="${result.engelsk}"
   data-source="${isOrdbokeneResult ? "ordbokene" : "local"}"
-  tabindex="0"
-  role="button"
-  onclick="if (!window.getSelection().toString()) ${cardActivation}"
-  onkeydown="if ((event.key === 'Enter' || event.key === ' ') && !window.getSelection().toString()) { event.preventDefault(); ${cardActivation} }">
-                <div class="${multipleResultsDefinitionHeader}">
+>
+                <div class="${multipleResultsDefinitionHeader}"${cardActivationAttributes}>
                 <${headingTag} class="word-gender ${multipleResultsWordgender}">
                   <div lang="nb" class="word-text-block">
                     ${
@@ -4679,11 +4688,12 @@ function normalizeResultCardMatchValue(value) {
 
 // Function to handle clicking on a search result card
 function handleCardClick(event, word, pos, engelsk, definisjon) {
-  // Filter to count only visible elements with the specific card class
-  const visibleCards = Array.from(resultsContainer.children).filter(
-    (child) =>
-      child.classList.contains("definition") && child.offsetParent !== null,
-  );
+  // Filter to count only visible elements with the specific card class.
+  // Cards may be nested inside a wrapper (e.g. when batched results get a
+  // "Show More" wrapper), so search descendants, not just direct children.
+  const visibleCards = Array.from(
+    resultsContainer.querySelectorAll(".definition"),
+  ).filter((card) => card.offsetParent !== null);
 
   // Prevent activation if only one card is displayed
   if (visibleCards.length === 1) {

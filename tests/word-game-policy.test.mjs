@@ -75,6 +75,38 @@ assert.ok(
     policy.getExerciseAdjustedSuccessProbability(0.5, typedProductionBias),
 );
 
+const brandNewA0Support = policy.getA0SupportIntensity({
+  ability: 60,
+  introducedCount: 0,
+  establishedRecognitionCount: 0,
+});
+const transitioningA0Support = policy.getA0SupportIntensity({
+  ability: 240,
+  introducedCount: 35,
+  establishedRecognitionCount: 12,
+});
+const establishedA1Support = policy.getA0SupportIntensity({
+  ability: 420,
+  introducedCount: 100,
+  establishedRecognitionCount: 45,
+});
+assert.ok(brandNewA0Support > transitioningA0Support);
+assert.ok(transitioningA0Support > establishedA1Support);
+assert.ok(establishedA1Support < 0.05);
+assert.ok(
+  policy.getA0ReinforcementShare(brandNewA0Support) >
+    policy.getA0ReinforcementShare(transitioningA0Support),
+);
+assert.ok(
+  policy.getA0FrequencyWeight(0.9, brandNewA0Support) >
+    policy.getA0FrequencyWeight(0.1, brandNewA0Support),
+);
+assert.ok(
+  policy.getA0CefrWeight("A1", brandNewA0Support) >
+    policy.getA0CefrWeight("B2", brandNewA0Support),
+);
+assert.equal(policy.getA0CefrWeight("B2", 0), 1);
+
 const predictor = policy.normalizePredictorState({
   modes: { forward: { attempts: 3.9, bias: 99 } },
 });
