@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import subprocess
 import sys
 import tempfile
@@ -12,6 +13,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 MODULE_PATH = ROOT / "scripts" / "build-static-pages.py"
+sys.path.insert(0, str(MODULE_PATH.parent))
 SPEC = importlib.util.spec_from_file_location("build_static_pages", MODULE_PATH)
 assert SPEC and SPEC.loader
 build_static_pages = importlib.util.module_from_spec(SPEC)
@@ -119,8 +121,8 @@ class StaticPageBuildTests(unittest.TestCase):
         plan = build_static_pages.plan_incremental_build(
             old_words,
             new_words,
-            empty_stories,
-            empty_stories,
+            (empty_stories,),
+            (empty_stories,),
             {},
             {},
         )
@@ -163,8 +165,8 @@ class StaticPageBuildTests(unittest.TestCase):
         plan = build_static_pages.plan_incremental_build(
             empty_words,
             empty_words,
-            old_stories,
-            new_stories,
+            (old_stories,),
+            (new_stories,),
             old_questions,
             new_questions,
         )
@@ -188,8 +190,8 @@ class StaticPageBuildTests(unittest.TestCase):
         plan = build_static_pages.plan_incremental_build(
             empty_words,
             empty_words,
-            stories,
-            stories,
+            (stories,),
+            (stories,),
             {"Historien": {"questions": []}},
             {"Historien": {"questions": [{"prompt": "Hva?"}]}},
         )
@@ -221,7 +223,10 @@ class StaticPageBuildTests(unittest.TestCase):
                 mock.patch.object(
                     build_static_pages,
                     "source_slugs",
-                    side_effect=[{"word"}, {"story"}],
+                    side_effect=[
+                        {"word"},
+                        *({"story"} for _ in build_static_pages.existing_story_csv_paths(ROOT)),
+                    ],
                 ),
                 mock.patch.object(
                     build_static_pages, "snapshot_is_available", return_value=True
@@ -263,13 +268,17 @@ class StaticPageBuildTests(unittest.TestCase):
             snapshot_dir = site_root / ".pages-cache"
             snapshot_dir.mkdir()
             (snapshot_dir / "metadata.json").write_text(
-                '{"version":1}', encoding="utf-8"
+                json.dumps({"version": build_static_pages.SNAPSHOT_VERSION}),
+                encoding="utf-8",
             )
             (snapshot_dir / "norwegianWords.csv").write_text(
                 "ord\nhus\n", encoding="utf-8"
             )
             (snapshot_dir / "norwegianStories.csv").write_text(
                 "titleNorwegian\nHistorien\n", encoding="utf-8"
+            )
+            (snapshot_dir / "norwegianAuthenticStories.csv").write_text(
+                "", encoding="utf-8"
             )
             (snapshot_dir / "storyQuestions.json").write_text(
                 "{}", encoding="utf-8"
