@@ -19,7 +19,7 @@ const NOW = Date.UTC(2026, 7, 16, 12);
 const DAY = scheduler.DAY_MS;
 assert.equal(scheduler.TARGET_RETENTION, 0.9);
 assert.equal(scheduler.REVIEW_APPROACH_RETENTION, 0.91);
-assert.equal(scheduler.STORAGE_VERSION, 3);
+assert.equal(scheduler.STORAGE_VERSION, 4);
 assert.deepEqual([...scheduler.SKILL_IDS], [
   "recognition",
   "production",
@@ -58,6 +58,49 @@ const secondSuccess = scheduler.recordResult(firstSuccess, true, NOW + DAY);
 assert.equal(secondSuccess.state, "review");
 assert.equal(secondSuccess.stabilityDays, 3);
 assert.equal(secondSuccess.dueAt, NOW + 4 * DAY);
+
+// Correct answers carry graded evidence. A likely guess remains a useful
+// exposure, but it neither earns the full interval nor graduates a learning
+// record as confidently as an effortful exact retrieval.
+const guessedFirstSuccess = scheduler.recordResult(null, true, NOW, {
+  evidenceWeight: 0.3,
+});
+assert.equal(guessedFirstSuccess.successes, 1);
+assert.equal(guessedFirstSuccess.successEvidence, 0.3);
+assert.ok(guessedFirstSuccess.stabilityDays < firstSuccess.stabilityDays);
+const guessedSecondSuccess = scheduler.recordResult(
+  guessedFirstSuccess,
+  true,
+  guessedFirstSuccess.dueAt,
+  { evidenceWeight: 0.3 },
+);
+assert.equal(guessedSecondSuccess.state, "learning");
+assert.ok(guessedSecondSuccess.stabilityDays < secondSuccess.stabilityDays);
+
+const mildLapse = scheduler.recordResult(secondSuccess, false, NOW + 5 * DAY, {
+  evidenceWeight: 0.55,
+});
+const strongLapse = scheduler.recordResult(secondSuccess, false, NOW + 5 * DAY, {
+  evidenceWeight: 1,
+});
+assert.ok(mildLapse.stabilityDays > strongLapse.stabilityDays);
+assert.ok(mildLapse.difficulty < strongLapse.difficulty);
+const morphologyNearMiss = scheduler.recordResult(
+  secondSuccess,
+  false,
+  NOW + 5 * DAY,
+  { evidenceWeight: 1, outcomeValue: 0.4 },
+);
+assert.equal(morphologyNearMiss.state, "relearning");
+assert.ok(Math.abs(morphologyNearMiss.lapses - 0.6) < 1e-12);
+assert.ok(
+  Math.abs(
+    morphologyNearMiss.successEvidence -
+      (secondSuccess.successEvidence + 0.4),
+  ) < 1e-12,
+);
+assert.ok(morphologyNearMiss.stabilityDays > strongLapse.stabilityDays);
+assert.ok(morphologyNearMiss.difficulty < strongLapse.difficulty);
 
 // Recall need grows continuously as memory decays. A review becomes softly
 // eligible shortly before the exact 90% target, rather than changing from

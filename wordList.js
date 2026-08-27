@@ -434,6 +434,11 @@
       wordStrengths[entryId],
       options.skill ?? "recognition",
       isCorrect,
+      Date.now(),
+      {
+        evidenceWeight: options.evidenceWeight,
+        outcomeValue: options.outcomeValue,
+      },
     );
 
     saveWordStrengths({

@@ -152,11 +152,28 @@
     // Ignore — falls back to the live standalone checks below.
   }
 
+  // navigator.standalone, display-mode, and manifest-driven start_url are
+  // all Safari/W3C-manifest features. Every iOS browser is forced onto
+  // Apple's WebKit engine, but only Safari gets the OS-level "true
+  // standalone app" container — a Chrome/Firefox/Edge/Opera iOS icon added
+  // via "Add to Home Screen" is just a bookmark that reopens in that
+  // browser's own UI, so none of the three signals above ever fire for it,
+  // and there's no other API to detect "launched from that bookmark"
+  // either. Those browsers share Safari's WebKit-level popup restrictions
+  // regardless, so signInWithPopup is just as unreliable there — routing
+  // them to the redirect flow unconditionally (not only when bookmarked)
+  // is the only way to cover the case this can't otherwise detect.
+  function isNonSafariIOSBrowser() {
+    return /iP(hone|od|ad)/.test(navigator.userAgent) &&
+      /CriOS|FxiOS|EdgiOS|OPiOS/.test(navigator.userAgent);
+  }
+
   function isStandaloneDisplayMode() {
     return (
       window.navigator.standalone === true ||
       (window.matchMedia?.("(display-mode: standalone)")?.matches ?? false) ||
-      launchedFromHomeScreen
+      launchedFromHomeScreen ||
+      isNonSafariIOSBrowser()
     );
   }
 

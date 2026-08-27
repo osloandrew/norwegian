@@ -5,7 +5,7 @@
   // previous implementation stored a timeless integer from 0-5; these
   // records instead keep enough information to answer two separate
   // questions: how stable is this memory, and is it due for retrieval now?
-  const STORAGE_VERSION = 3;
+  const STORAGE_VERSION = 4;
   const SKILL_IDS = Object.freeze([
     "recognition",
     "production",
@@ -102,6 +102,7 @@
       dueAt: now,
       repetitions: strength,
       successes: strength,
+      successEvidence: strength,
       lapses: strength === 0 ? 1 : 0,
       updatedAt: 0,
     };
@@ -128,6 +129,10 @@
     const fallbackDueAt =
       lastReviewedAt === null ? now : lastReviewedAt + stabilityDays * DAY_MS;
 
+    const successes = Math.max(
+      0,
+      Math.floor(finiteNumber(value.successes, 0)),
+    );
     return {
       state,
       stabilityDays,
@@ -135,8 +140,16 @@
       lastReviewedAt,
       dueAt: Math.max(0, finiteNumber(value.dueAt, fallbackDueAt)),
       repetitions: Math.max(0, Math.floor(finiteNumber(value.repetitions, 0))),
-      successes: Math.max(0, Math.floor(finiteNumber(value.successes, 0))),
-      lapses: Math.max(0, Math.floor(finiteNumber(value.lapses, 0))),
+      successes,
+      successEvidence: clamp(
+        finiteNumber(value.successEvidence, successes),
+        0,
+        Number.MAX_SAFE_INTEGER,
+      ),
+      // Lapses are evidence, not merely a counter: a morphology-aware
+      // "almost" answer contributes a fractional lapse while a complete
+      // miss contributes one. Old integer records remain unchanged.
+      lapses: Math.max(0, finiteNumber(value.lapses, 0)),
       updatedAt: Math.max(
         0,
         finiteNumber(value.updatedAt, lastReviewedAt ?? 0),
@@ -155,7 +168,7 @@
     );
   }
 
-  // Version 3 stores independent evidence for each exercise skill. Every
+  // Version 3+ stores independent evidence for each exercise skill. Every
   // earlier scalar/record becomes recognition evidence only: carrying it
   // into production, listening, or context would manufacture mastery the
   // learner never demonstrated.
@@ -372,22 +385,25 @@
     };
   }
 
-  function scheduleCorrect(record, now) {
+  function scheduleCorrect(record, now, evidenceWeight = 1) {
+    const evidence = clamp(finiteNumber(evidenceWeight, 1), 0.2, 1);
     if (!record) {
+      const stabilityDays = clamp(evidence, MIN_STABILITY_DAYS, 1);
       return {
         state: "learning",
-        stabilityDays: 1,
+        stabilityDays,
         difficulty: 5,
         lastReviewedAt: now,
-        dueAt: now + DAY_MS,
+        dueAt: now + stabilityDays * DAY_MS,
         repetitions: 1,
         successes: 1,
+        successEvidence: evidence,
         lapses: 0,
         updatedAt: now,
       };
     }
 
-    const difficulty = clamp(record.difficulty - 0.15, 1, 10);
+    const difficulty = clamp(record.difficulty - 0.15 * evidence, 1, 10);
     // See getChronicGrowthDampening's own comment for why this exists
     // alongside `difficulty`: difficulty saturates at its ceiling after
     // only ~6 lapses and stops discouraging further growth, while this
@@ -399,11 +415,19 @@
     if (record.state === "relearning") {
       // A successful short retry repairs the lapse but does not restore the
       // old long interval. Tomorrow's retrieval supplies the durable evidence.
-      state = "learning";
-      stabilityDays = Math.max(1, record.stabilityDays);
+      state = evidence >= 0.5 ? "learning" : "relearning";
+      const fullStability = Math.max(1, record.stabilityDays);
+      stabilityDays =
+        record.stabilityDays +
+        (fullStability - record.stabilityDays) * evidence;
     } else if (record.state === "learning") {
-      state = "review";
-      stabilityDays = Math.max(3, record.stabilityDays * 3) * dampening;
+      state = evidence >= 0.5 ? "review" : "learning";
+      const fullStability =
+        Math.max(state === "review" ? 3 : 1, record.stabilityDays * 3) *
+        dampening;
+      stabilityDays =
+        record.stabilityDays +
+        (fullStability - record.stabilityDays) * evidence;
     } else {
       state = "review";
       const elapsedDays =
@@ -419,10 +443,13 @@
         3.2,
       );
 
-      stabilityDays = Math.max(
+      const fullStability = Math.max(
         record.stabilityDays + 1,
         record.stabilityDays * growthFactor * dampening,
       );
+      stabilityDays =
+        record.stabilityDays +
+        (fullStability - record.stabilityDays) * evidence;
     }
 
     stabilityDays = clamp(
@@ -440,11 +467,20 @@
       dueAt: now + stabilityDays * DAY_MS,
       repetitions: record.repetitions + 1,
       successes: record.successes + 1,
+      successEvidence: record.successEvidence + evidence,
       updatedAt: now,
     };
   }
 
-  function scheduleIncorrect(record, now) {
+  function scheduleIncorrect(
+    record,
+    now,
+    evidenceWeight = 1,
+    outcomeValue = 0,
+  ) {
+    const evidence = clamp(finiteNumber(evidenceWeight, 1), 0.2, 1);
+    const partialSuccess = clamp(finiteNumber(outcomeValue, 0), 0, 0.99);
+    const failureEvidence = evidence * (1 - partialSuccess);
     const previous =
       record ||
       ({
@@ -455,11 +491,12 @@
         dueAt: now,
         repetitions: 0,
         successes: 0,
+        successEvidence: 0,
         lapses: 0,
         updatedAt: 0,
       });
     const stabilityDays = clamp(
-      previous.stabilityDays * 0.35,
+      previous.stabilityDays * (1 - 0.65 * failureEvidence),
       MIN_STABILITY_DAYS,
       MAX_STABILITY_DAYS,
     );
@@ -468,21 +505,32 @@
       ...previous,
       state: "relearning",
       stabilityDays,
-      difficulty: clamp(previous.difficulty + 0.8, 1, 10),
+      difficulty: clamp(
+        previous.difficulty + 0.8 * failureEvidence,
+        1,
+        10,
+      ),
       lastReviewedAt: now,
       dueAt: now + RELEARNING_DELAY_MS,
       repetitions: previous.repetitions + 1,
-      lapses: previous.lapses + 1,
+      successEvidence:
+        previous.successEvidence + evidence * partialSuccess,
+      lapses: previous.lapses + failureEvidence,
       updatedAt: now,
     };
   }
 
-  function recordResult(value, isCorrect, now = Date.now()) {
+  function recordResult(
+    value,
+    isCorrect,
+    now = Date.now(),
+    { evidenceWeight = 1, outcomeValue = isCorrect ? 1 : 0 } = {},
+  ) {
     const record = normalizeRecord(value, now);
 
     return isCorrect
-      ? scheduleCorrect(record, now)
-      : scheduleIncorrect(record, now);
+      ? scheduleCorrect(record, now, evidenceWeight)
+      : scheduleIncorrect(record, now, evidenceWeight, outcomeValue);
   }
 
   function recordSkillResult(
@@ -490,6 +538,7 @@
     skill,
     isCorrect,
     now = Date.now(),
+    options = {},
   ) {
     if (!SKILL_IDS.includes(skill)) return normalizeMemory(value, now);
 
@@ -501,6 +550,7 @@
       memory.skills[skill] ?? null,
       isCorrect,
       now,
+      options,
     );
     memory.updatedAt = Math.max(
       0,

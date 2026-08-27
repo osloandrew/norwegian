@@ -85,6 +85,7 @@
     ability,
     wordDifficulty,
     isCorrect,
+    outcomeValue = isCorrect ? 1 : 0,
     kFactor,
     logisticScale,
     exerciseBias = 0,
@@ -95,7 +96,7 @@
       getExpectedSuccessProbability(wordDifficulty, ability, logisticScale),
       exerciseBias,
     );
-    const actual = isCorrect ? 1 : 0;
+    const actual = clamp(Number(outcomeValue) || 0, 0, 1);
     return clamp(ability + kFactor * (actual - expected), minimum, maximum);
   }
 
@@ -176,6 +177,11 @@
     formLength = 0,
     formTokenCount = 1,
     sentenceTokenCount = 0,
+    sentenceVocabularySuccess = null,
+    targetContextCoverage = null,
+    distractorSimilarity = null,
+    translationAvailable = false,
+    audioAvailable = false,
   }) {
     const isTyped = String(mode).startsWith("typed-");
     const formPenalty = isTyped
@@ -189,7 +195,30 @@
     const contextPenalty = String(mode).includes("cloze")
       ? clamp(Math.max(0, sentenceTokenCount - 10) * 0.015, 0, 0.2)
       : 0;
-    return -(formPenalty + contextPenalty);
+    const isCloze = String(mode).includes("cloze");
+    const vocabularyPenalty =
+      isCloze && Number.isFinite(sentenceVocabularySuccess)
+        ? clamp((0.82 - sentenceVocabularySuccess) * 0.45, 0, 0.2)
+        : 0;
+    const positionPenalty =
+      isCloze && Number.isFinite(targetContextCoverage)
+        ? clamp((1 - targetContextCoverage) * 0.1, 0, 0.1)
+        : 0;
+    const distractorPenalty =
+      isCloze && Number.isFinite(distractorSimilarity)
+        ? clamp(distractorSimilarity * 0.16, 0, 0.16)
+        : 0;
+    const cueSupport = isCloze
+      ? (translationAvailable ? 0.18 : 0) + (audioAvailable ? 0.08 : 0)
+      : 0;
+    return (
+      cueSupport -
+      (formPenalty +
+        contextPenalty +
+        vocabularyPenalty +
+        positionPenalty +
+        distractorPenalty)
+    );
   }
 
   function predictSuccess({
@@ -304,6 +333,170 @@
     };
   }
 
+  function normalizePredictionEvaluationState(value, version = 1) {
+    const normalizeAggregate = (stored) => ({
+      count: Math.max(0, Math.floor(Number(stored?.count) || 0)),
+      predictedSum: Math.max(0, Number(stored?.predictedSum) || 0),
+      correctCount: Math.max(0, Number(stored?.correctCount) || 0),
+      exactCorrectCount: Math.max(
+        0,
+        Number(stored?.exactCorrectCount) || 0,
+      ),
+      nearMissCount: Math.max(0, Number(stored?.nearMissCount) || 0),
+      squaredErrorSum: Math.max(
+        0,
+        Number(stored?.squaredErrorSum) || 0,
+      ),
+      absoluteErrorSum: Math.max(
+        0,
+        Number(stored?.absoluteErrorSum) || 0,
+      ),
+      logLossSum: Math.max(0, Number(stored?.logLossSum) || 0),
+    });
+    const normalizeGroups = (groups) =>
+      Object.fromEntries(
+        Object.entries(groups && typeof groups === "object" ? groups : {})
+          .filter(([key]) => key)
+          .map(([key, aggregate]) => [key, normalizeAggregate(aggregate)]),
+      );
+
+    return {
+      version,
+      total: normalizeAggregate(value?.total),
+      modes: normalizeGroups(value?.modes),
+      difficultyBuckets: normalizeGroups(value?.difficultyBuckets),
+      modeDifficultyBuckets: normalizeGroups(value?.modeDifficultyBuckets),
+      predictionBuckets: normalizeGroups(value?.predictionBuckets),
+    };
+  }
+
+  function recordPredictionEvaluation(
+    state,
+    {
+      mode = "unknown",
+      difficultyBucket = "unknown",
+      predictedSuccess,
+      wasCorrect,
+      nearMiss = false,
+    },
+    version = 1,
+  ) {
+    const next = normalizePredictionEvaluationState(state, version);
+    const prediction = clamp(Number(predictedSuccess) || 0, 0, 1);
+    const outcome = wasCorrect ? 1 : 0;
+    const error = prediction - outcome;
+    const safePrediction = clamp(prediction, 0.001, 0.999);
+    const logLoss = -(
+      outcome * Math.log(safePrediction) +
+      (1 - outcome) * Math.log(1 - safePrediction)
+    );
+    const probabilityFloor = Math.min(9, Math.floor(prediction * 10)) * 10;
+    const predictionBucket = `${probabilityFloor}-${probabilityFloor + 10}%`;
+    const safeMode = String(mode || "unknown");
+    const safeDifficulty = String(difficultyBucket || "unknown");
+
+    const addObservation = (aggregate) => ({
+      count: aggregate.count + 1,
+      predictedSum: aggregate.predictedSum + prediction,
+      correctCount: aggregate.correctCount + outcome,
+      exactCorrectCount:
+        aggregate.exactCorrectCount + (wasCorrect && !nearMiss ? 1 : 0),
+      nearMissCount: aggregate.nearMissCount + (nearMiss ? 1 : 0),
+      squaredErrorSum: aggregate.squaredErrorSum + error * error,
+      absoluteErrorSum: aggregate.absoluteErrorSum + Math.abs(error),
+      logLossSum: aggregate.logLossSum + logLoss,
+    });
+    const addToGroup = (groups, key) => {
+      const empty = normalizePredictionEvaluationState(null, version).total;
+      groups[key] = addObservation(groups[key] || empty);
+    };
+
+    next.total = addObservation(next.total);
+    addToGroup(next.modes, safeMode);
+    addToGroup(next.difficultyBuckets, safeDifficulty);
+    addToGroup(
+      next.modeDifficultyBuckets,
+      `${safeMode}::${safeDifficulty}`,
+    );
+    addToGroup(next.predictionBuckets, predictionBucket);
+    return next;
+  }
+
+  function getPredictionEvaluationReport(state, version = 1) {
+    const normalized = normalizePredictionEvaluationState(state, version);
+    const summarize = (aggregate) => {
+      const count = aggregate?.count || 0;
+      if (!count) {
+        return {
+          count: 0,
+          meanPredicted: null,
+          observedAccuracy: null,
+          exactAccuracy: null,
+          calibrationGap: null,
+          absoluteCalibrationError: null,
+          brierScore: null,
+          meanAbsoluteError: null,
+          logLoss: null,
+          nearMissRate: null,
+        };
+      }
+      const meanPredicted = aggregate.predictedSum / count;
+      const observedAccuracy = aggregate.correctCount / count;
+      const calibrationGap = meanPredicted - observedAccuracy;
+      return {
+        count,
+        meanPredicted,
+        observedAccuracy,
+        exactAccuracy: aggregate.exactCorrectCount / count,
+        calibrationGap,
+        absoluteCalibrationError: Math.abs(calibrationGap),
+        brierScore: aggregate.squaredErrorSum / count,
+        meanAbsoluteError: aggregate.absoluteErrorSum / count,
+        logLoss: aggregate.logLossSum / count,
+        nearMissRate: aggregate.nearMissCount / count,
+      };
+    };
+    const summarizeGroups = (groups) =>
+      Object.fromEntries(
+        Object.entries(groups).map(([key, aggregate]) => [
+          key,
+          summarize(aggregate),
+        ]),
+      );
+    const predictionBuckets = summarizeGroups(normalized.predictionBuckets);
+    const totalCount = normalized.total.count;
+    const expectedCalibrationError = totalCount
+      ? Object.values(predictionBuckets).reduce(
+          (sum, bucket) =>
+            sum +
+            (bucket.count / totalCount) * bucket.absoluteCalibrationError,
+          0,
+        )
+      : null;
+    const byModeAndDifficulty = {};
+    for (const [key, aggregate] of Object.entries(
+      normalized.modeDifficultyBuckets,
+    )) {
+      const separator = key.indexOf("::");
+      const mode = separator >= 0 ? key.slice(0, separator) : "unknown";
+      const difficulty = separator >= 0 ? key.slice(separator + 2) : key;
+      byModeAndDifficulty[mode] ||= {};
+      byModeAndDifficulty[mode][difficulty] = summarize(aggregate);
+    }
+
+    return {
+      version,
+      overall: {
+        ...summarize(normalized.total),
+        expectedCalibrationError,
+      },
+      byMode: summarizeGroups(normalized.modes),
+      byDifficulty: summarizeGroups(normalized.difficultyBuckets),
+      byModeAndDifficulty,
+      byPredictedProbability: predictionBuckets,
+    };
+  }
+
   function getRecoveryPlan({
     failedMode,
     predictedSuccess,
@@ -350,7 +543,12 @@
   }
 
   function shouldUseVariedContext(snapshot, minimumSuccesses = CONTEXT_VARIATION_MIN_SUCCESSES) {
-    const successes = Math.max(0, Number(snapshot?.record?.successes) || 0);
+    const successes = Math.max(
+      0,
+      Number(
+        snapshot?.record?.successEvidence ?? snapshot?.record?.successes,
+      ) || 0,
+    );
     return successes >= Math.max(1, Number(minimumSuccesses) || 1);
   }
 
@@ -361,8 +559,77 @@
   ) {
     const count = Math.max(0, Math.floor(Number(candidateCount) || 0));
     if (!count || !shouldUseVariedContext(snapshot, minimumSuccesses)) return -1;
-    const successes = Math.max(0, Number(snapshot?.record?.successes) || 0);
-    return (successes - minimumSuccesses) % count;
+    const successes = Math.max(
+      0,
+      Number(
+        snapshot?.record?.successEvidence ?? snapshot?.record?.successes,
+      ) || 0,
+    );
+    return Math.floor(successes - minimumSuccesses) % count;
+  }
+
+  function getSrsEvidenceWeight({
+    wasCorrect,
+    predictedSuccess = 0.5,
+    responseTimeMs = null,
+    responseTimeTargetMs = 6500,
+    nearMiss = false,
+    possiblyGuessed = false,
+    wasScaffolded = false,
+  } = {}) {
+    const prediction = clamp(Number(predictedSuccess) || 0.5, 0, 1);
+    if (!wasCorrect) {
+      // Missing something the model already expected the learner to know is
+      // stronger lapse evidence than missing a deliberately difficult item.
+      // A near miss (right word, wrong grammatical form, or a typo close
+      // enough to almost pass) is weaker lapse evidence than missing it
+      // outright, so it still softens this weight even though it lands on
+      // the incorrect path. possiblyGuessed/wasScaffolded/responseTimeMs are
+      // deliberately left out here: a guessed or scaffolded miss is not
+      // weaker evidence of not knowing the word — if anything it's stronger.
+      let missWeight = clamp(0.55 + 0.5 * prediction, 0.55, 1);
+      if (nearMiss) missWeight *= 0.85;
+      return clamp(missWeight, 0.3, 1);
+    }
+
+    let weight = 0.9 + 0.2 * (1 - prediction);
+    if (nearMiss) weight *= 0.7;
+    // A sub-second multiple-choice answer might be a guess, but it can also
+    // be fluent recognition. Discount it substantially without treating it
+    // as near-zero evidence.
+    if (possiblyGuessed) weight *= 0.55;
+    if (wasScaffolded) weight *= 0.65;
+    if (
+      Number.isFinite(responseTimeMs) &&
+      responseTimeMs > responseTimeTargetMs * 2.5
+    ) {
+      weight *= 0.65;
+    } else if (
+      Number.isFinite(responseTimeMs) &&
+      responseTimeMs > responseTimeTargetMs * 1.5
+    ) {
+      weight *= 0.8;
+    }
+    return clamp(weight, 0.2, 1);
+  }
+
+  function getReviewPortfolioShare(
+    dueCount,
+    { minimum = 0.6, maximum = 0.85 } = {},
+  ) {
+    const backlog = Math.max(0, Number(dueCount) || 0);
+    if (backlog === 0) return 0;
+    return clamp(
+      minimum + 0.05 * Math.log2(1 + backlog / 10),
+      minimum,
+      maximum,
+    );
+  }
+
+  function shouldPrioritizeReview({ share, questionCount, reviewCount }) {
+    if (!(share > 0)) return false;
+    const targetReviewCount = Math.floor((questionCount + 1) * share);
+    return reviewCount < targetReviewCount;
   }
 
   function getTypedRecallProbability(
@@ -524,9 +791,15 @@
     getProgressionWeight,
     getSkillUrgencyWeight,
     updateCalibrationMode,
+    normalizePredictionEvaluationState,
+    recordPredictionEvaluation,
+    getPredictionEvaluationReport,
     getRecoveryPlan,
     shouldUseVariedContext,
     getVariedContextIndex,
+    getSrsEvidenceWeight,
+    getReviewPortfolioShare,
+    shouldPrioritizeReview,
     getTypedRecallProbability,
     buildQuestionPairPlan,
     getAbilityProximity,

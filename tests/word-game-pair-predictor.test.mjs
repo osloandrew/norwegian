@@ -94,6 +94,39 @@ assert.ok(
     context.predictQuestionSuccess(hard, "forward"),
 );
 
+const easyRenderedCloze = {
+  form: "spiser",
+  sentence: "Jeg spiser brød hver morgen.",
+  sentenceVocabularySuccess: 0.92,
+  targetContextCoverage: 0.8,
+  distractorSimilarity: 0.15,
+  translationAvailable: true,
+  audioAvailable: false,
+};
+const hardRenderedCloze = {
+  form: "eksemplifiserte",
+  sentence: "Eksemplifiserte hun den særdeles komplekse problemstillingen?",
+  sentenceVocabularySuccess: 0.45,
+  targetContextCoverage: 0.2,
+  distractorSimilarity: 0.9,
+  translationAvailable: false,
+  audioAvailable: false,
+};
+assert.ok(
+  context.predictQuestionSuccess(
+    nearAbility,
+    "typed-cloze",
+    Date.now(),
+    easyRenderedCloze,
+  ) >
+    context.predictQuestionSuccess(
+      nearAbility,
+      "typed-cloze",
+      Date.now(),
+      hardRenderedCloze,
+    ),
+);
+
 const remembered = {
   ...nearAbility,
   snapshot: { record: {}, retrievability: 0.95 },
@@ -217,6 +250,22 @@ assert.equal(
     .skills.recognition.nearMisses,
   1,
 );
+const storedEvaluation = JSON.parse(
+  stored.get("norwegian-dictionary-prediction-evaluation-v1"),
+);
+assert.equal(storedEvaluation.total.count, 3);
+assert.equal(storedEvaluation.modes.forward.count, 3);
+assert.equal(storedEvaluation.difficultyBuckets["600-799"].count, 3);
+const calibrationReport = context.getPredictionCalibrationReport();
+assert.equal(calibrationReport.overall.count, 3);
+assert.equal(calibrationReport.byMode.forward.count, 3);
+assert.equal(calibrationReport.byMode.forward.nearMissRate, 1 / 3);
+assert.equal(context.resetPredictionCalibrationReport().overall.count, 0);
+assert.equal(
+  JSON.parse(stored.get("norwegian-dictionary-prediction-evaluation-v1"))
+    .total.count,
+  0,
+);
 
 vm.runInContext("wordGameIsPlacementRound = true", context);
 assert.deepEqual(
@@ -268,6 +317,8 @@ assert.match(
   /wordGameIsPlacementRound \? 1 : pairPlans\[index\]\.totalPairWeight/,
 );
 assert.match(source, /plannedMode: selectedPlannedMode/);
+assert.match(source, /buildRenderedClozePredictionExercise/);
+assert.match(source, /recordPredictionEvaluation/);
 assert.match(source, /recordQuestionPredictionOutcome\([\s\S]*?answerWasCorrect/);
 assert.match(source, /skill: answerSkill/);
 assert.match(source, /nearMiss: nearMissTypedMatch/);

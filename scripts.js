@@ -2449,6 +2449,10 @@ function handleTypeChange(type, options = {}) {
   // of the icon-only circle meant to share a row with the search bar,
   // which My Stats hides entirely.
   document.body.classList.toggle("my-stats-mode", type === "my-stats");
+  // Lets the stylesheets widen #results-container for My Words/Word List —
+  // see the matching body.word-list-mode rule in
+  // styles/20-results-and-story-quiz.css.
+  document.body.classList.toggle("word-list-mode", type === "word-list");
   const query = document
     .getElementById("search-bar")
     .value.toLowerCase()
@@ -4819,6 +4823,10 @@ window.onload = function () {
     document.body.classList.toggle(
       "my-stats-mode",
       initialVocabularyType === "my-stats",
+    );
+    document.body.classList.toggle(
+      "word-list-mode",
+      initialVocabularyType === "word-list",
     );
     showVocabularyLoadingShell(initialVocabularyType);
   }

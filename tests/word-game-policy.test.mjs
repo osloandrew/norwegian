@@ -58,6 +58,18 @@ assert.ok(
     abilityUpdateFor(true, forwardBias),
   "A difficult production success should provide stronger ability evidence.",
 );
+const partialAbilityUpdate = policy.getAbilityAfterAnswer({
+  ability: 500,
+  wordDifficulty: 500,
+  isCorrect: false,
+  outcomeValue: 0.4,
+  kFactor: 24,
+  logisticScale: 220,
+  minimum: 0,
+  maximum: 1000,
+});
+assert.ok(partialAbilityUpdate > abilityUpdateFor(false, 0));
+assert.ok(partialAbilityUpdate < abilityUpdateFor(true, 0));
 assert.ok(
   policy.getExerciseAdjustedSuccessProbability(0.5, forwardBias) >
     policy.getExerciseAdjustedSuccessProbability(0.5, typedProductionBias),
@@ -70,6 +82,49 @@ assert.equal(predictor.modes.forward.attempts, 3);
 assert.equal(predictor.modes.forward.bias, 1.5);
 assert.equal(predictor.modes.reverse.attempts, 0);
 assert.equal(predictor.skills.production.attempts, 0);
+
+let evaluation = policy.normalizePredictionEvaluationState(null);
+evaluation = policy.recordPredictionEvaluation(evaluation, {
+  mode: "cloze",
+  difficultyBucket: "400-599",
+  predictedSuccess: 0.8,
+  wasCorrect: true,
+});
+evaluation = policy.recordPredictionEvaluation(evaluation, {
+  mode: "cloze",
+  difficultyBucket: "400-599",
+  predictedSuccess: 0.8,
+  wasCorrect: false,
+});
+evaluation = policy.recordPredictionEvaluation(evaluation, {
+  mode: "typed-cloze",
+  difficultyBucket: "600-799",
+  predictedSuccess: 0.6,
+  wasCorrect: true,
+  nearMiss: true,
+});
+const evaluationReport = policy.getPredictionEvaluationReport(evaluation);
+assert.equal(evaluationReport.overall.count, 3);
+assert.equal(evaluationReport.byMode.cloze.count, 2);
+assert.equal(evaluationReport.byDifficulty["400-599"].count, 2);
+assert.equal(
+  evaluationReport.byModeAndDifficulty.cloze["400-599"].count,
+  2,
+);
+assert.equal(evaluationReport.byMode["typed-cloze"].nearMissRate, 1);
+assert.equal(evaluationReport.byMode["typed-cloze"].exactAccuracy, 0);
+assert.ok(Math.abs(evaluationReport.byMode.cloze.brierScore - 0.34) < 1e-12);
+assert.ok(
+  Math.abs(evaluationReport.byMode.cloze.absoluteCalibrationError - 0.3) <
+    1e-12,
+);
+assert.ok(evaluationReport.overall.expectedCalibrationError >= 0);
+assert.equal(
+  policy.normalizePredictionEvaluationState({
+    total: { count: -4, squaredErrorSum: "bad" },
+  }).total.count,
+  0,
+);
 
 const abilityOnly = policy.predictSuccess({ abilityProbability: 0.6 });
 const remembered = policy.predictSuccess({
@@ -135,6 +190,35 @@ assert.ok(
       mode: "typed-reverse",
       formLength: 4,
       formTokenCount: 1,
+    }),
+);
+
+const supportedClozeBias = policy.getQuestionComplexityBias({
+  mode: "typed-cloze",
+  formLength: 5,
+  sentenceTokenCount: 8,
+  sentenceVocabularySuccess: 0.92,
+  targetContextCoverage: 1,
+  translationAvailable: true,
+});
+const difficultRenderedClozeBias = policy.getQuestionComplexityBias({
+  mode: "typed-cloze",
+  formLength: 11,
+  sentenceTokenCount: 18,
+  sentenceVocabularySuccess: 0.45,
+  targetContextCoverage: 0.2,
+  distractorSimilarity: 0.9,
+  translationAvailable: false,
+});
+assert.ok(supportedClozeBias > difficultRenderedClozeBias);
+assert.ok(
+  policy.getQuestionComplexityBias({
+    mode: "cloze",
+    distractorSimilarity: 0.1,
+  }) >
+    policy.getQuestionComplexityBias({
+      mode: "cloze",
+      distractorSimilarity: 0.9,
     }),
 );
 
@@ -240,6 +324,12 @@ const earlyContext = { record: { successes: 2 } };
 const establishedContext = { record: { successes: 3 } };
 assert.equal(policy.shouldUseVariedContext(earlyContext), false);
 assert.equal(policy.shouldUseVariedContext(establishedContext), true);
+assert.equal(
+  policy.shouldUseVariedContext({
+    record: { successes: 3, successEvidence: 1.5 },
+  }),
+  false,
+);
 assert.equal(policy.getVariedContextIndex(establishedContext, 4), 0);
 assert.equal(
   policy.getVariedContextIndex({ record: { successes: 6 } }, 4),
@@ -247,5 +337,44 @@ assert.equal(
 );
 assert.equal(policy.getVariedContextIndex(earlyContext, 4), -1);
 assert.equal(policy.getVariedContextIndex(establishedContext, 0), -1);
+
+const fullRecallEvidence = policy.getSrsEvidenceWeight({
+  wasCorrect: true,
+  predictedSuccess: 0.7,
+  responseTimeMs: 4000,
+  responseTimeTargetMs: 6500,
+});
+const guessedRecallEvidence = policy.getSrsEvidenceWeight({
+  wasCorrect: true,
+  predictedSuccess: 0.7,
+  responseTimeMs: 500,
+  responseTimeTargetMs: 6500,
+  possiblyGuessed: true,
+});
+const scaffoldRecallEvidence = policy.getSrsEvidenceWeight({
+  wasCorrect: true,
+  predictedSuccess: 0.7,
+  wasScaffolded: true,
+});
+assert.ok(Math.abs(fullRecallEvidence - 0.96) < 1e-12);
+assert.ok(guessedRecallEvidence < fullRecallEvidence * 0.7);
+assert.ok(scaffoldRecallEvidence < fullRecallEvidence);
+assert.ok(
+  policy.getSrsEvidenceWeight({ wasCorrect: false, predictedSuccess: 0.9 }) >
+    policy.getSrsEvidenceWeight({ wasCorrect: false, predictedSuccess: 0.2 }),
+);
+
+assert.equal(policy.getReviewPortfolioShare(0), 0);
+assert.equal(policy.getReviewPortfolioShare(10), 0.65);
+assert.ok(policy.getReviewPortfolioShare(100) > 0.77);
+assert.equal(policy.getReviewPortfolioShare(1e9), 0.85);
+assert.equal(
+  policy.shouldPrioritizeReview({ share: 0.7, questionCount: 1, reviewCount: 0 }),
+  true,
+);
+assert.equal(
+  policy.shouldPrioritizeReview({ share: 0.7, questionCount: 1, reviewCount: 1 }),
+  false,
+);
 
 console.log("word-game policy tests passed");

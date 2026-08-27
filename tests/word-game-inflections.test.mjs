@@ -126,6 +126,123 @@ const drikkeEntry = {
 const drikkeTarget = await context.findClozeTarget(drikkeEntry);
 assert.deepEqual([...drikkeTarget.slotIndexes], [2]);
 
+// Typed cloze accepts a genuine dictionary synonym only after inflecting it
+// into the same grammatical slot as the missing word. Thus "eter" is a valid
+// present-tense replacement for "spiser", while the past tense "åt" is not.
+const spiseEntry = {
+  ord: "spise",
+  engelsk: "eat",
+  gender: "verb",
+  CEFR: "A1",
+  eksempel: "Jeg spiser brød hver morgen.",
+};
+const eteEntry = {
+  ord: "ete",
+  engelsk: "eat",
+  gender: "verb",
+  CEFR: "A2",
+};
+const spiseTarget = await context.findClozeTarget(spiseEntry);
+assert.deepEqual([...spiseTarget.slotIndexes], [1]);
+context.results = [
+  spiseEntry,
+  eteEntry,
+  { ord: "måltid", engelsk: "eat", gender: "et" },
+  { ord: "drikke", engelsk: "drink", gender: "verb" },
+];
+const acceptedEatingAnswers = context.getTypedAcceptedAnswers(
+  spiseEntry,
+  true,
+  spiseTarget.surfaceForm,
+  spiseTarget,
+);
+assert.equal(acceptedEatingAnswers.includes("spiser"), true);
+assert.equal(acceptedEatingAnswers.includes("eter"), true);
+assert.equal(acceptedEatingAnswers.includes("åt"), false);
+assert.equal(acceptedEatingAnswers.includes("måltidet"), false);
+assert.equal(acceptedEatingAnswers.includes("drikker"), false);
+
+const infinitiveEatingNearMiss =
+  await context.classifyTypedMorphologyNearMiss(spiseEntry, "spise", {
+    isCloze: true,
+    clozeTarget: spiseTarget,
+    correctAnswer: spiseTarget.surfaceForm,
+  });
+assert.equal(infinitiveEatingNearMiss.outcomeValue, 0.4);
+assert.equal(infinitiveEatingNearMiss.correction, "spiser");
+assert.match(infinitiveEatingNearMiss.message, /infinitive/);
+assert.match(infinitiveEatingNearMiss.message, /present tense/);
+const synonymInfinitiveNearMiss =
+  await context.classifyTypedMorphologyNearMiss(spiseEntry, "ete", {
+    isCloze: true,
+    clozeTarget: spiseTarget,
+    correctAnswer: spiseTarget.surfaceForm,
+  });
+assert.equal(synonymInfinitiveNearMiss.correction, "eter");
+assert.match(synonymInfinitiveNearMiss.message, /present tense/);
+const pastEatingNearMiss = await context.classifyTypedMorphologyNearMiss(
+  spiseEntry,
+  "åt",
+  {
+    isCloze: true,
+    clozeTarget: spiseTarget,
+    correctAnswer: spiseTarget.surfaceForm,
+  },
+);
+assert.equal(pastEatingNearMiss.correction, "eter");
+assert.match(pastEatingNearMiss.message, /past tense/);
+assert.equal(
+  await context.classifyTypedMorphologyNearMiss(spiseEntry, "eter", {
+    isCloze: true,
+    clozeTarget: spiseTarget,
+    correctAnswer: spiseTarget.surfaceForm,
+  }),
+  null,
+);
+const reverseInflectionNearMiss =
+  await context.classifyTypedMorphologyNearMiss(spiseEntry, "spiser", {
+    isReverse: true,
+    correctAnswer: "spise",
+  });
+assert.equal(reverseInflectionNearMiss.correction, "spise");
+assert.match(reverseInflectionNearMiss.message, /dictionary form/);
+const listeningInflectionNearMiss =
+  await context.classifyTypedMorphologyNearMiss(spiseEntry, "spiste", {
+    isListening: true,
+    correctAnswer: "spise",
+  });
+assert.equal(listeningInflectionNearMiss.correction, "spise");
+assert.match(listeningInflectionNearMiss.message, /past tense/);
+
+const chairEntry = {
+  ord: "stol",
+  engelsk: "chair",
+  gender: "en",
+  eksempel: "Stolen står ved bordet.",
+};
+const chairTarget = await context.findClozeTarget(chairEntry);
+context.results = [
+  chairEntry,
+  { ord: "sete", engelsk: "chair", gender: "et" },
+];
+const acceptedChairAnswers = context.getTypedAcceptedAnswers(
+  chairEntry,
+  true,
+  chairTarget.surfaceForm,
+  chairTarget,
+);
+assert.equal(acceptedChairAnswers.includes("Stolen"), true);
+assert.equal(acceptedChairAnswers.includes("setet"), false);
+const indefiniteChairNearMiss =
+  await context.classifyTypedMorphologyNearMiss(chairEntry, "stol", {
+    isCloze: true,
+    clozeTarget: chairTarget,
+    correctAnswer: chairTarget.surfaceForm,
+  });
+assert.equal(indefiniteChairNearMiss.correction, "Stolen");
+assert.match(indefiniteChairNearMiss.message, /indefinite singular/);
+assert.match(indefiniteChairNearMiss.message, /definite singular/);
+
 context.results = [
   drikkeEntry,
   { ord: "betale", gender: "verb", CEFR: "A2" },

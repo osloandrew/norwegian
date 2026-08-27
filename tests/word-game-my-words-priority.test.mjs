@@ -26,6 +26,8 @@ context.pickWeightedGameWord = (entries) => entries[0] ?? null;
 context.pickPrioritizedGameWord = (entries) => entries[0] ?? null;
 context.buildGameWordQueues = (entries) => ({ new: entries });
 context.getNextGameQueueName = () => "new";
+context.getPortfolioGameQueueName = () => "new";
+context.getReviewPortfolioShareForQueues = () => 0;
 context.getNearestScheduledGameWords = (entries) => entries;
 vm.runInContext(
   `
@@ -105,10 +107,10 @@ const fetchStart = source.indexOf("async function fetchRandomWord");
 const fetchEnd = source.indexOf("function shuffleArray", fetchStart);
 const fetchSource = source.slice(fetchStart, fetchEnd);
 const mixChoice = fetchSource.indexOf(
-  "pickMyWordsQuotaWord(mixEligibleEntries)",
+  "pickMyWordsQuotaWord(",
 );
 const queueChoice = fetchSource.indexOf(
-  "const queueName = getNextGameQueueName",
+  "const queueName = getPortfolioGameQueueName",
   mixChoice,
 );
 

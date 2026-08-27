@@ -213,6 +213,22 @@ ul {
   width: 50%;
 }
 
+/* My Words (body.word-list-mode, see scripts.js's handleTypeChange) and the
+   Word Game intro/summary screens (body.word-game-mode without
+   .word-game-round-active — an actual round keeps the narrower default
+   width above, which suits its single-question layout better) should read
+   as roughly as wide as the landing page's own #landing-card, rather than
+   the narrower default above meant for a word/sentence definition. Scoped
+   to min-width:601px so it doesn't fight the width:97.5% mobile override
+   just below. */
+@media (min-width: 601px) {
+  body.word-list-mode #results-container,
+  body.word-game-mode:not(.word-game-round-active) #results-container {
+    max-width: 920px;
+    width: 90%;
+  }
+}
+
 #right-controls {
   display: flex;
   flex-direction: column;
@@ -730,6 +746,26 @@ ul {
   display: flex;
   flex-direction: column; /* Stack rows vertically */
   gap: 5px; /* Space between rows */
+}
+
+/* The audio is a sibling of the two control columns, rather than a control
+   itself. Stretch its slot to the header's full height, then center the
+   native player inside that slot. This keeps the player visually centered
+   without using header-level centering, which would pull the badges and Back
+   button down whenever a browser renders taller audio controls. */
+#sticky-audio-slot {
+  align-items: center;
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+}
+
+/* Preserve the full width allocated to the player by the header's flex
+   layout. In particular, do not let centering turn this into an intrinsic-
+   width control on narrow iOS layouts. */
+#sticky-audio-slot .stories-audio-player {
+  flex: 1 1 auto;
+  width: 100%;
 }
 
 /* Ensure sticky header genre matches list page */
@@ -1586,6 +1622,19 @@ body.stories-mode .story-recommendation .cefr-value {
     width: 26px;
   }
 
+  /* Each side column has two rows. Giving every control the same explicit
+     height makes Back share the Show English baseline instead of inheriting
+     a small native line-height difference that accumulates below the badge
+     row. Width and horizontal padding remain untouched so the audio player
+     keeps all of the room it already has. */
+  #back-button,
+  #speed-btn,
+  #toggle-english-btn {
+    box-sizing: border-box;
+    height: 26px;
+    min-height: 26px;
+  }
+
   #sticky-header {
     /* Pin the left (badges/Back) and right (Speed/Show English) columns to
        the row's top edge instead of centering them against the middle
@@ -1599,6 +1648,15 @@ body.stories-mode .story-recommendation .cefr-value {
     border: none;
     gap: 0.35em;
     padding: 0.25em 0.35em;
+  }
+
+  /* These explicit self-alignments also protect already-captured story
+     pages whose inline header styles predate the mobile rule above. The
+     columns stay on the bar's top edge while the audio slot handles its own
+     vertical centering. */
+  #sticky-header > .sticky-detail-container,
+  #sticky-header > .right-controls {
+    align-self: flex-start;
   }
 
   .sticky-title-container {

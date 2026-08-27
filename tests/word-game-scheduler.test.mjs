@@ -31,6 +31,8 @@ const context = vm.createContext({
   },
 });
 loadWordGamePolicy(root, context);
+context.wordGameReviewPortfolioQuestionCount = 0;
+context.wordGameReviewPortfolioReviewCount = 0;
 
 vm.runInContext(source.slice(start, end), context, {
   filename: "wordGame.js",
@@ -62,6 +64,32 @@ assert.deepEqual([...queues.due], [due]);
 assert.deepEqual([...queues.approaching], [approaching]);
 assert.deepEqual([...queues.new], [fresh]);
 assert.deepEqual([...queues.scheduled], [scheduled]);
+
+assert.equal(
+  context.getReviewPortfolioShareForQueues({
+    relearning: [],
+    due: Array.from({ length: 10 }, () => due),
+    approaching: [],
+  }),
+  0.65,
+);
+const portfolioQueues = {
+  relearning: [relearning],
+  due: [due],
+  approaching: [approaching],
+  new: [fresh],
+  scheduled: [scheduled],
+};
+assert.equal(context.getPortfolioGameQueueName(portfolioQueues, 0.5), "new");
+context.recordReviewPortfolioQuestion("new");
+assert.equal(
+  context.getPortfolioGameQueueName(portfolioQueues, 0.5),
+  "relearning",
+);
+context.recordReviewPortfolioQuestion("relearning");
+assert.equal(context.getPortfolioGameQueueName(portfolioQueues, 0.5), "new");
+assert.equal(context.wordGameReviewPortfolioQuestionCount, 2);
+assert.equal(context.wordGameReviewPortfolioReviewCount, 1);
 
 assert.equal(context.getNextGameQueueName(queues), "relearning");
 queues.relearning = [];

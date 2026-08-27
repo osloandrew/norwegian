@@ -1110,7 +1110,10 @@ li {
      dictionary doesn't cover. */
   hyphens: auto;
   overflow-wrap: break-word;
-  overflow-y: auto;
+  /* The card's height is fixed (never grows to fit long text), so an
+     overflowing answer must be clipped, not scrollable — a scrollbar here
+     would need room to be seen/used, which a 72px answer card doesn't have. */
+  overflow-y: hidden;
 }
 
 .game-translation-card:hover {
@@ -1210,6 +1213,11 @@ li {
 .game-typed-answer-form.is-incorrect .game-typed-answer-input {
   background-color: var(--color-danger-bg);
   border-color: var(--color-danger-border);
+}
+
+.game-typed-answer-form.is-almost .game-typed-answer-input {
+  background-color: var(--color-streak-bg);
+  border-color: var(--color-streak-border);
 }
 
 /* Rendered inside #game-banner-placeholder (see updateTypedAnswerFeedback,
@@ -1726,76 +1734,21 @@ li {
   margin: 0 0 18px 0;
 }
 
+/* Both pickers below (round size, My Words mix) share one calm, minimal
+   card language — plain surface + border by default, a light blue "wash"
+   on hover, and a slightly deeper wash for a persisted selection (never a
+   solid fill) — the same active/selected treatment as the Daily quests
+   gem cards above and the Words/Sentences/Stories mode tabs. Each picker
+   is always exactly one row: as many equal columns as it has buttons, so
+   nothing wraps to a second line. */
 .game-intro-options {
-  display: grid;
-  gap: 15px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  width: 100%;
-}
-
-.game-intro-option {
-  align-items: center;
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  color: var(--color-ink);
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  font-family: "Noto Sans", sans-serif;
-  gap: 4px;
-  justify-content: center;
-  padding: 20px 10px;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.15s ease;
-  user-select: none;
-}
-
-.game-intro-option:hover {
-  background-color: var(--color-wash-blue);
-  border-color: var(--color-accent);
-}
-
-.game-intro-option:active {
-  transform: scale(0.97);
-}
-
-.game-intro-option-count {
-  font-size: 1.8em;
-  font-weight: 700;
-}
-
-.game-intro-option-label {
-  font-size: 0.85em;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.game-intro-option-infinite {
-  background-color: var(--color-ink);
-  color: var(--color-surface);
-  flex-direction: row;
-  gap: 10px;
-}
-
-.game-intro-option-infinite:hover {
-  background-color: var(--color-accent);
-  border-color: var(--color-accent);
-}
-
-.game-intro-option-infinite i {
-  font-size: 1.3em;
-}
-
-.game-my-words-options {
   display: grid;
   gap: 10px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   width: 100%;
 }
 
+.game-intro-option,
 .game-my-words-option {
   align-items: center;
   background-color: var(--color-surface);
@@ -1818,19 +1771,47 @@ li {
   user-select: none;
 }
 
+.game-intro-option:hover,
 .game-my-words-option:hover {
   background-color: var(--color-wash-blue);
   border-color: var(--color-accent);
 }
 
+.game-intro-option:active,
 .game-my-words-option:active {
   transform: scale(0.97);
 }
 
+.game-intro-option-count {
+  font-size: 1.4em;
+  font-weight: 700;
+}
+
+.game-intro-option-label {
+  font-size: 0.72em;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.game-intro-option-infinite i {
+  font-size: 1.4em;
+}
+
+.game-my-words-options {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+}
+
+/* A persisted setting (unlike the round-size buttons, which just fire an
+   action), so it keeps a visible resting state — the same wash-blue-active
+   fill + border as an active Daily quest card, not the heavier solid-color
+   fill this used before. */
 .game-my-words-option.is-selected {
-  background-color: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-surface);
+  background-color: var(--color-wash-blue-active);
+  border-color: var(--color-wash-blue-active-border);
+  color: var(--color-ink);
 }
 
 .game-my-words-option-value {

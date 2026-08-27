@@ -213,7 +213,13 @@ assert.equal(
   completionContext.getWordGameSessionProgressLabel(),
   "Word 3 of 10",
 );
-assert.equal(completionContext.getWordGameSessionProgressPercent(), 30);
+// 3 mastered words out of (10 target + 3 still-outstanding reviews): the
+// bar weighs the 3 queued misses as real remaining work, not just the raw
+// correct-word count the label above uses.
+assert.equal(
+  completionContext.getWordGameSessionProgressPercent(),
+  (3 / 13) * 100,
+);
 
 const answerHandlerStart = wordGameSource.indexOf(
   "async function handleTranslationClick",
