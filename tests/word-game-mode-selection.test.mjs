@@ -181,7 +181,7 @@ for (const [mode, expected] of [
   ["typed-cloze", "Type the word that completes the sentence"],
   ["reverse", "Choose the Norwegian word"],
   ["listening", "Listen and choose the meaning"],
-  ["cloze", "Choose the word that completes the sentence"],
+  ["cloze", "Choose the missing word"],
   ["forward", "Choose the English meaning"],
   // Anything unrecognized falls back to the forward-flashcard text, matching
   // the old switch's `default:` case.

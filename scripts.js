@@ -1425,6 +1425,7 @@ function openFeedbackDialog({
   dialog.setAttribute("role", "dialog");
   dialog.setAttribute("aria-modal", "true");
   dialog.setAttribute("aria-labelledby", "feedback-dialog-title");
+  dialog.tabIndex = -1;
 
   const title = document.createElement("h3");
   title.id = "feedback-dialog-title";
@@ -1540,7 +1541,15 @@ function openFeedbackDialog({
   document.body.appendChild(overlay);
   document.addEventListener("keydown", handleFeedbackDialogKeydown);
 
-  categorySelect.focus();
+  // Programmatically focusing a native <select> can immediately open its
+  // full-screen picker on mobile, making the report button appear to skip
+  // past the dialog. Put initial focus on the dialog itself at the same
+  // compact breakpoint used by the Word Game toolbar; desktop keeps the
+  // convenient direct focus on the category field.
+  const usesCompactFeedbackDialog = window.matchMedia?.(
+    "(max-width: 1024px)",
+  ).matches;
+  (usesCompactFeedbackDialog ? dialog : categorySelect).focus();
 }
 
 // Generate and display a random word or sentence

@@ -438,7 +438,7 @@ const GAME_MODES = Object.freeze({
     isEligible: () => true,
     matchesStructuredMode: (structuredMode) => structuredMode === "cloze",
     freePlayProbability: () => 0.5,
-    instructionText: () => "Choose the word that completes the sentence",
+    instructionText: () => "Choose the missing word",
     // Moved verbatim from startWordGame's old inline cloze branch — same
     // fallback-to-forward-flashcard behavior on every failure path,
     // preserved exactly per the "don't change the fallback quirk" call.
@@ -1181,7 +1181,7 @@ function updateAbilityScore(
 
 function updateGameEnglishTranslationVisibility() {
   document
-    .querySelectorAll(".game-cefr-spacer .game-english-translation")
+    .querySelectorAll(".game-teaching-reveal .game-english-translation")
     .forEach((translationElement) => {
       if (
         translationElement.classList.contains(
@@ -1326,9 +1326,13 @@ function renderStats(instructionHTML = "") {
     ? `<p class="game-instruction">${instructionHTML}</p>`
     : "";
 
+  const progressHeading = isSessionRound
+    ? getWordGameStatsProgressHeading()
+    : `Recent accuracy · ${Math.round(correctPercentage)}%`;
+
   const middleContentHTML = isSessionRound
     ? `<div class="game-stats-progress-wrapper" style="flex-grow: 1;">
-         <p class="game-stat-label">Round progress</p>
+         <p class="game-progress-heading" id="game-progress-heading">${progressHeading}</p>
          <div class="game-stats-accuracy-row">
            <div class="game-session-progress-bg" style="display: flex; align-items: center;">
              <div class="game-session-progress-fill" id="game-session-progress-fill"
@@ -1344,7 +1348,7 @@ function renderStats(instructionHTML = "") {
          ${instructionMarkup}
        </div>`
     : `<div class="game-stats-progress-wrapper" style="flex-grow: 1;">
-         <p class="game-stat-label">Recent accuracy</p>
+         <p class="game-progress-heading" id="game-progress-heading">${progressHeading}</p>
          <div class="game-stats-accuracy-row">
            <div class="level-progress-bar-bg">
              <div class="level-progress-bar-fill"
@@ -1369,14 +1373,14 @@ function renderStats(instructionHTML = "") {
   const leftStatHTML = wordGamePlacementCalibrationEnabled
     ? ""
     : `<div class="game-stats-correct-box">
-         <p class="game-stat-label">Correct in a row</p>
          <p id="streak-count">${correctStreak}</p>
+         <p class="game-stat-label">In a row</p>
        </div>`;
   const rightStatHTML = wordGamePlacementCalibrationEnabled
     ? ""
     : `<div class="game-stats-incorrect-box">
-         <p class="game-stat-label">Words to review</p>
          <p id="review-count">${wordsToReview}</p>
+         <p class="game-stat-label">To review</p>
        </div>`;
 
   // Inject HTML only if it hasn't been rendered yet for this question.
@@ -1408,6 +1412,9 @@ function renderStats(instructionHTML = "") {
     "#game-session-progress-fill",
   );
   const progressEl = statsContainer.querySelector("#game-session-progress");
+  const progressHeadingEl = statsContainer.querySelector(
+    "#game-progress-heading",
+  );
 
   if (fillEl) {
     fillEl.style.width = `${correctPercentage}%`;
@@ -1426,6 +1433,11 @@ function renderStats(instructionHTML = "") {
   }
   if (progressEl) {
     progressEl.textContent = getWordGameSessionProgressLabel();
+  }
+  if (progressHeadingEl) {
+    progressHeadingEl.textContent = isSessionRound
+      ? getWordGameStatsProgressHeading()
+      : `Recent accuracy · ${Math.round(correctPercentage)}%`;
   }
 
 }
@@ -4465,6 +4477,22 @@ function isWordGameRoundComplete() {
   );
 }
 
+function getWordGameStatsProgressHeading() {
+  const current = wordGamePlacementCalibrationEnabled
+    ? Math.min(wordGameSessionQuestionsAnswered, wordGameSessionTarget)
+    : typeof hasActiveA0Support === "function" && hasActiveA0Support()
+      ? Math.min(wordGameSessionCorrectAnswers, wordGameSessionTarget)
+      : Math.min(wordGameSessionCorrectWords.size, wordGameSessionTarget);
+  const prefix = wordGamePlacementCalibrationEnabled
+    ? "Placement"
+    : wordGameIsTodayPracticeRound
+      ? DAILY_QUESTS[wordGameDailyQuestIndex]?.reward || "Practice"
+      : wordGameIsBonusRound
+        ? "Bonus"
+        : "Round";
+  return `${prefix} · ${current} of ${wordGameSessionTarget}`;
+}
+
 // "Word X of N" normally, but once X reaches N with a miss still pending
 // retry, says so explicitly — otherwise it reads as finished when clicking
 // Next Word won't actually end the round yet (see isWordGameRoundComplete).
@@ -5531,9 +5559,9 @@ function fetchIncorrectNorwegianWords(correctWord, CEFR, gender) {
 }
 
 function displayPronunciation(word) {
-  const pronunciationContainer = document.querySelector(
-    "#game-banner-placeholder",
-  );
+  const pronunciationContainer =
+    document.querySelector("#game-pronunciation-slot") ||
+    document.querySelector("#game-banner-placeholder");
   if (pronunciationContainer && word.uttale) {
     const uttaleText = word.uttale.split(",")[0].trim(); // Get the part before the first comma
     pronunciationContainer.innerHTML = `
@@ -5748,6 +5776,73 @@ function getGameAnswerStatusMarkup() {
   return '<p id="game-answer-status" class="game-answer-status" role="status" aria-live="polite"></p>';
 }
 
+function getGameTeachingRevealMarkup({ requiredTranslation = "" } = {}) {
+  const translation = normalizeGameWhitespace(requiredTranslation);
+  return `
+    <section class="game-teaching-reveal${translation ? " has-required-cue" : ""}" id="game-teaching-reveal" aria-label="Answer explanation" data-state="question">
+      <div class="game-teaching-reveal-placeholder"${translation ? " hidden" : ""}>Answer to see this word in context.</div>
+      ${translation ? `<p class="game-teaching-cue game-english-translation game-english-translation-required">${escapeGameHTML(translation)}</p>` : ""}
+    </section>
+  `;
+}
+
+function renderGameTeachingReveal({
+  isCorrect,
+  correctAnswer,
+  exampleSentence = "",
+  sentenceTranslation = "",
+  isCloze = false,
+  wasTyped = false,
+  nearMiss = false,
+  morphologyNearMiss = null,
+  scheduledForReview = false,
+}) {
+  const reveal = document.getElementById("game-teaching-reveal");
+  if (!reveal) return;
+
+  const normalizedAnswer = normalizeGameWhitespace(correctAnswer);
+  const normalizedSentence = normalizeGameWhitespace(exampleSentence);
+  const normalizedTranslation = normalizeGameWhitespace(sentenceTranslation);
+  const outcomeKind = morphologyNearMiss ? "almost" : isCorrect ? "correct" : "incorrect";
+  const outcomeText = morphologyNearMiss
+    ? morphologyNearMiss.message
+    : isCorrect
+      ? nearMiss
+        ? `Meaning correct — check the spelling: ${normalizedAnswer}`
+        : `Correct — ${normalizedAnswer}`
+      : `Not quite — ${normalizedAnswer}`;
+  const contextHTML = !isCloze && normalizedSentence
+    ? `<button type="button" class="game-teaching-sentence" aria-label="Play sentence audio">${escapeGameHTML(normalizedSentence)}</button>`
+    : "";
+  const translationRequired = wasTyped && isCloze;
+  const translationHTML = normalizedTranslation
+    ? `<p class="game-teaching-translation game-english-translation${translationRequired ? " game-english-translation-required" : ""}" style="display: ${translationRequired || isEnglishVisible ? "block" : "none"};">${escapeGameHTML(normalizedTranslation)}</p>`
+    : "";
+  const note = scheduledForReview
+    ? "We’ll try this word again shortly."
+    : isCloze
+      ? "The sentence is now complete."
+      : normalizedSentence
+        ? "Tap the Norwegian sentence to hear it again."
+        : "This answer is now part of your review history.";
+
+  reveal.dataset.state = outcomeKind;
+  reveal.classList.remove("has-required-cue");
+  reveal.innerHTML = `
+    <div class="game-teaching-outcome game-teaching-outcome--${outcomeKind}">
+      <span class="game-teaching-outcome-icon" aria-hidden="true">${outcomeKind === "correct" ? "✓" : outcomeKind === "almost" ? "≈" : "×"}</span>
+      <strong>${escapeGameHTML(outcomeText)}</strong>
+    </div>
+    <div class="game-teaching-context">${contextHTML}${translationHTML}</div>
+    <p class="game-teaching-note">${escapeGameHTML(note)}</p>
+  `;
+
+  const sentenceButton = reveal.querySelector(".game-teaching-sentence");
+  if (sentenceButton && normalizedSentence) {
+    makeSentenceClickable(sentenceButton, normalizedSentence);
+  }
+}
+
 function attachTypedAnswerForm(
   wordObj,
   {
@@ -5896,6 +5991,7 @@ function renderWordGameUI(
             <!-- Stats will be updated dynamically in renderStats() -->
         </div>
 
+        <div class="game-learning-stage">
         <div class="game-word-card">
             <div class="game-labels-container">
               <div class="game-label-subgroup">
@@ -5914,7 +6010,7 @@ function renderWordGameUI(
 </div>
             </div>
             <div
-              class="game-word${isReverse ? "" : " game-word-audio"}${promptLengthClass ? ` ${promptLengthClass}` : ""}"
+              class="game-word${isReverse ? "" : " game-word-audio"}${isListening ? " game-listening-prompt" : ""}${promptLengthClass ? ` ${promptLengthClass}` : ""}"
               ${
                 isReverse
                   ? ""
@@ -5930,7 +6026,9 @@ function renderWordGameUI(
                     : `<h2>${escapeGameHTML(displayedWord)}</h2>`
                 }
             </div>
-            <div class="game-cefr-spacer"></div>
+            <div id="game-pronunciation-slot" class="game-pronunciation-slot"></div>
+        </div>
+        ${getGameTeachingRevealMarkup()}
         </div>
 
         <!-- Answer Section -->
@@ -6115,6 +6213,7 @@ async function renderClozeGameUI(
       <!-- Stats will be updated dynamically in renderStats() -->
     </div>
 
+    <div class="game-learning-stage">
     <div class="game-word-card">
       <div class="game-labels-container">
         <div class="game-label-subgroup">
@@ -6145,18 +6244,10 @@ async function renderClozeGameUI(
       <div class="game-word${promptLengthClass ? ` ${promptLengthClass}` : ""}">
       <h2 id="cloze-sentence">${escapeGameHTML(sentenceWithBlank)}</h2>
       </div>
+      <div id="game-pronunciation-slot" class="game-pronunciation-slot"></div>
 
-      <div class="game-cefr-spacer">
-        ${
-          clozeSentenceTranslation
-            ? `<div class="sentence-pair">
-          <!-- Typed cloze needs this semantic cue to identify the missing
-               Norwegian form, regardless of the global translation setting. -->
-          <p class="game-english-translation game-english-translation-required" style="display: inline-block;">${clozeSentenceTranslation}</p>
-        </div>`
-            : ""
-        }
-      </div>
+    </div>
+    ${getGameTeachingRevealMarkup({ requiredTranslation: clozeSentenceTranslation })}
     </div>
 
     <!-- Answer Section -->
@@ -6379,31 +6470,9 @@ function updateTypedAnswerFeedback(
     !isCorrect && !morphologyNearMiss,
   );
 
-  // A near-miss (right word, wrong spelling — missing æ/ø/å or a small typo,
-  // see isCloseEnoughTypedAnswer) still counts as correct so it doesn't
-  // penalize recall, but silently accepting it without ever showing the real
-  // spelling would let the misspelling go uncorrected. Shown in
-  // #game-banner-placeholder — the same gray box showBanner() uses for the
-  // streak/cleared-practice congratulation messages — rather than appended
-  // to the form (which sits outside .game-word-card entirely, between the
-  // input and the Next Word button). Typed-reverse, typed-listening, and
-  // cloze questions (the only modes that reach here) never call
-  // displayPronunciation, so this box is always free at this point; the
-  // one real overlap is
-  // showBanner("streak"/"clearedPracticeWords", ...) a few lines below in
-  // handleTranslationClick/handleTypedAnswerSubmit, which — being called
-  // after this — wins the shared box on the rare question that's both a
-  // near-miss and a streak milestone.
-  const bannerPlaceholder = document.getElementById("game-banner-placeholder");
-  if (bannerPlaceholder) {
-    const note = morphologyNearMiss?.message ||
-      (isCorrect && isNearMiss
-        ? `Close enough — correct spelling: ${correctAnswer}`
-        : "");
-    bannerPlaceholder.innerHTML = note
-      ? `<div class="game-typed-answer-note"><p>${escapeGameHTML(note)}</p></div>`
-      : "";
-  }
+  // The visible spelling/morphology explanation is rendered in the reserved
+  // teaching shelf after grading. Keeping it out of the prompt-card banner
+  // prevents competing messages and preserves the card's fixed geometry.
 }
 
 function announceGameAnswer(isCorrect, correctAnswer, morphologyNearMiss = null) {
@@ -6863,44 +6932,20 @@ async function handleTranslationClick(
   // Update the stats after the answer
   renderStats();
 
-  // isCloze again: a cloze question already showed its example sentence
-  // as the question itself (now completed by completeClozeSentence above),
-  // so only forward/reverse/listening need the sentence text and
-  // click-to-replay wiring added here after the fact — cloze only needs
-  // the English translation revealed alongside it.
-  if (exampleSentence && !isCloze) {
-    const completedSentence = exampleSentence;
-
-    const translationHTML = `
-      <p class="game-english-translation" style="display: ${
-        isEnglishVisible ? "inline-block" : "none"
-      };">${sentenceTranslation}</p>`;
-
-    document.querySelector(".game-cefr-spacer").innerHTML = `
-      <div class="sentence-pair">
-        <p class="game-example-sentence">${completedSentence}</p>
-        ${translationHTML}
-      </div>
-    `;
-
-    const sentenceElement = document.querySelector(
-      ".game-cefr-spacer .game-example-sentence",
-    );
-    makeSentenceClickable(sentenceElement, completedSentence);
-  } else if (exampleSentence && isCloze) {
-    const translationHTML = `
-      <p class="game-english-translation${wasTyped ? " game-english-translation-required" : ""}" style="display: ${
-        wasTyped || isEnglishVisible ? "inline-block" : "none"
-      };">${sentenceTranslation}</p>`;
-
-    document.querySelector(".game-cefr-spacer").innerHTML = `
-      <div class="sentence-pair">
-        ${translationHTML}
-      </div>
-    `;
-  } else {
-    document.querySelector(".game-cefr-spacer").innerHTML = "";
-  }
+  renderGameTeachingReveal({
+    isCorrect: answerWasCorrect,
+    correctAnswer: morphologyNearMiss?.correction || correctTranslationPart,
+    exampleSentence,
+    sentenceTranslation,
+    isCloze,
+    wasTyped,
+    nearMiss: nearMissTypedMatch,
+    morphologyNearMiss,
+    scheduledForReview:
+      !answerWasCorrect &&
+      !wordGamePlacementCalibrationEnabled &&
+      !a0FirstExposure,
+  });
 }
 
 async function fetchExampleSentence(

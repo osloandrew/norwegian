@@ -174,11 +174,15 @@ assert.match(
   source,
   /game-english-translation game-english-translation-required/,
 );
-assert.match(source, /wasTyped \|\| isEnglishVisible/);
+assert.match(source, /translationRequired \|\| isEnglishVisible/);
 assert.match(
   source,
   /translationElement\.classList\.contains\([\s\S]*?"game-english-translation-required"/,
 );
+assert.match(source, /function getGameTeachingRevealMarkup/);
+assert.match(source, /Answer to see this word in context\./);
+assert.match(source, /function renderGameTeachingReveal/);
+assert.match(source, /scheduledForReview/);
 
 const answerButtonMatches = source.match(
   /<button type="button" class="game-translation-card"/g,
