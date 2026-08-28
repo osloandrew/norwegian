@@ -9,7 +9,7 @@
 // light-blue .my-stats-box per section — mirroring the landing page's
 // .landing-daily-quests / .landing-progress-summary boxes exactly, rather
 // than stacking separate white cards. Every text element explicitly sets
-// "Noto Sans" (see the comment above .my-stats in the shell/landing/stats
+// "Source Sans 3" (see the comment above .my-stats in the shell/landing/stats
 // stylesheet for why that has to be explicit, not inherited).
 //
 // Every number here already exists somewhere in WordStrengthAPI or
@@ -101,6 +101,7 @@
       count: 0,
       longestCount: 0,
     };
+    const bestWordStreak = window.BestWordStreakAPI?.getState?.() ?? 0;
     const dueNow = window.WordGameHelpers?.getVocabProgressSummary?.().dueCount ?? 0;
     const dueThisWeek = getUpcomingDueCount(7);
 
@@ -115,10 +116,11 @@
     const grid = document.createElement("div");
     grid.className = "game-summary-stats my-stats-overview-grid";
     grid.append(
-      createStatTile(streak.count, "Day streak"),
-      createStatTile(streak.longestCount, "Longest streak"),
-      createStatTile(dueNow, "Due now"),
-      createStatTile(dueThisWeek, "Due this week"),
+      createStatTile(streak.count, "Day Streak"),
+      createStatTile(streak.longestCount, "Longest Streak"),
+      createStatTile(bestWordStreak, "Best Word Streak"),
+      createStatTile(dueNow, "Due Now"),
+      createStatTile(dueThisWeek, "Due This Week"),
     );
     card.appendChild(grid);
 
@@ -129,7 +131,7 @@
     practiceBtn.type = "button";
     practiceBtn.className = "game-summary-primary-btn";
     practiceBtn.textContent =
-      dueNow > 0 ? "Practice due words" : "Practice now";
+      dueNow > 0 ? "Practice Due Words" : "Practice Now";
     practiceBtn.addEventListener("click", () => {
       selectType("word-game");
     });
@@ -156,7 +158,7 @@
     card.className = "my-stats-box my-stats-gems";
     card.innerHTML = `
       <div class="my-stats-gems-header">
-        <h3 class="my-stats-section-heading">Gems earned</h3>
+        <h3 class="my-stats-section-heading">Gems Earned</h3>
         <strong class="landing-progress-summary-count">${total.toLocaleString("en-US")} total</strong>
       </div>
       <div class="my-stats-gems-row">
@@ -188,7 +190,7 @@
 
     if (total === 0) {
       card.innerHTML = `
-        <h3 class="my-stats-section-heading">Vocabulary profile</h3>
+        <h3 class="my-stats-section-heading">Vocabulary Profile</h3>
         <p class="my-stats-empty">Play the Word Game to start building your vocabulary profile — words you practice will show up here, grouped by how well you know them.</p>
       `;
       return card;
@@ -196,12 +198,12 @@
 
     card.innerHTML = `
       <div class="my-stats-vocabulary-header">
-        <h3 class="my-stats-section-heading">Vocabulary profile</h3>
+        <h3 class="my-stats-section-heading">Vocabulary Profile</h3>
         <strong class="landing-progress-summary-count">${total.toLocaleString("en-US")} word${total === 1 ? "" : "s"}</strong>
       </div>
       <p class="my-stats-vocabulary-intro">Words you’ve practiced, grouped by how well you know them.</p>
       ${window.WordGameHelpers.buildVocabProgressBarMarkup(counts, total)}
-      <a class="my-stats-see-all-link" href="?type=word-list">See all words</a>
+      <a class="my-stats-see-all-link" href="?type=word-list">See All Words</a>
     `;
 
     card
@@ -222,7 +224,7 @@
 
     const heading = document.createElement("h3");
     heading.className = "my-stats-section-heading";
-    heading.textContent = "Words you’ve missed the most";
+    heading.textContent = "Words You’ve Missed the Most";
     card.appendChild(heading);
 
     if (troubleEntries.length === 0) {
@@ -264,7 +266,7 @@
       loadingMessage.className = "definition";
 
       const heading = document.createElement("h2");
-      heading.textContent = "Loading vocabulary";
+      heading.textContent = "Loading Vocabulary";
 
       const explanation = document.createElement("p");
       explanation.textContent =

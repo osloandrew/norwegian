@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   letter-spacing: normal;
   text-transform: none;
 }
@@ -64,7 +64,7 @@
   border-radius: 6px;
   color: var(--color-streak-text);
   display: flex;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   gap: 4px;
   padding: 6px 10px;
@@ -88,8 +88,8 @@
   color: var(--color-text-strong);
   cursor: pointer;
   display: none;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 11px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   font-weight: 500;
   gap: 6px;
   left: 12px;
@@ -136,8 +136,8 @@ html.reading .story-report-issue-btn {
   border: 1px solid var(--color-border-google);
   border-radius: 6px;
   padding: 7px 12px;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   font-weight: 500;
   line-height: 1;
   cursor: pointer;
@@ -200,7 +200,7 @@ html.reading .story-report-issue-btn {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   color: var(--color-surface);
   display: flex;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   gap: 12px;
   left: 50%;
   max-width: 480px;
@@ -218,7 +218,7 @@ html.reading .story-report-issue-btn {
 
 .signin-nudge-banner p {
   flex: 1;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.4;
   margin: 0;
 }
@@ -230,9 +230,9 @@ html.reading .story-report-issue-btn {
   color: var(--color-ink);
   cursor: pointer;
   flex-shrink: 0;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   padding: 8px 14px;
   transition: background-color 0.2s ease;
 }
@@ -267,7 +267,7 @@ html.reading .story-report-issue-btn {
      needing to fit a single line, but a touch less text per line still
      keeps that from running unnecessarily tall. */
   .game-instruction {
-    font-size: 13px;
+    font-size: 14px;
   }
 
   /* #auth-container's own position:static + justify-content:right (see
@@ -308,7 +308,7 @@ html.reading .story-report-issue-btn {
   border: 1px solid var(--color-border-google);
   border-radius: 6px;
   padding: 5px 10px 5px 5px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--color-google-text);
   box-shadow: 0 1px 2px rgba(60, 64, 67, 0.12);
@@ -332,7 +332,7 @@ html.reading .story-report-issue-btn {
   border-color: transparent;
   box-shadow: none;
   padding: 4px 8px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .google-signout-btn:hover {
@@ -347,7 +347,7 @@ html.reading .story-report-issue-btn {
   display: inline-flex;
   align-items: center;
   color: #b8860b;
-  font-size: 13px;
+  font-size: 14px;
   cursor: help;
 }
 
@@ -405,8 +405,17 @@ html.reading .story-report-issue-btn {
     margin: 4px 0;
   }
 
+  #landing-card .landing-feature-list {
+    margin-top: 4px;
+  }
+
+  /* Single column below 600px — the inherited 2-column grid (set at the
+     1024px breakpoint further down) squeezes each tile's feature bullets
+     into a ~150px-wide column on a phone, wrapping every bullet across
+     3-4 lines. Full card width lets most bullets fit on 1-2 lines instead. */
   #landing-card .landing-card-button-grid {
     gap: 10px;
+    grid-template-columns: 1fr;
   }
 }
 
@@ -417,7 +426,7 @@ html.reading .story-report-issue-btn {
 input[type="text"] {
   border: none;
   flex-grow: 1;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 16px;
   outline: none;
   padding: 12px 16px;
@@ -446,13 +455,13 @@ input[type="text"]:disabled {
 input[type="text"]:focus + label,
 input[type="text"]:not(:placeholder-shown) + label {
   color: var(--color-ink);
-  font-size: 12px;
+  font-size: 14px;
   top: -10px;
 }
 
 .japanese-sentence {
   color: var(--color-text); /* Set a color for Japanese text */
-  font-family: "Noto Serif", serif; /* Adjust to the appropriate English font */
+  font-family: "Source Serif 4", "Noto Serif", serif;
 }
 
 .story-word {
@@ -511,8 +520,8 @@ input[type="text"]:not(:placeholder-shown) + label {
   color: var(--color-text-faint);
   display: flex;
   flex-direction: column;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   font-style: italic;
   gap: 6px;
   padding: 10px 14px;
@@ -524,7 +533,7 @@ input[type="text"]:not(:placeholder-shown) + label {
   border: none;
   color: var(--color-interactive);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   font-style: normal;
   padding: 0;
   text-decoration: underline;
@@ -536,7 +545,7 @@ input[type="text"]:not(:placeholder-shown) + label {
 
 .story-word-popover-translation {
   color: var(--color-text);
-  font-family: "Noto Serif", serif;
+  font-family: "Source Serif 4", "Noto Serif", serif;
   font-size: 15px;
   white-space: nowrap;
 }
@@ -544,7 +553,7 @@ input[type="text"]:not(:placeholder-shown) + label {
 .japanese-title {
   color: var(--color-text-strong);
   display: block;
-  font-family: "Noto Serif", serif; /* Japanese-specific font */
+  font-family: "Source Serif 4", "Noto Serif", serif;
   font-weight: 400;
   font-size: 14px;
   line-height: 1.3;
@@ -619,7 +628,7 @@ html.landing #landing-card {
 
 #landing-card h2 {
   color: var(--color-ink);
-  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   font-size: 32px !important;
   font-weight: 600;
   margin: 0 0 10px;
@@ -632,7 +641,7 @@ html.landing #landing-card {
 
 /* Adjust the paragraph text inside the landing card to be more similar to definition content */
 #landing-card p {
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 14px !important; /* Matches the font size of other definition content */
   color: var(--color-text-strong); /* Similar color to definition content */
   line-height: 1.6; /* Increase line height for readability */
@@ -656,8 +665,9 @@ html.landing #landing-card {
   border: 1px solid #b7c9e2; /* Soft navy-tinted border instead of gray */
   border-radius: 6px; /* Slightly rounded corners */
   padding: 8px 14px; /* Larger padding for a more clickable feel */
-  font-family: "Noto Sans", sans-serif; /* Clean, modern font */
-  font-size: 12px; /* Smaller font size for subtlety */
+  font-family:
+    "Source Sans 3", "Noto Sans", sans-serif; /* Clean, modern font */
+  font-size: 14px; /* Smaller font size for subtlety */
   font-weight: 500; /* Slightly bolder text */
   text-transform: uppercase; /* Uppercase for consistency */
   letter-spacing: 0.03em; /* Slight letter spacing */
@@ -737,18 +747,47 @@ html.landing #landing-card {
   outline-offset: 2px;
 }
 
-.button-container p {
+.button-container p,
+.button-container .landing-feature-list {
   align-self: stretch;
   flex-grow: 1;
+}
+
+/* Overrides the global ".definition p, li" 20px rule (00-foundations-and-
+   game.css) — these bullets are card metadata, not body copy. */
+#landing-card .landing-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  text-align: left;
+}
+
+#landing-card .landing-feature-list li {
+  color: var(--color-text-slate);
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0;
+  padding-left: 16px;
+  position: relative;
+}
+
+#landing-card .landing-feature-list li::before {
+  color: var(--color-interactive);
+  content: "•";
+  left: 2px;
+  position: absolute;
 }
 
 /* The tile's name — plain typography now that the card itself is the
    click target, rather than a bordered pill button nested inside it. */
 .landing-card-title {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0;
   margin: 14px 0 6px;
   text-transform: none;
@@ -777,23 +816,6 @@ html.landing #landing-card {
   width: 56px;
 }
 
-/* Feature capabilities now read as quiet metadata rather than six separate
-   colored badges. Their emoji still provide a small, useful distinction. */
-.landing-feature-tag {
-  background: transparent;
-  border: 0;
-  color: #65717d;
-  display: block;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  margin: 10px auto 0;
-  padding: 0;
-  user-select: none;
-  width: fit-content;
-}
-
 /* The landing hero introduces the product; the search above and guided daily
    lesson below establish the page's primary learning path. */
 #landing-card p.landing-hero-copy {
@@ -805,7 +827,7 @@ html.landing #landing-card {
 
 #landing-card p.landing-proof-line {
   color: var(--color-text-slate);
-  font-size: 11px !important;
+  font-size: 14px !important;
   font-weight: 600;
   letter-spacing: 0.01em;
   margin: 14px auto 0;
@@ -819,7 +841,7 @@ html.landing #landing-card {
 
 .landing-explore-heading {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 17px;
   font-weight: 600;
   letter-spacing: 0;
@@ -831,6 +853,10 @@ html.landing #landing-card {
 @media (max-width: 480px) {
   #landing-card p.landing-proof-line {
     line-height: 1.6;
+    /* Without this, the "·"-separated stats wrap wherever the line runs
+       out of room, which can strand a single word like "use" alone on its
+       own line. Balancing splits it evenly across both lines instead. */
+    text-wrap: balance;
   }
 }
 
@@ -857,7 +883,7 @@ html.landing #landing-card {
 
 #landing-card p.landing-daily-quests-eyebrow {
   color: var(--color-text-slate);
-  font-size: 10px !important;
+  font-size: 14px !important;
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1.2;
@@ -867,7 +893,7 @@ html.landing #landing-card {
 
 #landing-card .landing-daily-quests h3 {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 19px;
   font-weight: 600;
   letter-spacing: 0;
@@ -877,7 +903,7 @@ html.landing #landing-card {
 
 #landing-card p.landing-daily-quests-intro {
   color: var(--color-text-slate);
-  font-size: 12px !important;
+  font-size: 14px !important;
   line-height: 1.45;
   margin: 5px 0 0;
   max-width: 510px;
@@ -888,8 +914,8 @@ html.landing #landing-card {
   border-radius: 999px;
   color: var(--color-ink);
   flex: 0 0 auto;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   padding: 6px 10px;
   white-space: nowrap;
 }
@@ -918,9 +944,9 @@ html.landing #landing-card {
   color: #41566b;
   display: flex;
   flex-direction: column;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 10px;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   gap: 4px;
   padding: 6px 4px 5px;
   text-align: center;
@@ -976,14 +1002,14 @@ html.landing #landing-card {
 
 .landing-daily-quests-action strong {
   color: var(--color-text-emphasis);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
 }
 
 .landing-daily-quests-action span {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 11px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   margin-top: 2px;
 }
 
@@ -997,9 +1023,9 @@ html.landing #landing-card {
   cursor: pointer;
   display: flex;
   flex: 0 0 auto;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 11px;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   gap: 6px;
   justify-content: center;
   letter-spacing: 0;
@@ -1044,7 +1070,7 @@ html.landing #landing-card {
   }
 
   .landing-daily-quests-count {
-    font-size: 10px;
+    font-size: 14px;
     padding: 5px 8px;
   }
 
@@ -1083,7 +1109,7 @@ html.landing #landing-card {
 
 #landing-card p.landing-progress-summary-eyebrow {
   color: var(--color-text-slate);
-  font-size: 10px !important;
+  font-size: 14px !important;
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1.2;
@@ -1093,7 +1119,7 @@ html.landing #landing-card {
 
 #landing-card .landing-progress-summary h3 {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 19px;
   font-weight: 600;
   letter-spacing: 0;
@@ -1106,15 +1132,15 @@ html.landing #landing-card {
   border-radius: 999px;
   color: var(--color-ink);
   flex: 0 0 auto;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   padding: 6px 10px;
   white-space: nowrap;
 }
 
 #landing-card p.landing-progress-summary-intro {
   color: var(--color-text-slate);
-  font-size: 12px !important;
+  font-size: 14px !important;
   line-height: 1.45;
   margin: 5px 0 14px;
   max-width: 510px;
@@ -1122,7 +1148,7 @@ html.landing #landing-card {
 
 #landing-card p.landing-progress-summary-empty {
   color: var(--color-text-slate);
-  font-size: 12px !important;
+  font-size: 14px !important;
   line-height: 1.5;
   margin: 8px 0 0;
 }
@@ -1172,8 +1198,8 @@ html.landing #landing-card {
   align-items: center;
   color: var(--color-text-slate);
   display: inline-flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 11px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   gap: 5px;
 }
 
@@ -1224,8 +1250,8 @@ html.landing #landing-card {
 
 .landing-progress-summary-action span {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 11px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
 }
 
 .landing-progress-summary-action button {
@@ -1238,9 +1264,9 @@ html.landing #landing-card {
   cursor: pointer;
   display: flex;
   flex: 0 0 auto;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 11px;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   justify-content: center;
   letter-spacing: 0;
   min-height: 32px;
@@ -1288,10 +1314,10 @@ html.landing #landing-card {
    .my-stats-box per section, mirroring the landing page's own
    .landing-daily-quests / .landing-progress-summary boxes exactly rather
    than stacking separate white cards. Every text element below sets
-   "Noto Sans" explicitly, matching how the rest of the app's UI/prose text
-   does it — body's own default is "Noto Serif" (see body{} above), and it
-   only ever gets overridden per-element, not inherited from a container, so
-   a class that skips it silently renders in the serif body font instead. */
+   "Source Sans 3" explicitly, matching how the rest of the app's UI/prose
+   text does it — body's own default is "Noto Serif" (see body{} above), and
+   it only ever gets overridden per-element, not inherited from a container,
+   so a class that skips it silently renders in the serif body font instead. */
 /* 14px / 10px (mobile) matches the landing page's own stacked-box gap
    between .landing-daily-quests and .landing-progress-summary — the
    closest precedent for one dashboard-style box sitting directly under
@@ -1325,7 +1351,7 @@ html.landing #landing-card {
 
 .my-stats-heading {
   color: var(--color-ink);
-  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   font-size: 24px;
   font-weight: 600;
   letter-spacing: 0;
@@ -1335,7 +1361,7 @@ html.landing #landing-card {
 
 .my-stats-subheading {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 14px;
   line-height: 1.45;
   margin: 0;
@@ -1343,7 +1369,7 @@ html.landing #landing-card {
 
 .my-stats-section-heading {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 16px;
   font-weight: 600;
   letter-spacing: var(--letter-spacing-caps-heading);
@@ -1357,18 +1383,25 @@ html.landing #landing-card {
   margin-top: 14px;
 }
 
-/* Four tiles in a row rather than .game-summary-stats' shared 2-column
+/* Five tiles in a row rather than .game-summary-stats' shared 2-column
    grid (still used as-is by Word Game's own round summary, which this
    deliberately leaves alone). At 2 columns each tile was wide enough to
    swallow a lot of dead space to the right of its left-aligned number —
    there simply isn't enough content (a 1-2 digit number, one short word)
-   to fill a ~380px-wide box. Four narrower, centered tiles use that width
-   instead of wasting it, and read as one cohesive strip rather than four
+   to fill a ~380px-wide box. Five narrower, centered tiles use that width
+   instead of wasting it, and read as one cohesive strip rather than five
    separate cards each mostly empty. */
 .my-stats-overview-grid {
   gap: 10px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   margin-bottom: 0;
+}
+
+@media (max-width: 620px) {
+  .my-stats-overview-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1455,8 +1488,8 @@ html.landing #landing-card {
 
 .my-stats-vocabulary-intro {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   line-height: 1.45;
   margin: 0 0 16px;
 }
@@ -1466,8 +1499,8 @@ html.landing #landing-card {
    this class's own 13px on specificity alone. */
 p.my-stats-empty {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   line-height: 1.5;
   margin: 0;
 }
@@ -1475,9 +1508,9 @@ p.my-stats-empty {
 .my-stats-see-all-link {
   color: var(--color-ink);
   display: inline-block;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   margin-top: 14px;
   text-decoration: none;
   text-decoration-color: var(--color-wash-blue-border);
@@ -1522,7 +1555,7 @@ p.my-stats-empty {
 
 .my-stats-overview-grid p.game-summary-stat-label,
 .my-stats-gems-tile p.game-summary-stat-label {
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -1532,7 +1565,7 @@ p.my-stats-empty {
   border-radius: 8px;
   box-shadow: none;
   color: var(--color-ink);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   padding: 10px 14px;
   width: auto;
@@ -1609,9 +1642,9 @@ li {
   color: var(--color-ink);
   cursor: pointer;
   display: inline-flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   gap: 8px;
   height: 38px;
   justify-content: center;
@@ -1659,7 +1692,7 @@ footer a:focus-visible {
 }
 
 .site-switcher-select.footer-control {
-  font-size: 13px;
+  font-size: 14px;
   padding-right: 10px;
   text-transform: none;
 }
@@ -1696,20 +1729,24 @@ footer a:focus-visible {
   }
 
   #landing-card h4 {
-    font-size: 12px;
+    font-size: 14px;
   }
 
   #landing-card p {
-    font-size: 10px !important;
+    font-size: 14px !important;
+  }
+
+  #landing-card .landing-feature-list li {
+    font-size: 14px;
   }
 
   .landing-card-btn {
-    font-size: 10px;
+    font-size: 14px;
     padding: 6px 8px;
   }
 
   .footer-control {
-    font-size: 12px;
+    font-size: 14px;
     gap: 6px;
     height: 36px;
     padding: 0 8px;

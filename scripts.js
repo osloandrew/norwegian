@@ -84,11 +84,11 @@ const CEFR_ORDER = { A1: 1, A2: 2, B1: 3, B2: 4, C: 5 };
 // what is about to appear rather than looking like a generic broken page.
 const VOCABULARY_LOADING_COPY = {
   words: {
-    title: "Preparing dictionary results",
+    title: "Preparing Dictionary Results",
     description: "Loading the vocabulary needed for this lookup…",
   },
   sentences: {
-    title: "Preparing sentence search",
+    title: "Preparing Sentence Search",
     description: "Loading the vocabulary needed to find examples…",
   },
   "word-game": {
@@ -104,7 +104,7 @@ const VOCABULARY_LOADING_COPY = {
     description: "Loading your vocabulary and practice history…",
   },
   pronunciation: {
-    title: "Preparing pronunciation practice",
+    title: "Preparing Pronunciation Practice",
     description: "Loading the vocabulary used for listening practice…",
   },
 };
@@ -1332,8 +1332,8 @@ function openGeneralFeedbackDialog(triggerElement) {
   openFeedbackDialog({
     source: "General Feedback",
     categories: GENERAL_FEEDBACK_CATEGORIES,
-    dialogTitle: "Share your feedback",
-    categoryQuestion: "What's this about?",
+    dialogTitle: "Share Your Feedback",
+    categoryQuestion: "What's This About?",
     detailsPlaceholder: "Tell us more (optional)",
     successMessage: "Thanks — your feedback was sent.",
     triggerElement,
@@ -1405,7 +1405,7 @@ function openFeedbackDialog({
   showWordInTitle = true,
   categories = FEEDBACK_CATEGORIES,
   dialogTitle,
-  categoryQuestion = "What's the issue?",
+  categoryQuestion = "What's the Issue?",
   detailsPlaceholder = "What's wrong, exactly?",
   successMessage = "Thanks — your report was sent.",
   initialCategory,
@@ -1432,8 +1432,8 @@ function openFeedbackDialog({
   title.textContent =
     dialogTitle ||
     (word && showWordInTitle
-      ? `Report an issue with "${word}"`
-      : "Report an issue with this question");
+      ? `Report an Issue With "${word}"`
+      : "Report an Issue With This Question");
   dialog.appendChild(title);
 
   const categoryLabel = document.createElement("label");
@@ -1458,7 +1458,7 @@ function openFeedbackDialog({
   const detailsLabel = document.createElement("label");
   detailsLabel.className = "feedback-dialog-label";
   detailsLabel.htmlFor = "feedback-dialog-details";
-  detailsLabel.textContent = "Details (optional)";
+  detailsLabel.textContent = "Details (Optional)";
   dialog.appendChild(detailsLabel);
 
   const detailsTextarea = document.createElement("textarea");
@@ -1691,8 +1691,8 @@ async function randomWord() {
     let sentenceHTML = `
             <div class="result-header sentence-results-header random-sentence-header">
                 <div class="sentence-results-header-copy">
-                  <p class="sentence-results-eyebrow">Sentence practice</p>
-                  <h2>Random sentence</h2>
+                  <p class="sentence-results-eyebrow">Sentence Practice</p>
+                  <h2>Random Sentence</h2>
                 </div>
                 <div class="sentence-results-header-side">
                   <div class="sentence-results-actions">
@@ -1788,7 +1788,7 @@ async function search(queryOverride = null, options = {}) {
     showLandingCard(false);
     document.getElementById("results-container").innerHTML = `
       <div class="definition">
-        <h2>Loading vocabulary</h2>
+        <h2>Loading Vocabulary</h2>
         <p>The vocabulary data hasn't finished loading yet — try again in a moment.</p>
       </div>
     `;
@@ -2686,9 +2686,9 @@ function handleTypeChange(type, options = {}) {
     "story-favorites-filter",
   );
   const cefrFilterContainer = document.querySelector(".cefr-filter"); // Get the CEFR filter container
-  const frequencyFilterContainer = document.getElementById(
-    "frequency-filter",
-  ); // My Words-only sort by word frequency
+  const strengthFilterContainer = document.getElementById(
+    "strength-filter",
+  ); // Word List-only filter by word strength
 
   // Filter dropdowns for POS, Genre, and CEFR
   const posSelect = document.getElementById("pos-select");
@@ -2698,15 +2698,15 @@ function handleTypeChange(type, options = {}) {
   );
   const cefrSelect = document.getElementById("cefr-select"); // Get the CEFR filter dropdown
   const cefrLock = document.getElementById("lock-icon");
-  const frequencySelect = document.getElementById("frequency-select");
+  const strengthSelect = document.getElementById("strength-select");
 
   removeStoryHeader();
   storyFavoritesFilterContainer.style.display = "none";
   gameEnglishFilterContainer.style.display = "none";
   gameEnglishSelect.style.display = "none"; // Hide random button
-  // My Words is the only tab with a Frequency sort — reset it to hidden
+  // Word List is the only tab with a Strength filter — reset it to hidden
   // before any type-specific branch runs, same as Genre/Favorites above.
-  if (frequencyFilterContainer) frequencyFilterContainer.style.display = "none";
+  if (strengthFilterContainer) strengthFilterContainer.style.display = "none";
 
   // Reset the shared CEFR filter (and its wrapping group) to their default
   // visible state before any type-specific branch runs. Only the word-game
@@ -2860,11 +2860,11 @@ function handleTypeChange(type, options = {}) {
     // Word List does not use the level-lock button.
     cefrLock.style.display = "none";
 
-    // Show the Frequency sort — the one filter that's only meaningful here.
-    if (frequencyFilterContainer) {
-      frequencyFilterContainer.style.display = "inline-flex";
+    // Show the Strength filter — the one filter that's only meaningful here.
+    if (strengthFilterContainer) {
+      strengthFilterContainer.style.display = "inline-flex";
     }
-    if (frequencySelect) frequencySelect.value = "";
+    if (strengthSelect) strengthSelect.value = "";
 
     // Hide the landing page and start the Word List module.
     showLandingCard(false);
@@ -3282,7 +3282,7 @@ function renderDefinitionToggleButton(definisjon) {
       aria-expanded="false"
       onclick="event.stopPropagation(); toggleDefinitionText(this)"
       onkeydown="event.stopPropagation()"
-    ><i class="fas fa-chevron-down"></i> Expand definition</button>`;
+    ><i class="fas fa-chevron-down"></i> Expand Definition</button>`;
 }
 
 // The toggle button is the clamped .definition-text-block's next sibling
@@ -3297,7 +3297,7 @@ function toggleDefinitionText(button) {
   button.classList.toggle("definition-toggle-expanded", nowExpanded);
   wrapperEl.classList.toggle("definition-text-expanded", nowExpanded);
   button.innerHTML = `<i class="fas fa-chevron-down"></i> ${
-    nowExpanded ? "Collapse definition" : "Expand definition"
+    nowExpanded ? "Collapse Definition" : "Expand Definition"
   }`;
 }
 
@@ -3477,11 +3477,11 @@ function displaySearchResults(
     ? `
       <div class="result-header word-results-header">
         <div class="word-results-header-copy">
-          <p class="word-results-eyebrow">Word search</p>
+          <p class="word-results-eyebrow">Word Search</p>
           <h2>${
             safeQuery
               ? `Results for <span class="word-results-query">"${safeQuery}"</span>`
-              : "Matching definitions"
+              : "Matching Definitions"
           }</h2>
           ${activeFilterSummary}
         </div>
@@ -3673,9 +3673,9 @@ function displaySearchResults(
                     }
                     ${
                       result.CEFR
-                        ? `<p style="display: inline-flex; align-items: center; font-family: 'Noto Sans', sans-serif; font-weight: bold; text-transform: uppercase; font-size: 12px; color: var(--color-text-strong);"><i class="fa-solid fa-signal" style="margin-right: 5px;"></i><span style="text-align: center; min-width: 15px; display: inline-block; padding: 3px 7px; border-radius: var(--radius-control); background-color: ${getCefrColor(
+                        ? `<p style="display: inline-flex; align-items: center; font-family: 'Source Sans 3', 'Noto Sans', sans-serif; font-weight: bold; text-transform: uppercase; font-size: 12px; color: var(--color-text-strong);"><i class="fa-solid fa-signal" style="margin-right: 5px;"></i><span style="text-align: center; min-width: 15px; display: inline-block; padding: 3px 7px; border-radius: var(--radius-control); background-color: ${getCefrColor(
                             result.CEFR,
-                          )};">${result.CEFR}</span><span style="margin-left: 6px; font-family: 'Noto Sans', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; color: var(--color-text-muted);">${getCefrLabel(
+                          )};">${result.CEFR}</span><span style="margin-left: 6px; font-family: 'Source Sans 3', 'Noto Sans', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; color: var(--color-text-muted);">${getCefrLabel(
                             result.CEFR,
                           )}</span></p>`
                         : ""
@@ -3689,7 +3689,7 @@ function displaySearchResults(
                                 class="report-issue-btn"
                                 onclick="event.stopPropagation(); flagMissingWordEntry('${escapedWord}')"
                                 onkeydown="event.stopPropagation()"
-                              ><i class="fas fa-flag"></i> Report missing word</button>
+                              ><i class="fas fa-flag"></i> Report Missing Word</button>
                               ${renderInflectionsToggleButton(inflections)}
                             </div>
                             ${renderInflectionsTableWrapper(inflections)}
@@ -3701,7 +3701,7 @@ function displaySearchResults(
                               class="report-issue-btn"
                               onclick="event.stopPropagation(); openWordCardFeedbackDialog(this, '${escapedWord}', '${result.pos}', '${result.CEFR || ""}')"
                               onkeydown="event.stopPropagation()"
-                            ><i class="fas fa-flag"></i> Report an issue</button>
+                            ><i class="fas fa-flag"></i> Report an Issue</button>
                             ${renderInflectionsToggleButton(inflections)}
                           </div>
                           ${renderInflectionsTableWrapper(inflections)}`
@@ -3988,7 +3988,7 @@ function renderSentenceMatchesFromCorpus(
     ${inexactNoticeHTML}
     <div class="result-header sentence-results-header">
       <div class="sentence-results-header-copy">
-        <p class="sentence-results-eyebrow">Sentence search</p>
+        <p class="sentence-results-eyebrow">Sentence Search</p>
         <h2>Results for <span class="sentence-results-query">"${inexactMatchInfo ? escapeHTML(inexactMatchInfo.matchedTerm) : safeQuery}"</span></h2>
         ${
           sentenceResultSubtitle

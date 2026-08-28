@@ -38,23 +38,24 @@ a#site-title:focus-visible {
    actual link/button, never plain text. */
 .updates-eyebrow {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   letter-spacing: 0.08em;
   margin: 0 0 8px;
   text-transform: uppercase;
 }
 
-/* Fraunces, not Noto Sans: every other headline-weight heading in the
-   app — the site wordmark, the landing page's own <h2> — is set in the
-   same serif, reserving Noto Sans for smaller UI/card-level titles (see
+/* Source Serif 4, not Source Sans 3: every other headline-weight heading in
+   the app — the landing page's own <h2>, My Stats, Word List — is set in
+   the same serif (Fraunces is reserved for the site wordmark alone),
+   reserving Source Sans 3 for smaller UI/card-level titles (see
    .update-content h2 below, in that same family as .stories-list-item h2,
    just larger — these read as standalone article entries, not compact
    list rows). */
 .updates-intro h1 {
   color: var(--color-ink);
-  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   font-size: clamp(32px, 6vw, 48px);
   font-weight: 600;
   letter-spacing: -0.015em;
@@ -91,9 +92,9 @@ a#site-title:focus-visible {
   color: var(--color-text-slate);
   display: flex;
   flex-direction: column;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   gap: 3px;
   letter-spacing: 0.025em;
   line-height: 1.45;
@@ -110,7 +111,7 @@ a#site-title:focus-visible {
 
 .update-content h2 {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: clamp(20px, 3vw, 24px);
   line-height: 1.3;
   margin: 0 0 10px;

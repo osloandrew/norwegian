@@ -188,7 +188,7 @@ a {
 
 .alt-spelling {
   display: block;
-  font-size: 0.8em;
+  font-size: 14px;
   font-weight: 400;
   margin-top: 2px;
   opacity: 0.75; /* Very subtle */
@@ -209,8 +209,8 @@ audio {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   color: var(--color-text-muted);
   cursor: pointer;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 11px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   font-weight: 500;
   min-width: 115px;
   padding: 0.5em 1em;
@@ -226,6 +226,16 @@ audio {
   background-color: gainsboro; /* Slightly darker purple on hover */
 }
 
+/* Fixed, not just the shared rule's min-width: 115px — "Show English" and
+   "Hide English" aren't the same rendered width, so leaving it to
+   min-width let the button visibly resize every time the label toggled.
+   138px comfortably fits the wider of the two ("Show English", ~135px)
+   with a little breathing room. */
+#toggle-english-btn {
+  box-sizing: border-box;
+  width: 138px;
+}
+
 #audio-player {
   display: none !important; /* Always hidden */
 }
@@ -239,8 +249,9 @@ audio {
   color: var(--color-danger-text); /* Subtle maroon text */
   border-radius: 6px; /* Slightly rounded corners */
   padding: 8px 14px; /* Larger padding for a more clickable feel */
-  font-family: "Noto Sans", sans-serif; /* Clean, modern font */
-  font-size: 12px; /* Smaller font size for subtlety */
+  font-family:
+    "Source Sans 3", "Noto Sans", sans-serif; /* Clean, modern font */
+  font-size: 14px; /* Smaller font size for subtlety */
   font-weight: 500; /* Slightly bolder text */
   text-transform: uppercase; /* Uppercase for consistency */
   letter-spacing: 0.03em; /* Slight letter spacing */
@@ -293,7 +304,7 @@ button:disabled i {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   color: var(--color-text-on-light-btn);
   cursor: pointer;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-weight: 500;
   padding: 0.5em 1em;
   position: relative;
@@ -315,9 +326,9 @@ button:disabled i {
 .cefr-value {
   border-radius: 4px;
   color: var(--color-text-strong); /* Default text color */
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
-  font-weight: bold;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   padding: 3px 7px;
   text-align: center;
   text-transform: uppercase;
@@ -416,14 +427,14 @@ button:disabled i {
 
 .vocabulary-loading-shell h2 {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 22px;
   margin: 0;
 }
 
 .vocabulary-loading-shell .vocabulary-loading-description {
   color: var(--color-text-strong);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 15px;
   margin: 10px 0 24px;
 }
@@ -520,13 +531,14 @@ li {
 
 .english-sentence {
   color: gray; /* Set a different color for English text */
-  font-family: "Noto Serif", serif; /* Adjust to the appropriate English font */
+  font-family: "Source Serif 4", "Noto Serif", serif;
 }
 
 .english-title {
   color: var(--color-text-muted);
-  font-family: "Noto Sans", sans-serif; /* English-specific font */
-  font-size: 12.5px;
+  font-family:
+    "Source Sans 3", "Noto Sans", sans-serif; /* English-specific font */
+  font-size: 14px;
   -webkit-box-orient: vertical; /* Specifies vertical stacking of lines */
   -webkit-line-clamp: 1; /* Limits the text to 1 line */
 }
@@ -567,7 +579,8 @@ li {
   padding: 0px 6px !important; /* Smaller padding for a more compact banner */
   border-radius: var(--radius-control);
   font-size: 16px !important; /* Smaller font size to fit the text on one line */
-  font-family: "Noto Serif", serif; /* Using Noto Sans, sans-serif */
+  font-family:
+    "Source Serif 4", "Noto Serif", serif; /* Using Source Serif 4, Noto Serif, sans-serif */
   margin: 0 1px; /* Reduced spacing between banner and the rest */
   margin-bottom: 5px;
   max-width: 60%;
@@ -633,7 +646,7 @@ li {
      5.8:1 against white, comfortably clear of the 4.5:1 AA minimum for
      this text size, just less attention-grabbing so the Norwegian word/
      sentence in the card below reads as the main event. */
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -653,13 +666,13 @@ li {
 .game-cefr-label {
   align-self: flex-start; /* Align the label to the left */
   padding: 3px 7px; /* Smaller padding */
-  font-size: 12px; /* Smaller font size */
+  font-size: 14px; /* Smaller font size */
   color: var(--color-text-strong);
-  font-weight: bold;
+  font-weight: 600;
   border-radius: var(--radius-control);
   text-align: center;
   text-transform: uppercase;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   white-space: nowrap; /* Prevent text wrapping */
   min-width: 17.5px;
   user-select: none; /* Prevent text selection */
@@ -705,8 +718,8 @@ li {
 /* Example Sentences */
 .game-cefr-spacer p {
   color: #413e3e;
-  font-family: "Noto Serif", serif;
-  font-size: 0.7em !important;
+  font-family: "Source Serif 4", "Noto Serif", serif;
+  font-size: 14px !important;
   flex: 1; /* Makes each <p> element take up equal width */
   text-align: center;
   margin: 0;
@@ -782,15 +795,15 @@ li {
 
 .game-teaching-reveal-placeholder {
   color: #8796a4;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   text-align: center;
 }
 
 .game-teaching-cue {
   display: -webkit-box;
   color: #687b8c !important;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 14px;
   line-height: 1.4;
   margin: 0;
@@ -805,8 +818,8 @@ li {
   align-items: center;
   display: flex;
   flex: 0 0 auto;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   gap: 8px;
   line-height: 1.25;
   min-height: 22px;
@@ -882,8 +895,8 @@ li {
   color: #687b8c !important;
   display: block;
   flex: 0 0 auto;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   line-height: 1.3;
   margin: 2px 0 0;
   overflow: visible;
@@ -893,8 +906,8 @@ li {
 .game-teaching-note {
   color: #587086;
   flex: 0 0 auto;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 11px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   line-height: 1.2;
   margin: 2px 0 0;
   overflow: hidden;
@@ -947,9 +960,9 @@ li {
   background-color: var(--color-surface-subtle);
   border-radius: var(--radius-control);
   color: var(--color-text-strong) !important;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   padding: 3px 7px;
-  font-size: 12px; /* Smaller font size */
+  font-size: 14px; /* Smaller font size */
   font-weight: bold !important;
   letter-spacing: 0.02em;
   text-align: center;
@@ -1064,9 +1077,9 @@ li {
   box-shadow: none;
   border-radius: 9px;
   padding: 17px 15px;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
-  font-weight: 650;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 550;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   cursor: pointer;
@@ -1105,7 +1118,7 @@ li {
 }
 
 .game-pronunciation {
-  font-family: "Noto Serif", serif;
+  font-family: "Source Serif 4", "Noto Serif", serif;
   font-size: 14px;
   font-weight: 300;
   letter-spacing: 0.04rem;
@@ -1125,12 +1138,12 @@ li {
 .game-tricky-word {
   align-self: flex-end; /* Align to the top */
   padding: 3px 7px; /* Same padding as CEFR label */
-  font-size: 12px; /* Same font size as CEFR label */
+  font-size: 14px; /* Same font size as CEFR label */
   color: var(--color-text-strong);
-  font-weight: bold;
+  font-weight: 600;
   border-radius: var(--radius-control);
   text-transform: uppercase;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   white-space: nowrap; /* Prevent text wrapping */
   background-color: #fae5c3;
   visibility: hidden; /* Initially hidden but space is reserved */
@@ -1223,7 +1236,7 @@ li {
    weight of text) to #254a1d/#6b2814 (7.3:1 / 5.4:1). */
 .game-stats-correct-box #streak-count {
   color: #20364d !important;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 24px;
   font-weight: 400;
   margin: 0;
@@ -1232,7 +1245,7 @@ li {
 
 .game-stats-incorrect-box #review-count {
   color: #20364d !important;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 24px;
   font-weight: 400;
   margin: 0;
@@ -1244,8 +1257,8 @@ li {
    the two side counters and the middle progress bar/percentage
    self-explanatory instead of bare numbers. */
 .game-stat-label {
-  font-family: "Noto Sans", sans-serif;
-  font-size: 10px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.06em;
   line-height: 1.3;
@@ -1275,8 +1288,8 @@ li {
 
 .game-progress-heading {
   color: #4e6986;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.04em;
   margin: 0 0 10px;
@@ -1293,7 +1306,7 @@ li {
   padding: 10px;
   position: relative; /* Anchors the correct/incorrect ::after badge */
   text-align: center; /* Centered text */
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   /* Smaller than the card's 1.2em original so a 2-3 word phrase still
      clears the fixed card height below without needing to scroll. */
   font-size: 1.05em !important;
@@ -1375,7 +1388,7 @@ li {
   border-radius: var(--radius-control);
   box-sizing: border-box;
   color: var(--color-text);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 1.2em;
   min-height: 60px;
   min-width: 0;
@@ -1396,7 +1409,7 @@ li {
   border-radius: var(--radius-control);
   color: var(--color-surface);
   cursor: pointer;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 14px;
   letter-spacing: 0.04em;
   padding: 10px 28px;
@@ -1466,6 +1479,24 @@ li {
   cursor: default;
   user-select: none;
   width: 100%;
+}
+
+/* focusGameQuestionPrompt() (wordGame.js) gives .game-word a programmatic
+   tabindex="-1" on every question load purely so screen readers announce
+   it -- not a real interactive control, so no visible ring should ever
+   render here (see the general [tabindex="-1"]:focus rule near the top of
+   this file). Restated here, specifically and covering both :focus and
+   :focus-visible, because unlike that rule's usual small-caption targets,
+   .game-word is the large, highly visible word/sentence card -- any
+   browser- or OS-forced default ring on it reads as an ugly box around the
+   whole question rather than a subtle indicator elsewhere. Does not apply
+   to .game-word-audio's own :focus-visible ring (styled further down),
+   which *is* a real interactive control (click/Enter replays pronunciation)
+   and should keep its visible ring. */
+.game-word[tabindex="-1"]:focus,
+.game-word[tabindex="-1"]:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 /* Sentences (cloze) land in this tier far more often than single vocab
@@ -1616,9 +1647,9 @@ li {
 
 .game-today-practice-eyebrow {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 10px;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   letter-spacing: 0.08em;
   margin: 0 0 2px;
   text-transform: uppercase;
@@ -1631,15 +1662,15 @@ li {
 
 .game-today-practice-count {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 1.1em;
   white-space: nowrap;
 }
 
 .game-today-practice-note {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.82em;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   margin: 9px 0 10px;
 }
 
@@ -1686,9 +1717,9 @@ li {
   color: var(--color-surface);
   cursor: pointer;
   display: flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   gap: 7px;
   justify-content: center;
   letter-spacing: var(--letter-spacing-caps);
@@ -1738,9 +1769,9 @@ li {
   color: #35516d;
   cursor: pointer;
   display: flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.82em;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   justify-content: space-between;
   letter-spacing: 0.04em;
   list-style: none;
@@ -1792,9 +1823,9 @@ li {
 
 .game-option-heading-row h3 {
   color: #35516d;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.82em;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   letter-spacing: 0.05em;
   margin: 0;
   text-transform: uppercase;
@@ -1802,8 +1833,8 @@ li {
 
 .game-option-heading-row p {
   color: #4e6986;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.82em;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   line-height: 1.4;
   margin: 5px 0 0;
 }
@@ -1830,9 +1861,9 @@ li {
   cursor: pointer;
   display: inline-flex;
   flex: 0 0 auto;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.72em;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   gap: 6px;
   letter-spacing: 0.03em;
   padding: 9px 11px;
@@ -1855,7 +1886,7 @@ li {
 
 .game-daily-quests-heading-row h3 {
   color: var(--color-ink);
-  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   font-size: 1.1em;
   font-weight: 600;
   letter-spacing: var(--letter-spacing-caps-heading);
@@ -1864,8 +1895,8 @@ li {
 
 .game-daily-quests-heading-row > span {
   color: var(--color-text-faint);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.72em;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
 }
 
 .game-daily-quest-list {
@@ -2030,17 +2061,17 @@ li {
 
 .game-daily-quest-title {
   color: #31465b;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.78em;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   line-height: 1.2;
 }
 
 .game-daily-quest-target,
 .game-daily-quest-status {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.66em;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   line-height: 1.25;
 }
 
@@ -2058,8 +2089,8 @@ li {
   align-items: center;
   color: var(--color-text-faint);
   display: flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.72em;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   gap: 10px;
   letter-spacing: 0.04em;
   margin: 22px 0 8px;
@@ -2085,7 +2116,7 @@ li {
 
 .game-intro-subheading {
   color: var(--color-text-muted);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 0.95em;
   margin: 0 0 18px 0;
 }
@@ -2114,7 +2145,7 @@ li {
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   gap: 4px;
   justify-content: center;
   padding: 14px 6px;
@@ -2144,7 +2175,7 @@ li {
 }
 
 .game-intro-option-label {
-  font-size: 0.72em;
+  font-size: 14px;
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
@@ -2176,7 +2207,7 @@ li {
 }
 
 .game-my-words-option-label {
-  font-size: 0.72em;
+  font-size: 14px;
   letter-spacing: 0.02em;
 }
 
@@ -2198,7 +2229,7 @@ li {
   border-radius: var(--radius-card);
   color: var(--color-text);
   cursor: pointer;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 0.95em;
   padding: 14px 16px;
   text-align: left;
@@ -2225,9 +2256,9 @@ li {
   color: var(--color-surface);
   cursor: pointer;
   display: flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   justify-content: center;
   margin-top: 6px;
   min-height: 44px;
@@ -2245,8 +2276,8 @@ li {
 
 .placement-progress {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.82em;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   margin: 0 0 4px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -2257,8 +2288,8 @@ li {
   border: 0;
   color: var(--color-text-muted);
   cursor: pointer;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.76em;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   letter-spacing: 0.02em;
   justify-self: start;
   margin: -4px 0 0;
@@ -2305,12 +2336,12 @@ li {
   }
 
   .game-daily-quest-title {
-    font-size: 0.7em;
+    font-size: 14px;
   }
 
   .game-daily-quest-target,
   .game-daily-quest-status {
-    font-size: 0.58em;
+    font-size: 14px;
   }
 }
 
@@ -2364,9 +2395,9 @@ li {
 
 p.game-summary-eyebrow {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.72em;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   letter-spacing: 0.08em;
   margin: 0;
   text-transform: uppercase;
@@ -2374,7 +2405,7 @@ p.game-summary-eyebrow {
 
 .game-summary-heading {
   color: var(--color-ink);
-  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   font-size: 1.55em;
   font-weight: 600;
   margin: 0 0 18px;
@@ -2396,9 +2427,9 @@ p.game-summary-eyebrow {
   display: flex;
   flex: 1;
   flex-direction: column;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.7em;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   gap: 4px;
   max-width: 110px;
   padding: 9px 6px;
@@ -2423,7 +2454,7 @@ p.game-summary-eyebrow {
 }
 
 .game-summary-streak-count {
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 1.1em;
   font-weight: 700;
 }
@@ -2435,7 +2466,7 @@ p.game-summary-eyebrow {
 
 .game-summary-streak-note {
   color: #8a5a2e;
-  font-size: 0.8em;
+  font-size: 14px;
   margin: 0;
   width: 100%;
 }
@@ -2469,7 +2500,7 @@ p.game-summary-eyebrow {
    big-number/small-label hierarchy entirely. */
 p.game-summary-stat-value {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 1.5em;
   font-weight: 700;
   margin: 0;
@@ -2477,8 +2508,8 @@ p.game-summary-stat-value {
 
 p.game-summary-stat-label {
   color: var(--color-text-muted);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.8em;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   letter-spacing: 0.03em;
   margin: 4px 0 0 0;
   text-transform: uppercase;
@@ -2491,9 +2522,9 @@ p.game-summary-stat-label {
   box-shadow: none;
   color: var(--color-surface);
   cursor: pointer;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 550;
   letter-spacing: 0.04em;
   padding: 13px 16px;
   text-transform: uppercase;
@@ -2517,9 +2548,9 @@ p.game-summary-stat-label {
   border-radius: var(--radius-control);
   color: var(--color-text-muted);
   cursor: pointer;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.82em;
-  font-weight: 650;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 550;
   padding: 11px 16px;
   transition:
     background-color 0.2s ease,
@@ -2568,9 +2599,9 @@ p.game-summary-stat-label {
   color: var(--color-text-muted);
   cursor: pointer;
   display: flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.8em;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   justify-content: space-between;
   letter-spacing: 0.04em;
   list-style: none;
@@ -2605,9 +2636,9 @@ p.game-summary-stat-label {
 
 .game-summary-missed-heading {
   color: var(--color-text-muted);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.8em;
-  font-weight: 600;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   letter-spacing: 0.03em;
   margin: 0 0 10px 0;
   text-transform: uppercase;
@@ -2620,7 +2651,7 @@ p.game-summary-stat-label {
 
 .game-summary-missed-more {
   color: var(--color-text-muted);
-  font-size: 0.8em;
+  font-size: 14px;
   margin: 8px 0 0 0;
   text-align: center;
 }
@@ -2748,9 +2779,9 @@ p.game-summary-stat-label {
   align-self: flex-start; /* Align the label to the left */
   background-color: var(--color-surface-subtle);
   color: var(--color-text-muted) !important;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   padding: 3px 4px; /* Smaller padding */
-  font-size: 10px; /* Smaller font size */
+  font-size: 14px; /* Smaller font size */
   font-weight: 500 !important;
   border-radius: 4px;
   text-align: center;
@@ -2773,7 +2804,7 @@ h2 {
      clickable link, so it needs a color that reads as "the word," not as
      "tap me." */
   color: var(--color-ink);
-  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   font-size: 30px;
   font-weight: bold;
   margin: -5px 0 -5px 0;
@@ -2794,8 +2825,19 @@ h4 {
   #back-button,
   #speed-btn,
   #toggle-english-btn {
-    font-size: 10px;
+    font-size: 11px;
     min-width: 80px;
+  }
+
+  /* Fixed, not just min-width: 80px above — speed/toggle stack in one
+     column and must match each other exactly so that column doesn't jitter
+     width as their text changes. #back-button is excluded: it sits under
+     the badges row in its own column and should stretch to match that
+     row's width (via the column's default flex stretch), not clamp to 80px
+     and end up narrower than the badges above it. */
+  #speed-btn,
+  #toggle-english-btn {
+    width: 80px;
     /* Horizontal-only trim (vertical padding unchanged, so button height —
        carefully matched to the favorite-star row on the other side of the
        header, see .sticky-row's comment — doesn't shift). Frees a little
@@ -2826,7 +2868,7 @@ h4 {
   }
 
   .game-cefr-spacer p {
-    font-size: 0.7em !important;
+    font-size: 14px !important;
   }
 
   .game-grid {
@@ -2894,7 +2936,7 @@ h4 {
 
   .game-stats-correct-box .game-stat-label,
   .game-stats-incorrect-box .game-stat-label {
-    font-size: 9px;
+    font-size: 14px;
   }
 
   .game-stats-correct-box #streak-count,
@@ -2908,11 +2950,7 @@ h4 {
      longer context gets room without bringing back content-driven jumps. */
   @media (min-height: 701px) {
     body.word-game-mode .game-learning-stage {
-      --game-mobile-reveal-height: clamp(
-        132px,
-        calc(100dvh - 712px),
-        152px
-      );
+      --game-mobile-reveal-height: clamp(132px, calc(100dvh - 712px), 152px);
       grid-template-rows: 180px var(--game-mobile-reveal-height);
       height: calc(188px + var(--game-mobile-reveal-height));
     }
@@ -3069,11 +3107,7 @@ h4 {
     .game-learning-stage:has(
       .game-teaching-reveal:not([data-state="question"])
     ) {
-    --game-se-answered-reveal-height: clamp(
-      104px,
-      calc(100dvh - 510px),
-      184px
-    );
+    --game-se-answered-reveal-height: clamp(104px, calc(100dvh - 510px), 184px);
     grid-template-rows: 162px var(--game-se-answered-reveal-height);
     height: calc(170px + var(--game-se-answered-reveal-height));
   }
@@ -3091,7 +3125,7 @@ h4 {
      slot. A modest type reduction keeps it readable and consistently two
      lines without narrowing the newly widened score boxes. */
   .game-stats-progress-wrapper > .game-instruction {
-    font-size: 13px;
+    font-size: 14px;
     height: 32px;
     line-height: 1.2;
     max-height: 32px;

@@ -84,7 +84,7 @@
   /* font-size needs !important: .word-gender .gender (a higher-specificity
      descendant rule) sets 14px and would otherwise win. margin doesn't —
      it already beats .gender's own margin by source order alone. */
-  font-size: 12px !important;
+  font-size: 14px !important;
   margin: 10px 0px 0px 0px !important;
 }
 
@@ -112,8 +112,8 @@
    compact and expanded cards. */
 .ordbokene-source {
   color: var(--color-text-muted);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 11px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   font-weight: 400;
   grid-column: 1 / -1;
   letter-spacing: 0.01em;
@@ -182,7 +182,7 @@ ul {
 .result-header h2 {
   margin: 0; /* Reset margin for the title */
   color: var(--color-danger);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 1.3em;
   font-weight: 400;
   white-space: normal; /* Allow the text to wrap into multiple lines */
@@ -209,7 +209,7 @@ ul {
    the landing page itself. */
 .result-header-subtitle {
   color: var(--color-text-strong);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 14px;
   line-height: 1.6;
   margin: 8px 0 0;
@@ -332,7 +332,7 @@ ul {
   color: var(--color-danger-text); /* Subtle maroon text */
   cursor: pointer; /* Pointer on hover */
   display: block; /* Block-level element to allow centering */
-  font-family: "Noto Sans", sans-serif; /* Clean, modern font */
+  font-family: "Source Sans 3", "Noto Sans", sans-serif; /* Clean, modern font */
   font-size: 14px; /* Smaller font size for subtlety */
   font-weight: 500; /* Slightly bolder text */
   height: 50px;
@@ -360,13 +360,13 @@ ul {
 
 .sentence-cefr-label {
   padding: 3px 7px; /* Smaller padding */
-  font-size: 12px; /* Smaller font size */
+  font-size: 14px; /* Smaller font size */
   color: var(--color-text-strong);
   display: inline-block; /* Ensure the label takes up only the space it needs */
-  font-weight: bold;
+  font-weight: 600;
   border-radius: 4px;
   text-transform: uppercase;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   white-space: nowrap; /* Prevent text wrapping */
   user-select: none; /* Prevent text selection */
   text-align: center;
@@ -464,6 +464,13 @@ ul {
   align-items: center;
   gap: 20px; /* Adds space between the Norwegian and English sentences */
   width: 100%;
+}
+
+/* Shared by Sentence Search, Pronunciation practice, and the example
+   sentences embedded in a word definition — one reading-text component, so
+   one font change here covers all three. */
+.sentence {
+  font-family: "Source Serif 4", "Noto Serif", serif;
 }
 
 .sentence-pair {
@@ -577,8 +584,8 @@ ul {
   color: var(--color-text-muted);
   cursor: pointer;
   display: inline-flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 11px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   font-weight: 500;
   gap: 6px;
   justify-self: start;
@@ -628,6 +635,17 @@ ul {
   transform: rotate(180deg);
 }
 
+/* Reading content (the dictionary gloss itself, including the clickable
+   cross-reference words makeDefinitionClickable wraps inside it — see
+   .clickable-definition-word, 00-foundations-and-game.css — which inherit
+   this rather than setting their own), so it matches the other reading-text
+   surfaces (story prose, .sentence) instead of falling through to body's
+   plain Noto Serif default. Covers both the single-result definition and
+   the compact multiple-results list, which share this class. */
+.definition-text {
+  font-family: "Source Serif 4", "Noto Serif", serif;
+}
+
 /* Collapsed-by-default clamp for a long single-word definition, lifted by
    .definition-text-expanded when "Expand definition" is clicked. Only
    applied when the definition exceeds DEFINITION_TRUNCATE_THRESHOLD, so
@@ -663,7 +681,7 @@ ul {
 .inflections-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 14px;
   text-align: left;
 }
 
@@ -676,7 +694,7 @@ ul {
 .inflections-table th {
   background-color: var(--color-surface-subtle);
   color: var(--color-text-faint);
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -688,7 +706,7 @@ ul {
    body copy. */
 .inflections-hint.inflections-hint {
   color: #737373;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 0;
   line-height: 1.45;
   margin: 9px 0 0;
@@ -735,9 +753,9 @@ ul {
   color: var(--color-text-strong);
   display: flex; /* Add Flexbox */
   flex: 1; /* Allows the children to take up equal and maximum space */
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
-  font-weight: bold;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   /* Matches .sticky-genre's explicit height so the two badges are always
      identically sized. Previously unset, this only *looked* the same as
      the genre badge because the row's default align-items: stretch
@@ -797,9 +815,9 @@ ul {
   color: var(--color-text-strong);
   display: flex; /* Add Flexbox */
   flex: 1; /* Allows the children to take up equal and maximum space */
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px !important;
-  font-weight: bold;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px !important;
+  font-weight: 600;
   height: 30px;
   justify-content: center; /* Center horizontally */
   text-align: center;
@@ -867,8 +885,13 @@ ul {
 .sticky-title-japanese {
   color: var(--color-text-strong);
   font-size: 1.5em;
-  font-family: "Fraunces", Georgia, "Times New Roman", serif;
-  font-weight: 400;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  /* 600, not 400: Source Serif 4 at regular weight reads noticeably
+     lighter than Fraunces did at the same weight (a display face's
+     inherent stroke contrast vs. a text face's restraint) — bumped to
+     match every other converted heading (.story-quiz-heading and
+     siblings below) so this sticky title keeps its legibility. */
+  font-weight: 600;
   letter-spacing: 0.5px;
   margin: 0 auto;
   overflow: hidden;
@@ -879,7 +902,7 @@ ul {
 
 .sticky-title-english {
   color: var(--color-text-muted);
-  font-family: "Noto Sans", sans;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 1em;
   font-weight: 400;
   letter-spacing: 0.75px;
@@ -912,12 +935,12 @@ ul {
   background-color: var(--color-surface-subtle); /* Green for 'A1, A2' */
   border-radius: 4px;
   padding: 4px 8px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-strong);
-  font-weight: bold;
+  font-weight: 600;
   text-align: center;
   text-transform: uppercase;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   user-select: none;
   white-space: nowrap; /* Prevent text wrapping */
   width: 20px;
@@ -925,7 +948,7 @@ ul {
 
 #stories .cefr-value,
 .story-recommendation .cefr-value {
-  font-size: 13px;
+  font-size: 14px;
   padding: 4px 8px;
   width: 20px;
 }
@@ -985,9 +1008,9 @@ ul {
   align-items: center;
   color: var(--color-ink);
   display: flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   gap: 6px;
   letter-spacing: 0.04em;
   padding: 10px 12.5px 0 12.5px;
@@ -1144,6 +1167,19 @@ body.stories-mode .story-recommendation .cefr-value {
   text-align: center;
 }
 
+/* Neutral empty-state typography, not the shared .error-message component's
+   danger-red — "no favorites yet" / "no matches" isn't an error. */
+.story-list-empty-state h2 {
+  color: var(--color-ink);
+  font-size: 24px;
+}
+
+.story-list-empty-state p {
+  color: var(--color-text-strong);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
 .stories-list-item p {
   color: var(--color-text);
   font-size: 20px;
@@ -1153,7 +1189,7 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .stories-list-item h2 {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.4;
@@ -1161,8 +1197,8 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .stories-subtitle {
   display: -webkit-box; /* Creates a block-level flex container */
-  font-family: "Noto Sans", sans;
-  font-size: 12.5px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.25;
   overflow: hidden; /* Hides the overflowing text */
@@ -1176,8 +1212,8 @@ body.stories-mode .story-recommendation .cefr-value {
 .story-reading-time,
 .stories-list-item .story-reading-time {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.02em;
   line-height: 1.3;
@@ -1201,9 +1237,9 @@ body.stories-mode .story-recommendation .cefr-value {
   border-radius: 7px;
   color: var(--color-surface);
   cursor: pointer;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   letter-spacing: 0.03em;
   padding: 10px 16px;
   text-transform: uppercase;
@@ -1232,7 +1268,7 @@ body.stories-mode .story-recommendation .cefr-value {
 .stories-story-header h2 {
   margin: 0; /* Reset margin for the title */
   color: var(--color-danger);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 1.3em;
   font-weight: 400;
   white-space: normal; /* Allow the text to wrap into multiple lines */
@@ -1270,7 +1306,7 @@ body.stories-mode .story-recommendation .cefr-value {
   border: 1px solid var(--color-border); /* Light border for separation */
   border-radius: 12px;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 10px;
-  font-family: "Noto Serif", serif;
+  font-family: "Source Serif 4", "Noto Serif", serif;
   margin: 1em 0;
   padding: 1em 5em 1em 5em;
 }
@@ -1284,8 +1320,8 @@ body.stories-mode .story-recommendation .cefr-value {
 .story-source-credit {
   border-top: 1px solid var(--color-border);
   color: var(--color-text-muted);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   line-height: 1.5;
   padding-top: 14px;
 }
@@ -1326,8 +1362,8 @@ body.stories-mode .story-recommendation .cefr-value {
 }
 
 /* Comprehension-check quiz, appended after a story's last couplet. Styled to
-   match the story reader itself (Noto Serif body text in black, the same
-   subtle uppercase Noto Sans chrome buttons as #back-button/#speed-btn)
+   match the story reader itself (Source Serif 4 body text in black, the same
+   subtle uppercase Source Sans 3 chrome buttons as #back-button/#speed-btn)
    rather than the bolder game-UI look used in the word game/placement test —
    this section is part of reading a story, not a separate mini-game. */
 .story-quiz-section {
@@ -1338,9 +1374,11 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .story-quiz-heading {
   color: var(--color-ink);
-  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   font-size: 1.3em;
-  font-weight: 400;
+  /* 600, not 400 — see .sticky-title-japanese's comment above for why a
+     converted Fraunces heading needs the bump. */
+  font-weight: 600;
   margin: 0 0 0.75em 0;
 }
 
@@ -1357,16 +1395,18 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .story-next-heading {
   color: var(--color-ink);
-  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   font-size: 1.3em;
-  font-weight: 400;
+  /* 600, not 400 — see .sticky-title-japanese's comment further up for why
+     a converted Fraunces heading needs the bump. */
+  font-weight: 600;
   margin: 0 0 0.75em 0;
 }
 
 .story-quiz-progress {
   color: var(--color-text-muted);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 0.75em;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   letter-spacing: 0.5px;
   margin-bottom: 0.6em;
   text-transform: uppercase;
@@ -1374,7 +1414,7 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .story-quiz-prompt {
   color: var(--color-text);
-  font-family: "Noto Serif", serif;
+  font-family: "Source Serif 4", "Noto Serif", serif;
   font-size: 1.1em;
   margin-bottom: 0.85em;
 }
@@ -1394,7 +1434,7 @@ body.stories-mode .story-recommendation .cefr-value {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-family: "Noto Serif", serif;
+  font-family: "Source Serif 4", "Noto Serif", serif;
   font-size: 1em;
   gap: 10px;
   padding: 12px 16px;
@@ -1437,14 +1477,14 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .story-quiz-feedback-label {
   color: var(--color-text);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-weight: 600;
   margin: 0 0 0.5em 0;
 }
 
 .story-quiz-feedback-source {
   color: var(--color-text-muted);
-  font-family: "Noto Serif", serif;
+  font-family: "Source Serif 4", "Noto Serif", serif;
   margin: 0 0 1.25em 0;
 }
 
@@ -1456,8 +1496,8 @@ body.stories-mode .story-recommendation .cefr-value {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   color: var(--color-text-muted);
   cursor: pointer;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 11px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   font-weight: 500;
   padding: 0.7em 1.4em;
   text-transform: uppercase;
@@ -1475,7 +1515,7 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .story-quiz-results-score {
   color: var(--color-text);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 1.1em;
   font-weight: 600;
   margin-bottom: 1.25em;
@@ -1514,7 +1554,7 @@ body.stories-mode .story-recommendation .cefr-value {
   align-items: center;
   color: var(--color-text);
   display: flex;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 0.9em;
   gap: 8px;
   margin: 0;
@@ -1638,12 +1678,12 @@ body.stories-mode .story-recommendation .cefr-value {
      #toggle-english-btn's own mobile padding comment in
      00-foundations-and-game.css for why. */
   .sticky-cefr-label {
-    height: 25px !important;
+    height: 31px !important;
     padding: 3px 4px;
   }
 
   .sticky-genre {
-    height: 25px;
+    height: 31px;
     padding: 3px 4px;
   }
 
@@ -1652,30 +1692,37 @@ body.stories-mode .story-recommendation .cefr-value {
   }
 
   .sticky-row .story-card-favorite-button {
-    /* Matches #speed-btn/#toggle-english-btn's own height (26px), not an
-       arbitrary size — the badge row and the button column in
-       #right-controls are separate flex columns stacked independently, so
-       any height mismatch between their first rows (this row vs. the
-       Speed button) throws off the *second* row's alignment too (Back
-       vs. Show English), even though nothing about the second row itself
-       changed. Was 28px — 2px taller than the 26px buttons beside it —
-       which is exactly why Back had drifted below Show English. */
+    /* Matches #speed-btn/#toggle-english-btn's own height (32px, up from
+       26px — #back-button/#speed-btn/#toggle-english-btn grew from 11px to
+       14px text, see their own mobile comment below), not an arbitrary
+       size — the badge row and the button column in #right-controls are
+       separate flex columns stacked independently, so any height mismatch
+       between their first rows (this row vs. the Speed button) throws off
+       the *second* row's alignment too (Back vs. Show English), even
+       though nothing about the second row itself changed. */
     font-size: 15px;
-    height: 26px;
-    width: 26px;
+    height: 32px;
+    width: 32px;
   }
 
   /* Each side column has two rows. Giving every control the same explicit
      height makes Back share the Show English baseline instead of inheriting
      a small native line-height difference that accumulates below the badge
      row. Width and horizontal padding remain untouched so the audio player
-     keeps all of the room it already has. */
+     keeps all of the room it already has.
+     26px -> 32px: these three buttons' shared font-size grew from 11px to
+     14px (readability pass), and 26px was calibrated for the old 11px text
+     — too short for 14px text plus its 0.5em vertical padding, which was
+     spilling text into the row above/below it instead of clipping cleanly. */
   #back-button,
   #speed-btn,
   #toggle-english-btn {
     box-sizing: border-box;
-    height: 26px;
-    min-height: 26px;
+    /* Sentence case, not the base rule's uppercase: mixed case reads
+       smaller/calmer than all-caps at the same size, which matters in this
+       cramped mobile row where every pixel is fought over with the audio
+       player. Desktop keeps the uppercase treatment. */
+    text-transform: none;
   }
 
   #sticky-header {
@@ -1711,7 +1758,7 @@ body.stories-mode .story-recommendation .cefr-value {
   }
 
   .sticky-title-english {
-    font-size: 0.8em;
+    font-size: 14px;
   }
 
   #stories {
@@ -1779,9 +1826,9 @@ body.stories-mode .story-recommendation .cefr-value {
 .word-results-eyebrow,
 .story-results-eyebrow {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 11px;
-  font-weight: 600;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   letter-spacing: 0.08em;
   margin: 0 0 3px;
   text-transform: uppercase;
@@ -1791,7 +1838,7 @@ body.stories-mode .story-recommendation .cefr-value {
 .result-header.word-results-header h2,
 .result-header.story-results-header h2 {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 20px;
   font-weight: 600;
   letter-spacing: 0;
@@ -1814,9 +1861,9 @@ body.stories-mode .story-recommendation .cefr-value {
   border-radius: 999px;
   color: var(--color-ink);
   flex: 0 0 auto;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
-  font-weight: 600;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   padding: 5px 9px;
   white-space: nowrap;
 }
@@ -1860,9 +1907,9 @@ body.stories-mode .story-recommendation .cefr-value {
   color: var(--color-text-slate);
   cursor: default;
   display: inline-flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
-  font-weight: 600;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   gap: 7px;
   line-height: 1;
   min-width: 124px;
@@ -1891,7 +1938,7 @@ body.stories-mode .story-recommendation .cefr-value {
   }
 
   .word-results-header .search-results-word-class-badge {
-    font-size: 12px !important;
+    font-size: 14px !important;
   }
 }
 
@@ -1919,8 +1966,8 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .result-header.sentence-results-header .result-header-subtitle {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   line-height: 1.45;
   margin: 8px 0 0;
   text-align: left;
@@ -1940,9 +1987,9 @@ body.stories-mode .story-recommendation .cefr-value {
   box-shadow: none;
   color: var(--color-ink);
   display: inline-flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
-  font-weight: 600;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   height: 40px;
   justify-content: center;
   letter-spacing: 0.04em;

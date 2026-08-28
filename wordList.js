@@ -13,7 +13,7 @@
       searchInput: document.getElementById("search-bar"),
       posSelect: document.getElementById("pos-select"),
       cefrSelect: document.getElementById("cefr-select"),
-      frequencySelect: document.getElementById("frequency-select"),
+      strengthSelect: document.getElementById("strength-select"),
     };
   }
 
@@ -31,14 +31,12 @@
   let myWordsEntryTimestamps = myWordsInitialState.entryTimestamps;
   let wordStrengths = loadWordStrengths();
   let activeWordListView = "all";
-  // "" (any), "unpracticed", or one of the ids from
-  // WordGameHelpers.getVocabStrengthFilterOptions() — same taxonomy the
-  // landing-page vocabulary dashboard uses. Kept as a module variable
-  // rather than read from the DOM, since the <select> itself (built in
-  // createWordStrengthFilterGroup) is recreated on every renderWordList()
-  // call, same as why activeWordListView above isn't read from a button's
-  // state either.
-  let activeWordListStrengthFilter = "";
+  // "" (any), "common-first", or "rarest-first" — the Frequency sort's
+  // three states. Kept as a module variable rather than read from the DOM,
+  // since the <select> itself (built in createWordListFrequencySortGroup)
+  // is recreated on every renderWordList() call, same as why
+  // activeWordListView above isn't read from a button's state either.
+  let activeWordListFrequencySort = "";
 
   /**
    * Convert a value into normalized searchable text.
@@ -576,7 +574,7 @@
   }
 
   function openWordList(view) {
-    const { typeSelect, searchInput, posSelect, cefrSelect } =
+    const { typeSelect, searchInput, posSelect, cefrSelect, strengthSelect } =
       getWordListFilterElements();
 
     if (!typeSelect) {
@@ -593,6 +591,10 @@
 
     if (cefrSelect) {
       cefrSelect.value = "";
+    }
+
+    if (strengthSelect) {
+      strengthSelect.value = "";
     }
 
     typeSelect.value = "word-list";
@@ -1115,7 +1117,7 @@
    * the matching entries.
    */
   function getFilteredWordListEntries() {
-    const { searchInput, posSelect, cefrSelect, frequencySelect } =
+    const { searchInput, posSelect, cefrSelect, strengthSelect } =
       getWordListFilterElements();
 
     const searchText = normalizeWordListText(
@@ -1128,7 +1130,7 @@
       .trim()
       .toUpperCase();
 
-    const frequencySort = String(frequencySelect ? frequencySelect.value : "");
+    const selectedStrength = String(strengthSelect ? strengthSelect.value : "");
 
     if (!Array.isArray(results)) {
       return [];
@@ -1161,9 +1163,9 @@
         }
 
         if (
-          activeWordListStrengthFilter &&
+          selectedStrength &&
           window.WordGameHelpers?.getWordStrengthFilterId?.(entry) !==
-            activeWordListStrengthFilter
+            selectedStrength
         ) {
           return false;
         }
@@ -1179,11 +1181,14 @@
         return norwegian.includes(searchText) || english.includes(searchText);
       })
       .sort((firstEntry, secondEntry) => {
-        if (frequencySort === "common-first" || frequencySort === "rarest-first") {
+        if (
+          activeWordListFrequencySort === "common-first" ||
+          activeWordListFrequencySort === "rarest-first"
+        ) {
           const frequencyComparison = compareByWordFrequency(
             firstEntry,
             secondEntry,
-            frequencySort,
+            activeWordListFrequencySort,
           );
 
           if (frequencyComparison !== 0) {
@@ -1276,7 +1281,7 @@
    */
   function createWordListEmptyMessage() {
     const message = document.createElement("div");
-    message.className = "definition error-message word-list-empty-state";
+    message.className = "definition word-list-empty-state";
 
     const heading = document.createElement("h2");
     heading.className = "word-list-empty-heading";
@@ -1285,11 +1290,11 @@
     explanation.className = "word-list-empty-copy";
 
     if (activeWordListView === "my" && myWordsEntryIds.size === 0) {
-      heading.textContent = "No saved words yet";
+      heading.textContent = "No Saved Words Yet";
       explanation.textContent =
         "Select All Words and click a star to add a word to My Words.";
     } else {
-      heading.textContent = "No matching words";
+      heading.textContent = "No Matching Words";
       explanation.textContent =
         "Try a different search, filter, or word-list view.";
     }
@@ -1546,47 +1551,42 @@
     return button;
   }
 
-  // A dropdown for the same 0-5 strength value already shown per-row by
-  // createWordStrengthCell — filters both All Words and My Words down to a
-  // single tier from the landing page's vocabulary dashboard (see
-  // VOCAB_PROGRESS_TIERS in wordGame.js), plus an explicit "Not practiced
-  // yet" option. That last one matters more than it might look: almost
-  // every entry in the ~29k-word All Words view has no strength record at
-  // all, so without a dedicated bucket for that, picking "New" there would
-  // silently hide nearly the whole dictionary instead of showing it.
-  function createWordStrengthFilterGroup() {
+  // A dropdown that reorders the currently-visible rows by frequency rank
+  // (vocabulary-frequency.json, loaded lazily — see
+  // ensureVocabularyFrequencyLoaded below), without changing which rows
+  // show. That's a sort, not a filter, so unlike Word Class/Level/Strength
+  // — all static pills up in the shared selectors row — it lives down here
+  // next to the My Words/All Words toggle, and is rebuilt on every
+  // renderWordList() call the same way the toggle buttons' active state is.
+  function createWordListFrequencySortGroup() {
     const group = createControlGroup(
-      "word-list-strength-controls",
-      "Filter by word strength",
+      "word-list-sort-controls",
+      "Sort by word frequency",
     );
 
     const wrapper = document.createElement("div");
-    wrapper.className = "word-list-strength-select-wrapper";
+    wrapper.className = "word-list-sort-select-wrapper";
 
     const select = document.createElement("select");
-    select.id = "word-list-strength-select";
-    select.className = "word-list-strength-select";
-    select.setAttribute("aria-label", "Filter by word strength");
+    select.id = "frequency-select";
+    select.className = "word-list-sort-select";
+    select.setAttribute("aria-label", "Sort by word frequency");
 
-    const anyOption = document.createElement("option");
-    anyOption.value = "";
-    anyOption.textContent = "Any strength";
-    select.appendChild(anyOption);
-
-    const strengthOptions =
-      window.WordGameHelpers?.getVocabStrengthFilterOptions?.() ?? [];
-
-    strengthOptions.forEach(({ id, label }) => {
+    [
+      { value: "", label: "Frequency" },
+      { value: "common-first", label: "Common First" },
+      { value: "rarest-first", label: "Rarest First" },
+    ].forEach(({ value, label }) => {
       const option = document.createElement("option");
-      option.value = id;
+      option.value = value;
       option.textContent = label;
       select.appendChild(option);
     });
 
-    select.value = activeWordListStrengthFilter;
+    select.value = activeWordListFrequencySort;
 
     select.addEventListener("change", () => {
-      activeWordListStrengthFilter = select.value;
+      activeWordListFrequencySort = select.value;
       renderWordList();
     });
 
@@ -1648,7 +1648,7 @@
     // (see handleTypeChange's word-list branch in scripts.js).
     viewControls.append(myWordsButton, allWordsButton);
     controls.appendChild(viewControls);
-    controls.appendChild(createWordStrengthFilterGroup());
+    controls.appendChild(createWordListFrequencySortGroup());
 
     /*
      * My Words actions — hidden rather than shown disabled when there's
@@ -1917,7 +1917,7 @@
       loadingMessage.className = "definition";
 
       const heading = document.createElement("h2");
-      heading.textContent = "Loading vocabulary";
+      heading.textContent = "Loading Vocabulary";
 
       const explanation = document.createElement("p");
       explanation.textContent =
@@ -1976,8 +1976,7 @@
     if (typeof load !== "function") return;
 
     load().then(() => {
-      const { frequencySelect } = getWordListFilterElements();
-      if (frequencySelect?.value && getCurrentMode() === "word-list") {
+      if (activeWordListFrequencySort && getCurrentMode() === "word-list") {
         renderWordList();
       }
     });

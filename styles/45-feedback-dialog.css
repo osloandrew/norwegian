@@ -29,7 +29,7 @@
 
 .feedback-dialog h3 {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 16px;
   margin: 0 0 15px;
   word-break: break-word;
@@ -38,9 +38,9 @@
 .feedback-dialog-label {
   color: var(--color-text-strong);
   display: block;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   left: auto;
   margin: 12px 0 5px;
   pointer-events: auto;
@@ -54,7 +54,7 @@
   border: 1px solid var(--color-border-input);
   border-radius: 6px;
   box-sizing: border-box;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 14px;
   padding: 8px 10px;
   width: 100%;
@@ -72,7 +72,7 @@
 
 .feedback-dialog-status {
   color: var(--color-text-strong);
-  font-size: 13px;
+  font-size: 14px;
   margin: 12px 0 0;
   min-height: 1.2em;
 }
@@ -92,9 +92,9 @@
 .feedback-dialog-submit {
   border-radius: 6px;
   cursor: pointer;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   padding: 8px 14px;
 }
 

@@ -118,6 +118,10 @@
     function handleAnswer(chosenIndex, chosenButton, optionsEl) {
       const question = questions[index];
       const isCorrect = chosenIndex === shuffled.correctIndex;
+      // Reuses the word game's shared chime kit (wordGame.js, loaded earlier
+      // as a plain script so its top-level bindings are visible here) so
+      // in-story feedback matches the rest of the app's answer sounds.
+      playChime(isCorrect ? goodChime : badChime, CHIME_PRIORITY.answer);
       if (isCorrect) score += 1;
       answers.push({
         prompt: question.prompt,
@@ -148,11 +152,11 @@
       feedbackEl.innerHTML = `
         <p class="story-quiz-feedback-label">
           <i class="fas ${isCorrect ? "fa-check story-quiz-icon-correct" : "fa-times story-quiz-icon-incorrect"} story-quiz-icon"></i>
-          ${isCorrect ? "Correct" : "Not quite"}
+          ${isCorrect ? "Correct" : "Not Quite"}
         </p>
         <p class="story-quiz-feedback-source" lang="nb">«${escapeHTML(question.sourceSentence)}»</p>
         <button type="button" class="story-quiz-next-btn">
-          ${index + 1 < questions.length ? "Next question" : "See results"}
+          ${index + 1 < questions.length ? "Next Question" : "See Results"}
         </button>
       `;
       feedbackEl
@@ -168,6 +172,7 @@
     }
 
     function renderResults() {
+      playChime(roundCompleteChime, CHIME_PRIORITY.roundComplete);
       saveQuizResult(titleNorwegian, score, questions.length);
       window.trackEvent?.("story_quiz_complete", {
         score,
@@ -181,14 +186,14 @@
           <p class="story-quiz-review-prompt">${i + 1}. ${escapeHTML(answer.prompt)}</p>
           <p class="story-quiz-review-answer">
             <i class="fas ${answer.isCorrect ? "fa-check story-quiz-icon-correct" : "fa-times story-quiz-icon-incorrect"} story-quiz-icon"></i>
-            Your answer: ${escapeHTML(answer.chosenOption)}
+            Your Answer: ${escapeHTML(answer.chosenOption)}
           </p>
           ${
             answer.isCorrect
               ? ""
               : `<p class="story-quiz-review-correct-answer">
                   <i class="fas fa-check story-quiz-icon-correct story-quiz-icon"></i>
-                  Correct answer: ${escapeHTML(answer.correctOption)}
+                  Correct Answer: ${escapeHTML(answer.correctOption)}
                 </p>`
           }
         </div>
@@ -200,7 +205,7 @@
         <div class="story-quiz-results">
           <p class="story-quiz-results-score">${score} / ${questions.length} correct</p>
           <div class="story-quiz-review">${reviewHTML}</div>
-          <button type="button" class="story-quiz-retry-btn">Try again</button>
+          <button type="button" class="story-quiz-retry-btn">Try Again</button>
         </div>
       `;
       root

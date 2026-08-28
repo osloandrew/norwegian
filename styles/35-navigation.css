@@ -83,7 +83,7 @@
 }
 
 .mode-tab-label {
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -95,7 +95,15 @@
 
 .mode-tab.active {
   color: var(--color-ink);
-  font-weight: 700;
+}
+
+/* The active tab's bold weight has to be set on the label itself, not on
+   .mode-tab.active above: .mode-tab-label's own font-weight: 500 is an
+   explicit declaration, which always beats an inherited value regardless of
+   specificity — a font-weight on .mode-tab.active alone would never reach
+   this text. Without this, the active tab was distinguished by color alone. */
+.mode-tab.active .mode-tab-label {
+  font-weight: 600;
 }
 
 /* Search-field clear control. */
@@ -185,9 +193,9 @@
   cursor: pointer;
   display: flex;
   flex-shrink: 0;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 10px;
-  font-weight: 600;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   justify-content: center;
   letter-spacing: 0.04em;
   padding: 9px 14px;
@@ -482,8 +490,8 @@ body.word-game-mode:not(.word-game-round-active) #search-container {
   box-sizing: border-box;
   color: var(--color-text);
   display: flex;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   font-weight: 500;
   gap: 10px;
   height: auto;
@@ -595,7 +603,7 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
   display: flex;
   background-color: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   margin: auto;
   padding: 10px 0;
   position: sticky;
@@ -651,7 +659,7 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
   color: var(--color-ink);
   cursor: pointer;
   flex: 1 1 auto;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   height: 100%;
   letter-spacing: 0.05em;
   min-width: 0;
@@ -706,7 +714,7 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
   }
 
   .mode-tab-label {
-    font-size: 10px;
+    font-size: 14px;
     letter-spacing: 0.02em;
   }
 
@@ -822,7 +830,7 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
   .game-english-filter select {
     box-sizing: border-box;
     cursor: pointer;
-    font-size: 10px;
+    font-size: 14px;
     font-weight: 500;
     letter-spacing: 0;
     min-width: 0;
@@ -866,7 +874,7 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
   body.word-game-mode .toolbar-report-issue-btn {
     align-self: stretch;
     flex: 0 0 auto;
-    font-size: 12px;
+    font-size: 14px;
     height: auto;
     padding: 4px 13px;
   }
@@ -880,7 +888,7 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
   #search-container-inner.word-game-active #game-end-session-btn {
     align-self: stretch;
     flex: 0 0 auto;
-    font-size: 10px;
+    font-size: 14px;
     height: auto;
     letter-spacing: 0.01em;
     padding: 4px 6px;
@@ -1018,9 +1026,9 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
   .game-round-menu-panel .toolbar-report-issue-btn span,
   .game-round-menu-panel .game-end-session-btn span {
     display: block;
-    font-family: "Noto Sans", sans-serif;
+    font-family: "Source Sans 3", "Noto Sans", sans-serif;
     color: #4e6986;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
     letter-spacing: 0;
     line-height: 1.2;
@@ -1157,7 +1165,7 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
   .cefr-filter select,
   .genre-filter select,
   .game-english-filter select {
-    font-size: 13px;
+    font-size: 14px;
     padding-left: 16px;
   }
 
@@ -1235,8 +1243,8 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
     border: 1px solid #d8e1e8;
     border-radius: 10px;
     color: #35516d;
-    font-family: "Noto Sans", sans-serif;
-    font-size: 13px;
+    font-family: "Source Sans 3", "Noto Sans", sans-serif;
+    font-size: 14px;
     font-style: normal;
     font-weight: 400;
     gap: 8px;

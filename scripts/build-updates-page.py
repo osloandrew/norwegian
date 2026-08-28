@@ -228,7 +228,7 @@ def render_page(updates: list[Update], site_root: Path) -> str:
     <link rel="stylesheet" href="{updates_css}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Noto+Serif:wght@100..900&amp;display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Source+Sans+3:ital,wght@0,200..900;1,200..900&amp;family=Noto+Serif:wght@100..900&amp;family=Source+Serif+4:opsz,wght@8..60,200..900&amp;display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI" crossorigin="anonymous">
     <script type="application/ld+json">{structured_data}</script>
   </head>

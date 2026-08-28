@@ -83,31 +83,31 @@
     -->
     <link
       rel="stylesheet"
-      href="styles/00-foundations-and-game.css?v=564a2ba3a7"
+      href="styles/00-foundations-and-game.css?v=0d7cee23c4"
     />
     <link
       rel="stylesheet"
-      href="styles/01-document-shell.css?v=ad804a478c"
+      href="styles/01-document-shell.css?v=6b054306e5"
     />
     <link
       rel="stylesheet"
-      href="styles/10-shell-landing-and-stats.css?v=1707f5be89"
+      href="styles/10-shell-landing-and-stats.css?v=6363b22294"
     />
     <link
       rel="stylesheet"
-      href="styles/20-results-and-story-quiz.css?v=88fea8108a"
+      href="styles/20-results-and-story-quiz.css?v=e04a9c8dae"
     />
     <link
       rel="stylesheet"
-      href="styles/30-stories-and-word-lists.css?v=f33a64cb62"
+      href="styles/30-stories-and-word-lists.css?v=f2384747a9"
     />
     <link
       rel="stylesheet"
-      href="styles/35-navigation.css?v=85316b6817"
+      href="styles/35-navigation.css?v=c72dbeb8fb"
     />
     <link
       rel="stylesheet"
-      href="styles/45-feedback-dialog.css?v=447688cb93"
+      href="styles/45-feedback-dialog.css?v=d9cfe97ac2"
     />
     <link
       rel="apple-touch-icon"
@@ -139,14 +139,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Noto+Serif:wght@100..900&amp;family=Source+Serif+4:opsz,wght@8..60,200..900&amp;display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Source+Sans+3:ital,wght@0,200..900;1,200..900&amp;family=Noto+Serif:wght@100..900&amp;family=Source+Serif+4:opsz,wght@8..60,200..900&amp;display=swap"
       media="print"
       onload="this.media = 'all'"
     />
     <noscript>
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Noto+Serif:wght@100..900&amp;family=Source+Serif+4:opsz,wght@8..60,200..900&amp;display=swap"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,100..900&amp;family=Noto+Sans:wght@100..900&amp;family=Source+Sans+3:ital,wght@0,200..900;1,200..900&amp;family=Noto+Serif:wght@100..900&amp;family=Source+Serif+4:opsz,wght@8..60,200..900&amp;display=swap"
       />
     </noscript>
 
@@ -376,7 +376,7 @@
   </head>
 
   <body>
-    <a href="#main-content" class="skip-link">Skip to content</a>
+    <a href="#main-content" class="skip-link">Skip to Content</a>
     <header>
       <!-- Only shown while reading an individual story, via html.reading in styles.css -->
       <button
@@ -384,10 +384,10 @@
         id="story-report-issue"
         class="story-report-issue-btn"
         aria-label="Report an issue with this story"
-        title="Report an issue"
+        title="Report an Issue"
       >
         <i class="fas fa-flag" aria-hidden="true"></i>
-        <span class="story-report-issue-btn-label">Report an issue</span>
+        <span class="story-report-issue-btn-label">Report an Issue</span>
       </button>
 
       <div class="header-top-row">
@@ -450,7 +450,7 @@
                 d="M9 3.5795c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5813C13.4632.8918 11.4259 0 9 0 5.4818 0 2.4382 2.0168.9573 4.9582L3.964 7.29C4.6718 5.1627 6.6564 3.5795 9 3.5795z"
               />
             </svg>
-            Sign in
+            Sign In
           </button>
 
           <div id="auth-user-info" class="auth-user-info hidden">
@@ -698,8 +698,8 @@
                 onchange="toggleGameEnglish()"
                 aria-label="Show or hide example translations"
               >
-                <option value="show-english">Show translations</option>
-                <option value="hide-english">Hide translations</option>
+                <option value="show-english">Show Translations</option>
+                <option value="hide-english">Hide Translations</option>
               </select>
               <i class="fas fa-chevron-down"></i>
             </div>
@@ -751,7 +751,7 @@
                     onclick="toggleGameEnglishButton()"
                   >
                     <span aria-hidden="true">🇬🇧</span>
-                    <span class="game-english-toggle-label">Show translations</span>
+                    <span class="game-english-toggle-label">Show Translations</span>
                   </button>
                   <button
                     type="button"
@@ -759,7 +759,7 @@
                     class="toolbar-report-issue-btn hidden"
                   >
                     <i class="fas fa-flag" aria-hidden="true"></i>
-                    <span>Report question</span>
+                    <span>Report Question</span>
                   </button>
                   <button
                     type="button"
@@ -768,33 +768,44 @@
                     aria-label="Quit this round early and see your stats"
                   >
                     <i class="fas fa-chart-bar" aria-hidden="true"></i>
-                    <span>Quit &amp; see stats</span>
+                    <span>Quit &amp; See Stats</span>
                   </button>
                 </div>
               </div>
             </div>
 
-            <!-- Frequency Selector: My Words only. Reuses .genre-filter's
+            <!-- Strength Selector: Word List only. Reuses .genre-filter's
                  box styling (like .story-favorites-filter does for Stories)
                  and lives inside .selectors-wrapper alongside it, so this
                  row keeps the exact same three-pill measurements — and the
                  same one-row wrapping on mobile — as the Stories filter
                  row, instead of introducing its own sizing or its own
-                 line. -->
+                 line. Belongs up here rather than down by the My
+                 Words/All Words toggle because it actually narrows which
+                 rows show, the same as Word Class and Level beside it — the
+                 Frequency sort, which only reorders rows already showing,
+                 lives down there instead (see createWordListFrequencySortGroup
+                 in wordList.js). Options mirror wordGame.js's
+                 VOCAB_UNPRACTICED_TIER_ID/VOCAB_LADDER_TIERS; keep both in
+                 sync if that ladder ever changes. -->
             <div
-              class="genre-filter frequency-filter"
-              id="frequency-filter"
-              aria-label="Sort by word frequency"
+              class="genre-filter strength-filter"
+              id="strength-filter"
+              aria-label="Filter by word strength"
               style="display: none"
             >
               <select
-                id="frequency-select"
+                id="strength-select"
                 onchange="search()"
-                aria-label="Sort by word frequency"
+                aria-label="Filter by word strength"
               >
-                <option value="">Frequency</option>
-                <option value="common-first">Common first</option>
-                <option value="rarest-first">Rarest first</option>
+                <option value="">Any Strength</option>
+                <option value="unpracticed">Not Practiced Yet</option>
+                <option value="learning">Learning</option>
+                <option value="developing">Developing</option>
+                <option value="strengthening">Strengthening</option>
+                <option value="strong">Strong</option>
+                <option value="mastered">Mastered</option>
               </select>
               <i class="fas fa-chevron-down"></i>
             </div>
@@ -837,7 +848,7 @@
       <div id="loading-spinner" class="spinner" style="display: none"></div>
       <!-- Moved outside the results-container -->
       <div id="landing-card" class="definition">
-        <h2>Build your Norwegian vocabulary</h2>
+        <h2>Build Your Norwegian Vocabulary</h2>
         <p class="landing-hero-copy">
           Look up words, hear pronunciations, read short stories, and practice
           at your level.
@@ -861,7 +872,7 @@
           hidden
         ></section>
 
-        <h3 class="landing-explore-heading">Explore more ways to learn</h3>
+        <h3 class="landing-explore-heading">Explore More Ways to Learn</h3>
 
         <div class="landing-card-button-grid">
           <!-- Row 1: look things up (stateless reference — the same for
@@ -890,10 +901,11 @@
               />
             </div>
             <h3 class="landing-card-title">Words</h3>
-            <p>Definitions, translations, forms, pronunciation, and examples.</p>
-            <span class="landing-feature-tag landing-feature-tag--lookup"
-              >📖 Definitions &amp; pronunciation</span
-            >
+            <ul class="landing-feature-list">
+              <li>Norwegian-English definitions and translations</li>
+              <li>Verb, noun, and adjective forms (bøying)</li>
+              <li>Audio pronunciation and example sentences</li>
+            </ul>
           </a>
 
           <!-- Sentence Search -->
@@ -906,10 +918,11 @@
               />
             </div>
             <h3 class="landing-card-title">Sentence Search</h3>
-            <p>Find words in real sentences with audio.</p>
-            <span class="landing-feature-tag landing-feature-tag--audio"
-              >🔊 Audio for each sentence</span
-            >
+            <ul class="landing-feature-list">
+              <li>Search real Norwegian sentences by word</li>
+              <li>English translations alongside every sentence</li>
+              <li>Audio playback to hear the word in context</li>
+            </ul>
           </a>
 
           <!-- Norwegian Stories: real href for crawlers (and no-JS/
@@ -925,10 +938,11 @@
               />
             </div>
             <h3 class="landing-card-title">Norwegian Stories</h3>
-            <p>Read and listen by level, genre, and topic.</p>
-            <span class="landing-feature-tag landing-feature-tag--narrated"
-              >🎧 Narrated with audio</span
-            >
+            <ul class="landing-feature-list">
+              <li>Graded reading from CEFR A1 to C</li>
+              <li>Narrated audio with adjustable playback speed</li>
+              <li>Comprehension quizzes to check your understanding</li>
+            </ul>
           </a>
 
           <!-- Row 2: your practice & progress (personalized — driven by
@@ -944,10 +958,11 @@
               />
             </div>
             <h3 class="landing-card-title">Word Game</h3>
-            <p>Adaptive vocabulary practice that grows with you.</p>
-            <span class="landing-feature-tag landing-feature-tag--streak"
-              >🔥 Daily streak</span
-            >
+            <ul class="landing-feature-list">
+              <li>Multiple-choice, listening, typing, and cloze exercises</li>
+              <li>Difficulty adapts to your ability as you play</li>
+              <li>Daily quests and streaks to build a learning habit</li>
+            </ul>
           </a>
 
           <!-- My Words: the "Word List" card used to live here too, but
@@ -964,10 +979,11 @@
               />
             </div>
             <h3 class="landing-card-title">My Words</h3>
-            <p>Save words and practice them again later.</p>
-            <span class="landing-feature-tag landing-feature-tag--sync"
-              >☁ Synced across devices</span
-            >
+            <ul class="landing-feature-list">
+              <li>Build a personal Norwegian vocabulary list</li>
+              <li>Filter by part of speech, CEFR level, or strength</li>
+              <li>Synced across all your devices</li>
+            </ul>
           </a>
 
           <!-- My Stats -->
@@ -980,10 +996,11 @@
               />
             </div>
             <h3 class="landing-card-title">My Stats</h3>
-            <p>Follow your progress, streaks, and difficult words.</p>
-            <span class="landing-feature-tag landing-feature-tag--stats"
-              >📊 Track your progress</span
-            >
+            <ul class="landing-feature-list">
+              <li>Track your daily and longest streaks</li>
+              <li>See your vocabulary strength profile</li>
+              <li>Review the words you've missed the most</li>
+            </ul>
           </a>
         </div>
       </div>
@@ -1045,7 +1062,7 @@
           aria-label="Buy me a coffee"
         >
           <i class="fas fa-mug-hot" aria-hidden="true"></i>
-          <span>Buy me a coffee</span>
+          <span>Buy Me a Coffee</span>
         </a>
         <button
           type="button"
@@ -1111,7 +1128,7 @@
         id="signin-nudge-signin-btn"
         class="signin-nudge-signin-btn"
       >
-        Sign in
+        Sign In
       </button>
       <button
         type="button"
@@ -1199,20 +1216,20 @@
     -->
     <script src="englishVisibility.js?v=b7799fc88b" defer></script>
     <script src="pronunciation.js?v=e0bab555ae" defer></script>
-    <script src="wordList.js?v=f572810917" defer></script>
+    <script src="wordList.js?v=b76b8b514c" defer></script>
     <script src="storyFavorites.js?v=c152eb5155" defer></script>
-    <script src="myWordsAuth.js?v=5a7e056f83" defer></script>
+    <script src="myWordsAuth.js?v=d1d5c3982f" defer></script>
     <script src="noRandom.js?v=98d37ff6b5" defer></script>
     <script src="noRandomLetters.js?v=10acb8ddad" defer></script>
     <script src="ordbokene.js?v=c7bf198620" defer></script>
-    <script src="scripts.js?v=2d4117dd84" defer></script>
+    <script src="scripts.js?v=967d6fa015" defer></script>
     <script src="wordGamePolicy.js?v=aeb6d0620a" defer></script>
-    <script src="wordGame.js?v=161ffcd1e5" defer></script>
-    <script src="placementTest.js?v=6c8283e689" defer></script>
+    <script src="wordGame.js?v=dbda7748b7" defer></script>
+    <script src="placementTest.js?v=d071f91ce4" defer></script>
     <script src="streak.js?v=ddb26efe7e" defer></script>
-    <script src="stories.js?v=91a8139f5d" defer></script>
-    <script src="storyQuiz.js?v=61077b8ea7" defer></script>
-    <script src="myStats.js?v=4899ad7deb" defer></script>
+    <script src="stories.js?v=19d5ebf9aa" defer></script>
+    <script src="storyQuiz.js?v=23091fc199" defer></script>
+    <script src="myStats.js?v=63ee04677a" defer></script>
 
     <!--
       Registered after "load" (not deferred alongside the app scripts

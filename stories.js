@@ -836,7 +836,7 @@ function renderNextStorySuggestion(storyContent, currentStory) {
   section.appendChild(
     createStoryPromoCard(
       nextStory,
-      `<i class="fas fa-arrow-right" aria-hidden="true"></i> Up next`,
+      `<i class="fas fa-arrow-right" aria-hidden="true"></i> Up Next`,
       "story-next-card",
     ),
   );
@@ -1027,8 +1027,8 @@ function createStoryRecommendationElement(story) {
     window.WordGameHelpers?.getAbilityScore?.(),
   );
   const labelHTML = isPersonalized
-    ? `<i class="fas fa-star" aria-hidden="true"></i> Recommended for you`
-    : `<i class="fas fa-star" aria-hidden="true"></i> New to Norwegian? Start here`;
+    ? `<i class="fas fa-star" aria-hidden="true"></i> Recommended for You`
+    : `<i class="fas fa-star" aria-hidden="true"></i> New to Norwegian? Start Here`;
 
   return createStoryPromoCard(story, labelHTML);
 }
@@ -1187,11 +1187,11 @@ async function displayStoryList(
     resultsHeader.className = "result-header story-results-header";
     resultsHeader.innerHTML = `
       <div class="story-results-header-copy">
-        <p class="story-results-eyebrow">${searchText ? "Story search" : "Story library"}</p>
+        <p class="story-results-eyebrow">${searchText ? "Story Search" : "Story Library"}</p>
         <h2>${
           searchText
             ? `Results for <span class="story-results-query">"${escapeHTML(searchText)}"</span>`
-            : "Filtered stories"
+            : "Filtered Stories"
         }</h2>
         ${
           activeFilterChips
@@ -1247,7 +1247,7 @@ async function displayStoryList(
     container.appendChild(storyList);
   } else {
     const emptyState = document.createElement("div");
-    emptyState.className = "definition error-message story-list-empty-state";
+    emptyState.className = "definition story-list-empty-state";
     emptyState.innerHTML = showFavoritesOnly
       ? `<h2>No Favorite Stories Yet</h2><p>Use the star on a story card to save it for later.</p>`
       : `<h2>No Stories Found</h2><p>Try a different search or filter.</p>`;
@@ -3130,7 +3130,7 @@ function renderStoryWordPopoverContent(
     const flagButton = document.createElement("button");
     flagButton.type = "button";
     flagButton.className = "story-word-popover-flag-btn";
-    flagButton.textContent = "Flag missing word";
+    flagButton.textContent = "Flag Missing Word";
     flagButton.addEventListener("click", (event) => {
       event.stopPropagation();
       flagMissingWordEntry(surfaceWord);

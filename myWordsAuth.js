@@ -199,6 +199,7 @@
     "norwegian-dictionary-ability-v1",
     "norwegian-dictionary-game-level-v1",
     "norwegian-dictionary-daily-practice-v2",
+    "norwegian-dictionary-best-word-streak-v1",
     window.StoryFavoritesAPI.STORAGE_KEY,
   ];
 
@@ -778,6 +779,10 @@
           window.DailyQuestAPI?.replaceState?.(data.dailyPractice);
         }
 
+        if (Number.isFinite(data.bestWordStreak)) {
+          window.BestWordStreakAPI?.replaceState?.(data.bestWordStreak);
+        }
+
         if (typeof data.showEnglish === "boolean") {
           window.EnglishVisibilityAPI?.replaceState?.(data.showEnglish);
         }
@@ -1023,6 +1028,14 @@
           gemCounts: mergedGemCounts,
         }) ?? localDailyPractice;
 
+      // A personal-best record, same "only ever grows" shape as streak's
+      // longestCount — the higher of the two devices' values is always the
+      // more complete one.
+      const mergedBestWordStreak = Math.max(
+        Number(remoteData.bestWordStreak) || 0,
+        window.BestWordStreakAPI?.getState?.() ?? 0,
+      );
+
       // A plain display preference, not per-word progress, so there's no
       // "more progress wins" comparison to make — whichever side actually
       // has a value in the account doc wins (it reflects a real choice made
@@ -1048,6 +1061,7 @@
       }
       window.StreakAPI?.replaceState?.(mergedStreak);
       window.DailyQuestAPI?.replaceState?.(mergedDailyPractice);
+      window.BestWordStreakAPI?.replaceState?.(mergedBestWordStreak);
       window.EnglishVisibilityAPI?.replaceState?.(mergedShowEnglish);
 
       // First use of the sharded format on an account/browser seeds the
@@ -1095,6 +1109,7 @@
           : {}),
         streak: mergedStreak,
         dailyPractice: mergedDailyPractice,
+        bestWordStreak: mergedBestWordStreak,
         showEnglish: mergedShowEnglish,
         ...(typeof mergedStoryFavoritesPayload === "string"
           ? { favoriteStoriesPayload: mergedStoryFavoritesPayload }
@@ -1373,6 +1388,20 @@
     }
 
     scheduleProfilePush({ dailyPractice: event.detail?.dailyPractice ?? {} });
+  });
+
+  // Fired by wordGame.js's saveBestWordStreakState() whenever a new
+  // personal-best correct-answer streak is reached.
+  window.addEventListener("best-word-streak:updated", (event) => {
+    if (event.detail?.syncRemote === false) {
+      return;
+    }
+
+    if (!Number.isFinite(event.detail?.longest)) {
+      return;
+    }
+
+    scheduleProfilePush({ bestWordStreak: event.detail.longest });
   });
 
   // Fired by englishVisibility.js's setEnglishVisible() whenever the

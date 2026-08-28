@@ -157,13 +157,13 @@
   width: 100%;
 }
 
-.word-list-strength-select-wrapper {
+.word-list-sort-select-wrapper {
   display: inline-flex;
   max-width: 100%;
   position: relative;
 }
 
-.word-list-strength-select {
+.word-list-sort-select {
   appearance: none;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -171,8 +171,8 @@
   box-sizing: border-box;
   color: var(--color-danger-text);
   cursor: pointer;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.03em;
   max-width: 100%;
@@ -184,17 +184,17 @@
     box-shadow 0.2s ease;
 }
 
-.word-list-strength-select:hover {
+.word-list-sort-select:hover {
   background-color: var(--color-surface-hover);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.word-list-strength-select:focus-visible {
+.word-list-sort-select:focus-visible {
   outline: 2px solid var(--color-interactive);
   outline-offset: 2px;
 }
 
-.word-list-strength-select-wrapper > .fa-chevron-down {
+.word-list-sort-select-wrapper > .fa-chevron-down {
   color: var(--color-text-muted);
   font-size: 11px;
   pointer-events: none;
@@ -227,8 +227,8 @@
     0 2px 4px rgba(0, 0, 0, 0.1);
   color: var(--color-danger-text);
   cursor: pointer;
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.03em;
   max-width: 100%;
@@ -342,7 +342,7 @@
  */
 .word-list-norwegian {
   color: var(--color-ink); /* Matches the headword, not a link */
-  font-family: "Noto Serif", serif;
+  font-family: "Source Serif 4", "Noto Serif", serif;
   font-size: 20px;
   font-weight: 700;
   line-height: 1.5;
@@ -363,7 +363,7 @@
  */
 .word-list-english {
   color: var(--color-text-strong);
-  font-family: "Noto Serif", serif;
+  font-family: "Source Serif 4", "Noto Serif", serif;
   font-size: 16px;
   font-weight: 500;
   line-height: 1.4;
@@ -375,7 +375,7 @@
 .word-list-class-badge {
   align-items: center;
   display: inline-flex;
-  font-size: 10px !important;
+  font-size: 14px !important;
   line-height: 1.2;
   margin: 0 !important;
   max-width: none;
@@ -391,9 +391,9 @@
  */
 .word-list-level {
   color: var(--color-text-strong);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
-  font-weight: 700;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -403,8 +403,8 @@
 
 .word-list-strength {
   color: var(--color-text-strong);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   text-align: center;
 }
 
@@ -502,7 +502,7 @@
 .word-text-block {
   display: flex;
   flex-direction: column;
-  font-family: "Noto Serif", serif;
+  font-family: "Source Serif 4", "Noto Serif", serif;
   font-weight: 500;
 }
 
@@ -528,14 +528,14 @@
   :is(#word-list, .game-summary-missed, .my-stats-trouble)
     .word-list-row
     .word-list-norwegian {
-    font-size: 12px;
+    font-size: 14px;
     padding: 6px;
   }
 
   :is(#word-list, .game-summary-missed, .my-stats-trouble)
     .word-list-row
     .word-list-english {
-    font-size: 10px;
+    font-size: 14px;
     padding: 6px;
   }
 
@@ -556,12 +556,12 @@
   }
 
   .word-list-class-badge {
-    font-size: 8px !important;
+    font-size: 14px !important;
     padding: 2px 4px !important;
   }
 
   .word-list-level .game-cefr-label {
-    font-size: 10px;
+    font-size: 14px;
     min-width: 14px;
     padding: 2px 5px;
   }
@@ -578,7 +578,7 @@
   }
 
   .word-list-export-controls .word-list-export-button {
-    font-size: 10px;
+    font-size: 14px;
   }
 
   .word-list-header {
@@ -595,7 +595,7 @@
 .word-list-header-summary {
   align-items: flex-start;
   display: flex;
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   gap: 12px;
   justify-content: space-between;
   width: 100%;
@@ -603,7 +603,7 @@
 
 .word-list-header-title {
   color: var(--color-ink);
-  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   font-size: 24px;
   font-weight: 600;
   letter-spacing: 0;
@@ -614,8 +614,8 @@
 p.word-list-header-description,
 p.word-list-empty-copy {
   color: var(--color-text-slate);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 13px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
   line-height: 1.45;
   margin: 4px 0 0;
 }
@@ -625,9 +625,9 @@ p.word-list-empty-copy {
   border: 1px solid var(--color-wash-blue-border);
   border-radius: 999px;
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
-  font-size: 12px;
-  font-weight: 600;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
   padding: 5px 9px;
   white-space: nowrap;
 }
@@ -638,7 +638,7 @@ p.word-list-empty-copy {
 
 .word-list-empty-heading {
   color: var(--color-ink);
-  font-family: "Noto Sans", sans-serif;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 19px;
   font-weight: 600;
   letter-spacing: var(--letter-spacing-caps-heading);
@@ -670,7 +670,7 @@ p.word-list-empty-copy {
   width: auto;
 }
 
-#word-list .word-list-strength-controls {
+#word-list .word-list-sort-controls {
   margin-left: auto;
 }
 
@@ -726,7 +726,7 @@ p.word-list-empty-copy {
   }
 
   #word-list .word-list-control-group,
-  #word-list .word-list-strength-controls {
+  #word-list .word-list-sort-controls {
     margin-left: 0;
     width: 100%;
   }
@@ -735,8 +735,8 @@ p.word-list-empty-copy {
     flex: 1 1 0;
   }
 
-  #word-list .word-list-strength-select-wrapper,
-  #word-list .word-list-strength-select {
+  #word-list .word-list-sort-select-wrapper,
+  #word-list .word-list-sort-select {
     width: 100%;
   }
 

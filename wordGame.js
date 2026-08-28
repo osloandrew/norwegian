@@ -68,6 +68,7 @@ let gameActive = false;
 // exactly as before within whichever round is active.
 const WORD_GAME_SESSION_WORD_COUNTS = [10, 20, 50];
 const DAILY_PRACTICE_STORAGE_KEY = "norwegian-dictionary-daily-practice-v2";
+const BEST_WORD_STREAK_STORAGE_KEY = "norwegian-dictionary-best-word-streak-v1";
 const PLACEMENT_PRACTICE_WORD_COUNT = 10;
 const PLACEMENT_CALIBRATION_ANSWER_COUNT = 7;
 const PLACEMENT_CALIBRATION_INITIAL_STEP = 150;
@@ -106,20 +107,20 @@ const DAILY_QUEST_ROUND_TARGET = 10;
 const DAILY_QUESTS = Object.freeze([
   Object.freeze({
     reward: "emerald",
-    title: "Emerald round",
-    description: "Recognize Norwegian meanings",
+    title: "Emerald Round",
+    description: "Recognize Norwegian Meanings",
     exercise: "recognition",
   }),
   Object.freeze({
     reward: "ruby",
-    title: "Ruby round",
-    description: "Complete Norwegian sentences",
+    title: "Ruby Round",
+    description: "Complete Norwegian Sentences",
     exercise: "context",
   }),
   Object.freeze({
     reward: "sapphire",
-    title: "Sapphire round",
-    description: "Recall words and listen",
+    title: "Sapphire Round",
+    description: "Recall Words and Listen",
     exercise: "recall",
   }),
 ]);
@@ -192,6 +193,15 @@ let wordGameA0ReinforcementQuestionCount = 0;
 // listed even if later answered correctly, since it was still worth a
 // second look.
 let wordGameSessionMissedWords = new Set();
+// How many questions into the round each word was last shown, keyed by
+// dictionary entry. Used only to space out filler review questions once a
+// round's word budget is spent (see pickWordGameSessionFillerWord) — a
+// word's very first appearance counts as a turn too, so a review pool built
+// from a handful of already-correct words favors whichever one has gone
+// longest without a repeat, rather than drawing uniformly at random and
+// risking an A-B-A-B pattern. Reset alongside the other per-round state.
+let wordGameSessionWordLastShownTurn = new Map();
+let wordGameSessionTurnCounter = 0;
 
 function getDailyPracticeDateKey(date = new Date()) {
   const year = date.getFullYear();
@@ -278,6 +288,61 @@ function replaceDailyPracticeState(remoteState) {
   renderLandingDailyQuests();
 
   return normalized;
+}
+
+// Longest run of consecutive correct answers ever reached in the Word Game
+// (My Stats' "Longest Word Streak") — distinct from streak.js's day streak,
+// which counts calendar days rather than words. A single number rather than
+// a normalized object like dailyPractice's, since there's nothing else to
+// track alongside it.
+function loadBestWordStreakState() {
+  try {
+    const raw = Number(
+      window.localStorage?.getItem(BEST_WORD_STREAK_STORAGE_KEY),
+    );
+    return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
+  } catch (_error) {
+    return 0;
+  }
+}
+
+function saveBestWordStreakState(longest, { syncRemote = true } = {}) {
+  const normalized =
+    Number.isFinite(longest) && longest > 0 ? Math.floor(longest) : 0;
+  try {
+    window.localStorage?.setItem(
+      BEST_WORD_STREAK_STORAGE_KEY,
+      String(normalized),
+    );
+  } catch (_error) {
+    // Private browsing/storage restrictions should not block the game.
+  }
+
+  // Let myWordsAuth.js know the record changed, so it can sync to Firestore
+  // when a user is signed in. syncRemote is false when the change came from
+  // a remote merge, to avoid immediately writing it back.
+  window.dispatchEvent(
+    new CustomEvent("best-word-streak:updated", {
+      detail: { longest: normalized, syncRemote },
+    }),
+  );
+
+  return normalized;
+}
+
+// Called every time correctStreak advances — a no-op unless it's a new
+// personal best, the same "only ever grows" shape as streak.js's
+// longestCount.
+function recordWordStreak(streakValue) {
+  if (streakValue > loadBestWordStreakState()) {
+    saveBestWordStreakState(streakValue);
+  }
+}
+
+// Applied when a remote (Firestore) value should become the local truth —
+// a fresh sign-in merge, or a live update from another signed-in device.
+function replaceBestWordStreakState(remoteLongest) {
+  return saveBestWordStreakState(remoteLongest, { syncRemote: false });
 }
 
 function getDailyPracticeProgress(state = loadDailyPracticeState()) {
@@ -438,7 +503,7 @@ const GAME_MODES = Object.freeze({
     isEligible: () => true,
     matchesStructuredMode: (structuredMode) => structuredMode === "cloze",
     freePlayProbability: () => 0.5,
-    instructionText: () => "Choose the missing word",
+    instructionText: () => "Choose the Missing Word",
     // Moved verbatim from startWordGame's old inline cloze branch — same
     // fallback-to-forward-flashcard behavior on every failure path,
     // preserved exactly per the "don't change the fallback quirk" call.
@@ -554,7 +619,7 @@ const GAME_MODES = Object.freeze({
     matchesStructuredMode: (structuredMode) => structuredMode === "listening",
     freePlayProbability: (ctx) =>
       interpolateByAbility(ctx.ability, LISTENING_PROBABILITY) ?? 0.25,
-    instructionText: () => "Listen and choose the meaning",
+    instructionText: () => "Listen and Choose the Meaning",
     // True dictation: no English shown at all, nothing to gate on (unlike
     // cloze/reverse's typed variants, which need a saved sentence
     // translation as the learner's only semantic anchor) — the audio itself
@@ -580,7 +645,7 @@ const GAME_MODES = Object.freeze({
       structuredMode === "reverse" || ctx.forceTypedReverse,
     freePlayProbability: (ctx) =>
       interpolateByAbility(ctx.ability, REVERSE_FLASHCARD_PROBABILITY) ?? 0.25,
-    instructionText: () => "Choose the Norwegian word",
+    instructionText: () => "Choose the Norwegian Word",
     async renderQuestion({
       wordObj,
       forceTypedReverse,
@@ -600,6 +665,7 @@ const GAME_MODES = Object.freeze({
         wordObj.ord,
         wordObj.CEFR,
         wordObj.gender,
+        wordObj.engelsk,
       );
       const allNorwegianOptions = shuffleArray([
         wordObj.ord,
@@ -612,19 +678,19 @@ const GAME_MODES = Object.freeze({
     },
   }),
   forward: Object.freeze({
-    instructionText: () => "Choose the English meaning",
+    instructionText: () => "Choose the English Meaning",
     async renderQuestion({ wordObj, fallbackTranslations }) {
       renderWordGameUI(wordObj, fallbackTranslations, false);
     },
   }),
   "typed-reverse": Object.freeze({
-    instructionText: () => "Type the Norwegian word",
+    instructionText: () => "Type the Norwegian Word",
   }),
   "typed-cloze": Object.freeze({
-    instructionText: () => "Type the word that completes the sentence",
+    instructionText: () => "Type the Word That Completes the Sentence",
   }),
   "typed-listening": Object.freeze({
-    instructionText: () => "Type the word you hear",
+    instructionText: () => "Type the Word You Hear",
   }),
 });
 
@@ -877,7 +943,20 @@ function getGameGenderLabel(gender) {
 function focusGameQuestionPrompt({ typed = false } = {}) {
   if (typed) return;
   window.requestAnimationFrame(() => {
-    const prompt = document.querySelector(".game-instruction, .game-word");
+    // .game-word (the actual word/sentence card) is present for every
+    // question type this function is called for, including Minimal Pairs,
+    // which has no .game-instruction at all — .game-instruction is only a
+    // fallback for some future render path that lacks a .game-word.
+    // Deliberately two separate lookups, not one combined
+    // ".game-word, .game-instruction" selector: a comma-separated selector
+    // list still returns whichever match comes first in *document* order,
+    // not selector-list order, and #game-session-stats (containing
+    // .game-instruction) always precedes .game-word-card in the DOM — so a
+    // combined selector would keep matching the instruction caption instead
+    // of the prompt itself every time both are present.
+    const prompt =
+      document.querySelector(".game-word") ||
+      document.querySelector(".game-instruction");
     if (!prompt) return;
     const suppliedTabIndex = prompt.hasAttribute("tabindex");
     if (!suppliedTabIndex) prompt.setAttribute("tabindex", "-1");
@@ -1216,7 +1295,7 @@ function syncGameEnglishControls() {
     ".game-english-toggle-label",
   );
   if (visibleLabel) {
-    visibleLabel.textContent = `${action} translations`;
+    visibleLabel.textContent = `${action} Translations`;
   }
 }
 
@@ -1328,7 +1407,7 @@ function renderStats(instructionHTML = "") {
 
   const progressHeading = isSessionRound
     ? getWordGameStatsProgressHeading()
-    : `Recent accuracy · ${Math.round(correctPercentage)}%`;
+    : `Recent Accuracy · ${Math.round(correctPercentage)}%`;
 
   const middleContentHTML = isSessionRound
     ? `<div class="game-stats-progress-wrapper" style="flex-grow: 1;">
@@ -1339,7 +1418,7 @@ function renderStats(instructionHTML = "") {
                style="position: absolute; top: 0; left: 0; bottom: 0; width: ${getWordGameSessionProgressPercent()}%;"></div>
              <p class="game-session-progress-label" id="game-session-progress"
                style="position: relative; width: 100%; text-align: center; margin: 0; user-select: none;
-                      font-family: 'Noto Sans', sans-serif; font-size: 14px; font-weight: 500;
+                      font-family: 'Source Sans 3', 'Noto Sans', sans-serif; font-size: 14px; font-weight: 500;
                       z-index: 1; color: var(--color-text-strong);">
                ${getWordGameSessionProgressLabel()}
              </p>
@@ -1355,7 +1434,7 @@ function renderStats(instructionHTML = "") {
                style="width: 0%; background-color: ${fillColor}; height: 100%;"></div>
              <p class="level-progress-label"
                style="position: absolute; width: 100%; text-align: center; margin: 0; user-select: none;
-                      font-family: 'Noto Sans', sans-serif; font-size: 18px; font-weight: 500;
+                      font-family: 'Source Sans 3', 'Noto Sans', sans-serif; font-size: 18px; font-weight: 500;
                       z-index: 1; color: ${fontColor}; line-height: 38px;">
                ${Math.round(correctPercentage)}%
              </p>
@@ -1374,13 +1453,13 @@ function renderStats(instructionHTML = "") {
     ? ""
     : `<div class="game-stats-correct-box">
          <p id="streak-count">${correctStreak}</p>
-         <p class="game-stat-label">In a row</p>
+         <p class="game-stat-label">In a Row</p>
        </div>`;
   const rightStatHTML = wordGamePlacementCalibrationEnabled
     ? ""
     : `<div class="game-stats-incorrect-box">
          <p id="review-count">${wordsToReview}</p>
-         <p class="game-stat-label">To review</p>
+         <p class="game-stat-label">To Review</p>
        </div>`;
 
   // Inject HTML only if it hasn't been rendered yet for this question.
@@ -1437,7 +1516,7 @@ function renderStats(instructionHTML = "") {
   if (progressHeadingEl) {
     progressHeadingEl.textContent = isSessionRound
       ? getWordGameStatsProgressHeading()
-      : `Recent accuracy · ${Math.round(correctPercentage)}%`;
+      : `Recent Accuracy · ${Math.round(correctPercentage)}%`;
   }
 
 }
@@ -1563,11 +1642,35 @@ function getDisplayedAnswer(value) {
   return normalizeGameWhitespace(String(value ?? "").split(",")[0]);
 }
 
+// Memoized per dictionary entry: results' rows are stable object references
+// reused for the lifetime of the page (confirmed by resolveMyWordsEntry's
+// own reference-equality check elsewhere), and this is now called for every
+// candidate in a full results scan on every single multiple-choice question
+// (see sharesEnglishSenseWith in fetchIncorrectTranslations/
+// fetchIncorrectNorwegianWords) — without caching, splitting and
+// normalizing ~31,000 engelsk strings on every question load measured at
+// ~250-300ms, a real stutter. A WeakMap costs nothing extra for the
+// synthetic {engelsk: "..."} wrapper objects those two functions also pass
+// in for the correct answer's own gloss — those just never hit the cache,
+// which is harmless.
+const englishEntryVariantsCache = new WeakMap();
+
 function getEnglishEntryVariants(entry) {
-  return String(entry?.engelsk ?? "")
+  if (entry && typeof entry === "object") {
+    const cached = englishEntryVariantsCache.get(entry);
+    if (cached) return cached;
+  }
+
+  const variants = String(entry?.engelsk ?? "")
     .split(",")
     .map(normalizeGameAnswer)
     .filter(Boolean);
+
+  if (entry && typeof entry === "object") {
+    englishEntryVariantsCache.set(entry, variants);
+  }
+
+  return variants;
 }
 
 // scripts.js (which defines escapeHTML) always loads before this file — see
@@ -3520,8 +3623,8 @@ function getDailyQuestMarkup(state) {
       const statusText = quest.complete
         ? "Earned"
         : quest.unlocked
-          ? "Ready · 10 words"
-          : `Complete ${DAILY_QUESTS[index - 1]?.reward ?? "the prior round"} first`;
+          ? "Ready · 10 Words"
+          : `Complete ${DAILY_QUESTS[index - 1]?.reward ?? "the prior round"} First`;
 
       return `
         <li class="game-daily-quest game-daily-quest--${status} game-daily-quest--${quest.reward}">
@@ -3546,10 +3649,10 @@ function renderLandingDailyQuests() {
   const complete = progress >= DAILY_QUESTS.length;
   const activeQuest = DAILY_QUESTS[progress] || null;
   const actionLabel = complete
-    ? "Start bonus round"
-    : `Start ${activeQuest.reward} round`;
+    ? "Start Bonus Round"
+    : `Start ${uppercaseFirstNorwegian(activeQuest.reward)} Round`;
   const nextHeading = complete
-    ? "Bonus round"
+    ? "Bonus Round"
     : `Next: ${activeQuest.title}`;
   const nextDescription = complete
     ? `A harder mix of context, listening, and typed recall · ${DAILY_QUEST_ROUND_TARGET} words`
@@ -3558,8 +3661,8 @@ function renderLandingDailyQuests() {
   container.innerHTML = `
     <div class="landing-daily-quests-header">
       <div>
-        <p class="landing-daily-quests-eyebrow">Daily vocabulary challenge</p>
-        <h3 id="landing-daily-quests-heading">Today’s quests</h3>
+        <p class="landing-daily-quests-eyebrow">Daily Vocabulary Challenge</p>
+        <h3 id="landing-daily-quests-heading">Today’s Quests</h3>
         <p class="landing-daily-quests-intro">Complete three increasingly challenging vocabulary rounds to earn an emerald, ruby, and sapphire.</p>
       </div>
       <strong class="landing-daily-quests-count">${progress} of ${DAILY_QUESTS.length}</strong>
@@ -3660,7 +3763,7 @@ function getWordStrengthFilterId(entry, now = Date.now()) {
 // ladder tiers and labels the landing dashboard uses.
 function getVocabStrengthFilterOptions() {
   return [
-    { id: VOCAB_UNPRACTICED_TIER_ID, label: "Not practiced yet" },
+    { id: VOCAB_UNPRACTICED_TIER_ID, label: "Not Practiced Yet" },
     ...VOCAB_LADDER_TIERS.map(({ id, label }) => ({ id, label })),
   ];
 }
@@ -3752,8 +3855,8 @@ function renderLandingProgressSummary() {
   container.innerHTML = `
     <div class="landing-progress-summary-header">
       <div>
-        <p class="landing-progress-summary-eyebrow">Your progress</p>
-        <h3 id="landing-progress-summary-heading">Vocabulary profile</h3>
+        <p class="landing-progress-summary-eyebrow">Your Progress</p>
+        <h3 id="landing-progress-summary-heading">Vocabulary Profile</h3>
       </div>
       <strong class="landing-progress-summary-count">${total.toLocaleString("en-US")} word${total === 1 ? "" : "s"}</strong>
     </div>
@@ -3761,7 +3864,7 @@ function renderLandingProgressSummary() {
     ${buildVocabProgressBarMarkup(counts, total)}
     <div class="landing-progress-summary-action">
       <span>${getVocabDueLabel(dueCount)}</span>
-      <button type="button" id="landing-progress-summary-btn">See full stats</button>
+      <button type="button" id="landing-progress-summary-btn">See Full Stats</button>
     </div>
   `;
 
@@ -3829,8 +3932,8 @@ function renderWordGameIntro() {
   const hasSavedMyWords =
     (window.MyWordsAPI?.getSavedEntries?.() ?? []).length > 0;
   const dailyButtonLabel = dailyComplete
-    ? "Start bonus round"
-    : `Start ${activeQuest.reward} round`;
+    ? "Start Bonus Round"
+    : `Start ${uppercaseFirstNorwegian(activeQuest.reward)} Round`;
   const morePracticeWasOpen = Boolean(
     document.querySelector(".game-more-practice")?.open,
   );
@@ -3845,7 +3948,7 @@ function renderWordGameIntro() {
         <div class="game-today-practice-heading-row">
           <div>
             <p class="game-today-practice-eyebrow">Recommended</p>
-            <h2 class="game-intro-heading" id="game-today-practice-heading">Today’s practice</h2>
+            <h2 class="game-intro-heading" id="game-today-practice-heading">Today’s Practice</h2>
           </div>
           <strong class="game-today-practice-count">${dailyProgress} / ${DAILY_QUESTS.length} rounds</strong>
         </div>
@@ -3868,8 +3971,8 @@ function renderWordGameIntro() {
 
       <section class="game-daily-quests" aria-labelledby="game-daily-quests-heading">
         <div class="game-daily-quests-heading-row">
-          <h3 id="game-daily-quests-heading">Daily quests</h3>
-          <span>Resets each day</span>
+          <h3 id="game-daily-quests-heading">Daily Quests</h3>
+          <span>Resets Each Day</span>
         </div>
         <ol class="game-daily-quest-list">
           ${getDailyQuestMarkup(dailyState)}
@@ -3877,7 +3980,7 @@ function renderWordGameIntro() {
       </section>
 
       <details class="game-more-practice"${morePracticeWasOpen ? " open" : ""}>
-        <summary>More practice options</summary>
+        <summary>More Practice Options</summary>
         <div class="game-more-practice-content">
           ${
             hasSavedMyWords
@@ -3885,7 +3988,7 @@ function renderWordGameIntro() {
           <section class="game-my-words-mix" aria-labelledby="game-my-words-mix-heading">
             <div class="game-option-heading-row">
               <div>
-                <h3 id="game-my-words-mix-heading">My Words in practice</h3>
+                <h3 id="game-my-words-mix-heading">My Words in Practice</h3>
                 <p>Saved words: <strong>${myWordsMixSummary}</strong></p>
               </div>
             </div>
@@ -3912,7 +4015,7 @@ function renderWordGameIntro() {
           <section class="game-custom-rounds" aria-labelledby="game-custom-rounds-heading">
             <div class="game-option-heading-row">
               <div>
-                <h3 id="game-custom-rounds-heading">Custom round</h3>
+                <h3 id="game-custom-rounds-heading">Custom Round</h3>
                 <p>Choose a length, or keep going.</p>
               </div>
             </div>
@@ -3926,7 +4029,7 @@ function renderWordGameIntro() {
                   data-count="${count}"
                 >
                   <span class="game-intro-option-count">${count}</span>
-                  <span class="game-intro-option-label">words</span>
+                  <span class="game-intro-option-label">Words</span>
                 </button>
               `,
               ).join("")}
@@ -3946,18 +4049,18 @@ function renderWordGameIntro() {
           <section class="game-secondary-drill" aria-labelledby="game-secondary-drill-heading">
             <div class="game-option-heading-row">
               <div>
-                <h3 id="game-secondary-drill-heading">Listening drill</h3>
+                <h3 id="game-secondary-drill-heading">Listening Drill</h3>
                 <p>Hear a word and choose between similar sounds.</p>
               </div>
               <button type="button" class="game-secondary-drill-btn" id="game-minimal-pairs-btn">
                 <i class="fas fa-headphones" aria-hidden="true"></i>
-                Minimal pairs
+                Minimal Pairs
               </button>
             </div>
           </section>
 
           <button type="button" id="retake-placement-btn" class="placement-retake-link">
-            Retake placement test
+            Retake Placement Test
           </button>
         </div>
       </details>
@@ -4144,7 +4247,7 @@ async function startMinimalPairsGame() {
   const allPairs = await loadMinimalPairsData();
   if (allPairs.length === 0) {
     renderMinimalPairsMessage(
-      "Couldn't load sound pairs",
+      "Couldn't Load Sound Pairs",
       "There was a problem loading this data — try again in a moment.",
     );
     return;
@@ -4239,9 +4342,9 @@ function renderMinimalPairQuestion() {
       openFeedbackDialog({
         source: "Word Game · Minimal Pairs",
         word: `${pair.word1} / ${pair.word2}`,
-        dialogTitle: "Report an issue with this pair",
+        dialogTitle: "Report an Issue With This Pair",
         categories: MINIMAL_PAIRS_FEEDBACK_CATEGORIES,
-        categoryQuestion: "What's wrong with this pair?",
+        categoryQuestion: "What's Wrong With This Pair?",
         detailsPlaceholder: "What's wrong with the audio or the words?",
         triggerElement: reportButton,
       });
@@ -4389,7 +4492,7 @@ function showMinimalPairsResults() {
   const missedListHTML = minimalPairsMissed.length
     ? `
     <div class="game-summary-missed">
-      <h3 class="game-summary-missed-heading">Pairs to revisit</h3>
+      <h3 class="game-summary-missed-heading">Pairs to Revisit</h3>
       <ul class="game-minimal-pairs-missed-list">
         ${minimalPairsMissed
           .map(
@@ -4410,13 +4513,13 @@ function showMinimalPairsResults() {
     <div class="game-summary-card">
       <div class="game-summary-hero">
         <span class="game-summary-check game-summary-check--listening" aria-hidden="true"><i class="fas fa-headphones"></i></span>
-        <p class="game-summary-eyebrow">Listening drill complete</p>
+        <p class="game-summary-eyebrow">Listening Drill Complete</p>
       </div>
-      <h2 class="game-summary-heading">Minimal Pairs complete!</h2>
+      <h2 class="game-summary-heading">Minimal Pairs Complete!</h2>
       <div class="game-summary-stats">
         <div class="game-summary-stat">
           <p class="game-summary-stat-value">${minimalPairsTotalPairs}</p>
-          <p class="game-summary-stat-label">Pairs mastered</p>
+          <p class="game-summary-stat-label">Pairs Mastered</p>
         </div>
         <div class="game-summary-stat">
           <p class="game-summary-stat-value">${minimalPairsQuestionsAnswered}</p>
@@ -4429,10 +4532,10 @@ function showMinimalPairsResults() {
       </div>
       <div class="game-summary-actions">
         <button type="button" class="game-summary-primary-btn" id="game-minimal-pairs-again-btn">
-          Play again
+          Play Again
         </button>
         <button type="button" class="game-summary-secondary-btn" id="game-minimal-pairs-back-btn">
-          Practice menu
+          Practice Menu
         </button>
       </div>
       ${missedListHTML}
@@ -4486,7 +4589,7 @@ function getWordGameStatsProgressHeading() {
   const prefix = wordGamePlacementCalibrationEnabled
     ? "Placement"
     : wordGameIsTodayPracticeRound
-      ? DAILY_QUESTS[wordGameDailyQuestIndex]?.reward || "Practice"
+      ? uppercaseFirstNorwegian(DAILY_QUESTS[wordGameDailyQuestIndex]?.reward) || "Practice"
       : wordGameIsBonusRound
         ? "Bonus"
         : "Round";
@@ -4647,7 +4750,7 @@ function updateEndSessionToolbarButtonVisibility() {
 function renderWordGameLoadingMessage() {
   setGameContainerHTML(`
     <div class="game-intro-card">
-      <h2 class="game-intro-heading">Loading vocabulary</h2>
+      <h2 class="game-intro-heading">Loading Vocabulary</h2>
       <p class="game-today-practice-note">The vocabulary data hasn't finished loading yet — try again in a moment.</p>
     </div>
   `);
@@ -4702,6 +4805,8 @@ function beginWordGameRound(mode, targetWords = 0, options = {}) {
   wordGameSessionCorrectWords = new Set();
   wordGameSessionIntroducedWords = new Set();
   wordGameSessionMissedWords = new Set();
+  wordGameSessionWordLastShownTurn = new Map();
+  wordGameSessionTurnCounter = 0;
   wordGameSessionQuestionsAnswered = 0;
   wordGameSessionCorrectAnswers = 0;
   wordGameSessionIncorrectAnswers = 0;
@@ -4730,11 +4835,29 @@ function resetTodayPracticeRoundAfterMidnight(wordObj) {
   // A round left open across midnight belongs to the new day's ten-word
   // goal. Reset only round counters; the already-rendered question remains
   // answerable and becomes the first word of the new day.
+  //
+  // wordGameDailyQuestIndex must be recomputed here too, the same way
+  // beginWordGameRound() derives it from getDailyPracticeProgress() when a
+  // round starts fresh. Without this, a round that crossed midnight kept
+  // serving/scoring the *previous* day's quest (e.g. Sapphire's recall
+  // questions) while completeDailyQuestRound() — which reads today's
+  // completedRounds from storage at the round's actual completion time —
+  // would award whatever gem today's fresh state says comes next (always
+  // Emerald, since no round has completed today yet), leaving the reward
+  // and the practice the learner actually did out of sync.
   wordGameTodayPracticeDate = today;
+  wordGameDailyQuestIndex = Math.min(
+    DAILY_QUESTS.length - 1,
+    Math.max(0, getDailyPracticeProgress()),
+  );
   wordGameSessionTarget = DAILY_QUEST_ROUND_TARGET;
   wordGameSessionCorrectWords = new Set();
   wordGameSessionIntroducedWords = new Set(wordObj ? [wordObj] : []);
   wordGameSessionMissedWords = new Set();
+  wordGameSessionTurnCounter = wordObj ? 1 : 0;
+  wordGameSessionWordLastShownTurn = new Map(
+    wordObj ? [[wordObj, wordGameSessionTurnCounter]] : [],
+  );
   wordGameSessionQuestionsAnswered = 0;
   wordGameSessionCorrectAnswers = 0;
   wordGameSessionIncorrectAnswers = 0;
@@ -4752,14 +4875,19 @@ function resetTodayPracticeRoundAfterMidnight(wordObj) {
   correctStreak = 0;
 }
 
-// Shown when a bounded round hits its word-count target, or when the
-// learner manually ends an infinite round via the "Quit & see stats"
-// button (see renderStats). wordGameRoundActive is cleared so the next
-// entry into the word game shows the intro screen again.
-function showWordGameRoundSummary() {
-  stopAllAudio();
-  hideAllBanners();
-
+// Computes and persists everything about a round's outcome that must
+// survive regardless of whether the round-summary screen actually gets
+// shown — streak credit, daily-quest completion, the ability estimate, and
+// analytics — then clears the round-active state. Called both when a round
+// finishes normally (showWordGameRoundSummary, below) and when it's
+// abandoned by navigating away (abandonWordGameRoundIfActive) so leaving
+// mid-round — including on the very question that would have completed the
+// round — never silently drops streak/quest credit the learner already
+// earned by answering enough questions correctly. Per-question progress
+// (WordStrengthAPI/SRS) is unaffected either way: recordWordStrengthResult
+// already persists to localStorage immediately after every single answer,
+// not just at round end.
+function settleWordGameRoundOutcome() {
   const elapsedSeconds = Math.max(
     1,
     Math.round((Date.now() - wordGameSessionStartedAt) / 1000),
@@ -4782,9 +4910,6 @@ function showWordGameRoundSummary() {
   const completedRoundTarget = wordGameSessionTarget;
   const completedDailyQuestIndex = wordGameDailyQuestIndex;
   const roundWasComplete = isWordGameRoundComplete();
-  if (roundWasComplete) {
-    playChime(roundCompleteChime, CHIME_PRIORITY.roundComplete);
-  }
   const earnedDailyQuest =
     wasTodayPractice && roundWasComplete
       ? wordGameEarnedDailyQuest || completeDailyQuestRound()
@@ -4854,6 +4979,52 @@ function showWordGameRoundSummary() {
     wordGameSessionCorrectWords.size >= 10
       ? window.StreakAPI?.recordActivity?.()
       : null;
+
+  return {
+    timeLabel,
+    accuracy,
+    wasBoundedRound,
+    wasTodayPractice,
+    wasBonusRound,
+    wasPlacementRound,
+    completedRoundMode,
+    completedRoundTarget,
+    completedDailyQuestIndex,
+    roundWasComplete,
+    earnedDailyQuest,
+    wordsPracticedCount,
+    streakResult,
+  };
+}
+
+// Shown when a bounded round hits its word-count target, or when the
+// learner manually ends an infinite round via the "Quit & see stats"
+// button (see renderStats). wordGameRoundActive is cleared so the next
+// entry into the word game shows the intro screen again.
+function showWordGameRoundSummary() {
+  stopAllAudio();
+  hideAllBanners();
+
+  const {
+    timeLabel,
+    accuracy,
+    wasBoundedRound,
+    wasTodayPractice,
+    wasBonusRound,
+    wasPlacementRound,
+    completedRoundMode,
+    completedRoundTarget,
+    completedDailyQuestIndex,
+    roundWasComplete,
+    earnedDailyQuest,
+    wordsPracticedCount,
+    streakResult,
+  } = settleWordGameRoundOutcome();
+
+  if (roundWasComplete) {
+    playChime(roundCompleteChime, CHIME_PRIORITY.roundComplete);
+  }
+
   const streakBannerHTML =
     streakResult && streakResult.count > 0
       ? `
@@ -4879,7 +5050,7 @@ function showWordGameRoundSummary() {
     !wasPlacementRound && missedWords.length > 0
       ? `
     <details class="game-summary-missed">
-      <summary>Words to review <span>${missedWords.length}</span></summary>
+      <summary>Words to Review <span>${missedWords.length}</span></summary>
       <div class="word-list-table-container game-summary-missed-table-container">
         <table class="word-list-table" aria-label="Words to review">
           <tbody id="game-summary-missed-table-body"></tbody>
@@ -4895,36 +5066,36 @@ function showWordGameRoundSummary() {
       : "";
 
   const nextDailyQuest = DAILY_QUESTS[getDailyPracticeProgress()];
-  let primaryActionLabel = "Keep practicing";
+  let primaryActionLabel = "Keep Practicing";
   let primaryActionKind = "repeat";
   if (wasTodayPractice && roundWasComplete) {
     primaryActionLabel = nextDailyQuest
-      ? `Start ${nextDailyQuest.reward} round`
-      : "Start bonus round";
+      ? `Start ${uppercaseFirstNorwegian(nextDailyQuest.reward)} Round`
+      : "Start Bonus Round";
     primaryActionKind = "next-daily";
   } else if (wasTodayPractice) {
     const quest = DAILY_QUESTS[completedDailyQuestIndex];
-    primaryActionLabel = `Repeat ${quest?.reward ?? "daily"} round`;
+    primaryActionLabel = `Repeat ${uppercaseFirstNorwegian(quest?.reward) || "Daily"} Round`;
     primaryActionKind = "repeat-daily";
   } else if (wasBonusRound) {
-    primaryActionLabel = "Repeat bonus round";
+    primaryActionLabel = "Repeat Bonus Round";
     primaryActionKind = "repeat-bonus";
   } else if (wasPlacementRound) {
     primaryActionLabel = roundWasComplete
-      ? "Start today’s practice"
-      : "Continue placement";
+      ? "Start Today’s Practice"
+      : "Continue Placement";
     primaryActionKind = roundWasComplete ? "next-daily" : "placement";
   } else if (completedRoundMode === "session") {
-    primaryActionLabel = `Repeat ${completedRoundTarget}-word round`;
+    primaryActionLabel = `Repeat ${completedRoundTarget}-Word Round`;
   }
 
   const summaryEyebrow = earnedDailyQuest
-    ? "Daily quest complete"
+    ? "Daily Quest Complete"
     : wasPlacementRound
-      ? "Your first practice session"
+      ? "Your First Practice Session"
       : roundWasComplete
-        ? "Practice complete"
-        : "Practice summary";
+        ? "Practice Complete"
+        : "Practice Summary";
   const summaryIcon = earnedDailyQuest
     ? getDailyQuestGemMarkup(earnedDailyQuest.reward, "game-summary-reward-gem")
     : `<span class="game-summary-check" aria-hidden="true"><i class="fas fa-check"></i></span>`;
@@ -4937,22 +5108,22 @@ function showWordGameRoundSummary() {
       </div>
       <h2 class="game-summary-heading">${
         earnedDailyQuest
-          ? `${uppercaseFirstNorwegian(earnedDailyQuest.reward)} earned!`
+          ? `${uppercaseFirstNorwegian(earnedDailyQuest.reward)} Earned!`
           : wasBonusRound && roundWasComplete
-            ? "Bonus round complete!"
+            ? "Bonus Round Complete!"
           : wasPlacementRound && roundWasComplete
-            ? "First practice complete!"
+            ? "First Practice Complete!"
           : wasPlacementRound
-            ? "Good start!"
+            ? "Good Start!"
           : wasBoundedRound && roundWasComplete
-            ? "Round complete!"
-            : "Nice work!"
+            ? "Round Complete!"
+            : "Nice Work!"
       }</h2>
       ${streakBannerHTML}
       <div class="game-summary-stats">
         <div class="game-summary-stat">
           <p class="game-summary-stat-value">${wordsPracticedCount}</p>
-          <p class="game-summary-stat-label">${wasPlacementRound ? "Words assessed" : "Words practiced"}</p>
+          <p class="game-summary-stat-label">${wasPlacementRound ? "Words Assessed" : "Words Practiced"}</p>
         </div>
         <div class="game-summary-stat">
           <p class="game-summary-stat-value">${accuracy}%</p>
@@ -4972,7 +5143,7 @@ function showWordGameRoundSummary() {
           ${primaryActionLabel}
         </button>
         <button type="button" class="game-summary-secondary-btn" id="game-summary-menu-btn">
-          Practice menu
+          Practice Menu
         </button>
       </div>
       ${missedWordsHTML}
@@ -5263,6 +5434,7 @@ async function startWordGame() {
         randomWordObj.ord,
         randomWordObj.CEFR,
         randomWordObj.gender,
+        randomWordObj.engelsk,
       );
 
       const allNorwegianOptions = shuffleArray([
@@ -5429,11 +5601,58 @@ function ensureUniqueDisplayedValues(translations, preserveFullValue = false) {
   return uniqueTranslations;
 }
 
+// A candidate can never become a multiple-choice distractor if it shares a
+// documented English sense with the correct answer — if the dictionary
+// itself glosses two words the same way, picking one over the other isn't a
+// wrong answer, it's an ambiguous question. Checked against every sense on
+// both sides (not just the displayed first one), reusing the same
+// getEnglishEntryVariants signal getClozeSynonymForms/
+// getTypedMorphologyCandidateEntries already trust to decide "these entries
+// mean the same thing" for grading typed answers. Always folded into the
+// base eligible pool every distractor tier draws from (see
+// fetchIncorrectTranslations/fetchIncorrectNorwegianWords) — including the
+// final catch-all tier — so no widening step can ever let a synonym back
+// in; this is the one constraint here that's never relaxed.
+function sharesEnglishSenseWith(entry, correctVariants) {
+  if (correctVariants.size === 0) return false;
+  return getEnglishEntryVariants(entry).some((variant) =>
+    correctVariants.has(variant),
+  );
+}
+
+function getDisplayedGlossWordCount(displayedText) {
+  const trimmed = normalizeGameWhitespace(displayedText);
+  return trimmed ? trimmed.split(" ").length : 0;
+}
+
+// Unlike sharesEnglishSenseWith, this is a quality preference, not a safety
+// constraint — see fetchIncorrectTranslations' eligibleQualityMatched. A
+// word-count gap of more than 1 is what actually produces the
+// eliminate-without-knowing-any-Norwegian distractors ("mad cow disease" as
+// an option next to a plain one-word gloss): the mismatch has nothing to do
+// with word class — an ordinary single Norwegian noun can have a long
+// idiomatic English gloss same as any other — so word-class compatibility
+// alone never catches it. A small tolerance still allows ordinary variation
+// ("form" vs. a two-word gloss) without letting through a wildly
+// mismatched phrase.
+function isGlossLengthCloseEnough(candidateDisplayed, correctWordCount) {
+  return (
+    Math.abs(getDisplayedGlossWordCount(candidateDisplayed) - correctWordCount) <=
+    1
+  );
+}
+
 function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
   const correctDisplayedTranslation = getDisplayedAnswer(correctTranslation);
   const correctIdentity = normalizeGameAnswer(correctDisplayedTranslation);
   const isCapitalized = startsWithUppercaseLetter(correctDisplayedTranslation);
   const targetWordClass = WordClass.getWordClass(gender);
+  const correctVariants = new Set(
+    getEnglishEntryVariants({ engelsk: correctTranslation }),
+  );
+  const correctWordCount = getDisplayedGlossWordCount(
+    correctDisplayedTranslation,
+  );
   const displayedTranslationsSet = new Set([correctIdentity]);
   const incorrectTranslations = [];
 
@@ -5448,18 +5667,31 @@ function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
     }
   };
 
-  const eligible = results.filter((entry) => {
+  // Safety only (never relaxed): not the correct word itself, matching
+  // capitalization, not vulgar/single-letter, and — the new guarantee —
+  // not a documented synonym of the correct answer. Every tier below draws
+  // from this pool, all the way down to the final catch-all.
+  const eligibleBase = results.filter((entry) => {
     const displayedTranslation = getDisplayedAnswer(entry?.engelsk);
     return (
       displayedTranslation &&
       normalizeGameAnswer(displayedTranslation) !== correctIdentity &&
       startsWithUppercaseLetter(displayedTranslation) === isCapitalized &&
-      !isExcludedFromRandomSelection(entry.ord)
+      !isExcludedFromRandomSelection(entry.ord) &&
+      !sharesEnglishSenseWith(entry, correctVariants)
     );
   });
 
+  // Safety + quality: additionally close in gloss length. Used for every
+  // tier except the final one, which exists purely to guarantee four
+  // options always render — see the module-level "always 4" contract in
+  // fetchIncorrectNorwegianWords' comment below.
+  const eligibleQualityMatched = eligibleBase.filter((entry) =>
+    isGlossLengthCloseEnough(getDisplayedAnswer(entry.engelsk), correctWordCount),
+  );
+
   collect(
-    eligible.filter(
+    eligibleQualityMatched.filter(
       (entry) =>
         entry.CEFR === currentCEFR &&
         WordClass.hasCompatibleGender(gender, entry.gender),
@@ -5467,28 +5699,56 @@ function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
   );
   if (incorrectTranslations.length < 3) {
     collect(
-      eligible.filter((entry) =>
+      eligibleQualityMatched.filter((entry) =>
         WordClass.hasCompatibleGender(gender, entry.gender),
       ),
     );
   }
   if (incorrectTranslations.length < 3) {
     collect(
-      eligible.filter(
+      eligibleQualityMatched.filter(
         (entry) => WordClass.getWordClass(entry.gender) === targetWordClass,
       ),
     );
   }
-  if (incorrectTranslations.length < 3) collect(eligible);
+  // Final catch-all: word class and gloss length both dropped, but the
+  // synonym exclusion baked into eligibleBase is still in force. This is
+  // what makes "always exactly 4 options, never a shared-sense distractor"
+  // a guarantee rather than a best effort — the pool here is effectively
+  // the whole dictionary minus the correct word's own synonyms, so running
+  // short only happens if nearly every entry in the dictionary shares a
+  // sense with the correct word, which doesn't happen in practice.
+  if (incorrectTranslations.length < 3) collect(eligibleBase);
 
   return incorrectTranslations;
 }
 
-function fetchIncorrectNorwegianWords(correctWord, CEFR, gender) {
+// correctEnglish is the correct word's own raw engelsk field (all
+// comma-separated senses, not just the displayed first one) — needed to
+// build the same synonym-exclusion guarantee fetchIncorrectTranslations
+// has, mirrored onto this direction: a Norwegian-word option can never be
+// offered as wrong if the dictionary glosses it the same way as the
+// correct word. No word-count/length filter is needed here the way
+// fetchIncorrectTranslations needs one for English glosses — Norwegian
+// multi-word expressions already live in their own "expression" word
+// class, so the existing class-compatibility filtering below already keeps
+// them from mixing with ordinary single-word answers.
+//
+// "Always exactly 4 options, never a shared-sense distractor" is the
+// contract both this function and fetchIncorrectTranslations hold to: the
+// synonym exclusion is folded into eligible below, which every tier —
+// including the final catch-all — draws from, so it can never be
+// bypassed by widening. Running short of 3 distractors would require
+// nearly the whole dictionary to share a sense with the correct word,
+// which doesn't happen in practice.
+function fetchIncorrectNorwegianWords(correctWord, CEFR, gender, correctEnglish) {
   const correctDisplay = getPrimaryNorwegianForm(correctWord);
   const correctIdentity = normalizeGameAnswer(correctDisplay);
   const correctIsCapitalized = startsWithUppercaseLetter(correctDisplay);
   const targetWordClass = WordClass.getWordClass(gender);
+  const correctVariants = new Set(
+    getEnglishEntryVariants({ engelsk: correctEnglish }),
+  );
 
   const collect = (pool, seen, incorrectWords) => {
     for (const entry of shuffleArray([...pool])) {
@@ -5508,7 +5768,8 @@ function fetchIncorrectNorwegianWords(correctWord, CEFR, gender) {
     return (
       word &&
       normalizeGameAnswer(word) !== correctIdentity &&
-      !isExcludedFromRandomSelection(entry.ord)
+      !isExcludedFromRandomSelection(entry.ord) &&
+      !sharesEnglishSenseWith(entry, correctVariants)
     );
   });
 
@@ -5723,6 +5984,18 @@ function enableGameControls() {
 
   if (nextButton) {
     nextButton.disabled = false;
+    // Moves focus onto Next the moment it becomes usable — same rationale,
+    // and the same call, as the Minimal Pairs answer handler already uses
+    // (see its own comment): the browser's own Enter/Space then advances,
+    // no separate keydown listener required. Also fixes a real, visible
+    // side effect of focusGameQuestionPrompt() giving the word/sentence
+    // card a programmatic tabindex="-1" on load: clicking an answer card
+    // doesn't reliably move DOM focus away from it in every browser
+    // (Safari, notably, doesn't focus a <button> on click at all), so
+    // without this, that focus — and any focus ring a browser insists on
+    // drawing despite outline:none — can sit stranded on the word/sentence
+    // card through the entire post-answer state instead of moving on.
+    nextButton.focus();
   }
 
   if (starButton && typeof window.MyWordsAPI?.toggle === "function") {
@@ -5808,9 +6081,9 @@ function renderGameTeachingReveal({
     ? morphologyNearMiss.message
     : isCorrect
       ? nearMiss
-        ? `Meaning correct — check the spelling: ${normalizedAnswer}`
+        ? `Meaning Correct — Check the Spelling: ${normalizedAnswer}`
         : `Correct — ${normalizedAnswer}`
-      : `Not quite — ${normalizedAnswer}`;
+      : `Not Quite — ${normalizedAnswer}`;
   const contextHTML = !isCloze && normalizedSentence
     ? `<button type="button" class="game-teaching-sentence" aria-label="Play sentence audio">${escapeGameHTML(normalizedSentence)}</button>`
     : "";
@@ -6724,6 +6997,7 @@ async function handleTranslationClick(
       }
     });
     correctStreak++; // Increment the streak
+    recordWordStreak(correctStreak);
     updateRecentAnswers(
       true,
       wordObj,
@@ -7605,13 +7879,13 @@ function getMyWordsShareValueLabel(share) {
 function getMyWordsShareDescriptionLabel(share) {
   switch (share) {
     case 0.25:
-      return "one in four";
+      return "One in Four";
     case 0.5:
-      return "every other";
+      return "Every Other";
     case 0.75:
-      return "three in four";
+      return "Three in Four";
     default:
-      return "no boost";
+      return "No Boost";
   }
 }
 
@@ -7814,6 +8088,32 @@ function getFillerReviewCandidates() {
   );
 }
 
+// Narrows filler candidates down to whichever have gone the *longest*
+// without appearing this round (a tie — e.g. neither has been shown yet —
+// keeps every tied entry, letting the weighted draw in
+// pickWordGameSessionFillerWord decide between them as usual). A small
+// review pool (2-3 already-correct words is typical early in a round with a
+// couple of misses) otherwise falls into an A-B-A-B pattern under pure
+// random weighting: excludePreviousFillerWord only ever rules out the one
+// word shown immediately before, so nothing stops the draw after that from
+// landing right back on it. Restricting the pool to its stalest members
+// first is a small, well-established idea (the spacing effect applies
+// within a single session, not just across days) that turns filler review
+// into "whichever correct word has waited longest," which reads as
+// purposeful rather than repetitive even when the pool itself is tiny.
+function getStalestFillerCandidates(entries) {
+  let oldestTurn = Infinity;
+  for (const entry of entries) {
+    const turn = wordGameSessionWordLastShownTurn.get(entry) ?? -Infinity;
+    if (turn < oldestTurn) oldestTurn = turn;
+  }
+  return entries.filter(
+    (entry) =>
+      (wordGameSessionWordLastShownTurn.get(entry) ?? -Infinity) ===
+      oldestTurn,
+  );
+}
+
 // Once a session round has introduced its full target word count, every
 // further "new question" slot reviews one already-introduced word instead
 // of pulling a brand-new one from the dictionary — this is what keeps a
@@ -7825,9 +8125,10 @@ function pickWordGameSessionFillerWord() {
   const reviewCandidates = getFillerReviewCandidates();
 
   if (reviewCandidates.length > 0) {
-    return pickPrioritizedGameWord(reviewCandidates, {
-      useAbilityWeight: false,
-    });
+    return pickPrioritizedGameWord(
+      getStalestFillerCandidates(reviewCandidates),
+      { useAbilityWeight: false },
+    );
   }
 
   // Nothing correct yet to review (e.g. every introduced word so far has
@@ -7839,8 +8140,20 @@ function pickWordGameSessionFillerWord() {
   );
 
   return introduced.length > 0
-    ? pickPrioritizedGameWord(introduced, { useAbilityWeight: false })
+    ? pickPrioritizedGameWord(getStalestFillerCandidates(introduced), {
+        useAbilityWeight: false,
+      })
     : null;
+}
+
+// The single point where "this word is now the one on screen" gets
+// recorded for staleness purposes — called for every word fetchRandomWord
+// hands back, not just filler picks, since a word can enter the filler
+// review pool via its ordinary introduction and needs an honest turn number
+// to be ranked against fairly the first time filler kicks in.
+function recordWordShownThisTurn(entry) {
+  wordGameSessionTurnCounter += 1;
+  wordGameSessionWordLastShownTurn.set(entry, wordGameSessionTurnCounter);
 }
 
 async function fetchRandomWord() {
@@ -7869,6 +8182,7 @@ async function fetchRandomWord() {
         );
       }
       previousWord = fillerEntry.ord;
+      recordWordShownThisTurn(fillerEntry);
       if (!wordGamePlacementCalibrationEnabled) {
         recordMyWordsMixQuestion(isMyWordsEntry(fillerEntry));
       }
@@ -7999,6 +8313,7 @@ async function fetchRandomWord() {
   }
 
   previousWord = selectedEntry.ord;
+  recordWordShownThisTurn(selectedEntry);
 
   if (wordGameRoundActive) {
     wordGameSessionIntroducedWords.add(selectedEntry);
@@ -8426,24 +8741,22 @@ function resetGame(resetStreak = true) {
 }
 
 // Navigating away from Word Game mid-round (via #mode-nav, a landing-page
-// card, browser back/forward, etc.) doesn't run the round-summary flow —
-// only quitting or finishing a round did, until now — so wordGameRoundActive
-// and its body class were left stuck true on every other page until the
-// visitor happened to re-enter Word Game (whose own entry branch in
-// handleTypeChange resets it as a side effect). Called from
-// handleTypeChange (scripts.js) whenever the new type isn't "word-game", so
-// leaving always ends whatever round was in progress, the same way quitting
-// or finishing one already does.
+// card, browser back/forward, etc.) doesn't show the round-summary screen —
+// only quitting or finishing a round did that, and still does. But it now
+// settles the round the same way showWordGameRoundSummary() does (streak
+// credit, daily-quest completion, ability state, analytics), just without
+// rendering anything, so a round the learner had actually already earned
+// credit for — e.g. correctly answering all 10 words, then closing the tab
+// instead of clicking back into Word Game to see the summary — isn't
+// silently lost. wordGameRoundActive and its body class were left stuck
+// true on every other page until the visitor happened to re-enter Word Game
+// before this existed; settleWordGameRoundOutcome() clears both as part of
+// its own bookkeeping. Called from handleTypeChange (scripts.js) whenever
+// the new type isn't "word-game", so leaving always ends whatever round was
+// in progress, the same way quitting or finishing one already does.
 function abandonWordGameRoundIfActive() {
   if (!wordGameRoundActive) return;
-  if (wordGameIsPlacementRound) {
-    window.trackEvent?.("placement_abandoned", {
-      content_type: "placement",
-      questions_answered: wordGameSessionQuestionsAnswered,
-    });
-  }
-  wordGameRoundActive = false;
-  updateEndSessionToolbarButtonVisibility();
+  settleWordGameRoundOutcome();
 }
 window.abandonWordGameRoundIfActive = abandonWordGameRoundIfActive;
 
@@ -8502,6 +8815,10 @@ window.DailyQuestAPI = Object.freeze({
   getState: loadDailyPracticeState,
   replaceState: replaceDailyPracticeState,
   normalize: normalizeDailyPracticeState,
+});
+window.BestWordStreakAPI = Object.freeze({
+  getState: loadBestWordStreakState,
+  replaceState: replaceBestWordStreakState,
 });
 window.WordGameHelpers = Object.freeze({
   playWordAudio,
