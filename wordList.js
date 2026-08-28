@@ -1307,25 +1307,43 @@
   /**
    * Create the vocabulary table.
    */
-  function createWordListTable() {
+  function createSharedWordList(entries = [], options = {}) {
     const tableContainer = document.createElement("div");
-    tableContainer.className = "word-list-table-container";
+    tableContainer.className = [
+      "word-list-table-container",
+      options.containerClass,
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     const table = document.createElement("table");
     table.className = "word-list-table";
-    table.setAttribute("aria-label", "Vocabulary entries");
+    table.setAttribute("aria-label", options.ariaLabel || "Vocabulary entries");
 
-    // Rows are added later in batches of 100.
     const tableBody = document.createElement("tbody");
-    tableBody.id = "word-list-table-body";
+    if (options.bodyId) tableBody.id = options.bodyId;
+
+    const fragment = document.createDocumentFragment();
+    entries.forEach((entry) => fragment.appendChild(createWordListRow(entry)));
+    tableBody.appendChild(fragment);
 
     table.appendChild(tableBody);
 
     tableContainer.appendChild(table);
 
-    tableContainer.addEventListener("scroll", handleWordListScroll);
+    if (options.onScroll) {
+      tableContainer.addEventListener("scroll", options.onScroll);
+    }
 
     return tableContainer;
+  }
+
+  function createWordListTable() {
+    // The main My Words list fills this shared shell in lazy-loaded batches.
+    return createSharedWordList([], {
+      bodyId: "word-list-table-body",
+      onScroll: handleWordListScroll,
+    });
   }
 
   function appendNextWordListBatch() {
@@ -2102,6 +2120,7 @@
   // rather than duplicating that markup.
   window.WordListAPI = Object.freeze({
     createRow: createWordListRow,
+    createList: createSharedWordList,
     // Resolves a WordStrengthAPI entryId back to its dictionary entry —
     // used by myStats.js, which only has entryIds (from iterating
     // WordStrengthAPI.getAll()) and needs the full entry to render a row

@@ -88,7 +88,7 @@
 .word-list-table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0 12px;
+  border-spacing: 0 8px;
   text-align: left;
   table-layout: auto;
 }
@@ -99,11 +99,11 @@
  */
 .word-list-row {
   cursor: pointer;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(13, 58, 105, 0.08);
   transition:
     background-color 0.2s ease,
-    transform 0.2s ease;
+    box-shadow 0.2s ease;
 }
 
 .word-list-row:focus {
@@ -113,12 +113,14 @@
 .word-list-row:focus-visible {
   box-shadow:
     0 0 0 3px var(--color-interactive),
-    0 4px 10px rgba(0, 0, 0, 0.1);
+    0 1px 3px rgba(13, 58, 105, 0.08);
 }
 
 .word-list-row td {
   background-color: var(--color-surface);
-  padding: 15px 25px;
+  border-bottom: 1px solid var(--color-wash-blue-border);
+  border-top: 1px solid var(--color-wash-blue-border);
+  padding: 11px 14px;
   transition: background-color 0.2s ease;
 }
 
@@ -130,15 +132,17 @@
 }
 
 .word-list-row td:first-child {
-  border-radius: 12px 0 0 12px;
+  border-left: 1px solid var(--color-wash-blue-border);
+  border-radius: 10px 0 0 10px;
 }
 
 .word-list-row td:last-child {
-  border-radius: 0 12px 12px 0;
+  border-right: 1px solid var(--color-wash-blue-border);
+  border-radius: 0 10px 10px 0;
 }
 
 .word-list-row:hover td {
-  background-color: var(--color-wash-blue);
+  background-color: var(--color-wash-blue-pale);
 }
 
 .word-list-controls {
@@ -343,9 +347,9 @@
 .word-list-norwegian {
   color: var(--color-ink); /* Matches the headword, not a link */
   font-family: "Source Serif 4", "Noto Serif", serif;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1.5;
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.3;
 }
 .word-list-word-link {
   color: inherit;
@@ -364,9 +368,9 @@
 .word-list-english {
   color: var(--color-text-strong);
   font-family: "Source Serif 4", "Noto Serif", serif;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.4;
+  font-size: 14px;
+  font-weight: 450;
+  line-height: 1.35;
 }
 
 /*
@@ -525,29 +529,19 @@
     margin-top: 10px;
   }
 
-  :is(#word-list, .game-summary-missed, .my-stats-trouble)
-    .word-list-row
-    .word-list-norwegian {
+  .word-list-row .word-list-norwegian {
     font-size: 14px;
     padding: 6px;
   }
 
-  :is(#word-list, .game-summary-missed, .my-stats-trouble)
-    .word-list-row
-    .word-list-english {
+  .word-list-row .word-list-english {
     font-size: 14px;
     padding: 6px;
   }
 
-  :is(#word-list, .game-summary-missed, .my-stats-trouble)
-    .word-list-row
-    .word-list-class,
-  :is(#word-list, .game-summary-missed, .my-stats-trouble)
-    .word-list-row
-    .word-list-level,
-  :is(#word-list, .game-summary-missed, .my-stats-trouble)
-    .word-list-row
-    .word-list-strength {
+  .word-list-row .word-list-class,
+  .word-list-row .word-list-level,
+  .word-list-row .word-list-strength {
     padding: 2px;
   }
 
@@ -566,9 +560,7 @@
     padding: 2px 5px;
   }
 
-  :is(#word-list, .game-summary-missed, .my-stats-trouble)
-    .word-list-row
-    .word-list-favorite {
+  .word-list-row .word-list-favorite {
     padding: 2px;
   }
 
@@ -686,18 +678,6 @@ p.word-list-empty-copy {
   min-height: 40px;
 }
 
-#word-list .word-list-table {
-  border-spacing: 0 10px;
-}
-
-#word-list .word-list-row {
-  box-shadow: 0 3px 10px rgba(13, 58, 105, 0.09);
-}
-
-#word-list .word-list-row td {
-  padding: 14px 18px;
-}
-
 #word-list .word-list-empty-state {
   background: var(--color-wash-blue-pale);
   border: 1px solid var(--color-wash-blue-border);
@@ -749,5 +729,124 @@ p.word-list-empty-copy {
 @media (max-width: 1024px) {
   :is(#word-list, .game-summary-missed, .my-stats-trouble) .word-list-table {
     border-spacing: 0 8px;
+  }
+}
+
+/* One responsive vocabulary-list component is used by My Words, My Stats,
+   and the round summary. Keep all small-screen layout decisions here so the
+   three surfaces cannot drift apart. */
+@media (max-width: 768px) {
+  .word-list-table-container {
+    padding-inline: 0;
+  }
+
+  .word-list-table {
+    border-spacing: 0 7px;
+    display: block;
+  }
+
+  .word-list-table tbody {
+    display: block;
+  }
+
+  .word-list-row {
+    background: var(--color-surface);
+    border: 1px solid var(--color-wash-blue-border);
+    border-radius: 10px;
+    box-sizing: border-box;
+    box-shadow: 0 1px 2px rgba(13, 58, 105, 0.06);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    margin-bottom: 7px;
+    padding: 9px 10px;
+    width: 100%;
+  }
+
+  .word-list-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .word-list-row td {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  .word-list-row td:first-child,
+  .word-list-row td:last-child {
+    border: 0;
+    border-radius: 0;
+  }
+
+  .word-list-row:hover td {
+    background: transparent;
+  }
+
+  .word-list-row .word-list-norwegian {
+    font-size: 15px;
+    grid-column: 1;
+    grid-row: 1;
+    line-height: 1.25;
+    padding: 0 8px 2px 0;
+    width: auto;
+  }
+
+  .word-list-row .word-list-english {
+    color: var(--color-text-muted);
+    font-family: "Source Sans 3", "Noto Sans", sans-serif;
+    font-size: 12.5px;
+    grid-column: 1;
+    grid-row: 2;
+    line-height: 1.25;
+    padding: 0 8px 0 0;
+    width: auto;
+  }
+
+  .word-list-row .word-list-class,
+  .word-list-row .word-list-level,
+  .word-list-row .word-list-strength {
+    align-self: center;
+    grid-row: 1 / span 2;
+    padding: 0 3px;
+    width: auto;
+  }
+
+  .word-list-row .word-list-class {
+    grid-column: 2;
+  }
+
+  .word-list-row .word-list-level {
+    grid-column: 3;
+  }
+
+  .word-list-row .word-list-strength {
+    display: none;
+  }
+
+  .word-list-row .word-list-favorite {
+    align-self: center;
+    grid-column: 4;
+    grid-row: 1 / span 2;
+    padding: 0 0 0 3px;
+    width: auto;
+  }
+
+  .word-list-class-badge,
+  .word-list-level .game-cefr-label {
+    font-size: 11px !important;
+    line-height: 1.1;
+    min-width: 0;
+    padding: 3px 5px !important;
+  }
+
+  .word-list-favorite-button {
+    font-size: 16px;
+    height: 36px;
+    width: 36px;
+  }
+
+  .alt-spelling {
+    font-size: 0.82em;
   }
 }

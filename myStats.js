@@ -236,22 +236,10 @@
       return card;
     }
 
-    const tableContainer = document.createElement("div");
-    tableContainer.className =
-      "word-list-table-container my-stats-trouble-table-container";
-
-    const table = document.createElement("table");
-    table.className = "word-list-table";
-    table.setAttribute("aria-label", "Words you've missed the most");
-
-    const tbody = document.createElement("tbody");
-    const fragment = document.createDocumentFragment();
-    troubleEntries.forEach((entry) => {
-      fragment.appendChild(window.WordListAPI.createRow(entry));
+    const tableContainer = window.WordListAPI.createList(troubleEntries, {
+      ariaLabel: "Words you've missed the most",
+      containerClass: "my-stats-trouble-table-container",
     });
-    tbody.appendChild(fragment);
-    table.appendChild(tbody);
-    tableContainer.appendChild(table);
     card.appendChild(tableContainer);
 
     return card;

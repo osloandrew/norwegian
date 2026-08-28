@@ -156,6 +156,23 @@ function clearVocabularyLoadingState() {
   document.getElementById("main-content")?.removeAttribute("aria-busy");
 }
 
+function initializeResponsiveStrengthFilterLabel() {
+  const defaultOption = document.querySelector(
+    '#strength-select option[value=""]',
+  );
+  if (!defaultOption) return;
+
+  const mobileQuery = window.matchMedia("(max-width: 600px)");
+  const updateLabel = () => {
+    defaultOption.textContent = mobileQuery.matches
+      ? "Strength"
+      : "Any Strength";
+  };
+
+  updateLabel();
+  mobileQuery.addEventListener?.("change", updateLabel);
+}
+
 function normalizeSearchText(value) {
   return String(value ?? "")
     .normalize("NFC")
@@ -5072,6 +5089,7 @@ function deferUntilNeeded(loader) {
 // Initialization of the dictionary data and event listeners
 window.onload = function () {
   initializeNavigation();
+  initializeResponsiveStrengthFilterLabel();
 
   const initialURL = new URL(window.location.href);
   const initialType = initialURL.searchParams.get("type");

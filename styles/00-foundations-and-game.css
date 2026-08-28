@@ -1481,24 +1481,6 @@ li {
   width: 100%;
 }
 
-/* focusGameQuestionPrompt() (wordGame.js) gives .game-word a programmatic
-   tabindex="-1" on every question load purely so screen readers announce
-   it -- not a real interactive control, so no visible ring should ever
-   render here (see the general [tabindex="-1"]:focus rule near the top of
-   this file). Restated here, specifically and covering both :focus and
-   :focus-visible, because unlike that rule's usual small-caption targets,
-   .game-word is the large, highly visible word/sentence card -- any
-   browser- or OS-forced default ring on it reads as an ugly box around the
-   whole question rather than a subtle indicator elsewhere. Does not apply
-   to .game-word-audio's own :focus-visible ring (styled further down),
-   which *is* a real interactive control (click/Enter replays pronunciation)
-   and should keep its visible ring. */
-.game-word[tabindex="-1"]:focus,
-.game-word[tabindex="-1"]:focus-visible {
-  outline: none;
-  box-shadow: none;
-}
-
 /* Sentences (cloze) land in this tier far more often than single vocab
    words do — a smaller step down from the default than "long" so a
    typical short sentence doesn't still read at near-heading size. */
@@ -2580,12 +2562,8 @@ p.game-summary-stat-label {
   border-color: var(--color-ink-active);
 }
 
-/* Lists the specific words missed during the round — populated from
-   wordGameSessionMissedWords in showWordGameRoundSummary() (wordGame.js).
-   Rows themselves are real .word-list-row rows (built via WordListAPI, see
-   wordGame.js) so they match the Word List / My Words pages exactly; this
-   just gives the wrapping table a shorter cap than the page-wide 70vh on
-   .word-list-table-container, since it sits inside a summary card. */
+/* The shared vocabulary-list component renders words missed during the
+   round. This section only controls its summary disclosure and height. */
 .game-summary-missed {
   border-top: 1px solid var(--color-border);
   margin: 0;

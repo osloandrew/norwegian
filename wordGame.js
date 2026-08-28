@@ -202,6 +202,12 @@ let wordGameSessionMissedWords = new Set();
 // risking an A-B-A-B pattern. Reset alongside the other per-round state.
 let wordGameSessionWordLastShownTurn = new Map();
 let wordGameSessionTurnCounter = 0;
+// A correct answer suppresses only that exact dictionary-entry/exercise pair,
+// leaving the same word available for genuinely different practice. This is
+// round-scoped and deliberately separate from failure recovery: a queued miss
+// still renders its required mode directly until the learner clears it.
+let wordGameSuccessfulPairHistory = new Map();
+const WORD_GAME_SUCCESSFUL_PAIR_QUESTION_GAP = 10;
 
 function getDailyPracticeDateKey(date = new Date()) {
   const year = date.getFullYear();
@@ -940,34 +946,22 @@ function getGameGenderLabel(gender) {
   return String(gender ?? "");
 }
 
-function focusGameQuestionPrompt({ typed = false } = {}) {
+function announceGameQuestionPrompt({ typed = false } = {}) {
   if (typed) return;
   window.requestAnimationFrame(() => {
-    // .game-word (the actual word/sentence card) is present for every
-    // question type this function is called for, including Minimal Pairs,
-    // which has no .game-instruction at all — .game-instruction is only a
-    // fallback for some future render path that lacks a .game-word.
-    // Deliberately two separate lookups, not one combined
-    // ".game-word, .game-instruction" selector: a comma-separated selector
-    // list still returns whichever match comes first in *document* order,
-    // not selector-list order, and #game-session-stats (containing
-    // .game-instruction) always precedes .game-word-card in the DOM — so a
-    // combined selector would keep matching the instruction caption instead
-    // of the prompt itself every time both are present.
+    // Announce each freshly rendered prompt without moving DOM focus onto
+    // the large word/sentence panel. Programmatically focusing that inert
+    // panel made several WebKit/browser accessibility combinations paint a
+    // persistent blue rectangle around the whole question, even though CSS
+    // suppressed its outline. The existing live region provides the same
+    // screen-reader cue while leaving keyboard focus ready for the answers.
     const prompt =
       document.querySelector(".game-word") ||
       document.querySelector(".game-instruction");
-    if (!prompt) return;
-    const suppliedTabIndex = prompt.hasAttribute("tabindex");
-    if (!suppliedTabIndex) prompt.setAttribute("tabindex", "-1");
-    prompt.focus({ preventScroll: true });
-    if (!suppliedTabIndex) {
-      prompt.addEventListener(
-        "blur",
-        () => prompt.removeAttribute("tabindex"),
-        { once: true },
-      );
-    }
+    const status = document.getElementById("game-answer-status");
+    if (!prompt || !status) return;
+    status.textContent =
+      prompt.getAttribute("aria-label") || prompt.textContent.trim();
   });
 }
 
@@ -2389,8 +2383,11 @@ function getQuestionModeCandidates(wordObj) {
 }
 
 function getQuestionPairPlan(wordObj) {
+  const candidates = getQuestionModeCandidates(wordObj).filter(
+    ({ mode }) => !isSuccessfulQuestionPairSuppressed(wordObj, mode),
+  );
   return window.WordGamePolicy.buildQuestionPairPlan(
-    getQuestionModeCandidates(wordObj),
+    candidates,
     {
       predict: (mode) => predictQuestionSuccess(wordObj, mode),
       challengeFit: getQuestionPairChallengeFit,
@@ -2399,6 +2396,33 @@ function getQuestionPairPlan(wordObj) {
       urgencyWeight: (mode) =>
         getQuestionSkillUrgencyWeight(wordObj, mode),
     },
+  );
+}
+
+function recordSuccessfulQuestionPair(
+  wordObj,
+  mode,
+  answeredQuestions = wordGameSessionQuestionsAnswered,
+) {
+  if (!wordObj || !mode) return;
+  let modes = wordGameSuccessfulPairHistory.get(wordObj);
+  if (!modes) {
+    modes = new Map();
+    wordGameSuccessfulPairHistory.set(wordObj, modes);
+  }
+  modes.set(mode, Math.max(0, Number(answeredQuestions) || 0));
+}
+
+function isSuccessfulQuestionPairSuppressed(
+  wordObj,
+  mode,
+  answeredQuestions = wordGameSessionQuestionsAnswered,
+) {
+  const correctAt = wordGameSuccessfulPairHistory.get(wordObj)?.get(mode);
+  if (!Number.isFinite(correctAt)) return false;
+  return (
+    Math.max(0, Number(answeredQuestions) || 0) - correctAt <
+    WORD_GAME_SUCCESSFUL_PAIR_QUESTION_GAP
   );
 }
 
@@ -4390,7 +4414,7 @@ function renderMinimalPairQuestion() {
     .getElementById("game-next-word-button")
     ?.addEventListener("click", advanceToNextMinimalPair);
 
-  focusGameQuestionPrompt();
+  announceGameQuestionPrompt();
   playMinimalPairWordAudio(targetWord);
 }
 
@@ -4613,7 +4637,6 @@ function getWordGameSessionProgressLabel() {
     wordGameSessionTarget,
   );
   const pendingReview = incorrectWordQueue.length;
-
   if (typeof hasActiveA0Support === "function" && hasActiveA0Support()) {
     const a0CorrectSoFar = Math.min(
       wordGameSessionCorrectAnswers,
@@ -4807,6 +4830,7 @@ function beginWordGameRound(mode, targetWords = 0, options = {}) {
   wordGameSessionMissedWords = new Set();
   wordGameSessionWordLastShownTurn = new Map();
   wordGameSessionTurnCounter = 0;
+  wordGameSuccessfulPairHistory = new Map();
   wordGameSessionQuestionsAnswered = 0;
   wordGameSessionCorrectAnswers = 0;
   wordGameSessionIncorrectAnswers = 0;
@@ -4858,6 +4882,7 @@ function resetTodayPracticeRoundAfterMidnight(wordObj) {
   wordGameSessionWordLastShownTurn = new Map(
     wordObj ? [[wordObj, wordGameSessionTurnCounter]] : [],
   );
+  wordGameSuccessfulPairHistory = new Map();
   wordGameSessionQuestionsAnswered = 0;
   wordGameSessionCorrectAnswers = 0;
   wordGameSessionIncorrectAnswers = 0;
@@ -5042,20 +5067,14 @@ function showWordGameRoundSummary() {
 
   const missedWords = Array.from(wordGameSessionMissedWords);
   const MAX_MISSED_WORDS_SHOWN = 20;
-  // The rows themselves are real Word List / My Words table rows (built by
-  // window.WordListAPI.createRow after this markup is inserted, see below)
-  // so missed words look and behave exactly like they do on those pages —
-  // same word-class/CEFR badges, strength meter, and My Words star.
+  // The complete list is built by the same shared component as My Words and
+  // My Stats, including its responsive layout and row interactions.
   const missedWordsHTML =
     !wasPlacementRound && missedWords.length > 0
       ? `
     <details class="game-summary-missed">
       <summary>Words to Review <span>${missedWords.length}</span></summary>
-      <div class="word-list-table-container game-summary-missed-table-container">
-        <table class="word-list-table" aria-label="Words to review">
-          <tbody id="game-summary-missed-table-body"></tbody>
-        </table>
-      </div>
+      <div id="game-summary-missed-list"></div>
       ${
         missedWords.length > MAX_MISSED_WORDS_SHOWN
           ? `<p class="game-summary-missed-more">+ ${missedWords.length - MAX_MISSED_WORDS_SHOWN} more</p>`
@@ -5150,18 +5169,18 @@ function showWordGameRoundSummary() {
     </div>
   `);
 
-  // Built as real DOM rows via WordListAPI rather than a template string,
-  // since createWordListRow() returns <tr> elements (with click-to-open
-  // and My Words star listeners already wired up), not HTML text.
-  const missedWordsTableBody = document.getElementById(
-    "game-summary-missed-table-body",
-  );
-  if (missedWordsTableBody && window.WordListAPI?.createRow) {
-    const fragment = document.createDocumentFragment();
-    missedWords.slice(0, MAX_MISSED_WORDS_SHOWN).forEach((wordObj) => {
-      fragment.appendChild(window.WordListAPI.createRow(wordObj));
-    });
-    missedWordsTableBody.appendChild(fragment);
+  // Replace the template placeholder with the shared vocabulary-list DOM.
+  const missedWordsList = document.getElementById("game-summary-missed-list");
+  if (missedWordsList && window.WordListAPI?.createList) {
+    missedWordsList.replaceWith(
+      window.WordListAPI.createList(
+        missedWords.slice(0, MAX_MISSED_WORDS_SHOWN),
+        {
+          ariaLabel: "Words to review",
+          containerClass: "game-summary-missed-table-container",
+        },
+      ),
+    );
   }
 
   document
@@ -5292,10 +5311,21 @@ async function startWordGame() {
   // A miss enters an explicit short-term relearning queue. Its availability
   // is measured in intervening answered questions, while WordStrengthAPI's
   // timestamped record independently ensures it remains due across sessions.
-  const firstWordInQueue = incorrectWordQueue.find(
+  const readyWordInQueue = incorrectWordQueue.find(
     (queued) =>
       wordGameSessionQuestionsAnswered >= queued.availableAfterQuestion,
   );
+  // Once every promised distinct word has been introduced, do not recycle an
+  // already-successful word/mode pair merely to wait out a recovery timer.
+  // The unresolved failure is the real remaining work and still has to be
+  // answered correctly before completion; it may come forward early only at
+  // this tail-of-round boundary when ordinary pair planning has no new work.
+  const firstWordInQueue =
+    readyWordInQueue ??
+    (wordGameMode === "session" &&
+    wordGameSessionIntroducedWords.size >= wordGameSessionTarget
+      ? incorrectWordQueue[0] ?? null
+      : null);
 
   if (firstWordInQueue) {
     currentWordQueueType = "relearning";
@@ -5987,14 +6017,9 @@ function enableGameControls() {
     // Moves focus onto Next the moment it becomes usable — same rationale,
     // and the same call, as the Minimal Pairs answer handler already uses
     // (see its own comment): the browser's own Enter/Space then advances,
-    // no separate keydown listener required. Also fixes a real, visible
-    // side effect of focusGameQuestionPrompt() giving the word/sentence
-    // card a programmatic tabindex="-1" on load: clicking an answer card
-    // doesn't reliably move DOM focus away from it in every browser
-    // (Safari, notably, doesn't focus a <button> on click at all), so
-    // without this, that focus — and any focus ring a browser insists on
-    // drawing despite outline:none — can sit stranded on the word/sentence
-    // card through the entire post-answer state instead of moving on.
+    // no separate keydown listener required. It also gives every answered
+    // question a consistent keyboard destination in browsers such as Safari,
+    // which do not always focus a button after it is clicked.
     nextButton.focus();
   }
 
@@ -6394,7 +6419,7 @@ function renderWordGameUI(
   attachGameControls(wordObj, false);
 
   renderStats(instructionText); // Ensure stats are drawn once DOM is fully loaded
-  focusGameQuestionPrompt({ typed: isTyped });
+  announceGameQuestionPrompt({ typed: isTyped });
   if (!isReverse) {
     playWordAudio(wordObj);
   }
@@ -6589,7 +6614,7 @@ async function renderClozeGameUI(
   attachGameControls(wordObj, true);
 
   renderStats(instructionText); // Ensure stats bar is present after cloze loads too
-  focusGameQuestionPrompt({ typed: useTypedRecall });
+  announceGameQuestionPrompt({ typed: useTypedRecall });
 }
 
 // Shared by the cloze sentence and the reverse-flashcard prompt: both
@@ -7026,6 +7051,11 @@ async function handleTranslationClick(
       wordGameSessionQuestionsAnswered++;
       wordGameSessionCorrectAnswers++;
       wordGameSessionCorrectWords.add(wordObj);
+      recordSuccessfulQuestionPair(
+        wordObj,
+        answerMode,
+        wordGameSessionQuestionsAnswered,
+      );
     }
     if (isCloze) {
       completeClozeSentence(clozeSentence); // see isCloze in the flag map above
@@ -8732,6 +8762,7 @@ function replaceAbilityState(remoteScore, remotePlacementCompleted) {
 function resetGame(resetStreak = true) {
   currentWordQueueType = null;
   previousWord = null;
+  wordGameSuccessfulPairHistory = new Map();
   if (resetStreak) {
     correctStreak = 0; // Reset the streak if the flag is true
   }

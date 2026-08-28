@@ -60,6 +60,8 @@ vm.runInContext(
     var REVERSE_FLASHCARD_PROBABILITY = { B2: 0.45 };
     var BANNED_WORD_CLASSES = [];
     var currentQuestionPrediction = null;
+    var wordGameSuccessfulPairHistory = new Map();
+    var WORD_GAME_SUCCESSFUL_PAIR_QUESTION_GAP = 10;
   `,
   context,
 );
@@ -347,6 +349,36 @@ assert.ok(
   Math.abs(
     noAudioCandidates.reduce((sum, item) => sum + item.weight, 0) - 1,
   ) < 1e-12,
+);
+
+// A successful dictionary-entry/exercise pair is removed from pair planning
+// for ten intervening questions, while other modes for the word remain.
+vm.runInContext("wordGameSessionQuestionsAnswered = 5", context);
+context.recordSuccessfulQuestionPair(nearAbility, "forward");
+assert.equal(
+  context.isSuccessfulQuestionPairSuppressed(nearAbility, "forward"),
+  true,
+);
+assert.ok(
+  context
+    .getQuestionPairPlan(nearAbility)
+    .candidates.every((candidate) => candidate.mode !== "forward"),
+);
+assert.ok(context.getQuestionPairPlan(nearAbility).candidates.length > 0);
+vm.runInContext("wordGameSessionQuestionsAnswered = 14", context);
+assert.equal(
+  context.isSuccessfulQuestionPairSuppressed(nearAbility, "forward"),
+  true,
+);
+vm.runInContext("wordGameSessionQuestionsAnswered = 15", context);
+assert.equal(
+  context.isSuccessfulQuestionPairSuppressed(nearAbility, "forward"),
+  false,
+);
+assert.ok(
+  context
+    .getQuestionPairPlan(nearAbility)
+    .candidates.some((candidate) => candidate.mode === "forward"),
 );
 
 assert.match(

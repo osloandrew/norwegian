@@ -87,14 +87,14 @@ def wait_for_fonts(page: Page) -> None:
 
 
 # Chromium can rasterize an otherwise pixel-identical document to a height
-# one row taller or shorter depending on whether scripting is enabled
+# a few rows taller or shorter depending on whether scripting is enabled
 # (java_script_enabled=False for the static side), independent of any actual
 # DOM/CSS/text difference — confirmed by direct measurement: computed
 # widths, line counts, and even the couplet markup itself are identical
-# between the two sides when this happens. Tolerate that one-row rounding
-# gap by comparing only the shared region; anything beyond 1px, or any pixel
-# difference within the shared region, still fails.
-MAX_SIZE_ROUNDING_TOLERANCE = 1
+# between the two sides when this happens. Tolerate the observed three-row
+# rounding gap by comparing only the shared region; anything beyond 3px, or
+# any pixel difference within the shared region, still fails.
+MAX_SIZE_ROUNDING_TOLERANCE = 3
 
 
 def compare_png(left: bytes, right: bytes, label: str) -> None:
