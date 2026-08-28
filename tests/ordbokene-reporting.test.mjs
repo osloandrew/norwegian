@@ -15,7 +15,7 @@ test("the single Ordbokene fallback card reports its displayed headword", () => 
   );
   assert.match(
     source,
-    /class="report-issue-btn"[\s\S]*?flagMissingWordEntry\('\$\{escapedWord\}'\)[\s\S]*?Report missing word/,
+    /class="report-issue-btn"[\s\S]*?flagMissingWordEntry\('\$\{escapedWord\}'\)[\s\S]*?Report Missing Word/,
   );
 });
 

@@ -43,7 +43,7 @@ context.updateAbilityScore({}, false, "typed-reverse", 0);
 const afterTypedProductionMiss = vm.runInContext("abilityScore", context);
 assert.ok(afterTypedProductionMiss > afterRecognitionMiss);
 
-const summaryStart = source.indexOf("function showWordGameRoundSummary");
+const summaryStart = source.indexOf("function settleWordGameRoundOutcome");
 const summaryEnd = source.indexOf("async function startWordGame", summaryStart);
 const summarySource = source.slice(summaryStart, summaryEnd);
 assert.match(summarySource, /saveAbilityState\(\);/);

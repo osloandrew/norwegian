@@ -155,7 +155,7 @@ assert.deepEqual(
     ({ id, label }) => [id, label],
   ),
   [
-    ["unpracticed", "Not practiced yet"],
+    ["unpracticed", "Not Practiced Yet"],
     ["learning", "Learning"],
     ["developing", "Developing"],
     ["strengthening", "Strengthening"],

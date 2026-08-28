@@ -177,16 +177,16 @@ for (const ability of [100, 300, 500, 700, 900]) {
 runSection("function getGameInstructionText", "function getGamePromptLengthClass");
 
 for (const [mode, expected] of [
-  ["typed-reverse", "Type the Norwegian word"],
-  ["typed-cloze", "Type the word that completes the sentence"],
-  ["reverse", "Choose the Norwegian word"],
-  ["listening", "Listen and choose the meaning"],
-  ["cloze", "Choose the missing word"],
-  ["forward", "Choose the English meaning"],
+  ["typed-reverse", "Type the Norwegian Word"],
+  ["typed-cloze", "Type the Word That Completes the Sentence"],
+  ["reverse", "Choose the Norwegian Word"],
+  ["listening", "Listen and Choose the Meaning"],
+  ["cloze", "Choose the Missing Word"],
+  ["forward", "Choose the English Meaning"],
   // Anything unrecognized falls back to the forward-flashcard text, matching
   // the old switch's `default:` case.
-  [undefined, "Choose the English meaning"],
-  ["not-a-real-mode", "Choose the English meaning"],
+  [undefined, "Choose the English Meaning"],
+  ["not-a-real-mode", "Choose the English Meaning"],
 ]) {
   assert.equal(context.getGameInstructionText(mode), expected, `mode "${mode}"`);
 }

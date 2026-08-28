@@ -77,7 +77,7 @@ assert.match(
   /beginWordGameRound\("session", PLACEMENT_PRACTICE_WORD_COUNT/,
 );
 assert.match(wordGameSource, /PLACEMENT_CALIBRATION_ANSWER_COUNT = 7/);
-assert.match(wordGameSource, /First practice complete!/);
+assert.match(wordGameSource, /First Practice Complete!/);
 assert.match(
   wordGameSource,
   /const PLACEMENT_QUESTION_PLAN = Object\.freeze\(\[[\s\S]*?"listening"[\s\S]*?"typed-reverse"[\s\S]*?"typed-listening"[\s\S]*?\]\);/,

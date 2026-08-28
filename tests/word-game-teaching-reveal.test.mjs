@@ -16,8 +16,8 @@ assert.match(source, /data-state="question"/);
 assert.match(source, /id="game-pronunciation-slot"/);
 assert.match(source, /game-listening-prompt/);
 assert.match(source, /function getWordGameStatsProgressHeading/);
-assert.match(source, /<p class="game-stat-label">In a row<\/p>/);
-assert.match(source, /<p class="game-stat-label">To review<\/p>/);
+assert.match(source, /<p class="game-stat-label">In a Row<\/p>/);
+assert.match(source, /<p class="game-stat-label">To Review<\/p>/);
 assert.match(source, /renderGameTeachingReveal\(\{/);
 assert.doesNotMatch(source, /querySelector\("\.game-cefr-spacer"\)/);
 
@@ -53,7 +53,6 @@ assert.match(
   styles,
   /\.game-listening-prompt \.game-listening-icon\s*\{[\s\S]*?margin-bottom: 8px/,
 );
-assert.match(styles, /font-family: "Fraunces", Georgia/);
 assert.match(styles, /font-family: "Source Serif 4", Georgia/);
 assert.match(styles, /font-weight: 500 !important/);
 assert.match(styles, /\.game-progress-heading\s*\{/);
