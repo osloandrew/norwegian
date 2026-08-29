@@ -889,7 +889,7 @@ html.landing #landing-card {
 #landing-card p.landing-daily-quests-eyebrow {
   color: var(--color-text-slate);
   font-size: 14px !important;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1.2;
   margin: 0 0 3px;
@@ -1009,6 +1009,7 @@ html.landing #landing-card {
   color: var(--color-text-emphasis);
   font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 14px;
+  font-weight: 600;
 }
 
 .landing-daily-quests-action span {
@@ -1132,7 +1133,7 @@ html.landing #landing-card {
 #landing-card p.landing-progress-summary-eyebrow {
   color: var(--color-text-slate);
   font-size: 14px !important;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1.2;
   margin: 0 0 3px;
@@ -1227,7 +1228,7 @@ html.landing #landing-card {
 
 .landing-progress-legend-item strong {
   color: var(--color-text-emphasis);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .landing-progress-legend-dot {
@@ -1598,6 +1599,44 @@ p.my-stats-empty {
   border-color: var(--color-wash-blue-border);
 }
 
+.my-stats-danger-text {
+  color: var(--color-text-slate);
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.my-stats-danger-action {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 14px;
+}
+
+/* Outlined rather than filled — this is the one destructive control on the
+   page, not a call to action to compete with "Practice Now" above. */
+.my-stats-danger-btn {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-danger-border);
+  border-radius: 8px;
+  box-shadow: none;
+  color: var(--color-danger);
+  cursor: pointer;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 14px;
+}
+
+.my-stats-danger-btn:hover {
+  background-color: var(--color-danger-bg);
+}
+
+.my-stats-danger-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
 .my-stats-gems-tile p.game-summary-stat-value {
   font-size: 18px;
 }
@@ -1620,7 +1659,8 @@ p.my-stats-empty {
     font-size: 22px;
   }
 
-  .my-stats-overview-action .game-summary-primary-btn {
+  .my-stats-overview-action .game-summary-primary-btn,
+  .my-stats-danger-btn {
     width: 100%;
   }
 }

@@ -231,6 +231,96 @@
     window.location.reload();
   }
 
+  // Deliberately a narrower list than LOCAL_USER_DATA_KEYS above: "reset my
+  // progress" (myStats.js's Danger Zone button) means the learner's own
+  // vocabulary progress, not stories they bookmarked to read later or the
+  // show/hide-English display preference — neither of which the "learning"
+  // status this feature exists to clear away has anything to do with.
+  const PROGRESS_RESET_STORAGE_KEYS = [
+    window.MyWordsAPI.STORAGE_KEY,
+    window.WordStrengthAPI.STORAGE_KEY,
+    "norwegian-dictionary-streak-v1",
+    "norwegian-dictionary-ability-v1",
+    "norwegian-dictionary-game-level-v1",
+    "norwegian-dictionary-daily-practice-v2",
+    "norwegian-dictionary-best-word-streak-v1",
+  ];
+
+  // Wipes every word/streak/quest record this account has, remotely first
+  // (when signed in) and only then locally — reversing that order would let
+  // the next realtime sync tick pull the still-intact remote copy straight
+  // back down (mergeRemoteData treats "more progress" as authoritative, so a
+  // freshly-cleared local zero would just lose that race). Shard docs are
+  // set() to an empty payload rather than deleted: firestore.rules can't
+  // authorize a delete (its checks read request.resource.data, which is
+  // null on delete), and an empty payload satisfies the same write rule a
+  // normal progress push does. Throws (without touching local storage) if
+  // any remote write fails, so a partial failure can't masquerade as a
+  // completed reset — the caller is expected to surface that to the user.
+  async function resetAllProgress() {
+    const userId = currentUserId;
+
+    if (userId && db) {
+      const shardResets = [];
+      for (let index = 0; index < window.ProgressSharding.SHARD_COUNT; index++) {
+        const shardId = String(index).padStart(2, "0");
+        shardResets.push(
+          getProgressShardsRef(userId)
+            .doc(shardId)
+            .set({
+              schemaVersion: window.ProgressSharding.SCHEMA_VERSION,
+              payload: window.ProgressSharding.serializePayload(
+                window.ProgressSharding.emptyPayload(),
+              ),
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            }),
+        );
+      }
+      await trackWrite(
+        Promise.all(shardResets),
+        "Progress could not be reset.",
+      );
+
+      // abilityScore/placementCompleted are deleted outright (an account
+      // that's never taken the placement test has no such fields at all)
+      // rather than set to a placeholder, so a future sign-in treats this
+      // account exactly like a brand-new one for difficulty calibration.
+      await trackWrite(
+        getUserDocRef(userId).set(
+          {
+            abilityScore: firebase.firestore.FieldValue.delete(),
+            placementCompleted: firebase.firestore.FieldValue.delete(),
+            streak: {
+              count: 0,
+              longestCount: 0,
+              lastActiveDate: null,
+              graceUsed: false,
+            },
+            dailyPractice: window.DailyQuestAPI?.normalize?.(null) ?? {},
+            bestWordStreak: 0,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        ),
+        "Progress could not be reset.",
+      );
+
+      window.clearTimeout(progressPushTimeoutId);
+      window.clearTimeout(profilePushTimeoutId);
+      progressPushTimeoutId = null;
+      profilePushTimeoutId = null;
+      pendingShardPatches = {};
+      clearProgressDirty(userId);
+    }
+
+    try {
+      PROGRESS_RESET_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+    } catch (error) {
+      // Best-effort only — if storage is unavailable there's nothing to clear.
+    }
+    window.location.reload();
+  }
+
   function loadFirebaseScripts() {
     return FIREBASE_SCRIPT_URLS.reduce(
       (chain, { src, integrity }) =>
@@ -1488,5 +1578,13 @@
   // protecting from a cleared cache.
   window.SignInNudgeAPI = Object.freeze({
     maybeShow: maybeShowSignInNudge,
+  });
+
+  // Consumed by myStats.js's Danger Zone card — kept here rather than in
+  // that file because a full reset has to touch Firestore (when signed in)
+  // using this module's currentUserId/db/shard-ref plumbing, not just the
+  // local storage clearing myStats.js could do on its own.
+  window.ProgressResetAPI = Object.freeze({
+    resetAllProgress,
   });
 })();

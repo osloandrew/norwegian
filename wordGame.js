@@ -592,21 +592,39 @@ const GAME_MODES = Object.freeze({
       }
 
       const distractors = generateClozeDistractors(wordObj, clozeTarget);
-      if (distractors.length < 3) {
+      const choices =
+        distractors.length >= 3
+          ? prepareClozeChoices(wordObj, clozeTarget, distractors).choices
+          : [];
+
+      if (choices.length < 4) {
+        // Multiple-choice cloze isn't buildable for every word — an
+        // invariant noun like "ting" (same form in every slot it occupies)
+        // can leave too few same-slot dictionary alternatives to pick
+        // distractors from. Typed recall needs no distractors at all, so
+        // try it before giving up on testing this skill entirely, even
+        // though the earlier readiness check above didn't independently
+        // choose it. Skipping this rescue would silently fall back to an
+        // ordinary forward flashcard (a different skill) every time this
+        // word is drawn — which can never resolve a due/relearning debt on
+        // its *context* skill, so the word keeps winning selection
+        // priority on that debt while having no way to ever pay it off.
+        if (typedPredictionExercise) {
+          await renderClozeGameUI(
+            wordObj,
+            [],
+            correctChoice,
+            false,
+            clozeTarget,
+            true,
+            typedPredictionExercise,
+          );
+          return;
+        }
         console.warn(
-          "Not enough same-slot official distractors were found. Falling back to flashcard.",
+          "Not enough same-slot official distractors were found, and no typed fallback was available. Falling back to flashcard.",
           wordObj,
         );
-        renderWordGameUI(wordObj, fallbackTranslations, false);
-        return;
-      }
-
-      const { choices } = prepareClozeChoices(
-        wordObj,
-        clozeTarget,
-        distractors,
-      );
-      if (choices.length < 4) {
         renderWordGameUI(wordObj, fallbackTranslations, false);
         return;
       }
@@ -8870,10 +8888,20 @@ document.addEventListener("keydown", function (event) {
 
   // Number keys select the same four cards without adding any visible chrome
   // or changing the established layout. The buttons themselves remain fully
-  // usable with Tab, Enter, and Space.
-  if (gameActive && /^[1-4]$/.test(event.key)) {
+  // usable with Tab, Enter, and Space. event.code is checked first (falling
+  // back to event.key) because it reports the physical key position rather
+  // than the character it produces — on a layout like AZERTY, the unshifted
+  // top-row keys report punctuation as event.key, which would silently break
+  // this shortcut for those learners.
+  const digitCodeMatch = /^(?:Digit|Numpad)([1-4])$/.exec(event.code);
+  const digitKey = digitCodeMatch
+    ? digitCodeMatch[1]
+    : /^[1-4]$/.test(event.key)
+      ? event.key
+      : null;
+  if (gameActive && digitKey) {
     const card = document.querySelectorAll(".game-translation-card")[
-      Number(event.key) - 1
+      Number(digitKey) - 1
     ];
     if (card && !card.disabled) {
       event.preventDefault();
@@ -8882,17 +8910,34 @@ document.addEventListener("keydown", function (event) {
     return;
   }
 
-  if (event.key !== "Enter" || target instanceof HTMLButtonElement) return;
+  if (event.key !== "Enter") return;
 
   const nextWordButton = document.getElementById("game-next-word-button");
-  if (
+  const summaryRestartButton = document.getElementById(
+    "game-summary-restart-btn",
+  );
+  const advanceButton =
     nextWordButton &&
     !nextWordButton.disabled &&
     window.getComputedStyle(nextWordButton).display !== "none"
-  ) {
-    event.preventDefault();
-    nextWordButton.click();
-  }
+      ? nextWordButton
+      : summaryRestartButton;
+  if (!advanceButton) return;
+
+  // Any other focused button (replay sentence audio, star a word, "Practice
+  // Menu", ...) keeps its own native Enter behavior instead of also
+  // advancing — only bypass that for the button this shortcut controls.
+  if (target instanceof HTMLButtonElement && target !== advanceButton) return;
+
+  // Handled explicitly rather than left entirely to native Enter-activation:
+  // enableGameControls() focuses this button as soon as it's usable, but
+  // that focus can be set from inside a keydown handler for a *different*
+  // key (the 1-4 shortcuts above), and a subsequent Enter press isn't
+  // reliably wired to a button that became focused that way. The round
+  // summary screen's restart button is never auto-focused at all, so without
+  // this, Enter there had no target to activate.
+  event.preventDefault();
+  advanceButton.click();
 });
 
 // Static (not re-rendered per question), so it only needs wiring once, here

@@ -3690,7 +3690,7 @@ function displaySearchResults(
                     }
                     ${
                       result.CEFR
-                        ? `<p style="display: inline-flex; align-items: center; font-family: 'Source Sans 3', 'Noto Sans', sans-serif; font-weight: bold; text-transform: uppercase; font-size: 12px; color: var(--color-text-strong);"><i class="fa-solid fa-signal" style="margin-right: 5px;"></i><span style="text-align: center; min-width: 15px; display: inline-block; padding: 3px 7px; border-radius: var(--radius-control); background-color: ${getCefrColor(
+                        ? `<p style="display: inline-flex; align-items: center; font-family: 'Source Sans 3', 'Noto Sans', sans-serif; font-weight: 600; text-transform: uppercase; font-size: 12px; color: var(--color-text-strong);"><i class="fa-solid fa-signal" style="margin-right: 5px;"></i><span style="text-align: center; min-width: 15px; display: inline-block; padding: 3px 7px; border-radius: var(--radius-control); background-color: ${getCefrColor(
                             result.CEFR,
                           )};">${result.CEFR}</span><span style="margin-left: 6px; font-family: 'Source Sans 3', 'Noto Sans', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; color: var(--color-text-muted);">${getCefrLabel(
                             result.CEFR,

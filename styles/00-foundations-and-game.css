@@ -827,6 +827,7 @@ li {
 
 .game-teaching-outcome strong {
   display: block;
+  font-weight: 550;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -963,7 +964,7 @@ li {
   font-family: "Source Sans 3", "Noto Sans", sans-serif;
   padding: 3px 7px;
   font-size: 14px; /* Smaller font size */
-  font-weight: bold !important;
+  font-weight: 600 !important;
   letter-spacing: 0.02em;
   text-align: center;
   text-transform: uppercase;
@@ -2058,7 +2059,7 @@ li {
 }
 
 .game-daily-quest-status {
-  font-weight: 700;
+  font-weight: 600;
   margin-top: auto;
   text-transform: uppercase;
 }
