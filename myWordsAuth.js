@@ -176,23 +176,20 @@
   // Apple's WebKit engine, but only Safari gets the OS-level "true
   // standalone app" container — a Chrome/Firefox/Edge/Opera iOS icon added
   // via "Add to Home Screen" is just a bookmark that reopens in that
-  // browser's own UI, so none of the three signals above ever fire for it,
-  // and there's no other API to detect "launched from that bookmark"
-  // either. Those browsers share Safari's WebKit-level popup restrictions
-  // regardless, so signInWithPopup is just as unreliable there — routing
-  // them to the redirect flow unconditionally (not only when bookmarked)
-  // is the only way to cover the case this can't otherwise detect.
-  function isNonSafariIOSBrowser() {
-    return /iP(hone|od|ad)/.test(navigator.userAgent) &&
-      /CriOS|FxiOS|EdgiOS|OPiOS/.test(navigator.userAgent);
-  }
-
+  // browser's own UI, so none of the three signals above ever fire for it.
+  // A plain (non-bookmarked) tab in those browsers still has real window
+  // chrome to pop into, though — same WebKit engine as a plain Safari tab,
+  // where signInWithPopup already works — so it isn't routed to redirect
+  // here. That leaves the bookmarked case undetectable and still on
+  // signInWithPopup, but redirect has its own failure mode (Firebase's
+  // "missing initial state" error from storage partitioning across the
+  // authDomain redirect hop), so this isn't a strictly safer default for
+  // the case we can actually detect.
   function isStandaloneDisplayMode() {
     return (
       window.navigator.standalone === true ||
       (window.matchMedia?.("(display-mode: standalone)")?.matches ?? false) ||
-      launchedFromHomeScreen ||
-      isNonSafariIOSBrowser()
+      launchedFromHomeScreen
     );
   }
 
