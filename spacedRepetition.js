@@ -5,7 +5,7 @@
   // previous implementation stored a timeless integer from 0-5; these
   // records instead keep enough information to answer two separate
   // questions: how stable is this memory, and is it due for retrieval now?
-  const STORAGE_VERSION = 4;
+  const STORAGE_VERSION = 5;
   const SKILL_IDS = Object.freeze([
     "recognition",
     "production",
@@ -104,6 +104,7 @@
       successes: strength,
       successEvidence: strength,
       lapses: strength === 0 ? 1 : 0,
+      fastTrackConfidence: 0,
       updatedAt: 0,
     };
   }
@@ -150,6 +151,14 @@
       // "almost" answer contributes a fractional lapse while a complete
       // miss contributes one. Old integer records remain unchanged.
       lapses: Math.max(0, finiteNumber(value.lapses, 0)),
+      // Non-zero only between an ability-prior head start and its one
+      // delayed confirmation. Any subsequent answer clears it, so this can
+      // never become a permanent interval multiplier.
+      fastTrackConfidence: clamp(
+        finiteNumber(value.fastTrackConfidence, 0),
+        0,
+        1,
+      ),
       updatedAt: Math.max(
         0,
         finiteNumber(value.updatedAt, lastReviewedAt ?? 0),
@@ -385,10 +394,27 @@
     };
   }
 
-  function scheduleCorrect(record, now, evidenceWeight = 1) {
+  function scheduleCorrect(
+    record,
+    now,
+    evidenceWeight = 1,
+    {
+      initialStabilityDays = null,
+      minimumStabilityDays = null,
+      fastTrackConfidence = 0,
+    } = {},
+  ) {
     const evidence = clamp(finiteNumber(evidenceWeight, 1), 0.2, 1);
     if (!record) {
-      const stabilityDays = clamp(evidence, MIN_STABILITY_DAYS, 1);
+      const requestedInitialStability = finiteNumber(
+        initialStabilityDays,
+        evidence,
+      );
+      const stabilityDays = clamp(
+        Math.max(evidence, requestedInitialStability),
+        MIN_STABILITY_DAYS,
+        MAX_STABILITY_DAYS,
+      );
       return {
         state: "learning",
         stabilityDays,
@@ -399,6 +425,11 @@
         successes: 1,
         successEvidence: evidence,
         lapses: 0,
+        fastTrackConfidence: clamp(
+          finiteNumber(fastTrackConfidence, 0),
+          0,
+          1,
+        ),
         updatedAt: now,
       };
     }
@@ -452,8 +483,12 @@
         (fullStability - record.stabilityDays) * evidence;
     }
 
+    const requestedMinimumStability =
+      record.fastTrackConfidence > 0
+        ? finiteNumber(minimumStabilityDays, MIN_STABILITY_DAYS)
+        : MIN_STABILITY_DAYS;
     stabilityDays = clamp(
-      stabilityDays,
+      Math.max(stabilityDays, requestedMinimumStability),
       MIN_STABILITY_DAYS,
       MAX_STABILITY_DAYS,
     );
@@ -468,6 +503,10 @@
       repetitions: record.repetitions + 1,
       successes: record.successes + 1,
       successEvidence: record.successEvidence + evidence,
+      // A fast-track prior is deliberately single-use. Whether this answer
+      // earns the long confirmation floor or merely follows the ordinary
+      // path, it must not be available to trigger again later.
+      fastTrackConfidence: 0,
       updatedAt: now,
     };
   }
@@ -516,6 +555,7 @@
       successEvidence:
         previous.successEvidence + evidence * partialSuccess,
       lapses: previous.lapses + failureEvidence,
+      fastTrackConfidence: 0,
       updatedAt: now,
     };
   }
@@ -524,12 +564,22 @@
     value,
     isCorrect,
     now = Date.now(),
-    { evidenceWeight = 1, outcomeValue = isCorrect ? 1 : 0 } = {},
+    {
+      evidenceWeight = 1,
+      outcomeValue = isCorrect ? 1 : 0,
+      initialStabilityDays = null,
+      minimumStabilityDays = null,
+      fastTrackConfidence = 0,
+    } = {},
   ) {
     const record = normalizeRecord(value, now);
 
     return isCorrect
-      ? scheduleCorrect(record, now, evidenceWeight)
+      ? scheduleCorrect(record, now, evidenceWeight, {
+          initialStabilityDays,
+          minimumStabilityDays,
+          fastTrackConfidence,
+        })
       : scheduleIncorrect(record, now, evidenceWeight, outcomeValue);
   }
 

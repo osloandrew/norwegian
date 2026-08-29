@@ -19,7 +19,7 @@ const NOW = Date.UTC(2026, 7, 16, 12);
 const DAY = scheduler.DAY_MS;
 assert.equal(scheduler.TARGET_RETENTION, 0.9);
 assert.equal(scheduler.REVIEW_APPROACH_RETENTION, 0.91);
-assert.equal(scheduler.STORAGE_VERSION, 4);
+assert.equal(scheduler.STORAGE_VERSION, 5);
 assert.deepEqual([...scheduler.SKILL_IDS], [
   "recognition",
   "production",
@@ -33,6 +33,7 @@ const legacyMastered = scheduler.normalizeRecord(5, NOW);
 assert.equal(legacyMastered.state, "review");
 assert.equal(legacyMastered.stabilityDays, 30);
 assert.equal(legacyMastered.dueAt, NOW);
+assert.equal(legacyMastered.fastTrackConfidence, 0);
 assert.equal(scheduler.getSnapshot(legacyMastered, NOW).queue, "due");
 const migratedMemory = scheduler.normalizeMemory(legacyMastered, NOW);
 assert.deepEqual(Object.keys(migratedMemory.skills), ["recognition"]);
@@ -58,6 +59,39 @@ const secondSuccess = scheduler.recordResult(firstSuccess, true, NOW + DAY);
 assert.equal(secondSuccess.state, "review");
 assert.equal(secondSuccess.stabilityDays, 3);
 assert.equal(secondSuccess.dueAt, NOW + 4 * DAY);
+
+// A caller-supplied learner prior can modestly bootstrap a first memory, but
+// its long floor is single-use and requires the stored confirmation marker.
+const fastTrackedFirst = scheduler.recordResult(null, true, NOW, {
+  initialStabilityDays: 3,
+  fastTrackConfidence: 1,
+});
+assert.equal(fastTrackedFirst.state, "learning");
+assert.equal(fastTrackedFirst.stabilityDays, 3);
+assert.equal(fastTrackedFirst.dueAt, NOW + 3 * DAY);
+assert.equal(fastTrackedFirst.fastTrackConfidence, 1);
+const fastTrackedConfirmation = scheduler.recordResult(
+  fastTrackedFirst,
+  true,
+  fastTrackedFirst.dueAt,
+  { minimumStabilityDays: 21 },
+);
+assert.equal(fastTrackedConfirmation.state, "review");
+assert.equal(fastTrackedConfirmation.stabilityDays, 21);
+assert.equal(fastTrackedConfirmation.fastTrackConfidence, 0);
+const cannotFastTrackAgain = scheduler.recordResult(
+  fastTrackedConfirmation,
+  true,
+  fastTrackedConfirmation.dueAt,
+  { minimumStabilityDays: 365 },
+);
+assert.ok(cannotFastTrackAgain.stabilityDays < 365);
+const failedFastTrack = scheduler.recordResult(
+  fastTrackedFirst,
+  false,
+  fastTrackedFirst.dueAt,
+);
+assert.equal(failedFastTrack.fastTrackConfidence, 0);
 
 // Correct answers carry graded evidence. A likely guess remains a useful
 // exposure, but it neither earns the full interval nor graduates a learning

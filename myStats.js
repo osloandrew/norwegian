@@ -92,7 +92,18 @@
     card.innerHTML = `
       <h2 class="my-stats-heading">My Stats</h2>
       <p class="my-stats-subheading">A closer look at your vocabulary and practice history.</p>
+      <a class="my-stats-see-all-link my-stats-manage-account-link" href="?type=settings">Manage Account</a>
     `;
+    // Same manual-intercept pattern as the "See All Words" link below
+    // (createVocabularyCard) — this markup is created after
+    // initializeNavigation()'s one-time pass already ran, so it needs its
+    // own click handler rather than relying on that pass to find it.
+    card
+      .querySelector(".my-stats-manage-account-link")
+      ?.addEventListener("click", (event) => {
+        event.preventDefault();
+        selectType("settings");
+      });
     return card;
   }
 
@@ -245,62 +256,6 @@
     return card;
   }
 
-  // The one destructive action on this page, split out into its own visually
-  // distinct box (danger colors, bottom of the page) rather than folded into
-  // the Overview card above — someone scanning their stats shouldn't stumble
-  // into an irreversible action sitting next to "Practice Now".
-  function createDangerZoneCard() {
-    const card = document.createElement("section");
-    card.className = "my-stats-box my-stats-danger";
-
-    const heading = document.createElement("h3");
-    heading.className = "my-stats-section-heading";
-    heading.textContent = "Danger Zone";
-    card.appendChild(heading);
-
-    const description = document.createElement("p");
-    description.className = "my-stats-danger-text";
-    description.textContent =
-      "Permanently delete your saved words, practice history, streaks, and quest progress — including from your account if you're signed in. This can't be undone.";
-    card.appendChild(description);
-
-    const actionRow = document.createElement("div");
-    actionRow.className = "my-stats-danger-action";
-
-    const resetBtn = document.createElement("button");
-    resetBtn.type = "button";
-    resetBtn.className = "my-stats-danger-btn";
-    resetBtn.textContent = "Reset My Progress";
-    resetBtn.addEventListener("click", async () => {
-      const confirmed = window.confirm(
-        "Reset all your Word Game progress? This deletes your saved words, " +
-          "practice history, streaks, and daily quest progress everywhere " +
-          "you're signed in. This can't be undone.",
-      );
-      if (!confirmed) return;
-
-      window.trackEvent?.("reset_progress");
-      resetBtn.disabled = true;
-      resetBtn.textContent = "Resetting…";
-
-      try {
-        await window.ProgressResetAPI?.resetAllProgress?.();
-      } catch (error) {
-        console.warn("Progress reset failed.", error);
-        window.alert(
-          "Your progress could not be reset. Please check your connection and try again.",
-        );
-        resetBtn.disabled = false;
-        resetBtn.textContent = "Reset My Progress";
-      }
-    });
-
-    actionRow.appendChild(resetBtn);
-    card.appendChild(actionRow);
-
-    return card;
-  }
-
   function renderMyStats() {
     const container = getResultsContainer();
     if (!container) return;
@@ -330,7 +285,6 @@
       createGemsCard(),
       createVocabularyCard(),
       createTroubleWordsCard(),
-      createDangerZoneCard(),
     );
 
     container.appendChild(section);

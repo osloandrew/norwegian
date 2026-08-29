@@ -409,4 +409,149 @@ assert.equal(
   false,
 );
 
+assert.equal(policy.shouldIntroduceUnseenWord(), true);
+assert.equal(
+  policy.shouldIntroduceUnseenWord({ hasMemory: true }),
+  false,
+);
+assert.equal(
+  policy.shouldIntroduceUnseenWord({ alreadyIntroduced: true }),
+  false,
+);
+assert.equal(
+  policy.shouldIntroduceUnseenWord({ placementCalibrationEnabled: true }),
+  false,
+);
+assert.equal(
+  policy.shouldIntroduceUnseenWord({ queueName: "due" }),
+  false,
+);
+assert.equal(
+  policy.shouldIntroduceUnseenWord({
+    queueName: "placement",
+    isPlacementRound: true,
+  }),
+  true,
+);
+assert.equal(policy.getInitialRetrievalAvailableTurn(7), 10);
+const pendingIntroductions = [
+  { availableAfterTurn: 6 },
+  { availableAfterTurn: 8 },
+];
+assert.equal(policy.getInitialRetrievalIndex(pendingIntroductions, 5), -1);
+assert.equal(policy.getInitialRetrievalIndex(pendingIntroductions, 6), 0);
+assert.equal(
+  policy.getInitialRetrievalIndex(
+    Array.from({ length: 4 }, () => ({ availableAfterTurn: 99 })),
+    5,
+  ),
+  0,
+);
+assert.equal(
+  policy.getInitialRetrievalIndex(pendingIntroductions, 5, {
+    forceAtRoundTail: true,
+  }),
+  0,
+);
+
+const highAbilityChoiceFastTrack = policy.getAbilityFastTrackSchedule({
+  ability: 900,
+  wordDifficulty: 100,
+  predictedSuccess: 0.98,
+  mode: "forward",
+  queueName: "new",
+  wasCorrect: true,
+  evidenceWeight: 0.9,
+});
+assert.equal(highAbilityChoiceFastTrack.initialStabilityDays, 3);
+assert.equal(highAbilityChoiceFastTrack.minimumStabilityDays, null);
+assert.equal(highAbilityChoiceFastTrack.fastTrackConfidence, 1);
+const highAbilityTypedFastTrack = policy.getAbilityFastTrackSchedule({
+  ability: 900,
+  wordDifficulty: 100,
+  predictedSuccess: 0.98,
+  mode: "typed-reverse",
+  queueName: "new",
+  wasCorrect: true,
+  evidenceWeight: 0.9,
+});
+assert.equal(highAbilityTypedFastTrack.initialStabilityDays, 7);
+assert.equal(
+  policy.getAbilityFastTrackSchedule({
+    ability: 300,
+    wordDifficulty: 100,
+    predictedSuccess: 0.98,
+    queueName: "new",
+    wasCorrect: true,
+  }).initialStabilityDays,
+  null,
+);
+for (const disqualifier of [
+  { possiblyGuessed: true },
+  { nearMiss: true },
+  { wasScaffolded: true },
+  { placementCalibrationEnabled: true },
+  { credit: false },
+  { evidenceWeight: 0.79 },
+]) {
+  assert.equal(
+    policy.getAbilityFastTrackSchedule({
+      ability: 900,
+      wordDifficulty: 100,
+      predictedSuccess: 0.98,
+      queueName: "new",
+      wasCorrect: true,
+      evidenceWeight: 0.9,
+      ...disqualifier,
+    }).initialStabilityDays,
+    null,
+  );
+}
+const fastTrackCandidate = {
+  state: "learning",
+  repetitions: 1,
+  successes: 1,
+  lapses: 0,
+  fastTrackConfidence: 1,
+};
+assert.equal(
+  policy.getAbilityFastTrackSchedule({
+    record: fastTrackCandidate,
+    queueName: "due",
+    mode: "forward",
+    wasCorrect: true,
+    evidenceWeight: 0.9,
+  }).minimumStabilityDays,
+  21,
+);
+assert.equal(
+  policy.getAbilityFastTrackSchedule({
+    record: fastTrackCandidate,
+    queueName: "due",
+    mode: "typed-listening",
+    wasCorrect: true,
+    evidenceWeight: 0.9,
+  }).minimumStabilityDays,
+  30,
+);
+assert.equal(
+  policy.getAbilityFastTrackSchedule({
+    record: fastTrackCandidate,
+    queueName: "scheduled",
+    isApproaching: false,
+    wasCorrect: true,
+    evidenceWeight: 0.9,
+  }).minimumStabilityDays,
+  null,
+);
+assert.equal(
+  policy.getAbilityFastTrackSchedule({
+    record: { ...fastTrackCandidate, lapses: 0.2 },
+    queueName: "due",
+    wasCorrect: true,
+    evidenceWeight: 0.9,
+  }).minimumStabilityDays,
+  null,
+);
+
 console.log("word-game policy tests passed");

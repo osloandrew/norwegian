@@ -59,6 +59,26 @@ assert.match(styles, /\.game-progress-heading\s*\{/);
 assert.match(styles, /background-color: #4f8067/);
 assert.match(
   styles,
+  /\.game-stats-correct-box \.game-stat-label\s*\{[\s\S]*?font-size: 13px[\s\S]*?white-space: nowrap/,
+);
+assert.match(
+  styles,
+  /\.game-stats-incorrect-box \.game-stat-label\s*\{[\s\S]*?font-size: 13px[\s\S]*?white-space: nowrap/,
+);
+assert.match(
+  styles,
+  /@media \(max-width: 600px\)[\s\S]*?#results-container\s*\{\s*margin-top: 3px[\s\S]*?#game-session-stats\s*\{\s*margin-bottom: 3px[\s\S]*?> \.game-stats-content\s*\{\s*margin-bottom: 0/,
+);
+assert.match(
+  styles,
+  /--game-mobile-reveal-height: clamp\(156px, calc\(100dvh - 688px\), 176px\)/,
+);
+assert.match(
+  styles,
+  /@media \(max-width: 600px\) and \(max-height: 700px\)[\s\S]*?grid-template-rows: 162px 128px[\s\S]*?height: 298px/,
+);
+assert.match(
+  styles,
   /@media \(min-width: 1025px\)[\s\S]*?#game-session-stats\s*\{[\s\S]*?margin-bottom: 4px/,
 );
 
@@ -70,7 +90,31 @@ assert.match(navigationStyles, /background-color: #f8fafc/);
 assert.match(navigationStyles, /border: 1px solid #d8e1e8/);
 assert.match(
   navigationStyles,
-  /\.game-round-menu-panel \.game-end-session-btn i\s*\{[\s\S]*?display: inline-block/,
+  /body\.word-game-mode\.word-game-round-active \.game-english-filter\s*\{[\s\S]*?display: none !important/,
+);
+assert.match(
+  navigationStyles,
+  /\.game-round-menu-panel\s+\.game-english-toggle-btn,[\s\S]*?\.game-round-menu-panel\s+\.toolbar-report-issue-btn,[\s\S]*?\.game-round-menu-panel\s+\.game-end-session-btn\s*\{[\s\S]*?background-color: #f8fafc[\s\S]*?border: 1px solid #d8e1e8/,
+);
+assert.match(
+  navigationStyles,
+  /\.game-english-toggle-btn\s*\{\s*order: 1/,
+);
+assert.match(
+  navigationStyles,
+  /\.toolbar-report-issue-btn\s*\{\s*order: 2/,
+);
+assert.match(
+  navigationStyles,
+  /\.game-end-session-btn\s*\{\s*order: 3/,
+);
+assert.match(
+  navigationStyles,
+  /\.game-round-menu-panel \.toolbar-report-issue-btn i,[\s\S]*?\.game-round-menu-panel \.game-end-session-btn i\s*\{\s*display: none/,
+);
+assert.match(
+  navigationStyles,
+  /\.game-round-menu-panel \.toolbar-report-issue-btn span,[\s\S]*?\.game-round-menu-panel \.game-end-session-btn span\s*\{[\s\S]*?display: block/,
 );
 
 console.log("word-game teaching reveal checks passed");

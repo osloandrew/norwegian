@@ -37,6 +37,13 @@
     "typed-listening": 10000,
   });
   const CONTEXT_VARIATION_MIN_SUCCESSES = 3;
+  const INITIAL_RETRIEVAL_GAP_TURNS = 3;
+  const MAX_PENDING_INITIAL_RETRIEVALS = 4;
+  const FAST_TRACK_MIN_PREDICTED_SUCCESS = 0.92;
+  const FAST_TRACK_FULL_PREDICTED_SUCCESS = 0.98;
+  const FAST_TRACK_MIN_ABILITY_ADVANTAGE = 300;
+  const FAST_TRACK_FULL_ABILITY_ADVANTAGE = 700;
+  const FAST_TRACK_MIN_EVIDENCE_WEIGHT = 0.8;
   const DEFAULT_QUEUE_PRIORITY = Object.freeze([
     "relearning",
     "due",
@@ -170,6 +177,144 @@
     if (mode === "reverse" || mode === "typed-reverse") return "production";
     if (mode === "listening" || mode === "typed-listening") return "listening";
     return "recognition";
+  }
+
+  function shouldIntroduceUnseenWord({
+    hasMemory = false,
+    alreadyIntroduced = false,
+    placementCalibrationEnabled = false,
+    queueName = "new",
+    isPlacementRound = false,
+  } = {}) {
+    if (hasMemory || alreadyIntroduced || placementCalibrationEnabled) {
+      return false;
+    }
+    return queueName === "new" || isPlacementRound;
+  }
+
+  function getInitialRetrievalAvailableTurn(
+    introducedTurn,
+    gapTurns = INITIAL_RETRIEVAL_GAP_TURNS,
+  ) {
+    const turn = Math.max(0, Math.floor(Number(introducedTurn) || 0));
+    const gap = Math.max(0, Math.floor(Number(gapTurns) || 0));
+    return turn + gap;
+  }
+
+  function getInitialRetrievalIndex(
+    entries,
+    currentTurn,
+    {
+      maxPending = MAX_PENDING_INITIAL_RETRIEVALS,
+      forceAtRoundTail = false,
+    } = {},
+  ) {
+    if (!Array.isArray(entries) || entries.length === 0) return -1;
+    const turn = Math.max(0, Math.floor(Number(currentTurn) || 0));
+    const readyIndex = entries.findIndex(
+      (entry) => turn >= Math.max(0, Number(entry?.availableAfterTurn) || 0),
+    );
+    if (readyIndex >= 0) return readyIndex;
+    return forceAtRoundTail || entries.length >= Math.max(1, maxPending)
+      ? 0
+      : -1;
+  }
+
+  // A learner-level prior should not replace retrieval evidence. It can,
+  // however, keep a highly advanced learner from walking through the same
+  // one-day learning steps for a very elementary word they almost certainly
+  // already knew. The first clean retrieval earns only a modest head start;
+  // one delayed clean confirmation is required before the long interval.
+  function getAbilityFastTrackSchedule({
+    ability,
+    wordDifficulty,
+    predictedSuccess,
+    mode = "forward",
+    record = null,
+    queueName = "new",
+    isApproaching = false,
+    wasCorrect = false,
+    evidenceWeight = 1,
+    nearMiss = false,
+    possiblyGuessed = false,
+    wasScaffolded = false,
+    placementCalibrationEnabled = false,
+    credit = true,
+  } = {}) {
+    const none = {
+      initialStabilityDays: null,
+      minimumStabilityDays: null,
+      fastTrackConfidence: 0,
+    };
+    if (
+      !wasCorrect ||
+      !credit ||
+      placementCalibrationEnabled ||
+      nearMiss ||
+      possiblyGuessed ||
+      wasScaffolded ||
+      !(Number(evidenceWeight) >= FAST_TRACK_MIN_EVIDENCE_WEIGHT)
+    ) {
+      return none;
+    }
+
+    const typed = String(mode).startsWith("typed-");
+    const storedConfidence = clamp(
+      Number(record?.fastTrackConfidence) || 0,
+      0,
+      1,
+    );
+    const isCleanDelayedConfirmation = Boolean(
+      record &&
+        storedConfidence > 0 &&
+        record.state === "learning" &&
+        Number(record.repetitions) === 1 &&
+        Number(record.successes) === 1 &&
+        Number(record.lapses) === 0 &&
+        (queueName === "due" || isApproaching),
+    );
+    if (isCleanDelayedConfirmation) {
+      const maximumFloor = typed ? 30 : 21;
+      return {
+        initialStabilityDays: null,
+        minimumStabilityDays:
+          7 + (maximumFloor - 7) * storedConfidence,
+        fastTrackConfidence: 0,
+      };
+    }
+
+    if (record || queueName !== "new") return none;
+    const abilityAdvantage = Number(ability) - Number(wordDifficulty);
+    const prediction = Number(predictedSuccess);
+    if (
+      !Number.isFinite(abilityAdvantage) ||
+      !Number.isFinite(prediction) ||
+      abilityAdvantage <= FAST_TRACK_MIN_ABILITY_ADVANTAGE ||
+      prediction <= FAST_TRACK_MIN_PREDICTED_SUCCESS
+    ) {
+      return none;
+    }
+
+    const abilityConfidence = smoothstep(
+      (abilityAdvantage - FAST_TRACK_MIN_ABILITY_ADVANTAGE) /
+        (FAST_TRACK_FULL_ABILITY_ADVANTAGE -
+          FAST_TRACK_MIN_ABILITY_ADVANTAGE),
+    );
+    const predictionConfidence = smoothstep(
+      (prediction - FAST_TRACK_MIN_PREDICTED_SUCCESS) /
+        (FAST_TRACK_FULL_PREDICTED_SUCCESS -
+          FAST_TRACK_MIN_PREDICTED_SUCCESS),
+    );
+    const confidence = Math.min(abilityConfidence, predictionConfidence);
+    if (!(confidence > 0)) return none;
+
+    const maximumInitialStability = typed ? 7 : 3;
+    return {
+      initialStabilityDays:
+        1 + (maximumInitialStability - 1) * confidence,
+      minimumStabilityDays: null,
+      fastTrackConfidence: confidence,
+    };
   }
 
   function normalizePredictorState(
@@ -841,6 +986,8 @@
     DEFAULT_SKILLS,
     RESPONSE_TIME_TARGET_MS,
     CONTEXT_VARIATION_MIN_SUCCESSES,
+    INITIAL_RETRIEVAL_GAP_TURNS,
+    MAX_PENDING_INITIAL_RETRIEVALS,
     DEFAULT_QUEUE_PRIORITY,
     clamp,
     clampProbability,
@@ -853,6 +1000,10 @@
     getA0FrequencyWeight,
     getA0CefrWeight,
     getQuestionSkill,
+    shouldIntroduceUnseenWord,
+    getInitialRetrievalAvailableTurn,
+    getInitialRetrievalIndex,
+    getAbilityFastTrackSchedule,
     normalizePredictorState,
     getCalibrationEvidenceBias,
     getQuestionComplexityBias,

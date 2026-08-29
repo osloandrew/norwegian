@@ -430,6 +430,9 @@
       {
         evidenceWeight: options.evidenceWeight,
         outcomeValue: options.outcomeValue,
+        initialStabilityDays: options.initialStabilityDays,
+        minimumStabilityDays: options.minimumStabilityDays,
+        fastTrackConfidence: options.fastTrackConfidence,
       },
     );
 

@@ -2494,6 +2494,17 @@ function syncModeNav(type) {
   // of the icon-only circle meant to share a row with the search bar,
   // which My Stats hides entirely.
   document.body.classList.toggle("my-stats-mode", type === "my-stats");
+  // Settings/About share My Stats' "nothing to search or filter" toolbar
+  // treatment (the empty #search-container band, the #results-container
+  // width, #mode-nav's own bottom border once that band is hidden — see
+  // body.my-stats-mode in styles/35-navigation.css and
+  // styles/20-results-and-story-quiz.css) without being My Stats
+  // themselves, hence the separate class rather than folding them into
+  // body.my-stats-mode above.
+  document.body.classList.toggle(
+    "account-page-mode",
+    type === "settings" || type === "about",
+  );
   // Lets the stylesheets widen #results-container for My Words/Word List —
   // see the matching body.word-list-mode rule in
   // styles/20-results-and-story-quiz.css.
@@ -2539,8 +2550,8 @@ async function openLandingWordSearch(query) {
   window.scrollTo({ top: 0, left: 0, behavior: "auto" });
 }
 
-// The header/landing links (#site-title, #my-stats-header-btn, .mode-tab,
-// .button-container) ship with plain relative hrefs so crawlers, no-JS
+// The header/landing links (#site-title, .mode-tab, .button-container,
+// .account-menu-item) ship with plain relative hrefs so crawlers, no-JS
 // visitors, and a middle-click/ctrl-click (open in new tab) all get a real
 // destination straight from the attribute. That resolution is only correct
 // on a freshly served page, though: once the SPA has pushState'd to a
@@ -2552,7 +2563,7 @@ async function openLandingWordSearch(query) {
 function anchorAppNavigationLinks() {
   document
     .querySelectorAll(
-      "#site-title, #my-stats-header-btn, .mode-tab, .button-container",
+      "#site-title, .mode-tab, .button-container, .account-menu-item",
     )
     .forEach((link) => {
       const href = link.getAttribute("href");
@@ -2585,6 +2596,59 @@ function interceptNavigationClick(link, handler) {
   });
 }
 
+// Toggleable dropdown for the account menu (#account-menu-btn/
+// #account-menu-panel in index.html) — My Stats/Settings/About/What's New.
+// The My Stats/Settings/About items are handled by the shared data-mode
+// click-interception in initializeNavigation() below (same selectType()
+// path as every other mode); this only owns opening/closing the panel
+// itself: toggling on the button, and closing on an outside click, Escape,
+// or picking any item — including What's New, which isn't intercepted and
+// really does navigate away, so closing it first just avoids leaving it
+// visibly open underneath the new page for the instant before it unloads.
+function initializeAccountMenu() {
+  const button = document.getElementById("account-menu-btn");
+  const panel = document.getElementById("account-menu-panel");
+  if (!button || !panel) return;
+
+  const isOpen = () => !panel.classList.contains("hidden");
+
+  const closeMenu = () => {
+    panel.classList.add("hidden");
+    button.setAttribute("aria-expanded", "false");
+  };
+
+  const openMenu = () => {
+    panel.classList.remove("hidden");
+    button.setAttribute("aria-expanded", "true");
+  };
+
+  button.addEventListener("click", (event) => {
+    // Stops the document-level listener below from immediately treating
+    // this same click as "outside the menu" and closing it again.
+    event.stopPropagation();
+    if (isOpen()) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  });
+
+  panel.addEventListener("click", (event) => {
+    if (event.target.closest(".account-menu-item")) closeMenu();
+  });
+
+  document.addEventListener("click", (event) => {
+    if (isOpen() && !event.target.closest(".account-menu")) closeMenu();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && isOpen()) {
+      closeMenu();
+      button.focus();
+    }
+  });
+}
+
 function initializeNavigation() {
   anchorAppNavigationLinks();
 
@@ -2593,17 +2657,15 @@ function initializeNavigation() {
     interceptNavigationClick(siteTitle, returnToLandingPage);
   }
 
-  const myStatsHeaderBtn = document.getElementById("my-stats-header-btn");
-  if (myStatsHeaderBtn) {
-    interceptNavigationClick(myStatsHeaderBtn, () => selectType("my-stats"));
-  }
+  initializeAccountMenu();
 
-  // Shared by #mode-nav's tabs and the landing page's mode cards — both
-  // carry the same data-mode values and both should behave identically.
-  // My Words (data-mode="word-list") goes through goToMyWords() (wordList.js)
-  // rather than a plain selectType(), matching its existing dedicated
-  // "My Words" default view — every other mode just switches directly.
-  // Scoped to these two classes rather than a bare "[data-mode]": syncModeNav()
+  // Shared by #mode-nav's tabs, the landing page's mode cards, and the
+  // account menu's My Stats/Settings/About items — all three carry the same
+  // data-mode values and should behave identically. My Words
+  // (data-mode="word-list") goes through goToMyWords() (wordList.js) rather
+  // than a plain selectType(), matching its existing dedicated "My Words"
+  // default view — every other mode just switches directly.
+  // Scoped to these classes rather than a bare "[data-mode]": syncModeNav()
   // sets body.dataset.mode too, which reflects as a data-mode attribute on
   // <body> itself. A bare attribute selector here would match that and
   // attach this click-interception to <body> — since body is an ancestor of
@@ -2611,7 +2673,9 @@ function initializeNavigation() {
   // answer, a story quiz option, ...) would then bubble into it and force a
   // selectType() navigation.
   document
-    .querySelectorAll(".mode-tab[data-mode], .button-container[data-mode]")
+    .querySelectorAll(
+      ".mode-tab[data-mode], .button-container[data-mode], .account-menu-item[data-mode]",
+    )
     .forEach((link) => {
       const mode = link.dataset.mode;
       interceptNavigationClick(link, () => {
@@ -2849,6 +2913,31 @@ function handleTypeChange(type, options = {}) {
       showLandingCard(false);
       console.warn("initMyStats() is not available yet.");
       resultsContainer.innerHTML = "<p>My Stats is not ready yet.</p>";
+    }
+  } else if (type === "settings" || type === "about") {
+    // Settings and About share My Stats' "nothing to search or filter"
+    // treatment — same reasoning, same control-hiding — even though neither
+    // one needs the vocabulary data My Stats reads from.
+    genreFilterContainer.style.display = "none";
+
+    searchBarWrapper.style.display = "none";
+    disableSearchControls();
+
+    searchContainerInner.classList.remove("word-game-active");
+    gameActive = false;
+
+    posFilterContainer.style.display = "none";
+    cefrFilterContainer.style.display = "none";
+    cefrLock.style.display = "none";
+
+    const initFn =
+      type === "settings" ? window.initSettings : window.initAbout;
+    if (typeof initFn === "function") {
+      initFn();
+    } else {
+      showLandingCard(false);
+      console.warn(`init${capitalizeType(type)}() is not available yet.`);
+      resultsContainer.innerHTML = `<p>${capitalizeType(type)} is not ready yet.</p>`;
     }
   } else if (type === "word-list") {
     // Hide controls that Word List does not use.
@@ -4698,6 +4787,10 @@ function capitalizeType(type) {
       return "My Stats";
     case "word-list":
       return "My Words";
+    case "settings":
+      return "Settings";
+    case "about":
+      return "About";
 
     default:
       return type.charAt(0).toUpperCase() + type.slice(1);

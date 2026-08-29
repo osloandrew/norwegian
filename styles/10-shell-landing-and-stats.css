@@ -10,16 +10,25 @@
   text-transform: none;
 }
 
-/* My Stats moved out of the primary mode nav (#mode-nav — see
-   styles/35-navigation.css) since it's a read-only report, not a
-   browsing mode: a small icon button in the corner alongside the streak
-   badge/sign-in button is enough for something visited far less often. */
+/* Account menu: one entry point in the corner for every "about you / about
+   the app" page — My Stats, Settings, About, What's New — replacing the
+   standalone My Stats icon that used to sit here alone (that read fine with
+   one destination; it stopped scaling once Settings/About needed a home
+   too). Read-only/occasional-use pages like these don't need to compete
+   for space in the primary mode nav (#mode-nav — see
+   styles/35-navigation.css), so a single small icon button in the corner
+   alongside the streak badge/sign-in button covers all four. */
+.account-menu {
+  position: relative;
+}
+
 /* A permanent tinted chip, not just a hover state — same visual language
    as .streak-badge right next to it (background + border, always
    visible), so it reads as a real control at a glance instead of
    disappearing against the header until the pointer happens to land on
-   it. */
-.my-stats-header-btn {
+   it. aria-expanded gets the same active treatment as :hover so the chip
+   visibly stays "on" while the panel below it is open. */
+.account-menu-btn {
   align-items: center;
   background-color: var(--color-wash-blue);
   border: 0.5px solid var(--color-wash-blue-border);
@@ -28,30 +37,58 @@
   cursor: pointer;
   display: flex;
   flex-shrink: 0;
+  font-size: 16px;
   height: 34px;
   justify-content: center;
   padding: 0;
   width: 34px;
 }
 
-.my-stats-header-btn:hover {
+.account-menu-btn:hover,
+.account-menu-btn[aria-expanded="true"] {
   background-color: var(--color-wash-blue-active);
   border-color: var(--color-wash-blue-active-border);
 }
 
-/* mask-image is set inline (index.html), not via a --custom-property
-   consumed here — see the matching comment on .mode-tab-icon in
-   styles/35-navigation.css for why. */
-.my-stats-header-icon {
-  -webkit-mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-size: contain;
-  background-color: currentColor;
-  height: 20px;
-  width: 20px;
-  mask-position: center;
-  mask-repeat: no-repeat;
-  mask-size: contain;
+/* Right-aligned under the trigger — .account-menu's own position:relative
+   above anchors this to the button alone, not the whole #auth-container
+   row (which also holds the streak badge/sign-in button to its right). */
+.account-menu-panel {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-wash-blue-border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(13, 58, 105, 0.16);
+  min-width: 190px;
+  padding: 6px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 150;
+}
+
+.account-menu-item {
+  align-items: center;
+  border-radius: 6px;
+  color: var(--color-text-strong);
+  display: flex;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  gap: 10px;
+  padding: 9px 10px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.account-menu-item:hover {
+  background-color: var(--color-surface-subtle);
+}
+
+.account-menu-item i {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  text-align: center;
+  width: 16px;
 }
 
 /* Day-streak pill, sitting just left of the sign-in button/user pill inside
@@ -1346,14 +1383,20 @@ html.landing #landing-card {
    closest precedent for one dashboard-style box sitting directly under
    another, tighter than the 20px .definition falls back to when it's used
    for an unrelated list (e.g. stacked search results). */
-.my-stats {
+/* .account-page is the same layout, adopted by Settings/About (see
+   settings.js/about.js) so those two reuse this whole box/heading/danger-
+   action component set instead of duplicating it under new names — three
+   account-menu destinations sharing one "personal page" visual language. */
+.my-stats,
+.account-page {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
 @media (max-width: 600px) {
-  .my-stats {
+  .my-stats,
+  .account-page {
     gap: 10px;
   }
 }
@@ -1554,8 +1597,10 @@ p.my-stats-empty {
   margin-top: 4px;
 }
 
-/* My Stats report surface and section-specific controls. */
-#my-stats.definition.my-stats {
+/* My Stats/Settings/About report surface and section-specific controls. */
+#my-stats.definition.my-stats,
+#settings.definition.account-page,
+#about.definition.account-page {
   background: var(--color-surface);
   border: 1px solid var(--color-wash-blue-border);
   border-radius: 14px;

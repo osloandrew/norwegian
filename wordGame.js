@@ -173,6 +173,10 @@ let wordGameSessionCorrectWords = new Set(); // distinct words answered correctl
 // pulled from the wider dictionary, so a round of N always introduces
 // exactly N words, never more.
 let wordGameSessionIntroducedWords = new Set();
+// Explicit teaching is round-scoped on purpose: merely opening a card must
+// never create durable mastery. A word stays here only long enough to avoid
+// teaching it twice before its first real retrieval in this round.
+let wordGameSessionExplicitlyIntroducedWords = new Set();
 let wordGameSessionQuestionsAnswered = 0;
 let wordGameSessionCorrectAnswers = 0;
 let wordGameSessionIncorrectAnswers = 0;
@@ -410,6 +414,11 @@ function completeDailyQuestRound() {
 // in WordStrengthAPI; this queue only supplies enough intervening questions
 // before a retry and remembers which exercise form was missed.
 let incorrectWordQueue = [];
+// Genuinely unseen entries are taught first, then return in their already
+// assigned exercise mode after several intervening word turns. Kept separate
+// from incorrectWordQueue so an introduction is never presented as a lapse.
+let initialRetrievalQueue = [];
+let plannedInitialClozeTarget = null;
 // Linearly interpolates a CEFR-band-keyed table (e.g.
 // REVERSE_FLASHCARD_PROBABILITY below) against the continuous ability
 // score, instead of snapping to whichever discrete band the score is
@@ -517,6 +526,7 @@ const GAME_MODES = Object.freeze({
       wordObj,
       fallbackTranslations,
       plannedMode = null,
+      preparedClozeTarget = null,
     }) {
       if (
         BANNED_WORD_CLASSES.some((b) =>
@@ -527,7 +537,8 @@ const GAME_MODES = Object.freeze({
         return;
       }
 
-      const clozeTarget = await findPracticeClozeTarget(wordObj);
+      const clozeTarget =
+        preparedClozeTarget ?? (await findPracticeClozeTarget(wordObj));
       if (!clozeTarget) {
         console.warn(
           "No reliable cloze target was found. Falling back to flashcard.",
@@ -2377,7 +2388,7 @@ function getStructuredQuestionModeForWord(wordObj) {
   if (wordGameIsTodayPracticeRound) {
     return getDailyQuestQuestionMode(
       wordGameDailyQuestIndex,
-      wordGameSessionQuestionsAnswered,
+      wordGameSessionIntroducedWords.size,
       hasAudio,
     );
   }
@@ -2514,6 +2525,54 @@ function chooseQuestionModeFromPlan(plan) {
   if (!plan?.candidates?.length) return "forward";
   const weights = plan.candidates.map((candidate) => candidate.pairWeight);
   return pickWeightedGameWord(plan.candidates, weights)?.mode ?? "forward";
+}
+
+function shouldShowExplicitWordIntroduction(wordObj) {
+  const snapshot = window.WordStrengthAPI?.getSnapshot?.(wordObj);
+  return window.WordGamePolicy.shouldIntroduceUnseenWord({
+    hasMemory: Boolean(snapshot?.record),
+    alreadyIntroduced: wordGameSessionExplicitlyIntroducedWords.has(wordObj),
+    placementCalibrationEnabled: wordGamePlacementCalibrationEnabled,
+    queueName: currentWordQueueType,
+    isPlacementRound: wordGameIsPlacementRound,
+  });
+}
+
+async function createInitialRetrievalEntry(wordObj, targetMode) {
+  let resolvedMode = targetMode || "forward";
+  let clozeTarget = null;
+  if (resolvedMode === "cloze" || resolvedMode === "typed-cloze") {
+    const banned = BANNED_WORD_CLASSES.some((wordClass) =>
+      String(wordObj?.gender ?? "").toLowerCase().startsWith(wordClass),
+    );
+    clozeTarget = banned ? null : await findPracticeClozeTarget(wordObj);
+    if (!clozeTarget) resolvedMode = "forward";
+  }
+
+  return {
+    wordObj,
+    targetMode: resolvedMode,
+    clozeTarget,
+    introducedAtTurn: wordGameSessionTurnCounter,
+    availableAfterTurn:
+      window.WordGamePolicy.getInitialRetrievalAvailableTurn(
+        wordGameSessionTurnCounter,
+      ),
+  };
+}
+
+function getNextInitialRetrievalEntry() {
+  const forceAtRoundTail = Boolean(
+    wordGameMode === "session" &&
+      wordGameSessionIntroducedWords.size >= wordGameSessionTarget,
+  );
+  const index = window.WordGamePolicy.getInitialRetrievalIndex(
+    initialRetrievalQueue,
+    wordGameSessionTurnCounter,
+    { forceAtRoundTail },
+  );
+  if (index < 0) return null;
+  return initialRetrievalQueue.splice(index, 1)[0] ?? null;
 }
 
 function getClozeSynonymForms(wordObj, clozeTarget) {
@@ -4060,7 +4119,7 @@ function renderWordGameIntro() {
           </div>
           <strong class="game-today-practice-count">${dailyProgress} / ${DAILY_QUESTS.length} rounds</strong>
         </div>
-        <p class="game-today-practice-note">${nextLabel} · 10 questions</p>
+        <p class="game-today-practice-note">${nextLabel} · 10 words</p>
         <div
           class="game-today-practice-progress"
           role="progressbar"
@@ -4677,14 +4736,16 @@ function isWordGameRoundComplete() {
     return (
       wordGameMode === "session" &&
       wordGameSessionCorrectAnswers >= wordGameSessionTarget &&
-      incorrectWordQueue.length === 0
+      incorrectWordQueue.length === 0 &&
+      initialRetrievalQueue.length === 0
     );
   }
 
   return (
     wordGameMode === "session" &&
     wordGameSessionCorrectWords.size >= wordGameSessionTarget &&
-    incorrectWordQueue.length === 0
+    incorrectWordQueue.length === 0 &&
+    initialRetrievalQueue.length === 0
   );
 }
 
@@ -4911,6 +4972,7 @@ function beginWordGameRound(mode, targetWords = 0, options = {}) {
   wordGameSessionTarget = mode === "session" ? targetWords : 0;
   wordGameSessionCorrectWords = new Set();
   wordGameSessionIntroducedWords = new Set();
+  wordGameSessionExplicitlyIntroducedWords = new Set();
   wordGameSessionMissedWords = new Set();
   wordGameSessionWordLastShownTurn = new Map();
   wordGameSessionTurnCounter = 0;
@@ -4926,6 +4988,8 @@ function beginWordGameRound(mode, targetWords = 0, options = {}) {
     typeof getA0SupportIntensity === "function" ? getA0SupportIntensity() : 0;
   wordGameA0PacingQuestionCount = 0;
   wordGameA0ReinforcementQuestionCount = 0;
+  initialRetrievalQueue = [];
+  plannedInitialClozeTarget = null;
   wordGameSessionStartedAt = Date.now();
   wordGameRoundActive = true;
   updateEndSessionToolbarButtonVisibility();
@@ -4961,6 +5025,7 @@ function resetTodayPracticeRoundAfterMidnight(wordObj) {
   wordGameSessionTarget = DAILY_QUEST_ROUND_TARGET;
   wordGameSessionCorrectWords = new Set();
   wordGameSessionIntroducedWords = new Set(wordObj ? [wordObj] : []);
+  wordGameSessionExplicitlyIntroducedWords = new Set();
   wordGameSessionMissedWords = new Set();
   wordGameSessionTurnCounter = wordObj ? 1 : 0;
   wordGameSessionWordLastShownTurn = new Map(
@@ -4980,6 +5045,8 @@ function resetTodayPracticeRoundAfterMidnight(wordObj) {
   wordGameA0ReinforcementQuestionCount = 0;
   wordGameSessionStartedAt = Date.now();
   incorrectWordQueue = [];
+  initialRetrievalQueue = [];
+  plannedInitialClozeTarget = null;
   recentAnswers = [];
   correctStreak = 0;
 }
@@ -5383,6 +5450,7 @@ async function startWordGame() {
   // A new question must never inherit the unrendered plan or calibration
   // record from a question the learner left midway through.
   plannedQuestionMode = null;
+  plannedInitialClozeTarget = null;
   currentQuestionPrediction = null;
 
   // Cloze questions use synchronous exact-form lookups once a question is
@@ -5607,11 +5675,39 @@ async function startWordGame() {
     saveAbilityState({ syncRemote: false });
   }
 
-  // Fetch a random word that respects CEFR and POS filters
-  const randomWordObj = await fetchRandomWord();
+  // An explicitly taught word returns in the exact exercise slot it was
+  // assigned before its introduction. This branch deliberately bypasses a
+  // second portfolio/My-Words allocation: those were counted when the word
+  // first entered the round.
+  const initialRetrievalEntry = getNextInitialRetrievalEntry();
+  let randomWordObj;
+  if (initialRetrievalEntry) {
+    randomWordObj = initialRetrievalEntry.wordObj;
+    currentWordQueueType = "initial-retrieval";
+    plannedQuestionMode = initialRetrievalEntry.targetMode;
+    plannedInitialClozeTarget = initialRetrievalEntry.clozeTarget;
+    previousWord = randomWordObj.ord;
+    recordWordShownThisTurn(randomWordObj);
+  } else {
+    // Fetch a random word that respects CEFR and POS filters.
+    randomWordObj = await fetchRandomWord();
+  }
 
   // If no words match the filters, stop the game
   if (!randomWordObj) return;
+
+  if (!initialRetrievalEntry && shouldShowExplicitWordIntroduction(randomWordObj)) {
+    const initialEntry = await createInitialRetrievalEntry(
+      randomWordObj,
+      plannedQuestionMode,
+    );
+    wordGameSessionExplicitlyIntroducedWords.add(randomWordObj);
+    initialRetrievalQueue.push(initialEntry);
+    currentWord = randomWordObj;
+    correctTranslation = randomWordObj.engelsk;
+    await renderWordIntroductionUI(initialEntry);
+    return;
+  }
 
   currentWord = randomWordObj;
   correctTranslation = randomWordObj.engelsk;
@@ -5678,6 +5774,7 @@ async function startWordGame() {
     fallbackTranslations,
     forceTypedReverse,
     plannedMode: selectedPlannedMode,
+    preparedClozeTarget: plannedInitialClozeTarget,
   });
 
   // Render the updated stats box. Safe to call unconditionally even though
@@ -6306,6 +6403,98 @@ function attachTypedAnswerForm(
   // avoids an otherwise unnecessary click while preventScroll keeps the page
   // visually still as questions change.
   requestAnimationFrame(() => input.focus({ preventScroll: true }));
+}
+
+function getIntroductionPracticeNote(mode) {
+  if (mode === "cloze" || mode === "typed-cloze") {
+    return "You’ll complete this sentence after a few other words.";
+  }
+  if (mode === "listening" || mode === "typed-listening") {
+    return "You’ll hear this word again after a few other words.";
+  }
+  if (mode === "reverse" || mode === "typed-reverse") {
+    return "You’ll recall this Norwegian word after a few other words.";
+  }
+  return "You’ll recall its meaning after a few other words.";
+}
+
+async function renderWordIntroductionUI(initialEntry) {
+  const wordObj = initialEntry.wordObj;
+  const displayedWord = getPrimaryNorwegianForm(wordObj);
+  const displayedMeaning = getDisplayedAnswer(wordObj.engelsk);
+  const clozeTarget = initialEntry.clozeTarget;
+  const example = clozeTarget
+    ? {
+        exampleSentence: clozeTarget.sentence,
+        sentenceTranslation: getClozeTargetTranslation(wordObj, clozeTarget),
+      }
+    : await fetchExampleSentence(wordObj, 0);
+  const promptLengthClass = getGamePromptLengthClass(displayedWord);
+  const cefrLabel = getGameCefrLabelHTML(wordObj.CEFR);
+  const sentence = normalizeGameWhitespace(example.exampleSentence);
+  const sentenceTranslation = normalizeGameWhitespace(
+    example.sentenceTranslation,
+  );
+  const sentenceHTML = clozeTarget
+    ? `${escapeGameHTML(clozeTarget.sentence.slice(0, clozeTarget.startIndex))}<mark class="game-introduction-target">${escapeGameHTML(clozeTarget.sentence.slice(clozeTarget.startIndex, clozeTarget.endIndex))}</mark>${escapeGameHTML(clozeTarget.sentence.slice(clozeTarget.endIndex))}`
+    : escapeGameHTML(sentence);
+
+  setGameContainerHTML(`
+    <div class="game-stats-content" id="game-session-stats"></div>
+    <div class="game-learning-stage game-introduction-stage">
+      <div class="game-word-card">
+        <div class="game-labels-container">
+          <div class="game-label-subgroup">
+            <div class="game-gender">${escapeGameHTML(getGameGenderLabel(wordObj.gender))}</div>
+            ${cefrLabel}
+          </div>
+          <div id="game-banner-placeholder"></div>
+          <div class="game-label-subgroup game-card-actions-subgroup">
+            <div class="game-tricky-word" style="visibility: hidden;"><i class="fa fa-repeat" aria-hidden="true"></i></div>
+            ${getGameMyWordsStarMarkup()}
+          </div>
+        </div>
+        <div class="game-word game-word-audio${promptLengthClass ? ` ${promptLengthClass}` : ""}" role="button" tabindex="0" aria-label="Play pronunciation of ${escapeGameHTML(displayedWord)}" title="Play pronunciation">
+          <h2>${escapeGameHTML(displayedWord)}</h2>
+        </div>
+        <div id="game-pronunciation-slot" class="game-pronunciation-slot"></div>
+      </div>
+      <section class="game-teaching-reveal game-introduction-reveal" aria-label="New word introduction" data-state="introduction">
+        <p class="game-introduction-meaning">${escapeGameHTML(displayedMeaning)}</p>
+        ${sentence ? `<div class="game-teaching-context"><button type="button" class="game-teaching-sentence" aria-label="Play sentence audio">${sentenceHTML}</button>${sentenceTranslation ? `<p class="game-teaching-translation game-english-translation" style="display: ${isEnglishVisible ? "block" : "none"};">${escapeGameHTML(sentenceTranslation)}</p>` : ""}</div>` : ""}
+        <p class="game-teaching-note">${escapeGameHTML(getIntroductionPracticeNote(initialEntry.targetMode))}</p>
+      </section>
+    </div>
+    <div class="game-grid game-typed-grid game-introduction-grid">
+      <p><strong>New word</strong><span>This introduction isn’t scored.</span></p>
+    </div>
+    ${getGameAnswerStatusMarkup()}
+    <div class="game-next-button-container">
+      <button type="button" id="game-next-word-button">Continue Practice</button>
+    </div>
+  `);
+
+  const wordElement = document.querySelector(".game-word-audio");
+  const replayWord = () => {
+    playAudioTapFeedback(wordElement);
+    stopAllAudio();
+    playWordAudio(wordObj);
+  };
+  wordElement?.addEventListener("click", replayWord);
+  wordElement?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    replayWord();
+  });
+  const sentenceButton = document.querySelector(".game-teaching-sentence");
+  if (sentenceButton && sentence) makeSentenceClickable(sentenceButton, sentence);
+
+  attachGameControls(wordObj, Boolean(clozeTarget));
+  renderStats("Learn This Word");
+  displayPronunciation(wordObj);
+  announceGameQuestionPrompt();
+  enableGameControls();
+  playWordAudio(wordObj);
 }
 
 // mode: "forward" (Norwegian shown, recognize English — the default),
@@ -7036,9 +7225,18 @@ async function handleTranslationClick(
   // the existing card still asks for recognition. Preserve the correction and
   // future review record on a miss, but do not let that first unknown answer
   // create the same ability drop or in-round retry debt as a failed retrieval.
+  // A word that went through the explicit-introduction screen (see
+  // shouldShowExplicitWordIntroduction/createInitialRetrievalEntry above)
+  // is graded a few turns later via getNextInitialRetrievalEntry(), which
+  // sets currentWordQueueType to "initial-retrieval", not "new" — that is
+  // still this word's genuine first graded attempt (shouldIntroduceUnseenWord
+  // only ever queues a word that had no record at all), so it counts here
+  // too. !answerSkillSnapshot?.record still guards against either queue type
+  // matching a word that already picked up a record some other way since.
   const a0FirstExposure =
     hasActiveA0Support() &&
-    currentWordQueueType === "new" &&
+    (currentWordQueueType === "new" ||
+      currentWordQueueType === "initial-retrieval") &&
     !answerSkillSnapshot?.record;
   // Capture the rendered mode and its calibration before recording this
   // outcome, since recordQuestionPredictionOutcome updates that bias and then
@@ -7091,6 +7289,28 @@ async function handleTranslationClick(
     possiblyGuessed: predictionEvidence?.possiblyGuessed ?? false,
     wasScaffolded: answerWasScaffolded,
   });
+  const srsCredit =
+    currentWordQueueType !== "session-filler" &&
+    (answerSkillSnapshot?.queue !== "scheduled" ||
+      answerSkillSnapshot?.isApproaching);
+  const abilityFastTrack =
+    window.WordGamePolicy.getAbilityFastTrackSchedule({
+      ability: abilityScore,
+      wordDifficulty:
+        predictionEvidence?.wordDifficulty ?? getWordDifficultyAnchor(wordObj),
+      predictedSuccess: predictionEvidence?.predictedSuccess,
+      mode: answerMode,
+      record: answerSkillSnapshot?.record,
+      queueName: answerSkillSnapshot?.queue,
+      isApproaching: answerSkillSnapshot?.isApproaching,
+      wasCorrect: answerWasCorrect,
+      evidenceWeight: srsEvidenceWeight,
+      nearMiss: nearMissTypedMatch || Boolean(morphologyNearMiss),
+      possiblyGuessed: predictionEvidence?.possiblyGuessed ?? false,
+      wasScaffolded: answerWasScaffolded,
+      placementCalibrationEnabled: wordGamePlacementCalibrationEnabled,
+      credit: srsCredit,
+    });
 
   resetTodayPracticeRoundAfterMidnight(wordObj);
   const { exampleSentence, sentenceTranslation } =
@@ -7137,11 +7357,11 @@ async function handleTranslationClick(
       // window is not a spaced retrieval and must not lengthen that skill's
       // durable interval. A scaffold may strengthen its own skill, but the
       // recovery queue independently keeps the originally failed skill open.
-      credit:
-        currentWordQueueType !== "session-filler" &&
-        (answerSkillSnapshot?.queue !== "scheduled" ||
-          answerSkillSnapshot?.isApproaching),
+      credit: srsCredit,
       evidenceWeight: srsEvidenceWeight,
+      initialStabilityDays: abilityFastTrack.initialStabilityDays,
+      minimumStabilityDays: abilityFastTrack.minimumStabilityDays,
+      fastTrackConfidence: abilityFastTrack.fastTrackConfidence,
       deferRemote: true,
     });
     if (wordGameRoundActive) {
@@ -7428,10 +7648,13 @@ function getEligibleGameWords(
   const queuedForReintroduction = new Set(
     incorrectWordQueue.map((queued) => queued.wordObj),
   );
+  const awaitingInitialRetrieval = new Set(
+    initialRetrievalQueue.map((queued) => queued.wordObj),
+  );
   const dailyQuestionMode = wordGameIsTodayPracticeRound
     ? getDailyQuestQuestionMode(
         wordGameDailyQuestIndex,
-        wordGameSessionQuestionsAnswered,
+        wordGameSessionIntroducedWords.size,
         true,
       )
     : null;
@@ -7537,6 +7760,9 @@ function getEligibleGameWords(
      * don't let the normal weighted draw surface it early.
      */
     if (queuedForReintroduction.has(entry)) {
+      return false;
+    }
+    if (awaitingInitialRetrieval.has(entry)) {
       return false;
     }
 
@@ -8860,10 +9086,13 @@ function resetGame(resetStreak = true) {
   currentWordQueueType = null;
   previousWord = null;
   wordGameSuccessfulPairHistory = new Map();
+  wordGameSessionExplicitlyIntroducedWords = new Set();
   if (resetStreak) {
     correctStreak = 0; // Reset the streak if the flag is true
   }
   incorrectWordQueue = [];
+  initialRetrievalQueue = [];
+  plannedInitialClozeTarget = null;
   recentAnswers = []; // Clear the recent answers array
   renderStats(); // Re-render the stats display to reflect the reset
 }

@@ -351,12 +351,14 @@
   gap: 10px;
 }
 
-/* My Stats has nothing left to search or filter now that mode-switching
-   lives in #mode-nav and the old My Words shortcut button is gone —
-   handleTypeChange's "my-stats" branch (scripts.js) already hides every
-   individual toolbar control, which would otherwise leave an empty,
-   padded band with nothing in it. Hide the whole toolbar instead. */
-body.my-stats-mode #search-container {
+/* My Stats/Settings/About have nothing left to search or filter now that
+   mode-switching lives in #mode-nav and the old My Words shortcut button
+   is gone — handleTypeChange's "my-stats"/"settings"/"about" branches
+   (scripts.js) already hide every individual toolbar control, which would
+   otherwise leave an empty, padded band with nothing in it. Hide the whole
+   toolbar instead. */
+body.my-stats-mode #search-container,
+body.account-page-mode #search-container {
   display: none;
 }
 
@@ -1101,6 +1103,7 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
      own states where that element exists but is hidden. */
   body:not(:has(#search-container)) #mode-nav,
   body.my-stats-mode #mode-nav,
+  body.account-page-mode #mode-nav,
   body.word-game-mode:not(.word-game-round-active) #mode-nav {
     border-bottom: 1px solid var(--color-border);
   }
@@ -1223,14 +1226,13 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
     min-width: 0;
   }
 
-  body.word-game-mode .game-english-filter {
-    flex: 0 0 210px;
-    width: 210px;
-  }
-
-  body.word-game-mode .game-english-filter select {
-    text-overflow: clip;
-    white-space: nowrap;
+  /* The mobile toolbar already owns the accessible translations toggle.
+     Desktop uses that same control instead of keeping a second, legacy
+     native select in front of it. The select stays in the DOM as a synced
+     compatibility control for existing JS, but is not part of the desktop
+     round toolbar. */
+  body.word-game-mode.word-game-round-active .game-english-filter {
+    display: none !important;
   }
 
   /* Desktop has room to lay the round actions out with labels, unlike
@@ -1252,66 +1254,83 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
     position: static;
   }
 
+  /* Mirror the mobile sequence and give all three actions the same quiet,
+     text-only treatment: Translations, Report Question, Quit & See Stats. */
+  #search-container-inner.word-game-active
+    .game-round-menu-panel
+    .game-english-toggle-btn,
+  #search-container-inner.word-game-active
+    .game-round-menu-panel
+    .toolbar-report-issue-btn,
   #search-container-inner.word-game-active
     .game-round-menu-panel
     .game-end-session-btn {
+    align-items: center;
     background-color: #f8fafc;
     border: 1px solid #d8e1e8;
     border-radius: 10px;
+    box-shadow: none;
+    box-sizing: border-box;
     color: #35516d;
+    display: flex;
+    flex: 0 0 auto;
     font-family: "Source Sans 3", "Noto Sans", sans-serif;
     font-size: 14px;
     font-style: normal;
     font-weight: 400;
-    gap: 8px;
     height: 44px;
     justify-content: center;
     letter-spacing: 0.05em;
+    line-height: 1.2;
+    min-height: 0;
+    min-width: 0;
     padding: 0 14px;
     text-transform: uppercase;
     white-space: nowrap;
     width: auto;
+  }
+
+  #search-container-inner.word-game-active
+    .game-round-menu-panel
+    .game-english-toggle-btn {
     order: 1;
   }
 
   #search-container-inner.word-game-active
     .game-round-menu-panel
     .toolbar-report-issue-btn {
-    background-color: var(--color-surface-subtle);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-    height: 44px;
-    justify-content: center;
-    padding: 0;
-    width: 44px;
     order: 2;
-  }
-
-  .game-round-menu-panel .toolbar-report-issue-btn span {
-    display: none;
-  }
-
-  .game-round-menu-panel .game-end-session-btn i {
-    color: #4e6986;
-    display: inline-block;
-    font-size: 13px;
-    width: auto;
   }
 
   #search-container-inner.word-game-active
     .game-round-menu-panel
-    .game-end-session-btn:hover {
+    .game-end-session-btn {
+    order: 3;
+  }
+
+  .game-round-menu-panel .game-english-toggle-btn > span[aria-hidden="true"],
+  .game-round-menu-panel .toolbar-report-issue-btn i,
+  .game-round-menu-panel .game-end-session-btn i {
+    display: none;
+  }
+
+  .game-round-menu-panel .game-english-toggle-label,
+  .game-round-menu-panel .toolbar-report-issue-btn span,
+  .game-round-menu-panel .game-end-session-btn span {
+    color: #4e6986;
+    display: block;
+  }
+
+  body.word-game-mode.word-game-round-active
+    .game-english-toggle-btn[aria-pressed="true"] {
+    background-color: #f8fafc;
+    border-color: #d8e1e8;
+    box-shadow: none;
+  }
+
+  #search-container-inner.word-game-active
+    .game-round-menu-panel button:hover {
     background-color: #f3f7fb;
     border-color: #b8c8d6;
-  }
-
-  #search-container-inner.word-game-active #game-end-session-btn,
-  #search-container-inner.word-game-active .toolbar-report-issue-btn {
-    height: 44px;
-  }
-
-  #search-container-inner.word-game-active .toolbar-report-issue-btn {
-    box-sizing: border-box;
-    padding: 0;
-    width: 44px;
   }
 }

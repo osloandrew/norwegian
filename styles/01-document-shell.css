@@ -212,8 +212,18 @@ footer .copyright {
   }
 }
 
-/* Short game viewports hide the complete header to preserve play space. */
+/* Short game viewports (e.g. a tablet in landscape) hide the complete
+   header to preserve play space, independent of width. */
 @media (max-width: 1024px) and (max-height: 700px) {
+  body.word-game-mode header {
+    display: none;
+  }
+}
+
+/* Every phone gets the headerless Word Game, tall or short — the in-round
+   toolbar already provides quit/report controls, so the site header is
+   redundant chrome on a screen this narrow regardless of height. */
+@media (max-width: 600px) {
   body.word-game-mode header {
     display: none;
   }

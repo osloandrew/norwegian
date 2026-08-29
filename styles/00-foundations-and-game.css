@@ -793,6 +793,58 @@ li {
   border-color: var(--color-danger-border);
 }
 
+.game-teaching-reveal[data-state="introduction"] {
+  background-color: #f6f9fd;
+  border-color: var(--color-wash-blue-border);
+}
+
+.game-introduction-meaning {
+  color: #173a5e;
+  flex: 0 0 auto;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.25;
+  margin: 0 0 2px;
+  text-align: left;
+}
+
+.game-introduction-target {
+  background: var(--color-streak-bg);
+  border-radius: 3px;
+  color: inherit;
+  padding: 0 2px;
+}
+
+.game-grid.game-introduction-grid {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #d8e1e8;
+  border-radius: 12px;
+  box-sizing: border-box;
+  color: #587086;
+  min-height: 60px;
+  padding: 9px 16px;
+  text-align: center;
+}
+
+.game-introduction-grid p {
+  display: flex;
+  flex-direction: column;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  gap: 1px;
+  margin: 0;
+}
+
+.game-introduction-grid strong {
+  color: #20364d;
+  font-weight: 650;
+}
+
+.game-introduction-grid span {
+  font-size: 14px;
+}
+
 .game-teaching-reveal-placeholder {
   color: #8796a4;
   font-family: "Source Sans 3", "Noto Sans", sans-serif;
@@ -979,7 +1031,7 @@ li {
   letter-spacing: 0.02em;
   text-align: center;
   text-transform: uppercase;
-  margin: 0px 0px 5px 0px !important;
+  margin: 0px 0px 6px 0px !important;
   min-width: fit-content;
   user-select: none; /* Prevent text selection */
 }
@@ -1282,10 +1334,16 @@ li {
 
 .game-stats-correct-box .game-stat-label {
   color: #58708a;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .game-stats-incorrect-box .game-stat-label {
   color: #58708a;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .game-stats-progress-wrapper {
@@ -2936,7 +2994,7 @@ h4 {
 
   .game-stats-correct-box .game-stat-label,
   .game-stats-incorrect-box .game-stat-label {
-    font-size: 14px;
+    font-size: 12px;
   }
 
   .game-stats-correct-box #streak-count,
@@ -3038,10 +3096,10 @@ h4 {
      what shortens this column instead, giving .game-word more room to
      grow into below (see .game-learning-stage .game-word's flex-grow). */
   body.word-game-mode .game-cefr-label {
-    font-size: 11px;
+    font-size: 12.5px;
     line-height: 1;
     margin-top: -2px;
-    padding: 2px 5px;
+    padding: 4px 5px;
   }
 }
 
@@ -3134,28 +3192,25 @@ h4 {
 
 @media (max-width: 600px) and (max-height: 700px) {
   /* Short phones need the vertical space for the actual exercise and its
-     fixed response zone. The primary site header returns immediately on the
-     round summary; the in-round toolbar still provides quit/report controls. */
-  body.word-game-mode.word-game-round-active > header {
-    display: none;
-  }
+     fixed response zone (header hiding itself is handled unconditionally
+     for this width in 01-document-shell.css, not gated on round-active). */
 
   /* An iPhone SE-class viewport has no spare space beneath the reveal: the
      fixed answer grid begins immediately afterward. Keep the prompt card's
      useful 162px height, but shorten the empty/context shelf enough to leave
      a real gap above the responses. Longer answered context can still use
-     the shelf's inner overflow fallback. 104px/274px shifted to 124px/294px
-     — same +20px reclaimed from the mobile toolbar's icon row and the
-     stats heading's margin as the taller mobile tiers above. */
+     the shelf's inner overflow fallback. The compact, equal stats gaps below
+     recover 7px; spend 4px of that on the reveal and use the remaining 3px
+     to pull this entire two-card stage upward. */
   body.word-game-mode .game-learning-stage {
-    grid-template-rows: 162px 124px;
-    height: 294px;
+    grid-template-rows: 162px 128px;
+    height: 298px;
   }
 
   body.word-game-mode .game-teaching-reveal {
-    height: 124px;
-    max-height: 124px;
-    min-height: 124px;
+    height: 135px;
+    max-height: 135px;
+    min-height: 135px;
     padding-block: 7px;
   }
 
@@ -3165,14 +3220,14 @@ h4 {
      rather than clipping its translation inside the generic 124px shelf.
      The clamp keeps very short phones at the safe base height and preserves
      a gap above the fixed typed response zone at taller SE-class heights.
-     Bounds and offset shifted +20px (104/184/510 → 124/204/490) along with
+     Its bounds and viewport offset receive the same 4px reveal increase as
      this tier's base shelf height above. */
   body.word-game-mode.word-game-round-active
     #results-container:has(.game-grid.game-typed-grid)
     .game-learning-stage:has(
       .game-teaching-reveal:not([data-state="question"])
     ) {
-    --game-se-answered-reveal-height: clamp(124px, calc(100dvh - 490px), 204px);
+    --game-se-answered-reveal-height: clamp(128px, calc(100dvh - 486px), 208px);
     grid-template-rows: 162px var(--game-se-answered-reveal-height);
     height: calc(170px + var(--game-se-answered-reveal-height));
   }
@@ -3224,6 +3279,34 @@ h4 {
    but its position does not. Round summaries and the intro have no matching
    container, so the dock naturally disappears on those screens. */
 @media (max-width: 600px) {
+  /* The visible stats row used to have 5px above it, then two stacked 4px
+     bottom margins below it. Make those edges equal and slightly tighter:
+     3px on either side. This moves both learning cards upward by 7px while
+     retaining deliberate separation from the toolbar and prompt card. */
+  body.word-game-mode.word-game-round-active #results-container {
+    margin-top: 3px;
+  }
+
+  body.word-game-mode.word-game-round-active #game-session-stats {
+    margin-bottom: 3px;
+  }
+
+  body.word-game-mode.word-game-round-active
+    #game-session-stats
+    > .game-stats-wrapper
+    > .game-stats-content {
+    margin-bottom: 0;
+  }
+
+  /* Taller phones use a viewport-derived shelf. Give the reveal 4px of the
+     recovered stats space; the remaining 3px raises the overall stage end
+     while still pulling both cards visibly upward. */
+  @media (min-height: 701px) {
+    body.word-game-mode .game-learning-stage {
+      --game-mobile-reveal-height: clamp(156px, calc(100dvh - 688px), 176px);
+    }
+  }
+
   .game-typed-answer-input {
     /* iOS Safari zooms the viewport when a focused form control is below
        16px. Keep the answer field at the native no-zoom threshold. */

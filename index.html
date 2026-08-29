@@ -83,27 +83,27 @@
     -->
     <link
       rel="stylesheet"
-      href="styles/00-foundations-and-game.css?v=0d7cee23c4"
+      href="styles/00-foundations-and-game.css?v=67eb658957"
     />
     <link
       rel="stylesheet"
-      href="styles/01-document-shell.css?v=6b054306e5"
+      href="styles/01-document-shell.css?v=ec406a5c10"
     />
     <link
       rel="stylesheet"
-      href="styles/10-shell-landing-and-stats.css?v=6363b22294"
+      href="styles/10-shell-landing-and-stats.css?v=018b41d4b4"
     />
     <link
       rel="stylesheet"
-      href="styles/20-results-and-story-quiz.css?v=e04a9c8dae"
+      href="styles/20-results-and-story-quiz.css?v=92186f6e79"
     />
     <link
       rel="stylesheet"
-      href="styles/30-stories-and-word-lists.css?v=f2384747a9"
+      href="styles/30-stories-and-word-lists.css?v=2b56db8de8"
     />
     <link
       rel="stylesheet"
-      href="styles/35-navigation.css?v=c72dbeb8fb"
+      href="styles/35-navigation.css?v=78e8466f0d"
     />
     <link
       rel="stylesheet"
@@ -392,25 +392,70 @@
 
       <div class="header-top-row">
         <div id="auth-container" class="auth-container">
-          <!-- Real href for crawlers/no-JS/middle-click; a plain click runs
-               selectType('my-stats') instead of a full page load — see
-               initializeNavigation() in scripts.js. -->
-          <a
-            id="my-stats-header-btn"
-            class="my-stats-header-btn"
-            aria-label="My Stats"
-            title="My Stats"
-            href="?type=my-stats"
-          >
-            <span
-              class="my-stats-header-icon"
-              style="
-                mask-image: url(Resources/Photos/stats.svg);
-                -webkit-mask-image: url(Resources/Photos/stats.svg);
-              "
-              aria-hidden="true"
-            ></span>
-          </a>
+          <!-- Single entry point for the "about you / about the app" pages
+               that don't belong in the primary mode nav: My Stats, Settings,
+               About, What's New. Each item ships a real href for
+               crawlers/no-JS/middle-click; a plain click on the first three
+               runs selectType() in-page instead (What's New is a real
+               separate document, so it's left to navigate normally) — see
+               initializeAccountMenu() in scripts.js. -->
+          <div class="account-menu">
+            <button
+              type="button"
+              id="account-menu-btn"
+              class="account-menu-btn"
+              aria-haspopup="menu"
+              aria-expanded="false"
+              aria-controls="account-menu-panel"
+              aria-label="Account menu"
+              title="Account menu"
+            >
+              <i class="fas fa-circle-user" aria-hidden="true"></i>
+            </button>
+            <div
+              id="account-menu-panel"
+              class="account-menu-panel hidden"
+              role="menu"
+              aria-label="Account"
+            >
+              <a
+                class="account-menu-item"
+                data-mode="my-stats"
+                role="menuitem"
+                href="?type=my-stats"
+              >
+                <i class="fas fa-chart-simple" aria-hidden="true"></i>
+                My Stats
+              </a>
+              <a
+                class="account-menu-item"
+                data-mode="settings"
+                role="menuitem"
+                href="?type=settings"
+              >
+                <i class="fas fa-gear" aria-hidden="true"></i>
+                Settings
+              </a>
+              <a
+                class="account-menu-item"
+                data-mode="about"
+                role="menuitem"
+                href="?type=about"
+              >
+                <i class="fas fa-circle-info" aria-hidden="true"></i>
+                About
+              </a>
+              <a
+                class="account-menu-item"
+                id="account-menu-updates-link"
+                role="menuitem"
+                href="updates/"
+              >
+                <i class="fas fa-clock-rotate-left" aria-hidden="true"></i>
+                What's New
+              </a>
+            </div>
+          </div>
 
           <!-- Hidden until there's an actual streak to show — see
                updateStreakBadge() in streak.js. Lives inside #auth-container
@@ -499,10 +544,10 @@
          attribute — but a plain left-click is intercepted in
          initializeNavigation() (scripts.js) to run the same instant,
          no-reload selectType()/goToMyWords() transition #type-select's
-         onchange already uses, rather than doing a full page load. My Stats
-         deliberately isn't here — it's a read-only report, not a browsing
-         mode, so it lives as a small link in the header instead (see
-         #my-stats-header-btn above).
+         onchange already uses, rather than doing a full page load. My
+         Stats/Settings/About deliberately aren't here — none of them is a
+         browsing mode, so they live in the account menu instead (see
+         #account-menu-btn above).
 
          These hrefs are relative, which only resolves correctly against the
          site root on a freshly served page. Once the SPA has pushState'd to
@@ -607,6 +652,8 @@
                 <option value="word-game">Word Game</option>
                 <option value="word-list">My Words</option>
                 <option value="my-stats">My Stats</option>
+                <option value="settings">Settings</option>
+                <option value="about">About</option>
               </select>
               <i class="fas fa-chevron-down"></i>
             </div>
@@ -1203,8 +1250,8 @@
     <script src="inflections.js?v=7bab173593"></script>
     <script src="expressionPatterns.js?v=74753b40ba"></script>
     <script src="sentenceFormMatching.js?v=43d9bafa37"></script>
-    <script src="spacedRepetition.js?v=d8152f606f"></script>
-    <script src="progressSharding.js?v=8722cafa38" defer></script>
+    <script src="spacedRepetition.js?v=47d92e9b7f"></script>
+    <script src="progressSharding.js?v=b0f824f55e" defer></script>
 
     <!--
       Deferred like everything else below. pronunciation.js/wordList.js/
@@ -1216,20 +1263,22 @@
     -->
     <script src="englishVisibility.js?v=b7799fc88b" defer></script>
     <script src="pronunciation.js?v=e0bab555ae" defer></script>
-    <script src="wordList.js?v=b76b8b514c" defer></script>
+    <script src="wordList.js?v=cbedfa41b8" defer></script>
     <script src="storyFavorites.js?v=c152eb5155" defer></script>
-    <script src="myWordsAuth.js?v=d1d5c3982f" defer></script>
-    <script src="noRandom.js?v=98d37ff6b5" defer></script>
+    <script src="myWordsAuth.js?v=8c99d6a679" defer></script>
+    <script src="noRandom.js?v=f948ae4973" defer></script>
     <script src="noRandomLetters.js?v=10acb8ddad" defer></script>
     <script src="ordbokene.js?v=c7bf198620" defer></script>
-    <script src="scripts.js?v=967d6fa015" defer></script>
-    <script src="wordGamePolicy.js?v=aeb6d0620a" defer></script>
-    <script src="wordGame.js?v=dbda7748b7" defer></script>
+    <script src="scripts.js?v=437ac29353" defer></script>
+    <script src="wordGamePolicy.js?v=cc19bd05a1" defer></script>
+    <script src="wordGame.js?v=5fd8fbda03" defer></script>
     <script src="placementTest.js?v=d071f91ce4" defer></script>
     <script src="streak.js?v=ddb26efe7e" defer></script>
     <script src="stories.js?v=19d5ebf9aa" defer></script>
     <script src="storyQuiz.js?v=23091fc199" defer></script>
-    <script src="myStats.js?v=63ee04677a" defer></script>
+    <script src="myStats.js?v=fe8d066400" defer></script>
+    <script src="settings.js?v=bfc4834be9" defer></script>
+    <script src="about.js?v=5dae95b2c1" defer></script>
 
     <!--
       Registered after "load" (not deferred alongside the app scripts

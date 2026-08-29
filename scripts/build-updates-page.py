@@ -193,6 +193,22 @@ def render_page(updates: list[Update], site_root: Path) -> str:
     footer_css = asset_version(site_root, "styles/10-shell-landing-and-stats.css")
     navigation_css = asset_version(site_root, "styles/35-navigation.css")
     updates_css = asset_version(site_root, "styles/50-updates.css")
+    # The header's account menu/streak badge/sign-in button are real, not
+    # decorative, on this page too — same markup as index.html, backed by
+    # the same handful of self-contained modules (no scripts.js/wordGame.js;
+    # this page never runs a search or a round). spaced_repetition_js must
+    # precede word_list_js (its loadWordStrengths() calls
+    # window.SpacedRepetition at load time), and word_list_js/
+    # story_favorites_js must precede my_words_auth_js (it reads
+    # window.MyWordsAPI.STORAGE_KEY/window.StoryFavoritesAPI.STORAGE_KEY at
+    # load time too) — see each file's own top-level code, not just its
+    # index.html script order, before reordering these.
+    spaced_repetition_js = asset_version(site_root, "spacedRepetition.js")
+    progress_sharding_js = asset_version(site_root, "progressSharding.js")
+    word_list_js = asset_version(site_root, "wordList.js")
+    story_favorites_js = asset_version(site_root, "storyFavorites.js")
+    my_words_auth_js = asset_version(site_root, "myWordsAuth.js")
+    streak_js = asset_version(site_root, "streak.js")
     entries = render_entries(updates)
     structured_data = json.dumps(
         {
@@ -235,6 +251,51 @@ def render_page(updates: list[Update], site_root: Path) -> str:
   <body>
     <a href="#main-content" class="skip-link">Skip to content</a>
     <header>
+      <!-- Same #auth-container as index.html — account menu, streak badge,
+           Google sign-in — kept real rather than stripped down: a visitor
+           who lands here first (from a shared link, a search result) should
+           see the same signed-in state and controls as everywhere else, not
+           a page that looks logged out. No data-mode attributes on the
+           account menu's links: those only mean something to
+           initializeNavigation()'s click-interception in scripts.js, which
+           this static document doesn't load, so they're plain real
+           navigation into the live app instead. -->
+      <div class="header-top-row">
+        <div id="auth-container" class="auth-container">
+          <div class="account-menu">
+            <button type="button" id="account-menu-btn" class="account-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="account-menu-panel" aria-label="Account menu" title="Account menu">
+              <i class="fas fa-circle-user" aria-hidden="true"></i>
+            </button>
+            <div id="account-menu-panel" class="account-menu-panel hidden" role="menu" aria-label="Account">
+              <a class="account-menu-item" role="menuitem" href="?type=my-stats"><i class="fas fa-chart-simple" aria-hidden="true"></i> My Stats</a>
+              <a class="account-menu-item" role="menuitem" href="?type=settings"><i class="fas fa-gear" aria-hidden="true"></i> Settings</a>
+              <a class="account-menu-item" role="menuitem" href="?type=about"><i class="fas fa-circle-info" aria-hidden="true"></i> About</a>
+              <a class="account-menu-item" role="menuitem" href="updates/" aria-current="page"><i class="fas fa-clock-rotate-left" aria-hidden="true"></i> What's New</a>
+            </div>
+          </div>
+          <div id="streak-badge" class="streak-badge hidden" title="Day streak">
+            <i class="fas fa-fire" aria-hidden="true"></i>
+            <span id="streak-badge-count">0</span>
+          </div>
+          <button id="google-signin-btn" type="button" class="google-signin-btn" title="Sign in with Google to sync My Words across devices">
+            <svg class="google-signin-btn-logo" viewBox="0 0 18 18" aria-hidden="true">
+              <path fill="#4285F4" d="M17.64 9.2045c0-.6381-.0573-1.2518-.1636-1.8409H9v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2582h2.9087c1.7018-1.5668 2.6836-3.874 2.6836-6.6151z"/>
+              <path fill="#34A853" d="M9 18c2.43 0 4.4673-.806 5.9564-2.1805l-2.9087-2.2582c-.8064.54-1.8368.859-3.0477.859-2.3436 0-4.3282-1.5831-5.036-3.7104H.9573v2.3318C2.4382 15.9832 5.4818 18 9 18z"/>
+              <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.2827-1.1168-.2827-1.71s.1027-1.17.2827-1.71V4.9582H.9573C.3477 6.1732 0 7.5477 0 9s.3477 2.8268.9573 4.0418L3.964 10.71z"/>
+              <path fill="#EA4335" d="M9 3.5795c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5813C13.4632.8918 11.4259 0 9 0 5.4818 0 2.4382 2.0168.9573 4.9582L3.964 7.29C4.6718 5.1627 6.6564 3.5795 9 3.5795z"/>
+            </svg>
+            Sign In
+          </button>
+          <div id="auth-user-info" class="auth-user-info hidden">
+            <img id="auth-user-avatar" class="auth-user-avatar" alt="">
+            <span id="auth-user-name" class="auth-user-name"></span>
+            <span id="sync-status" class="sync-status hidden" role="status" title="Your changes are saved on this device but haven't synced to your account yet. We'll keep trying.">
+              <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+            </span>
+            <button id="google-signout-btn" type="button" class="google-signout-btn" title="Sign out">Sign out</button>
+          </div>
+        </div>
+      </div>
       <a id="site-title" href="./" aria-label="Norwegian Dictionary, return to home">
         <span class="site-wordmark-name">Norwegian Dictionary</span>
         <span class="site-wordmark-descriptor" aria-hidden="true">Words <span>&middot;</span> Stories <span>&middot;</span> Practice</span>
@@ -285,8 +346,8 @@ def render_page(updates: list[Update], site_root: Path) -> str:
         <a href="https://www.linkedin.com/in/afeinberg1/" target="_blank" rel="noopener noreferrer" class="footer-control linkedin-btn" aria-label="Connect with me on LinkedIn">
           <img src="Resources/Icons/linkedin-icon.png" alt="" class="linkedin-icon"><span>LinkedIn</span>
         </a>
-        <a href="https://www.buymeacoffee.com/afeinberg4l" class="coffee-btn">
-          <img src="https://img.buymeacoffee.com/button-api/?text=Buy+me+a+coffee&amp;emoji=&amp;slug=afeinberg4l&amp;button_colour=0d3a69&amp;font_colour=ffffff&amp;font_family=Lato&amp;outline_colour=ffffff&amp;coffee_colour=FFDD00" class="coffee-img" alt="Buy me a coffee">
+        <a href="https://www.buymeacoffee.com/afeinberg4l" target="_blank" rel="noopener noreferrer" class="footer-control coffee-btn" aria-label="Buy me a coffee">
+          <i class="fas fa-mug-hot" aria-hidden="true"></i><span>Buy Me a Coffee</span>
         </a>
         <a href="./?feedback=1" class="footer-control feedback-footer-btn">
           <i class="fas fa-comment-dots" aria-hidden="true"></i><span>Feedback</span>
@@ -305,11 +366,50 @@ def render_page(updates: list[Update], site_root: Path) -> str:
       </div>
       <p class="copyright">© 2026 Norwegian Dictionary, with input from Språkrådet, Universitetet i Bergen, and Det Norske Akademi for Språk og Litteratur</p>
     </footer>
+    <!-- Same modules index.html loads for My Words sign-in/streak — see the
+         header comment above for the load-order constraints. Not deferred:
+         already the last thing before </body>, so there's nothing left to
+         wait on. -->
+    <script src="{spaced_repetition_js}"></script>
+    <script src="{progress_sharding_js}"></script>
+    <script src="{word_list_js}"></script>
+    <script src="{story_favorites_js}"></script>
+    <script src="{my_words_auth_js}"></script>
+    <script src="{streak_js}"></script>
     <script>
       const switcher = document.getElementById("site-switcher");
       switcher.addEventListener("change", () => {{
         if (switcher.value) location.href = `${{location.origin}}/${{switcher.value}}/`;
       }});
+
+      // Same open/close behavior as initializeAccountMenu() in scripts.js
+      // (kept in sync by hand — this page doesn't load scripts.js itself).
+      const accountMenuBtn = document.getElementById("account-menu-btn");
+      const accountMenuPanel = document.getElementById("account-menu-panel");
+      if (accountMenuBtn && accountMenuPanel) {{
+        const isMenuOpen = () => !accountMenuPanel.classList.contains("hidden");
+        const closeMenu = () => {{
+          accountMenuPanel.classList.add("hidden");
+          accountMenuBtn.setAttribute("aria-expanded", "false");
+        }};
+        const openMenu = () => {{
+          accountMenuPanel.classList.remove("hidden");
+          accountMenuBtn.setAttribute("aria-expanded", "true");
+        }};
+        accountMenuBtn.addEventListener("click", (event) => {{
+          event.stopPropagation();
+          isMenuOpen() ? closeMenu() : openMenu();
+        }});
+        document.addEventListener("click", (event) => {{
+          if (isMenuOpen() && !event.target.closest(".account-menu")) closeMenu();
+        }});
+        document.addEventListener("keydown", (event) => {{
+          if (event.key === "Escape" && isMenuOpen()) {{
+            closeMenu();
+            accountMenuBtn.focus();
+          }}
+        }});
+      }}
     </script>
   </body>
 </html>

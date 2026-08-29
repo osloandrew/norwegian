@@ -91,3 +91,13 @@ test("JS-only modes retain an explicit type parameter", () => {
 
   assert.equal(getPushedURL(), "http://127.0.0.1:3000/?type=my-stats");
 });
+
+test("Settings and About retain an explicit type parameter, same as My Stats", () => {
+  const { context, getPushedURL } = createRoutingContext();
+
+  context.updateURL("", "settings", "", "");
+  assert.equal(getPushedURL(), "http://127.0.0.1:3000/?type=settings");
+
+  context.updateURL("", "about", "", "");
+  assert.equal(getPushedURL(), "http://127.0.0.1:3000/?type=about");
+});
