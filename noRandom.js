@@ -253,7 +253,6 @@ const noRandom = [
   "som en dass",
   "sperma",
   "spermie",
-  "stripp",
   "strippe",
   "strippklubb",
   "strippeshow",

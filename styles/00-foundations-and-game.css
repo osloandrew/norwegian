@@ -836,26 +836,37 @@ li {
 .game-teaching-outcome-icon {
   align-items: center;
   border-radius: 50%;
-  color: var(--color-surface);
+  border: 1.5px solid transparent;
+  box-sizing: border-box;
   display: inline-flex;
-  flex: 0 0 21px;
-  font-size: 12px;
-  font-weight: 700;
-  height: 21px;
+  flex: 0 0 24px;
+  height: 24px;
   justify-content: center;
-  width: 21px;
+  width: 24px;
+}
+
+.game-teaching-outcome-icon svg {
+  display: block;
+  height: 12px;
+  width: 12px;
 }
 
 .game-teaching-outcome--correct .game-teaching-outcome-icon {
-  background-color: var(--color-success-text);
+  background-color: var(--color-success-bg);
+  border-color: var(--color-success-border);
+  color: var(--color-success-text);
 }
 
 .game-teaching-outcome--incorrect .game-teaching-outcome-icon {
-  background-color: var(--color-danger-text);
+  background-color: var(--color-danger-bg);
+  border-color: var(--color-danger-border);
+  color: var(--color-danger-text);
 }
 
 .game-teaching-outcome--almost .game-teaching-outcome-icon {
-  background-color: var(--color-streak-text);
+  background-color: var(--color-streak-bg);
+  border-color: var(--color-streak-border);
+  color: var(--color-streak-text);
 }
 
 .game-teaching-context {
@@ -1121,14 +1132,14 @@ li {
 .game-pronunciation {
   font-family: "Source Serif 4", "Noto Serif", serif;
   font-size: 14px;
-  font-weight: 300;
-  letter-spacing: 0.04rem;
+  font-weight: 400;
+  letter-spacing: 0.02rem;
   margin: 0;
 }
 
 .game-pronunciation-slot {
   align-items: center;
-  color: #6a7d8e;
+  color: var(--color-text-slate);
   display: flex;
   flex: 0 0 22px;
   justify-content: center;
@@ -2877,6 +2888,16 @@ h4 {
     margin: 0px 0px 4px 0px;
   }
 
+  /* Desktop's .game-progress-heading margin-bottom (10px, base rule) is
+     generous enough on mobile that the middle column — heading + accuracy
+     bar + instruction — runs taller than the score boxes beside it, so
+     the whole stats row (and the word card sitting right below it) ends
+     up governed by this one gap rather than by any of the actual content.
+     Matches the 4px rhythm the rest of this mobile block already uses. */
+  .game-progress-heading {
+    margin-bottom: 4px;
+  }
+
   .game-stats-progress-wrapper > .game-instruction {
     align-items: center;
     display: flex;
@@ -2926,10 +2947,15 @@ h4 {
   /* Once the fixed response zone, prompt card, and header have their space,
      give every remaining pixel on a tall mobile viewport to the teaching
      reveal. The viewport-derived value stays constant between questions, so
-     longer context gets room without bringing back content-driven jumps. */
+     longer context gets room without bringing back content-driven jumps.
+     Bounds and offset both shifted +20px from their original 132/152/712:
+     the mobile toolbar's icon row dropped from 52px to 38px and the stats
+     block's heading margin from 10px to 4px (35-navigation.css and this
+     file's own .game-progress-heading override, above), so that's real
+     space now available for the reveal instead of the icons/margin. */
   @media (min-height: 701px) {
     body.word-game-mode .game-learning-stage {
-      --game-mobile-reveal-height: clamp(132px, calc(100dvh - 712px), 152px);
+      --game-mobile-reveal-height: clamp(152px, calc(100dvh - 692px), 172px);
       grid-template-rows: 180px var(--game-mobile-reveal-height);
       height: calc(188px + var(--game-mobile-reveal-height));
     }
@@ -2983,12 +3009,49 @@ h4 {
     height: clamp(64px, 20vw, 88px);
     width: clamp(64px, 20vw, 88px);
   }
+
+  /* At the unshrunk 14px desktop size, the gender pill reads much louder
+     than the 11px CEFR badge stacked right under it — a bigger gap than
+     this label column needs on a phone screen where .game-word (the
+     actual word/sentence) should be the loudest thing in the card. Still
+     kept a size above CEFR's, not matched to it exactly: gender is the
+     more useful-at-a-glance of the two, so it stays the slightly larger,
+     first-read label rather than becoming a second identical tag. */
+  body.word-game-mode .game-gender {
+    font-size: 12.5px;
+    padding: 2px 6px;
+    /* The base rule relies on min-width:fit-content and ample desktop
+       width to stay on one line; neither guarantees that at phone widths,
+       where the longest values ("noun - en-ei-et", "interjection") are
+       wide enough to wrap onto a second line without this. A pill is not
+       meant to wrap, so let it overflow its column instead — that reads
+       fine here since nothing else shares this row. */
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  /* Smaller and tighter than the desktop badge, so it reads as a light
+     tag rather than competing with the gender pill above it. Kept stacked
+     under the gender pill (not moved beside it) — a shorter badge next to
+     a taller pill reads as mismatched, and a wide gender word beside it
+     could push into the banner column. Shrinking the badge's own box is
+     what shortens this column instead, giving .game-word more room to
+     grow into below (see .game-learning-stage .game-word's flex-grow). */
+  body.word-game-mode .game-cefr-label {
+    font-size: 11px;
+    line-height: 1;
+    margin-top: -2px;
+    padding: 2px 5px;
+  }
 }
 
 @media (max-width: 1024px) and (max-height: 700px) {
+  /* 120px/290px shifted to 140px/310px — same +20px reclaimed from the
+     mobile toolbar's icon row and the stats heading's margin as the
+     min-height:701px tier above; see that tier's comment. */
   body.word-game-mode .game-learning-stage {
-    grid-template-rows: 162px 120px;
-    height: 290px;
+    grid-template-rows: 162px 140px;
+    height: 310px;
   }
 
   body.word-game-mode .game-learning-stage .game-word-card {
@@ -2998,9 +3061,9 @@ h4 {
   }
 
   body.word-game-mode .game-teaching-reveal {
-    height: 120px;
-    max-height: 120px;
-    min-height: 120px;
+    height: 140px;
+    max-height: 140px;
+    min-height: 140px;
     padding-block: 7px;
   }
 
@@ -3018,11 +3081,30 @@ h4 {
     min-height: 232px;
   }
 
+  /* 76px (not the 6.5rem/104px used above max-height:701px) is what's
+     actually left over once padding (20px), the label row, and the fixed
+     22px pronunciation slot are subtracted from this breakpoint's 162px
+     card — 104px overflowed the card by ~28px, clipping the pronunciation
+     text under game-word-card's overflow:hidden on short phones (verified
+     on a 375×667 viewport; pre-existing, not caused by the label-row
+     shrink above, which only *reduced* how much this overflowed). */
   body.word-game-mode .game-word {
-    flex-basis: 6.5rem;
-    height: 6.5rem;
-    max-height: 6.5rem;
-    min-height: 6.5rem;
+    flex-basis: 76px;
+    height: 76px;
+    max-height: 76px;
+    min-height: 76px;
+  }
+
+  /* The width-based clamp on .game-listening-icon (see above max-width:
+     1024px) sizes it to ~75px at typical phone widths — which, centered in
+     this breakpoint's now-76px-tall .game-word box, leaves it touching the
+     label row outright (0px gap, confirmed empirically), before even
+     accounting for the pulse animation growing it further. Shrinking the
+     icon here, where the box is shortest, keeps a real gap above it. */
+  body.word-game-mode .game-listening-icon {
+    font-size: 26px;
+    height: 58px;
+    width: 58px;
   }
 
   body.word-game-mode .game-grid {
@@ -3062,31 +3144,35 @@ h4 {
      fixed answer grid begins immediately afterward. Keep the prompt card's
      useful 162px height, but shorten the empty/context shelf enough to leave
      a real gap above the responses. Longer answered context can still use
-     the shelf's inner overflow fallback. */
+     the shelf's inner overflow fallback. 104px/274px shifted to 124px/294px
+     — same +20px reclaimed from the mobile toolbar's icon row and the
+     stats heading's margin as the taller mobile tiers above. */
   body.word-game-mode .game-learning-stage {
-    grid-template-rows: 162px 104px;
-    height: 274px;
+    grid-template-rows: 162px 124px;
+    height: 294px;
   }
 
   body.word-game-mode .game-teaching-reveal {
-    height: 104px;
-    max-height: 104px;
-    min-height: 104px;
+    height: 124px;
+    max-height: 124px;
+    min-height: 124px;
     padding-block: 7px;
   }
 
   /* Typed recall uses one compact response row instead of the four-card
      answer grid, leaving substantial unused space above it on an SE. Once
      the answer is graded, spend that real viewport space on the explanation
-     rather than clipping its translation inside the generic 104px shelf.
+     rather than clipping its translation inside the generic 124px shelf.
      The clamp keeps very short phones at the safe base height and preserves
-     a gap above the fixed typed response zone at taller SE-class heights. */
+     a gap above the fixed typed response zone at taller SE-class heights.
+     Bounds and offset shifted +20px (104/184/510 → 124/204/490) along with
+     this tier's base shelf height above. */
   body.word-game-mode.word-game-round-active
     #results-container:has(.game-grid.game-typed-grid)
     .game-learning-stage:has(
       .game-teaching-reveal:not([data-state="question"])
     ) {
-    --game-se-answered-reveal-height: clamp(104px, calc(100dvh - 510px), 184px);
+    --game-se-answered-reveal-height: clamp(124px, calc(100dvh - 490px), 204px);
     grid-template-rows: 162px var(--game-se-answered-reveal-height);
     height: calc(170px + var(--game-se-answered-reveal-height));
   }
@@ -3199,6 +3285,48 @@ h4 {
   body.word-game-mode .game-learning-stage {
     grid-template-rows: 180px 160px;
     height: 348px;
+  }
+
+  /* Same goal as the mobile CEFR-badge shrink — shorten the label column so
+     .game-word (already set to grow into whatever's left, see
+     .game-learning-stage .game-word) gets more of the card to center in —
+     but without resizing the badge itself: side by side instead of
+     stacked, which on mobile made the badge and the taller gender pill
+     read as mismatched. At full size, next to the gender pill, they're
+     close enough in height for that not to be a problem. The card's
+     content area is ~600px+ here (vs ~335px on mobile), so this pairing
+     sits nowhere near the centered banner column even for the longest
+     gender labels ("interjection", "conjunction"). */
+  body.word-game-mode .game-learning-stage .game-label-subgroup:first-child {
+    align-items: center;
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  body.word-game-mode .game-learning-stage .game-gender {
+    margin: 0 !important;
+  }
+
+  /* Narrower and slightly smaller text than the desktop default (31.5px
+     wide, 14px font), but the vertical padding is bumped up enough to keep
+     its height matching the gender pill's exactly (28.4px) — next to a
+     shorter badge, this row would look bottom-heavy on one side. */
+  body.word-game-mode .game-learning-stage .game-cefr-label {
+    font-size: 13px;
+    padding: 4px 5px;
+  }
+
+  /* The full-size listening icon (88px) was already found to graze the
+     label row at its default size — confirmed empirically at 0px gap even
+     before the row-shortening change above, so this isn't something that
+     change caused. Shrinking it here is the same fix already applied for
+     the shortest mobile breakpoint (see max-width:1024px and
+     max-height:700px), just sized for this wider box: 72px leaves a real
+     6px gap, safely clearing the pulse animation's growth. */
+  body.word-game-mode .game-learning-stage .game-listening-icon {
+    font-size: 30px;
+    height: 72px;
+    width: 72px;
   }
 
   body.word-game-mode .game-teaching-reveal {

@@ -6168,6 +6168,19 @@ function getGameTeachingRevealMarkup({ requiredTranslation = "" } = {}) {
   `;
 }
 
+// fa-check / fa-equals / fa-xmark, inlined so the per-answer outcome badge
+// renders a crisp vector glyph instead of relying on the system font's
+// rendering of "✓"/"≈"/"×" (whose weight and optical centering vary by
+// glyph and by platform).
+const GAME_OUTCOME_ICON_SVG = Object.freeze({
+  correct:
+    '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M13.7 3.3a1 1 0 0 1 0 1.4l-7 7a1 1 0 0 1-1.4 0l-3-3a1 1 0 1 1 1.4-1.4L6 9.6l6.3-6.3a1 1 0 0 1 1.4 0Z"/></svg>',
+  almost:
+    '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2.5 5.5A1 1 0 0 1 3.5 4.5H12.5A1 1 0 0 1 12.5 6.5H3.5A1 1 0 0 1 2.5 5.5ZM2.5 10.5A1 1 0 0 1 3.5 9.5H12.5A1 1 0 0 1 12.5 11.5H3.5A1 1 0 0 1 2.5 10.5Z"/></svg>',
+  incorrect:
+    '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.4 3.3 8 6.9l3.6-3.6 1.4 1.4L9.4 8.3 13 11.9l-1.4 1.4L8 9.7l-3.6 3.6-1.4-1.4L6.6 8.3 3 4.7Z"/></svg>',
+});
+
 function renderGameTeachingReveal({
   isCorrect,
   correctAnswer,
@@ -6212,7 +6225,7 @@ function renderGameTeachingReveal({
   reveal.classList.remove("has-required-cue");
   reveal.innerHTML = `
     <div class="game-teaching-outcome game-teaching-outcome--${outcomeKind}">
-      <span class="game-teaching-outcome-icon" aria-hidden="true">${outcomeKind === "correct" ? "✓" : outcomeKind === "almost" ? "≈" : "×"}</span>
+      <span class="game-teaching-outcome-icon" aria-hidden="true">${GAME_OUTCOME_ICON_SVG[outcomeKind]}</span>
       <strong>${escapeGameHTML(outcomeText)}</strong>
     </div>
     <div class="game-teaching-context">${contextHTML}${translationHTML}</div>

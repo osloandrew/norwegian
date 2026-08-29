@@ -920,7 +920,17 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
    trigger. This file no longer has one (the mobile summary button was
    removed along with the rest of the <details> markup), so on a
    601–1024px viewport that gap silently un-flattens these three buttons
-   back into that stray floating popover instead of the intended row. */
+   back into that stray floating popover instead of the intended row.
+
+   Icons dropped on mobile (both the 🇬🇧 translations glyph and the
+   FontAwesome report/quit icons — see the display:none rule below):
+   three rarely-tapped controls don't earn a whole second stacked row
+   each on a phone screen that's fighting for every pixel. Text-only
+   labels also read as clearly at a glance, so the row can shrink from a
+   52px icon+label stack to a single 38px text line — that reclaimed
+   space is spent on .game-teaching-reveal (00-foundations-and-game.css)
+   so answered questions get more room for the sentence translation.
+   Desktop keeps its icons; this is scoped to this media query only. */
 @media (max-width: 1024px) {
   /* A live mobile round is a viewport-bound game screen. Its answer grid and
      Next control are fixed deliberately, so the document itself must not
@@ -982,14 +992,20 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
     box-sizing: border-box;
     display: flex;
     flex: 1 1 0;
-    flex-direction: column;
-    gap: 3px;
     color: #35516d;
-    height: 52px;
+    height: 38px;
+    /* This file's base (non-media) .game-round-menu-panel popover rule
+       gives the report/quit buttons min-height:42px for their desktop
+       disclosure-menu appearance. That rule isn't scoped to this media
+       query, so it still applies here and would otherwise floor these
+       two taller than the translations button's 38px — min-height isn't
+       set at all by that rule for .game-english-toggle-btn, which is why
+       only two of the three needed this override, not all three. */
+    min-height: 0;
     justify-content: center;
     min-width: 0;
     overflow: hidden;
-    padding: 4px 2px;
+    padding: 4px 6px;
     width: 0;
   }
 
@@ -1009,17 +1025,12 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
     }
   }
 
-  /* Fixed-height icon slot so the plain-text 🇬🇧 emoji (the translations
-     button's icon — everything else here is a FontAwesome glyph) centers
-     at the same visual size as the others instead of rendering shorter,
-     which is what made that one button read as "too short" before. */
+  /* Every icon in this row — the plain-text 🇬🇧 translations glyph and
+     the FontAwesome report/quit glyphs alike — is dropped on mobile (see
+     this media query's opening comment), leaving each button's label as
+     its only visible content. */
   .game-round-menu-panel button > :first-child {
-    align-items: center;
-    display: inline-flex;
-    font-size: 15px;
-    height: 18px;
-    justify-content: center;
-    line-height: 1;
+    display: none;
   }
 
   .game-round-menu-panel .game-english-toggle-label,
@@ -1033,16 +1044,21 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
     letter-spacing: 0;
     line-height: 1.2;
     max-width: 100%;
-    overflow-wrap: break-word;
+    overflow: hidden;
     text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .game-round-menu-panel .toolbar-report-issue-btn i {
-    color: #a55245;
-  }
-
-  .game-round-menu-panel .game-end-session-btn i {
-    color: #35516d;
+  /* "Show/Hide Translations" is the longest of the three labels — at
+     14px it's wider than this equal-thirds button ever gets on a phone,
+     which is what was pushing it onto a second line before nowrap was
+     added above (turning it into silent clipping instead). Shrinking
+     just this label keeps it a single legible line at any width this
+     media query covers, without touching the other two, which already
+     fit at 14px. */
+  .game-round-menu-panel .game-english-toggle-label {
+    font-size: 12.5px;
   }
 }
 
