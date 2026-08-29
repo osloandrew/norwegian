@@ -92,6 +92,28 @@ def capture(output_root: Path) -> None:
                         """
                     )
 
+                # myWordsAuth.js lazily injects the Firebase SDK <script>
+                # tags into <head> once Auth is ready to prepare — a fresh
+                # Playwright context always takes that path, so by the time
+                # we serialize outerHTML below those tags are already
+                # sitting in the live DOM. Baking them into the static
+                # snapshot means a real visitor's browser loads the
+                # Firebase SDK twice: once from this snapshot, once again
+                # when myWordsAuth.js runs its own loadFirebaseScripts()
+                # (logging "Firebase is already defined in the global
+                # scope"). Stripping them restores the same clean shell the
+                # source template ships, so myWordsAuth.js injects them
+                # exactly once for a real visitor.
+                page.evaluate(
+                    """
+                    () => {
+                      document
+                        .querySelectorAll('script[src^="https://www.gstatic.com/firebasejs/"]')
+                        .forEach((script) => script.remove());
+                    }
+                    """
+                )
+
                 html_out = page.evaluate("document.documentElement.outerHTML")
                 html_out = html_out.replace(
                     "<head>", f'<head>\n    <base href="{PAGE_BASE_HREF}">', 1

@@ -15,7 +15,7 @@ vm.runInContext(
 );
 
 const sharding = context.ProgressSharding;
-assert.equal(sharding.SHARD_COUNT, 64);
+assert.equal(sharding.SHARD_COUNT, 8);
 
 // Large collections remain permanently bounded and distribute across every
 // available shard instead of creating one document per word.
@@ -66,7 +66,7 @@ assert.equal(roundTripped.entryTimestamps[entryId], 500);
 // Corrupt/old payloads fail closed to an empty shard rather than breaking sync.
 assert.deepEqual(
   JSON.parse(JSON.stringify(sharding.parsePayload("not-json"))),
-  { version: 2, entries: {}, strengths: {} },
+  { version: 4, entries: {}, strengths: {} },
 );
 
 console.log("progress sharding tests passed");

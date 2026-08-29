@@ -2288,6 +2288,71 @@ function getPlacementQuestionMode(wordObj) {
   return plannedMode;
 }
 
+// Maps the SRS skill driving a word's overall "relearning"/"due" status back
+// to the base exercise mode that actually tests it. A word is put at the top
+// of every round's selection priority as soon as ANY one of its four skills
+// is relearning or due (see getGameEntryQueue/getSnapshot's "mostUrgent"
+// picker) — but nothing about that selection determines which exercise mode
+// gets rendered once the word is picked, structured rounds (bonus/daily
+// quest) included. Left alone, an ordinary weighted or fixed-sequence mode
+// draw can keep missing the one skill that's actually overdue: the word
+// keeps winning the "which word" competition on the strength of its one
+// stuck skill, while every rendered question exercises a *different*,
+// already-fine skill (getSkillUrgencyWeight only *favors* the urgent skill's
+// mode, it doesn't guarantee it — a coin flip that a learner can lose many
+// times running, especially with two skills simultaneously urgent) and never
+// clears the debt that's causing the repeats. This is worst for relearning,
+// whose short retry window means a missed skill can resurface every few
+// minutes for an entire practice session, but the identical starvation
+// happens on an ordinary multi-day "due" cycle too, just less visibly.
+// getForcedReviewMode below closes that gap the same way the in-round
+// incorrectWordQueue already forces a retry of the exact mode a learner just
+// missed — just extended to a relearning/due record that outlives the round
+// it was created in, and self-corrects across multiple simultaneously-urgent
+// skills too: resolving today's mostUrgent skill naturally hands the next
+// appearance to whichever skill is mostUrgent afterward, rather than leaving
+// that to the same odds that let one skill starve in the first place.
+const REVIEW_MODE_BY_SKILL = Object.freeze({
+  context: "cloze",
+  production: "reverse",
+  listening: "listening",
+  recognition: "forward",
+});
+
+function getForcedReviewMode(wordObj) {
+  // Placement is a fixed assessment sample and must not be perturbed by
+  // ordinary SRS recovery — see the identical carve-out on
+  // getStructuredQuestionModeForWord/getQuestionPairPlan's caller.
+  if (wordGameIsPlacementRound) return null;
+
+  const snapshot = window.WordStrengthAPI?.getSnapshot?.(wordObj);
+  if (
+    (snapshot?.queue !== "relearning" && snapshot?.queue !== "due") ||
+    !snapshot.skill
+  ) {
+    return null;
+  }
+
+  const mode = REVIEW_MODE_BY_SKILL[snapshot.skill];
+  if (!mode) return null;
+
+  // Never force a mode the word can't actually support — fall through to
+  // the ordinary selection, which already knows how to skip an infeasible
+  // mode gracefully.
+  if (mode === "listening" && !hasPlayableWordAudio(wordObj)) return null;
+  if (
+    mode === "cloze" &&
+    (!String(wordObj?.eksempel ?? "").trim() ||
+      BANNED_WORD_CLASSES.some((wordClass) =>
+        String(wordObj?.gender ?? "").toLowerCase().startsWith(wordClass),
+      ))
+  ) {
+    return null;
+  }
+
+  return mode;
+}
+
 function getStructuredQuestionModeForWord(wordObj) {
   const hasAudio = hasPlayableWordAudio(wordObj);
   if (wordGameIsPlacementRound) return getPlacementQuestionMode(wordObj);
@@ -2309,7 +2374,8 @@ function getStructuredQuestionModeForWord(wordObj) {
 
 function getQuestionModeCandidates(wordObj) {
   const candidates = [];
-  const structuredMode = getStructuredQuestionModeForWord(wordObj);
+  const structuredMode =
+    getForcedReviewMode(wordObj) ?? getStructuredQuestionModeForWord(wordObj);
   if (structuredMode === "typed-reverse") {
     return [{ mode: "typed-reverse", weight: 1 }];
   }

@@ -38,6 +38,32 @@ Search: Enter Norwegian words to view definitions, part of speech, and example s
 
 Word Game: Select the 'Word Game' mode to begin vocabulary exercises filtered by CEFR and part of speech.
 
+### Local development
+
+```bash
+npm run dev
+```
+
+Starts the static app server (`http://localhost:8935`) and the Firestore
+emulator together, and stops both on Ctrl+C. This is the normal way to work
+on the app locally; use it every time, not just when touching My Words.
+
+My Words sign-in/sync (`myWordsAuth.js`) talks to the local Firestore
+emulator instead of the production project whenever the app is served from
+`localhost` or `127.0.0.1` — testing and reloading locally never counts
+against the real project's free-tier quota. Google sign-in itself still goes
+through the real Firebase Auth service; only Firestore reads/writes are
+redirected. If the emulator isn't running, Firestore calls just fail closed
+into the SDK's normal offline mode (harmless, if noisy in the console) —
+production is never touched either way, so forgetting to start it only
+matters if you're actually testing sync behavior.
+
+The emulator serves Firestore on port 8080 (seeded fresh each run — no data
+persists between restarts) and a web UI for inspecting stored documents at
+`http://localhost:4000`. It enforces the same `firestore.rules` as
+production, so rule bugs still surface locally. Run it on its own with `npm
+run emulators` if you want it without the app server.
+
 ## Crawlable page builds
 
 `norwegianWords.csv`, `norwegianStories.csv`, `norwegianSounds.csv`, and

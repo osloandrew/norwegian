@@ -1,8 +1,21 @@
 (function () {
   "use strict";
 
-  const SHARD_COUNT = 64;
-  const SCHEMA_VERSION = 2;
+  // Was 64, then 16 — see git history for the read/write-quota reasoning
+  // behind both drops. Measured empirically (see the per-skill record shape
+  // in spacedRepetition.js, ~1050 bytes/word when every one of the 4 skill
+  // types has been drilled): at 8 shards a single shard doesn't approach
+  // Firestore's 900KB-per-shard rule cap (firestore.rules) until roughly
+  // 5,500 words have all been fully drilled on every skill — well beyond
+  // anything realistic even for the heaviest user, while roughly halving
+  // the read/write fan-out from 16 for everyone's actual usage. Going lower
+  // than this (e.g. 4) starts costing real safety margin: that crosses the
+  // cap around ~2,800 fully-drilled words, which a genuinely dedicated
+  // multi-year user could plausibly reach. SCHEMA_VERSION bumps in lockstep
+  // so mergeRemoteData's existing migration path re-shards each account
+  // onto the new layout the next time they sign in.
+  const SHARD_COUNT = 8;
+  const SCHEMA_VERSION = 4;
 
   function isObject(value) {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);

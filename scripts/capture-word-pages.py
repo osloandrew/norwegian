@@ -172,6 +172,29 @@ def capture(words: list[str], output_root: Path = ROOT) -> None:
             )
             print(f"Dictionary loaded ({page.evaluate('results.length')} rows).")
 
+            # myWordsAuth.js lazily injects the Firebase SDK <script> tags
+            # into <head> once Auth is ready to prepare — a fresh Playwright
+            # context always takes that path, so by the time we serialize
+            # outerHTML below those tags are already sitting in the live
+            # DOM. Baking them into the static snapshot means a real
+            # visitor's browser loads the Firebase SDK twice: once from
+            # this snapshot, once again when myWordsAuth.js runs its own
+            # loadFirebaseScripts() (logging "Firebase is already defined
+            # in the global scope"). Stripping them restores the same
+            # clean shell the source template ships, so myWordsAuth.js
+            # injects them exactly once for a real visitor. One removal
+            # covers every word below — this page is never re-navigated,
+            # only re-rendered in place.
+            page.evaluate(
+                """
+                () => {
+                  document
+                    .querySelectorAll('script[src^="https://www.gstatic.com/firebasejs/"]')
+                    .forEach((script) => script.remove());
+                }
+                """
+            )
+
             for word in words:
                 slug = slugify(word)
                 if not slug:

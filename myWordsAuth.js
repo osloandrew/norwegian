@@ -66,6 +66,16 @@
 
   const PUSH_DEBOUNCE_MS = 300;
 
+  // A resource-exhausted (quota) error means the Firestore SDK already
+  // auto-retried the failing transaction several times with backoff. Left
+  // alone, every subsequent local edit schedules another transaction that
+  // goes through the same retry cycle, hammering an already-over-budget
+  // quota and flooding the console. Once that error is seen, pushes are
+  // deferred until this cooldown elapses instead of being attempted
+  // immediately — the underlying data stays queued (dirty flag/pending
+  // patches are untouched) so nothing is lost, it just waits.
+  const QUOTA_COOLDOWN_MS = 5 * 60 * 1000;
+
   const isFirebaseConfigured =
     Boolean(FIREBASE_CONFIG.apiKey) && FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY";
 
@@ -103,6 +113,15 @@
   let progressPushTimeoutId = null;
   let profilePushTimeoutId = null;
   let wasSignedInThisSession = false;
+  let quotaCooldownUntil = 0;
+
+  function noteQuotaExhausted() {
+    quotaCooldownUntil = Date.now() + QUOTA_COOLDOWN_MS;
+  }
+
+  function isQuotaCoolingDown() {
+    return Date.now() < quotaCooldownUntil;
+  }
 
   const SIGN_IN_READY_TITLE =
     "Sign in with Google to sync My Words across devices";
@@ -492,6 +511,9 @@
       .catch((error) => {
         console.warn(failureLabel, error);
         showSyncStatusError();
+        if (error?.code === "resource-exhausted") {
+          noteQuotaExhausted();
+        }
         throw error;
       })
       .finally(() => inFlightWrites.delete(tracked));
@@ -584,10 +606,20 @@
 
     const userId = currentUserId;
     window.clearTimeout(progressPushTimeoutId);
-    progressPushTimeoutId = window.setTimeout(() => {
-      progressPushTimeoutId = null;
-      drainPendingShardPatches(userId).catch(() => {});
-    }, PUSH_DEBOUNCE_MS);
+    progressPushTimeoutId = window.setTimeout(
+      function attemptDrain() {
+        if (isQuotaCoolingDown()) {
+          progressPushTimeoutId = window.setTimeout(
+            attemptDrain,
+            QUOTA_COOLDOWN_MS,
+          );
+          return;
+        }
+        progressPushTimeoutId = null;
+        drainPendingShardPatches(userId).catch(() => {});
+      },
+      PUSH_DEBOUNCE_MS,
+    );
   }
 
   function pushProfileNow(userId, profile) {
@@ -628,15 +660,25 @@
     pendingProfile = { ...pendingProfile, ...partial };
     const userId = currentUserId;
     window.clearTimeout(profilePushTimeoutId);
-    profilePushTimeoutId = window.setTimeout(() => {
-      profilePushTimeoutId = null;
-      const profile = pendingProfile;
-      pendingProfile = {};
-      const revision = abilityRevision;
-      pushProfileWithAbilityTracking(userId, profile, revision).catch(() => {
-        pendingProfile = { ...profile, ...pendingProfile };
-      });
-    }, PUSH_DEBOUNCE_MS);
+    profilePushTimeoutId = window.setTimeout(
+      function attemptPush() {
+        if (isQuotaCoolingDown()) {
+          profilePushTimeoutId = window.setTimeout(
+            attemptPush,
+            QUOTA_COOLDOWN_MS,
+          );
+          return;
+        }
+        profilePushTimeoutId = null;
+        const profile = pendingProfile;
+        pendingProfile = {};
+        const revision = abilityRevision;
+        pushProfileWithAbilityTracking(userId, profile, revision).catch(() => {
+          pendingProfile = { ...profile, ...pendingProfile };
+        });
+      },
+      PUSH_DEBOUNCE_MS,
+    );
   }
 
   // Explicit sign-out awaits this function. A pagehide can only make a
@@ -1224,6 +1266,19 @@
     db = firebase.firestore();
     provider = new firebase.auth.GoogleAuthProvider();
 
+    // Local development talks to a local Firestore emulator instead of the
+    // real project, so testing/reloading never touches the production
+    // account's free-tier quota. Auth stays real (Google sign-in still works
+    // normally); only Firestore reads/writes are redirected. useEmulator
+    // must be called before any other Firestore operation, which this is —
+    // nothing above touches `db`.
+    if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+      db.useEmulator("localhost", 8080);
+      console.info(
+        "Firestore: using local emulator (localhost:8080) — run `npm run emulators` if it's not already running.",
+      );
+    }
+
     // Completes the signInWithRedirect flow started in triggerSignIn() for
     // standalone/installed PWAs. onAuthStateChanged below fires with the
     // signed-in user regardless of whether this resolves — it only exists
@@ -1345,6 +1400,7 @@
 
   window.addEventListener("progress:round-complete", () => {
     if (!currentUserId || Object.keys(pendingShardPatches).length === 0) return;
+    if (isQuotaCoolingDown()) return; // Stays queued; the debounce timer will retry.
     window.clearTimeout(progressPushTimeoutId);
     progressPushTimeoutId = null;
     drainPendingShardPatches(currentUserId).catch(() => {});

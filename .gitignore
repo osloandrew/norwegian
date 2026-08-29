@@ -21,3 +21,13 @@ __pycache__/
 /page-manifest.json
 /build/
 /.pages-cache/
+
+# Local Firestore emulator / CLI runtime output (npm run emulators, deploy).
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+/.firebase/
+
+# Real personal data pulled from production for local testing — see
+# scripts/import-production-data.sh. Must never be committed.
+/my-words-debug-export.json
