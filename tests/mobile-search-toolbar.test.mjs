@@ -17,9 +17,17 @@ test("word game hides the complete search control group at every width", () => {
   );
 });
 
-test("mobile search gives the letter keys their own non-overlapping column", () => {
+test("mobile search cannot preserve an intrinsic width over the letter keys", () => {
   assert.match(
     navigationStyles,
-    /@media \(max-width:\s*1024px\)[\s\S]*?\.search-and-random-wrapper\s*{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*max-content minmax\(0,\s*1fr\);/,
+    /@media \(max-width:\s*1024px\)[\s\S]*?#search-bar\s*{[^}]*flex:\s*1 1 0;[^}]*min-width:\s*0;[^}]*width:\s*0;/,
+  );
+  assert.match(
+    navigationStyles,
+    /@media \(max-width:\s*1024px\)[\s\S]*?\.search-bar-wrapper\s*{[^}]*flex:\s*1 1 0;[^}]*min-width:\s*0;[^}]*width:\s*0;/,
+  );
+  assert.match(
+    navigationStyles,
+    /@media \(max-width:\s*1024px\)[\s\S]*?\.search-norwegian-letter-keys\s*{[^}]*flex:\s*0 0 100px;[^}]*min-width:\s*100px;/,
   );
 });

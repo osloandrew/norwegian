@@ -783,20 +783,22 @@ body.word-game-mode .search-and-random-wrapper {
   .search-and-random-wrapper {
     align-items: center;
     box-sizing: border-box;
-    display: grid;
+    display: flex;
     gap: 5px;
-    grid-template-columns: max-content minmax(0, 1fr);
     width: 100%;
   }
 
   #search-bar {
-    flex-basis: 70%;
-    flex-grow: 1;
-    min-width: 10px;
+    box-sizing: border-box;
+    flex: 1 1 0;
+    min-width: 0;
+    width: 0;
   }
 
   .search-bar-wrapper {
+    flex: 1 1 0;
     min-width: 0;
+    width: 0;
   }
 
   .search-btn {
@@ -807,6 +809,11 @@ body.word-game-mode .search-and-random-wrapper {
 
   .search-norwegian-letter-key {
     flex-basis: 30px;
+  }
+
+  .search-norwegian-letter-keys {
+    flex: 0 0 100px;
+    min-width: 100px;
   }
 
   .search-btn i {
