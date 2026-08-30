@@ -49,7 +49,12 @@ def source_values(path: Path, column: str, *, primary_word: bool = False) -> dic
             if primary_word:
                 value = value.split(",", 1)[0].strip()
             if value:
-                values[slugify(value)] = value
+                # The page capture keeps the first display spelling when
+                # entries differ only by case (for example, "ID" and "id")
+                # because both entries intentionally share one canonical URL.
+                # Validate against that same spelling instead of replacing it
+                # with whichever case variant appears last in the CSV.
+                values.setdefault(slugify(value), value)
     return values
 
 
