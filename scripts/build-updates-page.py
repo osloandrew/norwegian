@@ -387,6 +387,26 @@ def render_page(updates: list[Update], site_root: Path) -> str:
       const accountMenuBtn = document.getElementById("account-menu-btn");
       const accountMenuPanel = document.getElementById("account-menu-panel");
       if (accountMenuBtn && accountMenuPanel) {{
+        const positionMenu = () => {{
+          const viewportGutter = 8;
+          accountMenuPanel.classList.remove("account-menu-panel--opens-right");
+          accountMenuPanel.style.removeProperty("--account-menu-available-width");
+          const buttonRect = accountMenuBtn.getBoundingClientRect();
+          const panelWidth = accountMenuPanel.getBoundingClientRect().width;
+          const viewportWidth = document.documentElement.clientWidth;
+          const opensRight = buttonRect.right - panelWidth < viewportGutter;
+          const availableWidth = opensRight
+            ? viewportWidth - buttonRect.left - viewportGutter
+            : buttonRect.right - viewportGutter;
+          accountMenuPanel.classList.toggle(
+            "account-menu-panel--opens-right",
+            opensRight,
+          );
+          accountMenuPanel.style.setProperty(
+            "--account-menu-available-width",
+            `${{Math.max(0, availableWidth)}}px`,
+          );
+        }};
         const isMenuOpen = () => !accountMenuPanel.classList.contains("hidden");
         const closeMenu = () => {{
           accountMenuPanel.classList.add("hidden");
@@ -394,6 +414,7 @@ def render_page(updates: list[Update], site_root: Path) -> str:
         }};
         const openMenu = () => {{
           accountMenuPanel.classList.remove("hidden");
+          positionMenu();
           accountMenuBtn.setAttribute("aria-expanded", "true");
         }};
         accountMenuBtn.addEventListener("click", (event) => {{
@@ -408,6 +429,9 @@ def render_page(updates: list[Update], site_root: Path) -> str:
             closeMenu();
             accountMenuBtn.focus();
           }}
+        }});
+        window.addEventListener("resize", () => {{
+          if (isMenuOpen()) positionMenu();
         }});
       }}
     </script>

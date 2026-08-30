@@ -766,6 +766,23 @@ let previousWord = null;
 let recentAnswers = []; // Track the last X answers, 1 for correct, 0 for incorrect
 let reintroduceThreshold = 10; // Intervening answers before an Endless retry
 
+// Consecutive-repeat prevention follows what the learner actually sees, not
+// dictionary-row identity. This also keeps homographs and comma-separated
+// variants from bypassing the guard when they render the same primary form.
+function getGameWordPresentationKey(entryOrValue) {
+  return normalizeGameAnswer(getPrimaryNorwegianForm(entryOrValue));
+}
+
+function isPreviousGameWord(entryOrValue) {
+  const key = getGameWordPresentationKey(entryOrValue);
+  return Boolean(key && key === previousWord);
+}
+
+function recordPresentedGameWord(entry) {
+  previousWord = getGameWordPresentationKey(entry);
+  recordWordShownThisTurn(entry);
+}
+
 // Bounded rounds use their selected size as the cap on distinct words, while
 // Endless mode can keep discovering words after all currently due work is
 // clear. Failed words use this shorter scaled gap so retries remain feasible
@@ -1079,6 +1096,82 @@ const removedWordMessages = [
   "↩️ You can always save “{word}” again later.",
 ];
 
+const GAME_BANNER_MIN_FONT_SIZE = 11;
+
+// The game card deliberately reserves a stable two-line banner row so the
+// word/sentence below never jumps. Preserve the normal type size whenever it
+// fits; otherwise use a small binary search to find the largest size that
+// stays within those two lines. CSS still clips at the two-line boundary as
+// a last-resort guard for future messages that remain extreme at the minimum.
+function fitGameBannerText(bannerPlaceholder) {
+  const paragraph = bannerPlaceholder?.querySelector("p");
+  if (!paragraph) return;
+
+  paragraph.style.removeProperty("font-size");
+  const naturalFontSize = parseFloat(
+    window.getComputedStyle(paragraph).fontSize,
+  );
+  if (!Number.isFinite(naturalFontSize)) return;
+
+  const fitsTwoLines = () => {
+    const lineHeight = parseFloat(
+      window.getComputedStyle(paragraph).lineHeight,
+    );
+    return (
+      Number.isFinite(lineHeight) &&
+      paragraph.scrollHeight <= lineHeight * 2 + 1 &&
+      paragraph.scrollWidth <= paragraph.clientWidth + 1
+    );
+  };
+
+  if (fitsTwoLines()) return;
+
+  let smallestFit = Math.min(GAME_BANNER_MIN_FONT_SIZE, naturalFontSize);
+  let largestFit = naturalFontSize;
+  paragraph.style.fontSize = `${smallestFit}px`;
+
+  // An extremely long future message may not fit even at the readability
+  // floor. Leave it there and let the CSS boundary contain it rather than
+  // allowing it to collide with the prompt or shrinking it into illegibility.
+  if (!fitsTwoLines()) return;
+
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const candidate = (smallestFit + largestFit) / 2;
+    paragraph.style.fontSize = `${candidate}px`;
+    if (fitsTwoLines()) {
+      smallestFit = candidate;
+    } else {
+      largestFit = candidate;
+    }
+  }
+
+  paragraph.style.fontSize = `${smallestFit}px`;
+}
+
+let gameBannerResizeObserver = null;
+
+function keepGameBannerTextFitted(bannerPlaceholder) {
+  fitGameBannerText(bannerPlaceholder);
+
+  if (gameBannerResizeObserver) gameBannerResizeObserver.disconnect();
+  if (typeof ResizeObserver !== "undefined") {
+    gameBannerResizeObserver = new ResizeObserver(() => {
+      fitGameBannerText(bannerPlaceholder);
+    });
+    gameBannerResizeObserver.observe(bannerPlaceholder);
+  }
+
+  // Recheck once the real web font replaces its fallback; their character
+  // widths can differ enough to change a two-line wrap on a narrow phone.
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(() => {
+      if (bannerPlaceholder.isConnected) {
+        fitGameBannerText(bannerPlaceholder);
+      }
+    });
+  }
+}
+
 function showBanner(type, level) {
   const bannerPlaceholder = document.getElementById("game-banner-placeholder");
   let bannerHTML = "";
@@ -1120,6 +1213,7 @@ function showBanner(type, level) {
 
   if (bannerPlaceholder) {
     bannerPlaceholder.innerHTML = bannerHTML;
+    keepGameBannerTextFitted(bannerPlaceholder);
   }
 }
 
@@ -1129,6 +1223,10 @@ function hideAllBanners() {
   // ever been rendered, so a missing element here is routine, not an error.
   const bannerPlaceholder = document.getElementById("game-banner-placeholder");
   if (bannerPlaceholder) bannerPlaceholder.innerHTML = "";
+  if (gameBannerResizeObserver) {
+    gameBannerResizeObserver.disconnect();
+    gameBannerResizeObserver = null;
+  }
 }
 
 // Track correct/incorrect answers for each question, and nudge the ability
@@ -2569,7 +2667,10 @@ function getNextInitialRetrievalEntry() {
   const index = window.WordGamePolicy.getInitialRetrievalIndex(
     initialRetrievalQueue,
     wordGameSessionTurnCounter,
-    { forceAtRoundTail },
+    {
+      forceAtRoundTail,
+      isExcluded: (entry) => isPreviousGameWord(entry?.wordObj),
+    },
   );
   if (index < 0) return null;
   return initialRetrievalQueue.splice(index, 1)[0] ?? null;
@@ -5465,6 +5566,7 @@ async function startWordGame() {
   // timestamped record independently ensures it remains due across sessions.
   const readyWordInQueue = incorrectWordQueue.find(
     (queued) =>
+      !isPreviousGameWord(queued.wordObj) &&
       wordGameSessionQuestionsAnswered >= queued.availableAfterQuestion,
   );
   // Once every promised distinct word has been introduced, do not recycle an
@@ -5476,7 +5578,9 @@ async function startWordGame() {
     readyWordInQueue ??
     (wordGameMode === "session" &&
     wordGameSessionIntroducedWords.size >= wordGameSessionTarget
-      ? incorrectWordQueue[0] ?? null
+      ? incorrectWordQueue.find(
+          (queued) => !isPreviousGameWord(queued.wordObj),
+        ) ?? null
       : null);
 
   if (firstWordInQueue) {
@@ -5488,6 +5592,7 @@ async function startWordGame() {
     currentWord = firstWordInQueue.wordObj.ord;
     correctTranslation = firstWordInQueue.wordObj.engelsk;
     firstWordInQueue.shown = true;
+    recordPresentedGameWord(firstWordInQueue.wordObj);
     if (!wordGamePlacementCalibrationEnabled) {
       recordMyWordsMixQuestion(isMyWordsEntry(firstWordInQueue.wordObj));
     }
@@ -5686,8 +5791,7 @@ async function startWordGame() {
     currentWordQueueType = "initial-retrieval";
     plannedQuestionMode = initialRetrievalEntry.targetMode;
     plannedInitialClozeTarget = initialRetrievalEntry.clozeTarget;
-    previousWord = randomWordObj.ord;
-    recordWordShownThisTurn(randomWordObj);
+    recordPresentedGameWord(randomWordObj);
   } else {
     // Fetch a random word that respects CEFR and POS filters.
     randomWordObj = await fetchRandomWord();
@@ -7712,7 +7816,7 @@ function getEligibleGameWords(
     /*
      * Avoid displaying the same spelling twice in a row.
      */
-    if (!ignorePrevious && norwegianWord === previousWord) {
+    if (!ignorePrevious && isPreviousGameWord(entry)) {
       return false;
     }
 
@@ -8411,16 +8515,13 @@ function getNearestScheduledGameWords(entries) {
     .map(({ entry }) => entry);
 }
 
-// Words already-answered-correctly or already-introduced this round are
-// candidates the filler draw picks between — excludes whichever word was
-// just shown (previousWord), unless that's the only candidate left, since
-// this path bypasses getEligibleGameWords' own same-word guard entirely.
+// Words already answered correctly or introduced this round are candidates
+// for filler practice. This path bypasses getEligibleGameWords, so its
+// last-presented-word exclusion must remain strict even for a singleton pool.
+// Returning no filler is preferable to either repeating immediately or
+// reaching outside the round's promised vocabulary set.
 function excludePreviousFillerWord(entries) {
-  if (entries.length <= 1) return entries;
-
-  const filtered = entries.filter((entry) => entry.ord !== previousWord);
-
-  return filtered.length > 0 ? filtered : entries;
+  return entries.filter((entry) => !isPreviousGameWord(entry));
 }
 
 // The pool a filler draw picks between: already-introduced words this round
@@ -8534,8 +8635,7 @@ async function fetchRandomWord() {
           getQuestionPairPlan(fillerEntry),
         );
       }
-      previousWord = fillerEntry.ord;
-      recordWordShownThisTurn(fillerEntry);
+      recordPresentedGameWord(fillerEntry);
       if (!wordGamePlacementCalibrationEnabled) {
         recordMyWordsMixQuestion(isMyWordsEntry(fillerEntry));
       }
@@ -8549,16 +8649,6 @@ async function fetchRandomWord() {
     : "";
 
   let eligibleEntries = getEligibleGameWords(selectedPOS);
-
-  /*
-   * This matters only if there is exactly one eligible entry.
-   * It permits that entry to appear again when no alternative exists.
-   */
-  if (eligibleEntries.length === 0 && previousWord !== null) {
-    previousWord = null;
-
-    eligibleEntries = getEligibleGameWords(selectedPOS);
-  }
 
   if (eligibleEntries.length === 0) {
     return null;
@@ -8665,8 +8755,7 @@ async function fetchRandomWord() {
     recordA0PacingQuestion(currentWordQueueType);
   }
 
-  previousWord = selectedEntry.ord;
-  recordWordShownThisTurn(selectedEntry);
+  recordPresentedGameWord(selectedEntry);
 
   if (wordGameRoundActive) {
     wordGameSessionIntroducedWords.add(selectedEntry);

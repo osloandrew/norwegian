@@ -15067,5 +15067,552 @@
         "sourceSentence": "Denne livsstilen passer ikke for alle, men for de som trives med fleksibilitet og selvstendighet, kan den være svært givende."
       }
     ]
+  },
+  "Å leie en bolig i Norge": {
+    "questions": [
+      {
+        "prompt": "What is it common to do before deciding to rent a home?",
+        "options": [
+          "Sign the contract immediately",
+          "Go to a viewing",
+          "Pay the full deposit",
+          "Buy furniture for the home"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Før du bestemmer deg, er det vanlig å gå på visning."
+      },
+      {
+        "prompt": "What is a deposit meant to give the landlord?",
+        "options": [
+          "Extra security",
+          "Money for monthly bills",
+          "Payment for furniture",
+          "A fee for showing the home"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Det er penger som skal gi utleieren ekstra sikkerhet."
+      },
+      {
+        "prompt": "What should a tenant do if something important in the home breaks?",
+        "options": [
+          "Stop paying rent",
+          "Move out immediately",
+          "Contact the landlord",
+          "Use the deposit to repair it"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "Hvis noe viktig i boligen går i stykker, bør du kontakte utleieren."
+      }
+    ]
+  },
+  "Bankkonto, bankkort og BankID": {
+    "questions": [
+      {
+        "prompt": "What can you use BankID for?",
+        "options": [
+          "Showing who you are when logging in to online services",
+          "Withdrawing cash without a bank card",
+          "Changing the PIN code in a shop",
+          "Paying bills without a bank account"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Med BankID kan du vise hvem du er når du logger inn på forskjellige tjenester."
+      },
+      {
+        "prompt": "What should you do with your bank card PIN code?",
+        "options": [
+          "Write it on the card",
+          "Share it only with family",
+          "Keep it secret",
+          "Send it to the bank every month"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "Det er viktig å holde koden hemmelig og ikke dele den med andre."
+      },
+      {
+        "prompt": "What should you do if you lose your bank card?",
+        "options": [
+          "Wait a few days to see if it appears",
+          "Contact the bank as quickly as possible",
+          "Create a new BankID first",
+          "Report it to your employer"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Hvis du mister bankkortet ditt, bør du kontakte banken så raskt som mulig."
+      }
+    ]
+  },
+  "Barnehage i Norge": {
+    "questions": [
+      {
+        "prompt": "How old are most children who attend kindergarten in Norway?",
+        "options": [
+          "Between one and five years old",
+          "Between three and seven years old",
+          "Between five and ten years old",
+          "Under one year old"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "De fleste barna er mellom ett og fem år gamle."
+      },
+      {
+        "prompt": "Why do children need clothes that fit the weather in Norwegian kindergartens?",
+        "options": [
+          "Because they often sleep outdoors",
+          "Because they are often outside",
+          "Because they walk to kindergarten alone",
+          "Because classrooms are usually cold"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Barn i norske barnehager er ofte mye ute."
+      },
+      {
+        "prompt": "What social skills do children practice in kindergarten?",
+        "options": [
+          "Reading, writing, and counting",
+          "Cooking and cleaning",
+          "Sharing, waiting their turn, and cooperating",
+          "Shopping and using money"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "I barnehagen lærer barna også å dele, vente på tur og samarbeide med andre."
+      }
+    ]
+  },
+  "Det norske skolesystemet": {
+    "questions": [
+      {
+        "prompt": "Hvordan er grunnskolen delt opp i Norge?",
+        "options": [
+          "1.–6. trinn er barneskole og 7.–10. trinn er ungdomsskole",
+          "1.–7. trinn er barneskole og 8.–10. trinn er ungdomsskole",
+          "1.–8. trinn er barneskole og 9.–10. trinn er ungdomsskole",
+          "1.–5. trinn er barneskole og 6.–10. trinn er ungdomsskole"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Barnetrinnet går fra 1. til 7. trinn, mens ungdomstrinnet går fra 8. til 10. trinn."
+      },
+      {
+        "prompt": "Hva passer studieforberedende utdanning særlig for?",
+        "options": [
+          "Elever som ønsker å begynne i lære med en gang",
+          "Elever som ønsker å studere videre på universitet eller høyskole",
+          "Elever som vil avslutte utdanningen etter 10. trinn",
+          "Elever som bare ønsker praktisk opplæring i en bedrift"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Studieforberedende utdanning passer særlig for elever som ønsker å studere videre på universitet eller høyskole."
+      },
+      {
+        "prompt": "Hvordan er mange yrkesfaglige løp bygd opp?",
+        "options": [
+          "Tre år på skole og ett år på universitet",
+          "Ett år på skole og tre år i bedrift",
+          "To år på skole og to år med opplæring i en bedrift",
+          "Fire år på skole uten opplæring i bedrift"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "Mange yrkesfaglige løp består av to år på skole og to år med opplæring i en bedrift."
+      },
+      {
+        "prompt": "Hvem har ansvar for videregående opplæring?",
+        "options": [
+          "Kommunene",
+          "Fylkeskommunene",
+          "Universitetene",
+          "Stortinget direkte"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Kommunene har ansvar for grunnskolen, mens fylkeskommunene har ansvar for videregående opplæring."
+      }
+    ]
+  },
+  "Dolly Parton": {
+    "questions": [
+      {
+        "prompt": "Hva inspirerte Dolly Parton til å starte Imagination Library?",
+        "options": [
+          "At hun selv ikke hadde hatt tilgang til bøker som barn",
+          "At faren hennes aldri hadde lært å lese og skrive ordentlig",
+          "At hun ønsket å markedsføre bøker om countrymusikk",
+          "At hun hadde arbeidet som lærer før musikkarrieren"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Faren hennes hadde aldri lært å lese og skrive ordentlig, og Parton ønsket at flere barn skulle få et nært forhold til bøker."
+      },
+      {
+        "prompt": "Hvorfor skrev Parton sangen I Will Always Love You?",
+        "options": [
+          "Som en avskjed til Porter Wagoner",
+          "Som en sang til familien i Tennessee",
+          "Som tittelsang til filmen 9 to 5",
+          "Som en hyllest til Whitney Houston"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Da hun sluttet å arbeide med Wagoner, skrev hun sangen I Will Always Love You som en avskjed til ham."
+      },
+      {
+        "prompt": "Hva var et viktig mål for Parton da hun investerte i Dollywood?",
+        "options": [
+          "Å flytte fornøyelsesparken til Nashville",
+          "Å gjøre parken til et senter for musikkutdanning",
+          "Å investere i regionen hun kom fra",
+          "Å erstatte musikkarrieren med forretningsvirksomhet"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "For Parton var det viktig å investere i regionen hun kom fra, selv om hun for lengst hadde blitt en internasjonal stjerne."
+      },
+      {
+        "prompt": "Hva kjennetegnet tekstene i mange av Dolly Partons sanger?",
+        "options": [
+          "De handlet hovedsakelig om politikk og internasjonale konflikter",
+          "De tok ofte opp kjærlighet, fattigdom, familie og livet til vanlige mennesker",
+          "De var for det meste humoristiske sanger om livet som filmstjerne",
+          "De beskrev først og fremst livet i store amerikanske byer"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Partons sanger handlet ofte om kjærlighet og vanskelige forhold, men også om fattigdom, familie og livet til vanlige mennesker."
+      }
+    ]
+  },
+  "Dugnad": {
+    "questions": [
+      {
+        "prompt": "What is a dugnad?",
+        "options": [
+          "A paid job for the local government",
+          "A group of people working together without pay",
+          "A meeting where neighbors vote on rules",
+          "A celebration after finishing a project"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Det betyr at en gruppe mennesker arbeider sammen uten å få betalt."
+      },
+      {
+        "prompt": "What might neighbors do at a dugnad in a housing cooperative?",
+        "options": [
+          "Clean shared areas or rake leaves",
+          "Repair each other's cars",
+          "Cook dinner for every apartment",
+          "Collect rent from the residents"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Da kan naboene for eksempel rydde ute, rake løv, vaske fellesområder eller male."
+      },
+      {
+        "prompt": "Besides getting work done, what can a dugnad help people do?",
+        "options": [
+          "Earn extra money",
+          "Avoid meeting their neighbors",
+          "Get to know people in the local community better",
+          "Choose a new place to live"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "På en dugnad kan man også bli bedre kjent med naboer eller andre i nærmiljøet."
+      }
+    ]
+  },
+  "Hos fastlegen": {
+    "questions": [
+      {
+        "prompt": "Who should you contact if you become very ill and need help quickly?",
+        "options": [
+          "The pharmacy",
+          "The emergency clinic",
+          "Your employer",
+          "The hospital reception directly"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Hvis du blir veldig syk og trenger hjelp raskt, kan du kontakte legevakten."
+      },
+      {
+        "prompt": "What can you do with a prescription from the doctor?",
+        "options": [
+          "Use it to book another appointment",
+          "Send it to your employer",
+          "Pick up medicine at a pharmacy",
+          "Use it to pay for the doctor's visit"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "Da kan du hente medisinen på et apotek."
+      },
+      {
+        "prompt": "Why might a GP send you to another doctor or to a hospital?",
+        "options": [
+          "Because you need a special examination or treatment",
+          "Because the GP office is closing for the day",
+          "Because you forgot to write down your questions",
+          "Because all prescriptions must be issued at a hospital"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Det kan skje hvis du trenger en spesiell undersøkelse eller behandling."
+      }
+    ]
+  },
+  "Jobbsøking i Norge": {
+    "questions": [
+      {
+        "prompt": "Hvorfor er det viktig å lese stillingsannonsen nøye før man søker?",
+        "options": [
+          "For å kunne tilpasse søknaden til akkurat den jobben",
+          "For å finne ut hvor mange andre som har søkt",
+          "For å vite hvilke spørsmål arbeidsgiveren vil stille i intervjuet",
+          "For å avgjøre om man trenger å sende inn referanser med en gang"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Det er viktig å lese stillingsannonsen nøye før du søker. Da kan du tilpasse søknaden til akkurat den jobben."
+      },
+      {
+        "prompt": "Hva får kandidaten ofte mulighet til under et jobbintervju?",
+        "options": [
+          "Å forhandle ferdig lønnen før intervjuet avsluttes",
+          "Å stille egne spørsmål om jobben og arbeidsplassen",
+          "Å velge hvem som skal være nærmeste leder",
+          "Å bestemme når arbeidsgiveren skal gi svar"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Du får ofte også mulighet til å stille egne spørsmål om jobben og arbeidsplassen."
+      },
+      {
+        "prompt": "Hva kan skje i en rekrutteringsprosess i tillegg til flere intervjurunder?",
+        "options": [
+          "At kandidaten må gjennomføre en test eller løse en oppgave",
+          "At kandidaten må arbeide gratis i flere uker",
+          "At kandidaten automatisk får tilbud etter andre intervju",
+          "At kandidaten må skrive en ny CV etter hvert intervju"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Det kan også hende at du må gjennomføre en test eller løse en oppgave."
+      },
+      {
+        "prompt": "Hva står det vanligvis i arbeidsavtalen når man får et jobbtilbud?",
+        "options": [
+          "Hvor mange andre som søkte på stillingen",
+          "Hva man skal tjene, hvor mye man skal arbeide, og når man skal begynne",
+          "Hvilke spørsmål som ble stilt under intervjuet",
+          "Hvor lenge arbeidsgiveren brukte på rekrutteringen"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Der står det blant annet hva du skal tjene, hvor mye du skal arbeide, og når du skal begynne."
+      }
+    ]
+  },
+  "Kommunen, fylket og staten": {
+    "questions": [
+      {
+        "prompt": "Hvilket offentlig nivå har ansvar for grunnskolen?",
+        "options": [
+          "Staten",
+          "Fylkeskommunen",
+          "Kommunen",
+          "Stortinget"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "Grunnskolen er for eksempel kommunens ansvar, mens videregående skole er fylkeskommunens ansvar."
+      },
+      {
+        "prompt": "Hvilken oppgave ligger hos fylkeskommunen ifølge teksten?",
+        "options": [
+          "Politi",
+          "Videregående opplæring",
+          "Forsvar",
+          "Grunnskole"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "En viktig oppgave er videregående opplæring."
+      },
+      {
+        "prompt": "Hva er en av statens oppgaver?",
+        "options": [
+          "Å drive alle barnehager",
+          "Å vedlikeholde alle lokale veier",
+          "Å ha ansvar for politi og forsvar",
+          "Å bestemme hvor hver kommune skal bygge boliger"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "Staten har blant annet ansvar for politi, forsvar og mange nasjonale tjenester."
+      },
+      {
+        "prompt": "Hvordan velges politikerne til kommunestyret?",
+        "options": [
+          "De blir utnevnt av regjeringen",
+          "Innbyggerne velger dem hvert fjerde år",
+          "Fylkestinget velger dem hvert annet år",
+          "De blir ansatt av kommunen"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Innbyggerne velger politikere til kommunestyret hvert fjerde år."
+      }
+    ]
+  },
+  "Lønn, skatt og skattekort": {
+    "questions": [
+      {
+        "prompt": "Hvordan får arbeidsgiveren vanligvis skattekortet ditt?",
+        "options": [
+          "Du skriver det ut og leverer det selv",
+          "Arbeidsgiveren henter det elektronisk fra Skatteetaten",
+          "Banken sender det til arbeidsgiveren",
+          "Du sender det sammen med lønnsslippen"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Skattekortet er elektronisk, og arbeidsgiveren henter det direkte fra Skatteetaten."
+      },
+      {
+        "prompt": "Når kan det være nødvendig å oppdatere opplysningene i skattekortet?",
+        "options": [
+          "Når du får en ny jobb med høyere lønn",
+          "Når du bytter bankkort",
+          "Når du tar ferie",
+          "Når du får en ny arbeidsgiver med samme lønn"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Hvis du for eksempel får en ny jobb med høyere lønn, kan det være nødvendig å oppdatere opplysningene."
+      },
+      {
+        "prompt": "Hva kan du se på lønnsslippen?",
+        "options": [
+          "Bare hvor mye skatt du skal betale neste år",
+          "Hvor mye du har tjent, skattetrekket og beløpet du får utbetalt",
+          "Bare arbeidsgiverens totale lønnskostnader",
+          "Hvor mye du har på bankkontoen etter alle private utgifter"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Der kan du se hvor mye du har tjent, hvor mye skatt som er trukket, og hvor mye du faktisk får utbetalt."
+      },
+      {
+        "prompt": "Hva kan skje hvis du har betalt for lite skatt i løpet av året?",
+        "options": [
+          "Du får automatisk nytt bankkort",
+          "Du kan måtte betale mer",
+          "Arbeidsgiveren må betale resten",
+          "Skattemeldingen blir slettet"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Hvis du har betalt for lite, kan du måtte betale mer."
+      }
+    ]
+  },
+  "På jobb i Norge": {
+    "questions": [
+      {
+        "prompt": "What should you normally do if you become sick and cannot work?",
+        "options": [
+          "Tell your employer",
+          "Ask a colleague to use your vacation days",
+          "Wait until you return to work",
+          "Contact the municipality"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Hvis du blir syk, må du vanligvis gi beskjed til arbeidsgiveren."
+      },
+      {
+        "prompt": "What does a good working environment mean in the text?",
+        "options": [
+          "Employees should always work from home",
+          "Employees should feel safe and be treated with respect",
+          "Employees should avoid speaking directly to managers",
+          "Employees should have the same tasks every day"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Det betyr at de ansatte skal føle seg trygge og bli behandlet med respekt."
+      },
+      {
+        "prompt": "Why can eating lunch together be useful at work?",
+        "options": [
+          "It makes the workday shorter",
+          "It replaces formal meetings",
+          "It can help colleagues get to know each other better",
+          "It means employees do not need other breaks"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "En slik pause kan være en god måte å bli bedre kjent med kollegene på."
+      }
+    ]
+  },
+  "Plateosaurus": {
+    "questions": [
+      {
+        "prompt": "What did Plateosaurus eat?",
+        "options": [
+          "Plants",
+          "Fish",
+          "Insects",
+          "Other dinosaurs"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Plateosaurus var en planteetende dinosaur som nå er utdødd."
+      },
+      {
+        "prompt": "What could Plateosaurus probably do even though it walked on four legs?",
+        "options": [
+          "Fly short distances",
+          "Rise up on two legs",
+          "Swim underwater",
+          "Climb tall trees"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "De gikk på fire bein, men kunne sannsynligvis reise seg på to."
+      },
+      {
+        "prompt": "Why do scientists think Plateosaurus lived in herds?",
+        "options": [
+          "Their footprints always form straight lines",
+          "They had unusually large claws",
+          "Many Plateosaurus fossils have been found buried together",
+          "They all ate from the same kinds of plants"
+        ],
+        "correctIndex": 2,
+        "sourceSentence": "Forskere har funnet Plateosauruser begravet sammen mange steder. Derfor tror man at de levde i flokk."
+      }
+    ]
+  },
+  "Slik fungerer Stortinget": {
+    "questions": [
+      {
+        "prompt": "Hvor mange representanter består Stortinget av?",
+        "options": [
+          "150",
+          "169",
+          "181",
+          "200"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Stortinget er Norges nasjonalforsamling og består av 169 representanter."
+      },
+      {
+        "prompt": "Hva er tre av Stortingets viktigste oppgaver ifølge teksten?",
+        "options": [
+          "Å vedta lover, bestemme statens pengebruk og kontrollere regjeringen",
+          "Å utnevne alle kommunepolitikere, styre domstolene og lede politiet",
+          "Å skrive statsbudsjettet alene, gjennomføre lover og lede departementene",
+          "Å styre kommunene direkte, velge regjeringen hvert år og drive offentlige tjenester"
+        ],
+        "correctIndex": 0,
+        "sourceSentence": "Tre av de viktigste er å vedta lover, bestemme hvordan staten skal bruke penger, og kontrollere regjeringen."
+      },
+      {
+        "prompt": "Hva gjør en stortingskomité før hele Stortinget ofte stemmer over en sak?",
+        "options": [
+          "Den avgjør saken endelig uten avstemning",
+          "Den undersøker og diskuterer saken",
+          "Den sender saken til kommunen",
+          "Den lar regjeringen bestemme utfallet"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Før hele Stortinget stemmer over en sak, har en komité ofte undersøkt og diskutert den."
+      },
+      {
+        "prompt": "Hva må regjeringen ofte gjøre når den ikke har støtte fra et flertall på Stortinget?",
+        "options": [
+          "Skrive ut nytt valg med en gang",
+          "Samarbeide med andre partier for å få vedtatt forslag",
+          "La komiteene overta regjeringens oppgaver",
+          "Be kommunene avgjøre nasjonale saker"
+        ],
+        "correctIndex": 1,
+        "sourceSentence": "Da må den ofte samarbeide med andre partier for å få vedtatt forslagene sine."
+      }
+    ]
   }
 }

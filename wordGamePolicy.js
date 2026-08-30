@@ -207,17 +207,21 @@
     {
       maxPending = MAX_PENDING_INITIAL_RETRIEVALS,
       forceAtRoundTail = false,
+      isExcluded = () => false,
     } = {},
   ) {
     if (!Array.isArray(entries) || entries.length === 0) return -1;
     const turn = Math.max(0, Math.floor(Number(currentTurn) || 0));
     const readyIndex = entries.findIndex(
-      (entry) => turn >= Math.max(0, Number(entry?.availableAfterTurn) || 0),
+      (entry) =>
+        !isExcluded(entry) &&
+        turn >= Math.max(0, Number(entry?.availableAfterTurn) || 0),
     );
     if (readyIndex >= 0) return readyIndex;
-    return forceAtRoundTail || entries.length >= Math.max(1, maxPending)
-      ? 0
-      : -1;
+    if (!forceAtRoundTail && entries.length < Math.max(1, maxPending)) {
+      return -1;
+    }
+    return entries.findIndex((entry) => !isExcluded(entry));
   }
 
   // A learner-level prior should not replace retrieval evidence. It can,

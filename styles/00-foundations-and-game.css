@@ -590,7 +590,23 @@ li {
 }
 
 #game-banner-placeholder p {
+  line-height: 1.2;
   margin: 1px !important;
+  overflow-wrap: anywhere;
+  width: 100%;
+}
+
+/* The label row has room for two banner lines. Keep that boundary explicit
+   so a celebration can never paint into the prompt below, even before the
+   measured font fitting in fitGameBannerText() runs (or if scripting is
+   unavailable). Normal messages retain their usual size; only text that
+   needs more than two lines is stepped down just enough to fit. */
+#game-banner-placeholder > div {
+  align-items: center;
+  display: flex;
+  max-height: 2.4em;
+  overflow: hidden;
+  width: 100%;
 }
 
 .game-my-words-star {

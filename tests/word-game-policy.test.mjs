@@ -453,6 +453,26 @@ assert.equal(
   }),
   0,
 );
+assert.equal(
+  policy.getInitialRetrievalIndex(pendingIntroductions, 6, {
+    isExcluded: (entry) => entry === pendingIntroductions[0],
+  }),
+  -1,
+);
+assert.equal(
+  policy.getInitialRetrievalIndex(pendingIntroductions, 5, {
+    forceAtRoundTail: true,
+    isExcluded: (entry) => entry === pendingIntroductions[0],
+  }),
+  1,
+);
+assert.equal(
+  policy.getInitialRetrievalIndex(pendingIntroductions, 99, {
+    forceAtRoundTail: true,
+    isExcluded: () => true,
+  }),
+  -1,
+);
 
 const highAbilityChoiceFastTrack = policy.getAbilityFastTrackSchedule({
   ability: 900,

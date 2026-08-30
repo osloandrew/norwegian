@@ -2596,6 +2596,33 @@ function interceptNavigationClick(link, handler) {
   });
 }
 
+// Align the panel to the trigger's right edge by default, so it grows to the
+// left. If that would cross the viewport gutter, flip it to the trigger's
+// left edge so it grows right instead. Measuring the rendered panel handles
+// zoom, translated text, and auth-row contents without a brittle breakpoint.
+function positionAccountMenuPanel(button, panel) {
+  const viewportGutter = 8;
+  panel.classList.remove("account-menu-panel--opens-right");
+  panel.style.removeProperty("--account-menu-available-width");
+
+  const buttonRect = button.getBoundingClientRect();
+  const panelWidth = panel.getBoundingClientRect().width;
+  const viewportWidth = document.documentElement.clientWidth;
+  const wouldOverflowLeft = buttonRect.right - panelWidth < viewportGutter;
+  const availableWidth = wouldOverflowLeft
+    ? viewportWidth - buttonRect.left - viewportGutter
+    : buttonRect.right - viewportGutter;
+
+  panel.classList.toggle(
+    "account-menu-panel--opens-right",
+    wouldOverflowLeft,
+  );
+  panel.style.setProperty(
+    "--account-menu-available-width",
+    `${Math.max(0, availableWidth)}px`,
+  );
+}
+
 // Toggleable dropdown for the account menu (#account-menu-btn/
 // #account-menu-panel in index.html) — My Stats/Settings/About/What's New.
 // The My Stats/Settings/About items are handled by the shared data-mode
@@ -2619,6 +2646,7 @@ function initializeAccountMenu() {
 
   const openMenu = () => {
     panel.classList.remove("hidden");
+    positionAccountMenuPanel(button, panel);
     button.setAttribute("aria-expanded", "true");
   };
 
@@ -2646,6 +2674,10 @@ function initializeAccountMenu() {
       closeMenu();
       button.focus();
     }
+  });
+
+  window.addEventListener("resize", () => {
+    if (isOpen()) positionAccountMenuPanel(button, panel);
   });
 }
 
