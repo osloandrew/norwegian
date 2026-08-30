@@ -38,7 +38,12 @@
   });
   const CONTEXT_VARIATION_MIN_SUCCESSES = 3;
   const INITIAL_RETRIEVAL_GAP_TURNS = 3;
-  const MAX_PENDING_INITIAL_RETRIEVALS = 4;
+  // Two unseen words are enough to create an intervening item before the
+  // first retrieval. A limit of one would either repeat the same visible
+  // word immediately or, because immediate repetition is forbidden, still
+  // require a second introduction. After this cold start, the queue naturally
+  // tends to alternate one new word with one retrieval.
+  const MAX_PENDING_INITIAL_RETRIEVALS = 2;
   const FAST_TRACK_MIN_PREDICTED_SUCCESS = 0.92;
   const FAST_TRACK_FULL_PREDICTED_SUCCESS = 0.98;
   const FAST_TRACK_MIN_ABILITY_ADVANTAGE = 300;
@@ -156,7 +161,11 @@
   function getA0FrequencyWeight(frequencyValue, supportIntensity) {
     const frequency = clamp(Number(frequencyValue) || 0, 0, 1);
     const support = clamp(Number(supportIntensity) || 0, 0, 1);
-    return 1 + 7 * support * frequency;
+    // At the beginning, corpus usefulness should sharply separate genuinely
+    // foundational vocabulary from the long tail inside A1. The exponent
+    // keeps middling evidence from receiving the same lift as words that are
+    // consistently frequent across the blended spoken/newspaper/book data.
+    return 1 + 15 * support * frequency ** 1.35;
   }
 
   function getA0CefrWeight(cefr, supportIntensity) {

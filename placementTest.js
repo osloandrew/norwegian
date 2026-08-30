@@ -9,12 +9,12 @@
   // new learner complete a disposable quiz before receiving useful feedback,
   // audio, example sentences, review retries, and round progress.
   const SELF_ASSESSMENT_OPTIONS = [
-    { label: "I don't know any Norwegian yet", anchor: 60 },
-    { label: "I know a handful of words and phrases", anchor: 220 },
-    { label: "I can have simple everyday conversations", anchor: 420 },
-    { label: "I can discuss familiar topics in some detail", anchor: 600 },
-    { label: "I can follow most conversations and read comfortably", anchor: 780 },
-    { label: "I'm effectively fluent", anchor: 920 },
+    { label: "I don't know any Norwegian yet", anchor: 60, beginnerFocus: 1 },
+    { label: "I know a handful of words and phrases", anchor: 220, beginnerFocus: 0.72 },
+    { label: "I can have simple everyday conversations", anchor: 420, beginnerFocus: 0.48 },
+    { label: "I can discuss familiar topics in some detail", anchor: 600, beginnerFocus: 0.18 },
+    { label: "I can follow most conversations and read comfortably", anchor: 780, beginnerFocus: 0.04 },
+    { label: "I'm effectively fluent", anchor: 920, beginnerFocus: 0 },
   ];
 
   function getResultsContainer() {
@@ -47,20 +47,25 @@
     container.querySelectorAll(".placement-option-btn").forEach((button) => {
       button.addEventListener("click", () => {
         const option = SELF_ASSESSMENT_OPTIONS[Number(button.dataset.index)];
-        startPracticeRound(option.anchor, true);
+        startPracticeRound(option.anchor, true, option.beginnerFocus);
       });
     });
 
     container
       .querySelector(".placement-skip-btn")
       ?.addEventListener("click", () => {
-        startPracticeRound(SELF_ASSESSMENT_OPTIONS[0].anchor, false);
+        startPracticeRound(
+          SELF_ASSESSMENT_OPTIONS[0].anchor,
+          false,
+          SELF_ASSESSMENT_OPTIONS[0].beginnerFocus,
+        );
       });
   }
 
-  function startPracticeRound(initialEstimate, calibrate) {
+  function startPracticeRound(initialEstimate, calibrate, beginnerFocus) {
     window.WordGameHelpers?.startPlacementRound?.(initialEstimate, {
       calibrate,
+      beginnerFocus,
     });
   }
 

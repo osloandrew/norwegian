@@ -1464,7 +1464,41 @@ li {
 .game-typed-answer-row {
   display: grid;
   gap: 15px;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.game-norwegian-letter-keys {
+  align-items: stretch;
+  display: flex;
+  gap: 5px;
+}
+
+.game-norwegian-letter-key {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 1.15em;
+  font-weight: 400;
+  min-width: 38px;
+  padding: 8px 9px;
+}
+
+.game-norwegian-letter-key:hover {
+  background-color: #f3f7fb;
+  border-color: #9fb5c8;
+}
+
+.game-norwegian-letter-key:focus-visible {
+  outline: 3px solid var(--color-interactive);
+  outline-offset: 3px;
+}
+
+.game-norwegian-letter-key:disabled {
+  cursor: default;
+  opacity: 0.4;
 }
 
 .game-typed-answer-input {
@@ -3295,6 +3329,27 @@ h4 {
    but its position does not. Round summaries and the intro have no matching
    container, so the dock naturally disappears on those screens. */
 @media (max-width: 600px) {
+  /* The answer field remains the primary control on a narrow screen. Keep
+     the three letter keys compact while preserving their shared 60px row
+     height, then trim the Check button's horizontal padding. */
+  .game-typed-answer-row {
+    gap: 8px;
+  }
+
+  .game-norwegian-letter-keys {
+    gap: 3px;
+  }
+
+  .game-norwegian-letter-key {
+    font-size: 1.05em;
+    min-width: 32px;
+    padding: 8px 4px;
+  }
+
+  .game-typed-submit {
+    padding-inline: 16px;
+  }
+
   /* The visible stats row used to have 5px above it, then two stacked 4px
      bottom margins below it. Make those edges equal and slightly tighter:
      3px on either side. This moves both learning cards upward by 7px while

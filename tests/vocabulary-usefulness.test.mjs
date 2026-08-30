@@ -236,7 +236,7 @@ assert.match(
 );
 assert.match(
   wordGameSource,
-  /getCoreVocabularyCandidatePool\(eligibleEntries\)/,
+  /placementCandidates = getA0CurriculumCandidatePool\(eligibleEntries\)[\s\S]*?getCoreVocabularyCandidatePool\(placementCandidates\)/,
 );
 
 console.log("vocabulary usefulness tests passed");

@@ -51,6 +51,10 @@ assert.match(
   /initialRetrievalQueue\.push\(initialEntry\)[\s\S]*?renderWordIntroductionUI\(initialEntry\)/,
 );
 assert.match(
+  fs.readFileSync(path.join(root, "wordGamePolicy.js"), "utf8"),
+  /MAX_PENDING_INITIAL_RETRIEVALS = 2/,
+);
+assert.match(
   source,
   /currentWordQueueType = "initial-retrieval";[\s\S]*?plannedQuestionMode = initialRetrievalEntry\.targetMode/,
 );

@@ -66,10 +66,32 @@ assert.match(container.innerHTML, /10-word practice round/);
 assert.doesNotMatch(container.innerHTML, /Question 1 of 13/);
 
 optionButtons[2].click();
-assert.deepEqual(starts.pop(), { score: 420, calibrate: true });
+assert.deepEqual(starts.pop(), {
+  score: 420,
+  calibrate: true,
+  beginnerFocus: 0.48,
+});
+
+optionButtons[1].click();
+assert.deepEqual(starts.pop(), {
+  score: 220,
+  calibrate: true,
+  beginnerFocus: 0.72,
+});
+
+optionButtons[0].click();
+assert.deepEqual(starts.pop(), {
+  score: 60,
+  calibrate: true,
+  beginnerFocus: 1,
+});
 
 skipButton.click();
-assert.deepEqual(starts.pop(), { score: 60, calibrate: false });
+assert.deepEqual(starts.pop(), {
+  score: 60,
+  calibrate: false,
+  beginnerFocus: 1,
+});
 
 const wordGameSource = fs.readFileSync(path.join(root, "wordGame.js"), "utf8");
 assert.match(
@@ -317,14 +339,17 @@ vm.runInContext(
   { filename: "wordGame.js" },
 );
 
-placementStateContext.startPlacementPracticeRound(420, { calibrate: true });
+placementStateContext.startPlacementPracticeRound(420, {
+  calibrate: true,
+  beginnerFocus: 0.48,
+});
 assert.deepEqual(
   JSON.parse(JSON.stringify(placementStateContext.placementState())),
   { abilityScore: 420, placementCompleted: false },
 );
 assert.deepEqual(trackedEvents.pop(), [
   "tutorial_begin",
-  { content_type: "placement", skipped: false },
+  { content_type: "placement", skipped: false, beginner_focus: 0.48 },
 ]);
 placementStateContext.finalizePlacementCompletion(true, false);
 assert.equal(placementStateContext.placementState().placementCompleted, false);
@@ -332,11 +357,14 @@ placementStateContext.finalizePlacementCompletion(true, true);
 assert.equal(placementStateContext.placementState().placementCompleted, true);
 
 vm.runInContext("placementCompleted = false", placementStateContext);
-placementStateContext.startPlacementPracticeRound(60, { calibrate: false });
+placementStateContext.startPlacementPracticeRound(60, {
+  calibrate: false,
+  beginnerFocus: 1,
+});
 assert.equal(placementStateContext.placementState().placementCompleted, true);
 assert.deepEqual(trackedEvents.pop(), [
   "tutorial_begin",
-  { content_type: "placement", skipped: true },
+  { content_type: "placement", skipped: true, beginner_focus: 1 },
 ]);
 
 assert.match(

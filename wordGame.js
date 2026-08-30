@@ -23,6 +23,47 @@ const CEFR_LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C"];
 // context) to make plausible-but-wrong answer choices.
 const BANNED_WORD_CLASSES = ["numeral", "pronoun", "possessive", "determiner"];
 
+// A small reviewed bridge over an intentional limitation of the automatic
+// frequency build: forms claimed by multiple dictionary rows receive no
+// corpus credit at all. That safety rule correctly avoids assigning a form's
+// full count to the wrong sense, but it also drops indispensable beginner
+// forms such as jeg/han/men/nå. These are selection priorities, not a second
+// dictionary or a visible curriculum level.
+const A0_ESSENTIAL_WORDS = new Set([
+  "jeg", "du", "han", "hun", "den", "det", "vi", "dere", "de",
+  "meg", "deg", "ham", "henne", "oss", "dem", "seg",
+  "min", "din", "sin", "hans", "hennes", "vår", "deres",
+  "denne", "dette", "en", "ei", "et",
+  "ikke", "nå", "her", "der", "hva", "hvem", "hvor", "hvordan", "hvorfor",
+  "og", "men", "eller", "fordi", "at", "som", "å",
+  "i", "på", "til", "av", "med", "fra", "for", "om", "ved",
+  "være", "ha", "bli", "kunne", "skulle", "ville", "måtte",
+  "komme", "gå", "gjøre", "si", "se", "få", "gi",
+  "hei", "hallo", "ja", "nei", "takk",
+].map((word) => word.normalize("NFC").toLocaleLowerCase("nb-NO")));
+const A0_FUNCTION_WORD_CLASSES = new Set([
+  "pronoun",
+  "determiner",
+  "possessive",
+  "preposition",
+  "conjunction",
+]);
+const A0_ESSENTIAL_CLASS_OVERRIDES = Object.freeze({
+  dette: new Set(["determiner"]),
+  en: new Set(["numeral"]),
+  for: new Set(["conjunction", "preposition"]),
+  ham: new Set(["pronoun"]),
+  han: new Set(["pronoun"]),
+  jeg: new Set(["pronoun"]),
+  men: new Set(["conjunction"]),
+  nei: new Set(["interjection"]),
+  nå: new Set(["adverb"]),
+  om: new Set(["preposition"]),
+  ved: new Set(["preposition"]),
+  vår: new Set(["possessive"]),
+  å: new Set(["conjunction"]),
+});
+
 const ABILITY_STORAGE_KEY = "norwegian-dictionary-ability-v1";
 const LEGACY_GAME_LEVEL_STORAGE_KEY = "norwegian-dictionary-game-level-v1";
 const ABILITY_MIN = 0;
@@ -52,6 +93,14 @@ const ABILITY_K_FACTOR = 24;
 // Spread of the logistic curve used to predict success probability from
 // (word difficulty − ability). Larger = gentler, more forgiving curve.
 const ABILITY_LOGISTIC_SCALE = 220;
+const A0_FOCUS_BY_ABILITY = Object.freeze([
+  Object.freeze([60, 1]),
+  Object.freeze([220, 0.72]),
+  Object.freeze([420, 0.48]),
+  Object.freeze([600, 0.18]),
+  Object.freeze([780, 0.04]),
+  Object.freeze([920, 0]),
+]);
 
 function clampAbility(value) {
   return Math.min(ABILITY_MAX, Math.max(ABILITY_MIN, value));
@@ -192,6 +241,9 @@ let wordGameReviewPortfolioReviewCount = 0;
 let wordGameA0SupportIntensity = 0;
 let wordGameA0PacingQuestionCount = 0;
 let wordGameA0ReinforcementQuestionCount = 0;
+let wordGameA0AutomaticNewWordCount = 0;
+let wordGameA0FunctionWordCount = 0;
+let wordGameA0PronounCount = 0;
 // Distinct words answered incorrectly at least once this round — shown in
 // the "Words to review" list on the round summary screen. A word stays
 // listed even if later answered correctly, since it was still worth a
@@ -2275,6 +2327,43 @@ async function getRenderedSentenceVocabularySuccess(clozeTarget) {
   // Unresolved tokens are neutral rather than automatically "hard": names,
   // numbers, and transparent compounds are common in otherwise easy prose.
   return knownMean * coverage + 0.75 * (1 - coverage);
+}
+
+async function getA0SafeExampleSentence(
+  wordObj,
+  exampleSentence,
+  sentenceTranslation,
+  isIntroductoryExposure = false,
+) {
+  const sentence = normalizeGameWhitespace(exampleSentence);
+  const translation = normalizeGameWhitespace(sentenceTranslation);
+  const support = getActiveA0SupportIntensity();
+  if (
+    !sentence ||
+    !isIntroductoryExposure ||
+    getWordCefrLabel(wordObj) !== "A1" ||
+    !(support > 0.05)
+  ) {
+    return { exampleSentence: sentence, sentenceTranslation: translation };
+  }
+
+  const vocabularySuccess = await getRenderedSentenceVocabularySuccess({
+    sentence,
+    startIndex: 0,
+    endIndex: 0,
+  });
+  // Keep genuinely overwhelming context out of a beginner's first exposure,
+  // but allow substantially more useful natural language than the earlier
+  // 0.55–0.80 threshold. Reviews and non-A1 material are intentionally not
+  // governed by this introductory safeguard at all.
+  const minimumSuccess = 0.5 + 0.2 * support;
+  if (
+    Number.isFinite(vocabularySuccess) &&
+    vocabularySuccess < minimumSuccess
+  ) {
+    return { exampleSentence: "", sentenceTranslation: "" };
+  }
+  return { exampleSentence: sentence, sentenceTranslation: translation };
 }
 
 function getRenderedTargetContextCoverage(clozeTarget) {
@@ -5086,9 +5175,16 @@ function beginWordGameRound(mode, targetWords = 0, options = {}) {
   wordGameReviewPortfolioQuestionCount = 0;
   wordGameReviewPortfolioReviewCount = 0;
   wordGameA0SupportIntensity =
-    typeof getA0SupportIntensity === "function" ? getA0SupportIntensity() : 0;
+    Number.isFinite(options.beginnerFocus)
+      ? Math.min(1, Math.max(0, Number(options.beginnerFocus)))
+      : typeof getA0SupportIntensity === "function"
+        ? getA0SupportIntensity()
+        : 0;
   wordGameA0PacingQuestionCount = 0;
   wordGameA0ReinforcementQuestionCount = 0;
+  wordGameA0AutomaticNewWordCount = 0;
+  wordGameA0FunctionWordCount = 0;
+  wordGameA0PronounCount = 0;
   initialRetrievalQueue = [];
   plannedInitialClozeTarget = null;
   wordGameSessionStartedAt = Date.now();
@@ -5144,6 +5240,9 @@ function resetTodayPracticeRoundAfterMidnight(wordObj) {
     typeof getA0SupportIntensity === "function" ? getA0SupportIntensity() : 0;
   wordGameA0PacingQuestionCount = 0;
   wordGameA0ReinforcementQuestionCount = 0;
+  wordGameA0AutomaticNewWordCount = 0;
+  wordGameA0FunctionWordCount = 0;
+  wordGameA0PronounCount = 0;
   wordGameSessionStartedAt = Date.now();
   incorrectWordQueue = [];
   initialRetrievalQueue = [];
@@ -5957,6 +6056,20 @@ function isGlossLengthCloseEnough(candidateDisplayed, correctWordCount) {
   );
 }
 
+function getA0SafeNorwegianDistractorPool(entries, targetWord) {
+  const support =
+    typeof getActiveA0SupportIntensity === "function"
+      ? getActiveA0SupportIntensity()
+      : 0;
+  if (
+    !(support > 0.05) ||
+    getWordCefrLabel(targetWord) !== "A1"
+  ) {
+    return entries;
+  }
+  return entries.filter((entry) => getWordCefrLabel(entry) === "A1");
+}
+
 function fetchIncorrectTranslations(gender, correctTranslation, currentCEFR) {
   const correctDisplayedTranslation = getDisplayedAnswer(correctTranslation);
   const correctIdentity = normalizeGameAnswer(correctDisplayedTranslation);
@@ -6078,7 +6191,11 @@ function fetchIncorrectNorwegianWords(correctWord, CEFR, gender, correctEnglish)
 
   const seen = new Set([correctIdentity]);
   const incorrectWords = [];
-  const eligible = results.filter((entry) => {
+  const eligible = getA0SafeNorwegianDistractorPool(results, {
+    ord: correctWord,
+    CEFR,
+    gender,
+  }).filter((entry) => {
     const word = getPrimaryNorwegianForm(entry);
     return (
       word &&
@@ -6335,6 +6452,11 @@ function getTypedAnswerMarkup(wordId) {
     <div class="game-grid game-typed-grid">
       <form class="game-typed-answer-form" data-id="${wordId}">
         <div class="game-typed-answer-row">
+          <div class="game-norwegian-letter-keys" aria-label="Norwegian letters">
+            <button class="game-norwegian-letter-key" type="button" data-letter="æ" aria-label="Insert æ">æ</button>
+            <button class="game-norwegian-letter-key" type="button" data-letter="ø" aria-label="Insert ø">ø</button>
+            <button class="game-norwegian-letter-key" type="button" data-letter="å" aria-label="Insert å">å</button>
+          </div>
           <input
             id="game-typed-answer-input"
             class="game-typed-answer-input"
@@ -6503,6 +6625,17 @@ function attachTypedAnswerForm(
     }
   });
 
+  form.querySelectorAll(".game-norwegian-letter-key").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (input.readOnly) return;
+      const letter = button.dataset.letter;
+      const start = input.selectionStart ?? input.value.length;
+      const end = input.selectionEnd ?? start;
+      input.setRangeText(letter, start, end, "end");
+      input.focus({ preventScroll: true });
+    });
+  });
+
   // This is the only control needed to answer a typed question. Focusing it
   // avoids an otherwise unnecessary click while preventScroll keeps the page
   // visually still as questions change.
@@ -6527,12 +6660,18 @@ async function renderWordIntroductionUI(initialEntry) {
   const displayedWord = getPrimaryNorwegianForm(wordObj);
   const displayedMeaning = getDisplayedAnswer(wordObj.engelsk);
   const clozeTarget = initialEntry.clozeTarget;
-  const example = clozeTarget
+  let example = clozeTarget
     ? {
         exampleSentence: clozeTarget.sentence,
         sentenceTranslation: getClozeTargetTranslation(wordObj, clozeTarget),
       }
     : await fetchExampleSentence(wordObj, 0);
+  example = await getA0SafeExampleSentence(
+    wordObj,
+    example.exampleSentence,
+    example.sentenceTranslation,
+    true,
+  );
   const promptLengthClass = getGamePromptLengthClass(displayedWord);
   const cefrLabel = getGameCefrLabelHTML(wordObj.CEFR);
   const sentence = normalizeGameWhitespace(example.exampleSentence);
@@ -7129,6 +7268,7 @@ function updateTypedAnswerFeedback(
   const form = document.querySelector(".game-typed-answer-form");
   const input = document.getElementById("game-typed-answer-input");
   const submit = form?.querySelector(".game-typed-submit");
+  const letterKeys = form?.querySelectorAll(".game-norwegian-letter-key");
   if (!form || !input) return;
 
   // Keep the answer in the same visual card the learner typed into. On a
@@ -7139,6 +7279,7 @@ function updateTypedAnswerFeedback(
   }
   input.readOnly = true;
   if (submit) submit.disabled = true;
+  letterKeys?.forEach((button) => (button.disabled = true));
   input.setAttribute("aria-invalid", String(!isCorrect));
   input.setAttribute(
     "aria-label",
@@ -7417,11 +7558,21 @@ async function handleTranslationClick(
     });
 
   resetTodayPracticeRoundAfterMidnight(wordObj);
-  const { exampleSentence, sentenceTranslation } =
-    await fetchExampleSentence(wordObj, exampleSentenceIndex, {
+  let { exampleSentence, sentenceTranslation } = await fetchExampleSentence(
+    wordObj,
+    exampleSentenceIndex,
+    {
       preferredSentence: isCloze ? clozeSentence : "",
       preferredTranslation: exampleSentenceTranslation,
-    });
+    },
+  );
+  ({ exampleSentence, sentenceTranslation } =
+    await getA0SafeExampleSentence(
+      wordObj,
+      exampleSentence,
+      sentenceTranslation,
+      a0FirstExposure,
+    ));
   announceGameAnswer(
     answerWasCorrect,
     morphologyNearMiss?.correction || correctTranslationPart,
@@ -8013,18 +8164,38 @@ function getA0LearningSummary() {
   };
 }
 
+function getA0AbilityFocusCeiling(ability) {
+  const score = Number(ability);
+  if (!Number.isFinite(score)) return 1;
+  if (score <= A0_FOCUS_BY_ABILITY[0][0]) return A0_FOCUS_BY_ABILITY[0][1];
+  for (let index = 1; index < A0_FOCUS_BY_ABILITY.length; index += 1) {
+    const [upperAbility, upperFocus] = A0_FOCUS_BY_ABILITY[index];
+    const [lowerAbility, lowerFocus] = A0_FOCUS_BY_ABILITY[index - 1];
+    if (score <= upperAbility) {
+      const progress =
+        (score - lowerAbility) / (upperAbility - lowerAbility);
+      return lowerFocus + progress * (upperFocus - lowerFocus);
+    }
+  }
+  return 0;
+}
+
 function getA0SupportIntensity() {
   const summary = getA0LearningSummary();
-  return window.WordGamePolicy.getA0SupportIntensity({
-    ability: Number.isFinite(abilityScore)
-      ? abilityScore
-      : CEFR_DIFFICULTY_ANCHOR.A1,
+  const effectiveAbility = Number.isFinite(abilityScore)
+    ? abilityScore
+    : CEFR_DIFFICULTY_ANCHOR.A1;
+  const adaptiveSupport = window.WordGamePolicy.getA0SupportIntensity({
+    ability: effectiveAbility,
     ...summary,
   });
+  return Math.min(
+    adaptiveSupport,
+    getA0AbilityFocusCeiling(effectiveAbility),
+  );
 }
 
 function getActiveA0SupportIntensity() {
-  if (wordGameIsPlacementRound) return 0;
   return wordGameRoundActive
     ? wordGameA0SupportIntensity
     : getA0SupportIntensity();
@@ -8044,7 +8215,93 @@ function getA0VocabularyWeight(entry, supportIntensity) {
     getWordCefrLabel(entry),
     supportIntensity,
   );
-  return frequencyWeight * cefrWeight;
+  const essentialWeight = isA0EssentialWord(entry)
+    ? 1 + 8 * supportIntensity
+    : 1;
+  return frequencyWeight * cefrWeight * essentialWeight;
+}
+
+function isA0EssentialWord(entry) {
+  if (getWordCefrLabel(entry) !== "A1") return false;
+  const word = normalizeGameAnswer(getPrimaryNorwegianForm(entry));
+  if (!A0_ESSENTIAL_WORDS.has(word)) return false;
+  const allowedClasses = A0_ESSENTIAL_CLASS_OVERRIDES[word];
+  return (
+    !allowedClasses || allowedClasses.has(WordClass.getWordClass(entry?.gender))
+  );
+}
+
+function getA0CurriculumCategory(entry) {
+  const wordClass = WordClass.getWordClass(entry?.gender);
+  if (wordClass === "pronoun") return "pronoun";
+  if (
+    A0_FUNCTION_WORD_CLASSES.has(wordClass) ||
+    ["ikke", "nå", "her", "der", "hva", "hvem", "hvor", "hvordan", "hvorfor"].includes(
+      normalizeGameAnswer(getPrimaryNorwegianForm(entry)),
+    )
+  ) {
+    return "function";
+  }
+  return "content";
+}
+
+// Beginner focus is a probability of drawing the next automatic target from
+// A1, not a mode boundary. A focus of 1 is therefore genuinely A1-only; as
+// the same continuous value fades, ordinary ability-based selection is mixed
+// back in one question at a time with no threshold event.
+function getA0CurriculumCandidatePool(entries, randomValue = Math.random()) {
+  const support = getActiveA0SupportIntensity();
+  if (!(support > 0.05) || entries.length === 0) return entries;
+
+  let pool = entries;
+  const a1Entries = pool.filter((entry) => getWordCefrLabel(entry) === "A1");
+  if (a1Entries.length > 0 && randomValue < support) {
+    pool = a1Entries;
+  }
+
+  const pronounShare = 0.08 + 0.1 * support;
+  const functionShare = 0.2 + 0.2 * support;
+  const pronouns = pool.filter(
+    (entry) => getA0CurriculumCategory(entry) === "pronoun",
+  );
+  if (
+    pronouns.length > 0 &&
+    window.WordGamePolicy.shouldPrioritizeQuota({
+      share: pronounShare,
+      questionCount: wordGameA0AutomaticNewWordCount,
+      savedCount: wordGameA0PronounCount,
+    })
+  ) {
+    return pronouns;
+  }
+
+  const functionWords = pool.filter((entry) =>
+    ["pronoun", "function"].includes(getA0CurriculumCategory(entry)),
+  );
+  if (
+    functionWords.length > 0 &&
+    window.WordGamePolicy.shouldPrioritizeQuota({
+      share: functionShare,
+      questionCount: wordGameA0AutomaticNewWordCount,
+      savedCount: wordGameA0FunctionWordCount,
+    })
+  ) {
+    return functionWords;
+  }
+
+  return pool;
+}
+
+function recordA0AutomaticTarget(entry) {
+  if (!(getActiveA0SupportIntensity() > 0.05) || !entry) return;
+  wordGameA0AutomaticNewWordCount += 1;
+  const category = getA0CurriculumCategory(entry);
+  if (category === "pronoun") {
+    wordGameA0PronounCount += 1;
+    wordGameA0FunctionWordCount += 1;
+  } else if (category === "function") {
+    wordGameA0FunctionWordCount += 1;
+  }
 }
 
 function getA0RecognitionEvidence(wordObj) {
@@ -8189,9 +8446,15 @@ function getRawAbilityProximity(entry) {
 // through this gate, and saved My Words are offered before it in
 // fetchRandomWord, preserving both the review schedule and the selected Mix.
 function getCoreVocabularyCandidatePool(entries) {
+  const beginnerSupport =
+    typeof getActiveA0SupportIntensity === "function"
+      ? getActiveA0SupportIntensity()
+      : 0;
   return window.WordGamePolicy.getCoreCandidatePool(entries, {
     frequencyDataAvailable: Boolean(vocabularyFrequencyEntries),
-    hasFrequency: (entry) => getVocabularyFrequencyRank(entry) !== null,
+    hasFrequency: (entry) =>
+      getVocabularyFrequencyRank(entry) !== null ||
+      (beginnerSupport > 0.05 && isA0EssentialWord(entry)),
     getDifficulty: getWordDifficultyAnchor,
     ability: abilityScore,
     getProximity: getRawAbilityProximity,
@@ -8655,16 +8918,19 @@ async function fetchRandomWord() {
   }
 
   let selectedEntry;
+  let selectedAutomaticTarget = false;
   if (wordGameIsPlacementRound) {
     await loadVocabularyFrequencyRanks();
     currentWordQueueType = "placement";
+    const placementCandidates = getA0CurriculumCandidatePool(eligibleEntries);
     selectedEntry = pickPrioritizedGameWord(
-      getCoreVocabularyCandidatePool(eligibleEntries),
+      getCoreVocabularyCandidatePool(placementCandidates),
       {
         useAbilityWeight: true,
         useUsefulnessWeight: true,
       },
     );
+    selectedAutomaticTarget = true;
   } else {
     // The Mix percentage is a round-level contract. Quota slots can draw
     // from any exercise-compatible saved word, including one already shown
@@ -8715,7 +8981,9 @@ async function fetchRandomWord() {
             : queues[queueName] ?? [];
         const ordinaryQueueEntries =
           queueName === "new"
-            ? getCoreVocabularyCandidatePool(queueEntries)
+            ? getCoreVocabularyCandidatePool(
+                getA0CurriculumCandidatePool(queueEntries),
+              )
             : queueEntries;
         // Ability weighting only shapes unseen words. Due and relearning words
         // have already earned their priority through the scheduler.
@@ -8733,12 +9001,17 @@ async function fetchRandomWord() {
                   "approaching",
                 ].includes(queueName),
               });
+        selectedAutomaticTarget = queueName === "new";
       }
     }
   }
 
   if (!selectedEntry) {
     return null;
+  }
+
+  if (selectedAutomaticTarget) {
+    recordA0AutomaticTarget(selectedEntry);
   }
 
   if (!plannedQuestionMode) {
@@ -8869,7 +9142,7 @@ function generatePhraseClozeDistractors(wordObj, clozeTarget) {
     });
   };
 
-  const eligible = results.filter((entry) => {
+  const eligible = getA0SafeNorwegianDistractorPool(results, wordObj).filter((entry) => {
     const templates = getPhraseCandidateTemplates(entry);
     const candidateWordClass = WordClass.getWordClass(entry.gender);
     return (
@@ -9009,7 +9282,7 @@ function generateClozeDistractors(wordObj, clozeTarget) {
     }
   };
 
-  const eligible = results.filter(
+  const eligible = getA0SafeNorwegianDistractorPool(results, wordObj).filter(
     (entry) =>
       entry?.ord &&
       !BANNED_WORD_CLASSES.some((banned) =>
@@ -9141,7 +9414,10 @@ function seedPlacementEstimate(score) {
   saveAbilityState();
 }
 
-function startPlacementPracticeRound(score, { calibrate = true } = {}) {
+function startPlacementPracticeRound(
+  score,
+  { calibrate = true, beginnerFocus = 0 } = {},
+) {
   if (!Array.isArray(results) || results.length === 0) {
     renderWordGameLoadingMessage();
     return false;
@@ -9157,10 +9433,12 @@ function startPlacementPracticeRound(score, { calibrate = true } = {}) {
   window.trackEvent?.("tutorial_begin", {
     content_type: "placement",
     skipped: !calibrate,
+    beginner_focus: beginnerFocus,
   });
   beginWordGameRound("session", PLACEMENT_PRACTICE_WORD_COUNT, {
     placementRound: true,
     placementCalibration: calibrate,
+    beginnerFocus,
   });
   return true;
 }

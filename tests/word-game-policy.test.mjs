@@ -102,6 +102,10 @@ assert.ok(
     policy.getA0FrequencyWeight(0.1, brandNewA0Support),
 );
 assert.ok(
+  policy.getA0FrequencyWeight(1, brandNewA0Support) >= 15,
+  "maximum beginner support should make top-frequency words dominant",
+);
+assert.ok(
   policy.getA0CefrWeight("A1", brandNewA0Support) >
     policy.getA0CefrWeight("B2", brandNewA0Support),
 );
@@ -434,15 +438,20 @@ assert.equal(
   true,
 );
 assert.equal(policy.getInitialRetrievalAvailableTurn(7), 10);
+assert.equal(policy.MAX_PENDING_INITIAL_RETRIEVALS, 2);
 const pendingIntroductions = [
   { availableAfterTurn: 6 },
   { availableAfterTurn: 8 },
 ];
-assert.equal(policy.getInitialRetrievalIndex(pendingIntroductions, 5), -1);
+assert.equal(
+  policy.getInitialRetrievalIndex(pendingIntroductions.slice(0, 1), 5),
+  -1,
+);
+assert.equal(policy.getInitialRetrievalIndex(pendingIntroductions, 5), 0);
 assert.equal(policy.getInitialRetrievalIndex(pendingIntroductions, 6), 0);
 assert.equal(
   policy.getInitialRetrievalIndex(
-    Array.from({ length: 4 }, () => ({ availableAfterTurn: 99 })),
+    Array.from({ length: 2 }, () => ({ availableAfterTurn: 99 })),
     5,
   ),
   0,
@@ -454,10 +463,16 @@ assert.equal(
   0,
 );
 assert.equal(
+  policy.getInitialRetrievalIndex(pendingIntroductions.slice(0, 1), 6, {
+    isExcluded: () => true,
+  }),
+  -1,
+);
+assert.equal(
   policy.getInitialRetrievalIndex(pendingIntroductions, 6, {
     isExcluded: (entry) => entry === pendingIntroductions[0],
   }),
-  -1,
+  1,
 );
 assert.equal(
   policy.getInitialRetrievalIndex(pendingIntroductions, 5, {
