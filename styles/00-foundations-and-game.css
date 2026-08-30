@@ -530,7 +530,7 @@ li {
 }
 
 .english-sentence {
-  color: gray; /* Set a different color for English text */
+  color: var(--color-text-muted); /* Set a different color for English text */
   font-family: "Source Serif 4", "Noto Serif", serif;
 }
 
