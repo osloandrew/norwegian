@@ -623,6 +623,15 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
   justify-content: space-between;
 }
 
+/* The Norwegian letter keys and the search field are one control group.
+   Word Game has no search control, so hide the group as a unit instead of
+   relying on JS to hide only .search-bar-wrapper and accidentally leaving
+   the three keys behind. This is intentionally outside the desktop media
+   query so the contract is identical at every viewport width. */
+body.word-game-mode .search-and-random-wrapper {
+  display: none;
+}
+
 .search-bar-wrapper {
   border: 1px solid var(--color-border);
   border-radius: 15px;
@@ -774,9 +783,9 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
   .search-and-random-wrapper {
     align-items: center;
     box-sizing: border-box;
-    display: flex;
+    display: grid;
     gap: 5px;
-    justify-content: space-between;
+    grid-template-columns: max-content minmax(0, 1fr);
     width: 100%;
   }
 
@@ -1265,10 +1274,6 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
 
   body.word-game-mode #search-container-inner {
     justify-content: center;
-  }
-
-  body.word-game-mode .search-and-random-wrapper {
-    display: none;
   }
 
   body.word-game-mode .cefr-filter-group {

@@ -4261,6 +4261,9 @@ function beginTodayPracticeRound() {
 }
 
 function renderWordGameIntro() {
+  // A summary-only sign-in nudge must not follow the visitor back to the
+  // Practice Menu when they use the summary's secondary action.
+  window.SignInNudgeAPI?.dismiss?.();
   // The intro screen only ever renders when no round is active (see
   // startWordGame's early-return gate), so this is the single choke point
   // to resync the toolbar's Quit/Report buttons to hidden — regardless of
@@ -5118,6 +5121,10 @@ function renderWordGameLoadingMessage() {
 // is untouched here and keeps working the same within whichever round is
 // active) and kicks off the first question.
 function beginWordGameRound(mode, targetWords = 0, options = {}) {
+  // Starting another round leaves the completed-round summary behind. Hide
+  // its sign-in nudge before any placement/loading gate renders the next
+  // screen, so it cannot collide with the round's fixed bottom controls.
+  window.SignInNudgeAPI?.dismiss?.();
   // Universal round-start gate. Most first-time entry points already pass
   // through startWordGame() and render placement there, but keeping the
   // same check at the round engine boundary covers homepage CTAs, daily

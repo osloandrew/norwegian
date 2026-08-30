@@ -1575,6 +1575,7 @@
   // protecting from a cleared cache.
   window.SignInNudgeAPI = Object.freeze({
     maybeShow: maybeShowSignInNudge,
+    dismiss: dismissSignInNudge,
   });
 
   // Consumed by myStats.js's Danger Zone card — kept here rather than in

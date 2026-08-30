@@ -323,6 +323,16 @@ html.reading .story-report-issue-btn {
   color: var(--color-surface);
 }
 
+@media (max-width: 1024px) {
+  /* #mode-nav is a fixed bottom bar at mobile/tablet widths and the shell
+     reserves 84px for it (01-document-shell.css). Keep this fixed banner
+     above that same reserved area, plus a small visual gap, instead of
+     letting the nav cover its actions and copy. */
+  .signin-nudge-banner {
+    bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+}
+
 @media (max-width: 600px) {
   /* Slightly smaller than the 14px default -- .game-instruction now lives
      inside the narrow .game-stats-progress-wrapper column (see the base

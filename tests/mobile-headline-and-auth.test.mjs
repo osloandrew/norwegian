@@ -8,13 +8,15 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const authSource = fs.readFileSync(path.join(root, "myWordsAuth.js"), "utf8");
+const scriptsSource = fs.readFileSync(path.join(root, "scripts.js"), "utf8");
+const wordGameSource = fs.readFileSync(path.join(root, "wordGame.js"), "utf8");
 const landingStyles = fs.readFileSync(
   path.join(root, "styles", "10-shell-landing-and-stats.css"),
   "utf8",
 );
 
 test("the mobile landing headline wraps only between complete words", () => {
-  const mobileStart = landingStyles.indexOf("@media (max-width: 1024px)");
+  const mobileStart = landingStyles.lastIndexOf("@media (max-width: 1024px)");
   const headlineStart = landingStyles.indexOf("#landing-card h2", mobileStart);
   const headlineEnd = landingStyles.indexOf("}", headlineStart);
   const rule = landingStyles.slice(headlineStart, headlineEnd);
@@ -58,4 +60,38 @@ test("Google sign-in opens synchronously inside the trusted click path", async (
   await Promise.resolve();
   assert.equal(button.disabled, false);
   assert.doesNotMatch(authSource, /ensureAuthReady\(\)\s*\.then\(triggerSignIn\)/);
+});
+
+test("the mobile sign-in nudge clears the fixed bottom navigation", () => {
+  const mobileStart = landingStyles.indexOf("@media (max-width: 1024px)");
+  const mobileEnd = landingStyles.indexOf("@media (max-width: 600px)", mobileStart);
+  const mobileRules = landingStyles.slice(mobileStart, mobileEnd);
+
+  assert.notEqual(mobileStart, -1);
+  assert.match(
+    mobileRules,
+    /\.signin-nudge-banner\s*{[^}]*bottom:\s*calc\(96px \+ env\(safe-area-inset-bottom\)\)/s,
+  );
+});
+
+test("the completed-round sign-in nudge is dismissed on screen transitions", () => {
+  assert.match(
+    authSource,
+    /window\.SignInNudgeAPI = Object\.freeze\(\{[\s\S]*?dismiss:\s*dismissSignInNudge/,
+  );
+
+  for (const [source, functionName] of [
+    [scriptsSource, "handleTypeChange"],
+    [wordGameSource, "renderWordGameIntro"],
+    [wordGameSource, "beginWordGameRound"],
+  ]) {
+    const functionStart = source.indexOf(`function ${functionName}(`);
+    const functionBody = source.slice(functionStart, functionStart + 900);
+    assert.notEqual(functionStart, -1, `Missing ${functionName}`);
+    assert.match(
+      functionBody,
+      /window\.SignInNudgeAPI\?\.dismiss\?\.\(\)/,
+      `${functionName} should dismiss the sign-in nudge`,
+    );
+  }
 });

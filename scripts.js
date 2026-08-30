@@ -2780,6 +2780,10 @@ function disableSearchControls() {
 function handleTypeChange(type, options = {}) {
   // If type is not passed in, fall back to the currently active mode.
   type = type || getCurrentMode();
+  // The sign-in nudge belongs to the completed-round summary where it was
+  // shown. Any explicit mode change is a new screen, so do not let the fixed
+  // banner follow the visitor into it.
+  window.SignInNudgeAPI?.dismiss?.();
   syncModeNav(type);
   setSiteTitleSemanticHeading(true);
   const shouldRenderStories = options.renderStories !== false;
