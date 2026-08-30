@@ -1176,7 +1176,7 @@
           : null;
       const mergedShowEnglish =
         remoteShowEnglish === null
-          ? (window.EnglishVisibilityAPI?.getState?.() ?? false)
+          ? (window.EnglishVisibilityAPI?.getState?.() ?? true)
           : remoteShowEnglish;
 
       // entryIds/entryTimestamps were already reconciled and saved above,

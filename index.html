@@ -95,7 +95,7 @@
     />
     <link
       rel="stylesheet"
-      href="styles/20-results-and-story-quiz.css?v=92186f6e79"
+      href="styles/20-results-and-story-quiz.css?v=cbd96cc923"
     />
     <link
       rel="stylesheet"
@@ -860,6 +860,38 @@
 
           <!-- Grouped Search Bar and Random Button -->
           <div class="search-and-random-wrapper">
+            <div
+              class="search-norwegian-letter-keys"
+              aria-label="Norwegian letters"
+            >
+              <button
+                class="search-norwegian-letter-key"
+                type="button"
+                data-letter="æ"
+                aria-label="Insert æ"
+                onclick="insertSearchLetter('æ')"
+              >
+                æ
+              </button>
+              <button
+                class="search-norwegian-letter-key"
+                type="button"
+                data-letter="ø"
+                aria-label="Insert ø"
+                onclick="insertSearchLetter('ø')"
+              >
+                ø
+              </button>
+              <button
+                class="search-norwegian-letter-key"
+                type="button"
+                data-letter="å"
+                aria-label="Insert å"
+                onclick="insertSearchLetter('å')"
+              >
+                å
+              </button>
+            </div>
             <!-- Search Bar -->
             <div id="search-bar-wrapper" class="search-bar-wrapper">
               <label for="search-bar" class="sr-only"
@@ -1261,7 +1293,7 @@
       without blocking parsing on their combined ~130KB the way running
       them un-deferred used to.
     -->
-    <script src="englishVisibility.js?v=b7799fc88b" defer></script>
+    <script src="englishVisibility.js?v=b7c6f37cd1" defer></script>
     <script src="pronunciation.js?v=e0bab555ae" defer></script>
     <script src="wordList.js?v=cbedfa41b8" defer></script>
     <script src="storyFavorites.js?v=c152eb5155" defer></script>

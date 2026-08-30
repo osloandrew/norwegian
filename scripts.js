@@ -771,6 +771,20 @@ function handleKey(event) {
   search();
 }
 
+// Insert a Norwegian letter at the field's last selection without returning
+// focus to the input. Keeping focus on the clicked key makes repeated button
+// use and keyboard navigation predictable, while the bubbling input event
+// keeps any input-driven initialization in sync with the new value.
+function insertSearchLetter(letter) {
+  const searchInput = document.getElementById("search-bar");
+  if (!searchInput || searchInput.disabled) return;
+
+  const start = searchInput.selectionStart ?? searchInput.value.length;
+  const end = searchInput.selectionEnd ?? start;
+  searchInput.setRangeText(letter, start, end, "end");
+  searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
 function clearContainer() {
   const landingCard = document.getElementById("landing-card");
   const main = document.querySelector("main");
@@ -2738,24 +2752,28 @@ function enableSearchControls() {
   const searchBar = document.getElementById("search-bar");
   const searchBtn = document.getElementById("search-btn");
   const clearBtn = document.getElementById("clear-btn");
+  const letterKeys = document.querySelectorAll(".search-norwegian-letter-key");
 
   if (!searchBar || !searchBtn || !clearBtn) return;
 
   searchBar.disabled = false;
   searchBtn.disabled = false;
   clearBtn.disabled = false;
+  letterKeys.forEach((button) => (button.disabled = false));
 }
 
 function disableSearchControls() {
   const searchBar = document.getElementById("search-bar");
   const searchBtn = document.getElementById("search-btn");
   const clearBtn = document.getElementById("clear-btn");
+  const letterKeys = document.querySelectorAll(".search-norwegian-letter-key");
 
   if (!searchBar || !searchBtn || !clearBtn) return;
 
   searchBar.disabled = true;
   searchBtn.disabled = true;
   clearBtn.disabled = true;
+  letterKeys.forEach((button) => (button.disabled = true));
 }
 
 // Handle change in search type (words/sentences)

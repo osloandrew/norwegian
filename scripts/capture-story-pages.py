@@ -25,6 +25,8 @@ import tempfile
 import threading
 from pathlib import Path
 
+from static_metadata import enrich_story_html
+
 from story_sources import load_all_story_titles
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -206,6 +208,16 @@ def capture(titles: list[str], output_root: Path = ROOT) -> None:
                     1,
                 )
                 html = html.replace(origin, PRODUCTION_ORIGIN)
+
+                canonical = f"{PRODUCTION_ORIGIN}{SITE_PATH}story/{slug}/"
+                html = enrich_story_html(
+                    html,
+                    norwegian_title=story_data.get("titleNorwegian", ""),
+                    english_title=story_data.get("titleEnglish", ""),
+                    cefr_level=story_data.get("CEFR", ""),
+                    genre=story_data.get("genre", ""),
+                    canonical=canonical,
+                )
 
                 out_dir = output_root / "story" / slug
                 out_dir.mkdir(parents=True, exist_ok=True)

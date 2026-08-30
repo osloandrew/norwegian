@@ -123,11 +123,13 @@ the page. `updates.json` provides the initial sample only while Git history has
 no public updates; the first `[update]` commit replaces that sample. Later
 public commits are added above earlier ones without removing them.
 
-The deployed application revalidates `norwegianWords.csv` on every load. The
-browser can reuse its HTTP-cached copy when the file is unchanged, but after a
-successful Pages deployment users receive the new dictionary rather than an
-IndexedDB copy that can remain stale for up to 24 hours. The last downloaded
-copy remains available as a fallback if the network is unavailable.
+The deployed application revalidates `norwegianWords.csv`,
+`norwegianStories.csv`, and `norwegianAuthenticStories.csv` on every relevant
+fresh page load. The browser can reuse its HTTP-cached copy when a file is
+unchanged, but after a successful Pages deployment users receive the new words
+and stories immediately rather than a locally cached copy that can remain
+stale. The last downloaded copy remains available as a fallback if the network
+is unavailable.
 
 The workflow caches a complete, validated render together with snapshots of
 `norwegianWords.csv`, `norwegianStories.csv`, and `storyQuestions.json`. On a

@@ -1,7 +1,7 @@
 // Whether Norwegian sentence examples show their English translation. This
 // is a single flag shared by Sentence Search, Pronunciation practice, and
 // Stories alike (previously each had its own, independent flag, so toggling
-// it in one place had no effect on the others). Defaults to hidden.
+// it in one place had no effect on the others). Defaults to visible.
 // Persisted to localStorage (always, signed in or not) and, for a signed-in
 // user, mirrored to their account by myWordsAuth.js — the same "local
 // always, remote when signed in" pattern used for streak/wordStrengths/etc.
@@ -9,9 +9,12 @@ const ENGLISH_VISIBLE_STORAGE_KEY = "norwegian-dictionary-show-english-v1";
 
 function loadEnglishVisible() {
   try {
-    return window.localStorage.getItem(ENGLISH_VISIBLE_STORAGE_KEY) === "true";
+    const storedValue = window.localStorage.getItem(
+      ENGLISH_VISIBLE_STORAGE_KEY,
+    );
+    return storedValue === null ? true : storedValue === "true";
   } catch (error) {
-    return false;
+    return true;
   }
 }
 

@@ -129,8 +129,6 @@ const AUTHENTIC_CSV_URL = "norwegianAuthenticStories.csv";
 // so localStorage is shared across them too — an unprefixed key here would
 // let a visit to another language site overwrite this one's cached data.
 const STORY_CACHE_KEY = "storyDataNorwegian";
-const STORY_CACHE_TIME_KEY = "storyDataTimestampNorwegian";
-const STORY_CACHE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours, matching scripts.js
 // 74, not a rounder number: displayStoryList() below already subtracts one
 // slot when a recommended-story card is present (regularVisibleCount =
 // visibleCount - recommendedSlots), so this needs to itself be even for the
@@ -214,20 +212,7 @@ function buildStorySourceCreditHTML(story) {
   `;
 }
 
-// On a local dev/test server (not the deployed osloandrew.github.io site),
-// always fetch fresh CSV data instead of serving a stale cached copy — the
-// whole point of a local test environment is seeing edits to the CSV files
-// immediately, not up to 24h later. Duplicated in scripts.js since each
-// file's cache is otherwise independent.
-function isLocalDevHost() {
-  return (
-    location.hostname === "127.0.0.1" || location.hostname === "localhost"
-  );
-}
-
 function readCachedStoryData() {
-  if (isLocalDevHost()) return null;
-
   try {
     const cached = localStorage.getItem(STORY_CACHE_KEY);
     if (!cached) return null;
@@ -235,10 +220,7 @@ function readCachedStoryData() {
     const entries = JSON.parse(cached);
     if (!Array.isArray(entries) || !entries.length) return null;
 
-    return {
-      entries: normalizeStoryEntries(entries),
-      timestamp: Number(localStorage.getItem(STORY_CACHE_TIME_KEY)) || 0,
-    };
+    return normalizeStoryEntries(entries);
   } catch (error) {
     console.warn("Cached story data could not be read.", error);
     return null;
@@ -248,7 +230,6 @@ function readCachedStoryData() {
 function cacheStoryData(entries) {
   try {
     localStorage.setItem(STORY_CACHE_KEY, JSON.stringify(entries));
-    localStorage.setItem(STORY_CACHE_TIME_KEY, String(Date.now()));
   } catch (error) {
     console.warn("Story data could not be cached.", error);
   }
@@ -257,7 +238,12 @@ function cacheStoryData(entries) {
 async function fetchStoryCSV(url) {
   // Anchored to APP_ROOT_URL rather than left as a bare relative path —
   // see the identical fix on fetchAndLoadDictionaryData in scripts.js.
-  const response = await fetch(new URL(url, APP_ROOT_URL));
+  // Revalidate on every fresh page load so a successful production rollout
+  // is visible immediately. `no-cache` still permits a cheap conditional
+  // request when the deployed file has not changed.
+  const response = await fetch(new URL(url, APP_ROOT_URL), {
+    cache: "no-cache",
+  });
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }
@@ -283,37 +269,16 @@ async function fetchFreshStoryData() {
   return entries;
 }
 
-function refreshStaleStoryCache() {
-  const refresh = () => {
-    fetchFreshStoryData().catch((error) => {
-      console.warn("Story data could not be refreshed.", error);
-    });
-  };
-
-  if ("requestIdleCallback" in window) {
-    window.requestIdleCallback(refresh, { timeout: 3000 });
-  } else {
-    window.setTimeout(refresh, 1500);
-  }
-}
-
 async function fetchAndLoadStoryData() {
   if (storyResults.length) return storyResults;
   if (storyDataLoadPromise) return storyDataLoadPromise;
 
   showSpinner();
 
+  // Read the last successful catalog up front, but only use it if the
+  // network request fails. It is an offline fallback, never a freshness
+  // shortcut that can hide a newly deployed story for hours.
   const cached = readCachedStoryData();
-  if (cached) {
-    storyResults = cached.entries;
-    hideSpinner();
-
-    if (Date.now() - cached.timestamp > STORY_CACHE_MAX_AGE) {
-      refreshStaleStoryCache();
-    }
-
-    return storyResults;
-  }
 
   storyDataLoadPromise = fetchFreshStoryData()
     .then((entries) => {
@@ -322,7 +287,7 @@ async function fetchAndLoadStoryData() {
     })
     .catch((error) => {
       console.error("Story data could not be loaded:", error);
-      storyResults = [];
+      storyResults = cached || [];
       return storyResults;
     })
     .finally(() => {

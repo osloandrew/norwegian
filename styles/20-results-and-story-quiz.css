@@ -1814,6 +1814,9 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .result-header.sentence-results-header {
   margin-bottom: 12px;
+  min-height: 110px;
+  padding-right: 148px;
+  position: relative;
 }
 
 .sentence-results-eyebrow,
@@ -1869,15 +1872,12 @@ body.stories-mode .story-recommendation .cefr-value {
 
 .sentence-results-header-side {
   align-items: flex-end;
+  bottom: 20px;
   display: flex;
-  flex: 0 0 auto;
   flex-direction: column;
-  gap: 8px;
-  /* Keeps this pinned to the right even when flex-wrap (see the ≤480px
-     rule below) puts it alone on its own line — a lone item on a wrapped
-     line has nothing for justify-content: space-between to space it
-     against, so it collapses to the line's start without this. */
-  margin-left: auto;
+  position: absolute;
+  right: 24px;
+  top: 20px;
 }
 
 .sentence-results-header-copy,
@@ -1970,26 +1970,28 @@ body.stories-mode .story-recommendation .cefr-value {
 .sentence-results-actions {
   display: flex;
   justify-content: flex-end;
-  margin: 0;
+  margin: auto 0 0;
 }
 
 .sentence-results-actions .sentence-btn {
   align-items: center;
   background-color: var(--color-surface);
   border: 1px solid var(--color-wash-blue-border);
-  border-radius: 8px;
+  border-radius: 999px;
   box-shadow: none;
   color: var(--color-ink);
   display: inline-flex;
   font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 14px;
   font-weight: 500;
-  height: 40px;
+  height: auto;
   justify-content: center;
-  letter-spacing: 0.04em;
+  letter-spacing: normal;
+  line-height: normal;
   margin: 0;
-  padding: 8px 13px;
-  text-transform: uppercase;
+  padding: 5px 9px;
+  text-transform: none;
+  white-space: nowrap;
   width: auto;
 }
 
@@ -2006,6 +2008,11 @@ body.stories-mode .story-recommendation .cefr-value {
     gap: 10px;
     margin-bottom: 10px;
     padding: 16px;
+  }
+
+  .result-header.sentence-results-header {
+    min-height: 106px;
+    padding-right: 132px;
   }
 
   .result-header.word-results-header,
@@ -2049,6 +2056,12 @@ body.stories-mode .story-recommendation .cefr-value {
   }
 
   .sentence-results-actions {
-    margin: 0;
+    margin: auto 0 0;
+  }
+
+  .sentence-results-header-side {
+    bottom: 16px;
+    right: 16px;
+    top: 16px;
   }
 }

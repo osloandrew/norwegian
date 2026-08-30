@@ -24,6 +24,10 @@ FEATURE_PAGES = {
 }
 LOCAL_ASSET_RE = re.compile(r'(?:src|href)="([^":?#]+\.(?:js|css)(?:\?v=[^"]*)?)"')
 CANONICAL_RE = re.compile(r'<link rel="canonical" href="([^"]+)">')
+PAGE_STRUCTURED_DATA_RE = re.compile(
+    r'<script type="application/ld\+json" id="page-structured-data">(.*?)</script>',
+    re.DOTALL,
+)
 
 
 class ValidationError(RuntimeError):
@@ -87,6 +91,48 @@ def validate_page(
             raise ValidationError(f"{path} is missing the application shell element {required_id}")
 
 
+def validate_detail_metadata(path: Path, source: str) -> dict[str, object]:
+    for attribute, value in (
+        ("property", "og:site_name"),
+        ("property", "og:image:alt"),
+        ("name", "twitter:title"),
+        ("name", "twitter:description"),
+        ("name", "twitter:image"),
+        ("name", "twitter:image:alt"),
+    ):
+        if not re.search(
+            rf'<meta\s+[^>]*{attribute}="{re.escape(value)}"[^>]*>', source
+        ):
+            raise ValidationError(f"{path} is missing {value} metadata")
+    return page_structured_data(path, source)
+
+
+def page_structured_data(path: Path, source: str) -> dict[str, object]:
+    match = PAGE_STRUCTURED_DATA_RE.search(source)
+    if not match:
+        raise ValidationError(f"{path} is missing page-specific structured data")
+    try:
+        payload = json.loads(match.group(1))
+    except json.JSONDecodeError as error:
+        raise ValidationError(f"{path} has invalid page-specific structured data") from error
+    if payload.get("@context") != "https://schema.org" or not isinstance(
+        payload.get("@graph"), list
+    ):
+        raise ValidationError(f"{path} has an invalid page-specific schema graph")
+    return payload
+
+
+def graph_node(payload: dict[str, object], node_type: str) -> dict[str, object] | None:
+    return next(
+        (
+            node
+            for node in payload["@graph"]
+            if isinstance(node, dict) and node.get("@type") == node_type
+        ),
+        None,
+    )
+
+
 def validate(source_root: Path, site_root: Path) -> tuple[int, int, int]:
     words = source_values(source_root / "norwegianWords.csv", "ord", primary_word=True)
     stories: dict[str, str] = {}
@@ -147,6 +193,16 @@ def validate(source_root: Path, site_root: Path) -> tuple[int, int, int]:
         page_source = page.read_text(encoding="utf-8")
         if '<h1 class="word-gender' not in page_source or page_source.count("<h1") != 1:
             raise ValidationError(f"Word content heading is not the page H1 in {page}")
+        payload = validate_detail_metadata(page, page_source)
+        term = graph_node(payload, "DefinedTerm")
+        if (
+            not term
+            or term.get("name") != word
+            or term.get("url") != f"{SITE}/word/{slug}/"
+        ):
+            raise ValidationError(f"{page} has incorrect DefinedTerm structured data")
+        if not graph_node(payload, "BreadcrumbList"):
+            raise ValidationError(f"{page} is missing breadcrumb structured data")
     for slug, title in stories.items():
         page = site_root / "story" / slug / "index.html"
         validate_page(page, f"{SITE}/story/{slug}/", shared_assets, title, "../../")
@@ -158,6 +214,16 @@ def validate(source_root: Path, site_root: Path) -> tuple[int, int, int]:
             or page_source.count("<h1") != 1
         ):
             raise ValidationError(f"Story content heading is not the page H1 in {page}")
+        payload = validate_detail_metadata(page, page_source)
+        resource = graph_node(payload, "LearningResource")
+        if (
+            not resource
+            or resource.get("name") != title
+            or resource.get("url") != f"{SITE}/story/{slug}/"
+        ):
+            raise ValidationError(f"{page} has incorrect LearningResource structured data")
+        if not graph_node(payload, "BreadcrumbList"):
+            raise ValidationError(f"{page} is missing breadcrumb structured data")
 
     stories_index = site_root / "stories" / "index.html"
     validate_page(

@@ -169,6 +169,48 @@
   pointer-events: none;
 }
 
+/* The letter keys take space from the search pill's left side while the whole
+   search group keeps its original boundary. Each key remains a separate
+   control, matching the Word Game rather than becoming part of the field. */
+.search-norwegian-letter-keys {
+  align-items: stretch;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 5px;
+  height: 42px;
+}
+
+.search-norwegian-letter-key {
+  align-items: center;
+  appearance: none;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  box-sizing: border-box;
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  flex: 0 0 34px;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 16px;
+  justify-content: center;
+  padding: 0;
+}
+
+.search-norwegian-letter-key:hover {
+  background-color: #f3f7fb;
+}
+
+.search-norwegian-letter-key:focus-visible {
+  outline: 2px solid var(--color-interactive);
+  outline-offset: -3px;
+}
+
+.search-norwegian-letter-key:disabled {
+  color: var(--color-border);
+  cursor: not-allowed;
+}
+
 /* Word Game end-session control. */
 /* The "end early" control. Uppercase/letter-spaced to match the filter
    pills' (.type-filter select etc.) "suave" button language, and given
@@ -749,9 +791,13 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
   }
 
   .search-btn {
-    max-width: 60px;
-    min-width: 60px;
+    max-width: 42px;
+    min-width: 42px;
     padding: 8px;
+  }
+
+  .search-norwegian-letter-key {
+    flex-basis: 30px;
   }
 
   .search-btn i {
@@ -1199,6 +1245,10 @@ body.word-game-mode.word-game-round-active .cefr-filter-group {
     box-sizing: border-box;
     height: 44px;
     min-width: 0;
+  }
+
+  .search-norwegian-letter-keys {
+    height: 44px;
   }
 
   #search-bar {

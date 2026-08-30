@@ -31,6 +31,8 @@ import threading
 import urllib.parse
 from pathlib import Path
 
+from static_metadata import enrich_word_html
+
 ROOT = Path(__file__).resolve().parent.parent
 WORDS_CSV = ROOT / "norwegianWords.csv"
 PRODUCTION_ORIGIN = "https://osloandrew.github.io"
@@ -224,6 +226,9 @@ def capture(words: list[str], output_root: Path = ROOT) -> None:
                 # is swapping that origin for the real one; the path
                 # portion after it is already right.
                 html = html.replace(origin, PRODUCTION_ORIGIN)
+
+                canonical = f"{PRODUCTION_ORIGIN}{SITE_PATH}word/{slug}/"
+                html = enrich_word_html(html, word=word, canonical=canonical)
 
                 out_dir = output_root / "word" / slug
                 out_dir.mkdir(parents=True, exist_ok=True)

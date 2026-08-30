@@ -6632,7 +6632,7 @@ function attachTypedAnswerForm(
       const start = input.selectionStart ?? input.value.length;
       const end = input.selectionEnd ?? start;
       input.setRangeText(letter, start, end, "end");
-      input.focus({ preventScroll: true });
+      // Leave focus on the letter key the learner chose.
     });
   });
 
