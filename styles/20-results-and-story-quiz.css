@@ -476,6 +476,16 @@ ul {
   font-family: "Source Serif 4", "Noto Serif", serif;
 }
 
+/* Definition examples teach one target form at a time. Keep that target
+   visually consistent with the Word Game without changing search matches,
+   story prose, or other reading surfaces. */
+.definition-sentence-target {
+  background: var(--color-streak-bg);
+  border-radius: 3px;
+  color: inherit;
+  padding: 0 2px;
+}
+
 .sentence-pair {
   display: flex;
   align-items: flex-start; /* Align tops of the two sentences */

@@ -13,6 +13,11 @@
   "use strict";
 
   const STREAK_STORAGE_KEY = "norwegian-dictionary-streak-v1";
+  const FREEZE_COSTS = Object.freeze({
+    emerald: 4,
+    ruby: 2,
+    sapphire: 1,
+  });
 
   function defaultStreakState() {
     return {
@@ -20,6 +25,9 @@
       longestCount: 0,
       lastActiveDate: null, // "YYYY-MM-DD", local date
       graceUsed: false, // the one free missed-day forgiveness, per streak
+      // A purchased freeze stays ready for this date and rolls forward on
+      // each day the learner practices, until it protects a missed day.
+      freezeDate: null,
     };
   }
 
@@ -93,6 +101,29 @@
     return Math.round((later - earlier) / 86400000);
   }
 
+  function dayBefore(dateString) {
+    const [year, month, day] = dateString.split("-").map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day - 1));
+    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
+  }
+
+  function dayAfter(dateString) {
+    const [year, month, day] = dateString.split("-").map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day + 1));
+    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
+  }
+
+  function formatStreakDate(dateString) {
+    const [year, month, day] = dateString.split("-").map(Number);
+    // Midday keeps this calendar-date display stable in every local time
+    // zone, including around daylight-saving changes.
+    return new Intl.DateTimeFormat(undefined, {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    }).format(new Date(year, month - 1, day, 12));
+  }
+
   // Called once per completed/ended word-game round. Returns what actually
   // happened so the caller (the round summary screen) can show an
   // appropriate message — e.g. calling out that the grace day was just
@@ -123,7 +154,19 @@
       if (gap === 1) {
         // Yesterday to today — the ordinary, consecutive case.
         streakState.count += 1;
+        // A freeze bought in advance is not wasted when the learner does
+        // study. Keep it ready for the next day instead.
+        if (streakState.freezeDate === today) {
+          streakState.freezeDate = dayAfter(today);
+        }
         status = "extended";
+      } else if (gap === 2 && streakState.freezeDate === dayBefore(today)) {
+        // A freeze was deliberately activated for the one day between the
+        // learner's last practice and today. It protects the streak but
+        // does not count as a study session in its own right.
+        streakState.count += 1;
+        streakState.freezeDate = null;
+        status = "freeze-covered";
       } else if (gap === 2 && !streakState.graceUsed) {
         // Exactly one day was missed, and the grace day for this streak
         // hasn't been spent yet — the streak survives, retroactively
@@ -136,6 +179,7 @@
         // already used earlier in this streak — starts over.
         streakState.count = 1;
         streakState.graceUsed = false;
+        streakState.freezeDate = null;
         status = "reset";
       }
     }
@@ -174,28 +218,182 @@
   }
 
   function updateStreakBadge() {
-    const badge = document.getElementById("streak-badge");
+    const menu = document.getElementById("streak-menu");
+    const badge = document.getElementById("streak-menu-btn");
     const countEl = document.getElementById("streak-badge-count");
 
-    if (!badge || !countEl) {
+    if (!menu || !badge || !countEl) {
       return;
     }
 
     if (streakState.count > 0) {
       countEl.textContent = String(streakState.count);
-      badge.classList.remove("hidden");
+      menu.classList.remove("hidden");
+      const today = getLocalDateString();
+      const protectedToday = streakState.freezeDate === today;
+      const completeToday = streakState.lastActiveDate === today;
+      const label = protectedToday
+        ? `${streakState.count}-day streak; a freeze is ready for today`
+        : completeToday
+          ? `${streakState.count}-day streak; practice complete for today`
+          : `${streakState.count}-day streak; study today to keep it`;
+      badge.setAttribute("aria-label", label);
+      badge.title = label;
     } else {
-      badge.classList.add("hidden");
+      menu.classList.add("hidden");
     }
+  }
+
+  function getMenuStatus() {
+    const today = getLocalDateString();
+    if (streakState.freezeDate === today) {
+      return `A freeze is ready for today. Return by ${formatStreakDate(dayAfter(today))} to keep your streak.`;
+    }
+    if (streakState.freezeDate === dayAfter(today)) {
+      return `A freeze is ready for tomorrow. Return by ${formatStreakDate(dayAfter(streakState.freezeDate))} to keep your streak.`;
+    }
+    if (streakState.lastActiveDate === today) {
+      return `Practice complete. Return by ${formatStreakDate(dayAfter(today))} to keep your streak.`;
+    }
+    return `Return by ${formatStreakDate(today)} to keep your ${streakState.count}-day streak.`;
+  }
+
+  function getGemPlural(reward) {
+    return { emerald: "Emeralds", ruby: "Rubies", sapphire: "Sapphires" }[
+      reward
+    ];
+  }
+
+  function getStreakMenuGemMarkup(reward) {
+    return window.getDailyQuestGemMarkup?.(
+      reward,
+      "streak-menu-gem-icon",
+    ) ?? `<span class="streak-menu-gem-fallback" aria-hidden="true">◆</span>`;
+  }
+
+  function renderStreakMenu() {
+    const panel = document.getElementById("streak-menu-panel");
+    if (!panel) return;
+
+    const today = getLocalDateString();
+    const canBuyFreeze =
+      streakState.count > 0 &&
+      Boolean(streakState.lastActiveDate) &&
+      !streakState.freezeDate &&
+      (streakState.lastActiveDate === today ||
+        daysBetween(streakState.lastActiveDate, today) === 1);
+    const freezeTarget =
+      streakState.lastActiveDate === today ? dayAfter(today) : today;
+    const balance = (reward) => window.DailyQuestAPI?.getGemBalance?.(reward) ?? 0;
+    const optionMarkup = Object.entries(FREEZE_COSTS)
+      .map(([reward, cost]) => {
+        const available = balance(reward);
+        const disabled = !canBuyFreeze || available < cost;
+        const label = `Buy with ${cost} ${cost === 1 ? reward : getGemPlural(reward).toLowerCase()}`;
+        return `<button type="button" class="streak-menu-freeze-option streak-menu-freeze-option--${reward}" data-freeze-reward="${reward}" ${disabled ? "disabled" : ""}>${getStreakMenuGemMarkup(reward)}<span class="streak-menu-freeze-label">${label}</span><span class="streak-menu-freeze-available">${available} available</span></button>`;
+      })
+      .join("");
+
+    panel.innerHTML = `
+      <h2 class="streak-menu-heading">${streakState.count}-day streak</h2>
+      <p class="streak-menu-status">${getMenuStatus()}</p>
+      <div class="streak-menu-wallet" aria-label="Gem balances">
+        ${Object.keys(FREEZE_COSTS)
+          .map((reward) => `<span class="streak-menu-gem streak-menu-gem--${reward}">${getStreakMenuGemMarkup(reward)}<span class="streak-menu-gem-count">${balance(reward)}</span>${getGemPlural(reward)}</span>`)
+          .join("")}
+      </div>
+      ${canBuyFreeze ? `<p class="streak-menu-freeze-heading">Buy a freeze for ${freezeTarget === today ? "today" : "tomorrow"}</p><div class="streak-menu-freeze-options">${optionMarkup}</div><p class="streak-menu-note">It stays ready for the next day you miss, so studying tomorrow will not waste it.</p>` : ""}
+    `;
+
+    panel.querySelectorAll("[data-freeze-reward]").forEach((button) => {
+      button.addEventListener("click", () => buyFreeze(button.dataset.freezeReward));
+    });
+  }
+
+  function buyFreeze(reward) {
+    const cost = FREEZE_COSTS[reward];
+    const today = getLocalDateString();
+    if (
+      !cost ||
+      !streakState.lastActiveDate ||
+      streakState.freezeDate ||
+      (streakState.lastActiveDate !== today &&
+        daysBetween(streakState.lastActiveDate, today) !== 1) ||
+      !window.DailyQuestAPI?.spendGem?.(reward, cost)
+    ) {
+      renderStreakMenu();
+      return;
+    }
+
+    streakState.freezeDate =
+      streakState.lastActiveDate === today ? dayAfter(today) : today;
+    saveStreakState();
+    renderStreakMenu();
+    window.trackEvent?.("streak_freeze_bought", { reward, gem_cost: cost, streak_count: streakState.count });
+  }
+
+  function positionStreakMenuPanel(button, panel) {
+    const viewportGutter = 8;
+    panel.classList.remove("streak-menu-panel--opens-right");
+    panel.style.removeProperty("--streak-menu-available-width");
+    const buttonRect = button.getBoundingClientRect();
+    const panelWidth = panel.getBoundingClientRect().width;
+    const viewportWidth = document.documentElement.clientWidth;
+    const opensRight = buttonRect.right - panelWidth < viewportGutter;
+    const availableWidth = opensRight
+      ? viewportWidth - buttonRect.left - viewportGutter
+      : buttonRect.right - viewportGutter;
+    panel.classList.toggle("streak-menu-panel--opens-right", opensRight);
+    panel.style.setProperty("--streak-menu-available-width", `${Math.max(0, availableWidth)}px`);
+  }
+
+  function initializeStreakMenu() {
+    const menu = document.getElementById("streak-menu");
+    const button = document.getElementById("streak-menu-btn");
+    const panel = document.getElementById("streak-menu-panel");
+    if (!menu || !button || !panel) return;
+    const isOpen = () => !panel.classList.contains("hidden");
+    const closeMenu = () => {
+      panel.classList.add("hidden");
+      button.setAttribute("aria-expanded", "false");
+    };
+    const openMenu = () => {
+      renderStreakMenu();
+      panel.classList.remove("hidden");
+      positionStreakMenuPanel(button, panel);
+      button.setAttribute("aria-expanded", "true");
+      document.dispatchEvent(new CustomEvent("app-menu:open", { detail: { id: "streak" } }));
+    };
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      isOpen() ? closeMenu() : openMenu();
+    });
+    document.addEventListener("click", (event) => {
+      if (isOpen() && !event.target.closest(".streak-menu")) closeMenu();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && isOpen()) {
+        closeMenu();
+        button.focus();
+      }
+    });
+    document.addEventListener("app-menu:open", (event) => {
+      if (event.detail?.id !== "streak") closeMenu();
+    });
+    window.addEventListener("resize", () => {
+      if (isOpen()) positionStreakMenuPanel(button, panel);
+    });
   }
 
   // Deferred scripts run after the document is fully parsed, so the badge
   // markup in index.html is already present by the time this executes.
   updateStreakBadge();
+  initializeStreakMenu();
 
   window.StreakAPI = Object.freeze({
     getState: () => ({ ...streakState }),
     recordActivity: recordStreakActivity,
+    buyFreeze,
     replaceState: replaceStreakState,
   });
 })();

@@ -82,7 +82,6 @@
   const signInButton = document.getElementById("google-signin-btn");
   const signOutButton = document.getElementById("google-signout-btn");
   const userInfo = document.getElementById("auth-user-info");
-  const userAvatar = document.getElementById("auth-user-avatar");
   const userName = document.getElementById("auth-user-name");
   const syncStatus = document.getElementById("sync-status");
   const signInNudgeBanner = document.getElementById("signin-nudge-banner");
@@ -292,6 +291,7 @@
               longestCount: 0,
               lastActiveDate: null,
               graceUsed: false,
+              freezeDate: null,
             },
             dailyPractice: window.DailyQuestAPI?.normalize?.(null) ?? {},
             bestWordStreak: 0,
@@ -1084,6 +1084,10 @@
       const localStreak = window.StreakAPI?.getState?.() ?? {};
       const remoteLastActive = remoteStreak.lastActiveDate ?? "";
       const localLastActive = localStreak.lastActiveDate ?? "";
+      const latestFreezeDate =
+        (remoteStreak.freezeDate ?? "") > (localStreak.freezeDate ?? "")
+          ? remoteStreak.freezeDate
+          : localStreak.freezeDate ?? null;
 
       let mergedStreak;
 
@@ -1092,18 +1096,21 @@
           count: Math.max(remoteStreak.count ?? 0, localStreak.count ?? 0),
           lastActiveDate: localLastActive || null,
           graceUsed: Boolean(remoteStreak.graceUsed) || Boolean(localStreak.graceUsed),
+          freezeDate: latestFreezeDate,
         };
       } else if (remoteLastActive > localLastActive) {
         mergedStreak = {
           count: remoteStreak.count ?? 0,
           lastActiveDate: remoteLastActive,
           graceUsed: Boolean(remoteStreak.graceUsed),
+          freezeDate: latestFreezeDate,
         };
       } else {
         mergedStreak = {
           count: localStreak.count ?? 0,
           lastActiveDate: localLastActive || null,
           graceUsed: Boolean(localStreak.graceUsed),
+          freezeDate: latestFreezeDate,
         };
       }
 
@@ -1122,7 +1129,9 @@
       // set of lifetime per-gem totals instead (My Stats' "Gems earned"),
       // not scoped to today at all, but the same max-of-both logic still
       // applies per gem type — each count only ever goes up, so the higher
-      // of the two devices' counts is always the more complete one.
+      // of the two devices' counts is always the more complete one. Spent
+      // counts follow the same monotonic shape and are merged independently
+      // so a redeemed streak freeze survives a sign-in merge as well.
       const remoteDailyPractice =
         remoteData.dailyPractice && typeof remoteData.dailyPractice === "object"
           ? remoteData.dailyPractice
@@ -1138,6 +1147,7 @@
           gemCounts: {},
         };
       const mergedGemCounts = {};
+      const mergedSpentGemCounts = {};
       for (const reward of new Set([
         ...Object.keys(localDailyPractice.gemCounts ?? {}),
         ...Object.keys(normalizedRemoteDailyPractice.gemCounts ?? {}),
@@ -1145,6 +1155,13 @@
         mergedGemCounts[reward] = Math.max(
           localDailyPractice.gemCounts?.[reward] ?? 0,
           normalizedRemoteDailyPractice.gemCounts?.[reward] ?? 0,
+        );
+        mergedSpentGemCounts[reward] = Math.min(
+          mergedGemCounts[reward],
+          Math.max(
+            localDailyPractice.spentGemCounts?.[reward] ?? 0,
+            normalizedRemoteDailyPractice.spentGemCounts?.[reward] ?? 0,
+          ),
         );
       }
       const mergedDailyPractice =
@@ -1155,6 +1172,7 @@
             normalizedRemoteDailyPractice.completedRounds ?? 0,
           ),
           gemCounts: mergedGemCounts,
+          spentGemCounts: mergedSpentGemCounts,
         }) ?? localDailyPractice;
 
       // A personal-best record, same "only ever grows" shape as streak's
@@ -1257,11 +1275,6 @@
       signInButton?.classList.add("hidden");
       userInfo?.classList.remove("hidden");
       dismissSignInNudge();
-
-      if (userAvatar) {
-        userAvatar.src = user.photoURL || "";
-        userAvatar.alt = user.displayName || user.email || "Signed in";
-      }
 
       if (userName) {
         userName.textContent = user.displayName || user.email || "Signed in";

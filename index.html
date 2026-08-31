@@ -91,7 +91,7 @@
     />
     <link
       rel="stylesheet"
-      href="styles/10-shell-landing-and-stats.css?v=9acde6182e"
+      href="styles/10-shell-landing-and-stats.css?v=061b6e25cf"
     />
     <link
       rel="stylesheet"
@@ -457,14 +457,29 @@
             </div>
           </div>
 
-          <!-- Hidden until there's an actual streak to show — see
-               updateStreakBadge() in streak.js. Lives inside #auth-container
-               (rather than floating separately) purely for layout: it's
-               meaningful whether or not the visitor is signed in, since
-               streak state lives in localStorage either way. -->
-          <div id="streak-badge" class="streak-badge hidden" title="Day streak">
-            <i class="fas fa-fire" aria-hidden="true"></i>
-            <span id="streak-badge-count">0</span>
+          <!-- Hidden until there's an actual streak to show. The compact
+               trigger keeps the header uncluttered; its panel contains the
+               streak deadline, the three gem balances, and freeze choices. -->
+          <div id="streak-menu" class="streak-menu hidden">
+            <button
+              type="button"
+              id="streak-menu-btn"
+              class="streak-badge"
+              aria-haspopup="dialog"
+              aria-expanded="false"
+              aria-controls="streak-menu-panel"
+              aria-label="Day streak"
+              title="Day streak"
+            >
+              <i class="fas fa-fire" aria-hidden="true"></i>
+              <span id="streak-badge-count">0</span>
+            </button>
+            <div
+              id="streak-menu-panel"
+              class="streak-menu-panel hidden"
+              role="dialog"
+              aria-label="Day streak and gems"
+            ></div>
           </div>
 
           <button
@@ -499,7 +514,28 @@
           </button>
 
           <div id="auth-user-info" class="auth-user-info hidden">
-            <img id="auth-user-avatar" class="auth-user-avatar" alt="" />
+            <svg
+              class="auth-google-logo"
+              viewBox="0 0 18 18"
+              aria-hidden="true"
+            >
+              <path
+                fill="#4285F4"
+                d="M17.64 9.2045c0-.6381-.0573-1.2518-.1636-1.8409H9v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2582h2.9087c1.7018-1.5668 2.6836-3.874 2.6836-6.6151z"
+              />
+              <path
+                fill="#34A853"
+                d="M9 18c2.43 0 4.4673-.806 5.9564-2.1805l-2.9087-2.2582c-.8064.54-1.8368.859-3.0477.859-2.3436 0-4.3282-1.5831-5.036-3.7104H.9573v2.3318C2.4382 15.9832 5.4818 18 9 18z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M3.964 10.71c-.18-.54-.2827-1.1168-.2827-1.71s.1027-1.17.2827-1.71V4.9582H.9573C.3477 6.1732 0 7.5477 0 9s.3477 2.8268.9573 4.0418L3.964 10.71z"
+              />
+              <path
+                fill="#EA4335"
+                d="M9 3.5795c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5813C13.4632.8918 11.4259 0 9 0 5.4818 0 2.4382 2.0168.9573 4.9582L3.964 7.29C4.6718 5.1627 6.6564 3.5795 9 3.5795z"
+              />
+            </svg>
             <span id="auth-user-name" class="auth-user-name"></span>
             <span
               id="sync-status"
@@ -1190,10 +1226,7 @@
           <option value="thai">Thai</option>
         </select>
       </div>
-      <p class="copyright">
-        © 2026 Norwegian Dictionary, with input from Språkrådet, Universitetet i
-        Bergen, and Det Norske Akademi for Språk og Litteratur
-      </p>
+      <p class="copyright">© 2026 Norwegian Dictionary</p>
     </footer>
 
     <!-- Shown after a completed word-game round, if the visitor isn't signed
@@ -1307,20 +1340,20 @@
     <script src="pronunciation.js?v=e0bab555ae" defer></script>
     <script src="wordList.js?v=cbedfa41b8" defer></script>
     <script src="storyFavorites.js?v=c152eb5155" defer></script>
-    <script src="myWordsAuth.js?v=553d573006" defer></script>
+    <script src="myWordsAuth.js?v=70e19407dd" defer></script>
     <script src="noRandom.js?v=f948ae4973" defer></script>
     <script src="noRandomLetters.js?v=10acb8ddad" defer></script>
     <script src="ordbokene.js?v=c7bf198620" defer></script>
-    <script src="scripts.js?v=cb539402a7" defer></script>
+    <script src="scripts.js?v=5033929ca1" defer></script>
     <script src="wordGamePolicy.js?v=9f73798b92" defer></script>
-    <script src="wordGame.js?v=efb4cd832f" defer></script>
+    <script src="wordGame.js?v=c160822a68" defer></script>
     <script src="placementTest.js?v=b19d74f0fb" defer></script>
-    <script src="streak.js?v=ddb26efe7e" defer></script>
+    <script src="streak.js?v=725df5ff2f" defer></script>
     <script src="stories.js?v=e09b497d62" defer></script>
     <script src="storyQuiz.js?v=23091fc199" defer></script>
     <script src="myStats.js?v=fe8d066400" defer></script>
     <script src="settings.js?v=bfc4834be9" defer></script>
-    <script src="about.js?v=5dae95b2c1" defer></script>
+    <script src="about.js?v=1fd9c085a3" defer></script>
 
     <!--
       Registered after "load" (not deferred alongside the app scripts

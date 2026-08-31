@@ -79,6 +79,37 @@
     return card;
   }
 
+  function createDataSourcesCard() {
+    const card = document.createElement("section");
+    card.className = "my-stats-box";
+    card.innerHTML = `
+      <h3 class="my-stats-section-heading">Data sources and acknowledgements</h3>
+      <p class="my-stats-danger-text">
+        Dictionary content includes input from <a href="https://sprakradet.no/" target="_blank" rel="noopener noreferrer">Språkrådet</a>,
+        the <a href="https://www.uib.no/" target="_blank" rel="noopener noreferrer">University of Bergen</a>, and
+        <a href="https://naob.no/" target="_blank" rel="noopener noreferrer">Det Norske Akademi for Språk og Litteratur</a>.
+        When a lookup needs an official fallback, results come from
+        <a href="https://ordbokene.no/" target="_blank" rel="noopener noreferrer">Bokmålsordboka</a>, published by Språkrådet and the University of Bergen.
+      </p>
+      <p class="my-stats-danger-text">
+        Word forms are derived from <a href="https://ord.uib.no/ord_1_Ordlister.html" target="_blank" rel="noopener noreferrer">Norsk Ordbank – Bokmål</a>,
+        maintained by the University of Bergen and Språkrådet, under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>.
+        Synonym prompts use a vetted subset of <a href="https://www.nb.no/sprakbanken/en/resource-catalogue/oai-nb-no-sbr-27/" target="_blank" rel="noopener noreferrer">Norsk Ordvev Bokmål</a>
+        (version 1.1.2), also <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>.
+      </p>
+      <p class="my-stats-danger-text">
+        Vocabulary-frequency signals in the Word Game combine <a href="https://repo.clarino.uib.no/xmlui/handle/11509/157" target="_blank" rel="noopener noreferrer">CLARINO Norsk aviskorpus</a>
+        (CC BY-NC 4.0), <a href="https://github.com/hermitdave/FrequencyWords" target="_blank" rel="noopener noreferrer">OpenSubtitles2018 via hermitdave/FrequencyWords</a>
+        (CC BY-SA 4.0), and <a href="https://www.nb.no/sprakbanken/en/resource-catalogue/oai-nb-no-sbr-70/" target="_blank" rel="noopener noreferrer">NB N-gram digibok</a>
+        from Nasjonalbiblioteket/Språkbanken (CC0).
+      </p>
+      <p class="my-stats-danger-text">
+        Stories adapted from third-party work retain their source, author, and licence credit on the individual story.
+      </p>
+    `;
+    return card;
+  }
+
   function renderAbout() {
     const container = getResultsContainer();
     if (!container) return;
@@ -89,6 +120,7 @@
     section.append(
       createHeaderCard(),
       createAboutCard(),
+      createDataSourcesCard(),
       createConnectCard(),
     );
 

@@ -288,10 +288,18 @@ function normalizeDailyPracticeState(value, dateKey = getDailyPracticeDateKey())
   // these are carried through regardless of date instead of resetting
   // each day.
   const gemCounts = {};
+  const spentGemCounts = {};
   for (const quest of DAILY_QUESTS) {
     const raw = value?.gemCounts?.[quest.reward];
     gemCounts[quest.reward] = Number.isFinite(raw)
       ? Math.max(0, Math.floor(raw))
+      : 0;
+    const spentRaw = value?.spentGemCounts?.[quest.reward];
+    // Spending can never exceed gems earned. Keeping earned and spent
+    // separately preserves the lifetime "Gems Earned" statistic while the
+    // wallet can safely show the remaining balance.
+    spentGemCounts[quest.reward] = Number.isFinite(spentRaw)
+      ? Math.min(gemCounts[quest.reward], Math.max(0, Math.floor(spentRaw)))
       : 0;
   }
 
@@ -300,6 +308,7 @@ function normalizeDailyPracticeState(value, dateKey = getDailyPracticeDateKey())
     completedRounds,
     earnedRewards,
     gemCounts,
+    spentGemCounts,
   };
 }
 
@@ -462,6 +471,33 @@ function completeDailyQuestRound() {
   const savedState = saveDailyPracticeState(state);
   return savedState.earnedRewards.includes(quest.reward) ? quest : null;
 }
+
+function getGemBalance(reward, state = loadDailyPracticeState()) {
+  return Math.max(
+    0,
+    (state.gemCounts?.[reward] || 0) - (state.spentGemCounts?.[reward] || 0),
+  );
+}
+
+function spendDailyQuestGem(reward, amount) {
+  const normalizedAmount = Number.isFinite(amount)
+    ? Math.max(1, Math.floor(amount))
+    : 0;
+  if (!DAILY_QUESTS.some((quest) => quest.reward === reward) || !normalizedAmount) {
+    return null;
+  }
+
+  const state = loadDailyPracticeState();
+  if (getGemBalance(reward, state) < normalizedAmount) {
+    return null;
+  }
+
+  state.spentGemCounts = {
+    ...state.spentGemCounts,
+    [reward]: (state.spentGemCounts?.[reward] || 0) + normalizedAmount,
+  };
+  return saveDailyPracticeState(state);
+}
 // Short in-session relearning queue. Durable state and its due timestamp live
 // in WordStrengthAPI; this queue only supplies enough intervening questions
 // before a retry and remembers which exercise form was missed.
@@ -561,6 +597,18 @@ const TYPED_RECALL_READINESS = Object.freeze({
 // actually return: the typed variants are chosen *inside* renderQuestion for
 // cloze/reverse/listening, not looked up separately.
 const GAME_MODES = Object.freeze({
+  synonym: Object.freeze({
+    instructionText: () => "Choose the Word with Approximately the Same Meaning",
+    renderQuestion({ wordObj, fallbackTranslations, isReintroduced = false }) {
+      const exercise = buildSynonymExercise(wordObj);
+      if (!exercise) {
+        renderWordGameUI(wordObj, fallbackTranslations, isReintroduced);
+        return;
+      }
+      correctTranslation = exercise.answer;
+      renderWordGameUI(wordObj, exercise.choices, isReintroduced, "synonym", exercise);
+    },
+  }),
   cloze: Object.freeze({
     // No pre-check here: cloze eligibility (a usable example sentence, a
     // non-banned word class, enough same-slot distractors) can only be
@@ -853,6 +901,7 @@ function configureRelearningEntryMode(queueEntry, mode) {
   queueEntry.wasReverse = mode === "reverse" || mode === "typed-reverse";
   queueEntry.wasListening =
     mode === "listening" || mode === "typed-listening";
+  queueEntry.wasSynonym = mode === "synonym";
   queueEntry.forceTypedRetry = mode.startsWith("typed-");
 }
 
@@ -1881,6 +1930,108 @@ function getNorwegianEntryVariants(entry) {
   ];
 }
 
+// --- Vetted synonym exercise data ----------------------------------------
+// Norsk Ordvev is used only by scripts/build-synonym-pairs.py. This compact,
+// reciprocal-definition-confirmed snapshot is fetched once for a game session; a failure
+// leaves every existing exercise available and merely omits this mode.
+const SYNONYM_PAIR_DATA_VERSION = 1;
+let synonymPairs = Object.freeze({});
+let synonymPairDataPromise = null;
+let synonymEntryIndex = null;
+
+function getSynonymEntryKey(entry) {
+  return `${normalizeGameAnswer(getPrimaryNorwegianForm(entry))}|${WordClass.getWordClass(entry?.gender)}`;
+}
+
+async function loadSynonymPairs() {
+  if (synonymPairDataPromise) return synonymPairDataPromise;
+  synonymPairDataPromise = fetch(
+    new URL("data/synonym-pairs.json", APP_ROOT_URL),
+    { cache: "no-cache" },
+  )
+    .then((response) => {
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      return response.json();
+    })
+    .then((data) => {
+      if (data?.version !== SYNONYM_PAIR_DATA_VERSION || !data?.pairs || typeof data.pairs !== "object") {
+        throw new Error("Unsupported synonym-pair snapshot");
+      }
+      synonymPairs = Object.freeze(data.pairs);
+      synonymEntryIndex = null;
+      return synonymPairs;
+    })
+    .catch((error) => {
+      console.warn("Synonym exercise data could not be loaded.", error);
+      synonymPairs = Object.freeze({});
+      return synonymPairs;
+    });
+  return synonymPairDataPromise;
+}
+
+function getSynonymEntryIndex() {
+  if (synonymEntryIndex) return synonymEntryIndex;
+  synonymEntryIndex = new Map();
+  for (const entry of results || []) {
+    const key = getSynonymEntryKey(entry);
+    // The offline build excludes ambiguous duplicate keys. Keep the same
+    // guard if the runtime dictionary changes before the snapshot does.
+    synonymEntryIndex.set(key, synonymEntryIndex.has(key) ? null : entry);
+  }
+  return synonymEntryIndex;
+}
+
+function hasEstablishedRecognition(entry) {
+  const record = window.WordStrengthAPI?.getSkillSnapshot?.(
+    entry,
+    "recognition",
+  )?.record;
+  return Boolean(record && Number(record.successEvidence) >= 1 && record.state !== "relearning");
+}
+
+function buildSynonymExercise(wordObj) {
+  if (!wordObj || !hasEstablishedRecognition(wordObj)) return null;
+  const answers = synonymPairs[getSynonymEntryKey(wordObj)];
+  if (!Array.isArray(answers) || answers.length === 0) return null;
+
+  const targetClass = WordClass.getWordClass(wordObj.gender);
+  const index = getSynonymEntryIndex();
+  const answerEntry = shuffleArray(
+    answers
+      .map((answer) => index.get(`${normalizeGameAnswer(answer)}|${targetClass}`))
+      .filter((entry) => entry && hasEstablishedRecognition(entry)),
+  )[0];
+  if (!answerEntry) return null;
+
+  const answer = getPrimaryNorwegianForm(answerEntry);
+  const excluded = new Set([
+    normalizeGameAnswer(getPrimaryNorwegianForm(wordObj)),
+    normalizeGameAnswer(answer),
+    ...answers.map(normalizeGameAnswer),
+  ]);
+  const answerSenses = new Set(getEnglishEntryVariants(answerEntry));
+  const distractors = [];
+  for (const entry of shuffleArray(results.filter((candidate) => {
+    const form = getPrimaryNorwegianForm(candidate);
+    return (
+      form &&
+      !excluded.has(normalizeGameAnswer(form)) &&
+      !isExcludedFromRandomSelection(candidate.ord) &&
+      WordClass.getWordClass(candidate.gender) === targetClass &&
+      !sharesEnglishSenseWith(candidate, answerSenses) &&
+      hasEstablishedRecognition(candidate)
+    );
+  }))) {
+    const form = getPrimaryNorwegianForm(entry);
+    if (distractors.some((value) => normalizeGameAnswer(value) === normalizeGameAnswer(form))) continue;
+    distractors.push(form);
+    if (distractors.length === 3) break;
+  }
+  return distractors.length === 3
+    ? { answer, choices: shuffleArray([answer, ...distractors]) }
+    : null;
+}
+
 function getTypedRecallProbability(wordObj, mode, exercise = null) {
   const readiness = TYPED_RECALL_READINESS[mode];
   if (!readiness) return 0;
@@ -2533,6 +2684,7 @@ const REVIEW_MODE_BY_SKILL = Object.freeze({
   production: "reverse",
   listening: "listening",
   recognition: "forward",
+  semantic: "synonym",
 });
 
 function getForcedReviewMode(wordObj) {
@@ -2556,6 +2708,13 @@ function getForcedReviewMode(wordObj) {
   // the ordinary selection, which already knows how to skip an infeasible
   // mode gracefully.
   if (mode === "listening" && !hasPlayableWordAudio(wordObj)) return null;
+  if (
+    mode === "synonym" &&
+    (typeof buildSynonymExercise !== "function" ||
+      !buildSynonymExercise(wordObj))
+  ) {
+    return null;
+  }
   if (
     mode === "cloze" &&
     (!String(wordObj?.eksempel ?? "").trim() ||
@@ -2660,6 +2819,18 @@ function getQuestionModeCandidates(wordObj) {
     listeningWeight,
   );
   splitTypedQuestionMode(candidates, wordObj, "reverse", reverseWeight);
+  const synonymExercise =
+    typeof buildSynonymExercise === "function"
+      ? buildSynonymExercise(wordObj)
+      : null;
+  if (synonymExercise) {
+    // Semantic recognition is a deliberately small share of free play. It
+    // appears only after both terms and all distractors are known enough to
+    // make the question retrieval rather than elimination.
+    const synonymWeight = 0.14 * (1 - a0SupportIntensity);
+    forwardWeight = Math.max(0, forwardWeight - synonymWeight);
+    addQuestionModeCandidate(candidates, "synonym", synonymWeight);
+  }
   addQuestionModeCandidate(candidates, "forward", forwardWeight);
   return candidates;
 }
@@ -5422,6 +5593,8 @@ function showWordGameRoundSummary() {
       ${
         streakResult.status === "grace-used"
           ? `<p class="game-summary-streak-note">Your free grace day covered a missed day — streak saved!</p>`
+          : streakResult.status === "freeze-covered"
+            ? `<p class="game-summary-streak-note">Your streak freeze covered yesterday — you’re back on track.</p>`
           : ""
       }
     </div>
@@ -5669,7 +5842,7 @@ async function startWordGame() {
   // selected. Resolve the compact official snapshot once up front; a pending
   // background preload is reused, and a failed load simply makes cloze fall
   // back to the ordinary flashcard format.
-  await window.Inflections?.preload();
+  await Promise.all([window.Inflections?.preload(), loadSynonymPairs()]);
   if (!gameActive || !wordGameRoundActive) return;
 
   // A miss enters an explicit short-term relearning queue. Its availability
@@ -5821,6 +5994,24 @@ async function startWordGame() {
           clozeTarget,
         );
       }
+    } else if (firstWordInQueue.wasSynonym) {
+      const randomWordObj = firstWordInQueue.wordObj;
+      const fallbackCorrect = randomWordObj.engelsk;
+      const fallbackTranslations = ensureUniqueDisplayedValues(
+        shuffleArray([
+          fallbackCorrect,
+          ...fetchIncorrectTranslations(
+            randomWordObj.gender,
+            fallbackCorrect,
+            randomWordObj.CEFR,
+          ),
+        ]),
+      );
+      GAME_MODES.synonym.renderQuestion({
+        wordObj: randomWordObj,
+        fallbackTranslations,
+        isReintroduced: true,
+      });
     } else if (firstWordInQueue.wasReverse) {
       // Rebuild incorrect Norwegian-word options for the reintroduced
       // reverse flashcard — same widening behavior as the translation
@@ -6565,7 +6756,8 @@ function renderMorphologyRepairPrompt(morphologyNearMiss) {
   return true;
 }
 
-function renderGameTeachingReveal({
+async function renderGameTeachingReveal({
+  wordObj,
   isCorrect,
   correctAnswer,
   exampleSentence = "",
@@ -6593,8 +6785,11 @@ function renderGameTeachingReveal({
   const morphologyContrast = morphologyNearMiss
     ? getMorphologyFormContrast(morphologyNearMiss)
     : "";
-  const contextHTML = !isCloze && normalizedSentence
-    ? `<button type="button" class="game-teaching-sentence" aria-label="Play sentence audio">${escapeGameHTML(normalizedSentence)}</button>`
+  const sentenceHTML = !isCloze && normalizedSentence
+    ? await getTeachingSentenceHTML(wordObj, normalizedSentence)
+    : "";
+  const contextHTML = sentenceHTML
+    ? `<button type="button" class="game-teaching-sentence" aria-label="Play sentence audio">${sentenceHTML}</button>`
     : "";
   const translationRequired = wasTyped && isCloze;
   const translationHTML = normalizedTranslation
@@ -6738,6 +6933,37 @@ function getIntroductionPracticeNote(mode) {
   return "You’ll recall its meaning after a few other words.";
 }
 
+// Use the same inflection-aware matcher as a definition card. A first
+// exposure often shows an inflected form ("ugla") rather than the displayed
+// headword ("ugle"), so a literal headword replacement would miss the part
+// of the sentence the learner is meant to notice.
+async function getTeachingSentenceHTML(wordObj, sentence, clozeTarget = null) {
+  if (!sentence) return "";
+
+  if (clozeTarget) {
+    return `${escapeGameHTML(clozeTarget.sentence.slice(0, clozeTarget.startIndex))}<mark class="game-introduction-target">${escapeGameHTML(clozeTarget.sentence.slice(clozeTarget.startIndex, clozeTarget.endIndex))}</mark>${escapeGameHTML(clozeTarget.sentence.slice(clozeTarget.endIndex))}`;
+  }
+
+  let matcher = null;
+  if (WordClass.getWordClass(wordObj.gender) === "expression") {
+    matcher = (await window.ExpressionPatterns?.getAnalysis(wordObj))?.matcher;
+  } else {
+    const forms = await window.Inflections?.getSentenceForms?.(wordObj);
+    matcher = window.SentenceFormMatching?.createMatcher(forms);
+  }
+
+  const highlightedSentence = matcher?.highlight
+    ? matcher.highlight(sentence)
+    : escapeGameHTML(sentence);
+  // SentenceFormMatching deliberately uses blue text for dictionary cards.
+  // In the game, preserve its form-aware matching while using the yellow
+  // teaching marker learners already saw during the introduction.
+  return highlightedSentence.replace(
+    /<span style="color: var\(--color-interactive\);">(.*?)<\/span>/gi,
+    '<mark class="game-introduction-target">$1</mark>',
+  );
+}
+
 async function renderWordIntroductionUI(initialEntry) {
   const wordObj = initialEntry.wordObj;
   const displayedWord = getPrimaryNorwegianForm(wordObj);
@@ -6761,9 +6987,11 @@ async function renderWordIntroductionUI(initialEntry) {
   const sentenceTranslation = normalizeGameWhitespace(
     example.sentenceTranslation,
   );
-  const sentenceHTML = clozeTarget
-    ? `${escapeGameHTML(clozeTarget.sentence.slice(0, clozeTarget.startIndex))}<mark class="game-introduction-target">${escapeGameHTML(clozeTarget.sentence.slice(clozeTarget.startIndex, clozeTarget.endIndex))}</mark>${escapeGameHTML(clozeTarget.sentence.slice(clozeTarget.endIndex))}`
-    : escapeGameHTML(sentence);
+  const sentenceHTML = await getTeachingSentenceHTML(
+    wordObj,
+    sentence,
+    clozeTarget,
+  );
 
   setGameContainerHTML(`
     <div class="game-stats-content" id="game-session-stats"></div>
@@ -6834,6 +7062,7 @@ function renderWordGameUI(
   translations,
   isReintroduced = false,
   mode = "forward",
+  exercise = null,
 ) {
   // Dictation ("typed-listening"): hear the word, type what you heard — no
   // English shown at all. It reuses listening's own prompt (audio icon,
@@ -6846,7 +7075,7 @@ function renderWordGameUI(
   const isReverse = mode === "reverse" || mode === "typed-reverse";
   const isListening = mode === "listening" || isDictation;
 
-  beginQuestionPrediction(wordObj, mode);
+  beginQuestionPrediction(wordObj, mode, exercise);
 
   // Each render replaces the previous question entirely, so nothing still
   // references earlier entries — reset instead of growing forever.
@@ -6949,7 +7178,7 @@ function renderWordGameUI(
             ${translations
               .map(
                 (translation, index) => `
-                <button type="button" class="game-translation-card" lang="${isReverse ? "nb" : "en"}" data-id="${wordId}" data-index="${index}" aria-keyshortcuts="${index + 1}">
+                <button type="button" class="game-translation-card" lang="${isReverse || mode === "synonym" ? "nb" : "en"}" data-id="${wordId}" data-index="${index}" aria-keyshortcuts="${index + 1}">
                     ${escapeGameHTML(getDisplayedAnswer(translation))}
                 </button>
             `,
@@ -7606,7 +7835,9 @@ async function handleTranslationClick(
       ? "listening"
       : isReverse
         ? "production"
-        : "recognition";
+        : currentQuestionPrediction?.mode === "synonym"
+          ? "semantic"
+          : "recognition";
   const answerSkillSnapshot =
     window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, answerSkill) ??
     window.WordStrengthAPI?.getSnapshot?.(wordObj);
@@ -7931,8 +8162,6 @@ async function handleTranslationClick(
     }
   }
 
-  enableGameControls();
-
   // If this answer just finished a bounded round, relabel the button so
   // it's clear the next click leads to results, not another question —
   // the actual branching happens in the click handler itself (see
@@ -7955,7 +8184,8 @@ async function handleTranslationClick(
   // Update the stats after the answer
   renderStats();
 
-  renderGameTeachingReveal({
+  await renderGameTeachingReveal({
+    wordObj,
     isCorrect: answerWasCorrect,
     correctAnswer: morphologyNearMiss?.correction || correctTranslationPart,
     exampleSentence,
@@ -7969,6 +8199,8 @@ async function handleTranslationClick(
       !wordGamePlacementCalibrationEnabled &&
       !a0FirstExposure,
   });
+
+  enableGameControls();
 }
 
 async function fetchExampleSentence(
@@ -9749,6 +9981,8 @@ window.DailyQuestAPI = Object.freeze({
   renderLanding: renderLandingDailyQuests,
   start: startDailyQuestFromLanding,
   getState: loadDailyPracticeState,
+  getGemBalance,
+  spendGem: spendDailyQuestGem,
   replaceState: replaceDailyPracticeState,
   normalize: normalizeDailyPracticeState,
 });

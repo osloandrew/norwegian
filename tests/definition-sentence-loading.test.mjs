@@ -8,6 +8,10 @@ const source = fs.readFileSync(path.join(root, "scripts.js"), "utf8");
 const functionStart = source.indexOf("async function fetchAndRenderSentences(");
 const functionEnd = source.indexOf("// Spinner Control Functions", functionStart);
 const functionSource = source.slice(functionStart, functionEnd);
+const styles = fs.readFileSync(
+  path.join(root, "styles", "20-results-and-story-quiz.css"),
+  "utf8",
+);
 
 assert.notEqual(functionStart, -1, "sentence loader should exist");
 assert.notEqual(functionEnd, -1, "sentence loader boundary should exist");
@@ -25,5 +29,8 @@ assert.ok(
   immediateRender < supplementalWait,
   "the own example must render before waiting for supplemental inflections",
 );
+assert.match(source, /function renderDefinitionSentenceHighlight/);
+assert.match(source, /<mark class="definition-sentence-target">\$1<\/mark>/);
+assert.match(styles, /\.definition-sentence-target\s*\{[\s\S]*?background: var\(--color-streak-bg\)/);
 
 console.log("Definition sentence loading-order checks passed.");

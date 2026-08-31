@@ -5,12 +5,13 @@
   // previous implementation stored a timeless integer from 0-5; these
   // records instead keep enough information to answer two separate
   // questions: how stable is this memory, and is it due for retrieval now?
-  const STORAGE_VERSION = 5;
+  const STORAGE_VERSION = 6;
   const SKILL_IDS = Object.freeze([
     "recognition",
     "production",
     "listening",
     "context",
+    "semantic",
   ]);
   const DAY_MS = 24 * 60 * 60 * 1000;
   const RELEARNING_DELAY_MS = 10 * 60 * 1000;

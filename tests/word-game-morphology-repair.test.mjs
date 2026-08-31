@@ -54,7 +54,7 @@ const runSection = (startMarker, endMarker) => {
 
 runSection("function normalizeGameWhitespace", "function normalizeGameAnswer");
 runSection("function escapeGameHTML", "function getPrimaryNorwegianForm");
-runSection("const GAME_OUTCOME_ICON_SVG", "function renderGameTeachingReveal");
+runSection("const GAME_OUTCOME_ICON_SVG", "async function renderGameTeachingReveal");
 
 const feedback = {
   isUnambiguous: true,

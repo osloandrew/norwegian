@@ -179,6 +179,7 @@ runSection("function getGameInstructionText", "function getGamePromptLengthClass
 for (const [mode, expected] of [
   ["typed-reverse", "Type the Norwegian Word"],
   ["typed-cloze", "Type the Word That Completes the Sentence"],
+  ["synonym", "Choose the Word with Approximately the Same Meaning"],
   ["reverse", "Choose the Norwegian Word"],
   ["listening", "Listen and Choose the Meaning"],
   ["cloze", "Choose the Missing Word"],

@@ -117,25 +117,175 @@
   width: 16px;
 }
 
-/* Day-streak pill, sitting just left of the sign-in button/user pill inside
-   #auth-container. Hidden (via the shared .hidden class) until there's an
-   actual streak — see updateStreakBadge() in streak.js. */
+/* Day-streak trigger and menu sit just left of the sign-in button/user pill.
+   Keeping gems in this menu avoids adding another permanent counter to the
+   already compact mobile header. */
+.streak-menu {
+  position: relative;
+  z-index: 1100;
+}
+
 .streak-badge {
   align-items: center;
   background-color: var(--color-streak-bg);
   border: 0.5px solid var(--color-streak-border);
   border-radius: 6px;
   color: var(--color-streak-text);
+  cursor: pointer;
   display: flex;
   font-size: 14px;
   font-weight: 700;
   gap: 4px;
+  height: 34px;
   padding: 6px 10px;
   user-select: none;
 }
 
+.streak-badge:hover,
+.streak-badge[aria-expanded="true"] {
+  background-color: #ffe7cc;
+  border-color: #e5ad6f;
+}
+
 .streak-badge .fa-fire {
   color: var(--color-streak-icon);
+}
+
+.streak-menu-panel {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-wash-blue-border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(13, 58, 105, 0.16);
+  box-sizing: border-box;
+  max-width: min(
+    calc(100vw - 16px),
+    var(--streak-menu-available-width, calc(100vw - 16px))
+  );
+  min-width: min(
+    260px,
+    var(--streak-menu-available-width, calc(100vw - 16px))
+  );
+  padding: 6px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 280px;
+  z-index: 1;
+}
+
+.streak-menu-panel--opens-right {
+  left: 0;
+  right: auto;
+}
+
+.streak-menu-heading {
+  color: var(--color-ink);
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 7px 10px 0;
+}
+
+.streak-menu-status {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  margin: 2px 10px 10px;
+}
+
+.streak-menu-wallet {
+  border-bottom: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 4px 10px;
+  padding: 7px 3px;
+}
+
+.streak-menu-gem {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  font-weight: 500;
+  gap: 1px;
+}
+
+.streak-menu-gem .streak-menu-gem-icon {
+  filter: none;
+  height: 21px;
+  width: 21px;
+}
+
+.streak-menu-gem-count {
+  color: var(--color-text-strong);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.streak-menu-gem--emerald { color: #087158; }
+.streak-menu-gem--ruby { color: #942f4a; }
+.streak-menu-gem--sapphire { color: #315f9d; }
+
+.streak-menu-freeze-heading {
+  color: var(--color-text-strong);
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 10px 4px;
+}
+
+.streak-menu-freeze-options {
+  display: grid;
+  gap: 1px;
+}
+
+.streak-menu-freeze-option {
+  align-items: center;
+  background-color: var(--color-surface);
+  border: 0;
+  border-radius: 6px;
+  color: var(--color-text-strong);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 10px;
+  text-align: left;
+}
+
+.streak-menu-freeze-option .streak-menu-gem-icon {
+  filter: none;
+  flex: 0 0 auto;
+  height: 18px;
+  margin-right: 8px;
+  width: 18px;
+}
+
+.streak-menu-freeze-available {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.streak-menu-freeze-option:hover:not(:disabled) {
+  background-color: var(--color-surface-subtle);
+}
+
+.streak-menu-freeze-option:disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.streak-menu-note {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.35;
+  margin: 8px 10px 5px;
 }
 
 /* Mirrors .auth-container's positioning on the opposite corner, and
@@ -380,18 +530,17 @@ html.reading .story-report-issue-btn {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border-google);
   border-radius: 6px;
-  padding: 5px 10px 5px 5px;
+  padding: 5px;
   font-size: 14px;
   font-weight: 500;
   color: var(--color-google-text);
   box-shadow: 0 1px 2px rgba(60, 64, 67, 0.12);
 }
 
-.auth-user-avatar {
+.auth-google-logo {
+  flex-shrink: 0;
   width: 20px;
   height: 20px;
-  border-radius: 50%;
-  border: 1px solid var(--color-border-google);
 }
 
 .auth-user-name {
@@ -428,10 +577,33 @@ html.reading .story-report-issue-btn {
   .auth-container {
     position: static;
     justify-content: right;
+    /* The mobile header has a 10px top inset and a 15px side inset. Nudge
+       this right-side control group out by the difference so its visible
+       right edge has the same 10px breathing room as the top edge. */
+    margin-right: -5px;
+  }
+
+  /* A signed-in account needs to remain recognisable, but it should not
+     dominate the compact header. The avatar, a concise name, sync status,
+     and sign-out action still fit while freeing meaningful room for the
+     adjacent account and streak controls. */
+  .auth-user-info {
+    gap: 5px;
+    padding: 4px;
+  }
+
+  .auth-google-logo {
+    height: 18px;
+    width: 18px;
   }
 
   .auth-user-name {
-    max-width: 90px;
+    max-width: 64px;
+  }
+
+  .google-signout-btn {
+    padding-left: 5px;
+    padding-right: 5px;
   }
 
   /* Icon-only on mobile — the full-width label pushed this into the
@@ -443,7 +615,11 @@ html.reading .story-report-issue-btn {
   }
 
   .story-report-issue-btn {
-    padding: 8px;
+    /* Match the account-menu trigger's 34px square touch target exactly. */
+    height: 34px;
+    justify-content: center;
+    padding: 0;
+    width: 34px;
   }
 
   /* The My Words star (.single-result-my-words-controls) sits absolutely

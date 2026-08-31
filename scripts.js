@@ -2693,6 +2693,12 @@ function initializeAccountMenu() {
     panel.classList.remove("hidden");
     positionAccountMenuPanel(button, panel);
     button.setAttribute("aria-expanded", "true");
+    // The streak trigger uses the same compact header space. Broadcasting
+    // the open state keeps these two menus mutually exclusive without
+    // coupling either implementation to the other's markup.
+    document.dispatchEvent(
+      new CustomEvent("app-menu:open", { detail: { id: "account" } }),
+    );
   };
 
   button.addEventListener("click", (event) => {
@@ -2719,6 +2725,10 @@ function initializeAccountMenu() {
       closeMenu();
       button.focus();
     }
+  });
+
+  document.addEventListener("app-menu:open", (event) => {
+    if (event.detail?.id !== "account") closeMenu();
   });
 
   window.addEventListener("resize", () => {
@@ -4409,6 +4419,17 @@ function getExpressionSentenceCandidates(primaryEntry, analysis) {
 
 // Shared renderer for both the immediately available entry example and the
 // enriched set that replaces it after supplemental forms finish loading.
+function renderDefinitionSentenceHighlight(matcher, sentence) {
+  const highlightedSentence = matcher.highlight(sentence);
+  // SentenceFormMatching's blue spans distinguish search matches. Definition
+  // examples are a teaching surface, so use the same yellow marker as the
+  // word game's learning context while preserving its inflection-aware forms.
+  return highlightedSentence.replace(
+    /<span style="color: var\(--color-interactive\);">(.*?)<\/span>/gi,
+    '<mark class="definition-sentence-target">$1</mark>',
+  );
+}
+
 function renderDefinitionSentenceResults(
   matchingResults,
   primaryResults,
@@ -4433,7 +4454,7 @@ function renderDefinitionSentenceResults(
       : formMatcher;
     return {
       ...result,
-      eksempel: highlightMatcher.highlight(cleanSentence),
+      eksempel: renderDefinitionSentenceHighlight(highlightMatcher, cleanSentence),
     };
   });
 

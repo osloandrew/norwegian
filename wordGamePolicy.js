@@ -12,6 +12,7 @@
     "typed-cloze": -0.45,
     "typed-reverse": -0.65,
     "typed-listening": -0.75,
+    synonym: 0.2,
   });
   const DEFAULT_MODE_PREREQUISITES = Object.freeze({
     cloze: "forward",
@@ -20,12 +21,14 @@
     "typed-reverse": "reverse",
     listening: "reverse",
     "typed-listening": "listening",
+    synonym: "forward",
   });
   const DEFAULT_SKILLS = Object.freeze([
     "recognition",
     "context",
     "production",
     "listening",
+    "semantic",
   ]);
   const RESPONSE_TIME_TARGET_MS = Object.freeze({
     forward: 4500,
@@ -35,6 +38,7 @@
     "typed-cloze": 10000,
     "typed-reverse": 10000,
     "typed-listening": 10000,
+    synonym: 6000,
   });
   const CONTEXT_VARIATION_MIN_SUCCESSES = 3;
   const INITIAL_RETRIEVAL_GAP_TURNS = 3;
@@ -185,6 +189,7 @@
     if (mode === "cloze" || mode === "typed-cloze") return "context";
     if (mode === "reverse" || mode === "typed-reverse") return "production";
     if (mode === "listening" || mode === "typed-listening") return "listening";
+    if (mode === "synonym") return "semantic";
     return "recognition";
   }
 

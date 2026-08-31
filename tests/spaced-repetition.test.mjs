@@ -19,12 +19,13 @@ const NOW = Date.UTC(2026, 7, 16, 12);
 const DAY = scheduler.DAY_MS;
 assert.equal(scheduler.TARGET_RETENTION, 0.9);
 assert.equal(scheduler.REVIEW_APPROACH_RETENTION, 0.91);
-assert.equal(scheduler.STORAGE_VERSION, 5);
+assert.equal(scheduler.STORAGE_VERSION, 6);
 assert.deepEqual([...scheduler.SKILL_IDS], [
   "recognition",
   "production",
   "listening",
   "context",
+  "semantic",
 ]);
 
 // Legacy scalar strengths retain approximate maturity but are due once,
@@ -39,6 +40,10 @@ const migratedMemory = scheduler.normalizeMemory(legacyMastered, NOW);
 assert.deepEqual(Object.keys(migratedMemory.skills), ["recognition"]);
 assert.equal(
   scheduler.getSkillSnapshot(migratedMemory, "production", NOW).queue,
+  "new",
+);
+assert.equal(
+  scheduler.getSkillSnapshot(migratedMemory, "semantic", NOW).queue,
   "new",
 );
 

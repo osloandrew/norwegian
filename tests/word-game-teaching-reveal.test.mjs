@@ -19,6 +19,8 @@ assert.match(source, /function getWordGameStatsProgressHeading/);
 assert.match(source, /<p class="game-stat-label">In a Row<\/p>/);
 assert.match(source, /<p class="game-stat-label">To Review<\/p>/);
 assert.match(source, /renderGameTeachingReveal\(\{/);
+assert.match(source, /async function renderGameTeachingReveal/);
+assert.match(source, /await getTeachingSentenceHTML\(wordObj, normalizedSentence\)/);
 assert.doesNotMatch(source, /querySelector\("\.game-cefr-spacer"\)/);
 
 assert.match(styles, /\.game-learning-stage\s*\{[\s\S]*?grid-template-rows:/);
