@@ -1336,7 +1336,7 @@ const DIFFICULTY_BAND_NUDGE_RANGE = 80;
 // back to the plain band center, exactly as before.
 function getWordDifficultyAnchor(entry) {
   const bandCenter = CEFR_DIFFICULTY_ANCHOR[getWordCefrLabel(entry)];
-  const bandPercentile = getVocabularyFrequencyRecord(entry)?.bandPercentile;
+  const bandPercentile = getVocabularyFrequencyBandPercentile(entry);
   if (!Number.isFinite(bandPercentile)) return bandCenter;
 
   return bandCenter - (bandPercentile - 0.5) * 2 * DIFFICULTY_BAND_NUDGE_RANGE;
@@ -3013,13 +3013,16 @@ async function classifyTypedMorphologyNearMiss(
     selectedLabels.size === 1 &&
     requiredLabels.size === 1;
   let message = `Almost — this exercise needs “${correction}”.`;
+  let repairPrompt = "";
   if (isUnambiguous) {
     const selectedLabel = [...selectedLabels][0];
     if (!isCloze && analyses[0].requiredSlots.includes(0)) {
       message = `Almost — “${selectedAnswer}” is ${selectedLabel}. This exercise asks for the dictionary form: “${correction}”.`;
+      repairPrompt = `Almost — right word, wrong form. “${selectedAnswer}” is ${selectedLabel}. This exercise asks for the dictionary form. Try again.`;
     } else {
       const requiredLabel = [...requiredLabels][0];
       message = `Almost — “${selectedAnswer}” is ${selectedLabel}. This sentence needs ${requiredLabel}: “${correction}”.`;
+      repairPrompt = `Almost — right word, wrong form. “${selectedAnswer}” is ${selectedLabel}. This sentence needs ${requiredLabel}. Try again.`;
     }
   }
 
@@ -3027,6 +3030,8 @@ async function classifyTypedMorphologyNearMiss(
     outcomeValue: 0.4,
     correction,
     message,
+    repairPrompt,
+    selectedAnswer,
     selectedLabels: [...selectedLabels],
     requiredLabels: [...requiredLabels],
     isUnambiguous,
@@ -6459,10 +6464,10 @@ function getTypedAnswerMarkup(wordId) {
     <div class="game-grid game-typed-grid">
       <form class="game-typed-answer-form" data-id="${wordId}">
         <div class="game-typed-answer-row">
-          <div class="game-norwegian-letter-keys" aria-label="Norwegian letters">
-            <button class="game-norwegian-letter-key" type="button" data-letter="æ" aria-label="Insert æ">æ</button>
-            <button class="game-norwegian-letter-key" type="button" data-letter="ø" aria-label="Insert ø">ø</button>
-            <button class="game-norwegian-letter-key" type="button" data-letter="å" aria-label="Insert å">å</button>
+          <div class="game-norwegian-letter-keys" role="group" aria-label="Norwegian letters">
+            <button class="game-norwegian-letter-key" type="button" data-letter="æ" aria-label="Insert æ" aria-controls="game-typed-answer-input">æ</button>
+            <button class="game-norwegian-letter-key" type="button" data-letter="ø" aria-label="Insert ø" aria-controls="game-typed-answer-input">ø</button>
+            <button class="game-norwegian-letter-key" type="button" data-letter="å" aria-label="Insert å" aria-controls="game-typed-answer-input">å</button>
           </div>
           <input
             id="game-typed-answer-input"
@@ -6511,6 +6516,55 @@ const GAME_OUTCOME_ICON_SVG = Object.freeze({
     '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4.4 3.3 8 6.9l3.6-3.6 1.4 1.4L9.4 8.3 13 11.9l-1.4 1.4L8 9.7l-3.6 3.6-1.4-1.4L6.6 8.3 3 4.7Z"/></svg>',
 });
 
+function getMorphologyFormContrast(morphologyNearMiss) {
+  const selected = normalizeGameWhitespace(morphologyNearMiss?.selectedAnswer);
+  const correction = normalizeGameWhitespace(morphologyNearMiss?.correction);
+  if (!selected || !correction) return "";
+
+  const selectedLabel = morphologyNearMiss.selectedLabels?.[0] || "";
+  const requiredLabel = morphologyNearMiss.requiredLabels?.[0] || "";
+  if (selectedLabel === "the infinitive") {
+    return `å ${selected} → ${correction}`;
+  }
+  if (selectedLabel && requiredLabel) {
+    return `${selected} (${selectedLabel}) → ${correction} (${requiredLabel})`;
+  }
+  return `${selected} → ${correction}`;
+}
+
+function renderMorphologyRepairPrompt(morphologyNearMiss) {
+  const reveal = document.getElementById("game-teaching-reveal");
+  const form = document.querySelector(".game-typed-answer-form");
+  const input = document.getElementById("game-typed-answer-input");
+  const submit = form?.querySelector(".game-typed-submit");
+  if (!reveal || !form || !input || !submit) return false;
+
+  const prompt = morphologyNearMiss.repairPrompt;
+  if (!morphologyNearMiss.isUnambiguous || !prompt) return false;
+
+  reveal.dataset.state = "almost";
+  reveal.classList.remove("has-required-cue");
+  reveal.innerHTML = `
+    <div class="game-teaching-outcome game-teaching-outcome--almost">
+      <span class="game-teaching-outcome-icon" aria-hidden="true">${GAME_OUTCOME_ICON_SVG.almost}</span>
+      <strong>${escapeGameHTML(prompt)}</strong>
+    </div>
+    <p class="game-morphology-repair-note">Edit your answer below, then choose <strong>Try Again</strong>.</p>
+  `;
+
+  form.classList.add("is-almost", "is-repairing");
+  submit.textContent = "Try Again";
+  input.setAttribute("aria-invalid", "true");
+  input.setAttribute("aria-label", prompt);
+  input.focus({ preventScroll: true });
+  const caretPosition = input.value.length;
+  input.setSelectionRange?.(caretPosition, caretPosition);
+
+  const status = document.getElementById("game-answer-status");
+  if (status) status.textContent = prompt;
+  return true;
+}
+
 function renderGameTeachingReveal({
   isCorrect,
   correctAnswer,
@@ -6536,6 +6590,9 @@ function renderGameTeachingReveal({
         ? `Meaning Correct — Check the Spelling: ${normalizedAnswer}`
         : `Correct — ${normalizedAnswer}`
       : `Not Quite — ${normalizedAnswer}`;
+  const morphologyContrast = morphologyNearMiss
+    ? getMorphologyFormContrast(morphologyNearMiss)
+    : "";
   const contextHTML = !isCloze && normalizedSentence
     ? `<button type="button" class="game-teaching-sentence" aria-label="Play sentence audio">${escapeGameHTML(normalizedSentence)}</button>`
     : "";
@@ -6558,7 +6615,7 @@ function renderGameTeachingReveal({
       <span class="game-teaching-outcome-icon" aria-hidden="true">${GAME_OUTCOME_ICON_SVG[outcomeKind]}</span>
       <strong>${escapeGameHTML(outcomeText)}</strong>
     </div>
-    <div class="game-teaching-context">${contextHTML}${translationHTML}</div>
+    <div class="game-teaching-context">${morphologyContrast ? `<p class="game-morphology-contrast">${escapeGameHTML(morphologyContrast)}</p>` : ""}${contextHTML}${translationHTML}</div>
     <p class="game-teaching-note">${escapeGameHTML(note)}</p>
   `;
 
@@ -6596,7 +6653,11 @@ function attachTypedAnswerForm(
     // correct answer (see updateTypedAnswerFeedback) — the report dialog's
     // "My answer should have been accepted" option needs what the learner
     // actually typed, not the correction.
-    form.dataset.userAnswer = selectedAnswer;
+    if (!form._morphologyRepair) {
+      form.dataset.userAnswer = selectedAnswer;
+    } else {
+      form.dataset.repairAnswer = selectedAnswer;
+    }
 
     handleTranslationClick(
       selectedAnswer,
@@ -6633,13 +6694,28 @@ function attachTypedAnswerForm(
   });
 
   form.querySelectorAll(".game-norwegian-letter-key").forEach((button) => {
-    button.addEventListener("click", () => {
+    let isPointerActivation = false;
+    button.addEventListener("pointerdown", () => {
+      isPointerActivation = true;
+    });
+    button.addEventListener("pointercancel", () => {
+      isPointerActivation = false;
+    });
+    button.addEventListener("click", (event) => {
       if (input.readOnly) return;
       const letter = button.dataset.letter;
       const start = input.selectionStart ?? input.value.length;
       const end = input.selectionEnd ?? start;
       input.setRangeText(letter, start, end, "end");
-      // Leave focus on the letter key the learner chose.
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+
+      // A pointer user expects to continue typing in the field immediately.
+      // Keyboard/assistive clicks have detail === 0, so they stay in the key
+      // group and can move between or repeat the buttons without a focus jump.
+      if (isPointerActivation || event.detail > 0) {
+        input.focus({ preventScroll: true });
+      }
+      isPointerActivation = false;
     });
   });
 
@@ -7287,7 +7363,12 @@ function updateTypedAnswerFeedback(
   input.readOnly = true;
   if (submit) submit.disabled = true;
   letterKeys?.forEach((button) => (button.disabled = true));
-  input.setAttribute("aria-invalid", String(!isCorrect));
+  // A successful prompted repair remains a partial first-attempt result for
+  // scheduling, but the corrected value now shown in the field is valid.
+  const displayedFormIsValid = Boolean(
+    isCorrect || morphologyNearMiss?.repairSucceeded,
+  );
+  input.setAttribute("aria-invalid", String(!displayedFormIsValid));
   input.setAttribute(
     "aria-label",
     morphologyNearMiss
@@ -7402,6 +7483,10 @@ async function handleTranslationClick(
 
   gameActive = false; // Disable further clicks until the next word is generated
 
+  const typedForm = wasTyped
+    ? document.querySelector(".game-typed-answer-form")
+    : null;
+  const morphologyRepair = typedForm?._morphologyRepair ?? null;
   const cards = document.querySelectorAll(".game-translation-card");
 
   // Reset all cards to their default visual state
@@ -7432,8 +7517,8 @@ async function handleTranslationClick(
     acceptedAnswerIdentities.size > 0
       ? acceptedAnswerIdentities.has(normalizedSelected)
       : selectedTranslationPart === correctTranslationPart;
-  const morphologyNearMiss =
-    !exactAnswerMatch && wasTyped
+  let morphologyNearMiss = morphologyRepair?.feedback ??
+    (!exactAnswerMatch && wasTyped
       ? await classifyTypedMorphologyNearMiss(wordObj, selectedTranslationPart, {
           isCloze,
           isReverse,
@@ -7441,7 +7526,53 @@ async function handleTranslationClick(
           clozeTarget,
           correctAnswer: correctTranslationPart,
         })
-      : null;
+      : null);
+
+  // A confidently diagnosed form-selection error gets one prompted repair
+  // before anything is graded. This preserves the learner's answer and lets
+  // them produce the correction rather than merely reading it. The original
+  // response time is retained so time spent considering the hint does not
+  // make the initial attempt look artificially slow to the adaptive model.
+  if (
+    morphologyNearMiss?.isUnambiguous &&
+    !morphologyRepair &&
+    renderMorphologyRepairPrompt(morphologyNearMiss)
+  ) {
+    typedForm._morphologyRepair = {
+      feedback: morphologyNearMiss,
+      firstResponseTimeMs: currentQuestionPrediction
+        ? Math.max(0, Date.now() - currentQuestionPrediction.startedAt)
+        : null,
+    };
+    gameActive = true;
+    return;
+  }
+
+  const morphologyRepairSucceeded = Boolean(
+    morphologyRepair && exactAnswerMatch,
+  );
+  if (morphologyRepair) {
+    const correctedAnswer = morphologyRepairSucceeded
+      ? selectedTranslationPart
+      : morphologyNearMiss.correction;
+    morphologyNearMiss = {
+      ...morphologyNearMiss,
+      correction: correctedAnswer,
+      message: morphologyRepairSucceeded
+        ? `That’s it — “${correctedAnswer}”.`
+        : `${isCloze ? "The sentence" : "This exercise"} needs “${morphologyNearMiss.correction}”.`,
+      repairSucceeded: morphologyRepairSucceeded,
+    };
+    if (
+      currentQuestionPrediction &&
+      Number.isFinite(morphologyRepair.firstResponseTimeMs)
+    ) {
+      currentQuestionPrediction.startedAt =
+        Date.now() - morphologyRepair.firstResponseTimeMs;
+    }
+    delete typedForm._morphologyRepair;
+    typedForm.classList.remove("is-repairing");
+  }
   // A typed answer that misses on an exact match gets one more, more
   // forgiving pass — missing æ/ø/å or a small typo shouldn't fail a learner
   // who actually recalled the word. Multiple-choice picks skip this
@@ -7460,7 +7591,13 @@ async function handleTranslationClick(
           normalizedSelected,
           normalizeGameAnswer(correctTranslationPart),
         ));
-  const answerWasCorrect = exactAnswerMatch || nearMissTypedMatch;
+  // A successful repair is celebrated in the interface, but the original
+  // first attempt remains a partial morphology miss. That keeps the existing
+  // delayed exact-form retry and avoids graduating a form that was only
+  // produced after a hint.
+  const answerWasCorrect = morphologyRepair
+    ? false
+    : exactAnswerMatch || nearMissTypedMatch;
   const learningOutcome = morphologyNearMiss?.outcomeValue ??
     (answerWasCorrect ? 1 : 0);
   const answerSkill = isCloze
@@ -7713,7 +7850,10 @@ async function handleTranslationClick(
         card.classList.add("distractor-muted");
       }
     });
-    correctStreak = 0; // Reset the streak
+    // A learner who identified and repaired the right word pauses the streak:
+    // it is not an exact first-attempt success, but it is also meaningfully
+    // different from choosing or recalling the wrong word altogether.
+    if (!morphologyRepair) correctStreak = 0;
     updateRecentAnswers(
       false,
       wordObj,
@@ -8076,8 +8216,10 @@ const RECALL_NEED_WEIGHT_FLOOR = 0.02;
 // not-yet-resolved request degrades to neutral weights and the plain CEFR
 // band center; neither ability rating nor vocabulary selection may ever
 // depend on this enhancement being online.
-const VOCABULARY_FREQUENCY_DATA_VERSION = 4;
+const VOCABULARY_FREQUENCY_DATA_VERSION = 5;
+const VOCABULARY_FREQUENCY_SUPPORTED_VERSIONS = new Set([4, 5]);
 const VOCABULARY_USEFULNESS_MAX_BOOST = 0.7;
+const VOCABULARY_EXPOSURE_PROXY_MAX_BOOST = 0.2;
 const CORE_VOCABULARY_MIN_PROXIMITY = 0.25;
 let vocabularyFrequencyEntries = null;
 let vocabularyFrequencyPromise = null;
@@ -8098,7 +8240,7 @@ async function loadVocabularyFrequencyRanks() {
     })
     .then((data) => {
       if (
-        data?.version !== VOCABULARY_FREQUENCY_DATA_VERSION ||
+        !VOCABULARY_FREQUENCY_SUPPORTED_VERSIONS.has(data?.version) ||
         !data.entries ||
         typeof data.entries !== "object"
       ) {
@@ -8138,17 +8280,53 @@ function getVocabularyFrequencyRecord(entry) {
   return vocabularyFrequencyEntries[getVocabularyFrequencyEntryKey(entry)] ?? null;
 }
 
-function getVocabularyFrequencyRank(entry) {
+function getVocabularyExposureProxy(entry, record = null) {
+  const proxy = (record ?? getVocabularyFrequencyRecord(entry))?.exposureProxy;
+  if (!proxy || !Array.isArray(proxy.eligibleBands)) return null;
+  return proxy.eligibleBands.includes(getWordCefrLabel(entry)) ? proxy : null;
+}
+
+function getVocabularyReliableFrequencyRank(entry) {
   const rank = getVocabularyFrequencyRecord(entry)?.rank;
   return Number.isFinite(rank) && rank > 0 ? rank : null;
 }
 
+function getVocabularyFrequencyRank(entry) {
+  const record = getVocabularyFrequencyRecord(entry);
+  const reliableRank = record?.rank;
+  if (Number.isFinite(reliableRank) && reliableRank > 0) return reliableRank;
+  const rank = getVocabularyExposureProxy(entry, record)?.rank;
+  return Number.isFinite(rank) && rank > 0 ? rank : null;
+}
+
 function getVocabularyUsefulnessWeight(entry) {
-  const weight = getVocabularyFrequencyRecord(entry)?.weight;
+  const record = getVocabularyFrequencyRecord(entry);
+  const reliableWeight = record?.weight;
+  if (Number.isFinite(reliableWeight)) {
+    return window.WordGamePolicy.getUsefulnessWeight(
+      reliableWeight,
+      VOCABULARY_USEFULNESS_MAX_BOOST,
+    );
+  }
+  const proxyWeight = getVocabularyExposureProxy(entry, record)?.weight;
   return window.WordGamePolicy.getUsefulnessWeight(
-    weight,
-    VOCABULARY_USEFULNESS_MAX_BOOST,
+    proxyWeight,
+    VOCABULARY_EXPOSURE_PROXY_MAX_BOOST,
   );
+}
+
+function getVocabularyFrequencyBandPercentile(entry) {
+  const record = getVocabularyFrequencyRecord(entry);
+  if (!record || !Number.isFinite(record.weight)) return null;
+
+  const bandPercentiles = record.bandPercentiles;
+  if (bandPercentiles && typeof bandPercentiles === "object") {
+    const percentile = bandPercentiles[getWordCefrLabel(entry)];
+    return Number.isFinite(percentile) ? percentile : null;
+  }
+
+  // Version 4 compatibility during the version-5 deployment window.
+  return Number.isFinite(record.bandPercentile) ? record.bandPercentile : null;
 }
 
 // --- Continuous A0 support ----------------------------------------------

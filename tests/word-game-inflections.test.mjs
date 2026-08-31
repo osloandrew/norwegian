@@ -172,6 +172,10 @@ assert.equal(infinitiveEatingNearMiss.outcomeValue, 0.4);
 assert.equal(infinitiveEatingNearMiss.correction, "spiser");
 assert.match(infinitiveEatingNearMiss.message, /infinitive/);
 assert.match(infinitiveEatingNearMiss.message, /present tense/);
+assert.match(infinitiveEatingNearMiss.repairPrompt, /right word, wrong form/i);
+assert.match(infinitiveEatingNearMiss.repairPrompt, /Try again/);
+assert.doesNotMatch(infinitiveEatingNearMiss.repairPrompt, /spiser/);
+assert.equal(infinitiveEatingNearMiss.selectedAnswer, "spise");
 const synonymInfinitiveNearMiss =
   await context.classifyTypedMorphologyNearMiss(spiseEntry, "ete", {
     isCloze: true,

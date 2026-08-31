@@ -50,7 +50,7 @@ CLASS_PREFIX = {
     "possessive": "p",
     "verb": "v",
 }
-DATA_VERSION = 4
+DATA_VERSION = 5
 BLEND_METHOD = (
     "mean of per-source min-max-normalized log1p(count), averaged only over "
     "the sources that matched a given entry"
@@ -58,7 +58,7 @@ BLEND_METHOD = (
 
 
 CEFR_BANDS = {"A1", "A2", "B1", "B2", "C"}
-DEFAULT_CEFR_BAND = "B1"
+CEFR_ORDER = {"A1": 1, "A2": 2, "B1": 3, "B2": 4, "C": 5}
 
 
 @dataclass(frozen=True)
@@ -68,7 +68,8 @@ class DictionaryEntry:
     gender: str
     spellings: tuple[str, ...]
     inflection_prefix: str | None
-    cefr: str
+    cefrs: tuple[str, ...]
+    row_count: int
 
 
 def normalize(value: str) -> str:
@@ -90,17 +91,26 @@ def inflection_prefix(gender: str) -> str | None:
     return CLASS_PREFIX.get(normalized)
 
 
-def normalize_cefr_band(value: str) -> str:
-    """Mirrors wordGame.js's getWordCefrLabel exactly, so a build-time band
-    grouping can never disagree with the runtime band lookup."""
+def normalize_cefr_band(value: str, row_number: int) -> str:
+    """Return a validated generated-data CEFR band.
+
+    The browser keeps its historical B1 fallback as a resilience measure for
+    malformed external/runtime data. The generated sidecar is stricter: a
+    missing or mistyped band would silently put frequency evidence into the
+    wrong comparison group, so fail the build with the dictionary row instead.
+    """
     band = value.strip().upper()
-    return band if band in CEFR_BANDS else DEFAULT_CEFR_BAND
+    if band not in CEFR_BANDS:
+        raise ValueError(
+            f"Invalid or missing CEFR value {value!r} on dictionary row {row_number}"
+        )
+    return band
 
 
 def read_dictionary_entries(dictionary_path: Path) -> dict[str, DictionaryEntry]:
-    entries: dict[str, DictionaryEntry] = {}
+    grouped: dict[str, dict[str, object]] = {}
     with dictionary_path.open(encoding="utf-8-sig", newline="") as source:
-        for row in csv.DictReader(source):
+        for row_number, row in enumerate(csv.DictReader(source), start=2):
             spellings = tuple(
                 spelling
                 for spelling in (
@@ -113,18 +123,33 @@ def read_dictionary_entries(dictionary_path: Path) -> dict[str, DictionaryEntry]
                 continue
             gender = canonical_gender(row.get("gender", ""))
             key = entry_key(spellings[0], gender)
-            entries.setdefault(
+            cefr = normalize_cefr_band(row.get("CEFR", ""), row_number)
+            group = grouped.setdefault(
                 key,
-                DictionaryEntry(
-                    key=key,
-                    primary=spellings[0],
-                    gender=gender,
-                    spellings=spellings,
-                    inflection_prefix=inflection_prefix(gender),
-                    cefr=normalize_cefr_band(row.get("CEFR", "")),
-                ),
+                {
+                    "primary": spellings[0],
+                    "gender": gender,
+                    "spellings": set(),
+                    "cefrs": set(),
+                    "row_count": 0,
+                },
             )
-    return entries
+            group["spellings"].update(spellings)
+            group["cefrs"].add(cefr)
+            group["row_count"] += 1
+
+    return {
+        key: DictionaryEntry(
+            key=key,
+            primary=str(group["primary"]),
+            gender=str(group["gender"]),
+            spellings=tuple(sorted(group["spellings"])),
+            inflection_prefix=inflection_prefix(str(group["gender"])),
+            cefrs=tuple(sorted(group["cefrs"], key=CEFR_ORDER.__getitem__)),
+            row_count=int(group["row_count"]),
+        )
+        for key, group in grouped.items()
+    }
 
 
 def read_clarino_source_bytes(source_path: Path | None) -> tuple[bytes, str]:
@@ -270,7 +295,13 @@ def match_source_to_entries(
     frequencies: dict[str, int],
     exact_candidates: dict[str, set[str]],
     inflection_candidates: dict[str, set[str]],
-) -> tuple[dict[str, dict[str, int]], dict[str, int]]:
+    entries: dict[str, DictionaryEntry],
+) -> tuple[
+    dict[str, dict[str, int]],
+    dict[str, dict[str, object]],
+    dict[str, dict[str, int]],
+    dict[str, int],
+]:
     """Pure form-to-entry matching for one source — independent of every
     other source, and independent of ranking/blending.
 
@@ -289,6 +320,17 @@ def match_source_to_entries(
     evidence: dict[str, dict[str, int]] = defaultdict(
         lambda: {"exact": 0, "inflected": 0}
     )
+    exposure: dict[str, dict[str, object]] = defaultdict(
+        lambda: {
+            "count": 0,
+            "forms": 0,
+            "eligibleBands": set(),
+            "maximumCandidateCount": 0,
+        }
+    )
+    withheld: dict[str, dict[str, int]] = defaultdict(
+        lambda: {"count": 0, "forms": 0}
+    )
     stats = {
         "matchedSourceForms": 0,
         "exactSourceForms": 0,
@@ -302,6 +344,27 @@ def match_source_to_entries(
         candidates = exact | inflected
         if len(candidates) > 1:
             stats["ambiguousSourceForms"] += 1
+            for key in candidates:
+                withheld[key]["count"] += count
+                withheld[key]["forms"] += 1
+
+            # A surface form proves exposure to a spelling, not which sense
+            # produced it. The easiest candidate(s) receive only a separate
+            # curriculum proxy; no ambiguous count becomes entry frequency.
+            easiest_band = min(
+                (band for key in candidates for band in entries[key].cefrs),
+                key=CEFR_ORDER.__getitem__,
+            )
+            easiest_candidates = {
+                key for key in candidates if easiest_band in entries[key].cefrs
+            }
+            for key in easiest_candidates:
+                exposure[key]["count"] += count
+                exposure[key]["forms"] += 1
+                exposure[key]["eligibleBands"].add(easiest_band)
+                exposure[key]["maximumCandidateCount"] = max(
+                    exposure[key]["maximumCandidateCount"], len(candidates)
+                )
             continue
         if not candidates:
             continue
@@ -320,7 +383,14 @@ def match_source_to_entries(
             evidence[key]["inflected"] += count
             stats["uniqueInflectionSourceForms"] += 1
 
-    return dict(evidence), stats
+    normalized_exposure = {
+        key: {
+            **values,
+            "eligibleBands": sorted(values["eligibleBands"], key=CEFR_ORDER.__getitem__),
+        }
+        for key, values in exposure.items()
+    }
+    return dict(evidence), normalized_exposure, dict(withheld), stats
 
 
 def blend_sources(
@@ -379,23 +449,51 @@ def blend_sources(
     return dict(sorted(records.items()))
 
 
+def blend_exposure_sources(
+    source_exposure: dict[str, dict[str, dict[str, object]]],
+) -> dict[str, dict[str, object]]:
+    """Rank ambiguous exposure while keeping it separate from entry counts."""
+    weights: dict[str, list[float]] = defaultdict(list)
+    eligible_bands: dict[str, set[str]] = defaultdict(set)
+
+    for source_id, evidence in source_exposure.items():
+        if not evidence:
+            continue
+        log_values = {
+            key: math.log1p(int(value["count"])) for key, value in evidence.items()
+        }
+        floor = min(log_values.values())
+        ceiling = max(log_values.values())
+        span = ceiling - floor
+        for key, value in evidence.items():
+            normalized = 1.0 if span <= 0 else (log_values[key] - floor) / span
+            weights[key].append(normalized)
+            eligible_bands[key].update(value["eligibleBands"])
+
+    blended = {key: sum(values) / len(values) for key, values in weights.items()}
+    ranked = sorted(blended, key=lambda key: (-blended[key], key))
+    return {
+        key: {
+            "rank": rank,
+            "weight": round(blended[key], 6),
+            "eligibleBands": sorted(eligible_bands[key], key=CEFR_ORDER.__getitem__),
+            "basis": "lowest-cefr",
+        }
+        for rank, key in enumerate(ranked, start=1)
+    }
+
+
 def add_band_percentiles(
     entries: dict[str, dict[str, object]],
-    entry_cefr: dict[str, str],
+    entry_cefrs: dict[str, tuple[str, ...]],
 ) -> None:
-    """Adds a bandPercentile (0-1) to each blended record, min-max
-    normalizing `weight` within each entry's own CEFR band rather than
-    globally — a word can be globally rare but still the most common word
-    in its own band. Mutates `entries` in place. A band with only one
-    matched entry gets 1.0, matching blend_sources's own zero-span
-    convention. Entries with no CEFR (not expected outside tests) fall back
-    to DEFAULT_CEFR_BAND, same as the runtime lookup would."""
+    """Add a separate percentile for every CEFR band a grouped key uses."""
     keys_by_band: dict[str, list[str]] = defaultdict(list)
     for key in entries:
-        band = entry_cefr.get(key, DEFAULT_CEFR_BAND)
-        keys_by_band[band].append(key)
+        for band in entry_cefrs[key]:
+            keys_by_band[band].append(key)
 
-    for keys in keys_by_band.values():
+    for band, keys in keys_by_band.items():
         weights = [entries[key]["weight"] for key in keys]
         floor = min(weights)
         ceiling = max(weights)
@@ -403,7 +501,9 @@ def add_band_percentiles(
         for key in keys:
             weight = entries[key]["weight"]
             percentile = 1.0 if span <= 0 else (weight - floor) / span
-            entries[key]["bandPercentile"] = round(percentile, 6)
+            entries[key].setdefault("bandPercentiles", {})[band] = round(
+                percentile, 6
+            )
 
 
 def build_payload(
@@ -419,14 +519,20 @@ def build_payload(
     )
 
     source_evidence: dict[str, dict[str, dict[str, int]]] = {}
+    source_exposure: dict[str, dict[str, dict[str, object]]] = {}
+    source_withheld: dict[str, dict[str, dict[str, int]]] = {}
     source_metadata: dict[str, dict[str, object]] = {}
 
     clarino_bytes, clarino_file = read_clarino_source_bytes(clarino_source)
     clarino_frequencies = parse_frequencies(clarino_bytes)
-    clarino_evidence, clarino_stats = match_source_to_entries(
-        clarino_frequencies, exact_candidates, inflection_candidates
+    clarino_evidence, clarino_exposure, clarino_withheld, clarino_stats = (
+        match_source_to_entries(
+            clarino_frequencies, exact_candidates, inflection_candidates, entries
+        )
     )
     source_evidence["clarino"] = clarino_evidence
+    source_exposure["clarino"] = clarino_exposure
+    source_withheld["clarino"] = clarino_withheld
     source_metadata["clarino"] = {
         "source": CLARINO_SOURCE_PAGE,
         "sourceFile": clarino_file,
@@ -436,6 +542,8 @@ def build_payload(
         "sourceLexicalForms": len(clarino_frequencies),
         "sourceTokenCount": sum(clarino_frequencies.values()),
         "matchedDictionaryEntries": len(clarino_evidence),
+        "exposureProxyEntries": len(clarino_exposure),
+        "withheldCandidateEntries": len(clarino_withheld),
         **clarino_stats,
     }
 
@@ -473,32 +581,48 @@ def build_payload(
             continue
         source_bytes, source_file = loaded
         frequencies = parse_frequencies(source_bytes)
-        evidence, stats = match_source_to_entries(
-            frequencies, exact_candidates, inflection_candidates
+        evidence, exposure, withheld, stats = match_source_to_entries(
+            frequencies, exact_candidates, inflection_candidates, entries
         )
         source_evidence[source_id] = evidence
+        source_exposure[source_id] = exposure
+        source_withheld[source_id] = withheld
         source_metadata[source_id] = {
             **metadata,
             "sourceFile": source_file,
             "sourceLexicalForms": len(frequencies),
             "sourceTokenCount": sum(frequencies.values()),
             "matchedDictionaryEntries": len(evidence),
+            "exposureProxyEntries": len(exposure),
+            "withheldCandidateEntries": len(withheld),
             **stats,
         }
 
     blended_entries = blend_sources(source_evidence)
-    entry_cefr = {key: entry.cefr for key, entry in entries.items()}
-    add_band_percentiles(blended_entries, entry_cefr)
+    entry_cefrs = {key: entry.cefrs for key, entry in entries.items()}
+    add_band_percentiles(blended_entries, entry_cefrs)
+    exposure_proxies = blend_exposure_sources(source_exposure)
+    for key, proxy in exposure_proxies.items():
+        blended_entries.setdefault(key, {})["exposureProxy"] = proxy
+
+    multi_sense_groups = sum(entry.row_count > 1 for entry in entries.values())
+    multi_cefr_groups = sum(len(entry.cefrs) > 1 for entry in entries.values())
+    reliable_entries = sum("rank" in record for record in blended_entries.values())
 
     return {
         "version": DATA_VERSION,
         "sources": source_metadata,
         "blendMethod": BLEND_METHOD,
         "inflectionSource": "Norsk Ordbank, CC BY 4.0",
-        "method": "entry-counts-exact-then-unique-official-inflection",
+        "method": "reliable-entry-counts-plus-lowest-cefr-exposure-proxies",
         "dictionaryEntries": len(entries),
-        "matchedDictionaryEntries": len(blended_entries),
-        "entries": blended_entries,
+        "dictionaryRows": sum(entry.row_count for entry in entries.values()),
+        "multiSenseEntryGroups": multi_sense_groups,
+        "multiCefrEntryGroups": multi_cefr_groups,
+        "matchedDictionaryEntries": reliable_entries,
+        "exposureProxyEntries": len(exposure_proxies),
+        "coveredDictionaryEntries": len(blended_entries),
+        "entries": dict(sorted(blended_entries.items())),
     }
 
 

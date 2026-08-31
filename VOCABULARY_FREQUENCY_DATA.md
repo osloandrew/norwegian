@@ -44,10 +44,12 @@ evidence, not a claim that newspaper frequency perfectly represents
 conversation, fiction, or children's language — which is exactly the gap the
 other two sources are meant to help close.
 
-In the Word Game, a match in **any** of the three sources primarily admits an
-unseen word to the useful core pool. Within that pool, the blended weight
-contributes only a secondary 1.0–1.7x selection multiplier, so learner-specific
-memory need and challenge fit remain more influential than raw frequency.
+In the Word Game, reliable entry evidence from **any** source admits an unseen
+word to the useful core pool. An ambiguous surface form can also admit only its
+lowest-CEFR candidate (or all candidates tied at that lowest level) through a
+separate exposure proxy. Reliable blended weight contributes a secondary
+1.0–1.7x selection multiplier; proxy-only evidence is capped at 1.2x. Learner-
+specific memory need and challenge fit therefore remain more influential.
 
 Frequency also refines per-word **difficulty**, not just selection: a word's
 `bandPercentile` (see below) nudges it within its hand-tagged CEFR band,
@@ -70,8 +72,8 @@ lemmas. The builder therefore, independently per source:
    *both* checks together, not each in isolation — and sums its counts
    toward that entry, per source.
 
-A form is ambiguous, and credited to nobody, whenever more than one distinct
-entry claims it — whether both claims are exact spellings, both are
+A form is ambiguous, and its count is credited to no entry, whenever more than
+one distinct entry claims it — whether both claims are exact spellings, both are
 inflectional matches, or one of each. That last case matters more than it
 looks: an entry's own exact-listed alternate spelling can coincide with an
 unrelated, often far more common word's official inflected form (e.g. "allé"
@@ -79,8 +81,17 @@ lists "alle" as an alternate spelling, but "alle" is also the plural of the
 unrelated quantifier "all"; the noun "bør" is spelled identically to the
 present tense of the unrelated verb "burde"). Checking exact matches alone
 would let the exact claim silently win and misattribute the other word's
-entire frequency. Estimated dictionary-only paradigms and paradigms
-mechanically inherited from another lemma are also excluded as evidence.
+entire frequency. The form is not discarded altogether: it becomes
+**surface-exposure evidence** for the candidate(s) at the lowest CEFR level.
+This is a curriculum priority (teach the easiest interpretation of a common
+form first), not a claim that those candidates produced every corpus token.
+Exposure proxies never contribute entry counts or difficulty percentiles.
+Estimated dictionary-only paradigms and paradigms mechanically inherited from
+another lemma are also excluded as reliable evidence.
+
+The generated-data build requires every dictionary row to contain a recognized
+CEFR value. The browser retains its B1 fallback only as defensive handling for
+malformed runtime data; generated records never silently substitute B1.
 
 ## Blending
 
@@ -94,20 +105,28 @@ across multiple registers scores higher; a word unique to one register (e.g.
 conversational-only) still gets in via that source alone. Entries are then
 ranked by blended `weight` descending.
 
-Each entry record is keyed by normalized primary spelling plus dictionary word
-class or gender and contains:
+Each record is keyed by normalized primary spelling plus dictionary word class
+or gender. Multiple dictionary senses may therefore share reliable headword/POS
+frequency without being forced to share a CEFR level. Records can contain:
 
 - `rank` — position in the blended ranking;
 - `weight` — the blended 0–1 score consumed directly by the Word Game;
-- `bandPercentile` — `weight` re-normalized (min-max) against only the other
-  entries sharing this word's own CEFR band, so a word can be globally rare
-  but still rank high *within its band* (or vice versa) — this is what
-  nudges per-word difficulty; and
+- `bandPercentiles` — a map from each CEFR band represented by the grouped
+  dictionary senses to `weight` re-normalized against that band. A runtime row
+  reads only its own band, so an A2 and B1 sense sharing a key do not inherit
+  whichever CEFR row happened to appear first;
 - `sources` — per-source `{count, coverage}`, where `coverage` is
-  `exact-lemma`, `unique-inflection`, or `exact-and-inflected`.
+  `exact-lemma`, `unique-inflection`, or `exact-and-inflected`; source-level
+  metadata reports how many candidate entries had evidence withheld; and
+- `exposureProxy` — a separately ranked, blended surface-exposure record with
+  `eligibleBands` and `basis: "lowest-cefr"`.
 
-An absent record means *unobserved in every retained source*, not necessarily
-rare in every kind of Norwegian.
+Proxy-only records intentionally have no reliable `rank`, `weight`, `sources`,
+or `bandPercentiles`. This makes it impossible for ambiguous evidence to nudge
+Elo difficulty accidentally.
+
+An absent record means neither reliable entry evidence nor qualifying lowest-
+CEFR surface exposure was found. It does not necessarily mean the word is rare.
 
 ## Maintenance
 

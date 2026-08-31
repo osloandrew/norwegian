@@ -809,6 +809,10 @@ li {
   border-color: var(--color-danger-border);
 }
 
+.game-teaching-reveal[data-state="almost"] {
+  border-color: var(--color-streak-border);
+}
+
 .game-teaching-reveal[data-state="introduction"] {
   background-color: #f6f9fd;
   border-color: var(--color-wash-blue-border);
@@ -896,9 +900,11 @@ li {
 .game-teaching-outcome strong {
   display: block;
   font-weight: 550;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .game-teaching-outcome-icon {
@@ -946,6 +952,23 @@ li {
   overflow-x: hidden;
   overflow-y: auto;
   padding-block: 1px;
+}
+
+.game-morphology-repair-note,
+.game-morphology-contrast {
+  color: #52697d;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  line-height: 1.35;
+  margin: 3px 0 0;
+  text-align: center;
+}
+
+.game-morphology-contrast {
+  color: #20364d;
+  font-weight: 650;
+  margin: 0;
+  text-align: left;
 }
 
 .game-teaching-sentence {

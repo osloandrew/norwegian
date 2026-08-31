@@ -83,7 +83,7 @@
     -->
     <link
       rel="stylesheet"
-      href="styles/00-foundations-and-game.css?v=67eb658957"
+      href="styles/00-foundations-and-game.css?v=d06ebf4ce5"
     />
     <link
       rel="stylesheet"
@@ -95,7 +95,7 @@
     />
     <link
       rel="stylesheet"
-      href="styles/20-results-and-story-quiz.css?v=cbd96cc923"
+      href="styles/20-results-and-story-quiz.css?v=6866257772"
     />
     <link
       rel="stylesheet"
@@ -103,7 +103,7 @@
     />
     <link
       rel="stylesheet"
-      href="styles/35-navigation.css?v=4f6875838f"
+      href="styles/35-navigation.css?v=c788061503"
     />
     <link
       rel="stylesheet"
@@ -862,6 +862,7 @@
           <div class="search-and-random-wrapper">
             <div
               class="search-norwegian-letter-keys"
+              role="group"
               aria-label="Norwegian letters"
             >
               <button
@@ -869,7 +870,10 @@
                 type="button"
                 data-letter="æ"
                 aria-label="Insert æ"
-                onclick="insertSearchLetter('æ')"
+                aria-controls="search-bar"
+                onpointerdown="markSearchLetterPointerActivation(event)"
+                onpointercancel="clearSearchLetterPointerActivation(event)"
+                onclick="insertSearchLetter('æ', event)"
               >
                 æ
               </button>
@@ -878,7 +882,10 @@
                 type="button"
                 data-letter="ø"
                 aria-label="Insert ø"
-                onclick="insertSearchLetter('ø')"
+                aria-controls="search-bar"
+                onpointerdown="markSearchLetterPointerActivation(event)"
+                onpointercancel="clearSearchLetterPointerActivation(event)"
+                onclick="insertSearchLetter('ø', event)"
               >
                 ø
               </button>
@@ -887,7 +894,10 @@
                 type="button"
                 data-letter="å"
                 aria-label="Insert å"
-                onclick="insertSearchLetter('å')"
+                aria-controls="search-bar"
+                onpointerdown="markSearchLetterPointerActivation(event)"
+                onpointercancel="clearSearchLetterPointerActivation(event)"
+                onclick="insertSearchLetter('å', event)"
               >
                 å
               </button>
@@ -1301,12 +1311,12 @@
     <script src="noRandom.js?v=f948ae4973" defer></script>
     <script src="noRandomLetters.js?v=10acb8ddad" defer></script>
     <script src="ordbokene.js?v=c7bf198620" defer></script>
-    <script src="scripts.js?v=ca683a905e" defer></script>
-    <script src="wordGamePolicy.js?v=cc19bd05a1" defer></script>
-    <script src="wordGame.js?v=84eed9df7c" defer></script>
-    <script src="placementTest.js?v=d071f91ce4" defer></script>
+    <script src="scripts.js?v=cb539402a7" defer></script>
+    <script src="wordGamePolicy.js?v=9f73798b92" defer></script>
+    <script src="wordGame.js?v=efb4cd832f" defer></script>
+    <script src="placementTest.js?v=b19d74f0fb" defer></script>
     <script src="streak.js?v=ddb26efe7e" defer></script>
-    <script src="stories.js?v=19d5ebf9aa" defer></script>
+    <script src="stories.js?v=e09b497d62" defer></script>
     <script src="storyQuiz.js?v=23091fc199" defer></script>
     <script src="myStats.js?v=fe8d066400" defer></script>
     <script src="settings.js?v=bfc4834be9" defer></script>

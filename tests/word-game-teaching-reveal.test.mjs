@@ -28,6 +28,11 @@ assert.match(
   styles,
   /\.game-teaching-context\s*\{[\s\S]*?overflow-y: auto/,
 );
+const teachingOutcomeTextStyles =
+  styles.match(/\.game-teaching-outcome strong\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
+assert.match(teachingOutcomeTextStyles, /white-space: normal/);
+assert.match(teachingOutcomeTextStyles, /overflow-wrap: anywhere/);
+assert.doesNotMatch(teachingOutcomeTextStyles, /ellipsis|line-clamp/);
 assert.doesNotMatch(
   styles.match(/\.game-teaching-sentence\s*\{[\s\S]*?\n\}/)?.[0] ?? "",
   /line-clamp|overflow: hidden/,

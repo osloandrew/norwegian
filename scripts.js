@@ -771,11 +771,26 @@ function handleKey(event) {
   search();
 }
 
-// Insert a Norwegian letter at the field's last selection without returning
-// focus to the input. Keeping focus on the clicked key makes repeated button
-// use and keyboard navigation predictable, while the bubbling input event
-// keeps any input-driven initialization in sync with the new value.
-function insertSearchLetter(letter) {
+// Insert a Norwegian letter at the field's last selection. Pointer users are
+// returned to the field so they can continue typing at the visible caret;
+// keyboard and assistive-technology activations keep focus on the button so
+// the three keys remain easy to traverse and repeat. The bubbling input event
+// keeps input-driven initialization in sync with the programmatic edit.
+const searchLetterPointerActivations = new WeakSet();
+
+function markSearchLetterPointerActivation(event) {
+  if (event.currentTarget) {
+    searchLetterPointerActivations.add(event.currentTarget);
+  }
+}
+
+function clearSearchLetterPointerActivation(event) {
+  if (event.currentTarget) {
+    searchLetterPointerActivations.delete(event.currentTarget);
+  }
+}
+
+function insertSearchLetter(letter, activationEvent) {
   const searchInput = document.getElementById("search-bar");
   if (!searchInput || searchInput.disabled) return;
 
@@ -783,6 +798,22 @@ function insertSearchLetter(letter) {
   const end = searchInput.selectionEnd ?? start;
   searchInput.setRangeText(letter, start, end, "end");
   searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+
+  const activationControl = activationEvent?.currentTarget;
+  const isPointerActivation =
+    !activationEvent ||
+    activationEvent.detail > 0 ||
+    (activationControl &&
+      searchLetterPointerActivations.has(activationControl));
+  if (activationControl) {
+    searchLetterPointerActivations.delete(activationControl);
+  }
+
+  // Keyboard-generated clicks have no preceding pointer event. Do not pull
+  // those users away from the letter-key group after every activation.
+  if (isPointerActivation) {
+    searchInput.focus({ preventScroll: true });
+  }
 }
 
 function clearContainer() {

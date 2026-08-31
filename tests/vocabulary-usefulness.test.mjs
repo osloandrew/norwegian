@@ -11,7 +11,7 @@ const frequencyData = JSON.parse(
   fs.readFileSync(path.join(root, "vocabulary-frequency.json"), "utf8"),
 );
 
-assert.equal(frequencyData.version, 4);
+assert.equal(frequencyData.version, 5);
 assert.equal(frequencyData.sources.clarino.license, "CC BY-NC 4.0");
 assert.equal(
   frequencyData.sources.clarino.sourceFile,
@@ -19,7 +19,7 @@ assert.equal(
 );
 assert.equal(
   frequencyData.method,
-  "entry-counts-exact-then-unique-official-inflection",
+  "reliable-entry-counts-plus-lowest-cefr-exposure-proxies",
 );
 assert.ok(frequencyData.sources.clarino.sourceLexicalForms >= 50000);
 assert.ok(frequencyData.matchedDictionaryEntries >= 14000);
@@ -51,6 +51,24 @@ vm.runInContext(
   context,
   { filename: "wordGame.js" },
 );
+
+// The deployment reader accepts both the previous and current snapshot
+// versions so cached JavaScript and freshly deployed JSON cannot break one
+// another during rollout.
+context.APP_ROOT_URL = "https://example.test/";
+for (const version of [4, 5]) {
+  context.fetch = async () => ({
+    ok: true,
+    json: async () => ({ version, entries: { [`v${version}|noun`]: { rank: 1 } } }),
+  });
+  vm.runInContext(
+    "vocabularyFrequencyEntries = null; vocabularyFrequencyPromise = null;",
+    context,
+  );
+  const loaded = await context.loadVocabularyFrequencyRanks();
+  assert.equal(loaded[`v${version}|noun`].rank, 1);
+}
+
 vm.runInContext(
   `vocabularyFrequencyEntries = ${JSON.stringify(frequencyData.entries)};`,
   context,
@@ -112,13 +130,13 @@ vm.runInContext(
 
 // A matched word's difficulty is nudged from its band center by exactly the
 // documented formula, using its real committed bandPercentile.
-const husBandPercentile = frequencyData.entries["hus|et"].bandPercentile;
+const husBandPercentile = frequencyData.entries["hus|et"].bandPercentiles.A1;
 const husDifficulty = context.getWordDifficultyAnchor({
   ord: "hus",
   gender: "et",
-  CEFR: "B1",
+  CEFR: "A1",
 });
-const expectedHusDifficulty = 500 - (husBandPercentile - 0.5) * 2 * 80;
+const expectedHusDifficulty = 100 - (husBandPercentile - 0.5) * 2 * 80;
 assert.ok(Math.abs(husDifficulty - expectedHusDifficulty) < 1e-9);
 
 // A word with no frequency record at all falls back to the plain band
@@ -137,8 +155,8 @@ assert.equal(
 // properties, so only a script run in the same context can reach it.
 vm.runInContext(
   `vocabularyFrequencyEntries = ${JSON.stringify({
-    "mostcommonb1|noun": { bandPercentile: 1 },
-    "rarestb1|noun": { bandPercentile: 0 },
+    "mostcommonb1|noun": { weight: 1, bandPercentile: 1 },
+    "rarestb1|noun": { weight: 0, bandPercentile: 0 },
   })};`,
   context,
 );
@@ -155,6 +173,45 @@ const hardestB1 = context.getWordDifficultyAnchor({
 assert.ok(easiestB1 > 500 - 80 - 1e-9 && easiestB1 < 500);
 assert.ok(hardestB1 < 500 + 80 + 1e-9 && hardestB1 > 500);
 assert.ok(easiestB1 < hardestB1);
+
+// Version 5 keeps ambiguous surface exposure separate: it can admit the
+// easiest eligible sense and supply a small usefulness boost, but it is not
+// reliable frequency and therefore never changes difficulty.
+vm.runInContext(
+  `vocabularyFrequencyEntries = ${JSON.stringify({
+    "commonform|pronoun": {
+      exposureProxy: { rank: 1, weight: 1, eligibleBands: ["A1"] },
+    },
+  })};`,
+  context,
+);
+const proxyEntry = { ord: "commonform", gender: "pronoun", CEFR: "A1" };
+const ineligibleSense = { ord: "commonform", gender: "pronoun", CEFR: "B2" };
+assert.equal(context.getVocabularyFrequencyRank(proxyEntry), 1);
+assert.equal(context.getVocabularyFrequencyRank(ineligibleSense), null);
+assert.equal(context.getVocabularyUsefulnessWeight(proxyEntry), 1.2);
+assert.equal(context.getVocabularyUsefulnessWeight(ineligibleSense), 1);
+assert.equal(context.getWordDifficultyAnchor(proxyEntry), 100);
+
+// A grouped key reads the percentile for the runtime row's own CEFR band.
+vm.runInContext(
+  `vocabularyFrequencyEntries = ${JSON.stringify({
+    "bank|en": {
+      rank: 1,
+      weight: 0.8,
+      bandPercentiles: { A2: 1, B1: 0 },
+    },
+  })};`,
+  context,
+);
+assert.equal(
+  context.getWordDifficultyAnchor({ ord: "bank", gender: "en", CEFR: "A2" }),
+  220,
+);
+assert.equal(
+  context.getWordDifficultyAnchor({ ord: "bank", gender: "en", CEFR: "B1" }),
+  580,
+);
 
 const coreStart = wordGameSource.indexOf("function getRawAbilityProximity");
 const coreEnd = wordGameSource.indexOf(
