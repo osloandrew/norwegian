@@ -636,7 +636,7 @@ const TYPED_RECALL_READINESS = Object.freeze({
 // cloze/reverse/listening, not looked up separately.
 const GAME_MODES = Object.freeze({
   synonym: Object.freeze({
-    instructionText: () => "Choose the Word with Approximately the Same Meaning",
+    instructionText: () => "Pick the Closest Match",
     renderQuestion({ wordObj, fallbackTranslations, isReintroduced = false }) {
       const exercise = buildSynonymExercise(wordObj);
       if (!exercise) {
@@ -1160,6 +1160,21 @@ function announceGameQuestionPrompt({ typed = false } = {}) {
 // there's nothing to "restart" and nothing to race.
 function setGameContainerHTML(html) {
   gameContainer.innerHTML = html;
+
+  // The mobile round is a fixed game board, not a document the learner can
+  // pan behind its fixed answer controls. A previous intro/summary scroll
+  // position (or an iOS browser restoring one) must not carry into a new
+  // question. Scoped to the same max-width: 600px tier as the fixed-board
+  // CSS (styles/01-document-shell.css) — desktop/tablet has no fixed
+  // bottom answer bar to protect, and a mid-round scroll there is the
+  // learner deliberately rereading a long teaching sentence.
+  if (
+    document.body.classList.contains("word-game-round-active") &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(max-width: 600px)").matches
+  ) {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
 
   // Deliberately not gated behind prefers-reduced-motion — a subtle
   // opacity fade, not motion (no parallax/zoom/movement), and this
@@ -3291,8 +3306,18 @@ async function classifyTypedMorphologyNearMiss(
     const wordClass = isCloze
       ? clozeTarget.wordClass
       : WordClass.getWordClass(candidate?.gender);
+    // A predicate adjective's clozeTarget.slotIndexes stays the full
+    // ambiguous set (e.g. masc/fem/neuter) the source word's own spelling
+    // fits — intersecting a synonym's forms across all of them comes back
+    // empty whenever that synonym's forms actually differ per slot, even
+    // though the caller may already know the one true slot (see
+    // resolvedPredicateAdjectiveSlot, set by attachTypedAnswerForm after
+    // getPredicateAdjectiveAgreementSlot resolves it).
     const requiredSlots = isCloze
-      ? [...new Set(clozeTarget?.slotIndexes || [])].filter(Number.isInteger)
+      ? wordClass === "adjective" &&
+        Number.isInteger(clozeTarget?.resolvedPredicateAdjectiveSlot)
+        ? [clozeTarget.resolvedPredicateAdjectiveSlot]
+        : [...new Set(clozeTarget?.slotIndexes || [])].filter(Number.isInteger)
       : [0];
     if (requiredSlots.length === 0) continue;
 
@@ -3444,6 +3469,178 @@ function getTypedAcceptedAnswers(
   }
 
   return [...acceptedAnswers];
+}
+
+// Most adjective agreement is resolved while the cloze target is found (by
+// an article or following noun). Predicate adjectives are the exception:
+// "Været her er uforutsigelig" has neither beside the adjective, and the
+// source form is identical in several slots. Do not run a parser for every
+// question; this is a typed-answer fallback for a same-sense form that the
+// normal conservative intersection rejected.
+const PREDICATE_ADJECTIVE_LINKING_VERBS = new Set([
+  "er",
+  "var",
+  "blir",
+  "ble",
+  "virker",
+  "virket",
+  "føles",
+  "føltes",
+]);
+const PREDICATE_SUBJECT_PRONOUN_SLOTS = new Map([
+  ["det", 2],
+  ["dette", 2],
+  ["alt", 2],
+  ["de", 4],
+]);
+
+async function getPredicateSubjectAgreementSlot(surface) {
+  const normalizedSurface = normalizeGameAnswer(surface);
+  const pronounSlot = PREDICATE_SUBJECT_PRONOUN_SLOTS.get(normalizedSurface);
+  if (Number.isInteger(pronounSlot)) return pronounSlot;
+  if (typeof window.Inflections?.findLemmas !== "function") return null;
+
+  const resolution = await window.Inflections.findLemmas(surface, "noun");
+  if (resolution?.matchType !== "exact") return null;
+  const nounLemmas = new Set(
+    (resolution.matches || [])
+      .filter(({ wordClass }) => wordClass === "noun")
+      .map(({ lemma }) => normalizeGameAnswer(lemma)),
+  );
+  if (nounLemmas.size !== 1 || typeof results === "undefined") return null;
+
+  const [nounLemma] = nounLemmas;
+  const slots = new Set();
+  for (const entry of results) {
+    if (
+      WordClass.getWordClass(entry?.gender) !== "noun" ||
+      !getNorwegianEntryVariants(entry).some(
+        (form) => nounLemmas.has(normalizeGameAnswer(form)),
+      )
+    ) {
+      continue;
+    }
+    // A noun's dictionary gender only tells us its singular agreement
+    // (slot 0/1/2). A plural subject ("husene") takes plural predicate
+    // agreement (slot 4) regardless of gender, so check the noun's own
+    // paradigm for whether the surface form is actually a plural one
+    // before falling back to the gender-derived singular slots.
+    const nounParadigm = window.Inflections?.getParadigmForLemma?.(
+      nounLemma,
+      "noun",
+      entry.gender,
+    );
+    const isPluralOnly =
+      [2, 3].some((slot) =>
+        (nounParadigm?.slots?.[slot] || []).includes(normalizedSurface),
+      ) &&
+      ![0, 1].some((slot) =>
+        (nounParadigm?.slots?.[slot] || []).includes(normalizedSurface),
+      );
+    if (isPluralOnly) {
+      slots.add(4);
+    } else {
+      getAdjectiveAgreementSlotsFromNounGender(entry.gender).forEach((slot) =>
+        slots.add(slot),
+      );
+    }
+  }
+  return slots.size === 1 ? [...slots][0] : null;
+}
+
+async function getPredicateAdjectiveAgreementSlot(clozeTarget) {
+  if (
+    clozeTarget?.kind !== "lexical" ||
+    clozeTarget.wordClass !== "adjective" ||
+    new Set(clozeTarget.slotIndexes || []).size < 2
+  ) {
+    return null;
+  }
+
+  const tokens = getIndexedClozeTokens(clozeTarget.sentence);
+  const adjectiveIndex = tokens.findIndex(
+    (token) => token.start === clozeTarget.startIndex,
+  );
+  if (adjectiveIndex < 0) return null;
+  let verbIndex = -1;
+  for (
+    let index = adjectiveIndex - 1;
+    index >= 0 && adjectiveIndex - index <= 5;
+    index--
+  ) {
+    if (PREDICATE_ADJECTIVE_LINKING_VERBS.has(normalizeGameAnswer(tokens[index].text))) {
+      verbIndex = index;
+      break;
+    }
+  }
+  if (verbIndex < 0) return null;
+
+  // Inversion puts the subject after the verb ("I dag er været ..."); the
+  // usual order puts it before ("Været her er ..."). Try only nearby noun
+  // or pronoun candidates and require one unambiguous agreement result.
+  const candidateIndexes = [
+    ...Array.from(
+      { length: adjectiveIndex - verbIndex - 1 },
+      (_, offset) => verbIndex + 1 + offset,
+    ),
+    ...Array.from(
+      { length: Math.min(4, verbIndex) },
+      (_, offset) => verbIndex - 1 - offset,
+    ),
+  ];
+  for (const index of candidateIndexes) {
+    const slot = await getPredicateSubjectAgreementSlot(tokens[index]?.text);
+    if (Number.isInteger(slot)) return slot;
+  }
+  return null;
+}
+
+async function getContextualPredicateAdjectiveSynonymForms(
+  wordObj,
+  clozeTarget,
+  selectedAnswer,
+) {
+  const selected = normalizeGameAnswer(selectedAnswer);
+  if (!selected) return [];
+  // Cheap eligibility check first: this fallback only ever applies to a
+  // predicate adjective with an ambiguous slot set, so skip the full
+  // dictionary scan below for every other rejected typed-cloze answer.
+  if (
+    clozeTarget?.kind !== "lexical" ||
+    clozeTarget.wordClass !== "adjective" ||
+    new Set(clozeTarget.slotIndexes || []).size < 2
+  ) {
+    return [];
+  }
+  const targetEnglish = normalizeGameAnswer(getDisplayedAnswer(wordObj?.engelsk));
+  if (!targetEnglish || typeof results === "undefined") return [];
+
+  // Avoid building a reverse index unless the submitted text is actually an
+  // adjective synonym form in one of the source's ambiguous slots.
+  const possibleCandidates = [];
+  for (const candidate of results) {
+    if (
+      WordClass.getWordClass(candidate?.gender) !== "adjective" ||
+      !getEnglishEntryVariants(candidate).includes(targetEnglish)
+    ) {
+      continue;
+    }
+    for (const variant of getNorwegianEntryVariants(candidate)) {
+      const parts = getClozePatternTokens(normalizeGameAnswer(variant));
+      if (parts.length !== 1 || parts[0] === "...") continue;
+      const paradigm = window.Inflections?.getParadigmForLemma(parts[0], "adjective");
+      if (paradigm?.slots.some((forms) => forms.includes(selected))) {
+        possibleCandidates.push(paradigm);
+      }
+    }
+  }
+  if (possibleCandidates.length === 0) return [];
+
+  const slot = await getPredicateAdjectiveAgreementSlot(clozeTarget);
+  if (!Number.isInteger(slot) || !clozeTarget.slotIndexes.includes(slot)) {
+    return [];
+  }
+  return [...new Set(possibleCandidates.flatMap((paradigm) => paradigm.slots[slot] || []))];
 }
 
 function getGameSentenceTranslations(wordObj) {
@@ -7037,13 +7234,14 @@ function attachTypedAnswerForm(
   const input = document.getElementById("game-typed-answer-input");
   if (!form || !input) return;
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const selectedAnswer = normalizeGameWhitespace(input.value);
-    if (!selectedAnswer || !gameActive) {
+    if (!selectedAnswer || !gameActive || form._isSubmitting) {
       input.focus();
       return;
     }
+    form._isSubmitting = true;
 
     // Stashed before grading, since a miss overwrites input.value with the
     // correct answer (see updateTypedAnswerFeedback) — the report dialog's
@@ -7055,19 +7253,75 @@ function attachTypedAnswerForm(
       form.dataset.repairAnswer = selectedAnswer;
     }
 
-    handleTranslationClick(
+    let acceptedAnswers;
+    try {
+      acceptedAnswers = getTypedAcceptedAnswers(
+        wordObj,
+        isCloze,
+        correctTranslation,
+        clozeTarget,
+      );
+      // The normal set is intentionally strict for an adjective whose source
+      // spelling fits several slots. Only a submitted same-sense form can
+      // trigger the small predicate-agreement fallback.
+      if (
+        isCloze &&
+        !acceptedAnswers
+          .map(normalizeGameAnswer)
+          .includes(normalizeGameAnswer(selectedAnswer))
+      ) {
+        try {
+          const contextualForms =
+            await getContextualPredicateAdjectiveSynonymForms(
+              wordObj,
+              clozeTarget,
+              selectedAnswer,
+            );
+          acceptedAnswers.push(...contextualForms);
+        } catch (error) {
+          // This optional refinement must never prevent the ordinary answer
+          // path from grading a response.
+          console.warn("Could not resolve predicate adjective agreement.", error);
+        }
+
+        // Still not accepted: stash the one true agreement slot (if this is
+        // a predicate adjective) on clozeTarget so the near-miss diagnosis
+        // below can narrow its own ambiguous slot set to it. Without this,
+        // classifyTypedMorphologyNearMiss intersects a synonym's forms
+        // across the full, un-narrowed slotIndexes — which comes back empty
+        // (and silently drops the near-miss) whenever that synonym's forms
+        // actually vary across those slots, unlike the source word's.
+        if (
+          !acceptedAnswers
+            .map(normalizeGameAnswer)
+            .includes(normalizeGameAnswer(selectedAnswer))
+        ) {
+          try {
+            clozeTarget.resolvedPredicateAdjectiveSlot =
+              await getPredicateAdjectiveAgreementSlot(clozeTarget);
+          } catch (error) {
+            console.warn("Could not resolve predicate adjective agreement.", error);
+          }
+        }
+      }
+    } finally {
+      // Guaranteed even if getTypedAcceptedAnswers itself throws — an
+      // ungraded submit must never leave the form permanently unable to
+      // accept the learner's next attempt.
+      form._isSubmitting = false;
+    }
+
+    // handleTranslationClick synchronously closes the answer window. The
+    // guard above is already cleared so a morphology-repair prompt can
+    // submit its deliberately enabled second attempt.
+    await handleTranslationClick(
       selectedAnswer,
       wordObj,
       isCloze,
       clozeSentence,
       isReverse,
       isListening,
-      getTypedAcceptedAnswers(
-        wordObj,
-        isCloze,
-        correctTranslation,
-        clozeTarget,
-      ),
+      acceptedAnswers,
       exampleSentenceIndex,
       true,
       exampleSentenceTranslation,
@@ -7220,7 +7474,7 @@ async function renderWordIntroductionUI(initialEntry) {
       </div>
       <section class="game-teaching-reveal game-introduction-reveal" aria-label="New word introduction" data-state="introduction">
         <p class="game-introduction-meaning">${escapeGameHTML(displayedMeaning)}</p>
-        ${synonymIntroduction ? `<p class="game-teaching-note">Related meaning: “${escapeGameHTML(displayedWord)}” can mean approximately “${escapeGameHTML(synonymIntroduction.answer)}” here.</p>` : ""}
+        ${synonymIntroduction ? `<p class="game-teaching-note game-synonym-introduction-note">Similar word: “${escapeGameHTML(displayedWord)}” can also mean “${escapeGameHTML(synonymIntroduction.answer)}” here.</p>` : ""}
         ${sentence ? `<div class="game-teaching-context"><button type="button" class="game-teaching-sentence" aria-label="Play sentence audio">${sentenceHTML}</button>${sentenceTranslation ? `<p class="game-teaching-translation game-english-translation" style="display: ${isEnglishVisible ? "block" : "none"};">${escapeGameHTML(sentenceTranslation)}</p>` : ""}</div>` : ""}
         <p class="game-teaching-note">${escapeGameHTML(getIntroductionPracticeNote(initialEntry.targetMode))}</p>
       </section>

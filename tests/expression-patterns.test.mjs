@@ -481,4 +481,95 @@ assert.equal(value(future.forms, "Present"), "florper ut");
 assert.equal(value(future.forms, "Past"), "florpet ut");
 assert.equal(future.matcher.test(futureEntry.eksempel), true);
 
+// A final "noe" slot is a free object phrase, not just the literal word or
+// pronoun "det". The lexical expression remains the visible teaching target.
+const leaveBehindEntry = {
+  ord: "legge etter seg noe",
+  gender: "expression",
+  eksempel: "Han har lagt etter seg et testament.",
+};
+const leaveBehind = await context.ExpressionPatterns.getAnalysis(leaveBehindEntry);
+assert.equal(leaveBehind.matcher.test(leaveBehindEntry.eksempel), true);
+assert.equal(
+  leaveBehind.matcher.test(
+    "Forfatteren har lagt etter seg en usedvanlig viktig litterær arv.",
+  ),
+  true,
+);
+assert.equal(
+  leaveBehind.matcher.test("Det har han lagt etter seg."),
+  true,
+);
+const leaveBehindHighlight = leaveBehind.matcher.highlight(
+  leaveBehindEntry.eksempel,
+);
+assert.match(leaveBehindHighlight, />lagt etter seg<\/span>/u);
+assert.doesNotMatch(leaveBehindHighlight, />et testament<\/span>/u);
+
+// "Noen" follows the same bounded-gap rule as "noe", including expanded
+// person phrases. The placeholder remains outside the visible expression.
+const carryEntry = {
+  ord: "bære noen på hendene",
+  gender: "expression",
+  eksempel: "Foreldrene bar henne på hendene gjennom hele barndommen.",
+};
+const carry = await context.ExpressionPatterns.getAnalysis(carryEntry);
+assert.equal(
+  carry.matcher.test("Foreldrene bar den lille datteren sin på hendene."),
+  true,
+);
+const carryHighlight = carry.matcher.highlight(
+  "Foreldrene bar den lille datteren sin på hendene.",
+);
+assert.match(carryHighlight, />bar<\/span> den lille datteren sin <span[^>]*>på hendene<\/span>/u);
+assert.doesNotMatch(carryHighlight, />den lille datteren sin<\/span>/u);
+
+// An authored ellipsis is a bounded free gap. It supports both retrieval and
+// discontinuous highlighting without marking the variable material itself.
+const agoEntry = {
+  ord: "for ... siden",
+  gender: "expression",
+  eksempel:
+    "Hennes egen generasjon ble borte for et kvart århundre siden.",
+};
+const ago = await context.ExpressionPatterns.getAnalysis(agoEntry);
+assert.equal(ago.matcher.test(agoEntry.eksempel), true);
+const agoHighlight = ago.matcher.highlight(agoEntry.eksempel);
+assert.match(agoHighlight, />for<\/span> et kvart århundre <span[^>]*>siden<\/span>/u);
+assert.doesNotMatch(agoHighlight, />et kvart århundre<\/span>/u);
+
+// A determiner-led nominal expression is fixed, even when its final word is
+// also a participial verb form. "Det" must not become a dummy-subject slot.
+const statusQuoEntry = {
+  ord: "det bestående",
+  gender: "expression",
+  eksempel: "Han utfordrer det bestående.",
+};
+const statusQuo = await context.ExpressionPatterns.getAnalysis(statusQuoEntry);
+assert.equal(value(statusQuo.forms, "Fixed expression"), "det bestående");
+assert.equal(statusQuo.matcher.test(statusQuoEntry.eksempel), true);
+assert.equal(
+  statusQuo.matcher.test("Han utfordrer det forbigående."),
+  false,
+);
+assert.match(
+  statusQuo.matcher.highlight(statusQuoEntry.eksempel),
+  />det bestående<\/span>/u,
+);
+
+const retaliationEntry = {
+  ord: "det hevner seg",
+  gender: "expression",
+  eksempel: "Det hevner seg å være ærlig.",
+};
+const retaliation = await context.ExpressionPatterns.getAnalysis(retaliationEntry);
+assert.equal(
+  retaliation.patterns[0].nodes[0].type,
+  "placeholder",
+);
+assert.equal(
+  retaliation.matcher.test("Det hevner seg å være ærlig."),
+  true,
+);
+
 console.log("Automatic expression-pattern checks passed.");

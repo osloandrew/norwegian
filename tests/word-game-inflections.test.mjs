@@ -162,6 +162,50 @@ assert.equal(acceptedEatingAnswers.includes("åt"), false);
 assert.equal(acceptedEatingAnswers.includes("måltidet"), false);
 assert.equal(acceptedEatingAnswers.includes("drikker"), false);
 
+// An invariant source adjective in predicate position needs its subject to
+// resolve agreement before a synonym with distinct forms can be accepted.
+// The ordinary conservative cloze set cannot infer that from
+// "uforutsigelig" alone, but "været" establishes neuter singular.
+const unpredictableEntry = {
+  ord: "uforutsigelig",
+  engelsk: "unpredictable",
+  gender: "adjective",
+  CEFR: "C",
+  eksempel: "Været her er uforutsigelig og endrer seg raskt.",
+};
+const unpredictableSynonym = {
+  ord: "uforutsigbar",
+  engelsk: "unpredictable",
+  gender: "adjective",
+  CEFR: "B2",
+};
+const weatherEntry = { ord: "vær", gender: "et" };
+const unpredictableTarget = await context.findClozeTarget(unpredictableEntry);
+assert.deepEqual([...unpredictableTarget.slotIndexes], [0, 1, 2]);
+context.results = [unpredictableEntry, unpredictableSynonym, weatherEntry];
+const strictUnpredictableAnswers = context.getTypedAcceptedAnswers(
+  unpredictableEntry,
+  true,
+  unpredictableTarget.surfaceForm,
+  unpredictableTarget,
+);
+assert.equal(strictUnpredictableAnswers.includes("uforutsigbart"), false);
+const contextualUnpredictableAnswers =
+  await context.getContextualPredicateAdjectiveSynonymForms(
+    unpredictableEntry,
+    unpredictableTarget,
+    "uforutsigbart",
+  );
+assert.equal(contextualUnpredictableAnswers.includes("uforutsigbart"), true);
+assert.equal(contextualUnpredictableAnswers.includes("uforutsigbar"), false);
+assert.equal(contextualUnpredictableAnswers.includes("uforutsigbare"), false);
+context.results = [
+  spiseEntry,
+  eteEntry,
+  { ord: "måltid", engelsk: "eat", gender: "et" },
+  { ord: "drikke", engelsk: "drink", gender: "verb" },
+];
+
 const infinitiveEatingNearMiss =
   await context.classifyTypedMorphologyNearMiss(spiseEntry, "spise", {
     isCloze: true,

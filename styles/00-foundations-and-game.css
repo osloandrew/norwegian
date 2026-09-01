@@ -816,6 +816,11 @@ li {
 .game-teaching-reveal[data-state="introduction"] {
   background-color: #f6f9fd;
   border-color: var(--color-wash-blue-border);
+  /* The card's height is fixed by the surrounding game-learning-stage
+     grid, so it can't grow to fit a wrapped synonym note (see
+     .game-synonym-introduction-note below). Scroll rather than clip: a
+     short scroll is recoverable, a silently cut-off sentence is not. */
+  overflow: hidden auto;
 }
 
 .game-introduction-meaning {
@@ -1016,6 +1021,16 @@ li {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* The related synonym is the useful part of this note, so let it wrap
+   instead of truncating it behind an ellipsis. The card it sits in has a
+   fixed height (see [data-state="introduction"] above), so a wrap that
+   overflows it scrolls rather than clips. */
+.game-synonym-introduction-note {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 @media (prefers-reduced-motion: reduce) {

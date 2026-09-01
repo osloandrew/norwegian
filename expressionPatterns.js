@@ -37,16 +37,10 @@
   ]);
   const VARIABLE_TOKENS = new Set(["noen", "noe", "nokon", "noko"]);
   const VARIABLE_POSSESSIVES = new Set(["ens", "noens", "nokons"]);
-  // What a "noen"/"noe" object slot ("gjøre noen noe" = do something TO
-  // SOMEONE) may actually be filled with in real text: the literal
-  // placeholder word itself (most common — many idioms occur with it
-  // unfilled, e.g. "det gjør ikke noe"), or a personal/reflexive pronoun
-  // genuinely standing in for a person ("noen") — the entry's own example
-  // replaces "noen" with "deg". Without this, the slot was an unconstrained
-  // wildcard that could just as well swallow any nearby unrelated noun or
-  // adjective, turning a bare "gjør" followed by any two words into a false
-  // "gjøre noen noe" match. "noe" (a thing) is far less freely substituted
-  // in practice, so only "det" is accepted beyond the literal word.
+  // Bokmål "noen" and "noe" are free argument slots. Real examples may
+  // supply a full noun phrase ("den lille datteren sin", "et testament"),
+  // or front the argument elsewhere in the sentence, so both are matched as
+  // bounded, optional gaps below.
   const PERSON_PLACEHOLDER_FORMS = new Set([
     ...REFLEXIVE_FORMS,
     "ham",
@@ -85,14 +79,13 @@
 
   function isAcceptableVariableTokenFiller(nodeNormalized, surfaceNormalized) {
     if (surfaceNormalized === nodeNormalized) return true;
-    if (nodeNormalized === "noen" || nodeNormalized === "nokon") {
+    if (nodeNormalized === "nokon") {
       return PERSON_PLACEHOLDER_FORMS.has(surfaceNormalized);
     }
-    if (nodeNormalized === "noe" || nodeNormalized === "noko") {
-      return surfaceNormalized === "det";
-    }
+    if (nodeNormalized === "noko") return surfaceNormalized === "det";
     return false;
   }
+
   const PREVERBAL_ADVERBS = new Set(["ikke", "aldri", "neppe"]);
   const VERB_CONTEXT = new Set([
     "å",
@@ -266,6 +259,26 @@
     if (!node || PREPOSITIONS.has(node.normalized)) return false;
     return (node.candidates || []).some(
       (candidate) => candidate.wordClass === "verb" && candidate.paradigm?.key,
+    );
+  }
+
+  // A leading "det" is only the flexible dummy subject of a clause when
+  // what follows is an attested finite verb. A participle such as
+  // "bestående" can also be a verb form, but in "det bestående" it is a
+  // nominalized adjective; treating that determiner as a subject slot loses
+  // the fixed expression. The same distinction preserves actual clauses
+  // such as "det hevner seg".
+  function hasFiniteVerbCandidate(node) {
+    if (!hasFrontableVerbCandidate(node)) return false;
+    return (node.candidates || []).some(
+      (candidate) =>
+        candidate.wordClass === "verb" &&
+        candidate.paradigm?.key &&
+        [1, 2, 4].some((slotIndex) =>
+          (candidate.paradigm.slots?.[slotIndex] || [])
+            .map(normalize)
+            .includes(node.normalized),
+        ),
     );
   }
 
@@ -759,15 +772,17 @@
           type: "placeholder",
           text: token.text,
           normalized: token.normalized,
-          // A "noen"/"noe" slot is a real syntactic argument ("gjøre noen
-          // noe" = do something TO SOMEONE), always exactly one word
-          // (isAcceptableVariableTokenFiller further restricts a
-          // VARIABLE_TOKENS node's filler to the literal word itself or a
-          // real pronoun — see its own comment for why letting it match
-          // zero, or arbitrarily many, unconstrained words let a bare verb
-          // misfire on unrelated nearby text).
-          minWords: 1,
-          maxWords: 1,
+          // A Bokmål "noen"/"noe" slot can be a short noun phrase or be
+          // omitted when the argument is fronted elsewhere in the sentence.
+          // Keep the gap bounded so it cannot run across an unrelated clause.
+          minWords:
+            token.normalized === "noen" || token.normalized === "noe"
+              ? 0
+              : 1,
+          maxWords:
+            token.normalized === "noen" || token.normalized === "noe"
+              ? MAX_PLACEHOLDER_WORDS
+              : 1,
         });
       } else {
         nodes.push({
@@ -831,7 +846,7 @@
     }
     if (
       nodes[0]?.normalized === "det" &&
-      nodes[1]?.candidates?.some((candidate) => candidate.wordClass === "verb")
+      hasFiniteVerbCandidate(nodes[1])
     ) {
       nodes[0] = {
         type: "placeholder",
@@ -1084,6 +1099,8 @@
           if (!first || !last || crossesStrongBoundary(text, first, last)) break;
           if (
             VARIABLE_TOKENS.has(node.normalized) &&
+            node.normalized !== "noen" &&
+            node.normalized !== "noe" &&
             !isAcceptableVariableTokenFiller(node.normalized, first.normalized)
           ) {
             continue;

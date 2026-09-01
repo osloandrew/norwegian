@@ -93,6 +93,22 @@ const navigationStyles = fs.readFileSync(
   path.join(root, "styles/35-navigation.css"),
   "utf8",
 );
+const shellStyles = fs.readFileSync(
+  path.join(root, "styles/01-document-shell.css"),
+  "utf8",
+);
+assert.match(
+  shellStyles,
+  /html:has\(body\.word-game-mode\.word-game-round-active\),[\s\S]*?body\.word-game-mode\.word-game-round-active\s*\{[\s\S]*?height: 100dvh;[\s\S]*?overflow: hidden;[\s\S]*?overscroll-behavior: none/,
+);
+assert.match(
+  shellStyles,
+  /body\.word-game-mode\.word-game-round-active main\s*\{[\s\S]*?min-height: 0;[\s\S]*?overflow: hidden/,
+);
+assert.match(
+  source,
+  /function setGameContainerHTML\(html\)\s*\{[\s\S]*?word-game-round-active[\s\S]*?window\.scrollTo\(\{ top: 0, left: 0, behavior: "auto" \}\)/,
+);
 assert.match(navigationStyles, /background-color: #f8fafc/);
 assert.match(navigationStyles, /border: 1px solid #d8e1e8/);
 assert.match(

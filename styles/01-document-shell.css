@@ -227,4 +227,22 @@ footer .copyright {
   body.word-game-mode header {
     display: none;
   }
+
+  /* A live round has its answers and Next action fixed to the bottom of the
+     viewport. Letting the document behind that action zone scroll creates a
+     misleading empty space above the answers and can push the round toolbar
+     underneath the iOS browser chrome. The teaching card has its own
+     overflow treatment for unusually long content, so the page itself must
+     remain a stable, non-scrolling game board while a question is active. */
+  html:has(body.word-game-mode.word-game-round-active),
+  body.word-game-mode.word-game-round-active {
+    height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  body.word-game-mode.word-game-round-active main {
+    min-height: 0;
+    overflow: hidden;
+  }
 }
