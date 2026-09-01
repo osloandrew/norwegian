@@ -77,9 +77,16 @@ def slugify(word: str) -> str:
 
 
 def load_all_primary_words(csv_path: Path) -> list[str]:
+    # Matches parseCSVData()'s own filter in scripts.js: a row with no
+    # English translation never becomes a real dictionary entry there, so
+    # renderWordDefinition() finds nothing for it and never sets a page
+    # canonical — generating a static page for it here would just produce
+    # a broken one that fails validation.
     seen = {}
     with csv_path.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
+            if not (row.get("engelsk") or "").strip():
+                continue
             primary = (row.get("ord") or "").split(",")[0].strip()
             if primary and primary.lower() not in seen:
                 seen[primary.lower()] = primary
@@ -209,8 +216,14 @@ def capture(words: list[str], output_root: Path = ROOT) -> None:
                     word,
                 )
 
+                # ':not(.error-message)' matters: renderWordDefinition()'s
+                # "No Definition Found" box also carries the .definition
+                # class, so a plain '.definition' count reports a match
+                # even when nothing actually rendered.
                 match_count = page.evaluate(
-                    "document.querySelectorAll('#results-container .definition').length"
+                    "document.querySelectorAll("
+                    "'#results-container .definition:not(.error-message)'"
+                    ").length"
                 )
                 if match_count == 0:
                     print(f"  SKIP {word!r}: no matching dictionary entry rendered")

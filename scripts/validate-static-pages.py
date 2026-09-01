@@ -41,10 +41,17 @@ def slugify(value: str) -> str:
     return re.sub(r"-{2,}", "-", value).strip("-")
 
 
-def source_values(path: Path, column: str, *, primary_word: bool = False) -> dict[str, str]:
+def source_values(
+    path: Path, column: str, *, primary_word: bool = False, require_english: bool = False
+) -> dict[str, str]:
     values: dict[str, str] = {}
     with path.open(encoding="utf-8-sig", newline="") as source:
         for row in csv.DictReader(source):
+            # Matches parseCSVData()'s own filter in scripts.js: a row with
+            # no English translation never becomes a real dictionary entry
+            # there, so no static page is captured for it either.
+            if require_english and not (row.get("engelsk") or "").strip():
+                continue
             value = (row.get(column) or "").strip()
             if primary_word:
                 value = value.split(",", 1)[0].strip()
@@ -139,7 +146,9 @@ def graph_node(payload: dict[str, object], node_type: str) -> dict[str, object] 
 
 
 def validate(source_root: Path, site_root: Path) -> tuple[int, int, int]:
-    words = source_values(source_root / "norwegianWords.csv", "ord", primary_word=True)
+    words = source_values(
+        source_root / "norwegianWords.csv", "ord", primary_word=True, require_english=True
+    )
     stories: dict[str, str] = {}
     for story_csv_path in existing_story_csv_paths(source_root):
         stories.update(source_values(story_csv_path, "titleNorwegian"))
