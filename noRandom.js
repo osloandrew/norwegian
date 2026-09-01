@@ -147,6 +147,7 @@ const noRandom = [
   "komme i buksene på, være i buksene på",
   "kondom",
   "kukk, kuk",
+  "kyskhetsbelte",
   "kødd",
   "kåt",
   "kåte opp",

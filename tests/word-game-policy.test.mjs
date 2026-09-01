@@ -19,6 +19,48 @@ assert.equal(policy.getQuestionSkill("forward"), "recognition");
 assert.equal(policy.getQuestionSkill("typed-cloze"), "context");
 assert.equal(policy.getQuestionSkill("reverse"), "production");
 assert.equal(policy.getQuestionSkill("typed-listening"), "listening");
+assert.deepEqual(
+  Array.from(policy.getDefinitionSynonymSegments("velgjørende, menneskekjærlig")),
+  ["velgjørende", "menneskekjærlig"],
+  "Comma-separated linked headwords are individual synonym candidates.",
+);
+assert.deepEqual(
+  Array.from(
+    policy.getDefinitionSynonymSegments("motsatt vertikal, vannrett"),
+  ),
+  ["motsatt vertikal", "vannrett"],
+  "The exact linked headword vannrett remains available after descriptive text.",
+);
+assert.deepEqual(
+  Array.from(policy.getDefinitionSynonymSegments("med det samme; presis")),
+  ["med det samme", "presis"],
+  "A definition can offer a semantically appropriate cross-word-class alternative.",
+);
+assert.deepEqual(
+  Array.from(
+    policy.getDefinitionSynonymSegments(
+      "som bruker kort tid på noe; snar, rask",
+    ),
+  ),
+  ["som bruker kort tid på noe", "snar", "rask"],
+  "Definition prose is retained for later exact-headword filtering; short alternatives remain separate.",
+);
+assert.equal(
+  policy.isDefinitionSynonymList(
+    "velgjørende, menneskekjærlig",
+    (segment) => ["velgjørende", "menneskekjærlig"].includes(segment),
+  ),
+  true,
+  "A definition made entirely of resolvable headwords can support a one-way synonym.",
+);
+assert.equal(
+  policy.isDefinitionSynonymList(
+    "virksomhet med bygging i større omfang; spire, kime til utvikling; talent",
+    (segment) => ["spire", "talent"].includes(segment),
+  ),
+  false,
+  "A synonym buried among explanatory senses is not a one-way exercise.",
+);
 
 assert.ok(
   policy.getExpectedSuccessProbability(300, 700, 220) >

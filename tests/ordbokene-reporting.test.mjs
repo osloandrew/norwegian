@@ -44,3 +44,46 @@ test("missing-word reports submit only the bare displayed word", async () => {
 
   assert.deepEqual(submissions, ["skie, ski"]);
 });
+
+test("existing-word reports put the headword first without wrapper punctuation", () => {
+  const functionStart = source.indexOf("function buildFeedbackMessage(");
+  const functionEnd = source.indexOf("function flagMissingWordEntry(word)", functionStart);
+  assert.notEqual(functionStart, -1);
+  assert.notEqual(functionEnd, -1);
+
+  const context = vm.createContext({});
+  vm.runInContext(source.slice(functionStart, functionEnd), context);
+
+  assert.equal(
+    context.buildFeedbackMessage({
+      source: "Word Game · Cloze",
+      word: "oppkavet, oppkava, oppkavd",
+      pos: "adjective",
+      cefr: "C",
+      prompt: "Hun følte seg helt oppkavet av stresset.",
+      category: "My answer should have been accepted",
+      userAnswer: "Overveldet",
+    }),
+    'oppkavet, oppkava, oppkavd-update Word Game · Cloze (adjective, C) — Shown: "Hun følte seg helt oppkavet av stresset." — Category: My answer should have been accepted — Learner answered: "Overveldet"',
+  );
+  assert.equal(
+    context.buildFeedbackMessage({
+      source: "Word Card",
+      word: "streit, straight",
+      pos: "adjective",
+      cefr: "B2",
+      category: "English sentence translation",
+    }),
+    "streit, straight-update Word Card (adjective, B2) — Category: English sentence translation",
+  );
+  assert.equal(
+    context.buildFeedbackMessage({
+      source: "Word Card",
+      word: "lysbilde",
+      pos: "noun",
+      cefr: "B1",
+      category: "Norwegian example sentence",
+    }),
+    "lysbilde-update Word Card (noun, B1) — Category: Norwegian example sentence",
+  );
+});

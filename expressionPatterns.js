@@ -1195,9 +1195,25 @@
             (span, index, spans) =>
               index === 0 || span.start >= spans[index - 1].end,
           );
+        // An expression can match as separate nodes (for example, one node
+        // per word). When adjacent nodes are separated only by whitespace,
+        // keep that whitespace inside the highlight so teaching markers read
+        // as one continuous phrase rather than a series of separate pills.
+        const merged = [];
+        for (const span of ordered) {
+          const previous = merged[merged.length - 1];
+          if (
+            previous &&
+            /^\s+$/u.test(source.slice(previous.end, span.start))
+          ) {
+            previous.end = span.end;
+          } else {
+            merged.push({ ...span });
+          }
+        }
         let html = "";
         let position = 0;
-        for (const span of ordered) {
+        for (const span of merged) {
           html += source.slice(position, span.start);
           html += `<span style="color: var(--color-interactive);">${source.slice(span.start, span.end)}</span>`;
           position = span.end;

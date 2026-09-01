@@ -74,6 +74,7 @@
          myWordsAuth.js can't detect the context and route Google sign-in
          away from signInWithPopup, which can't complete there. -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
 
     <!-- Stylesheets -->
     <!--
@@ -95,7 +96,7 @@
     />
     <link
       rel="stylesheet"
-      href="styles/20-results-and-story-quiz.css?v=6866257772"
+      href="styles/20-results-and-story-quiz.css?v=5d6d3f391c"
     />
     <link
       rel="stylesheet"
@@ -126,6 +127,18 @@
       sizes="16x16"
       href="Resources/Icons/favicon-16x16.png"
     />
+    <script>
+      // The SPA can push a feature URL (for example /word-game/) before a
+      // low-priority head asset starts fetching. Resolve these once while the
+      // original document root is still the base, so they never become
+      // /word-game/Resources/... requests. Captured feature pages already
+      // supply their own <base>, which this respects.
+      document
+        .querySelectorAll('link[rel="apple-touch-icon"], link[rel="icon"]')
+        .forEach((link) => {
+          link.href = new URL(link.getAttribute("href"), document.baseURI).href;
+        });
+    </script>
 
     <!--
       Google Fonts, loaded without blocking first paint: the stylesheet is
@@ -1323,9 +1336,9 @@
       after the main dictionary is usable, so this script remains cheap.
     -->
     <script src="inflections.js?v=7bab173593"></script>
-    <script src="expressionPatterns.js?v=74753b40ba"></script>
+    <script src="expressionPatterns.js?v=395b85b123"></script>
     <script src="sentenceFormMatching.js?v=43d9bafa37"></script>
-    <script src="spacedRepetition.js?v=47d92e9b7f"></script>
+    <script src="spacedRepetition.js?v=afa46202b9"></script>
     <script src="progressSharding.js?v=b0f824f55e" defer></script>
 
     <!--
@@ -1340,20 +1353,20 @@
     <script src="pronunciation.js?v=e0bab555ae" defer></script>
     <script src="wordList.js?v=cbedfa41b8" defer></script>
     <script src="storyFavorites.js?v=c152eb5155" defer></script>
-    <script src="myWordsAuth.js?v=70e19407dd" defer></script>
-    <script src="noRandom.js?v=f948ae4973" defer></script>
+    <script src="myWordsAuth.js?v=69a1c05bc0" defer></script>
+    <script src="noRandom.js?v=f1fe208280" defer></script>
     <script src="noRandomLetters.js?v=10acb8ddad" defer></script>
     <script src="ordbokene.js?v=c7bf198620" defer></script>
-    <script src="scripts.js?v=5033929ca1" defer></script>
-    <script src="wordGamePolicy.js?v=9f73798b92" defer></script>
-    <script src="wordGame.js?v=c160822a68" defer></script>
+    <script src="scripts.js?v=05e09f8d49" defer></script>
+    <script src="wordGamePolicy.js?v=dfd1e10926" defer></script>
+    <script src="wordGame.js?v=014fdeb3a2" defer></script>
     <script src="placementTest.js?v=b19d74f0fb" defer></script>
     <script src="streak.js?v=725df5ff2f" defer></script>
     <script src="stories.js?v=e09b497d62" defer></script>
     <script src="storyQuiz.js?v=23091fc199" defer></script>
-    <script src="myStats.js?v=fe8d066400" defer></script>
+    <script src="myStats.js?v=8ac402457c" defer></script>
     <script src="settings.js?v=bfc4834be9" defer></script>
-    <script src="about.js?v=1fd9c085a3" defer></script>
+    <script src="about.js?v=039a2d43a5" defer></script>
 
     <!--
       Registered after "load" (not deferred alongside the app scripts

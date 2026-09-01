@@ -61,8 +61,7 @@ assert.equal(
 );
 const wolvesHighlight = wolves.matcher.highlight(wolvesEntry.eksempel);
 assert.match(wolvesHighlight, />kastet<\/span>/u);
-assert.match(wolvesHighlight, />til<\/span>/u);
-assert.match(wolvesHighlight, />ulvene<\/span>/u);
+assert.match(wolvesHighlight, />til ulvene<\/span>/u);
 assert.doesNotMatch(wolvesHighlight, />henne<\/span>/u);
 
 const pendingWolvesForms = context.Inflections.getForms(wolvesEntry);
@@ -117,7 +116,7 @@ assert.equal(
 assert.equal(negated.matcher.test(negatedEntry.eksempel), true);
 assert.match(
   negated.matcher.highlight(negatedEntry.eksempel),
-  />vokser<\/span> <span[^>]*>ikke<\/span>/u,
+  />vokser ikke på trær<\/span>/u,
 );
 
 const negatedReflexiveEntry = {
@@ -233,8 +232,7 @@ assert.equal(
 assert.equal(orNot.matcher.test(orNotEntry.eksempel), true);
 assert.equal(orNot.matcher.test("Hun eller kanskje eier huset."), false);
 const orNotHighlight = orNot.matcher.highlight(orNotEntry.eksempel);
-assert.match(orNotHighlight, />eller<\/span>/u);
-assert.match(orNotHighlight, />ei<\/span>/u);
+assert.match(orNotHighlight, />eller ei<\/span>/u);
 assert.deepEqual(
   [...orNot.searchAlternatives[0].map((forms) => [...forms])],
   [["eller"], ["ei"]],
@@ -330,10 +328,7 @@ const easyEntry = {
 const easy = await context.ExpressionPatterns.getAnalysis(easyEntry);
 assert.equal(easy.matcher.test(easyEntry.eksempel), true);
 const easyHighlight = easy.matcher.highlight(easyEntry.eksempel);
-assert.match(easyHighlight, />lett<\/span>/u);
-assert.match(easyHighlight, />som<\/span>/u);
-assert.match(easyHighlight, />en<\/span>/u);
-assert.match(easyHighlight, />plett<\/span>/u);
+assert.match(easyHighlight, />lett som en plett<\/span>/u);
 
 // "en"/"et"/"ei" (indefinite article) happen to also be the imperative of
 // the rare verbs "ene"/"ete"/"eie" (unite/eat/own), and a noun in its bare
@@ -367,7 +362,7 @@ for (const pattern of waterfall.patterns) {
 }
 assert.match(
   waterfall.matcher.highlight(waterfallEntry.eksempel),
-  />en<\/span>/u,
+  />snakke som en foss<\/span>/u,
 );
 // Both comma-separated variants are equally valid dictionary entries; the
 // shared example sentence only ever attests "snakke" literally, but "prate"
@@ -415,9 +410,7 @@ assert.deepEqual(
 const closedChapterHighlight = closedChapter.matcher.highlight(
   closedChapterEntry.eksempel,
 );
-assert.match(closedChapterHighlight, />et<\/span>/u);
-assert.match(closedChapterHighlight, />avsluttet<\/span>/u);
-assert.match(closedChapterHighlight, />kapittel<\/span>/u);
+assert.match(closedChapterHighlight, />et avsluttet kapittel<\/span>/u);
 
 // This is a compiler-wide rule, not an exception for "lett som en plett": an
 // authored generic "en" is highlighted when that literal token is present,
@@ -440,7 +433,7 @@ assert.equal(
 );
 assert.match(
   literalGeneric.matcher.highlight(literalGenericEntry.eksempel),
-  />en<\/span>/u,
+  />følge en til graven<\/span>/u,
 );
 assert.doesNotMatch(
   literalGeneric.matcher.highlight("De skulle følge ham til graven."),

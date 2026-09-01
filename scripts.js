@@ -1306,13 +1306,15 @@ function buildFeedbackMessage({
 }) {
   const parts = [];
 
-  if (source) {
-    parts.push(`[${source}]`);
-  }
-
   if (word) {
     const attributes = [pos, cefr].filter(Boolean).join(", ");
-    parts.push(attributes ? `"${word}" (${attributes})` : `"${word}"`);
+    // Reports tied to an existing entry start with its headword so they sort
+    // naturally in form responses. The -update marker distinguishes these
+    // reports from bare missing-word submissions.
+    const entryPrefix = source ? `${word}-update ${source}` : word;
+    parts.push(attributes ? `${entryPrefix} (${attributes})` : entryPrefix);
+  } else if (source) {
+    parts.push(source);
   }
 
   if (prompt) {

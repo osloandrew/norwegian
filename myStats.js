@@ -152,24 +152,31 @@
     return card;
   }
 
-  // Lifetime count of daily-quest gems earned (see completeDailyQuestRound()
-  // in wordGame.js) — a running total that, unlike completedRounds, never
-  // resets when the day rolls over.
+  // Current daily-quest gem holdings. Gems are currency, so subtract gems
+  // already spent from the lifetime amount earned.
   function createGemsCard() {
-    const gemCounts = window.DailyQuestAPI?.getState?.()?.gemCounts ?? {};
+    const state = window.DailyQuestAPI?.getState?.() ?? {};
+    const gemCounts = state.gemCounts ?? {};
     // Keyed off gemCounts' own keys (always all three reward types once
     // normalized -- see normalizeDailyPracticeState in wordGame.js) rather
     // than reaching into wordGame.js's DAILY_QUESTS directly, so this
     // keeps to the same "read an *API, don't reach into internals"
     // convention as the rest of this file.
     const rewards = Object.keys(gemCounts);
-    const total = rewards.reduce((sum, reward) => sum + (gemCounts[reward] ?? 0), 0);
+    const balances = Object.fromEntries(
+      rewards.map((reward) => [
+        reward,
+        window.DailyQuestAPI?.getGemBalance?.(reward) ??
+          Math.max(0, (gemCounts[reward] ?? 0) - (state.spentGemCounts?.[reward] ?? 0)),
+      ]),
+    );
+    const total = rewards.reduce((sum, reward) => sum + balances[reward], 0);
 
     const card = document.createElement("section");
     card.className = "my-stats-box my-stats-gems";
     card.innerHTML = `
       <div class="my-stats-gems-header">
-        <h3 class="my-stats-section-heading">Gems Earned</h3>
+        <h3 class="my-stats-section-heading">Gem Holdings</h3>
         <strong class="landing-progress-summary-count">${total.toLocaleString("en-US")} total</strong>
       </div>
       <div class="my-stats-gems-row">
@@ -178,7 +185,7 @@
             (reward) => `
           <div class="my-stats-gems-tile">
             ${getDailyQuestGemMarkup(reward, "my-stats-gems-icon")}
-            <p class="game-summary-stat-value">${(gemCounts[reward] ?? 0).toLocaleString("en-US")}</p>
+            <p class="game-summary-stat-value">${balances[reward].toLocaleString("en-US")}</p>
             <p class="game-summary-stat-label">${reward.charAt(0).toUpperCase()}${reward.slice(1)}</p>
           </div>
         `,

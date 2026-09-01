@@ -65,6 +65,40 @@
     return Math.min(maximum, Math.max(minimum, value));
   }
 
+  // Definitions are rendered as semicolon-separated senses, with commas
+  // separating short alternatives within a sense. Only a segment that exactly
+  // matches another dictionary headword is later eligible as a synonym; this
+  // helper deliberately does not try to infer synonyms from ordinary prose.
+  function getDefinitionSynonymSegments(definition) {
+    return String(definition ?? "")
+      .split(";")
+      .flatMap((line) => line.split(","))
+      .map((segment) =>
+        segment
+          .trim()
+          .replace(/^[([{"'«]+/u, "")
+          .replace(/[)\]}"'».:!?]+$/u, "")
+          .trim()
+          .normalize("NFC")
+          .toLocaleLowerCase("nb-NO"),
+      )
+      .filter(Boolean);
+  }
+
+  // A one-way synonym is safe only when the definition itself is a compact
+  // headword list (for example, "velgjørende, menneskekjærlig"), rather than
+  // one possible sense embedded in explanatory prose. The caller supplies
+  // the local-headword resolver because this policy module has no dictionary
+  // data of its own.
+  function isDefinitionSynonymList(definition, isResolvable) {
+    const segments = getDefinitionSynonymSegments(definition);
+    return (
+      segments.length > 0 &&
+      typeof isResolvable === "function" &&
+      segments.every((segment) => isResolvable(segment))
+    );
+  }
+
   function clampProbability(value) {
     return clamp(value, 0.02, 0.98);
   }
@@ -1009,6 +1043,8 @@
     DEFAULT_QUEUE_PRIORITY,
     clamp,
     clampProbability,
+    getDefinitionSynonymSegments,
+    isDefinitionSynonymList,
     getExpectedSuccessProbability,
     getExerciseAdjustedSuccessProbability,
     getAbilityAfterAnswer,

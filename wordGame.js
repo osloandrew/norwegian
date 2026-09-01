@@ -264,6 +264,44 @@ let wordGameSessionTurnCounter = 0;
 // still renders its required mode directly until the learner clears it.
 let wordGameSuccessfulPairHistory = new Map();
 const WORD_GAME_SUCCESSFUL_PAIR_QUESTION_GAP = 10;
+let wordGameSynonymQuestionCount = 0;
+let wordGameLastSynonymQuestionAt = -Infinity;
+
+function isSynonymQuotaRound() {
+  return (
+    !wordGameIsPlacementRound &&
+    !wordGameIsTodayPracticeRound &&
+    (wordGameIsBonusRound || wordGameMode === "session" || wordGameMode === "infinite")
+  );
+}
+
+function getSynonymQuotaTarget() {
+  if (!isSynonymQuotaRound()) return 0;
+  const answered = Math.max(0, wordGameSessionQuestionsAnswered);
+  if (wordGameIsBonusRound) {
+    // Two deliberately interleaved semantic-connection slots in the ten-word
+    // mixed round: after several ordinary retrievals, never adjacent.
+    return answered >= 7 ? 2 : answered >= 3 ? 1 : 0;
+  }
+  const eventualTarget =
+    wordGameMode === "session"
+      ? Math.ceil(Math.max(0, wordGameSessionTarget) / 10)
+      : Infinity;
+  // One eligible semantic connection roughly every ten questions, first
+  // becoming due after four ordinary questions so short rounds remain mixed.
+  return Math.min(eventualTarget, Math.floor((answered + 6) / 10));
+}
+
+function isSynonymQuotaDue() {
+  return (
+    wordGameSynonymQuestionCount < getSynonymQuotaTarget() &&
+    isSynonymSpacingReady()
+  );
+}
+
+function isSynonymSpacingReady() {
+  return wordGameSessionQuestionsAnswered - wordGameLastSynonymQuestionAt >= 2;
+}
 
 function getDailyPracticeDateKey(date = new Date()) {
   const year = date.getFullYear();
@@ -1930,84 +1968,191 @@ function getNorwegianEntryVariants(entry) {
   ];
 }
 
-// --- Vetted synonym exercise data ----------------------------------------
-// Norsk Ordvev is used only by scripts/build-synonym-pairs.py. This compact,
-// reciprocal-definition-confirmed snapshot is fetched once for a game session; a failure
-// leaves every existing exercise available and merely omits this mode.
-const SYNONYM_PAIR_DATA_VERSION = 1;
-let synonymPairs = Object.freeze({});
-let synonymPairDataPromise = null;
-let synonymEntryIndex = null;
+// --- Definition-derived synonym exercises --------------------------------
+// The dictionary already marks headwords in definitions as links. A complete
+// definition line, or a comma-separated item within it, is a synonym when it
+// exactly matches another local headword. Same-part-of-speech matches are
+// accepted first; a cross-part-of-speech match is accepted only if that form
+// resolves to one unambiguous local entry. This intentionally ignores
+// descriptive prose, and it never uses gender as a selection criterion.
+let definitionSynonymIndex = null;
+// A CEFR band is 200 points wide. This margin treats demonstrated ability as
+// a useful prior only for words clearly below it, never as proof that a
+// similarly difficult word is known.
+const SYNONYM_BRIDGE_ABILITY_MARGIN = 160;
 
 function getSynonymEntryKey(entry) {
   return `${normalizeGameAnswer(getPrimaryNorwegianForm(entry))}|${WordClass.getWordClass(entry?.gender)}`;
 }
 
-async function loadSynonymPairs() {
-  if (synonymPairDataPromise) return synonymPairDataPromise;
-  synonymPairDataPromise = fetch(
-    new URL("data/synonym-pairs.json", APP_ROOT_URL),
-    { cache: "no-cache" },
-  )
-    .then((response) => {
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-      return response.json();
-    })
-    .then((data) => {
-      if (data?.version !== SYNONYM_PAIR_DATA_VERSION || !data?.pairs || typeof data.pairs !== "object") {
-        throw new Error("Unsupported synonym-pair snapshot");
-      }
-      synonymPairs = Object.freeze(data.pairs);
-      synonymEntryIndex = null;
-      return synonymPairs;
-    })
-    .catch((error) => {
-      console.warn("Synonym exercise data could not be loaded.", error);
-      synonymPairs = Object.freeze({});
-      return synonymPairs;
-    });
-  return synonymPairDataPromise;
-}
-
-function getSynonymEntryIndex() {
-  if (synonymEntryIndex) return synonymEntryIndex;
-  synonymEntryIndex = new Map();
-  for (const entry of results || []) {
-    const key = getSynonymEntryKey(entry);
-    // The offline build excludes ambiguous duplicate keys. Keep the same
-    // guard if the runtime dictionary changes before the snapshot does.
-    synonymEntryIndex.set(key, synonymEntryIndex.has(key) ? null : entry);
+function getDefinitionSynonymIndex() {
+  if (definitionSynonymIndex?.dictionarySize === results.length) {
+    return definitionSynonymIndex;
   }
-  return synonymEntryIndex;
+
+  const entries = new Map();
+  const unambiguousEntriesByForm = new Map();
+  for (const entry of results || []) {
+    const wordClass = WordClass.getWordClass(entry.gender);
+    for (const form of getNorwegianEntryVariants(entry)) {
+      const key = `${normalizeGameAnswer(form)}|${wordClass}`;
+      // Do not create a question when a linked form maps to multiple local
+      // entries of the same word class.
+      entries.set(key, entries.has(key) ? null : entry);
+
+      const normalizedForm = normalizeGameAnswer(form);
+      const existing = unambiguousEntriesByForm.get(normalizedForm);
+      unambiguousEntriesByForm.set(
+        normalizedForm,
+        existing === undefined || existing === entry ? entry : null,
+      );
+    }
+  }
+
+  const directPartners = new Map();
+  const oneWayListEligible = new Map();
+  for (const entry of results || []) {
+    const targetKey = getSynonymEntryKey(entry);
+    if (entries.get(targetKey) !== entry) continue;
+
+    const targetClass = WordClass.getWordClass(entry.gender);
+    const resolveSegment = (form) =>
+      entries.get(`${form}|${targetClass}`) ??
+      unambiguousEntriesByForm.get(form);
+    const definitionSegments =
+      window.WordGamePolicy.getDefinitionSynonymSegments(entry.definisjon);
+    const partners = [
+      ...new Set(
+        definitionSegments
+          .map(resolveSegment)
+          .filter((candidate) => candidate && candidate !== entry),
+      ),
+    ];
+    if (partners.length > 0) directPartners.set(targetKey, partners);
+    oneWayListEligible.set(
+      targetKey,
+      window.WordGamePolicy.isDefinitionSynonymList(
+        entry.definisjon,
+        (form) => Boolean(resolveSegment(form)),
+      ),
+    );
+  }
+
+  const pairs = new Map();
+  for (const [targetKey, partners] of directPartners) {
+    const entry = entries.get(targetKey);
+    const acceptedPartners = partners.filter((partner) => {
+      const partnerKey = getSynonymEntryKey(partner);
+      const isReciprocal = directPartners
+        .get(partnerKey)
+        ?.includes(entry);
+      // A reciprocal definition confirms the relationship even when either
+      // word has several senses. One-way links need the stricter pure-list
+      // form so a buried sense such as anlegg → spire never becomes a broad
+      // word-level exercise.
+      return isReciprocal || oneWayListEligible.get(targetKey);
+    });
+    if (acceptedPartners.length > 0) pairs.set(targetKey, acceptedPartners);
+  }
+
+  definitionSynonymIndex = {
+    dictionarySize: results.length,
+    entries,
+    unambiguousEntriesByForm,
+    pairs,
+  };
+  return definitionSynonymIndex;
 }
 
 function hasEstablishedRecognition(entry) {
-  const record = window.WordStrengthAPI?.getSkillSnapshot?.(
-    entry,
-    "recognition",
-  )?.record;
+  const record = getSelectionSkillSnapshot(entry, "recognition")?.record;
   return Boolean(record && Number(record.successEvidence) >= 1 && record.state !== "relearning");
+}
+
+function getRecognitionRecord(entry) {
+  return getSelectionSkillSnapshot(entry, "recognition")?.record ?? null;
+}
+
+function isSynonymBridgeCandidate(entry) {
+  return (
+    !getRecognitionRecord(entry) &&
+    Number.isFinite(Number(abilityScore)) &&
+    Number(abilityScore) >=
+      getWordDifficultyAnchor(entry) + SYNONYM_BRIDGE_ABILITY_MARGIN
+  );
+}
+
+function hasSemanticBridgeEvidence(entry) {
+  const record = getSelectionSkillSnapshot(entry, "semantic")?.record;
+  return Boolean(
+    record &&
+      record.state !== "relearning" &&
+      Number(record.successEvidence) >= 0.35,
+  );
+}
+
+function getSynonymPartnerReadiness(targetEntry, candidateEntry) {
+  if (hasEstablishedRecognition(candidateEntry)) return "retrieval";
+  // A recorded weak or failed word is direct evidence that it should not be
+  // inferred from this relationship.
+  if (getRecognitionRecord(candidateEntry)) return null;
+  if (!isSynonymBridgeCandidate(candidateEntry)) return null;
+  return hasSemanticBridgeEvidence(targetEntry) ? "retrieval" : "bridge";
+}
+
+function buildSynonymIntroduction(wordObj) {
+  if (!wordObj || getRecognitionRecord(wordObj) || !isSynonymBridgeCandidate(wordObj)) {
+    return null;
+  }
+  const answers = getDefinitionSynonymIndex().pairs.get(
+    getSynonymEntryKey(wordObj),
+  );
+  const answerEntry = answers?.find(
+    (entry) => !getRecognitionRecord(entry) && isSynonymBridgeCandidate(entry),
+  );
+  return answerEntry
+    ? { answer: getPrimaryNorwegianForm(answerEntry) }
+    : null;
+}
+
+// This deliberately stops before building the multiple-choice distractors.
+// getQuestionPairPlan() evaluates every eligible word when choosing the next
+// one, so calling buildSynonymExercise() there would scan the full dictionary
+// once per candidate. The actual question renderer builds the distractors for
+// only the single word it displays.
+function hasSynonymExerciseOpportunity(wordObj) {
+  if (!wordObj || !hasEstablishedRecognition(wordObj)) return false;
+  const answers = getDefinitionSynonymIndex().pairs.get(
+    getSynonymEntryKey(wordObj),
+  );
+  return Boolean(
+    answers?.some((entry) => getSynonymPartnerReadiness(wordObj, entry)),
+  );
 }
 
 function buildSynonymExercise(wordObj) {
   if (!wordObj || !hasEstablishedRecognition(wordObj)) return null;
-  const answers = synonymPairs[getSynonymEntryKey(wordObj)];
-  if (!Array.isArray(answers) || answers.length === 0) return null;
+  const index = getDefinitionSynonymIndex();
+  const answers = index.pairs.get(getSynonymEntryKey(wordObj));
+  if (!answers?.length) return null;
 
-  const targetClass = WordClass.getWordClass(wordObj.gender);
-  const index = getSynonymEntryIndex();
-  const answerEntry = shuffleArray(
+  const answerCandidate = shuffleArray(
     answers
-      .map((answer) => index.get(`${normalizeGameAnswer(answer)}|${targetClass}`))
-      .filter((entry) => entry && hasEstablishedRecognition(entry)),
+      .map((entry) => ({
+        entry,
+        readiness: getSynonymPartnerReadiness(wordObj, entry),
+      }))
+      .filter(({ readiness }) => readiness),
   )[0];
-  if (!answerEntry) return null;
+  if (!answerCandidate) return null;
 
+  const answerEntry = answerCandidate.entry;
   const answer = getPrimaryNorwegianForm(answerEntry);
+  const answerClass = WordClass.getWordClass(answerEntry.gender);
   const excluded = new Set([
     normalizeGameAnswer(getPrimaryNorwegianForm(wordObj)),
     normalizeGameAnswer(answer),
-    ...answers.map(normalizeGameAnswer),
+    ...answers.map((entry) => normalizeGameAnswer(getPrimaryNorwegianForm(entry))),
   ]);
   const answerSenses = new Set(getEnglishEntryVariants(answerEntry));
   const distractors = [];
@@ -2017,7 +2162,7 @@ function buildSynonymExercise(wordObj) {
       form &&
       !excluded.has(normalizeGameAnswer(form)) &&
       !isExcludedFromRandomSelection(candidate.ord) &&
-      WordClass.getWordClass(candidate.gender) === targetClass &&
+      WordClass.getWordClass(candidate.gender) === answerClass &&
       !sharesEnglishSenseWith(candidate, answerSenses) &&
       hasEstablishedRecognition(candidate)
     );
@@ -2028,7 +2173,11 @@ function buildSynonymExercise(wordObj) {
     if (distractors.length === 3) break;
   }
   return distractors.length === 3
-    ? { answer, choices: shuffleArray([answer, ...distractors]) }
+    ? {
+        answer,
+        choices: shuffleArray([answer, ...distractors]),
+        isBridge: answerCandidate.readiness === "bridge",
+      }
     : null;
 }
 
@@ -2050,8 +2199,12 @@ function getTypedRecallProbability(wordObj, mode, exercise = null) {
 
   const skill = getQuestionSkillForMode(mode);
   const snapshot =
-    window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, skill) ??
-    window.WordStrengthAPI?.getSnapshot?.(wordObj);
+    (typeof getSelectionSkillSnapshot === "function"
+      ? getSelectionSkillSnapshot(wordObj, skill)
+      : window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, skill)) ??
+    (typeof getSelectionOverallSnapshot === "function"
+      ? getSelectionOverallSnapshot(wordObj)
+      : window.WordStrengthAPI?.getSnapshot?.(wordObj));
   // A word that's failed unusually often relative to how many times it's
   // actually been tested (see SpacedRepetition.isChronicallyStruggling)
   // stays in scaffolded multiple-choice/cloze form regardless of its
@@ -2252,8 +2405,12 @@ function predictQuestionSuccess(
   );
   const skill = getQuestionSkillForMode(mode);
   const snapshot =
-    window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, skill, now) ??
-    window.WordStrengthAPI?.getSnapshot?.(wordObj, now);
+    (typeof getSelectionSkillSnapshot === "function"
+      ? getSelectionSkillSnapshot(wordObj, skill, now)
+      : window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, skill, now)) ??
+    (typeof getSelectionOverallSnapshot === "function"
+      ? getSelectionOverallSnapshot(wordObj, now)
+      : window.WordStrengthAPI?.getSnapshot?.(wordObj, now));
   const hasPersonalMemory = Boolean(snapshot?.record);
   const retrievability = Number(snapshot?.retrievability);
   const modeBias = QUESTION_PAIR_MODE_BIAS[mode] ?? 0;
@@ -2298,14 +2455,34 @@ function getQuestionProgressionWeight(wordObj, mode) {
 }
 
 function getQuestionSkillUrgencyWeight(wordObj, mode, now = Date.now()) {
-  const overall = window.WordStrengthAPI?.getSnapshot?.(wordObj, now);
+  const overall =
+    typeof getSelectionOverallSnapshot === "function"
+      ? getSelectionOverallSnapshot(wordObj, now)
+      : window.WordStrengthAPI?.getSnapshot?.(wordObj, now);
   const skill = getQuestionSkillForMode(mode);
   const snapshot =
-    window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, skill, now) ?? overall;
+    (typeof getSelectionSkillSnapshot === "function"
+      ? getSelectionSkillSnapshot(wordObj, skill, now)
+      : window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, skill, now)) ??
+    overall;
+
+  // A valid synonym prompt is deliberately the learner's first semantic
+  // retrieval for this word. Do not reduce it to the generic 5% weight just
+  // because another skill is due: that makes semantic exercises practically
+  // invisible in mature accounts, whose selected words are commonly due for
+  // recognition/context/production review. Once semantic evidence exists,
+  // ordinary urgency handling resumes (and a due semantic skill is still
+  // forced by getForcedReviewMode).
+  if (mode === "synonym" && !snapshot?.record) return 1;
+
   return window.WordGamePolicy.getSkillUrgencyWeight(overall, snapshot);
 }
 
 function beginQuestionPrediction(wordObj, mode, exercise = null) {
+  if (mode === "synonym") {
+    wordGameSynonymQuestionCount += 1;
+    wordGameLastSynonymQuestionAt = wordGameSessionQuestionsAnswered;
+  }
   const wordDifficulty = getWordDifficultyAnchor(wordObj);
   currentQuestionPrediction = {
     mode,
@@ -2693,7 +2870,10 @@ function getForcedReviewMode(wordObj) {
   // getStructuredQuestionModeForWord/getQuestionPairPlan's caller.
   if (wordGameIsPlacementRound) return null;
 
-  const snapshot = window.WordStrengthAPI?.getSnapshot?.(wordObj);
+  const snapshot =
+    typeof getSelectionOverallSnapshot === "function"
+      ? getSelectionOverallSnapshot(wordObj)
+      : window.WordStrengthAPI?.getSnapshot?.(wordObj);
   if (
     (snapshot?.queue !== "relearning" && snapshot?.queue !== "due") ||
     !snapshot.skill
@@ -2704,14 +2884,26 @@ function getForcedReviewMode(wordObj) {
   const mode = REVIEW_MODE_BY_SKILL[snapshot.skill];
   if (!mode) return null;
 
+  // Daily gem rounds are deliberately single-skill practice. Semantic debt
+  // remains scheduled, but is resolved in free/bonus practice rather than
+  // turning a recognition, context, or recall round into a mixed one.
+  if (
+    mode === "synonym" &&
+    (wordGameIsTodayPracticeRound ||
+      (typeof isSynonymSpacingReady === "function" &&
+        !isSynonymSpacingReady()))
+  ) {
+    return null;
+  }
+
   // Never force a mode the word can't actually support — fall through to
   // the ordinary selection, which already knows how to skip an infeasible
   // mode gracefully.
   if (mode === "listening" && !hasPlayableWordAudio(wordObj)) return null;
   if (
     mode === "synonym" &&
-    (typeof buildSynonymExercise !== "function" ||
-      !buildSynonymExercise(wordObj))
+    (typeof hasSynonymExerciseOpportunity !== "function" ||
+      !hasSynonymExerciseOpportunity(wordObj))
   ) {
     return null;
   }
@@ -2749,6 +2941,20 @@ function getStructuredQuestionModeForWord(wordObj) {
 
 function getQuestionModeCandidates(wordObj) {
   const candidates = [];
+  const synonymQuotaDue =
+    typeof isSynonymQuotaDue === "function" && isSynonymQuotaDue();
+  // Free and bonus practice reserve semantic slots before an ordinary due
+  // review claims the word. Otherwise a mature learner with a large due
+  // portfolio can go indefinitely without seeing an eligible connection:
+  // every candidate returns from the forced-review branch below first.
+  // Placement and daily gem rounds have a zero quota by definition.
+  if (
+    synonymQuotaDue &&
+    typeof hasSynonymExerciseOpportunity === "function" &&
+    hasSynonymExerciseOpportunity(wordObj)
+  ) {
+    return [{ mode: "synonym", weight: 1 }];
+  }
   const structuredMode =
     getForcedReviewMode(wordObj) ?? getStructuredQuestionModeForWord(wordObj);
   if (structuredMode === "typed-reverse") {
@@ -2819,18 +3025,6 @@ function getQuestionModeCandidates(wordObj) {
     listeningWeight,
   );
   splitTypedQuestionMode(candidates, wordObj, "reverse", reverseWeight);
-  const synonymExercise =
-    typeof buildSynonymExercise === "function"
-      ? buildSynonymExercise(wordObj)
-      : null;
-  if (synonymExercise) {
-    // Semantic recognition is a deliberately small share of free play. It
-    // appears only after both terms and all distractors are known enough to
-    // make the question retrieval rather than elimination.
-    const synonymWeight = 0.14 * (1 - a0SupportIntensity);
-    forwardWeight = Math.max(0, forwardWeight - synonymWeight);
-    addQuestionModeCandidate(candidates, "synonym", synonymWeight);
-  }
   addQuestionModeCandidate(candidates, "forward", forwardWeight);
   return candidates;
 }
@@ -2886,7 +3080,7 @@ function chooseQuestionModeFromPlan(plan) {
 }
 
 function shouldShowExplicitWordIntroduction(wordObj) {
-  const snapshot = window.WordStrengthAPI?.getSnapshot?.(wordObj);
+  const snapshot = getSelectionOverallSnapshot(wordObj);
   return window.WordGamePolicy.shouldIntroduceUnseenWord({
     hasMemory: Boolean(snapshot?.record),
     alreadyIntroduced: wordGameSessionExplicitlyIntroducedWords.has(wordObj),
@@ -5350,6 +5544,8 @@ function beginWordGameRound(mode, targetWords = 0, options = {}) {
   wordGameSessionWordLastShownTurn = new Map();
   wordGameSessionTurnCounter = 0;
   wordGameSuccessfulPairHistory = new Map();
+  wordGameSynonymQuestionCount = 0;
+  wordGameLastSynonymQuestionAt = -Infinity;
   wordGameSessionQuestionsAnswered = 0;
   wordGameSessionCorrectAnswers = 0;
   wordGameSessionIncorrectAnswers = 0;
@@ -5839,10 +6035,9 @@ async function startWordGame() {
   currentQuestionPrediction = null;
 
   // Cloze questions use synchronous exact-form lookups once a question is
-  // selected. Resolve the compact official snapshot once up front; a pending
-  // background preload is reused, and a failed load simply makes cloze fall
-  // back to the ordinary flashcard format.
-  await Promise.all([window.Inflections?.preload(), loadSynonymPairs()]);
+  // selected. Reuse the background preload; a failed load simply makes cloze
+  // fall back to the ordinary flashcard format.
+  await window.Inflections?.preload();
   if (!gameActive || !wordGameRoundActive) return;
 
   // A miss enters an explicit short-term relearning queue. Its availability
@@ -6767,6 +6962,8 @@ async function renderGameTeachingReveal({
   nearMiss = false,
   morphologyNearMiss = null,
   scheduledForReview = false,
+  isSemanticBridge = false,
+  isSemanticConnection = false,
 }) {
   const reveal = document.getElementById("game-teaching-reveal");
   if (!reveal) return;
@@ -6795,7 +6992,11 @@ async function renderGameTeachingReveal({
   const translationHTML = normalizedTranslation
     ? `<p class="game-teaching-translation game-english-translation${translationRequired ? " game-english-translation-required" : ""}" style="display: ${translationRequired || isEnglishVisible ? "block" : "none"};">${escapeGameHTML(normalizedTranslation)}</p>`
     : "";
-  const note = scheduledForReview
+  const note = isSemanticBridge
+    ? `New connection: “${getPrimaryNorwegianForm(wordObj)}” can mean approximately “${normalizedAnswer}” here. We’ll revisit it.`
+    : isSemanticConnection && normalizedSentence
+      ? `In this sentence, “${getPrimaryNorwegianForm(wordObj)}” is connected in meaning to “${normalizedAnswer}”; the two are not always interchangeable.`
+    : scheduledForReview
     ? "We’ll try this word again shortly."
     : isCloze
       ? "The sentence is now complete."
@@ -6992,6 +7193,10 @@ async function renderWordIntroductionUI(initialEntry) {
     sentence,
     clozeTarget,
   );
+  // An unfamiliar linked pair is teaching material, not a fair scored
+  // synonym question. Introduce it only when the learner's demonstrated
+  // ability makes both terms plausible prior knowledge.
+  const synonymIntroduction = buildSynonymIntroduction(wordObj);
 
   setGameContainerHTML(`
     <div class="game-stats-content" id="game-session-stats"></div>
@@ -7015,6 +7220,7 @@ async function renderWordIntroductionUI(initialEntry) {
       </div>
       <section class="game-teaching-reveal game-introduction-reveal" aria-label="New word introduction" data-state="introduction">
         <p class="game-introduction-meaning">${escapeGameHTML(displayedMeaning)}</p>
+        ${synonymIntroduction ? `<p class="game-teaching-note">Related meaning: “${escapeGameHTML(displayedWord)}” can mean approximately “${escapeGameHTML(synonymIntroduction.answer)}” here.</p>` : ""}
         ${sentence ? `<div class="game-teaching-context"><button type="button" class="game-teaching-sentence" aria-label="Play sentence audio">${sentenceHTML}</button>${sentenceTranslation ? `<p class="game-teaching-translation game-english-translation" style="display: ${isEnglishVisible ? "block" : "none"};">${escapeGameHTML(sentenceTranslation)}</p>` : ""}</div>` : ""}
         <p class="game-teaching-note">${escapeGameHTML(getIntroductionPracticeNote(initialEntry.targetMode))}</p>
       </section>
@@ -7841,6 +8047,9 @@ async function handleTranslationClick(
   const answerSkillSnapshot =
     window.WordStrengthAPI?.getSkillSnapshot?.(wordObj, answerSkill) ??
     window.WordStrengthAPI?.getSnapshot?.(wordObj);
+  const isSemanticBridge =
+    answerSkill === "semantic" &&
+    Boolean(currentQuestionPrediction?.exercise?.isBridge);
   // The first time an A0 learner meets a word is an introduction, even though
   // the existing card still asks for recognition. Preserve the correction and
   // future review record on a miss, but do not let that first unknown answer
@@ -7896,19 +8105,22 @@ async function handleTranslationClick(
       nearMiss: nearMissTypedMatch,
       morphologyNearMiss: Boolean(morphologyNearMiss),
       wasTyped,
-      wasScaffolded: answerWasScaffolded,
+      wasScaffolded: answerWasScaffolded || isSemanticBridge,
     },
   );
-  const srsEvidenceWeight = window.WordGamePolicy.getSrsEvidenceWeight({
-    wasCorrect: answerWasCorrect,
-    predictedSuccess: predictionEvidence?.predictedSuccess ?? 0.5,
-    responseTimeMs: predictionEvidence?.responseTimeMs ?? null,
-    responseTimeTargetMs:
-      window.WordGamePolicy.RESPONSE_TIME_TARGET_MS[answerMode] ?? 6500,
-    nearMiss: nearMissTypedMatch || Boolean(morphologyNearMiss),
-    possiblyGuessed: predictionEvidence?.possiblyGuessed ?? false,
-    wasScaffolded: answerWasScaffolded,
-  });
+  const srsEvidenceWeight = Math.min(
+    isSemanticBridge ? 0.35 : 1,
+    window.WordGamePolicy.getSrsEvidenceWeight({
+      wasCorrect: answerWasCorrect,
+      predictedSuccess: predictionEvidence?.predictedSuccess ?? 0.5,
+      responseTimeMs: predictionEvidence?.responseTimeMs ?? null,
+      responseTimeTargetMs:
+        window.WordGamePolicy.RESPONSE_TIME_TARGET_MS[answerMode] ?? 6500,
+      nearMiss: nearMissTypedMatch || Boolean(morphologyNearMiss),
+      possiblyGuessed: predictionEvidence?.possiblyGuessed ?? false,
+      wasScaffolded: answerWasScaffolded || isSemanticBridge,
+    }),
+  );
   const srsCredit =
     currentWordQueueType !== "session-filler" &&
     (answerSkillSnapshot?.queue !== "scheduled" ||
@@ -8194,6 +8406,8 @@ async function handleTranslationClick(
     wasTyped,
     nearMiss: nearMissTypedMatch,
     morphologyNearMiss,
+    isSemanticBridge,
+    isSemanticConnection: answerMode === "synonym",
     scheduledForReview:
       !answerWasCorrect &&
       !wordGamePlacementCalibrationEnabled &&
@@ -8275,6 +8489,142 @@ async function fetchExampleSentence(
   return { exampleSentence, sentenceTranslation };
 }
 
+let gameEligibleBasePoolCache = new Map();
+let gameEligibleBasePoolDictionary = null;
+let gameSelectionStateCache = null;
+
+function getSelectionOverallSnapshot(entry, now = Date.now()) {
+  if (!gameSelectionStateCache) {
+    return window.WordStrengthAPI?.getSnapshot?.(entry, now);
+  }
+  if (!gameSelectionStateCache.overall.has(entry)) {
+    gameSelectionStateCache.overall.set(
+      entry,
+      window.WordStrengthAPI?.getSnapshot?.(entry, gameSelectionStateCache.now),
+    );
+  }
+  return gameSelectionStateCache.overall.get(entry);
+}
+
+function getSelectionSkillSnapshot(entry, skill, now = Date.now()) {
+  if (!gameSelectionStateCache) {
+    return window.WordStrengthAPI?.getSkillSnapshot?.(entry, skill, now);
+  }
+  let skills = gameSelectionStateCache.skills.get(entry);
+  if (!skills) {
+    skills = new Map();
+    gameSelectionStateCache.skills.set(entry, skills);
+  }
+  if (!skills.has(skill)) {
+    skills.set(
+      skill,
+      window.WordStrengthAPI?.getSkillSnapshot?.(
+        entry,
+        skill,
+        gameSelectionStateCache.now,
+      ),
+    );
+  }
+  return skills.get(skill);
+}
+
+function getSelectionStrength(entry) {
+  if (!gameSelectionStateCache) return window.WordStrengthAPI?.get?.(entry) ?? 0;
+  if (!gameSelectionStateCache.strength.has(entry)) {
+    gameSelectionStateCache.strength.set(
+      entry,
+      window.WordStrengthAPI?.get?.(entry) ?? 0,
+    );
+  }
+  return gameSelectionStateCache.strength.get(entry);
+}
+
+function getEligibleGameBasePool(
+  selectedPOS,
+  placementExercise,
+  dailyQuestionMode,
+  bonusExercise,
+) {
+  // These conditions are stable for a whole question-selection pass. Cache
+  // the expensive dictionary-wide filtering, then let getEligibleGameWords()
+  // apply the small, genuinely per-turn exclusions below.
+  if (gameEligibleBasePoolDictionary !== results) {
+    gameEligibleBasePoolCache.clear();
+    gameEligibleBasePoolDictionary = results;
+  }
+  const cacheKey = [
+    selectedPOS,
+    placementExercise ?? "",
+    dailyQuestionMode ?? "",
+    bonusExercise ?? "",
+  ].join("|");
+  const cached = gameEligibleBasePoolCache.get(cacheKey);
+  if (cached) return cached;
+
+  const pool = results.filter((entry) => {
+    const norwegianWord = String(entry?.ord ?? "").trim();
+    const englishTranslation = String(entry?.engelsk ?? "").trim();
+    const gender = String(entry?.gender ?? "").trim();
+    const entryCEFR = String(entry?.CEFR ?? "")
+      .trim()
+      .toUpperCase();
+    if (!norwegianWord || !englishTranslation || !gender || !entryCEFR) {
+      return false;
+    }
+    if (
+      (placementExercise === "listening" ||
+        placementExercise === "typed-listening") &&
+      !hasPlayableWordAudio(entry)
+    ) {
+      return false;
+    }
+    if (
+      placementExercise === "typed-reverse" &&
+      !getGameSentenceTranslation(entry, 0)
+    ) {
+      return false;
+    }
+    if (isExcludedFromRandomSelection(norwegianWord)) return false;
+
+    const normalizedGender = gender.toLowerCase();
+    if (
+      (dailyQuestionMode === "cloze" || bonusExercise === "cloze") &&
+      (!String(entry?.eksempel ?? "").trim() ||
+        BANNED_WORD_CLASSES.some((wordClass) =>
+          normalizedGender.startsWith(wordClass),
+        ))
+    ) {
+      return false;
+    }
+    if (
+      (dailyQuestionMode === "listening" || bonusExercise === "listening") &&
+      !hasPlayableWordAudio(entry)
+    ) {
+      return false;
+    }
+    if (
+      bonusExercise === "typed-reverse" &&
+      !getGameSentenceTranslation(entry, 0)
+    ) {
+      return false;
+    }
+    if (selectedPOS === "noun") {
+      if (!WordClass.isNounGender(normalizedGender) || normalizedGender === "pronoun") {
+        return false;
+      }
+    } else if (selectedPOS && !normalizedGender.startsWith(selectedPOS)) {
+      return false;
+    }
+
+    return (
+      normalizeGameAnswer(getPrimaryNorwegianForm(norwegianWord)) !==
+      normalizeGameAnswer(getDisplayedAnswer(englishTranslation))
+    );
+  });
+  gameEligibleBasePoolCache.set(cacheKey, pool);
+  return pool;
+}
+
 function getEligibleGameWords(
   selectedPOS,
   { ignorePrevious = false, allowIntroduced = false } = {},
@@ -8295,85 +8645,24 @@ function getEligibleGameWords(
   const bonusExercise = wordGameIsBonusRound
     ? getBonusRoundQuestionMode(wordGameSessionIntroducedWords.size, true)
     : null;
+  const placementExercise = wordGameIsPlacementRound
+    ? PLACEMENT_QUESTION_PLAN[
+        Math.max(0, Math.floor(Number(wordGameSessionQuestionsAnswered) || 0))
+      ] ?? "forward"
+    : null;
+  const basePool = getEligibleGameBasePool(
+    selectedPOS,
+    placementExercise,
+    dailyQuestionMode,
+    bonusExercise,
+  );
 
-  return results.filter((entry) => {
-    const norwegianWord = String(entry?.ord ?? "").trim();
-    const englishTranslation = String(entry?.engelsk ?? "").trim();
-    const gender = String(entry?.gender ?? "").trim();
-    const entryCEFR = String(entry?.CEFR ?? "")
-      .trim()
-      .toUpperCase();
-
-    /*
-     * The game renderers require all four of these values.
-     */
-    if (!norwegianWord || !englishTranslation || !gender || !entryCEFR) {
-      return false;
-    }
-
-    // Placement has a small intentional skill plan. Filter only the entries
-    // that cannot support its next planned prompt; the ordinary placement
-    // selector can then keep adapting item difficulty instead of silently
-    // changing a listening/typed slot after the word has already been drawn.
-    const placementExercise = wordGameIsPlacementRound
-      ? PLACEMENT_QUESTION_PLAN[
-          Math.max(0, Math.floor(Number(wordGameSessionQuestionsAnswered) || 0))
-        ] ?? "forward"
-      : null;
-    if (
-      (placementExercise === "listening" ||
-        placementExercise === "typed-listening") &&
-      !hasPlayableWordAudio(entry)
-    ) {
-      return false;
-    }
-    if (
-      placementExercise === "typed-reverse" &&
-      !getGameSentenceTranslation(entry, 0)
-    ) {
-      return false;
-    }
-
-    // No CEFR gate here by design: word selection is a smooth,
-    // ability-proximity-weighted draw (see getGameWordWeight), not a hard
-    // per-level cutoff. A word far from the learner's ability isn't
-    // excluded outright, just made vanishingly unlikely to be drawn.
-
-    if (isExcludedFromRandomSelection(norwegianWord)) {
-      return false;
-    }
+  return basePool.filter((entry) => {
 
     /*
      * Avoid displaying the same spelling twice in a row.
      */
     if (!ignorePrevious && isPreviousGameWord(entry)) {
-      return false;
-    }
-
-    if (
-      (dailyQuestionMode === "cloze" || bonusExercise === "cloze") &&
-      (!String(entry?.eksempel ?? "").trim() ||
-        BANNED_WORD_CLASSES.some((wordClass) =>
-          gender.toLowerCase().startsWith(wordClass),
-        ))
-    ) {
-      return false;
-    }
-
-    if (
-      (dailyQuestionMode === "listening" || bonusExercise === "listening") &&
-      !hasPlayableWordAudio(entry)
-    ) {
-      return false;
-    }
-
-    // Typed bonus questions always include the English sentence, matching
-    // ordinary productive-recall questions. Do not select an entry that
-    // would have to degrade into a context-free typing prompt.
-    if (
-      bonusExercise === "typed-reverse" &&
-      !getGameSentenceTranslation(entry, 0)
-    ) {
       return false;
     }
 
@@ -8400,31 +8689,7 @@ function getEligibleGameWords(
       return false;
     }
 
-    const normalizedGender = gender.toLowerCase();
-
-    if (selectedPOS === "noun") {
-      const isNoun = WordClass.isNounGender(normalizedGender);
-
-      if (!isNoun || normalizedGender === "pronoun") {
-        return false;
-      }
-    } else if (selectedPOS && !normalizedGender.startsWith(selectedPOS)) {
-      return false;
-    }
-
-    /*
-     * Do not ask questions where the displayed Norwegian and English
-     * answers are identical.
-     */
-    const displayedNorwegian = normalizeGameAnswer(
-      getPrimaryNorwegianForm(norwegianWord),
-    );
-
-    const displayedEnglish = normalizeGameAnswer(
-      getDisplayedAnswer(englishTranslation),
-    );
-
-    return displayedNorwegian !== displayedEnglish;
+    return true;
   });
 }
 
@@ -8722,16 +8987,13 @@ function recordA0AutomaticTarget(entry) {
 }
 
 function getA0RecognitionEvidence(wordObj) {
-  const record = window.WordStrengthAPI?.getSkillSnapshot?.(
-    wordObj,
-    "recognition",
-  )?.record;
+  const record = getSelectionSkillSnapshot(wordObj, "recognition")?.record;
   return Math.max(0, Number(record?.successEvidence) || 0);
 }
 
 function getA0ReinforcementCandidates(entries) {
   return entries.filter((entry) => {
-    const snapshot = window.WordStrengthAPI?.getSnapshot?.(entry);
+    const snapshot = getSelectionOverallSnapshot(entry);
     return (
       snapshot?.queue === "scheduled" &&
       !snapshot.isApproaching &&
@@ -8898,9 +9160,14 @@ function getGameWordWeight(
     cefrCounts = null,
   } = {},
 ) {
-  const strength = window.WordStrengthAPI?.get?.(entry) ?? 0;
+  const strength =
+    typeof getSelectionStrength === "function"
+      ? getSelectionStrength(entry)
+      : window.WordStrengthAPI?.get?.(entry) ?? 0;
   const recallNeed =
-    window.WordStrengthAPI?.getSnapshot?.(entry)?.recallNeed ?? 0;
+    (typeof getSelectionOverallSnapshot === "function"
+      ? getSelectionOverallSnapshot(entry)
+      : window.WordStrengthAPI?.getSnapshot?.(entry))?.recallNeed ?? 0;
   const memoryWeight = window.WordGamePolicy.getMemoryWeight(
     {
       strength,
@@ -8984,7 +9251,25 @@ function pickPrioritizedGameWord(
       (wordGameIsPlacementRound ? 1 : pairPlans[index].totalPairWeight)
     );
   });
-  const selectedEntry = pickWeightedGameWord(eligibleEntries, weights);
+  const synonymCandidateIndexes =
+    typeof isSynonymQuotaDue === "function" && isSynonymQuotaDue()
+    ? pairPlans
+        .map((plan, index) =>
+          plan.candidates.some(({ mode }) => mode === "synonym") ? index : -1,
+        )
+        .filter((index) => index >= 0)
+    : [];
+  // A quota is an opportunity target, never a promise to manufacture a
+  // relationship. If suitable items exist, choose among them using the same
+  // word-priority weights; otherwise retain the ordinary adaptive draw.
+  const selectionIndexes =
+    synonymCandidateIndexes.length > 0
+      ? synonymCandidateIndexes
+      : eligibleEntries.map((_, index) => index);
+  const selectedEntry = pickWeightedGameWord(
+    selectionIndexes.map((index) => eligibleEntries[index]),
+    selectionIndexes.map((index) => weights[index]),
+  );
   const selectedIndex = eligibleEntries.indexOf(selectedEntry);
   plannedQuestionMode = chooseQuestionModeFromPlan(pairPlans[selectedIndex]);
   return selectedEntry;
@@ -9114,12 +9399,44 @@ function pickMyWordsQuotaWord(candidateEntries, reviewShare = null) {
   });
 }
 
+function getDailyQuestQueueSkill() {
+  const exercise = DAILY_QUESTS[wordGameDailyQuestIndex]?.exercise;
+  if (exercise === "context") return "context";
+  if (exercise === "recall") return "production";
+  return "recognition";
+}
+
 function getGameEntryQueue(entry, now = Date.now()) {
-  const snapshot = window.WordStrengthAPI?.getSnapshot?.(entry, now);
-  if (snapshot?.queue === "scheduled" && snapshot.isApproaching) {
+  const overall =
+    typeof getSelectionOverallSnapshot === "function"
+      ? getSelectionOverallSnapshot(entry, now)
+      : window.WordStrengthAPI?.getSnapshot?.(entry, now);
+  // A semantic review belongs to free/bonus practice. While a gem round is
+  // intentionally focused on another skill, queue it by that round's skill
+  // instead of repeatedly selecting it for work that cannot resolve its
+  // semantic debt.
+  if (
+    typeof wordGameIsTodayPracticeRound !== "undefined" &&
+    wordGameIsTodayPracticeRound &&
+    overall?.skill === "semantic"
+  ) {
+    const dailySkill =
+      typeof getDailyQuestQueueSkill === "function"
+        ? getDailyQuestQueueSkill()
+        : "recognition";
+    const dailySnapshot =
+      typeof getSelectionSkillSnapshot === "function"
+        ? getSelectionSkillSnapshot(entry, dailySkill, now)
+        : window.WordStrengthAPI?.getSkillSnapshot?.(entry, dailySkill, now);
+    if (dailySnapshot?.queue === "scheduled" && dailySnapshot.isApproaching) {
+      return "approaching";
+    }
+    return dailySnapshot?.queue ?? "new";
+  }
+  if (overall?.queue === "scheduled" && overall.isApproaching) {
     return "approaching";
   }
-  return snapshot?.queue ?? "new";
+  return overall?.queue ?? "new";
 }
 
 function buildGameWordQueues(eligibleEntries, now = Date.now()) {
@@ -9187,7 +9504,7 @@ function getNearestScheduledGameWords(entries) {
     .map((entry) => ({
       entry,
       dueAt:
-        window.WordStrengthAPI?.getSnapshot?.(entry)?.record?.dueAt ??
+        getSelectionOverallSnapshot(entry)?.record?.dueAt ??
         Number.POSITIVE_INFINITY,
     }))
     .sort((left, right) => left.dueAt - right.dueAt)
@@ -9291,6 +9608,14 @@ function recordWordShownThisTurn(entry) {
 }
 
 async function fetchRandomWord() {
+  const previousSelectionStateCache = gameSelectionStateCache;
+  gameSelectionStateCache = {
+    now: Date.now(),
+    overall: new Map(),
+    skills: new Map(),
+    strength: new Map(),
+  };
+  try {
   if (
     wordGameMode === "session" &&
     wordGameSessionIntroducedWords.size >= wordGameSessionTarget
@@ -9455,6 +9780,11 @@ async function fetchRandomWord() {
    * Return the original dictionary entry. Do not create a partial copy.
    */
   return selectedEntry;
+  } finally {
+    // A selection pass is a consistent, short-lived view of progress. Never
+    // reuse it after a rendered answer can update SRS state.
+    gameSelectionStateCache = previousSelectionStateCache;
+  }
 }
 
 function shuffleArray(array) {

@@ -94,8 +94,7 @@
       <p class="my-stats-danger-text">
         Word forms are derived from <a href="https://ord.uib.no/ord_1_Ordlister.html" target="_blank" rel="noopener noreferrer">Norsk Ordbank – Bokmål</a>,
         maintained by the University of Bergen and Språkrådet, under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>.
-        Synonym prompts use a vetted subset of <a href="https://www.nb.no/sprakbanken/en/resource-catalogue/oai-nb-no-sbr-27/" target="_blank" rel="noopener noreferrer">Norsk Ordvev Bokmål</a>
-        (version 1.1.2), also <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>.
+        Synonym prompts are derived from the linked headwords in this dictionary's own definitions.
       </p>
       <p class="my-stats-danger-text">
         Vocabulary-frequency signals in the Word Game combine <a href="https://repo.clarino.uib.no/xmlui/handle/11509/157" target="_blank" rel="noopener noreferrer">CLARINO Norsk aviskorpus</a>
