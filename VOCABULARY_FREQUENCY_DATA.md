@@ -85,6 +85,24 @@ entire frequency. The form is not discarded altogether: it becomes
 **surface-exposure evidence** for the candidate(s) at the lowest CEFR level.
 This is a curriculum priority (teach the easiest interpretation of a common
 form first), not a claim that those candidates produced every corpus token.
+
+When the lowest-CEFR candidates are still tied (e.g. the preposition "i" and
+the letter name "I, i" are both A1), one more tiebreak applies before
+falling back to an even split: if the tie mixes a closed word class
+(pronoun/preposition/conjunction/determiner — `CLOSED_WORD_CLASSES` in
+`scripts/build-vocabulary-frequency.py`) with an open one, the closed-class
+candidate gets the exposure proxy and the open-class one does not. Closed
+classes dominate raw token frequency in any corpus regardless of curriculum
+level, so that's a stronger prior than the CEFR tie itself. A tie among
+only-closed or only-open candidates has no such signal and stays split
+across all of them, same as before this tiebreak existed. A candidate that
+loses the tiebreak can still separately earn its own (typically much
+smaller) reliable rank from forms the other sense could never produce —
+the letter noun "i" still ranks on its own plural "ier", it just doesn't
+also share in the preposition's exposure proxy. The resulting proxy record's
+`basis` is `"lowest-cefr-closed-class"` when this tiebreak fired, or plain
+`"lowest-cefr"` otherwise.
+
 Exposure proxies never contribute entry counts or difficulty percentiles.
 Estimated dictionary-only paradigms and paradigms mechanically inherited from
 another lemma are also excluded as reliable evidence.
@@ -119,7 +137,8 @@ frequency without being forced to share a CEFR level. Records can contain:
   `exact-lemma`, `unique-inflection`, or `exact-and-inflected`; source-level
   metadata reports how many candidate entries had evidence withheld; and
 - `exposureProxy` — a separately ranked, blended surface-exposure record with
-  `eligibleBands` and `basis: "lowest-cefr"`.
+  `eligibleBands` and `basis` (`"lowest-cefr"`, or `"lowest-cefr-closed-class"`
+  when the closed-vs-open-class tiebreak above decided it).
 
 Proxy-only records intentionally have no reliable `rank`, `weight`, `sources`,
 or `bandPercentiles`. This makes it impossible for ambiguous evidence to nudge

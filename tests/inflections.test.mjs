@@ -93,11 +93,14 @@ assert.equal(value(kjedsom, "Plural"), "kjedsomme");
 assert.equal(value(kjedsom, "Comparative"), "kjedsommere");
 assert.equal(value(kjedsom, "Definite superlative"), "kjedsomste");
 
-const alene = getForms("alene", "adjective");
-assert.equal(alene.sourceType, "dictionary-override");
-assert.equal(value(alene, "Neuter"), "alene");
-assert.equal(value(alene, "Plural"), "alene");
+// Bokmålsordboka classifies "alene" as an adverb (not the invariant
+// adjective the dictionary used to declare it as); the CSV now agrees, so
+// it resolves as a plain dictionary-only, non-gradable adverb.
+const alene = getForms("alene", "adverb");
+assert.equal(alene.sourceType, "dictionary-only");
+assert.equal(value(alene, "Positive"), "alene");
 assert.equal(value(alene, "Comparative"), "–");
+assert.equal(value(alene, "Superlative"), "–");
 
 // Lexically variable noun plurals are preserved.
 const museum = getForms("museum", "noun - et");

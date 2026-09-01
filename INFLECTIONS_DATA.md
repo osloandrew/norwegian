@@ -28,7 +28,7 @@ UI) or a lemma-only table with unknown forms; guessed regular endings are never
 presented as verified forms.
 
 The grammatical category in `norwegianWords.csv` is authoritative when it
-differs from Norsk Ordbank; for example, the project's adjective entry `alene`
+differs from Norsk Ordbank; for example, the project's adjective entry `solo`
 is represented as an invariant adjective.
 
 Comma-separated spelling variants in one dictionary entry retain their own

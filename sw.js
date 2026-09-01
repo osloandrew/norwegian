@@ -5,9 +5,9 @@
 // caching wrong would risk serving stale JS indefinitely to anyone who
 // already has this service worker installed, which is a far worse failure
 // mode than "no offline support yet." Only the two icon files are
-// precached, since their filenames never change without their content
-// also changing, so there's no staleness risk there.
-const CACHE_NAME = "norwegian-dictionary-static-v1";
+// precached. Bump this cache version whenever either icon is redesigned so
+// installed copies replace the previous artwork promptly.
+const CACHE_NAME = "norwegian-dictionary-static-v2";
 const PRECACHE_URLS = [
   "Resources/Icons/android-chrome-192x192.png",
   "Resources/Icons/android-chrome-512x512.png",

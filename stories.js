@@ -373,7 +373,7 @@ function updateStoryMetadata(story, imageFileURL = "") {
   const socialImageURL = imageFileURL
     ? new URL(imageFileURL, APP_ROOT_URL).href
     : new URL(
-        "Resources/Icons/android-chrome-512x512.png",
+        "Resources/Icons/social-card.png",
         APP_ROOT_URL,
       ).href;
 
@@ -405,7 +405,7 @@ function updateStoriesListMetadata() {
     "with English translations and audio.";
 
   const socialImageURL = new URL(
-    "Resources/Icons/android-chrome-512x512.png",
+    "Resources/Icons/social-card.png",
     APP_ROOT_URL,
   ).href;
 

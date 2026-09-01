@@ -223,6 +223,86 @@ class VocabularyFrequencyBuildTests(unittest.TestCase):
                 entries["burde|verb"]["exposureProxy"]["eligibleBands"], ["A2"]
             )
 
+    def test_closed_class_word_wins_a_same_cefr_ambiguity_tie(self):
+        # Regression case: the dictionary's own "i" (preposition, A1) and
+        # "i" (the letter name, noun, A1) tie on CEFR, so the plain
+        # lowest-CEFR rule alone can't tell them apart. Real corpora are
+        # dominated by closed-class words regardless of curriculum level,
+        # so the preposition should get the shared ambiguous volume and
+        # the noun should not — though the noun can still earn its own,
+        # much smaller, independent rank from a form the preposition could
+        # never produce ("ier").
+        #
+        # A tie between two closed-class senses ("for" as conjunction vs.
+        # preposition, both A1) has no such signal and must stay split
+        # across both, exactly as before this tiebreak existed.
+        with tempfile.TemporaryDirectory() as temp_dir:
+            directory = Path(temp_dir)
+            dictionary = directory / "words.csv"
+            clarino_source = directory / "clarino.tsv"
+            inflections = directory / "inflections.json"
+
+            dictionary.write_text(
+                "ord,gender,CEFR\n"
+                "i,preposition,A1\n"
+                "i,en,A1\n"
+                "for,conjunction,A1\n"
+                "for,preposition,A1\n",
+                encoding="utf-8",
+            )
+            inflections.write_text(
+                json.dumps(
+                    {
+                        "forms": {"n:i:en": "ien|ier|iene"},
+                        "dictionaryOnly": [],
+                        "dictionaryClassOverrides": [],
+                        "derivedFrom": {},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            clarino_source.write_text(
+                "5000\ti\n30\tier\n700\tfor\n",
+                encoding="utf-8",
+            )
+
+            with mock.patch.object(
+                build_vocabulary_frequency,
+                "DEFAULT_OPENSUBTITLES_SOURCE",
+                directory / "missing-opensubtitles.tsv",
+            ), mock.patch.object(
+                build_vocabulary_frequency,
+                "DEFAULT_NB_NGRAM_SOURCE",
+                directory / "missing-nb-ngram.tsv",
+            ):
+                payload = build_vocabulary_frequency.build_payload(
+                    dictionary, clarino_source, None, None, inflections
+                )
+
+            entries = payload["entries"]
+
+            self.assertEqual(
+                entries["i|preposition"]["exposureProxy"],
+                {
+                    "rank": 1,
+                    "weight": 1.0,
+                    "eligibleBands": ["A1"],
+                    "basis": "lowest-cefr-closed-class",
+                },
+            )
+            self.assertNotIn("sources", entries["i|preposition"])
+
+            self.assertNotIn("exposureProxy", entries["i|en"])
+            self.assertEqual(entries["i|en"]["sources"]["clarino"]["count"], 30)
+
+            # "for" ties two closed classes against each other — no signal
+            # to prefer one, so both keep the shared exposure proxy.
+            for key in ("for|conjunction", "for|preposition"):
+                self.assertEqual(
+                    entries[key]["exposureProxy"]["basis"], "lowest-cefr"
+                )
+                self.assertNotIn("sources", entries[key])
+
     def test_dictionary_only_and_derived_paradigms_are_not_frequency_evidence(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             directory = Path(temp_dir)

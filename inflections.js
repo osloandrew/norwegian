@@ -393,7 +393,7 @@
   // lemma itself (masculine/common); a word with no separate feminine/
   // neuter/definite/plural form (e.g. invariant "hans"/"hennes"/"deres")
   // just shows "–" for those rows via displayValue, the same convention
-  // already used for an invariant adjective like "alene".
+  // already used for an invariant adjective like "solo".
   function createDeterminerForms(wordClass, record) {
     return {
       wordClass,

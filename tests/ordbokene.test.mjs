@@ -294,45 +294,6 @@ test("keeps single-word entries from different word classes distinct", () => {
   assert.equal(merged[1], officialVerb);
 });
 
-test("prefers CSV numerals over official determiner classifications", () => {
-  const { api } = createContext();
-  const localNumerals = [
-    {
-      ord: "tjuefem",
-      gender: "numeral",
-      definisjon: "CSV twenty-five",
-    },
-    {
-      ord: "en, én",
-      gender: "numeral",
-      definisjon: "CSV one",
-    },
-  ];
-  const officialDeterminers = [
-    {
-      ord: "tjuefem",
-      gender: "determiner",
-      definisjon: "official twenty-five",
-      _ordbokene: { matchType: "exact" },
-    },
-    {
-      ord: "en",
-      gender: "determiner",
-      definisjon: "official one",
-      _ordbokene: { matchType: "exact" },
-    },
-  ];
-
-  const merged = api.mergeEntries(localNumerals, {
-    entries: officialDeterminers,
-    hasExactArticles: true,
-  });
-
-  assert.equal(merged.length, 2);
-  assert.equal(merged[0], localNumerals[0]);
-  assert.equal(merged[1], localNumerals[1]);
-});
-
 test("prefers ei for nouns with an official feminine paradigm", () => {
   const { api } = createContext();
   const entry = api.articleToEntry(

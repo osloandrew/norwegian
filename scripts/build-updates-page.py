@@ -233,8 +233,13 @@ def render_page(updates: list[Update], site_root: Path) -> str:
     <meta property="og:description" content="Recent improvements to the Norwegian Dictionary and learning tools.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{SITE}/updates/">
-    <meta property="og:image" content="{SITE}/Resources/Icons/android-chrome-512x512.png">
-    <meta name="twitter:card" content="summary">
+    <meta property="og:image" content="{SITE}/Resources/Icons/social-card.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="What's New | Norwegian Dictionary">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="{SITE}/Resources/Icons/social-card.png">
+    <meta name="twitter:image:alt" content="What's New | Norwegian Dictionary">
     <link rel="canonical" href="{SITE}/updates/">
     <link rel="icon" type="image/png" sizes="32x32" href="Resources/Icons/favicon-32x32.png">
     <link rel="stylesheet" href="{foundation_css}">

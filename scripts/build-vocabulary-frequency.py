@@ -60,6 +60,18 @@ BLEND_METHOD = (
 CEFR_BANDS = {"A1", "A2", "B1", "B2", "C"}
 CEFR_ORDER = {"A1": 1, "A2": 2, "B1": 3, "B2": 4, "C": 5}
 
+# Closed word classes (a fixed, small membership that rarely gains new
+# lemmas) dominate raw token frequency in any corpus, regardless of CEFR
+# level — the most frequent handful of words in Norwegian, as in any
+# language, are almost entirely pronouns/prepositions/conjunctions/
+# determiners, not content words. When an ambiguous form's lowest-CEFR
+# candidates mix a closed-class word with an open-class one (e.g. the
+# preposition "i" vs. the letter name "I, i", both A1), that skew is a
+# far stronger prior than the CEFR tie itself, so the closed-class side
+# is assumed to be the real source of most of the shared volume. Matches
+# wordGame.js's A0_FUNCTION_WORD_CLASSES.
+CLOSED_WORD_CLASSES = {"pronoun", "preposition", "conjunction", "determiner"}
+
 
 @dataclass(frozen=True)
 class DictionaryEntry:
@@ -89,6 +101,13 @@ def inflection_prefix(gender: str) -> str | None:
     if set(normalized.split("-")) & NOUN_GENDERS:
         return "n"
     return CLASS_PREFIX.get(normalized)
+
+
+def is_closed_word_class(gender: str) -> bool:
+    normalized = canonical_gender(gender)
+    if set(normalized.split("-")) & NOUN_GENDERS:
+        return False
+    return normalized in CLOSED_WORD_CLASSES
 
 
 def normalize_cefr_band(value: str, row_number: int) -> str:
@@ -326,6 +345,7 @@ def match_source_to_entries(
             "forms": 0,
             "eligibleBands": set(),
             "maximumCandidateCount": 0,
+            "closedClassTiebreak": False,
         }
     )
     withheld: dict[str, dict[str, int]] = defaultdict(
@@ -358,6 +378,20 @@ def match_source_to_entries(
             easiest_candidates = {
                 key for key in candidates if easiest_band in entries[key].cefrs
             }
+            # A same-CEFR tie that mixes a closed-class word with an
+            # open-class one has a further tiebreak available: closed
+            # classes dominate raw frequency (see CLOSED_WORD_CLASSES),
+            # so narrow credit to just the closed-class side. A tie among
+            # only-closed or only-open candidates has no such signal and
+            # is left split across all of them, as before.
+            closed_candidates = {
+                key
+                for key in easiest_candidates
+                if is_closed_word_class(entries[key].gender)
+            }
+            tiebreak_applied = bool(closed_candidates) and closed_candidates != easiest_candidates
+            if tiebreak_applied:
+                easiest_candidates = closed_candidates
             for key in easiest_candidates:
                 exposure[key]["count"] += count
                 exposure[key]["forms"] += 1
@@ -365,6 +399,8 @@ def match_source_to_entries(
                 exposure[key]["maximumCandidateCount"] = max(
                     exposure[key]["maximumCandidateCount"], len(candidates)
                 )
+                if tiebreak_applied:
+                    exposure[key]["closedClassTiebreak"] = True
             continue
         if not candidates:
             continue
@@ -455,6 +491,7 @@ def blend_exposure_sources(
     """Rank ambiguous exposure while keeping it separate from entry counts."""
     weights: dict[str, list[float]] = defaultdict(list)
     eligible_bands: dict[str, set[str]] = defaultdict(set)
+    closed_class_tiebreak: dict[str, bool] = defaultdict(bool)
 
     for source_id, evidence in source_exposure.items():
         if not evidence:
@@ -469,6 +506,8 @@ def blend_exposure_sources(
             normalized = 1.0 if span <= 0 else (log_values[key] - floor) / span
             weights[key].append(normalized)
             eligible_bands[key].update(value["eligibleBands"])
+            if value.get("closedClassTiebreak"):
+                closed_class_tiebreak[key] = True
 
     blended = {key: sum(values) / len(values) for key, values in weights.items()}
     ranked = sorted(blended, key=lambda key: (-blended[key], key))
@@ -477,7 +516,11 @@ def blend_exposure_sources(
             "rank": rank,
             "weight": round(blended[key], 6),
             "eligibleBands": sorted(eligible_bands[key], key=CEFR_ORDER.__getitem__),
-            "basis": "lowest-cefr",
+            "basis": (
+                "lowest-cefr-closed-class"
+                if closed_class_tiebreak[key]
+                else "lowest-cefr"
+            ),
         }
         for rank, key in enumerate(ranked, start=1)
     }

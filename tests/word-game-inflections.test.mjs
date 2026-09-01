@@ -165,13 +165,18 @@ assert.equal(acceptedEatingAnswers.includes("drikker"), false);
 // An invariant source adjective in predicate position needs its subject to
 // resolve agreement before a synonym with distinct forms can be accepted.
 // The ordinary conservative cloze set cannot infer that from
-// "uforutsigelig" alone, but "været" establishes neuter singular.
+// "uforutsigelig" alone, but "resultatet" establishes neuter singular.
+// (This used to use "været"/vær, but the dictionary now also has a "være"
+// noun sense whose regular-noun-guessed definite singular is also
+// "været" — that real ambiguity correctly makes subject agreement
+// unresolvable for that surface form, so the fixture needs an
+// unambiguous neuter noun instead.)
 const unpredictableEntry = {
   ord: "uforutsigelig",
   engelsk: "unpredictable",
   gender: "adjective",
   CEFR: "C",
-  eksempel: "Været her er uforutsigelig og endrer seg raskt.",
+  eksempel: "Resultatet her er uforutsigelig og endrer seg raskt.",
 };
 const unpredictableSynonym = {
   ord: "uforutsigbar",
@@ -179,10 +184,10 @@ const unpredictableSynonym = {
   gender: "adjective",
   CEFR: "B2",
 };
-const weatherEntry = { ord: "vær", gender: "et" };
+const resultEntry = { ord: "resultat", gender: "et" };
 const unpredictableTarget = await context.findClozeTarget(unpredictableEntry);
 assert.deepEqual([...unpredictableTarget.slotIndexes], [0, 1, 2]);
-context.results = [unpredictableEntry, unpredictableSynonym, weatherEntry];
+context.results = [unpredictableEntry, unpredictableSynonym, resultEntry];
 const strictUnpredictableAnswers = context.getTypedAcceptedAnswers(
   unpredictableEntry,
   true,

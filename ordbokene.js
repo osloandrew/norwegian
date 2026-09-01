@@ -523,17 +523,6 @@
     const rightWordClass = getCanonicalWordClass(right?.gender);
     if (leftWordClass === rightWordClass) return true;
 
-    // Bokmålsordboka classifies some quantity words as determiners even
-    // though the learner CSV deliberately presents them as numerals (for
-    // example "tjuefem" and "en, én"). When their headwords overlap, the
-    // authored CSV entry is authoritative; otherwise the fallback produces
-    // a second card for the same word under a conflicting class label.
-    // `left` is the Ordbøkene candidate and `right` is the CSV entry in
-    // mergeEntries below, so keep this exception deliberately one-way.
-    if (leftWordClass === "determiner" && rightWordClass === "numeral") {
-      return true;
-    }
-
     // Some uninflected official articles do not expose a paradigm tag, so
     // their word class cannot be inferred. If that otherwise-unclassified
     // fallback shares an exact headword with a local entry, displaying both

@@ -619,7 +619,7 @@ function updateFeatureMetadata(type) {
   const canonicalURL = new URL(route, APP_ROOT_URL);
   const pageTitle = `${metadata.title} | Norwegian Dictionary`;
   const socialImageURL = new URL(
-    "Resources/Icons/android-chrome-512x512.png",
+    "Resources/Icons/social-card.png",
     APP_ROOT_URL,
   ).href;
 
@@ -701,7 +701,7 @@ function updateWordMetadata(entry) {
   );
 
   const socialImageURL = new URL(
-    "Resources/Icons/android-chrome-512x512.png",
+    "Resources/Icons/social-card.png",
     APP_ROOT_URL,
   ).href;
 

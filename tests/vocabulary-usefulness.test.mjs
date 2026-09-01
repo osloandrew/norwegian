@@ -23,8 +23,13 @@ assert.equal(
 );
 assert.ok(frequencyData.sources.clarino.sourceLexicalForms >= 50000);
 assert.ok(frequencyData.matchedDictionaryEntries >= 14000);
+// "i" itself is no longer usable for this check: the dictionary also lists
+// "I, i" as the letter name, and the ambiguity-safety rule this build
+// documents credits neither entry once a surface form has more than one
+// claimant. "på" remains an unambiguous stand-in for the same "a common
+// function word outranks a common concrete noun" assertion.
 assert.ok(
-  frequencyData.entries["i|preposition"].rank <
+  frequencyData.entries["på|preposition"].rank <
     frequencyData.entries["hus|et"].rank,
 );
 // The source documentation calls uppercase Foto a newspaper-credit artifact;
@@ -75,7 +80,7 @@ vm.runInContext(
 );
 
 const topWeight = context.getVocabularyUsefulnessWeight({
-  ord: "i",
+  ord: "på",
   gender: "preposition",
 });
 const commonWeight = context.getVocabularyUsefulnessWeight({
@@ -95,7 +100,7 @@ assert.ok(topWeight > commonWeight);
 assert.ok(commonWeight > rareWeight);
 assert.ok(rareWeight > 1);
 assert.ok(topWeight <= 1.7);
-// "i" is an extremely common word across all three blended registers, but
+// "på" is an extremely common word across all three blended registers, but
 // blending is a mean across sources rather than a single corpus's max, so
 // this only requires it to be near the top of the boost range, not at it.
 assert.ok(topWeight > 1.6);

@@ -21,7 +21,7 @@ const CEFR_LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C"];
 // Word classes excluded from cloze/distractor generation — too grammatically
 // constrained (e.g. a numeral rarely substitutes for another numeral in
 // context) to make plausible-but-wrong answer choices.
-const BANNED_WORD_CLASSES = ["numeral", "pronoun", "possessive", "determiner"];
+const BANNED_WORD_CLASSES = ["pronoun", "determiner"];
 
 // A small reviewed bridge over an intentional limitation of the automatic
 // frequency build: forms claimed by multiple dictionary rows receive no
@@ -44,13 +44,12 @@ const A0_ESSENTIAL_WORDS = new Set([
 const A0_FUNCTION_WORD_CLASSES = new Set([
   "pronoun",
   "determiner",
-  "possessive",
   "preposition",
   "conjunction",
 ]);
 const A0_ESSENTIAL_CLASS_OVERRIDES = Object.freeze({
   dette: new Set(["determiner"]),
-  en: new Set(["numeral"]),
+  en: new Set(["determiner"]),
   for: new Set(["conjunction", "preposition"]),
   ham: new Set(["pronoun"]),
   han: new Set(["pronoun"]),
@@ -60,7 +59,7 @@ const A0_ESSENTIAL_CLASS_OVERRIDES = Object.freeze({
   nå: new Set(["adverb"]),
   om: new Set(["preposition"]),
   ved: new Set(["preposition"]),
-  vår: new Set(["possessive"]),
+  vår: new Set(["determiner"]),
   å: new Set(["conjunction"]),
 });
 
@@ -1124,8 +1123,6 @@ function getGameGenderLabel(gender) {
   if (normalizedGender.startsWith("determiner")) return "determiner";
   if (normalizedGender.startsWith("expression")) return "expression";
   if (normalizedGender.startsWith("interjection")) return "interjection";
-  if (normalizedGender.startsWith("numeral")) return "numeral";
-  if (normalizedGender.startsWith("possessive")) return "possessive";
   if (normalizedGender.startsWith("preposition")) return "preposition";
   if (normalizedGender.startsWith("pronoun")) return "pronoun";
   return String(gender ?? "");
