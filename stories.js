@@ -1636,10 +1636,10 @@ function displayStory(
       const titleNode = document.createElement("div");
       titleNode.className = "sticky-title-container";
       titleNode.innerHTML = `
-  <h1 lang="nb" class="sticky-title-japanese">${selectedStory.titleNorwegian}</h1>
+  <h1 lang="nb" class="sticky-title-japanese">${escapeHTML(selectedStory.titleNorwegian)}</h1>
   ${
     selectedStory.titleNorwegian !== selectedStory.titleEnglish
-      ? `<p lang="en" class="sticky-title-english">${selectedStory.titleEnglish}</p>`
+      ? `<p lang="en" class="sticky-title-english">${escapeHTML(selectedStory.titleEnglish)}</p>`
       : ""
   }
 `;
@@ -1872,7 +1872,10 @@ function getStoryImageCandidates(titleEnglish) {
   const encodedTitles = [...new Set([title, sanitized])].map(
     encodeURIComponent,
   );
-  const imageExtensions = ["png", "webp", "jpg", "avif", "jpeg", "gif"];
+  // Ordered by actual frequency in Resources/Images/ (jpg ~243, webp ~119,
+  // png ~15, avif/jpeg/gif a handful) so the common case resolves on the
+  // first request instead of racking up avoidable 404s.
+  const imageExtensions = ["jpg", "webp", "png", "avif", "jpeg", "gif"];
 
   // Anchored to APP_ROOT_URL — see fetchFreshStoryData's identical fix
   // above for why a bare relative path here breaks after in-app

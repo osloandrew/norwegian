@@ -28,6 +28,6 @@ test("mobile search cannot preserve an intrinsic width over the letter keys", ()
   );
   assert.match(
     navigationStyles,
-    /@media \(max-width:\s*1024px\)[\s\S]*?\.search-norwegian-letter-keys\s*{[^}]*flex:\s*0 0 100px;[^}]*min-width:\s*100px;/,
+    /@media \(max-width:\s*1024px\)[\s\S]*?\.search-norwegian-letter-keys\s*{[^}]*flex:\s*0 0 142px;[^}]*min-width:\s*142px;/,
   );
 });

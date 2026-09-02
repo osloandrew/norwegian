@@ -1037,6 +1037,11 @@ li {
   .game-teaching-reveal {
     transition: none;
   }
+
+  .game-correct-card,
+  .game-incorrect-card {
+    animation: none;
+  }
 }
 
 .game-correct-card {
@@ -3378,9 +3383,14 @@ h4 {
     gap: 3px;
   }
 
+  /* 44px matches the search bar's letter keys (styles/35-navigation.css) —
+     the accepted minimum touch-target size, for the same keyboard-less
+     Norwegian learner reaching for these on every typed-answer question.
+     The row is already a comfortable 60px tall (stretched to the answer
+     field's height); only the width needed the floor raised. */
   .game-norwegian-letter-key {
     font-size: 1.05em;
-    min-width: 32px;
+    min-width: 44px;
     padding: 8px 4px;
   }
 

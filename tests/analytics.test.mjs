@@ -19,5 +19,9 @@ test("successful Google auth emits GA4 recommended events", async () => {
   const source = await readFile(new URL("myWordsAuth.js", root), "utf8");
 
   assert.match(source, /isNewUser \? "sign_up" : "login"/);
-  assert.match(source, /method:\s*"Google"/);
+  // trackSignInResult(result, method) now takes the sign-in method as a
+  // parameter (Email Link sign-ins pass "EmailLink") — "Google" is its
+  // default, which is what the popup/redirect call sites still rely on by
+  // calling it with no second argument.
+  assert.match(source, /function trackSignInResult\(result, method = "Google"\)/);
 });

@@ -123,3 +123,56 @@
   cursor: not-allowed;
   opacity: 0.65;
 }
+
+/* Sign-in chooser + account-recovery + email-link-confirmation dialogs.
+   Reuse the .feedback-dialog* shape/classes above (this file's own name
+   predates there being more than one dialog family); only pieces with no
+   existing analog get their own rules below. See openSignInChooserDialog(),
+   renderProviderRecoveryState(), and promptForEmailLinkConfirmation() in
+   myWordsAuth.js. */
+.feedback-dialog input[type="email"] {
+  border: 1px solid var(--color-border-input);
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 16px; /* iOS zooms focused controls below 16px. */
+  padding: 8px 10px;
+  width: 100%;
+}
+
+.feedback-dialog input[type="email"]:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 1px;
+}
+
+.auth-dialog-divider {
+  align-items: center;
+  color: var(--color-text-muted);
+  display: flex;
+  font-size: 12px;
+  gap: 10px;
+  margin: 16px 0;
+  text-transform: uppercase;
+}
+
+.auth-dialog-divider::before,
+.auth-dialog-divider::after {
+  background-color: var(--color-border);
+  content: "";
+  flex: 1;
+  height: 1px;
+}
+
+/* Full-width and centered at the dialog's narrower fixed width, unlike the
+   header's own compact version of this same class. */
+.auth-dialog-google-btn {
+  justify-content: center;
+  width: 100%;
+}
+
+/* The header button's "there's a reason to sign in" notification dot
+   (.google-signin-btn::after) doesn't belong on a button already inside an
+   open sign-in dialog. */
+.auth-dialog-google-btn::after {
+  display: none;
+}

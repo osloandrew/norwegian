@@ -95,7 +95,7 @@
     -->
     <link
       rel="stylesheet"
-      href="styles/00-foundations-and-game.css?v=6cf7860c04"
+      href="styles/00-foundations-and-game.css?v=066fc84a41"
     />
     <link
       rel="stylesheet"
@@ -103,7 +103,7 @@
     />
     <link
       rel="stylesheet"
-      href="styles/10-shell-landing-and-stats.css?v=061b6e25cf"
+      href="styles/10-shell-landing-and-stats.css?v=2e0cf51471"
     />
     <link
       rel="stylesheet"
@@ -115,11 +115,11 @@
     />
     <link
       rel="stylesheet"
-      href="styles/35-navigation.css?v=c788061503"
+      href="styles/35-navigation.css?v=dc155b1846"
     />
     <link
       rel="stylesheet"
-      href="styles/45-feedback-dialog.css?v=d9cfe97ac2"
+      href="styles/45-feedback-dialog.css?v=8f04eb4a4a"
     />
     <link
       rel="apple-touch-icon"
@@ -506,38 +506,29 @@
             ></div>
           </div>
 
+          <!-- No Google logo here on purpose: this now opens the sign-in
+               chooser dialog (openSignInChooserDialog() in myWordsAuth.js),
+               not Google directly, so it shouldn't visually commit to one
+               provider before the person has picked one — see
+               buildGoogleContinueButton() there for where that logo
+               actually belongs (the dialog's own Google button). -->
           <button
             id="google-signin-btn"
             type="button"
             class="google-signin-btn"
-            title="Sign in with Google to sync My Words across devices"
+            title="Sign in to sync My Words across devices"
           >
-            <svg
-              class="google-signin-btn-logo"
-              viewBox="0 0 18 18"
-              aria-hidden="true"
-            >
-              <path
-                fill="#4285F4"
-                d="M17.64 9.2045c0-.6381-.0573-1.2518-.1636-1.8409H9v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2582h2.9087c1.7018-1.5668 2.6836-3.874 2.6836-6.6151z"
-              />
-              <path
-                fill="#34A853"
-                d="M9 18c2.43 0 4.4673-.806 5.9564-2.1805l-2.9087-2.2582c-.8064.54-1.8368.859-3.0477.859-2.3436 0-4.3282-1.5831-5.036-3.7104H.9573v2.3318C2.4382 15.9832 5.4818 18 9 18z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M3.964 10.71c-.18-.54-.2827-1.1168-.2827-1.71s.1027-1.17.2827-1.71V4.9582H.9573C.3477 6.1732 0 7.5477 0 9s.3477 2.8268.9573 4.0418L3.964 10.71z"
-              />
-              <path
-                fill="#EA4335"
-                d="M9 3.5795c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5813C13.4632.8918 11.4259 0 9 0 5.4818 0 2.4382 2.0168.9573 4.9582L3.964 7.29C4.6718 5.1627 6.6564 3.5795 9 3.5795z"
-              />
-            </svg>
             Sign In
           </button>
 
           <div id="auth-user-info" class="auth-user-info hidden">
+            <!-- Toggled against .auth-google-logo by updateAuthUI() in
+                 myWordsAuth.js — the Google "G" only makes sense once a
+                 second (email-link) sign-in method exists. -->
+            <i
+              class="fas fa-circle-user auth-generic-logo hidden"
+              aria-hidden="true"
+            ></i>
             <svg
               class="auth-google-logo"
               viewBox="0 0 18 18"
@@ -675,7 +666,12 @@
       </a>
     </nav>
 
-    <div id="sticky-header" class="hidden">
+    <div
+      id="sticky-header"
+      class="hidden"
+      role="region"
+      aria-label="Story reading controls"
+    >
       <button id="back-button">← Back to Stories</button>
       <button id="toggle-english-btn" class="toggle-btn">Show English</button>
     </div>
@@ -1364,7 +1360,7 @@
     <script src="pronunciation.js?v=e0bab555ae" defer></script>
     <script src="wordList.js?v=cbedfa41b8" defer></script>
     <script src="storyFavorites.js?v=c152eb5155" defer></script>
-    <script src="myWordsAuth.js?v=69a1c05bc0" defer></script>
+    <script src="myWordsAuth.js?v=4f16e17eb4" defer></script>
     <script src="noRandom.js?v=c0e580f83f" defer></script>
     <script src="noRandomLetters.js?v=e2740bcb78" defer></script>
     <script src="ordbokene.js?v=3b5cf3012b" defer></script>
@@ -1373,8 +1369,8 @@
     <script src="wordGame.js?v=4abf847760" defer></script>
     <script src="placementTest.js?v=b19d74f0fb" defer></script>
     <script src="streak.js?v=725df5ff2f" defer></script>
-    <script src="stories.js?v=7ef50a4262" defer></script>
-    <script src="storyQuiz.js?v=23091fc199" defer></script>
+    <script src="stories.js?v=f6dc073857" defer></script>
+    <script src="storyQuiz.js?v=dc40ee8f21" defer></script>
     <script src="myStats.js?v=8ac402457c" defer></script>
     <script src="settings.js?v=bfc4834be9" defer></script>
     <script src="about.js?v=039a2d43a5" defer></script>

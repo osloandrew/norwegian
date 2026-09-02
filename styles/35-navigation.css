@@ -793,29 +793,51 @@ body.word-game-mode .search-and-random-wrapper {
     flex: 1 1 0;
     /* iOS zooms focused controls whose computed text size is below 16px. */
     font-size: 16px;
+    height: 44px;
     min-width: 0;
+    /* Tighter than the 16px base padding: the wider letter keys leave this
+       field less room than before, and height:44px above already replaces
+       the base rule's vertical padding, so there's nothing lost by giving
+       the horizontal side back too. */
+    padding: 0 12px;
     width: 0;
+  }
+
+  /* One notch below the 14px base (#search-bar::placeholder, shared file)
+     to buy back some of the width the wider letter keys took from this
+     field — paired with text-overflow: ellipsis (input[type="text"], see
+     shared file) so whatever still doesn't fit truncates cleanly instead
+     of clipping mid-letter. */
+  #search-bar::placeholder {
+    font-size: 13px;
   }
 
   .search-bar-wrapper {
     flex: 1 1 0;
+    height: 44px;
     min-width: 0;
     width: 0;
   }
 
   .search-btn {
-    max-width: 42px;
-    min-width: 42px;
+    height: 44px;
+    max-width: 44px;
+    min-width: 44px;
     padding: 8px;
   }
 
+  /* 44px matches the accepted minimum touch-target size. These three keys
+     are the ones a keyboard-less Norwegian learner reaches for on every
+     search, so they get the same floor the field/button now share here,
+     instead of the tighter 30px this breakpoint used before. */
   .search-norwegian-letter-key {
-    flex-basis: 30px;
+    flex-basis: 44px;
   }
 
   .search-norwegian-letter-keys {
-    flex: 0 0 100px;
-    min-width: 100px;
+    flex: 0 0 142px;
+    height: 44px;
+    min-width: 142px;
   }
 
   .search-btn i {

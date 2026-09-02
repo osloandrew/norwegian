@@ -40,6 +40,12 @@
     },
   ];
   const WAS_SIGNED_IN_KEY = "norwegian-dictionary-was-signed-in-v1";
+  // Email a sign-in link was sent to, written just before sendSignInLinkToEmail
+  // resolves. Read back by completeEmailLinkSignIn() when the link is opened
+  // in the same browser; cleared once that sign-in attempt finishes either
+  // way. If it's opened in a different browser (or this was cleared), the
+  // visitor is re-prompted for it instead — see promptForEmailLinkConfirmation.
+  const PENDING_EMAIL_LINK_KEY = "norwegian-dictionary-pending-email-link-v1";
   // Superseded by SIGNIN_NUDGE_STATE_KEY below, which tracks re-nudging by
   // milestone instead of a single ever-shown flag — read once, at startup,
   // purely to migrate a visitor who already saw the old one-shot nudge (see
@@ -122,9 +128,8 @@
     return Date.now() < quotaCooldownUntil;
   }
 
-  const SIGN_IN_READY_TITLE =
-    "Sign in with Google to sync My Words across devices";
-  const SIGN_IN_LOADING_TITLE = "Preparing Google sign-in…";
+  const SIGN_IN_READY_TITLE = "Sign in to sync My Words across devices";
+  const SIGN_IN_LOADING_TITLE = "Preparing sign-in…";
 
   // signInWithPopup must run directly inside a trusted click. If the Firebase
   // SDK is first downloaded from that click and the popup starts only after
@@ -1279,6 +1284,21 @@
       if (userName) {
         userName.textContent = user.displayName || user.email || "Signed in";
       }
+
+      // The Google "G" badge is only accurate for a Google-signed-in user —
+      // wrong (and a little confusing) for an email-link one. Detecting
+      // "is Google present" is all this needs; it doesn't depend on
+      // knowing the exact provider id string Email Link itself reports.
+      const isGoogleUser = Boolean(
+        user.providerData?.some((entry) => entry.providerId === "google.com"),
+      );
+      userInfo
+        ?.querySelector(".auth-google-logo")
+        ?.classList.toggle("hidden", !isGoogleUser);
+      userInfo
+        ?.querySelector(".auth-generic-logo")
+        ?.classList.toggle("hidden", isGoogleUser);
+      userInfo?.classList.toggle("non-google-provider", !isGoogleUser);
     } else {
       signInButton?.classList.remove("hidden");
       userInfo?.classList.add("hidden");
@@ -1304,36 +1324,68 @@
   // picked up after the page comes back from Google — same funnel-tracking
   // moment either way, as opposed to onAuthStateChanged firing again for a
   // returning session.
-  function trackSignInResult(result) {
+  function trackSignInResult(result, method = "Google") {
     const isNewUser = Boolean(result?.additionalUserInfo?.isNewUser);
-    window.trackEvent?.(isNewUser ? "sign_up" : "login", {
-      method: "Google",
-    });
+    window.trackEvent?.(isNewUser ? "sign_up" : "login", { method });
     // Retain the existing event during migration so current reports do
     // not break while the recommended GA4 events begin collecting.
     window.trackEvent?.("sign_in_completed", { is_new_user: isNewUser });
   }
 
-  function triggerSignIn() {
+  // auth/popup-blocked is the one failure where we know exactly what went
+  // wrong and what the user can do about it — Safari's ITP, Brave, and any
+  // ad blocker with popup blocking all land here. Naming it directly beats
+  // the generic message, which left that (common) user stuck with no idea
+  // sign-in even attempted anything. `context` defaults to the original
+  // Google-only wording so every existing bare `.catch(alertSignInFailure)`
+  // reference keeps working unchanged; the email-link path passes its own.
+  function alertSignInFailure(error, context = "Google sign-in") {
+    console.warn(`${context} failed.`, error);
+    if (error?.code === "auth/popup-blocked") {
+      window.alert(
+        "Your browser blocked the Google sign-in popup. Please allow pop-ups for this site and try again.",
+      );
+    } else {
+      window.alert(`${context} failed. Please try again.`);
+    }
+  }
+
+  // `linkCredential`, when passed, attaches an AuthCredential from a
+  // *different* provider (e.g. a pending email-link credential) to the
+  // account this call signs into — see handleAccountExistsWithDifferentCredential.
+  // Only honored on the popup path: the redirect path navigates this window
+  // away immediately, and an AuthCredential object can't be safely carried
+  // across that round trip, so a redirect sign-in here just completes
+  // normally without linking (matches the same trade-off the email-link
+  // recovery branch makes for its own reload boundary).
+  function triggerSignIn({ linkCredential } = {}) {
     if (isStandaloneDisplayMode()) {
-      // The redirect itself navigates this window away immediately; the
-      // result is collected by getRedirectResult() in initAuth() on the
+      // The result is collected by getRedirectResult() in initAuth() on the
       // next load, not from this promise.
       return auth.signInWithRedirect(provider).catch((error) => {
-        console.warn("Google sign-in failed.", error);
-        window.alert("Google sign-in failed. Please try again.");
+        if (error?.code === "auth/account-exists-with-different-credential") {
+          handleAccountExistsWithDifferentCredential(error, "google.com");
+          return;
+        }
+        alertSignInFailure(error);
       });
     }
 
     return auth
       .signInWithPopup(provider)
-      .then((result) => {
+      .then(async (result) => {
+        if (linkCredential) {
+          await result.user.linkWithCredential(linkCredential);
+        }
         trackSignInResult(result);
       })
       .catch((error) => {
+        if (error?.code === "auth/account-exists-with-different-credential") {
+          handleAccountExistsWithDifferentCredential(error, "google.com");
+          return;
+        }
         if (error?.code !== "auth/popup-closed-by-user") {
-          console.warn("Google sign-in failed.", error);
-          window.alert("Google sign-in failed. Please try again.");
+          alertSignInFailure(error);
         }
       });
   }
@@ -1356,6 +1408,563 @@
     triggerSignIn().finally(() => {
       button.disabled = false;
     });
+  }
+
+  // --- Email link (passwordless) sign-in + account linking -------------
+  //
+  // Firebase does not, by itself, guarantee that signing in with Google and
+  // signing in via an email link for the same address land in the same
+  // account — that requires (a) "Link accounts that use the same email" set
+  // in the Firebase Console (Authentication > Settings > User account
+  // linking), and (b) the logic below. Two guards, because Firebase's
+  // collision behavior differs by direction:
+  //  - checkEmailForExistingProvider() is the *load-bearing* guard for
+  //    "already has Google, tries email link": Email Link and Email/Password
+  //    share Firebase's "password" provider family, and that family's own
+  //    sign-in call does not reliably throw the same collision error an
+  //    OAuth attempt does — so this is checked proactively, before a link is
+  //    ever sent, rather than relied on as a catch afterward.
+  //  - handleAccountExistsWithDifferentCredential() is the load-bearing
+  //    guard for the reverse direction ("already has an email-link account,
+  //    tries Google") — auth/account-exists-with-different-credential is a
+  //    well-documented, reliable error from signInWithPopup/signInWithRedirect
+  //    in that case. It's also wired into the email-link completion path
+  //    below as defense-in-depth, though it's not expected to reliably fire
+  //    from there for the reasons above.
+
+  let authDialogTriggerElement = null;
+  let authDialogDismissResolver = null;
+
+  function handleAuthDialogKeydown(event) {
+    if (event.key === "Escape") {
+      closeAuthDialog();
+      return;
+    }
+
+    // Mirrors handleFeedbackDialogKeydown's manual Tab-cycle: aria-modal
+    // claims the background is inert, but nothing enforces that for a
+    // sighted keyboard user without this.
+    if (event.key === "Tab") {
+      const dialog = document.querySelector(".auth-dialog");
+      if (!dialog) return;
+
+      const focusable = dialog.querySelectorAll(
+        "button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex='-1'])",
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+  }
+
+  // Symmetric to closeFeedbackDialog() in scripts.js, for the same
+  // single-dialog-at-a-time invariant across both dialog families — see
+  // openAuthDialogShell()'s call to window.closeFeedbackDialog?.().
+  function closeAuthDialog() {
+    const overlay = document.querySelector(".auth-dialog-overlay");
+    if (!overlay) return;
+
+    overlay.remove();
+    document.removeEventListener("keydown", handleAuthDialogKeydown);
+
+    if (
+      authDialogTriggerElement &&
+      typeof authDialogTriggerElement.focus === "function"
+    ) {
+      authDialogTriggerElement.focus();
+    }
+    authDialogTriggerElement = null;
+
+    // Lets a promise-returning dialog (promptForEmailLinkConfirmation) settle
+    // as "cancelled" when it's dismissed via Escape/backdrop click rather
+    // than its own Cancel button — otherwise that promise would hang
+    // forever. Callers that already settled it themselves clear this first,
+    // so it's a no-op for them.
+    const resolver = authDialogDismissResolver;
+    authDialogDismissResolver = null;
+    resolver?.();
+  }
+
+  // Builds an empty overlay+dialog shell, appended to <body>, and returns
+  // the dialog element for the caller to fill in — mirrors
+  // openFeedbackDialog()'s shape (role="dialog", aria-modal, focus trap,
+  // focus restored to `triggerElement` on close) without importing from
+  // scripts.js, since this needs direct access to `auth`/`provider`, both
+  // private to this file's closure (and scripts.js loads after this file
+  // anyway, so a reverse dependency isn't available).
+  //
+  // The overlay/dialog carry both the shared .feedback-dialog* classes
+  // (for the existing visual rules) and their own .auth-dialog* classes,
+  // so this family's own close/focus-trap logic can query for exactly its
+  // own dialog without colliding with an open feedback dialog, and vice
+  // versa.
+  function openAuthDialogShell(triggerElement) {
+    closeAuthDialog();
+    window.closeFeedbackDialog?.();
+
+    authDialogTriggerElement = triggerElement || null;
+
+    const overlay = document.createElement("div");
+    overlay.className = "feedback-dialog-overlay auth-dialog-overlay";
+
+    const dialog = document.createElement("div");
+    dialog.className = "feedback-dialog auth-dialog";
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.setAttribute("aria-labelledby", "auth-dialog-title");
+    dialog.tabIndex = -1;
+
+    overlay.appendChild(dialog);
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) closeAuthDialog();
+    });
+
+    document.body.appendChild(overlay);
+    document.addEventListener("keydown", handleAuthDialogKeydown);
+
+    return dialog;
+  }
+
+  // Google's "G" logo, used by buildGoogleContinueButton() below to build
+  // "Continue with Google" buttons for the sign-in chooser and the
+  // account-linking recovery state. Static, trusted markup (not derived
+  // from any external/user data), so building it via innerHTML there is
+  // safe. The header's own Sign In button deliberately carries no such
+  // logo — see the comment on #google-signin-btn in index.html — so this
+  // is the only place it's defined.
+  const GOOGLE_LOGO_SVG_MARKUP = `<svg class="google-signin-btn-logo" viewBox="0 0 18 18" aria-hidden="true">
+    <path fill="#4285F4" d="M17.64 9.2045c0-.6381-.0573-1.2518-.1636-1.8409H9v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7959 2.7164v2.2582h2.9087c1.7018-1.5668 2.6836-3.874 2.6836-6.6151z" />
+    <path fill="#34A853" d="M9 18c2.43 0 4.4673-.806 5.9564-2.1805l-2.9087-2.2582c-.8064.54-1.8368.859-3.0477.859-2.3436 0-4.3282-1.5831-5.036-3.7104H.9573v2.3318C2.4382 15.9832 5.4818 18 9 18z" />
+    <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.2827-1.1168-.2827-1.71s.1027-1.17.2827-1.71V4.9582H.9573C.3477 6.1732 0 7.5477 0 9s.3477 2.8268.9573 4.0418L3.964 10.71z" />
+    <path fill="#EA4335" d="M9 3.5795c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5813C13.4632.8918 11.4259 0 9 0 5.4818 0 2.4382 2.0168.9573 4.9582L3.964 7.29C4.6718 5.1627 6.6564 3.5795 9 3.5795z" />
+  </svg>`;
+
+  function buildGoogleContinueButton(labelText) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "google-signin-btn auth-dialog-google-btn";
+    button.insertAdjacentHTML("afterbegin", GOOGLE_LOGO_SVG_MARKUP);
+    button.appendChild(document.createTextNode(labelText));
+    return button;
+  }
+
+  // Classifies an email against Firebase's own records for it, before this
+  // app ever calls sendSignInLinkToEmail — see the file-level comment above
+  // for why this (not a reactive catch) is the real guard for this
+  // direction. "same-provider" covers both "no account yet" and "already
+  // has an email-link/password account" — both are safe to send a link to.
+  async function checkEmailForExistingProvider(email) {
+    const methods = await auth.fetchSignInMethodsForEmail(email);
+    if (methods.length === 0) return { status: "new" };
+    if (methods.includes("emailLink") || methods.includes("password")) {
+      return { status: "same-provider" };
+    }
+    return { status: "other-provider", methods };
+  }
+
+  async function sendEmailSignInLink(email) {
+    const actionCodeSettings = {
+      // document.baseURI, not scripts.js's APP_ROOT_URL — this file loads
+      // before scripts.js and shouldn't depend on it having run yet, even
+      // though in practice it would have by the time this is ever called.
+      url: document.baseURI,
+      handleCodeInApp: true,
+    };
+    await auth.sendSignInLinkToEmail(email, actionCodeSettings);
+    try {
+      localStorage.setItem(PENDING_EMAIL_LINK_KEY, email);
+    } catch (error) {
+      // Best-effort — if storage is unavailable, completeEmailLinkSignIn()
+      // will just re-prompt for the email instead of finding it stored.
+    }
+  }
+
+  // Shared "you already have an account" recovery UI, rendered into an
+  // already-open (empty) dialog. Two callers:
+  //  - the proactive check above, in place, before any link is sent — no
+  //    pendingCredential, since nothing was attempted yet; the existing
+  //    account just needs a normal sign-in.
+  //  - handleAccountExistsWithDifferentCredential() below, on a fresh
+  //    dialog — has a pendingCredential from the attempt that just failed,
+  //    which gets linked onto whichever account the recovery sign-in
+  //    resolves to.
+  function renderProviderRecoveryState(
+    dialog,
+    { email, existingProviderLabel, showGoogleOption, onSendLink, pendingCredential },
+  ) {
+    dialog.innerHTML = "";
+
+    const title = document.createElement("h3");
+    title.id = "auth-dialog-title";
+    title.textContent = "Sign in to continue";
+    dialog.appendChild(title);
+
+    const message = document.createElement("p");
+    message.className = "feedback-dialog-status";
+    message.textContent = `${email} already has an account here, signed in with ${existingProviderLabel}. Sign in that way to continue.`;
+    dialog.appendChild(message);
+
+    const actions = document.createElement("div");
+    actions.className = "feedback-dialog-actions";
+
+    const cancelButton = document.createElement("button");
+    cancelButton.type = "button";
+    cancelButton.className = "feedback-dialog-cancel";
+    cancelButton.textContent = "Cancel";
+    cancelButton.addEventListener("click", closeAuthDialog);
+    actions.appendChild(cancelButton);
+
+    if (showGoogleOption) {
+      const googleButton = buildGoogleContinueButton("Continue with Google");
+      googleButton.addEventListener("click", () => {
+        closeAuthDialog();
+        window.trackEvent?.("sign_in_started", { source: "account-recovery" });
+        googleButton.disabled = true;
+        triggerSignIn({ linkCredential: pendingCredential || undefined }).finally(
+          () => {
+            googleButton.disabled = false;
+          },
+        );
+      });
+      actions.appendChild(googleButton);
+    } else if (onSendLink) {
+      const sendButton = document.createElement("button");
+      sendButton.type = "button";
+      sendButton.className = "feedback-dialog-submit";
+      sendButton.textContent = "Send sign-in link";
+      sendButton.addEventListener("click", async () => {
+        sendButton.disabled = true;
+        cancelButton.disabled = true;
+        try {
+          await onSendLink();
+          message.textContent = "Check your email for a sign-in link.";
+          message.classList.remove("feedback-dialog-status-error");
+          actions.innerHTML = "";
+          const closeButton = document.createElement("button");
+          closeButton.type = "button";
+          closeButton.className = "feedback-dialog-cancel";
+          closeButton.textContent = "Close";
+          closeButton.addEventListener("click", closeAuthDialog);
+          actions.appendChild(closeButton);
+        } catch (error) {
+          console.warn("Sending the sign-in link failed.", error);
+          message.textContent = "Something went wrong. Please try again.";
+          message.classList.add("feedback-dialog-status-error");
+          sendButton.disabled = false;
+          cancelButton.disabled = false;
+        }
+      });
+      actions.appendChild(sendButton);
+    }
+
+    dialog.appendChild(actions);
+    dialog.focus();
+  }
+
+  // `attemptedProvider` ("google.com" or "emailLink") identifies which
+  // credential the *caller* just tried — not looked up. Firebase only
+  // throws this error when the email's existing account uses a *different*
+  // provider than the one just attempted, and with only two providers in
+  // this app, that alone determines which one it is. This deliberately
+  // does not call fetchSignInMethodsForEmail() to double-check: with Email
+  // Enumeration Protection on (the default for newer Firebase projects,
+  // and on for this one), that call always returns [] regardless of the
+  // account's real state, so it can't be trusted to distinguish the two
+  // here — see checkEmailForExistingProvider()'s file-level comment for
+  // the same limitation on the proactive side.
+  function handleAccountExistsWithDifferentCredential(error, attemptedProvider) {
+    const pendingCredential = error.credential;
+    const email = error.email || error.customData?.email;
+    if (!email || !pendingCredential) {
+      alertSignInFailure(error);
+      return;
+    }
+
+    const dialog = openAuthDialogShell(null);
+
+    if (attemptedProvider === "google.com") {
+      // Attempted Google, collided with an existing password-family
+      // (email-link) account.
+      renderProviderRecoveryState(dialog, {
+        email,
+        existingProviderLabel: "email link",
+        showGoogleOption: false,
+        onSendLink: () => sendEmailSignInLink(email),
+      });
+    } else {
+      // Attempted email link, collided with an existing Google account —
+      // full one-click link, since pendingCredential is used synchronously
+      // from here.
+      renderProviderRecoveryState(dialog, {
+        email,
+        existingProviderLabel: "Google",
+        showGoogleOption: true,
+        pendingCredential,
+      });
+    }
+  }
+
+  // Cross-device email-link completion: the link was requested on a
+  // browser other than this one (or PENDING_EMAIL_LINK_KEY was otherwise
+  // lost), so there's no stored email to complete the sign-in with.
+  // Firebase requires the email as a second factor for this flow, so ask
+  // for it here instead. Resolves with the entered email, or null if
+  // cancelled/dismissed.
+  function promptForEmailLinkConfirmation() {
+    return new Promise((resolve) => {
+      let settled = false;
+      const settle = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      // Set *after* openAuthDialogShell(), not before: that call itself
+      // closes any dialog already open, which would otherwise immediately
+      // invoke this resolver (settling this promise as cancelled) before
+      // the dialog it's meant to guard has even been built.
+      const dialog = openAuthDialogShell(null);
+      authDialogDismissResolver = () => settle(null);
+
+      const title = document.createElement("h3");
+      title.id = "auth-dialog-title";
+      title.textContent = "Confirm your email";
+      dialog.appendChild(title);
+
+      const message = document.createElement("p");
+      message.className = "feedback-dialog-status";
+      message.textContent =
+        "Enter the email address you signed in with to finish.";
+      dialog.appendChild(message);
+
+      const emailLabel = document.createElement("label");
+      emailLabel.className = "feedback-dialog-label";
+      emailLabel.htmlFor = "auth-dialog-confirm-email";
+      emailLabel.textContent = "Email";
+      dialog.appendChild(emailLabel);
+
+      const emailInput = document.createElement("input");
+      emailInput.type = "email";
+      emailInput.id = "auth-dialog-confirm-email";
+      emailInput.autocomplete = "email";
+      dialog.appendChild(emailInput);
+
+      const status = document.createElement("p");
+      status.className = "feedback-dialog-status";
+      dialog.appendChild(status);
+
+      const actions = document.createElement("div");
+      actions.className = "feedback-dialog-actions";
+
+      const cancelButton = document.createElement("button");
+      cancelButton.type = "button";
+      cancelButton.className = "feedback-dialog-cancel";
+      cancelButton.textContent = "Cancel";
+      cancelButton.addEventListener("click", () => {
+        // Settle before closing: closeAuthDialog() also invokes
+        // authDialogDismissResolver, but settle()'s own guard makes that
+        // second call a no-op once this one has already run.
+        settle(null);
+        closeAuthDialog();
+      });
+
+      const submitButton = document.createElement("button");
+      submitButton.type = "button";
+      submitButton.className = "feedback-dialog-submit";
+      submitButton.textContent = "Complete sign-in";
+      submitButton.addEventListener("click", () => {
+        const email = emailInput.value.trim();
+        if (!email || !emailInput.checkValidity()) {
+          status.textContent = "Please enter a valid email address.";
+          status.classList.add("feedback-dialog-status-error");
+          emailInput.focus();
+          return;
+        }
+        settle(email);
+        closeAuthDialog();
+      });
+
+      actions.appendChild(cancelButton);
+      actions.appendChild(submitButton);
+      dialog.appendChild(actions);
+
+      emailInput.focus();
+    });
+  }
+
+  // Runs once per page load, from initAuth() — completes an email-link
+  // sign-in if this load's URL is one (Firebase appends its own oobCode/
+  // mode/apiKey query params to the link), and is a no-op otherwise.
+  async function completeEmailLinkSignIn() {
+    if (!auth.isSignInWithEmailLink(window.location.href)) return;
+
+    try {
+      let email = null;
+      try {
+        email = localStorage.getItem(PENDING_EMAIL_LINK_KEY);
+      } catch (error) {
+        email = null;
+      }
+
+      if (!email) {
+        email = await promptForEmailLinkConfirmation();
+        if (!email) return; // Cancelled — still cleaned up in `finally` below.
+      }
+
+      const result = await auth.signInWithEmailLink(email, window.location.href);
+      trackSignInResult(result, "EmailLink");
+    } catch (error) {
+      if (error?.code === "auth/account-exists-with-different-credential") {
+        handleAccountExistsWithDifferentCredential(error, "emailLink");
+      } else if (error?.code === "auth/invalid-action-code") {
+        window.alert(
+          "This sign-in link has expired or was already used. Please request a new one.",
+        );
+      } else {
+        alertSignInFailure(error, "Email sign-in");
+      }
+    } finally {
+      try {
+        localStorage.removeItem(PENDING_EMAIL_LINK_KEY);
+      } catch (error) {
+        // Best-effort.
+      }
+      // Strips oobCode/mode/apiKey so a reload can't replay a consumed code.
+      history.replaceState(
+        null,
+        "",
+        window.location.pathname + window.location.hash,
+      );
+    }
+  }
+
+  // The Sign In entry point: a "Continue with Google" button (fires the
+  // existing popup/redirect flow unchanged, as a direct synchronous click
+  // on *this* button — the popup-timing constraint holds because this is
+  // itself a fresh real user gesture) plus an email field below it.
+  function openSignInChooserDialog(triggerElement) {
+    const dialog = openAuthDialogShell(triggerElement);
+
+    const title = document.createElement("h3");
+    title.id = "auth-dialog-title";
+    title.textContent = "Sign in";
+    dialog.appendChild(title);
+
+    const googleButton = buildGoogleContinueButton("Continue with Google");
+    googleButton.addEventListener("click", () => {
+      closeAuthDialog();
+      handleInteractiveSignIn("dialog", googleButton);
+    });
+    dialog.appendChild(googleButton);
+
+    const divider = document.createElement("div");
+    divider.className = "auth-dialog-divider";
+    divider.textContent = "or";
+    dialog.appendChild(divider);
+
+    const emailLabel = document.createElement("label");
+    emailLabel.className = "feedback-dialog-label";
+    emailLabel.htmlFor = "auth-dialog-email";
+    emailLabel.textContent = "Email";
+    dialog.appendChild(emailLabel);
+
+    const emailInput = document.createElement("input");
+    emailInput.type = "email";
+    emailInput.id = "auth-dialog-email";
+    emailInput.autocomplete = "email";
+    emailInput.placeholder = "you@example.com";
+    dialog.appendChild(emailInput);
+
+    const status = document.createElement("p");
+    status.className = "feedback-dialog-status";
+    dialog.appendChild(status);
+
+    const actions = document.createElement("div");
+    actions.className = "feedback-dialog-actions";
+
+    const cancelButton = document.createElement("button");
+    cancelButton.type = "button";
+    cancelButton.className = "feedback-dialog-cancel";
+    cancelButton.textContent = "Cancel";
+    cancelButton.addEventListener("click", closeAuthDialog);
+
+    const sendButton = document.createElement("button");
+    sendButton.type = "button";
+    sendButton.className = "feedback-dialog-submit";
+    sendButton.textContent = "Send sign-in link";
+    sendButton.addEventListener("click", async () => {
+      const email = emailInput.value.trim();
+      if (!email || !emailInput.checkValidity()) {
+        status.textContent = "Please enter a valid email address.";
+        status.classList.add("feedback-dialog-status-error");
+        emailInput.focus();
+        return;
+      }
+
+      sendButton.disabled = true;
+      cancelButton.disabled = true;
+      status.classList.remove("feedback-dialog-status-error");
+      status.textContent = "Checking…";
+
+      try {
+        // Unlike the popup path, nothing here needs to run inside a
+        // synchronous click — this is a plain async network call, so it's
+        // safe to await SDK loading if it hasn't happened yet.
+        if (!auth) await ensureAuthReady();
+
+        const check = await checkEmailForExistingProvider(email);
+        if (check.status === "other-provider") {
+          // "same-provider" already covers the email-link/password case
+          // above, so with only two providers in this app, "other" can
+          // only mean Google — no need to inspect check.methods (and
+          // safer than checking .includes("google.com"): that would
+          // silently leave neither recovery option offered if this app
+          // ever gains a third provider without this being updated).
+          renderProviderRecoveryState(dialog, {
+            email,
+            existingProviderLabel: "Google",
+            showGoogleOption: true,
+          });
+          return;
+        }
+
+        status.textContent = "Sending…";
+        await sendEmailSignInLink(email);
+        status.classList.remove("feedback-dialog-status-error");
+        status.textContent = "Check your email for a sign-in link.";
+        emailInput.disabled = true;
+        sendButton.remove();
+        cancelButton.textContent = "Close";
+        cancelButton.disabled = false;
+      } catch (error) {
+        console.warn("Sending the sign-in link failed.", error);
+        status.textContent = "Something went wrong. Please try again.";
+        status.classList.add("feedback-dialog-status-error");
+        sendButton.disabled = false;
+        cancelButton.disabled = false;
+      }
+    });
+
+    actions.appendChild(cancelButton);
+    actions.appendChild(sendButton);
+    dialog.appendChild(actions);
+
+    // Matches openFeedbackDialog()'s convention: focus the dialog itself on
+    // narrow/touch widths rather than a field directly, since programmatic
+    // focus can behave surprisingly there.
+    const usesCompactAuthDialog = window.matchMedia?.(
+      "(max-width: 1024px)",
+    ).matches;
+    (usesCompactAuthDialog ? dialog : emailInput).focus();
   }
 
   // Runs once, after the SDK scripts have finished loading.
@@ -1391,9 +2000,19 @@
         }
       })
       .catch((error) => {
-        console.warn("Google sign-in failed.", error);
-        window.alert("Google sign-in failed. Please try again.");
+        if (error?.code === "auth/account-exists-with-different-credential") {
+          handleAccountExistsWithDifferentCredential(error, "google.com");
+          return;
+        }
+        alertSignInFailure(error);
       });
+
+    // Completes an email-link sign-in if this load's URL is one. Fire-and-
+    // forget like getRedirectResult() above — onAuthStateChanged handles
+    // whatever the eventual signed-in state turns out to be either way.
+    completeEmailLinkSignIn().catch((error) =>
+      alertSignInFailure(error, "Email sign-in"),
+    );
 
     signOutButton?.addEventListener("click", async () => {
       window.trackEvent?.("sign_out");
@@ -1436,7 +2055,7 @@
   }
 
   signInButton?.addEventListener("click", () => {
-    handleInteractiveSignIn("header", signInButton);
+    openSignInChooserDialog(signInButton);
   });
 
   let wasSignedInBefore = false;
@@ -1580,7 +2199,7 @@
   signInNudgeSignInButton?.addEventListener("click", () => {
     window.trackEvent?.("sign_in_nudge_clicked");
     dismissSignInNudge();
-    handleInteractiveSignIn("nudge", signInNudgeSignInButton);
+    openSignInChooserDialog(signInNudgeSignInButton);
   });
 
   // Called by wordGame.js after the first completed round — the moment a

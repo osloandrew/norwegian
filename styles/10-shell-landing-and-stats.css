@@ -543,6 +543,21 @@ html.reading .story-report-issue-btn {
   height: 20px;
 }
 
+/* Shown instead of .auth-google-logo for a non-Google sign-in (email
+   link) — toggled in updateAuthUI() (myWordsAuth.js). */
+.auth-generic-logo {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+/* The badge's Google-blue border/text only makes sense paired with the
+   Google logo above — neutral for anyone signed in another way. */
+.auth-user-info.non-google-provider {
+  border-color: var(--color-border);
+  color: var(--color-text-strong);
+}
+
 .auth-user-name {
   max-width: 120px;
   overflow: hidden;
@@ -678,7 +693,10 @@ input[type="text"] {
   font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 16px;
   outline: none;
+  overflow: hidden;
   padding: 12px 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Smaller than the typed-text size above -- reads as a hint, not content.

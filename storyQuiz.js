@@ -242,7 +242,7 @@
     const section = document.createElement("div");
     section.className = "story-quiz-section";
     section.innerHTML = `
-      <h3 class="story-quiz-heading">Comprehension Check</h3>
+      <h2 class="story-quiz-heading">Comprehension Check</h2>
       <div class="story-quiz-body"></div>
     `;
     storyContent.appendChild(section);
