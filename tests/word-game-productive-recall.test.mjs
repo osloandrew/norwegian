@@ -135,12 +135,22 @@ assert.equal(
 assert.equal(context.isCloseEnoughTypedAnswer("", "hus"), false);
 assert.equal(context.isCloseEnoughTypedAnswer("hus", ""), false);
 
+// sentenceTranslation always holds exactly one sentence, even one
+// containing internal punctuation (a decimal point, an abbreviation, an
+// exclamation mid-sentence) — it must never be split apart.
 assert.equal(
   context.getGameSentenceTranslation(
-    { sentenceTranslation: "First sentence. Second sentence!" },
+    { sentenceTranslation: "Halleluja! ropte menigheten." },
+    0,
+  ),
+  "Halleluja! ropte menigheten.",
+);
+assert.equal(
+  context.getGameSentenceTranslation(
+    { sentenceTranslation: "Halleluja! ropte menigheten." },
     1,
   ),
-  "Second sentence!",
+  "",
 );
 assert.equal(
   context.getGameSentenceTranslation({ sentenceTranslation: "" }, 0),

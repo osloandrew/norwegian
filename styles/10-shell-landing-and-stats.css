@@ -382,8 +382,12 @@ html.reading .story-report-issue-btn {
    the one-time .signin-nudge-banner (shown after the first completed
    round), but stays up for as long as the visitor remains signed out,
    unlike that banner. */
+/* Match .account-menu-btn's 34px rendered height so the two corner
+   controls line up when signed out. */
 .google-signin-btn {
   position: relative;
+  box-sizing: border-box;
+  height: 34px;
 }
 
 .google-signin-btn::after {

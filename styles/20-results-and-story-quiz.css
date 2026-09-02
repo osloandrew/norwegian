@@ -527,6 +527,16 @@ ul {
   margin: 8px 0 0;
 }
 
+/* .alt-spelling's base 14px (00-foundations-and-game.css) only gets bumped
+   to 0.82em of the headword under the max-width:768px word-list-row rule
+   (30-stories-and-word-lists.css) — on wider viewports it stays flat at
+   14px against this card's 30px .word-gender, reading much smaller than
+   the same line does on mobile. Apply the same 0.82em ratio here at every
+   width so it doesn't shrink back down once the viewport passes 768px. */
+.single-result-definition .word-gender .alt-spelling {
+  font-size: 0.82em;
+}
+
 .single-result-navigation {
   align-items: center;
   box-sizing: border-box;

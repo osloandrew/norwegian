@@ -3722,10 +3722,11 @@ async function getContextualPredicateAdjectiveSynonymForms(
 }
 
 function getGameSentenceTranslations(wordObj) {
-  return String(wordObj?.sentenceTranslation ?? "")
-    .split(/(?<=[.!?])\s+/)
-    .map(normalizeGameWhitespace)
-    .filter(Boolean);
+  // sentenceTranslation always holds exactly one sentence.
+  const translation = normalizeGameWhitespace(
+    String(wordObj?.sentenceTranslation ?? ""),
+  );
+  return translation ? [translation] : [];
 }
 
 function getGameSentenceTranslation(wordObj, sentenceIndex = 0) {
@@ -4244,9 +4245,8 @@ async function findExpressionClozeTarget(wordObj, preferredForm = "") {
   const analysis = await window.ExpressionPatterns?.getAnalysis(wordObj);
   const exampleText = normalizeGameWhitespace(wordObj?.eksempel);
   if (!analysis || !exampleText) return null;
-  const sentences = exampleText
-    .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => sentence.trim() !== "");
+  // eksempel always holds exactly one sentence.
+  const sentences = [exampleText];
   const normalizedPreferredForm = normalizeGameAnswer(preferredForm);
   let firstMatch = null;
 
@@ -4360,9 +4360,8 @@ async function findClozeTarget(wordObj, preferredForm = "") {
     .sort((a, b) => b.tokens.length - a.tokens.length);
   if (!exampleText || variants.length === 0) return null;
 
-  const sentences = exampleText
-    .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => sentence.trim() !== "");
+  // eksempel always holds exactly one sentence.
+  const sentences = [exampleText];
   const normalizedPreferredForm = normalizeGameAnswer(preferredForm);
   let firstMatch = null;
 
@@ -8942,41 +8941,11 @@ async function fetchExampleSentence(
     return { exampleSentence: "", sentenceTranslation: "" };
   }
 
-  // Split example sentences and remove any empty entries
-  const exampleSentences = matchingEntry.eksempel
-    .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => sentence.trim() !== "");
-
-  const translations = matchingEntry.sentenceTranslation
-    ? matchingEntry.sentenceTranslation
-        .split(/(?<=[.!?])\s+/)
-        .filter((translation) => translation.trim() !== "")
-    : [];
-
-  if (
-    Number.isInteger(preferredIndex) &&
-    preferredIndex >= 0 &&
-    preferredIndex < exampleSentences.length
-  ) {
-    return {
-      exampleSentence: exampleSentences[preferredIndex],
-      sentenceTranslation: translations[preferredIndex] || "",
-    };
-  }
-
-  // If there is only one sentence, return it with its translation if available
-  if (exampleSentences.length === 1) {
-    return {
-      exampleSentence: exampleSentences[0],
-      sentenceTranslation: translations[0] || "",
-    };
-  }
-
-  // If there are multiple sentences, pick one at random
-  const randomIndex = Math.floor(Math.random() * exampleSentences.length);
-  const exampleSentence = exampleSentences[randomIndex];
-  const sentenceTranslation = translations[randomIndex] || ""; // Provide an empty string if translation is unavailable
-  return { exampleSentence, sentenceTranslation };
+  // eksempel/sentenceTranslation always hold exactly one sentence each.
+  return {
+    exampleSentence: matchingEntry.eksempel.trim(),
+    sentenceTranslation: (matchingEntry.sentenceTranslation || "").trim(),
+  };
 }
 
 let gameEligibleBasePoolCache = new Map();

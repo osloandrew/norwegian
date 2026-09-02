@@ -846,9 +846,12 @@ function appendToContainer(content) {
 }
 
 function splitIntoSentences(text) {
+  // The eksempel/sentenceTranslation columns always hold exactly one
+  // sentence each, so there's nothing to split on — a "." or "!" inside
+  // the text (decimal points, abbreviations, "Halleluja! ropte...") is
+  // just part of that one sentence.
   if (!text) return [];
-  const arr = text.match(/[^.!?]+[.!?]*/g);
-  return arr ? arr.map((s) => s.trim()) : [text.trim()];
+  return [text.trim()];
 }
 
 // Filter results based on selected part of speech (POS)
@@ -1730,16 +1733,9 @@ async function randomWord() {
   }
 
   if (type === "sentences") {
-    // Split the Norwegian and English sentences
-    const sentences = randomResult.eksempel.split(/(?<=[.!?])\s+/); // Split by sentence delimiters
-    const translations = randomResult.sentenceTranslation
-      ? randomResult.sentenceTranslation.split(/(?<=[.!?])\s+/)
-      : [];
-
-    // Randomly select one sentence and its translation
-    const randomIndex = Math.floor(Math.random() * sentences.length);
-    const selectedSentence = sentences[randomIndex];
-    const selectedTranslation = translations[randomIndex] || "";
+    // eksempel/sentenceTranslation always hold exactly one sentence each.
+    const selectedSentence = randomResult.eksempel;
+    const selectedTranslation = randomResult.sentenceTranslation || "";
 
     // Clear any existing highlights in the sentence. The parens in
     // var(--color-interactive) must be escaped here — unescaped, they'd
@@ -4464,12 +4460,10 @@ function renderDefinitionSentenceResults(
 
   const sentenceContent = highlightedResults
     .map((result) => {
-      // Split example sentences by common sentence delimiters (period, question mark, exclamation mark)
-      const sentences = result.eksempel
-        ? result.eksempel.split(/(?<=[.!?])\s+/)
-        : [];
+      // eksempel/sentenceTranslation always hold exactly one sentence each.
+      const sentences = result.eksempel ? [result.eksempel] : [];
       const translations = result.sentenceTranslation
-        ? result.sentenceTranslation.split(/(?<=[.!?])\s+/)
+        ? [result.sentenceTranslation]
         : [];
       const isOrdbokeneExample = Boolean(
         result._ordbokene?.hasBlankTranslations,

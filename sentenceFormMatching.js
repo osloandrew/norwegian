@@ -56,11 +56,12 @@
   }
 
   function splitSentences(text) {
+    // eksempel/sentenceTranslation always hold exactly one sentence each —
+    // a "." or "!" inside the text (decimal points, abbreviations like
+    // "P.S.", "Halleluja! ropte...") is just part of that one sentence.
     if (!text) return [];
-    const sentences = String(text).match(/[^.!?]+[.!?]*/g);
-    return sentences
-      ? sentences.map((sentence) => sentence.trim()).filter(Boolean)
-      : [];
+    const trimmed = String(text).trim();
+    return trimmed ? [trimmed] : [];
   }
 
   function collectExamples(
