@@ -25,6 +25,7 @@ SITE = "https://osloandrew.github.io/norwegian"
 UPDATE_PREFIX = "[update]"
 TRAILER_PREFIXES = ("co-authored-by:", "signed-off-by:", "reviewed-by:")
 OSLO_TIMEZONE = ZoneInfo("Europe/Oslo")
+UPDATES_BATCH_SIZE = 10
 
 
 class UpdateBuildError(RuntimeError):
@@ -167,18 +168,29 @@ def render_entries(updates: list[Update]) -> str:
     if not updates:
         return '<p class="updates-empty">No public updates have been posted yet.</p>'
     cards: list[str] = []
-    for update in updates:
+    for index, update in enumerate(updates):
         date_label, time_label = human_timestamp(update.published_at)
         summary = (
             f"\n          <p>{html.escape(update.summary)}</p>" if update.summary else ""
         )
+        latest_badge = (
+            '<span class="update-latest-badge">Latest</span>' if index == 0 else ""
+        )
+        hidden = " hidden" if index >= UPDATES_BATCH_SIZE else ""
         cards.append(
-            f'''<article class="update-entry">
-        <time class="update-date" datetime="{update.published_at.isoformat()}">
-          <span class="update-date-day">{date_label}</span>
-          <span class="update-date-time">{time_label}</span>
-        </time>
+            f'''<article class="update-entry"{hidden}>
+        <div class="update-marker" aria-hidden="true">
+          <i class="fas fa-check"></i>
+        </div>
         <div class="update-content">
+          <div class="update-meta">
+            <time class="update-date" datetime="{update.published_at.isoformat()}">
+              <span class="update-date-day">{date_label}</span>
+              <span class="update-date-separator" aria-hidden="true">·</span>
+              <span class="update-date-time">{time_label}</span>
+            </time>
+            {latest_badge}
+          </div>
           <h2>{html.escape(update.title)}</h2>{summary}
         </div>
       </article>'''
@@ -210,6 +222,14 @@ def render_page(updates: list[Update], site_root: Path) -> str:
     my_words_auth_js = asset_version(site_root, "myWordsAuth.js")
     streak_js = asset_version(site_root, "streak.js")
     entries = render_entries(updates)
+    load_more = (
+        '''
+        <div class="search-results-load-more">
+          <button type="button" class="search-results-load-more-button">Show More Results</button>
+        </div>'''
+        if len(updates) > UPDATES_BATCH_SIZE
+        else ""
+    )
     structured_data = json.dumps(
         {
             "@context": "https://schema.org",
@@ -342,14 +362,34 @@ def render_page(updates: list[Update], site_root: Path) -> str:
       </a>
     </nav>
     <main id="main-content" class="updates-main">
-      <section class="updates-intro" aria-labelledby="updates-title">
-        <p class="updates-eyebrow">Product updates</p>
-        <h1 id="updates-title">What's New</h1>
-        <p class="updates-lede">Follow the improvements we're making to help you explore Norwegian and practice more effectively.</p>
-      </section>
-      <section class="updates-list" aria-label="Recent updates">
-        {entries}
-      </section>
+      <div class="updates-shell">
+        <section class="updates-intro" aria-labelledby="updates-title">
+          <div class="updates-icon-chip" aria-hidden="true">
+            <i class="fas fa-clock-rotate-left"></i>
+          </div>
+          <p class="updates-eyebrow">Product updates</p>
+          <h1 id="updates-title">What's New</h1>
+          <p class="updates-lede">See the latest improvements we're making to help you explore Norwegian and practice more effectively.</p>
+          <p class="updates-proof-line">
+            <span>{len(updates)} update{"" if len(updates) == 1 else "s"}</span>
+            <span aria-hidden="true">·</span>
+            <span>New improvements added regularly</span>
+          </p>
+        </section>
+        <section class="updates-feed" aria-labelledby="updates-feed-title">
+          <div class="updates-feed-header">
+            <div>
+              <p class="updates-feed-eyebrow">Release notes</p>
+              <h2 id="updates-feed-title">Recent improvements</h2>
+            </div>
+            <span class="updates-count" aria-label="{len(updates)} total updates">{len(updates)}</span>
+          </div>
+          <div id="updates-list" class="updates-list">
+            {entries}
+            {load_more}
+          </div>
+        </section>
+      </div>
     </main>
     <footer>
       <div class="links">
@@ -391,6 +431,22 @@ def render_page(updates: list[Update], site_root: Path) -> str:
       switcher.addEventListener("change", () => {{
         if (switcher.value) location.href = `${{location.origin}}/${{switcher.value}}/`;
       }});
+
+      const updatesList = document.getElementById("updates-list");
+      const loadMoreUpdates = updatesList?.querySelector(
+        ".search-results-load-more-button",
+      );
+      if (loadMoreUpdates) {{
+        loadMoreUpdates.addEventListener("click", () => {{
+          const nextUpdates = Array.from(
+            updatesList.querySelectorAll(".update-entry[hidden]"),
+          ).slice(0, {UPDATES_BATCH_SIZE});
+          nextUpdates.forEach((entry) => entry.removeAttribute("hidden"));
+          if (!updatesList.querySelector(".update-entry[hidden]")) {{
+            loadMoreUpdates.closest(".search-results-load-more")?.remove();
+          }}
+        }});
+      }}
 
       // Same open/close behavior as initializeAccountMenu() in scripts.js
       // (kept in sync by hand — this page doesn't load scripts.js itself).

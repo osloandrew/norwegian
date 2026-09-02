@@ -72,6 +72,8 @@ class UpdatesPageBuildTests(unittest.TestCase):
         self.assertIn('datetime="2026-08-25T12:00:00+02:00"', rendered)
         self.assertIn("25 August 2026", rendered)
         self.assertIn("12:00 Oslo Time", rendered)
+        self.assertIn('class="update-latest-badge">Latest</span>', rendered)
+        self.assertIn('class="update-marker" aria-hidden="true"', rendered)
 
     def test_timestamp_is_converted_to_oslo_local_time(self) -> None:
         timestamp = build_updates_page.parse_datetime("2026-08-25T11:15:00Z")
@@ -79,6 +81,45 @@ class UpdatesPageBuildTests(unittest.TestCase):
             build_updates_page.human_timestamp(timestamp),
             ("25 August 2026", "13:15 Oslo Time"),
         )
+
+    def test_updates_are_revealed_in_ten_item_batches(self) -> None:
+        updates = [
+            build_updates_page.parse_update(
+                f"2026-08-{day:02d}T12:00:00+02:00",
+                f"Update {day}",
+            )
+            for day in range(1, 22)
+        ]
+
+        entries = build_updates_page.render_entries(updates)
+        page = build_updates_page.render_page(updates, ROOT)
+
+        self.assertEqual(entries.count('<article class="update-entry"'), 21)
+        self.assertEqual(entries.count('class="update-entry" hidden'), 11)
+        self.assertEqual(page.count("Show More Results"), 1)
+        self.assertIn(".slice(0, 10)", page)
+        self.assertIn('querySelectorAll(".update-entry[hidden]")', page)
+        self.assertIn('class="updates-shell"', page)
+        self.assertIn('id="updates-feed-title">Recent improvements</h2>', page)
+
+    def test_load_more_button_is_omitted_for_ten_updates(self) -> None:
+        updates = [
+            build_updates_page.parse_update(
+                f"2026-08-{day:02d}T12:00:00+02:00",
+                f"Update {day}",
+            )
+            for day in range(1, 11)
+        ]
+
+        page = build_updates_page.render_page(updates, ROOT)
+
+        self.assertNotIn("Show More Results", page)
+        self.assertNotIn('class="update-entry" hidden', page)
+
+    def test_hidden_update_cards_override_their_grid_display(self) -> None:
+        styles = (ROOT / "styles" / "50-updates.css").read_text(encoding="utf-8")
+
+        self.assertIn('.update-entry[hidden] {\n  display: none;', styles)
 
     def test_updates_are_wired_into_the_complete_deployment(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "pages.yml").read_text(

@@ -1,10 +1,5 @@
-/* The shared <header>/#site-title/.site-wordmark-* rules (01-document-shell.css,
-   already linked on this page) style the brand mark itself, matching the
-   main app's header exactly rather than the plain text link this page used
-   to have. #site-title is an <h1> there (this page has its own separate
-   <h1>What's New</h1> below, so it's a plain <a> here instead) — a real
-   link needs its own text-decoration/hover/focus states, which the shared
-   rule doesn't define since the app's version is never a link. */
+/* The generated updates page shares the app shell but owns this compact,
+   landing-page-inspired release-notes surface. */
 a#site-title {
   color: var(--color-ink);
   text-decoration: none;
@@ -23,132 +18,325 @@ a#site-title:focus-visible {
 .updates-main {
   box-sizing: border-box;
   margin: 0 auto;
-  max-width: 900px;
-  padding: clamp(36px, 7vw, 72px) 24px 64px;
+  max-width: 970px;
+  padding: 20px 24px 64px;
   width: 100%;
 }
 
-.updates-intro {
-  margin-bottom: 42px;
-  max-width: 700px;
+.updates-shell {
+  --updates-border: var(--color-wash-blue-border);
+  --updates-shadow-hover: 0 4px 12px rgba(13, 35, 55, 0.07);
+  background: var(--color-surface);
+  border: 1px solid var(--updates-border);
+  border-radius: var(--radius-card);
+  box-shadow: 0 4px 18px rgba(13, 35, 55, 0.06);
+  padding: clamp(26px, 5vw, 46px);
 }
 
-/* Matches .landing-daily-quests-eyebrow's own small-caps label — muted
-   slate rather than --color-interactive, which elsewhere always marks an
-   actual link/button, never plain text. */
-.updates-eyebrow {
+.updates-intro {
+  border-bottom: 1px solid var(--updates-border);
+  margin: 0 auto 32px;
+  padding: 0 0 32px;
+  text-align: center;
+}
+
+.updates-icon-chip {
+  align-items: center;
+  background: var(--color-wash-blue);
+  border-radius: 50%;
+  color: var(--color-ink);
+  display: flex;
+  font-size: 22px;
+  height: 56px;
+  justify-content: center;
+  margin: 0 auto 16px;
+  width: 56px;
+}
+
+.updates-eyebrow,
+.updates-feed-eyebrow {
   color: var(--color-text-slate);
   font-family: "Source Sans 3", "Noto Sans", sans-serif;
-  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  margin: 0 0 8px;
+  letter-spacing: var(--letter-spacing-caps-heading);
   text-transform: uppercase;
 }
 
-/* Source Serif 4, not Source Sans 3: every other headline-weight heading in
-   the app — the landing page's own <h2>, My Stats, Word List — is set in
-   the same serif (Fraunces is reserved for the site wordmark alone),
-   reserving Source Sans 3 for smaller UI/card-level titles (see
-   .update-content h2 below, in that same family as .stories-list-item h2,
-   just larger — these read as standalone article entries, not compact
-   list rows). */
+.updates-eyebrow {
+  font-size: 13px;
+  margin: 0 0 6px;
+}
+
 .updates-intro h1 {
   color: var(--color-ink);
   font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
-  font-size: clamp(32px, 6vw, 48px);
+  font-size: clamp(32px, 5vw, 42px);
   font-weight: 600;
   letter-spacing: -0.015em;
-  line-height: 1.15;
-  margin: 0 0 14px;
+  line-height: 1.2;
+  margin: 0 0 10px;
 }
 
 .updates-lede {
   color: var(--color-text-strong);
-  font-size: clamp(16px, 2.5vw, 19px);
-  line-height: 1.65;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 auto;
+  max-width: 590px;
+}
+
+.updates-proof-line {
+  color: var(--color-text-slate);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin: 14px 0 0;
+}
+
+.updates-proof-line span[aria-hidden="true"] {
+  color: #9aabba;
+  margin: 0 5px;
+}
+
+.updates-feed-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 18px;
+}
+
+.updates-feed-eyebrow {
+  font-size: 12px;
+  margin: 0 0 3px;
+}
+
+.updates-feed-header h2 {
+  color: var(--color-ink);
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 19px;
+  line-height: 1.3;
   margin: 0;
+}
+
+.updates-count {
+  align-items: center;
+  background: var(--color-wash-blue);
+  border: 1px solid var(--updates-border);
+  border-radius: 999px;
+  color: var(--color-text-emphasis);
+  display: flex;
+  font-size: 13px;
+  font-weight: 700;
+  height: 30px;
+  justify-content: center;
+  min-width: 30px;
+  padding: 0 8px;
 }
 
 .updates-list {
   display: grid;
-  gap: 24px;
+  gap: 12px;
 }
 
-/* Same card language as the rest of the app's static content cards
-   (.game-intro-card: bordered, --radius-card, no shadow) rather than a
-   bespoke blue-tinted, heavier-shadowed card unique to this page. */
 .update-entry {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  background: var(--color-wash-blue-pale);
+  border: 1px solid var(--updates-border);
+  border-radius: 10px;
   display: grid;
-  gap: 24px;
-  grid-template-columns: 176px minmax(0, 1fr);
-  padding: 26px;
+  gap: 16px;
+  grid-template-columns: 42px minmax(0, 1fr);
+  padding: 20px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.update-entry:hover {
+  border-color: var(--color-interactive-muted);
+  box-shadow: var(--updates-shadow-hover);
+  transform: translateY(-1px);
+}
+
+.update-entry:first-child {
+  background: linear-gradient(
+    135deg,
+    #f2f7fd 0%,
+    var(--color-wash-blue-pale) 100%
+  );
+  border-color: var(--color-wash-blue-active-border);
+}
+
+.update-entry[hidden] {
+  display: none;
+}
+
+.update-marker {
+  align-items: center;
+  align-self: start;
+  background: var(--color-wash-blue);
+  border: 1px solid var(--updates-border);
+  border-radius: 50%;
+  color: var(--color-interactive);
+  display: flex;
+  font-size: 14px;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+.update-entry:first-child .update-marker {
+  background: var(--color-wash-blue-active);
+  border-color: var(--color-wash-blue-active-border);
+  color: var(--color-ink);
+}
+
+.update-meta {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin: 0 0 6px;
 }
 
 .update-date {
   color: var(--color-text-slate);
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   font-family: "Source Sans 3", "Noto Sans", sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  gap: 3px;
-  letter-spacing: 0.025em;
-  line-height: 1.45;
-}
-
-.update-date-time {
+  font-size: 13px;
   font-weight: 500;
+  gap: 5px;
+  line-height: 1.4;
 }
 
-.update-content {
-  border-left: 2px solid var(--color-border);
-  padding-left: 24px;
+.update-date-day {
+  font-weight: 600;
+}
+
+.update-date-separator {
+  color: #9aabba;
+}
+
+.update-latest-badge {
+  background: var(--color-ink);
+  border-radius: 999px;
+  color: var(--color-surface);
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-caps);
+  padding: 4px 8px;
+  text-transform: uppercase;
 }
 
 .update-content h2 {
   color: var(--color-ink);
   font-family: "Source Sans 3", "Noto Sans", sans-serif;
-  font-size: clamp(20px, 3vw, 24px);
-  line-height: 1.3;
-  margin: 0 0 10px;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.35;
+  margin: 0;
 }
 
 .update-content p {
   color: var(--color-text-strong);
-  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 7px 0 0;
+}
+
+.search-results-load-more {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0 2px;
+  text-align: center;
+}
+
+.search-results-load-more-button {
+  background-color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  border-radius: 7px;
+  color: var(--color-surface);
+  cursor: pointer;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 10px 16px;
+  text-transform: uppercase;
+}
+
+.search-results-load-more-button:hover {
+  background-color: var(--color-ink-active);
+  border-color: var(--color-ink-active);
+}
+
+.search-results-load-more-button:focus-visible {
+  outline: 2px solid var(--color-interactive);
+  outline-offset: 3px;
 }
 
 .updates-empty {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  background: var(--color-wash-blue-pale);
+  border: 1px solid var(--updates-border);
+  border-radius: 10px;
   color: var(--color-text-strong);
-  padding: 28px;
+  padding: 24px;
+  text-align: center;
 }
 
 @media (max-width: 620px) {
   .updates-main {
-    padding: 32px 18px 48px;
+    padding: 14px 12px 42px;
+  }
+
+  .updates-shell {
+    padding: 24px 16px;
   }
 
   .updates-intro {
-    margin-bottom: 28px;
+    margin-bottom: 26px;
+    padding-bottom: 26px;
+  }
+
+  .updates-proof-line {
+    font-size: 12px;
   }
 
   .update-entry {
-    gap: 10px;
-    grid-template-columns: 1fr;
-    padding: 22px 20px;
+    gap: 12px;
+    grid-template-columns: 34px minmax(0, 1fr);
+    padding: 16px 14px;
   }
 
-  .update-content {
-    border-left: 0;
-    border-top: 2px solid var(--color-border);
-    padding-left: 0;
-    padding-top: 16px;
+  .update-marker {
+    font-size: 12px;
+    height: 32px;
+    width: 32px;
+  }
+
+  .update-meta {
+    align-items: flex-start;
+  }
+
+  .update-date {
+    gap: 2px 5px;
+  }
+
+  .update-date-time {
+    flex-basis: 100%;
+  }
+
+  .update-date-separator {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .update-entry {
+    transition: none;
   }
 }
