@@ -1655,7 +1655,10 @@ html.landing #landing-card {
   text-transform: none;
 }
 
-.my-stats-subheading {
+/* "p." here (and on several other selectors in this file) because this is
+   always a <p> tag, and .definition p's global 20px/10px-margin otherwise
+   beats a plain class selector on specificity alone — (0,1,1) vs (0,1,0). */
+p.my-stats-subheading {
   color: var(--color-text-slate);
   font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 14px;
@@ -1707,14 +1710,6 @@ html.landing #landing-card {
   }
 }
 
-.my-stats-overview-grid .game-summary-stat {
-  background-color: var(--color-wash-blue-pale);
-  border: 1px solid var(--color-wash-blue-border);
-  border-radius: 9px;
-  padding: 12px 6px;
-  text-align: center;
-}
-
 /* Scaled down from the shared 1.5em/700 — at 2 columns the number was the
    loudest thing on the page; at 4 narrower columns it doesn't need to be
    as large to still read as the tile's headline. */
@@ -1728,6 +1723,312 @@ html.landing #landing-card {
    gives it enough presence to hold its own against the value above it. */
 .my-stats-overview-grid p.game-summary-stat-label {
   font-weight: 600;
+}
+
+/* Proficiency card — two KPI tiles (Words You Know, Estimated Level) in the
+   same bolded stat-tile style as the Overview card right above (the
+   combined selector below), plus a derived CEFR mastery bar. The numbers
+   are the point of this card, so they lead; supporting text stays to a
+   single short chart label. Deliberately not the raw abilityScore; see the
+   comment in myStats.js's createProficiencyCard for why. */
+.my-stats-proficiency-grid {
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 16px;
+}
+
+.my-stats-overview-grid .game-summary-stat,
+.my-stats-proficiency-grid .game-summary-stat {
+  background-color: var(--color-wash-blue-pale);
+  border: 1px solid var(--color-wash-blue-border);
+  border-radius: 9px;
+  padding: 12px 6px;
+  text-align: center;
+}
+
+.my-stats-proficiency-grid p.game-summary-stat-value {
+  font-size: 32px;
+}
+
+.my-stats-proficiency-grid p.game-summary-stat-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+p.my-stats-proficiency-level-note {
+  color: var(--color-text-slate);
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 12px;
+  margin: 4px 0 0;
+}
+
+/* A short chart title, not a sentence — the bars themselves already carry
+   their own percentage and a hover title with the full breakdown. */
+p.my-stats-cefr-bar-caption {
+  color: var(--color-text-slate);
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-caps-heading);
+  margin: 0;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.my-stats-cefr-bar {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding-top: 10px;
+}
+
+.my-stats-cefr-segment {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 48px;
+}
+
+.my-stats-cefr-segment-percent {
+  color: var(--color-ink);
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.my-stats-cefr-segment-track {
+  align-items: flex-end;
+  background-color: var(--color-surface-strong);
+  border-radius: 4px;
+  display: flex;
+  height: 72px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.my-stats-cefr-segment-fill {
+  display: block;
+  min-height: 3px;
+  width: 100%;
+}
+
+.my-stats-cefr-segment-fill--a1 { background-color: var(--color-cefr-a1-bg); }
+.my-stats-cefr-segment-fill--a2 { background-color: var(--color-cefr-a2-bg); }
+.my-stats-cefr-segment-fill--b1 { background-color: var(--color-cefr-b1-bg); }
+.my-stats-cefr-segment-fill--b2 { background-color: var(--color-cefr-b2-bg); }
+.my-stats-cefr-segment-fill--c1 { background-color: var(--color-cefr-c1-bg); }
+
+.my-stats-cefr-segment-label {
+  color: var(--color-text-slate);
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Practice-activity heatmap — GitHub-contribution-calendar style. Horizontal
+   scroll (like .word-list-table-container elsewhere) rather than shrinking
+   cells to fit narrow screens, so a cell stays a comfortable tap/hover
+   target on mobile. */
+.my-stats-heatmap-scroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.my-stats-heatmap-inner {
+  width: max-content;
+}
+
+.my-stats-heatmap-months-row {
+  display: flex;
+}
+
+/* Matches .my-stats-heatmap-day-labels' width exactly, so the month row
+   above lines up with the day grid below it. Also sticky (see that class)
+   so the top-left corner stays a clean solid block, not a half-scrolled
+   month label, while the row scrolls under it. */
+.my-stats-heatmap-day-col-spacer {
+  background: var(--color-surface);
+  flex-shrink: 0;
+  left: 0;
+  position: sticky;
+  width: 24px;
+  z-index: 1;
+}
+
+.my-stats-heatmap-months {
+  display: flex;
+  gap: 3px;
+  overflow: visible;
+}
+
+/* Width matches .my-stats-heatmap-cell so a label lines up with the column
+   it names; text overflows rightward into the following (unlabeled) slots,
+   the same trick GitHub's own contribution graph uses. */
+.my-stats-heatmap-month-slot {
+  color: var(--color-text-slate);
+  flex-shrink: 0;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  width: 11px;
+  white-space: nowrap;
+}
+
+.my-stats-heatmap-body-row {
+  display: flex;
+}
+
+/* Sticky so Mon/Wed/Fri stay visible even though the grid defaults to
+   scrolled-to-today (see buildActivityHeatmapGrid's scrollLeft) — without
+   this, the day labels would start off-screen to the left on any viewport
+   narrower than the full 53-week grid. */
+.my-stats-heatmap-day-labels {
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 3px;
+  left: 0;
+  position: sticky;
+  width: 24px;
+  z-index: 1;
+}
+
+.my-stats-heatmap-day-labels span {
+  color: var(--color-text-slate);
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 9px;
+  height: 11px;
+  line-height: 11px;
+  padding-right: 4px;
+  text-align: right;
+}
+
+.my-stats-heatmap-grid {
+  display: flex;
+  gap: 3px;
+  width: max-content;
+}
+
+.my-stats-heatmap-column {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.my-stats-heatmap-cell {
+  background-color: var(--color-surface-strong);
+  border-radius: 2px;
+  display: block;
+  height: 11px;
+  width: 11px;
+}
+
+.my-stats-heatmap-cell--future {
+  background-color: transparent;
+}
+
+.my-stats-heatmap-cell--0 { background-color: var(--color-surface-strong); }
+.my-stats-heatmap-cell--1 { background-color: var(--color-success-bg); }
+.my-stats-heatmap-cell--2 { background-color: var(--color-heatmap-2); }
+.my-stats-heatmap-cell--3 { background-color: var(--color-success-border); }
+.my-stats-heatmap-cell--4 { background-color: var(--color-success); }
+
+.my-stats-heatmap-legend {
+  align-items: center;
+  color: var(--color-text-slate);
+  display: flex;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 12px;
+  gap: 4px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.my-stats-heatmap-legend .my-stats-heatmap-cell {
+  height: 10px;
+  width: 10px;
+}
+
+/* Skills breakdown — one bordered tile per SpacedRepetition skill
+   (recognition, production/"Recall", listening, context/"Sentences",
+   semantic/"Word Connections"). Each tile is its own box (same wash-blue
+   treatment as the KPI/gem tiles elsewhere on this page) so five skills in
+   a row read as five distinct things, not one continuous block of text.
+   Reading order inside a tile is a deliberate hierarchy — see the comment
+   in myStats.js's createSkillsCard. */
+.my-stats-skills-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.my-stats-skill-tile {
+  background-color: var(--color-wash-blue-pale);
+  border: 1px solid var(--color-wash-blue-border);
+  border-radius: 9px;
+  padding: 14px 16px;
+}
+
+/* A small identifying eyebrow, not a competing headline — the percentage
+   below is the tile's actual headline. */
+p.my-stats-skill-label {
+  color: var(--color-text-slate);
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-caps-heading);
+  margin: 0 0 6px;
+  text-transform: uppercase;
+}
+
+.my-stats-skill-value-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+/* The single largest, boldest piece of text in the tile on purpose — this
+   number is what a learner opens this card to see. */
+.my-stats-skill-value {
+  color: var(--color-ink);
+  flex-shrink: 0;
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 52px;
+}
+
+.my-stats-skill-bar-bg {
+  background-color: var(--color-surface);
+  border-radius: 6px;
+  flex: 1 1 auto;
+  height: 10px;
+  overflow: hidden;
+}
+
+.my-stats-skill-bar-fill {
+  background-color: var(--color-success-border);
+  display: block;
+  height: 100%;
+}
+
+p.my-stats-skill-description {
+  color: var(--color-text-slate);
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0 0 8px;
+}
+
+p.my-stats-skill-count {
+  color: var(--color-text-slate);
+  font-family: "Source Sans 3", "Noto Sans", sans-serif;
+  font-size: 11px;
+  margin: 0;
 }
 
 .my-stats-gems-header {
@@ -1782,7 +2083,7 @@ html.landing #landing-card {
   margin-bottom: 0;
 }
 
-.my-stats-vocabulary-intro {
+p.my-stats-vocabulary-intro {
   color: var(--color-text-slate);
   font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 14px;
@@ -1874,7 +2175,10 @@ p.my-stats-empty {
   border-color: var(--color-wash-blue-border);
 }
 
-.my-stats-danger-text {
+/* "p." because this is always a <p> tag, and .definition p's global
+   20px/10px-margin otherwise beats a plain class selector on specificity
+   alone — (0,1,1) vs (0,1,0). Same fix as p.my-stats-subheading etc. above. */
+p.my-stats-danger-text {
   color: var(--color-text-slate);
   font-family: "Source Sans 3", "Noto Sans", sans-serif;
   font-size: 14px;
@@ -1937,6 +2241,22 @@ p.my-stats-empty {
   .my-stats-overview-action .game-summary-primary-btn,
   .my-stats-danger-btn {
     width: 100%;
+  }
+
+  .my-stats-proficiency-grid p.game-summary-stat-value {
+    font-size: 26px;
+  }
+
+  .my-stats-cefr-segment {
+    width: 40px;
+  }
+
+  .my-stats-cefr-segment-percent {
+    font-size: 10px;
+  }
+
+  .my-stats-cefr-segment-track {
+    height: 60px;
   }
 }
 

@@ -115,6 +115,10 @@
     const bestWordStreak = window.BestWordStreakAPI?.getState?.() ?? 0;
     const dueNow = window.WordGameHelpers?.getVocabProgressSummary?.().dueCount ?? 0;
     const dueThisWeek = getUpcomingDueCount(7);
+    const lifetime = window.WordGameHelpers?.getLifetimeTotalsSummary?.() ?? {
+      questionsAnswered: 0,
+      accuracyPercent: 0,
+    };
 
     const card = document.createElement("section");
     card.className = "my-stats-box my-stats-overview";
@@ -132,6 +136,8 @@
       createStatTile(bestWordStreak, "Best Word Streak"),
       createStatTile(dueNow, "Due Now"),
       createStatTile(dueThisWeek, "Due This Week"),
+      createStatTile(lifetime.questionsAnswered.toLocaleString("en-US"), "Questions Answered"),
+      createStatTile(`${lifetime.accuracyPercent}%`, "Lifetime Accuracy"),
     );
     card.appendChild(grid);
 
@@ -148,6 +154,382 @@
     });
     actionRow.appendChild(practiceBtn);
     card.appendChild(actionRow);
+
+    return card;
+  }
+
+  // A small vertical bar per CEFR band (percent known as height), colored
+  // with the same --color-cefr-* tokens used throughout the app. A
+  // percentage on every bar plus a hover title spell out what's being
+  // measured — no caption sentence needed alongside it (see
+  // createProficiencyCard's short "Accuracy by Level" label instead).
+  function createCefrMasteryBar(bands) {
+    const barLabel = bands
+      .map(
+        (band) =>
+          `${band.level}: ${Math.round(band.ratio * 100)}% known, ${band.known} of ${band.attempted} words`,
+      )
+      .join(", ");
+
+    const bar = document.createElement("div");
+    bar.className = "my-stats-cefr-bar";
+    bar.setAttribute("role", "img");
+    bar.setAttribute("aria-label", `Mastery by level: ${barLabel}`);
+    bar.innerHTML = bands
+      .map((band) => {
+        const fillPercent = Math.round(band.ratio * 100);
+        const badgeClass = getCefrBadgeClass(band.level);
+        const title = `${band.label} (${band.level}): ${fillPercent}% known — ${band.known} of ${band.attempted} words practiced at this level`;
+        return `
+          <div class="my-stats-cefr-segment" title="${title}">
+            <span class="my-stats-cefr-segment-percent">${fillPercent}%</span>
+            <div class="my-stats-cefr-segment-track">
+              <span class="my-stats-cefr-segment-fill my-stats-cefr-segment-fill--${badgeClass}" style="height: ${fillPercent}%;"></span>
+            </div>
+            <span class="my-stats-cefr-segment-label">${band.level}</span>
+          </div>
+        `;
+      })
+      .join("");
+
+    return bar;
+  }
+
+  // KPIs first, prose last: the two numbers (words known, estimated level)
+  // are what a learner scans for, so they get the same bolded stat-tile
+  // treatment as the Overview card right above — not a sentence competing
+  // for attention with the data. Deliberately not the raw abilityScore
+  // (wordGame.js's Elo-style adaptive difficulty rating) — that's kept
+  // invisible on purpose (see its own comment in wordGame.js, next to
+  // CEFR_DIFFICULTY_ANCHOR) because it's a noisy per-answer estimate that
+  // can dip on a single bad round, and a level that visibly falls is
+  // demotivating. getVocabularyByCefrSummary instead derives a level purely
+  // from durable, already-stored per-word CEFR tags and accuracy, so it
+  // only moves when real words actually graduate or decay.
+  function createProficiencyCard() {
+    const summary = window.WordGameHelpers?.getVocabularyByCefrSummary?.() ?? {
+      bands: [],
+      estimatedLevel: null,
+      nextLevel: null,
+    };
+    // Single source of truth for "known" — see getVocabularyByCefrSummary's
+    // CEFR_WORD_KNOWN_* comment (wordGame.js) for why this is an
+    // accuracy-based count, not the Vocabulary Profile tier bar's
+    // spaced-repetition "Strong"/"Mastered" tiers further down this page.
+    // The two can legitimately disagree: this answers "do I get this word
+    // right," that answers "has this word survived a long gap without
+    // review."
+    const wordsKnown = summary.bands.reduce((sum, band) => sum + band.known, 0);
+
+    const card = document.createElement("section");
+    card.className = "my-stats-box my-stats-proficiency";
+
+    const heading = document.createElement("h3");
+    heading.className = "my-stats-section-heading";
+    heading.textContent = "Proficiency";
+    card.appendChild(heading);
+
+    if (wordsKnown === 0) {
+      const empty = document.createElement("p");
+      empty.className = "my-stats-empty";
+      empty.textContent =
+        "Keep practicing — your proficiency estimate will appear here once you've built up some well-known words.";
+      card.appendChild(empty);
+      return card;
+    }
+
+    const kpiRow = document.createElement("div");
+    kpiRow.className = "game-summary-stats my-stats-proficiency-grid";
+
+    const levelTile = createStatTile(
+      summary.estimatedLevel ? summary.estimatedLevel.level : "—",
+      "Estimated Level",
+    );
+    if (!summary.estimatedLevel && summary.nextLevel) {
+      const note = document.createElement("p");
+      note.className = "my-stats-proficiency-level-note";
+      note.textContent = `→ ${summary.nextLevel.level} in progress`;
+      levelTile.appendChild(note);
+    }
+
+    kpiRow.append(
+      createStatTile(wordsKnown.toLocaleString("en-US"), "Words You Know"),
+      levelTile,
+    );
+    card.appendChild(kpiRow);
+
+    if (summary.bands.length > 0) {
+      const chartLabel = document.createElement("p");
+      chartLabel.className = "my-stats-cefr-bar-caption";
+      chartLabel.textContent = "Accuracy by Level";
+      card.appendChild(chartLabel);
+      card.appendChild(createCefrMasteryBar(summary.bands));
+    }
+
+    return card;
+  }
+
+  function getHeatmapIntensityLevel(count, maxCount) {
+    if (count === 0 || maxCount <= 0) return 0;
+    const ratio = count / maxCount;
+    if (ratio <= 0.25) return 1;
+    if (ratio <= 0.5) return 2;
+    if (ratio <= 0.75) return 3;
+    return 4;
+  }
+
+  // Monday=0 .. Sunday=6, matching the grid's row order below (weeks start
+  // on Monday).
+  const HEATMAP_DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const HEATMAP_MONTH_FORMATTER = new Intl.DateTimeFormat("en-US", { month: "short" });
+  // A month label needs at least this many columns to itself, or it visibly
+  // runs into its neighbor's — three-letter text overflowing an 11px column
+  // needs more room than one week provides. Below this, the column(s) keep
+  // their data but lose the label; see the comment where this is used.
+  const HEATMAP_MIN_MONTH_LABEL_COLUMNS = 2;
+
+  // GitHub-contribution-style calendar: 53 Monday-start weekly columns of
+  // how many questions were answered each day, read from
+  // WordGameHelpers.getPracticeActivityLog (a local-only, capped date->count
+  // log — see wordGame.js's recordPracticeActivityForToday). Sparse/empty
+  // for existing users right after this ships; it only starts collecting
+  // from today onward. A bare grid of squares turned out to be unreadable
+  // without a sense of scale, so this also draws month labels above the
+  // columns and Mon/Wed/Fri labels to the left of the rows, exactly like
+  // the calendar it's modeled on — both are sticky so they survive the
+  // horizontal scroll to today's column below.
+  function buildActivityHeatmapGrid(log) {
+    const dayMs = 24 * 60 * 60 * 1000;
+    const totalWeeks = 53;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // getDay() is 0=Sunday..6=Saturday; remap so Monday's week-start offset
+    // is 0 and Sunday's is 6, then walk back to the Monday of today's week
+    // before walking back the remaining full weeks.
+    const todayMondayOffset = (today.getDay() + 6) % 7;
+    const currentWeekMonday = new Date(today.getTime() - todayMondayOffset * dayMs);
+    const gridStart = new Date(currentWeekMonday.getTime() - (totalWeeks - 1) * 7 * dayMs);
+
+    const columns = [];
+    let maxCount = 0;
+    for (let week = 0; week < totalWeeks; week++) {
+      const column = [];
+      for (let day = 0; day < 7; day++) {
+        const cellDate = new Date(gridStart.getTime() + (week * 7 + day) * dayMs);
+        if (cellDate > today) {
+          column.push(null);
+          continue;
+        }
+        const dateKey = window.WordGameHelpers?.getDateKeyForDate?.(cellDate);
+        const count = log[dateKey] ?? 0;
+        maxCount = Math.max(maxCount, count);
+        column.push({ dateKey, count, date: cellDate });
+      }
+      columns.push(column);
+    }
+
+    const practicedDays = Object.keys(log).length;
+    const totalQuestions = Object.values(log).reduce((sum, count) => sum + count, 0);
+
+    const scroller = document.createElement("div");
+    scroller.className = "my-stats-heatmap-scroll";
+
+    const inner = document.createElement("div");
+    inner.className = "my-stats-heatmap-inner";
+
+    // Month labels: group columns into runs sharing the same month (by
+    // each column's Monday), then only label a run at least
+    // HEATMAP_MIN_MONTH_LABEL_COLUMNS wide. A shorter run — typically just
+    // the leftover week of whatever month the 53-week window happens to
+    // start mid-way through — keeps its cells but loses its label instead
+    // of overlapping the very next one; that month gets an unambiguous
+    // label of its own a few weeks later regardless.
+    const monthsRow = document.createElement("div");
+    monthsRow.className = "my-stats-heatmap-months-row";
+    const daySpacer = document.createElement("span");
+    daySpacer.className = "my-stats-heatmap-day-col-spacer";
+    const monthsTrack = document.createElement("div");
+    monthsTrack.className = "my-stats-heatmap-months";
+    const monthOfColumn = columns.map((column) => column[0]?.date?.getMonth() ?? null);
+    const monthLabelText = columns.map(() => "");
+    let runStart = 0;
+    for (let i = 1; i <= columns.length; i++) {
+      if (i < columns.length && monthOfColumn[i] === monthOfColumn[runStart]) continue;
+      const runLength = i - runStart;
+      if (runLength >= HEATMAP_MIN_MONTH_LABEL_COLUMNS && monthOfColumn[runStart] !== null) {
+        monthLabelText[runStart] = HEATMAP_MONTH_FORMATTER.format(columns[runStart][0].date);
+      }
+      runStart = i;
+    }
+    monthLabelText.forEach((text) => {
+      const slot = document.createElement("span");
+      slot.className = "my-stats-heatmap-month-slot";
+      slot.textContent = text;
+      monthsTrack.appendChild(slot);
+    });
+    monthsRow.append(daySpacer, monthsTrack);
+
+    const bodyRow = document.createElement("div");
+    bodyRow.className = "my-stats-heatmap-body-row";
+
+    const dayLabels = document.createElement("div");
+    dayLabels.className = "my-stats-heatmap-day-labels";
+    dayLabels.setAttribute("aria-hidden", "true");
+    dayLabels.innerHTML = HEATMAP_DAY_LABELS.map((label) => `<span>${label}</span>`).join("");
+
+    const grid = document.createElement("div");
+    grid.className = "my-stats-heatmap-grid";
+    grid.setAttribute("role", "img");
+    grid.setAttribute(
+      "aria-label",
+      `Practice activity over the last 12 months: ${practicedDays} day${practicedDays === 1 ? "" : "s"} practiced, ${totalQuestions.toLocaleString("en-US")} total questions answered.`,
+    );
+
+    columns.forEach((column) => {
+      const columnEl = document.createElement("div");
+      columnEl.className = "my-stats-heatmap-column";
+      column.forEach((cell) => {
+        const cellEl = document.createElement("span");
+        if (!cell) {
+          cellEl.className = "my-stats-heatmap-cell my-stats-heatmap-cell--future";
+        } else {
+          const level = getHeatmapIntensityLevel(cell.count, maxCount);
+          cellEl.className = `my-stats-heatmap-cell my-stats-heatmap-cell--${level}`;
+          cellEl.title = `${cell.count} question${cell.count === 1 ? "" : "s"} on ${cell.date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}`;
+        }
+        columnEl.appendChild(cellEl);
+      });
+      grid.appendChild(columnEl);
+    });
+
+    bodyRow.append(dayLabels, grid);
+    inner.append(monthsRow, bodyRow);
+    scroller.appendChild(inner);
+    // Land on today's column, not 53 weeks ago — scrollWidth only reads
+    // correctly once this is actually laid out in the document, which
+    // happens synchronously in renderMyStats right after this returns, so a
+    // rAF (deferred to the next frame) is enough to land after that.
+    requestAnimationFrame(() => {
+      scroller.scrollLeft = scroller.scrollWidth;
+    });
+    return scroller;
+  }
+
+  function createActivityHeatmapCard() {
+    const log = window.WordGameHelpers?.getPracticeActivityLog?.() ?? {};
+
+    const card = document.createElement("section");
+    card.className = "my-stats-box my-stats-heatmap-card";
+
+    const heading = document.createElement("h3");
+    heading.className = "my-stats-section-heading";
+    heading.textContent = "Practice Activity";
+    card.appendChild(heading);
+
+    if (Object.keys(log).length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "my-stats-empty";
+      empty.textContent =
+        "Your daily practice calendar starts today — come back to watch it fill in.";
+      card.appendChild(empty);
+      return card;
+    }
+
+    const caption = document.createElement("p");
+    caption.className = "my-stats-cefr-bar-caption";
+    caption.textContent = "Last 12 Months";
+    card.appendChild(caption);
+
+    card.appendChild(buildActivityHeatmapGrid(log));
+
+    const legend = document.createElement("div");
+    legend.className = "my-stats-heatmap-legend";
+    legend.setAttribute("aria-hidden", "true");
+    legend.innerHTML = `
+      <span>Less</span>
+      ${[0, 1, 2, 3, 4].map((level) => `<span class="my-stats-heatmap-cell my-stats-heatmap-cell--${level}"></span>`).join("")}
+      <span>More</span>
+    `;
+    card.appendChild(legend);
+
+    return card;
+  }
+
+  // What each skill tests, and why it's a different skill from the others
+  // rather than just another word-strength number — labels alone
+  // ("Recall", "Word Connections") say neither. Mirrors the exercise
+  // mapping in wordGame.js's REVIEW_MODE_BY_SKILL: recognition -> forward,
+  // production -> reverse/typed-reverse, listening ->
+  // listening/typed-listening, context -> cloze/typed-cloze, semantic ->
+  // synonym.
+  const SKILL_DESCRIPTIONS = Object.freeze({
+    recognition:
+      "Seeing the word and picking its meaning — the foundation of reading.",
+    production:
+      "Producing the word from its meaning — harder, and closer to real conversation.",
+    listening:
+      "Understanding the word by ear alone — essential for following spoken Norwegian.",
+    context:
+      "Using the word correctly inside a sentence — tests grammar, not just vocabulary.",
+    semantic:
+      "Linking the word to others with a similar meaning — builds a deeper vocabulary.",
+  });
+
+  function createSkillsCard() {
+    const skills = window.WordGameHelpers?.getSkillsBreakdownSummary?.() ?? [];
+    const practicedSkills = skills.filter((skill) => skill.practicedCount > 0);
+
+    const card = document.createElement("section");
+    card.className = "my-stats-box my-stats-skills";
+
+    const heading = document.createElement("h3");
+    heading.className = "my-stats-section-heading";
+    heading.textContent = "Skills";
+    card.appendChild(heading);
+
+    if (practicedSkills.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "my-stats-empty";
+      empty.textContent =
+        "Play the Word Game to start building a skills breakdown — recognition, recall, listening, sentences, and word connections will show up here.";
+      card.appendChild(empty);
+      return card;
+    }
+
+    const intro = document.createElement("p");
+    intro.className = "my-stats-vocabulary-intro";
+    intro.textContent = "How well you're doing across each way the game tests a word.";
+    card.appendChild(intro);
+
+    // Each skill gets its own bordered tile — a plain stacked list of
+    // similar-weight text made it hard to tell where one skill's row ended
+    // and the next began. Reading order top to bottom is deliberately a
+    // hierarchy, not a flat list: the skill name is a small muted eyebrow
+    // (identifies the tile, doesn't compete for attention), the percentage
+    // is the single largest/boldest element on the tile (it's the number
+    // this whole card exists to show), the bar restates it visually, and
+    // the description + word count shrink further down since they're
+    // supporting context, not the headline.
+    const rows = document.createElement("div");
+    rows.className = "my-stats-skills-rows";
+    rows.innerHTML = practicedSkills
+      .map(
+        (skill) => `
+        <div class="my-stats-skill-tile">
+          <p class="my-stats-skill-label">${skill.label}</p>
+          <div class="my-stats-skill-value-row">
+            <span class="my-stats-skill-value">${skill.avgPercent}%</span>
+            <div class="my-stats-skill-bar-bg" role="img" aria-label="${skill.label}: ${skill.avgPercent}% mastery across ${skill.practicedCount} words">
+              <span class="my-stats-skill-bar-fill" style="width: ${skill.avgPercent}%;"></span>
+            </div>
+          </div>
+          <p class="my-stats-skill-description">${SKILL_DESCRIPTIONS[skill.skill] ?? ""}</p>
+          <p class="my-stats-skill-count">${skill.practicedCount.toLocaleString("en-US")} word${skill.practicedCount === 1 ? "" : "s"} practiced</p>
+        </div>
+      `,
+      )
+      .join("");
+    card.appendChild(rows);
 
     return card;
   }
@@ -219,7 +601,7 @@
         <h3 class="my-stats-section-heading">Vocabulary Profile</h3>
         <strong class="landing-progress-summary-count">${total.toLocaleString("en-US")} word${total === 1 ? "" : "s"}</strong>
       </div>
-      <p class="my-stats-vocabulary-intro">Words you’ve practiced, grouped by how well you know them.</p>
+      <p class="my-stats-vocabulary-intro">Grouped by how durably each word has stuck over time — a stricter, slower-moving measure than the accuracy-based Proficiency card above, so the two won’t always match.</p>
       ${window.WordGameHelpers.buildVocabProgressBarMarkup(counts, total)}
       <a class="my-stats-see-all-link" href="?type=word-list">See All Words</a>
     `;
@@ -289,8 +671,11 @@
     section.append(
       createHeaderCard(),
       createOverviewCard(),
-      createGemsCard(),
+      createProficiencyCard(),
+      createActivityHeatmapCard(),
+      createSkillsCard(),
       createVocabularyCard(),
+      createGemsCard(),
       createTroubleWordsCard(),
     );
 

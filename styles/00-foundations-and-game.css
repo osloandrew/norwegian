@@ -99,6 +99,12 @@
   --color-success-text: #254a1d;
   --color-success-bg: #d7ecc9;
   --color-success-border: #7cab62;
+  /* My Stats' practice-activity heatmap (myStats.js): a 4-step ramp using
+     the success family — --color-success-bg/-border/-success themselves are
+     steps 1/3/4, this fills the missing step 2. Step 0 (no activity) reuses
+     --color-surface-strong below, already documented as "gray for unknown
+     levels". */
+  --color-heatmap-2: #a8d18d;
   /* Streak / favorite — already a coherent, low-duplication family; kept
      as-is. */
   --color-streak-bg: #fff3e0;

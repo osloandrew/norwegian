@@ -117,6 +117,12 @@ let gameActive = false;
 const WORD_GAME_SESSION_WORD_COUNTS = [10, 20, 50];
 const DAILY_PRACTICE_STORAGE_KEY = "norwegian-dictionary-daily-practice-v2";
 const BEST_WORD_STREAK_STORAGE_KEY = "norwegian-dictionary-best-word-streak-v1";
+// My Stats' practice-activity heatmap. Local-only (not synced to Firestore,
+// unlike abilityScore/dailyPractice/streak) — a per-device log of how many
+// questions were answered each day, capped so it can't grow forever. 371
+// days is 53 full weeks, matching a GitHub-style contribution calendar.
+const PRACTICE_ACTIVITY_STORAGE_KEY = "norwegian-dictionary-practice-activity-v1";
+const PRACTICE_ACTIVITY_MAX_DAYS = 371;
 const PLACEMENT_PRACTICE_WORD_COUNT = 10;
 const PLACEMENT_CALIBRATION_ANSWER_COUNT = 7;
 const PLACEMENT_CALIBRATION_INITIAL_STEP = 150;
@@ -396,6 +402,56 @@ function replaceDailyPracticeState(remoteState) {
   renderLandingDailyQuests();
 
   return normalized;
+}
+
+function loadPracticeActivityLog() {
+  try {
+    const stored = JSON.parse(
+      window.localStorage?.getItem(PRACTICE_ACTIVITY_STORAGE_KEY) || "null",
+    );
+    if (!stored || typeof stored !== "object" || Array.isArray(stored)) {
+      return {};
+    }
+    const log = {};
+    for (const [dateKey, count] of Object.entries(stored)) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateKey) && Number.isFinite(count)) {
+        log[dateKey] = Math.max(0, Math.floor(count));
+      }
+    }
+    return log;
+  } catch (_error) {
+    return {};
+  }
+}
+
+// Date-key strings ("YYYY-MM-DD") sort lexically in the same order as
+// chronologically, so pruning is a plain string comparison — no need to
+// parse each key back into a Date.
+function savePracticeActivityLog(log) {
+  const dayMs = window.SpacedRepetition?.DAY_MS ?? 24 * 60 * 60 * 1000;
+  const cutoffKey = getDailyPracticeDateKey(
+    new Date(Date.now() - PRACTICE_ACTIVITY_MAX_DAYS * dayMs),
+  );
+  const pruned = {};
+  for (const [dateKey, count] of Object.entries(log)) {
+    if (dateKey >= cutoffKey) pruned[dateKey] = count;
+  }
+  try {
+    window.localStorage?.setItem(
+      PRACTICE_ACTIVITY_STORAGE_KEY,
+      JSON.stringify(pruned),
+    );
+  } catch (_error) {
+    // Private browsing/storage restrictions should not block the game.
+  }
+  return pruned;
+}
+
+function recordPracticeActivityForToday() {
+  const log = loadPracticeActivityLog();
+  const todayKey = getDailyPracticeDateKey();
+  log[todayKey] = (log[todayKey] ?? 0) + 1;
+  savePracticeActivityLog(log);
 }
 
 // Longest run of consecutive correct answers ever reached in the Word Game
@@ -1053,6 +1109,28 @@ let queueClearedChime = new Audio(
 let roundCompleteChime = new Audio(
   "Resources/Audio/roundCompleteChime.mp3?v=0a276b8d1c",
 );
+// These six live for the whole session instead of being recreated per play
+// (unlike playTrackedAudio's word/sentence clips). On iOS Safari a backgrounded
+// tab, a phone call, or a screen lock can silently push a long-lived
+// HTMLMediaElement into a broken state; since playChime() below swallows
+// play() rejections, a chime that breaks this way used to stay silent for
+// the rest of the session. .load() resets an element back to a fresh,
+// playable state using its existing src, so both a caught failure and a
+// return-to-foreground proactively clear that broken state.
+const ALL_CHIMES = [
+  goodChime,
+  badChime,
+  popChime,
+  streakChime,
+  queueClearedChime,
+  roundCompleteChime,
+];
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible") return;
+  ALL_CHIMES.forEach((audio) => {
+    if (audio.error) audio.load();
+  });
+});
 
 goodChime.volume = 0.2;
 badChime.volume = 0.2;
@@ -1093,8 +1171,13 @@ function playChime(audio, priority) {
   // Interrupting a chime (the .pause() above) rejects its own in-flight
   // play() promise with an AbortError — expected once chimes can cut each
   // other off, not a real failure, so it's swallowed rather than left as an
-  // unhandled rejection.
-  audio.play().catch(() => {});
+  // unhandled rejection. Any other rejection means this element is actually
+  // broken (see the ALL_CHIMES comment above) — .load() resets it so the
+  // next attempt to play this chime isn't doomed to fail the same way.
+  audio.play().catch((err) => {
+    if (err && err.name === "AbortError") return;
+    audio.load();
+  });
   activeChime = audio;
   activeChimePriority = priority;
 }
@@ -1393,6 +1476,7 @@ function updateRecentAnswers(
   placementEvidence = null,
 ) {
   recentAnswers.push(isCorrect ? 1 : 0);
+  recordPracticeActivityForToday();
   updateAbilityScore(
     wordObj,
     isCorrect,
@@ -4757,6 +4841,165 @@ function getVocabDueLabel(dueCount) {
     : `${dueCount} words due for review`;
 }
 
+// My Stats' proficiency card. A band only counts as "reached" once there's
+// a real sample of it (5+ attempted words) and most of that sample is
+// "known" — see CEFR_WORD_KNOWN_* below for what that means and why. Bands
+// aren't required to be reached contiguously from A1 — a learner who placed
+// straight into B1 material may have almost no A1 words on record at all.
+const CEFR_LEVEL_MIN_SAMPLE = 5;
+const CEFR_LEVEL_MASTERY_THRESHOLD = 0.5;
+const CEFR_LEVEL_APPROACHING_THRESHOLD = 0.15;
+// A word counts as "known" the same way the dashboard's own Lifetime
+// Accuracy tile does: successes / repetitions, summed across every skill
+// that word has ever been tested in. Deliberately NOT the spaced-repetition
+// scheduler's per-skill "strength" (0-5 maturity, used by the Vocabulary
+// Profile tier bar and the game's own due-date scheduling) — that number
+// requires several *time-spaced* correct reviews on every skill a word has
+// ever been tested in, including rarely-asked ones like synonyms, before it
+// counts a word as durable. A learner who has answered 5,000 questions at
+// 92% accuracy can still fail to clear that bar on almost every word,
+// because their synonym/context reps per word are few — not because they
+// don't know the words. Plain accuracy is what "do I know this word"
+// actually means to someone reading this page.
+const CEFR_WORD_KNOWN_MIN_REPETITIONS = 3;
+const CEFR_WORD_KNOWN_ACCURACY = 0.8;
+
+function getVocabularyByCefrSummary() {
+  const records = window.WordStrengthAPI?.getAll?.() ?? {};
+  const bandStats = new Map(
+    CEFR_LEVEL_ORDER.map((level) => [level, { attempted: 0, known: 0 }]),
+  );
+
+  for (const [entryId, memory] of Object.entries(records)) {
+    const entry = window.WordListAPI?.getEntryById?.(entryId);
+    if (!entry) continue;
+
+    let repetitions = 0;
+    let successes = 0;
+    for (const record of Object.values(memory?.skills ?? {})) {
+      repetitions += record?.repetitions ?? 0;
+      successes += record?.successes ?? 0;
+    }
+    if (repetitions === 0) continue;
+
+    const stats = bandStats.get(getWordCefrLabel(entry));
+    if (!stats) continue;
+    stats.attempted++;
+    if (
+      repetitions >= CEFR_WORD_KNOWN_MIN_REPETITIONS &&
+      successes / repetitions >= CEFR_WORD_KNOWN_ACCURACY
+    ) {
+      stats.known++;
+    }
+  }
+
+  const bands = CEFR_LEVEL_ORDER.map((level) => {
+    const stats = bandStats.get(level);
+    const ratio = stats.attempted > 0 ? stats.known / stats.attempted : 0;
+    return {
+      level,
+      label: getCefrLabel(level),
+      attempted: stats.attempted,
+      known: stats.known,
+      ratio,
+      reached:
+        stats.attempted >= CEFR_LEVEL_MIN_SAMPLE &&
+        ratio >= CEFR_LEVEL_MASTERY_THRESHOLD,
+    };
+  });
+
+  // The highest reached band, not the first — see the contiguity note above.
+  let estimatedLevel = null;
+  for (const band of bands) {
+    if (band.reached) estimatedLevel = band;
+  }
+
+  const estimatedIndex = estimatedLevel
+    ? CEFR_LEVEL_ORDER.indexOf(estimatedLevel.level)
+    : -1;
+  const candidateNextBand = bands[estimatedIndex + 1] ?? null;
+  const nextLevel =
+    candidateNextBand &&
+    !candidateNextBand.reached &&
+    candidateNextBand.attempted >= CEFR_LEVEL_MIN_SAMPLE &&
+    candidateNextBand.ratio >= CEFR_LEVEL_APPROACHING_THRESHOLD
+      ? candidateNextBand
+      : null;
+
+  return { bands, estimatedLevel, nextLevel };
+}
+
+// My Stats' skills breakdown — the one place the game's five independently
+// tracked retrieval skills (SpacedRepetition.SKILL_IDS) are ever shown to
+// the learner as a group, rather than folded into a single word strength.
+const SKILL_BREAKDOWN_LABELS = Object.freeze({
+  recognition: "Recognition",
+  production: "Recall",
+  listening: "Listening",
+  context: "Sentences",
+  semantic: "Word Connections",
+});
+
+// Accuracy (successes/repetitions), the same definition Lifetime Accuracy
+// uses — not the scheduler's "strength" — for the same reason as
+// getVocabularyByCefrSummary's CEFR_WORD_KNOWN_* comment above: a rarely
+// -asked skill (synonyms) can have perfect accuracy but still show a low
+// maturity score simply because it hasn't had many *spaced* reviews yet.
+function getSkillsBreakdownSummary() {
+  const records = window.WordStrengthAPI?.getAll?.() ?? {};
+  const skillIds = window.SpacedRepetition?.SKILL_IDS ?? [];
+  const totals = new Map(
+    skillIds.map((skill) => [skill, { repetitions: 0, successes: 0, wordCount: 0 }]),
+  );
+
+  for (const memory of Object.values(records)) {
+    for (const skill of skillIds) {
+      const record = memory?.skills?.[skill];
+      if (!record?.repetitions) continue;
+      const totalsForSkill = totals.get(skill);
+      totalsForSkill.repetitions += record.repetitions;
+      totalsForSkill.successes += record.successes ?? 0;
+      totalsForSkill.wordCount += 1;
+    }
+  }
+
+  return skillIds.map((skill) => {
+    const { repetitions, successes, wordCount } = totals.get(skill);
+    return {
+      skill,
+      label: SKILL_BREAKDOWN_LABELS[skill] ?? skill,
+      practicedCount: wordCount,
+      avgPercent: repetitions > 0 ? Math.round((successes / repetitions) * 100) : 0,
+    };
+  });
+}
+
+// My Stats' lifetime totals — repetitions/successes accumulate across every
+// skill of every word for as long as that word has existed, unlike the
+// in-game HUD's "Recent Accuracy" (renderStats), which only covers the
+// current round.
+function getLifetimeTotalsSummary() {
+  const records = window.WordStrengthAPI?.getAll?.() ?? {};
+  let questionsAnswered = 0;
+  let correctAnswers = 0;
+
+  for (const memory of Object.values(records)) {
+    for (const record of Object.values(memory?.skills ?? {})) {
+      questionsAnswered += record?.repetitions ?? 0;
+      correctAnswers += record?.successes ?? 0;
+    }
+  }
+
+  return {
+    questionsAnswered,
+    correctAnswers,
+    accuracyPercent:
+      questionsAnswered > 0
+        ? Math.round((correctAnswers / questionsAnswered) * 100)
+        : 0,
+  };
+}
+
 function renderLandingProgressSummary() {
   const container = document.getElementById("landing-progress-summary");
   if (!container) return;
@@ -5967,9 +6210,7 @@ function showWordGameRoundSummary() {
     streakResult,
   } = settleWordGameRoundOutcome();
 
-  if (roundWasComplete) {
-    playChime(roundCompleteChime, CHIME_PRIORITY.roundComplete);
-  }
+  playChime(roundCompleteChime, CHIME_PRIORITY.roundComplete);
 
   const streakBannerHTML =
     streakResult && streakResult.count > 0
@@ -10594,6 +10835,11 @@ window.WordGameHelpers = Object.freeze({
   getVocabDueLabel,
   loadVocabularyFrequencyRanks,
   getVocabularyFrequencyRank,
+  getVocabularyByCefrSummary,
+  getSkillsBreakdownSummary,
+  getLifetimeTotalsSummary,
+  getPracticeActivityLog: loadPracticeActivityLog,
+  getDateKeyForDate: getDailyPracticeDateKey,
 });
 
 // Keeps the vocabulary profile widget live if strength records change while

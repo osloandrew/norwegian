@@ -747,7 +747,17 @@ body.word-game-mode .search-and-random-wrapper {
     box-sizing: border-box;
     justify-content: space-around;
     left: 0;
+    /* The bar spans edge-to-edge (left/right: 0), so its first and last
+       tabs sit flush against the screen's physical edges. Safari's
+       standalone/PWA chrome keeps content clear of the display's curved
+       corners on its own, but a plain fixed-position bar (e.g. an iOS
+       Chrome "Add to Home Screen" web app, which also runs without
+       browser chrome) does not get that adjustment for free — pad the
+       sides with the same safe-area inset already used for the bottom
+       edge above. */
     padding-bottom: max(6px, env(safe-area-inset-bottom));
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
     position: fixed;
     right: 0;
     width: 100%;
