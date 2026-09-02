@@ -90,9 +90,32 @@ test("trackSignInResult forwards the sign-in method into analytics", () => {
   assert.equal(calls[1][1].is_new_user, false);
 });
 
-test("triggerSignIn links a pending credential onto the popup result when provided", async () => {
+// triggerSignIn now gets its Google credential via requestGoogleAccessToken()
+// (Google Identity Services), a separate top-level function it calls but
+// that isn't itself part of the sliced source — stubbed here like
+// trackSignInResult/alertSignInFailure/handleAccountExistsWithDifferentCredential
+// below, each a free variable the sliced function references.
+function baseTriggerSignInContext(overrides = {}) {
+  return vm.createContext({
+    requestGoogleAccessToken: async () => "fake-access-token",
+    firebase: {
+      auth: {
+        GoogleAuthProvider: {
+          credential: (idToken, accessToken) => ({ idToken, accessToken }),
+        },
+      },
+    },
+    trackSignInResult: () => {},
+    alertSignInFailure: () => {},
+    handleAccountExistsWithDifferentCredential: () => {},
+    authDebugLog: () => {},
+    ...overrides,
+  });
+}
+
+test("triggerSignIn links a pending credential onto the sign-in result when provided", async () => {
   const source = sliceFunction(
-    "function triggerSignIn(",
+    "async function triggerSignIn(",
     "function handleInteractiveSignIn(",
   );
 
@@ -101,13 +124,9 @@ test("triggerSignIn links a pending credential onto the popup result when provid
   const user = {
     linkWithCredential: async (credential) => linkCalls.push(credential),
   };
-  const context = vm.createContext({
-    isStandaloneDisplayMode: () => false,
-    auth: { signInWithPopup: async () => ({ user }) },
-    provider: {},
+  const context = baseTriggerSignInContext({
+    auth: { signInWithCredential: async () => ({ user }) },
     trackSignInResult: (result) => trackCalls.push(result),
-    alertSignInFailure: () => {},
-    handleAccountExistsWithDifferentCredential: () => {},
   });
   vm.runInContext(`${source}\nthis.trigger = triggerSignIn;`, context);
 
@@ -120,7 +139,7 @@ test("triggerSignIn links a pending credential onto the popup result when provid
 
 test("triggerSignIn does not attempt to link when no credential is passed", async () => {
   const source = sliceFunction(
-    "function triggerSignIn(",
+    "async function triggerSignIn(",
     "function handleInteractiveSignIn(",
   );
 
@@ -128,13 +147,8 @@ test("triggerSignIn does not attempt to link when no credential is passed", asyn
   const user = {
     linkWithCredential: async (credential) => linkCalls.push(credential),
   };
-  const context = vm.createContext({
-    isStandaloneDisplayMode: () => false,
-    auth: { signInWithPopup: async () => ({ user }) },
-    provider: {},
-    trackSignInResult: () => {},
-    alertSignInFailure: () => {},
-    handleAccountExistsWithDifferentCredential: () => {},
+  const context = baseTriggerSignInContext({
+    auth: { signInWithCredential: async () => ({ user }) },
   });
   vm.runInContext(`${source}\nthis.trigger = triggerSignIn;`, context);
 
@@ -143,25 +157,22 @@ test("triggerSignIn does not attempt to link when no credential is passed", asyn
   assert.deepEqual(linkCalls, []);
 });
 
-test("triggerSignIn routes an account-collision popup error to the recovery handler", async () => {
+test("triggerSignIn routes an account-collision sign-in error to the recovery handler", async () => {
   const source = sliceFunction(
-    "function triggerSignIn(",
+    "async function triggerSignIn(",
     "function handleInteractiveSignIn(",
   );
 
   const recoveryCalls = [];
   const alertCalls = [];
-  const context = vm.createContext({
-    isStandaloneDisplayMode: () => false,
+  const context = baseTriggerSignInContext({
     auth: {
-      signInWithPopup: async () => {
+      signInWithCredential: async () => {
         const error = new Error("collision");
         error.code = "auth/account-exists-with-different-credential";
         throw error;
       },
     },
-    provider: {},
-    trackSignInResult: () => {},
     alertSignInFailure: (error) => alertCalls.push(error),
     handleAccountExistsWithDifferentCredential: (error, attemptedProvider) =>
       recoveryCalls.push([error, attemptedProvider]),
@@ -192,6 +203,7 @@ function baseCompleteContext(overrides = {}) {
     trackSignInResult: () => {},
     handleAccountExistsWithDifferentCredential: async () => {},
     alertSignInFailure: () => {},
+    authDebugLog: () => {},
     ...overrides,
   });
 }

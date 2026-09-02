@@ -4,13 +4,15 @@
 // cache app code (index.html, scripts.js, wordGame.js, etc.): getting that
 // caching wrong would risk serving stale JS indefinitely to anyone who
 // already has this service worker installed, which is a far worse failure
-// mode than "no offline support yet." Only the two icon files are
-// precached. Bump this cache version whenever either icon is redesigned so
+// mode than "no offline support yet." Only the four icon files are
+// precached. Bump this cache version whenever any icon is redesigned so
 // installed copies replace the previous artwork promptly.
-const CACHE_NAME = "norwegian-dictionary-static-v2";
+const CACHE_NAME = "norwegian-dictionary-static-v3";
 const PRECACHE_URLS = [
   "Resources/Icons/android-chrome-192x192.png",
   "Resources/Icons/android-chrome-512x512.png",
+  "Resources/Icons/android-chrome-maskable-192x192.png",
+  "Resources/Icons/android-chrome-maskable-512x512.png",
 ];
 
 self.addEventListener("install", (event) => {
@@ -36,14 +38,14 @@ self.addEventListener("activate", (event) => {
 // Network-first for everything — a deployed update is visible immediately
 // whenever the user is online, exactly like before this service worker
 // existed. The cache is only ever consulted as an offline fallback, and
-// only the two precached icons above will actually be found there.
+// only the four precached icons above will actually be found there.
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   event.respondWith(
     fetch(event.request).catch(async () => {
       // caches.match() resolves to undefined for anything not precached —
-      // true of nearly everything, since only the two icons above are.
+      // true of nearly everything, since only the four icons above are.
       // respondWith(undefined) throws ("Failed to convert value to
       // 'Response'"), turning an ordinary failure (e.g. a request the
       // browser cancelled because a newer navigation superseded it) into

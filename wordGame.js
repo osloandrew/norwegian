@@ -1631,9 +1631,12 @@ function renderStats(instructionHTML = "") {
   const wordsToReview = incorrectWordQueue.length;
 
   // Purely descriptive of recent accuracy, not relative to any level
-  // threshold — there's nothing here to rise or fall from. Colors are
-  // literal (a plain JS var can't read a CSS custom property) but kept in
-  // sync with 00-foundations-and-game.css's tokens by name in each comment.
+  // threshold — there's nothing here to rise or fall from, so the fill
+  // stays a single "good" color instead of swapping toward red/yellow at
+  // lower percentages, which used to imply a risk of falling back. Colors
+  // are literal (a plain JS var can't read a CSS custom property) but kept
+  // in sync with 00-foundations-and-game.css's tokens by name in each
+  // comment.
   let fillColor = "#d7ecc9"; // matches --color-success-bg
   let fontColor = "#254a1d"; // matches --color-success-text
 
@@ -1641,12 +1644,6 @@ function renderStats(instructionHTML = "") {
     // Before the user answers any question
     fillColor = "#e0e0e0"; // matches --color-surface-strong
     fontColor = "#4a4a4a"; // matches --color-text-strong
-  } else if (correctPercentage < 60) {
-    fillColor = "#f0c1b3"; // matches --color-danger-bg
-    fontColor = "#6b2814"; // matches --color-danger-text
-  } else if (correctPercentage < 85) {
-    fillColor = "#f2d96b"; // matches --color-level-mid
-    fontColor = "#b3541e"; // matches --color-streak-text
   }
 
   const isSessionRound = wordGameRoundActive && wordGameMode === "session";
@@ -7187,9 +7184,9 @@ async function renderGameTeachingReveal({
     ? `<p class="game-teaching-translation game-english-translation${translationRequired ? " game-english-translation-required" : ""}" style="display: ${translationRequired || isEnglishVisible ? "block" : "none"};">${escapeGameHTML(normalizedTranslation)}</p>`
     : "";
   const note = isSemanticBridge
-    ? `New connection: “${getPrimaryNorwegianForm(wordObj)}” can mean approximately “${normalizedAnswer}” here. We’ll revisit it.`
+    ? `New meaning: “${getPrimaryNorwegianForm(wordObj)}” can also mean “${normalizedAnswer}” here — we’ll test it again soon.`
     : isSemanticConnection && normalizedSentence
-      ? `In this sentence, “${getPrimaryNorwegianForm(wordObj)}” is connected in meaning to “${normalizedAnswer}”; the two are not always interchangeable.`
+      ? `Related meaning: “${getPrimaryNorwegianForm(wordObj)}” connects to “${normalizedAnswer}” here, though the two aren’t always interchangeable.`
     : scheduledForReview
     ? "We’ll try this word again shortly."
     : isCloze
@@ -7197,6 +7194,7 @@ async function renderGameTeachingReveal({
       : normalizedSentence
         ? "Tap the Norwegian sentence to hear it again."
         : "This answer is now part of your review history.";
+  const noteWraps = isSemanticBridge || (isSemanticConnection && normalizedSentence);
 
   reveal.dataset.state = outcomeKind;
   reveal.classList.remove("has-required-cue");
@@ -7206,7 +7204,7 @@ async function renderGameTeachingReveal({
       <strong>${escapeGameHTML(outcomeText)}</strong>
     </div>
     <div class="game-teaching-context">${morphologyContrast ? `<p class="game-morphology-contrast">${escapeGameHTML(morphologyContrast)}</p>` : ""}${contextHTML}${translationHTML}</div>
-    <p class="game-teaching-note">${escapeGameHTML(note)}</p>
+    <p class="game-teaching-note${noteWraps ? " game-teaching-note-wrap" : ""}">${escapeGameHTML(note)}</p>
   `;
 
   const sentenceButton = reveal.querySelector(".game-teaching-sentence");
@@ -7471,7 +7469,7 @@ async function renderWordIntroductionUI(initialEntry) {
       </div>
       <section class="game-teaching-reveal game-introduction-reveal" aria-label="New word introduction" data-state="introduction">
         <p class="game-introduction-meaning">${escapeGameHTML(displayedMeaning)}</p>
-        ${synonymIntroduction ? `<p class="game-teaching-note game-synonym-introduction-note">Similar word: “${escapeGameHTML(displayedWord)}” can also mean “${escapeGameHTML(synonymIntroduction.answer)}” here.</p>` : ""}
+        ${synonymIntroduction ? `<p class="game-teaching-note game-teaching-note-wrap">Similar word: “${escapeGameHTML(displayedWord)}” can also mean “${escapeGameHTML(synonymIntroduction.answer)}” here.</p>` : ""}
         ${sentence ? `<div class="game-teaching-context"><button type="button" class="game-teaching-sentence" aria-label="Play sentence audio">${sentenceHTML}</button>${sentenceTranslation ? `<p class="game-teaching-translation game-english-translation" style="display: ${isEnglishVisible ? "block" : "none"};">${escapeGameHTML(sentenceTranslation)}</p>` : ""}</div>` : ""}
         <p class="game-teaching-note">${escapeGameHTML(getIntroductionPracticeNote(initialEntry.targetMode))}</p>
       </section>

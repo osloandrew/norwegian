@@ -136,13 +136,13 @@
           btn.classList.add("story-quiz-correct");
           btn.insertAdjacentHTML(
             "beforeend",
-            '<i class="fas fa-check story-quiz-icon story-quiz-icon-correct"></i>',
+            '<i class="fas fa-check story-quiz-icon story-quiz-icon-correct" aria-hidden="true"></i>',
           );
         } else if (btn === chosenButton) {
           btn.classList.add("story-quiz-incorrect");
           btn.insertAdjacentHTML(
             "beforeend",
-            '<i class="fas fa-times story-quiz-icon story-quiz-icon-incorrect"></i>',
+            '<i class="fas fa-times story-quiz-icon story-quiz-icon-incorrect" aria-hidden="true"></i>',
           );
         }
       });
@@ -151,7 +151,7 @@
       feedbackEl.hidden = false;
       feedbackEl.innerHTML = `
         <p class="story-quiz-feedback-label">
-          <i class="fas ${isCorrect ? "fa-check story-quiz-icon-correct" : "fa-times story-quiz-icon-incorrect"} story-quiz-icon"></i>
+          <i class="fas ${isCorrect ? "fa-check story-quiz-icon-correct" : "fa-times story-quiz-icon-incorrect"} story-quiz-icon" aria-hidden="true"></i>
           ${isCorrect ? "Correct" : "Not Quite"}
         </p>
         <p class="story-quiz-feedback-source" lang="nb">«${escapeHTML(question.sourceSentence)}»</p>
@@ -185,14 +185,14 @@
         <div class="story-quiz-review-item">
           <p class="story-quiz-review-prompt">${i + 1}. ${escapeHTML(answer.prompt)}</p>
           <p class="story-quiz-review-answer">
-            <i class="fas ${answer.isCorrect ? "fa-check story-quiz-icon-correct" : "fa-times story-quiz-icon-incorrect"} story-quiz-icon"></i>
+            <i class="fas ${answer.isCorrect ? "fa-check story-quiz-icon-correct" : "fa-times story-quiz-icon-incorrect"} story-quiz-icon" aria-hidden="true"></i>
             Your Answer: ${escapeHTML(answer.chosenOption)}
           </p>
           ${
             answer.isCorrect
               ? ""
               : `<p class="story-quiz-review-correct-answer">
-                  <i class="fas fa-check story-quiz-icon-correct story-quiz-icon"></i>
+                  <i class="fas fa-check story-quiz-icon-correct story-quiz-icon" aria-hidden="true"></i>
                   Correct Answer: ${escapeHTML(answer.correctOption)}
                 </p>`
           }

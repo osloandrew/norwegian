@@ -313,6 +313,14 @@ ul {
   transform: translateY(-1px); /* tiny lift */
 }
 
+/* role="button" makes this focusable but not a real button, so it gets no
+   default focus ring -- same treatment as
+   .multiple-results-definition-header[role="button"] above. */
+.sentence-audio-icon:focus-visible {
+  outline: 2px solid var(--color-link-muted);
+  outline-offset: 2px;
+}
+
 .sentence-box-practice {
   align-content: center;
   background-color: var(--color-surface);

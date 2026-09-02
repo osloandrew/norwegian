@@ -117,7 +117,7 @@
     const [year, month, day] = dateString.split("-").map(Number);
     // Midday keeps this calendar-date display stable in every local time
     // zone, including around daylight-saving changes.
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat("en-US", {
       weekday: "long",
       month: "long",
       day: "numeric",

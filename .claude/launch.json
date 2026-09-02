@@ -2,21 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "norwegian-static",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8934"],
-      "port": 8934
-    },
-    {
-      "name": "norwegian-app",
+      "name": "static",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8935"],
-      "port": 8935
-    },
-    {
-      "name": "norwegian-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
       "port": 8935
     }
   ]

@@ -12,6 +12,23 @@
     projectId: "norwegian-dictionary-71da6",
   };
 
+  // Google's OAuth 2.0 web client ID for this Firebase project (Firebase
+  // console > Authentication > Sign-in method > Google > Web SDK
+  // configuration). Public, like FIREBASE_CONFIG above — safe to commit.
+  // Used to drive Google Identity Services directly (see
+  // requestGoogleAccessToken()) instead of Firebase's own
+  // signInWithPopup/signInWithRedirect, which both route through a full
+  // top-level navigation to/from this project's authDomain. On iOS Safari
+  // and Chrome, that hop crosses a third-party origin from the app's own
+  // (github.io) origin, and iOS's Intelligent Tracking Prevention partitions
+  // storage across it — the sign-in completes on Google's side (password,
+  // 2FA and all) but the result never makes it back. GIS's token client
+  // keeps the whole exchange inside a popup Google itself manages and
+  // delivers the result to a JS callback on this page, without depending on
+  // storage written on a third-party origin surviving the round trip.
+  const GOOGLE_OAUTH_CLIENT_ID =
+    "249499638554-22gc28cj63mfhqdj65kglk5nvidd7ghp.apps.googleusercontent.com";
+
   // The Firebase SDK (~3 blocking scripts) is only needed by the minority of
   // visitors who actually sign in. Loading it eagerly on every pageview was
   // blocking initial paint for everyone else. Instead it's fetched lazily,
@@ -98,6 +115,49 @@
     "signin-nudge-dismiss-btn",
   );
 
+  // --- TEMPORARY diagnostic overlay for the Chrome-iOS home-screen sign-in
+  // bug. Enable by visiting the app with ?authdebug=1 in the URL — writes a
+  // readable, on-screen log of every step the sign-in flow takes. Chrome for
+  // iOS has no remote-debugging console available, so this is the only
+  // practical way to see what actually happens there. Does nothing unless
+  // the query param is present. Safe to delete once the bug is diagnosed.
+  let authDebugEnabled = false;
+  try {
+    authDebugEnabled =
+      new URLSearchParams(window.location.search).get("authdebug") === "1";
+  } catch (error) {
+    // Ignore — overlay just stays off.
+  }
+  let authDebugPanel = null;
+  let authDebugTextNode = null;
+  const authDebugLines = [];
+  function authDebugLog(message) {
+    if (!authDebugEnabled) return;
+    const line = `${new Date().toISOString().slice(11, 23)} ${message}`;
+    authDebugLines.push(line);
+    console.info("[authdebug]", message);
+    if (!authDebugPanel && document.body) {
+      authDebugPanel = document.createElement("div");
+      authDebugPanel.style.cssText =
+        "position:fixed;inset:auto 0 0 0;max-height:45vh;overflow:auto;" +
+        "background:#000;color:#0f0;font:11px/1.4 monospace;padding:8px;" +
+        "z-index:999999;white-space:pre-wrap;word-break:break-all;";
+      const copyButton = document.createElement("button");
+      copyButton.type = "button";
+      copyButton.textContent = "Copy log";
+      copyButton.style.cssText =
+        "position:sticky;top:0;float:right;margin-left:8px;";
+      copyButton.addEventListener("click", () => {
+        navigator.clipboard?.writeText(authDebugLines.join("\n")).catch(() => {});
+      });
+      authDebugPanel.appendChild(copyButton);
+      authDebugTextNode = document.createElement("div");
+      authDebugPanel.appendChild(authDebugTextNode);
+      document.body.appendChild(authDebugPanel);
+    }
+    if (authDebugTextNode) authDebugTextNode.textContent = authDebugLines.join("\n");
+  }
+
   if (!isFirebaseConfigured) {
     console.warn(
       "My Words sync is disabled: add your Firebase config to myWordsAuth.js.",
@@ -113,7 +173,7 @@
 
   let auth = null;
   let db = null;
-  let provider = null;
+  let googleTokenClient = null;
   let currentUserId = null;
   let progressPushTimeoutId = null;
   let profilePushTimeoutId = null;
@@ -131,12 +191,13 @@
   const SIGN_IN_READY_TITLE = "Sign in to sync My Words across devices";
   const SIGN_IN_LOADING_TITLE = "Preparing sign-in…";
 
-  // signInWithPopup must run directly inside a trusted click. If the Firebase
-  // SDK is first downloaded from that click and the popup starts only after
-  // the download promise resolves, installed web apps and stricter mobile
-  // browsers treat it as an unsolicited popup and block it. Keep both entry
-  // points disabled until Auth is ready so their eventual click can open the
-  // Google window synchronously.
+  // Google Identity Services' requestAccessToken() must run directly inside
+  // a trusted click, same constraint signInWithPopup used to have. If the
+  // SDKs are first downloaded from that click and the prompt starts only
+  // after the download promise resolves, installed web apps and stricter
+  // mobile browsers treat it as an unsolicited popup and block it. Keep both
+  // entry points disabled until Auth is ready so their eventual click can
+  // open Google's prompt synchronously.
   function setSignInControlsReady(isReady) {
     for (const button of [signInButton, signInNudgeSignInButton]) {
       if (!button) continue;
@@ -147,26 +208,11 @@
 
   setSignInControlsReady(false);
 
-  // An iOS "Add to Home Screen" install (and other installed/standalone
-  // PWAs) runs with no real popup window support: signInWithPopup's
-  // opener/postMessage channel back to this page never connects, so the
-  // sign-in can appear to proceed but onAuthStateChanged here never fires
-  // and mergeRemoteData() never runs — My Words, streak, and everything
-  // else stay stuck showing only this device's local state indefinitely.
-  // signInWithRedirect avoids the popup entirely (a plain top-level
-  // navigation this window survives) and works the same everywhere else.
-  //
-  // navigator.standalone and the display-mode media query both require
-  // iOS to recognize apple-mobile-web-app-capable (see index.html) — icons
-  // added to the home screen before that tag existed, or other WebKit
-  // versions that just lag on this, can still report neither as true even
-  // though window.open is just as broken there. manifest.json's start_url
-  // tags every home-screen launch with utm_source=pwa as a fallback signal
-  // that doesn't depend on iOS reporting standalone status correctly.
-  // Captured once, here, while this script's top-level code runs on page
-  // load — well before any click could trigger the in-app navigation that
-  // rewrites the query string for its own routing and would erase it from
-  // the live URL by the time a sign-in click can happen.
+  // Sign-in no longer branches on standalone/installed status — see
+  // GOOGLE_OAUTH_CLIENT_ID's comment above for why signInWithPopup/Redirect
+  // (and therefore this detection) were replaced. Kept only to label the
+  // load-time authDebugLog line below, so a future report of trouble in some
+  // other installed-web-app context still shows what environment it was.
   let launchedFromHomeScreen = false;
   try {
     launchedFromHomeScreen =
@@ -175,20 +221,6 @@
     // Ignore — falls back to the live standalone checks below.
   }
 
-  // navigator.standalone, display-mode, and manifest-driven start_url are
-  // all Safari/W3C-manifest features. Every iOS browser is forced onto
-  // Apple's WebKit engine, but only Safari gets the OS-level "true
-  // standalone app" container — a Chrome/Firefox/Edge/Opera iOS icon added
-  // via "Add to Home Screen" is just a bookmark that reopens in that
-  // browser's own UI, so none of the three signals above ever fire for it.
-  // A plain (non-bookmarked) tab in those browsers still has real window
-  // chrome to pop into, though — same WebKit engine as a plain Safari tab,
-  // where signInWithPopup already works — so it isn't routed to redirect
-  // here. That leaves the bookmarked case undetectable and still on
-  // signInWithPopup, but redirect has its own failure mode (Firebase's
-  // "missing initial state" error from storage partitioning across the
-  // authDomain redirect hop), so this isn't a strictly safer default for
-  // the case we can actually detect.
   function isStandaloneDisplayMode() {
     return (
       window.navigator.standalone === true ||
@@ -196,6 +228,12 @@
       launchedFromHomeScreen
     );
   }
+
+  authDebugLog(
+    `load: ua="${navigator.userAgent}" navigator.standalone=${window.navigator.standalone} ` +
+      `displayModeStandalone=${window.matchMedia?.("(display-mode: standalone)")?.matches} ` +
+      `launchedFromHomeScreen=${launchedFromHomeScreen} isStandaloneDisplayMode=${isStandaloneDisplayMode()}`,
+  );
 
   // Words/streak/ability data saved locally must not leak into whichever
   // account signs in next on a shared device — mergeRemoteData() below
@@ -343,17 +381,41 @@
     );
   }
 
+  // Google Identity Services' client script. Unlike FIREBASE_SCRIPT_URLS
+  // above, Google does not publish versioned URLs or support Subresource
+  // Integrity for this one — it's meant to always be loaded from this exact
+  // unversioned address so it can change server-side without every
+  // integrating site breaking. No integrity hash to pin here as a result.
+  const GOOGLE_IDENTITY_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
+
+  function loadGoogleIdentityScript() {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = GOOGLE_IDENTITY_SCRIPT_SRC;
+      script.onload = resolve;
+      script.onerror = () =>
+        reject(new Error(`Failed to load ${GOOGLE_IDENTITY_SCRIPT_SRC}`));
+      document.head.appendChild(script);
+    });
+  }
+
   let authReadyPromise = null;
 
-  // Loads the SDK (once) and wires up auth. Safe to call multiple times —
+  // Loads the SDKs (once) and wires up auth. Safe to call multiple times —
   // the sign-in click handler and the "was signed in before" auto-load path
   // both call this, and only the first call does any work.
   function ensureAuthReady() {
     if (!authReadyPromise) {
-      authReadyPromise = loadFirebaseScripts()
+      authReadyPromise = Promise.all([
+        loadFirebaseScripts(),
+        loadGoogleIdentityScript(),
+      ])
         .then(() => {
           if (typeof firebase === "undefined") {
             throw new Error("Firebase failed to load.");
+          }
+          if (typeof google === "undefined") {
+            throw new Error("Google Identity Services failed to load.");
           }
           initAuth();
         })
@@ -1341,7 +1403,10 @@
   // reference keeps working unchanged; the email-link path passes its own.
   function alertSignInFailure(error, context = "Google sign-in") {
     console.warn(`${context} failed.`, error);
-    if (error?.code === "auth/popup-blocked") {
+    if (
+      error?.code === "auth/popup-blocked" ||
+      error?.code === "popup_failed_to_open"
+    ) {
       window.alert(
         "Your browser blocked the Google sign-in popup. Please allow pop-ups for this site and try again.",
       );
@@ -1350,44 +1415,77 @@
     }
   }
 
+  // Wraps Google Identity Services' callback-based OAuth token flow in a
+  // promise triggerSignIn() below can await. error_callback fires for
+  // problems with the popup itself (blocked, or closed before completing);
+  // the main callback's own `error` field fires when the flow completed but
+  // the user declined consent.
+  function requestGoogleAccessToken() {
+    return new Promise((resolve, reject) => {
+      if (!googleTokenClient) {
+        reject(new Error("Google Identity Services was not ready."));
+        return;
+      }
+      googleTokenClient.callback = (response) => {
+        if (response.error) {
+          reject(
+            Object.assign(new Error(response.error), { code: response.error }),
+          );
+        } else {
+          resolve(response.access_token);
+        }
+      };
+      googleTokenClient.error_callback = (error) => {
+        reject(
+          Object.assign(new Error(error?.type || "unknown"), {
+            code: error?.type,
+          }),
+        );
+      };
+      googleTokenClient.requestAccessToken();
+    });
+  }
+
   // `linkCredential`, when passed, attaches an AuthCredential from a
   // *different* provider (e.g. a pending email-link credential) to the
   // account this call signs into — see handleAccountExistsWithDifferentCredential.
-  // Only honored on the popup path: the redirect path navigates this window
-  // away immediately, and an AuthCredential object can't be safely carried
-  // across that round trip, so a redirect sign-in here just completes
-  // normally without linking (matches the same trade-off the email-link
-  // recovery branch makes for its own reload boundary).
-  function triggerSignIn({ linkCredential } = {}) {
-    if (isStandaloneDisplayMode()) {
-      // The result is collected by getRedirectResult() in initAuth() on the
-      // next load, not from this promise.
-      return auth.signInWithRedirect(provider).catch((error) => {
-        if (error?.code === "auth/account-exists-with-different-credential") {
-          handleAccountExistsWithDifferentCredential(error, "google.com");
-          return;
-        }
+  async function triggerSignIn({ linkCredential } = {}) {
+    authDebugLog("triggerSignIn: requesting Google access token via GIS…");
+    let accessToken;
+    try {
+      accessToken = await requestGoogleAccessToken();
+    } catch (error) {
+      authDebugLog(
+        `requestGoogleAccessToken: rejected code=${error?.code} message=${error?.message}`,
+      );
+      if (error?.code !== "popup_closed" && error?.code !== "access_denied") {
         alertSignInFailure(error);
-      });
+      }
+      return;
     }
+    authDebugLog("requestGoogleAccessToken: resolved");
 
-    return auth
-      .signInWithPopup(provider)
-      .then(async (result) => {
-        if (linkCredential) {
-          await result.user.linkWithCredential(linkCredential);
-        }
-        trackSignInResult(result);
-      })
-      .catch((error) => {
-        if (error?.code === "auth/account-exists-with-different-credential") {
-          handleAccountExistsWithDifferentCredential(error, "google.com");
-          return;
-        }
-        if (error?.code !== "auth/popup-closed-by-user") {
-          alertSignInFailure(error);
-        }
-      });
+    const credential = firebase.auth.GoogleAuthProvider.credential(
+      null,
+      accessToken,
+    );
+    try {
+      const result = await auth.signInWithCredential(credential);
+      authDebugLog(`signInWithCredential: resolved uid=${result?.user?.uid}`);
+      if (linkCredential) {
+        await result.user.linkWithCredential(linkCredential);
+      }
+      trackSignInResult(result);
+    } catch (error) {
+      authDebugLog(
+        `signInWithCredential: rejected code=${error?.code} message=${error?.message}`,
+      );
+      if (error?.code === "auth/account-exists-with-different-credential") {
+        handleAccountExistsWithDifferentCredential(error, "google.com");
+        return;
+      }
+      alertSignInFailure(error);
+    }
   }
 
   function handleInteractiveSignIn(source, button) {
@@ -1498,8 +1596,8 @@
   // the dialog element for the caller to fill in — mirrors
   // openFeedbackDialog()'s shape (role="dialog", aria-modal, focus trap,
   // focus restored to `triggerElement` on close) without importing from
-  // scripts.js, since this needs direct access to `auth`/`provider`, both
-  // private to this file's closure (and scripts.js loads after this file
+  // scripts.js, since this needs direct access to `auth`/`googleTokenClient`,
+  // both private to this file's closure (and scripts.js loads after this file
   // anyway, so a reverse dependency isn't available).
   //
   // The overlay/dialog carry both the shared .feedback-dialog* classes
@@ -1805,7 +1903,9 @@
   // sign-in if this load's URL is one (Firebase appends its own oobCode/
   // mode/apiKey query params to the link), and is a no-op otherwise.
   async function completeEmailLinkSignIn() {
-    if (!auth.isSignInWithEmailLink(window.location.href)) return;
+    const isEmailLink = auth.isSignInWithEmailLink(window.location.href);
+    authDebugLog(`completeEmailLinkSignIn: isSignInWithEmailLink=${isEmailLink}`);
+    if (!isEmailLink) return;
 
     try {
       let email = null;
@@ -1814,15 +1914,21 @@
       } catch (error) {
         email = null;
       }
+      authDebugLog(`completeEmailLinkSignIn: pendingEmailInStorage=${Boolean(email)}`);
 
       if (!email) {
         email = await promptForEmailLinkConfirmation();
-        if (!email) return; // Cancelled — still cleaned up in `finally` below.
+        if (!email) {
+          authDebugLog("completeEmailLinkSignIn: email prompt cancelled");
+          return; // Cancelled — still cleaned up in `finally` below.
+        }
       }
 
       const result = await auth.signInWithEmailLink(email, window.location.href);
+      authDebugLog(`completeEmailLinkSignIn: signInWithEmailLink resolved uid=${result?.user?.uid}`);
       trackSignInResult(result, "EmailLink");
     } catch (error) {
+      authDebugLog(`completeEmailLinkSignIn: catch code=${error?.code} message=${error?.message}`);
       if (error?.code === "auth/account-exists-with-different-credential") {
         handleAccountExistsWithDifferentCredential(error, "emailLink");
       } else if (error?.code === "auth/invalid-action-code") {
@@ -1973,7 +2079,13 @@
 
     auth = firebase.auth();
     db = firebase.firestore();
-    provider = new firebase.auth.GoogleAuthProvider();
+    googleTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_OAUTH_CLIENT_ID,
+      scope: "openid email profile",
+      // Real callbacks are attached per-request in requestGoogleAccessToken()
+      // — initTokenClient() just needs *a* function here to accept the config.
+      callback: () => {},
+    });
 
     // Local development talks to a local Firestore emulator instead of the
     // real project, so testing/reloading never touches the production
@@ -1988,28 +2100,9 @@
       );
     }
 
-    // Completes the signInWithRedirect flow started in triggerSignIn() for
-    // standalone/installed PWAs. onAuthStateChanged below fires with the
-    // signed-in user regardless of whether this resolves — it only exists
-    // to keep sign-in analytics tracking at parity with the popup path.
-    auth
-      .getRedirectResult()
-      .then((result) => {
-        if (result?.user) {
-          trackSignInResult(result);
-        }
-      })
-      .catch((error) => {
-        if (error?.code === "auth/account-exists-with-different-credential") {
-          handleAccountExistsWithDifferentCredential(error, "google.com");
-          return;
-        }
-        alertSignInFailure(error);
-      });
-
     // Completes an email-link sign-in if this load's URL is one. Fire-and-
-    // forget like getRedirectResult() above — onAuthStateChanged handles
-    // whatever the eventual signed-in state turns out to be either way.
+    // forget — onAuthStateChanged handles whatever the eventual signed-in
+    // state turns out to be either way.
     completeEmailLinkSignIn().catch((error) =>
       alertSignInFailure(error, "Email sign-in"),
     );
@@ -2030,6 +2123,7 @@
     });
 
     auth.onAuthStateChanged(async (user) => {
+      authDebugLog(`onAuthStateChanged: user=${Boolean(user)} uid=${user?.uid}`);
       currentUserId = user ? user.uid : null;
       updateAuthUI(user);
       rememberSignedInState(Boolean(user), user?.uid);

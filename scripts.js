@@ -1776,6 +1776,7 @@ async function randomWord() {
               ${
                 randomResult.sentenceAudio === "X"
                   ? `<i class="fas fa-volume-up sentence-audio-icon"
+                        role="button" tabindex="0" aria-label="Play sentence audio"
                         data-sentence="${cleanedSentence
                           .replace(/<[^>]*>/g, "")
                           .trim()}"></i>`
@@ -2356,7 +2357,7 @@ async function search(queryOverride = null, options = {}) {
                         !selectedPOS && !selectedCEFR
                           ? `
                         <button class="landing-card-btn flag-missing-word-btn">
-                          <i class="fas fa-flag"></i> Flag Missing Word Entry
+                          <i class="fas fa-flag" aria-hidden="true"></i> Flag Missing Word Entry
                         </button>`
                           : ""
                       }
@@ -2382,7 +2383,7 @@ async function search(queryOverride = null, options = {}) {
                       !selectedPOS && !selectedCEFR
                         ? `
                       <button class="landing-card-btn flag-missing-word-btn">
-                        <i class="fas fa-flag"></i> Flag Missing Word Entry
+                        <i class="fas fa-flag" aria-hidden="true"></i> Flag Missing Word Entry
                       </button>`
                         : ""
                     }
@@ -3485,7 +3486,7 @@ function renderDefinitionToggleButton(definisjon) {
       aria-expanded="false"
       onclick="event.stopPropagation(); toggleDefinitionText(this)"
       onkeydown="event.stopPropagation()"
-    ><i class="fas fa-chevron-down"></i> Expand Definition</button>`;
+    ><i class="fas fa-chevron-down" aria-hidden="true"></i> Expand Definition</button>`;
 }
 
 // The toggle button is the clamped .definition-text-block's next sibling
@@ -3499,7 +3500,7 @@ function toggleDefinitionText(button) {
   button.setAttribute("aria-expanded", String(nowExpanded));
   button.classList.toggle("definition-toggle-expanded", nowExpanded);
   wrapperEl.classList.toggle("definition-text-expanded", nowExpanded);
-  button.innerHTML = `<i class="fas fa-chevron-down"></i> ${
+  button.innerHTML = `<i class="fas fa-chevron-down" aria-hidden="true"></i> ${
     nowExpanded ? "Collapse Definition" : "Expand Definition"
   }`;
 }
@@ -3516,7 +3517,7 @@ function renderInflectionsToggleButton(inflections) {
       aria-expanded="false"
       onclick="event.stopPropagation(); toggleInflectionsTable(this)"
       onkeydown="event.stopPropagation()"
-    ><i class="fas fa-chevron-down"></i> Word forms</button>`;
+    ><i class="fas fa-chevron-down" aria-hidden="true"></i> Word forms</button>`;
 }
 
 // A form's value is either a plain string, or an array of accepted
@@ -3850,7 +3851,7 @@ function displaySearchResults(
                 <div class="definition-content ${multipleResultsHiddenContent}"> <!-- Apply the hidden class conditionally -->
                     ${
                       result.engelsk
-                        ? `<p class="english"><i class="fas fa-language"></i> ${result.engelsk}</p>`
+                        ? `<p class="english"><i class="fas fa-language" aria-hidden="true"></i> ${result.engelsk}</p>`
                         : ""
                     }
                     ${
@@ -3859,6 +3860,7 @@ function displaySearchResults(
                       !result.ord.includes("...")
                         ? `<p class="pronunciation">
                             <i class="fas fa-volume-up sentence-audio-icon"
+                        role="button" tabindex="0" aria-label="Play word pronunciation"
                         data-sentence="${result.ord
                           .split(",")[0]
                           .trim()}"></i>                            ${
@@ -3866,17 +3868,17 @@ function displaySearchResults(
                         }
                           </p>`
                         : result.uttale
-                          ? `<p class="pronunciation"><i class="fas fa-volume-up"></i> ${result.uttale}</p>`
+                          ? `<p class="pronunciation"><i class="fas fa-volume-up" aria-hidden="true"></i> ${result.uttale}</p>`
                           : ""
                     }
                     ${
                       result.etymologi
-                        ? `<p class="etymology"><i class="fa-solid fa-scroll"></i> ${result.etymologi}</p>`
+                        ? `<p class="etymology"><i class="fa-solid fa-scroll" aria-hidden="true"></i> ${result.etymologi}</p>`
                         : ""
                     }
                     ${
                       result.CEFR
-                        ? `<p style="display: inline-flex; align-items: center; font-family: 'Source Sans 3', 'Noto Sans', sans-serif; font-weight: 600; text-transform: uppercase; font-size: 12px; color: var(--color-text-strong);"><i class="fa-solid fa-signal" style="margin-right: 5px;"></i><span style="text-align: center; min-width: 15px; display: inline-block; padding: 3px 7px; border-radius: var(--radius-control); background-color: ${getCefrColor(
+                        ? `<p style="display: inline-flex; align-items: center; font-family: 'Source Sans 3', 'Noto Sans', sans-serif; font-weight: 600; text-transform: uppercase; font-size: 12px; color: var(--color-text-strong);"><i class="fa-solid fa-signal" style="margin-right: 5px;" aria-hidden="true"></i><span style="text-align: center; min-width: 15px; display: inline-block; padding: 3px 7px; border-radius: var(--radius-control); background-color: ${getCefrColor(
                             result.CEFR,
                           )};">${result.CEFR}</span><span style="margin-left: 6px; font-family: 'Source Sans 3', 'Noto Sans', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; color: var(--color-text-muted);">${getCefrLabel(
                             result.CEFR,
@@ -3892,7 +3894,7 @@ function displaySearchResults(
                                 class="report-issue-btn"
                                 onclick="event.stopPropagation(); flagMissingWordEntry('${escapedWord}')"
                                 onkeydown="event.stopPropagation()"
-                              ><i class="fas fa-flag"></i> Report Missing Word</button>
+                              ><i class="fas fa-flag" aria-hidden="true"></i> Report Missing Word</button>
                               ${renderInflectionsToggleButton(inflections)}
                             </div>
                             ${renderInflectionsTableWrapper(inflections)}
@@ -3904,7 +3906,7 @@ function displaySearchResults(
                               class="report-issue-btn"
                               onclick="event.stopPropagation(); openWordCardFeedbackDialog(this, '${escapedWord}', '${result.pos}', '${result.CEFR || ""}')"
                               onkeydown="event.stopPropagation()"
-                            ><i class="fas fa-flag"></i> Report an Issue</button>
+                            ><i class="fas fa-flag" aria-hidden="true"></i> Report an Issue</button>
                             ${renderInflectionsToggleButton(inflections)}
                           </div>
                           ${renderInflectionsTableWrapper(inflections)}`
@@ -4230,7 +4232,7 @@ function renderSentenceMatchesFromCorpus(
               ${cefrLabel}
               ${
                 row.audio
-                  ? `<i class="fas fa-volume-up sentence-audio-icon" data-sentence="${row.no
+                  ? `<i class="fas fa-volume-up sentence-audio-icon" role="button" tabindex="0" aria-label="Play sentence audio" data-sentence="${row.no
                       .replace(/<[^>]*>/g, "")
                       .trim()}"></i>`
                   : ""
@@ -4491,6 +4493,7 @@ function renderDefinitionSentenceResults(
                 ${
                   result.sentenceAudio === "X"
                     ? `<i class="fas fa-volume-up sentence-audio-icon"
+                          role="button" tabindex="0" aria-label="Play sentence audio"
                           data-sentence="${sentence
                             .replace(/<[^>]*>/g, "")
                             .trim()}"></i>`
@@ -5209,7 +5212,7 @@ function handleOrdbokeneCardClick(event, articleId) {
     backDiv.className = "back-navigation";
     backDiv.tabIndex = 0;
     backDiv.setAttribute("role", "button");
-    backDiv.innerHTML = `<i class="fas fa-chevron-left"></i> Back to Results for "${escapeHTML(
+    backDiv.innerHTML = `<i class="fas fa-chevron-left" aria-hidden="true"></i> Back to Results for "${escapeHTML(
       latestMultipleResults,
     )}"`;
     resultsContainer.appendChild(backDiv);
@@ -5614,21 +5617,38 @@ document.addEventListener("click", async (event) => {
   search(word); // fallback to regular multi-result search
 });
 
+function playSentenceAudioIcon(iconEl) {
+  stopAllAudio();
+  const text = iconEl.dataset.sentence;
+  let audioUrl;
+
+  // Decide if this is a word or a sentence based on where the icon lives
+  if (iconEl.closest(".pronunciation")) {
+    // Word-level audio
+    audioUrl = buildWordAudioUrl(text);
+  } else {
+    // Sentence-level audio
+    audioUrl = buildPronAudioUrl(text);
+  }
+
+  playTrackedAudio(audioUrl);
+}
+
 document.addEventListener("click", (event) => {
   if (event.target.classList.contains("sentence-audio-icon")) {
-    stopAllAudio();
-    const text = event.target.dataset.sentence;
-    let audioUrl;
+    playSentenceAudioIcon(event.target);
+  }
+});
 
-    // Decide if this is a word or a sentence based on where the icon lives
-    if (event.target.closest(".pronunciation")) {
-      // Word-level audio
-      audioUrl = buildWordAudioUrl(text);
-    } else {
-      // Sentence-level audio
-      audioUrl = buildPronAudioUrl(text);
-    }
-
-    playTrackedAudio(audioUrl);
+// role="button" on these <i> icons makes them focusable (tabindex="0"),
+// but only a real <button>/<a> gets Enter/Space activation for free --
+// a custom role needs it wired up by hand per the WAI-ARIA APG.
+document.addEventListener("keydown", (event) => {
+  if (
+    event.target.classList.contains("sentence-audio-icon") &&
+    (event.key === "Enter" || event.key === " ")
+  ) {
+    event.preventDefault();
+    playSentenceAudioIcon(event.target);
   }
 });

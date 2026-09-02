@@ -80,41 +80,41 @@ let cachedStoryOrder = null; // { cacheKey, order: Map<titleNorwegian, rank> }
 
 // Define an object mapping genres to Font Awesome icons
 const genreIcons = {
-  action: '<i class="fas fa-bolt"></i>', // Action genre icon
-  adventure: '<i class="fas fa-compass"></i>', // Adventure genre icon
-  biography: '<i class="fas fa-user"></i>', // Biography genre icon
-  business: '<i class="fas fa-briefcase"></i>', // Business genre icon
-  children: '<i class="fas fa-child"></i>', // Children’s genre icon
-  comedy: '<i class="fas fa-laugh"></i>', // Comedy genre icon
-  crime: '<i class="fas fa-gavel"></i>', // Crime genre icon
-  culture: '<i class="fas fa-globe"></i>', // Culture genre icon
-  dialogue: '<i class="fas fa-comments"></i>', // Dialogue genre icon
-  drama: '<i class="fas fa-theater-masks"></i>', // Drama genre icon
-  economics: '<i class="fas fa-chart-line"></i>', // Economics genre icon
-  education: '<i class="fas fa-book-reader"></i>', // Education genre icon
-  fantasy: '<i class="fas fa-dragon"></i>', // Fantasy genre icon
-  food: '<i class="fas fa-utensils"></i>', // Food genre icon
-  health: '<i class="fas fa-heartbeat"></i>', // Health genre icon
-  history: '<i class="fas fa-landmark"></i>', // History genre icon
-  horror: '<i class="fas fa-ghost"></i>', // Horror genre icon
-  language: '<i class="fas fa-language"></i>', // Language genre icon
-  monologue: '<i class="fas fa-microphone-alt"></i>', // Monologue genre icon
-  music: '<i class="fas fa-music"></i>', // Music genre icon
-  mystery: '<i class="fas fa-search"></i>', // Mystery genre icon
-  nature: '<i class="fas fa-leaf"></i>', // Nature genre icon
-  philosophy: '<i class="fas fa-brain"></i>', // Philosophy genre icon
-  poetry: '<i class="fas fa-feather-alt"></i>', // Poetry genre icon
-  politics: '<i class="fas fa-balance-scale"></i>', // Politics genre icon
-  psychology: '<i class="fas fa-user-md"></i>', // Psychology genre icon
-  religion: '<i class="fas fa-praying-hands"></i>', // Religion genre icon
-  romance: '<i class="fas fa-heart"></i>', // Romance genre icon
-  science: '<i class="fas fa-flask"></i>', // Science genre icon
-  "science fiction": '<i class="fas fa-rocket"></i>', // Sci-Fi genre icon
-  "self-help": '<i class="fas fa-hands-helping"></i>', // Self-help genre icon
-  sports: '<i class="fas fa-football-ball"></i>', // Sports genre icon
-  technology: '<i class="fas fa-microchip"></i>', // Technology genre icon
-  thriller: '<i class="fas fa-skull"></i>', // Thriller genre icon
-  travel: '<i class="fas fa-plane"></i>', // Travel genre icon
+  action: '<i class="fas fa-bolt" aria-hidden="true"></i>', // Action genre icon
+  adventure: '<i class="fas fa-compass" aria-hidden="true"></i>', // Adventure genre icon
+  biography: '<i class="fas fa-user" aria-hidden="true"></i>', // Biography genre icon
+  business: '<i class="fas fa-briefcase" aria-hidden="true"></i>', // Business genre icon
+  children: '<i class="fas fa-child" aria-hidden="true"></i>', // Children’s genre icon
+  comedy: '<i class="fas fa-laugh" aria-hidden="true"></i>', // Comedy genre icon
+  crime: '<i class="fas fa-gavel" aria-hidden="true"></i>', // Crime genre icon
+  culture: '<i class="fas fa-globe" aria-hidden="true"></i>', // Culture genre icon
+  dialogue: '<i class="fas fa-comments" aria-hidden="true"></i>', // Dialogue genre icon
+  drama: '<i class="fas fa-theater-masks" aria-hidden="true"></i>', // Drama genre icon
+  economics: '<i class="fas fa-chart-line" aria-hidden="true"></i>', // Economics genre icon
+  education: '<i class="fas fa-book-reader" aria-hidden="true"></i>', // Education genre icon
+  fantasy: '<i class="fas fa-dragon" aria-hidden="true"></i>', // Fantasy genre icon
+  food: '<i class="fas fa-utensils" aria-hidden="true"></i>', // Food genre icon
+  health: '<i class="fas fa-heartbeat" aria-hidden="true"></i>', // Health genre icon
+  history: '<i class="fas fa-landmark" aria-hidden="true"></i>', // History genre icon
+  horror: '<i class="fas fa-ghost" aria-hidden="true"></i>', // Horror genre icon
+  language: '<i class="fas fa-language" aria-hidden="true"></i>', // Language genre icon
+  monologue: '<i class="fas fa-microphone-alt" aria-hidden="true"></i>', // Monologue genre icon
+  music: '<i class="fas fa-music" aria-hidden="true"></i>', // Music genre icon
+  mystery: '<i class="fas fa-search" aria-hidden="true"></i>', // Mystery genre icon
+  nature: '<i class="fas fa-leaf" aria-hidden="true"></i>', // Nature genre icon
+  philosophy: '<i class="fas fa-brain" aria-hidden="true"></i>', // Philosophy genre icon
+  poetry: '<i class="fas fa-feather-alt" aria-hidden="true"></i>', // Poetry genre icon
+  politics: '<i class="fas fa-balance-scale" aria-hidden="true"></i>', // Politics genre icon
+  psychology: '<i class="fas fa-user-md" aria-hidden="true"></i>', // Psychology genre icon
+  religion: '<i class="fas fa-praying-hands" aria-hidden="true"></i>', // Religion genre icon
+  romance: '<i class="fas fa-heart" aria-hidden="true"></i>', // Romance genre icon
+  science: '<i class="fas fa-flask" aria-hidden="true"></i>', // Science genre icon
+  "science fiction": '<i class="fas fa-rocket" aria-hidden="true"></i>', // Sci-Fi genre icon
+  "self-help": '<i class="fas fa-hands-helping" aria-hidden="true"></i>', // Self-help genre icon
+  sports: '<i class="fas fa-football-ball" aria-hidden="true"></i>', // Sports genre icon
+  technology: '<i class="fas fa-microchip" aria-hidden="true"></i>', // Technology genre icon
+  thriller: '<i class="fas fa-skull" aria-hidden="true"></i>', // Thriller genre icon
+  travel: '<i class="fas fa-plane" aria-hidden="true"></i>', // Travel genre icon
 };
 
 const CSV_URL = "norwegianStories.csv";
@@ -907,6 +907,12 @@ function createStoryCardLink(story) {
   const genreLabel = formatStoryGenre(story.genre);
   if (genreLabel) {
     genreDiv.title = genreLabel;
+    // role="img" first: a bare div's implicit role is "generic", which
+    // per the ARIA spec prohibits aria-label/aria-labelledby outright —
+    // axe's aria-prohibited-attr rule catches this. role="img" is the
+    // standard technique for an icon-only element that stands in for a
+    // word (see the matching sticky-header fill below).
+    genreDiv.setAttribute("role", "img");
     genreDiv.setAttribute("aria-label", genreLabel);
   }
 
@@ -1134,7 +1140,7 @@ async function displayStoryList(
   if (hasActiveStoryFilter) {
     const activeFilterChips = [
       showFavoritesOnly
-        ? `<span class="story-results-filter-summary story-results-favorites-filter"><span class="story-results-genre-icon" aria-hidden="true"><i class="fas fa-star"></i></span><span class="story-results-filter-name">Favorites</span></span>`
+        ? `<span class="story-results-filter-summary story-results-favorites-filter"><span class="story-results-genre-icon" aria-hidden="true"><i class="fas fa-star" aria-hidden="true"></i></span><span class="story-results-filter-name">Favorites</span></span>`
         : "",
       selectedGenre
         ? `<span class="story-results-filter-summary story-results-genre-filter" title="${escapeHTML(formatStoryGenre(selectedGenre))}"><span class="story-results-genre-icon" aria-hidden="true">${
@@ -1437,7 +1443,7 @@ function displayStory(
       </div>
     </div>
     <button id="back-button" class="back-button">
-      <i class="fas fa-chevron-left"></i> Back
+      <i class="fas fa-chevron-left" aria-hidden="true"></i> Back
     </button>
   </div>
   <div id="sticky-audio-slot"></div>
@@ -1481,9 +1487,24 @@ function displayStory(
       audioEl.style.width = "100%"; // make the <audio> itself fill its slot
     }
   }
-  // 2) Fill the left-side genre slot immediately
+  // 2) Fill the left-side genre slot immediately. It's icon-only, so give
+  // it the same role="img"/title/aria-label treatment as the browse-list
+  // genre chip (see genreDiv in createStoryCard) rather than leaving it a
+  // silent icon for screen reader users.
   const genreSlot = document.getElementById("sticky-genre-slot");
-  if (genreSlot) genreSlot.innerHTML = genreIcon;
+  if (genreSlot) {
+    genreSlot.innerHTML = genreIcon;
+    const genreLabel = formatStoryGenre(selectedStory.genre);
+    if (genreLabel) {
+      genreSlot.title = genreLabel;
+      genreSlot.setAttribute("role", "img");
+      genreSlot.setAttribute("aria-label", genreLabel);
+    } else {
+      genreSlot.removeAttribute("role");
+      genreSlot.removeAttribute("aria-label");
+      genreSlot.removeAttribute("title");
+    }
+  }
 
   // 3) Create the English toggle once, in its fixed slot (no later moves)
   const rc = document.getElementById("right-controls");
