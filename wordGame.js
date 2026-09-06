@@ -10491,6 +10491,7 @@ function generateClozeDistractors(wordObj, clozeTarget) {
   const eligible = getA0SafeNorwegianDistractorPool(results, wordObj).filter(
     (entry) =>
       entry?.ord &&
+      !isExcludedFromRandomSelection(entry.ord) &&
       !BANNED_WORD_CLASSES.some((banned) =>
         entry.gender?.toLowerCase().startsWith(banned),
       ) &&
