@@ -6417,6 +6417,7 @@ function showWordGameRoundSummary() {
         case "repeat-daily":
           beginWordGameRound("session", DAILY_QUEST_ROUND_TARGET, {
             todayPractice: true,
+            dailyQuestIndex: completedDailyQuestIndex,
           });
           break;
         case "repeat-bonus":
